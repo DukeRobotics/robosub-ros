@@ -1,0 +1,4 @@
+# Ignore catkin directories other than src
+src/catkin_ws/build
+src/catkin_ws/devel
+src/catkin_ws/logs
