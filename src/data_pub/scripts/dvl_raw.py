@@ -1,16 +1,23 @@
 #!/usr/bin/env python
 
 import serial
+import serial.tools.list_ports as list_ports
 import rospy
 from std_msgs.msg import String
 
-def do():
-    s = serial.Serial('/dev/ttyUSB1', 9600, 
+FTDI_STR = 'FT232R'
+BAUDRATE = 9600
+TOPIC_NAME = 'dvl_raw'
+NODE_NAME = 'dvl_raw_publisher'
+
+def run():
+    serial_port = next(list_ports.grep(FTDI_STR)).device
+    s = serial.Serial(serial_port, BAUDRATE, 
             timeout=0.1, write_timeout=1.0,
             bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
             stopbits=serial.STOPBITS_ONE)
-    pub = rospy.Publisher('testtopic', String, queue_size=10)
-    rospy.init_node('davids_node')
+    pub = rospy.Publisher(TOPIC_NAME, String, queue_size=10)
+    rospy.init_node(NODE_NAME)
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():
     	pub.publish(s.readline())
@@ -18,6 +25,6 @@ def do():
 
 if __name__ == '__main__':
     try:
-    	do()
+    	run()
     except rospy.ROSInterruptException:
     	pass
