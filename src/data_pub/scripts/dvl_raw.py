@@ -81,16 +81,31 @@ class DvlRawPublisher:
         self._current_msg.dvl.bi_z_axis = fields[2]
         self._current_msg.dvl.bi_error = fields[3]
         self._current_msg.dvl.bi_status = line.split(self.LINE_DELIM)[4]
-        self._publish_current_msg()
 
     def _parse_BS(self, line):
-        pass
+        fields = self._extract_floats(line, 0, 3)
+        self._current_msg.dvl.bs_transverse = fields[0]
+        self._current_msg.dvl.bs_longitudinal = fields[1]
+        self._current_msg.dvl.bs_normal = fields[2]
+        self._current_msg.dvl.bs_status = line.split(self.LINE_DELIM)[3]
 
     def _parse_BE(self, line):
-        pass
+        fields = self._extract_floats(line, 0, 3)
+        self._current_msg.dvl.be_east = fields[0]
+        self._current_msg.dvl.be_north = fields[1]
+        self._current_msg.dvl.be_upwards = fields[2]
+        self._current_msg.dvl.be_status = line.split(self.LINE_DELIM)[3]
 
     def _parse_BD(self, line):
-        pass
+        fields = self._extract_floats(line, 0, None)
+        self._current_msg.dvl.bd_east = fields[0]
+        self._current_msg.dvl.bd_north = fields[1]
+        self._current_msg.dvl.bd_upwards = fields[2]
+        self._current_msg.dvl.bd_range = fields[3]
+        self._current_msg.dvl.bd_time = fields[4]
+
+        # BD type is the last message received, so publish
+        self._publish_current_msg()
 
     def _extract_floats(self, num_string, start, stop):
         return [float(num) 
