@@ -3,10 +3,7 @@
 import serial
 import serial.tools.list_ports as list_ports
 import rospy
-import tf.transformations as transform
 
-from std_msgs.msg import String
-from underwater_sensor_msgs.msg import DVL
 from data_pub.msg import DVLRaw
 
 class DvlRawPublisher:
@@ -58,56 +55,55 @@ class DvlRawPublisher:
 
     def _parse_SA(self, line):
         fields = self._extract_floats(line, 0, None)
-        quat = transform.quaternion_from_euler(fields[1], 
-                fields[0], 
-                fields[2])
-        self._current_msg.orientation.x = quat[0]
-        self._current_msg.orientation.y = quat[1]
-        self._current_msg.orientation.z = quat[2]
-        self._current_msg.orientation.w = quat[3]
+        self._current_msg.sa_roll = fields[0]
+        self._current_msg.sa_pitch = fields[1]
+        self._current_msg.sa_heading = fields[2]
 
     def _parse_TS(self, line):
         fields = self._extract_floats(line, 1, None)
-        self._current_msg.dvl.salinity = fields[0]
-        self._current_msg.dvl.temperature = fields[1]
-        self._current_msg.dvl.depth = fields[2]
-        self._current_msg.dvl.sound_speed = fields[3]
-        self._current_msg.dvl.test = int(fields[4])
+        self._current_msg.ts_salinity = fields[0]
+        self._current_msg.ts_temperature = fields[1]
+        self._current_msg.ts_depth = fields[2]
+        self._current_msg.ts_sound_speed = fields[3]
+        self._current_msg.ts_built_in_test = int(fields[4])
 
     def _parse_BI(self, line):
         fields = self._extract_floats(line, 0, 4)
-        self._current_msg.dvl.bi_x_axis = fields[0]
-        self._current_msg.dvl.bi_y_axis = fields[1]
-        self._current_msg.dvl.bi_z_axis = fields[2]
-        self._current_msg.dvl.bi_error = fields[3]
-        self._current_msg.dvl.bi_status = line.split(self.LINE_DELIM)[4]
+        self._current_msg.bi_x_axis = fields[0]
+        self._current_msg.bi_y_axis = fields[1]
+        self._current_msg.bi_z_axis = fields[2]
+        self._current_msg.bi_error = fields[3]
+        self._current_msg.bi_status = line.split(self.LINE_DELIM)[4]
 
     def _parse_BS(self, line):
         fields = self._extract_floats(line, 0, 3)
-        self._current_msg.dvl.bs_transverse = fields[0]
-        self._current_msg.dvl.bs_longitudinal = fields[1]
-        self._current_msg.dvl.bs_normal = fields[2]
-        self._current_msg.dvl.bs_status = line.split(self.LINE_DELIM)[3]
+        self._current_msg.bs_transverse = fields[0]
+        self._current_msg.bs_longitudinal = fields[1]
+        self._current_msg.bs_normal = fields[2]
+        self._current_msg.bs_status = line.split(self.LINE_DELIM)[3]
 
     def _parse_BE(self, line):
         fields = self._extract_floats(line, 0, 3)
-        self._current_msg.dvl.be_east = fields[0]
-        self._current_msg.dvl.be_north = fields[1]
-        self._current_msg.dvl.be_upwards = fields[2]
-        self._current_msg.dvl.be_status = line.split(self.LINE_DELIM)[3]
+        self._current_msg.be_east = fields[0]
+        self._current_msg.be_north = fields[1]
+        self._current_msg.be_upwards = fields[2]
+        self._current_msg.be_status = line.split(self.LINE_DELIM)[3]
 
     def _parse_BD(self, line):
         fields = self._extract_floats(line, 0, None)
-        self._current_msg.dvl.bd_east = fields[0]
-        self._current_msg.dvl.bd_north = fields[1]
-        self._current_msg.dvl.bd_upwards = fields[2]
-        self._current_msg.dvl.bd_range = fields[3]
-        self._current_msg.dvl.bd_time = fields[4]
+        self._current_msg.bd_east = fields[0]
+        self._current_msg.bd_north = fields[1]
+        self._current_msg.bd_upwards = fields[2]
+        self._current_msg.bd_range = fields[3]
+        self._current_msg.bd_time = fields[4]
 
         # BD type is the last message received, so publish
         self._publish_current_msg()
 
     def _extract_floats(self, num_string, start, stop):
+        """Return a list of floats from a given string,
+        using LINE_DELIM and going from start to stop
+        """
         return [float(num) 
             for num 
             in num_string.split(self.LINE_DELIM)[start:stop]]
