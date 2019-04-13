@@ -28,9 +28,9 @@ def callback(msg):
     vz = np.float64(msg.bs_normal)
 
     # quat
-    yaw = np.float64(msg.sa_roll)
+    roll = np.float64(msg.sa_roll)
     pitch = np.float64(msg.sa_pitch)
-    roll = np.float64(msg.sa_heading)
+    yaw = np.float64(msg.sa_heading)
     odom_quat = quaternion_from_euler(yaw,pitch,roll)
 
 
