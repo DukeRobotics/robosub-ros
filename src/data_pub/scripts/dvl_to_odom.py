@@ -4,6 +4,8 @@ import numpy as np
 from std_msgs.msg import String
 from data_pub.msg import DVLRaw
 from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Quaternion
+from tf.transformations import quaternion_from_euler
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 
 
@@ -30,24 +32,12 @@ def callback(msg):
     yaw = np.float64(msg.sa_roll)
     pitch = np.float64(msg.sa_pitch)
     roll = np.float64(msg.sa_heading)
+    odom_quat = quaternion_from_euler(yaw,pitch,roll)
 
-    q =  Quaternion()
-    double cy = cos(yaw * 0.5);
-    double sy = sin(yaw * 0.5);
-    double cp = cos(pitch * 0.5);
-    double sp = sin(pitch * 0.5);
-    double cr = cos(roll * 0.5);
-    double sr = sin(roll * 0.5);
 
-    Quaterniond q;
-    q.w() = cy * cp * cr + sy * sp * sr;
-    q.x() = cy * cp * sr - sy * sp * cr;
-    q.y() = sy * cp * sr + cy * sp * cr;
-    q.z() = sy * cp * cr - cy * sp * sr;
 
-    
     # TODO: quanternion in pose, do not know how to do, uses tf
-    odom.pose.pose = Pose(Point(x, y, z), q)
+    odom.pose.pose = Pose(Point(x, y, z), Quaternion(*odom_quat))
     odom.child_frame_id = "base_link"
     # TODO: i have put 0 for all angular velocity, may need update
     odom.twist.twist = Twist(Vector3(vx, vy, vz), Vector3(0, 0, 0))
