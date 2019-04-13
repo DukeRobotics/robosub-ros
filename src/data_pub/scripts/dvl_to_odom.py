@@ -33,8 +33,6 @@ def callback(msg):
     yaw = np.float64(msg.sa_heading)
     odom_quat = quaternion_from_euler(yaw,pitch,roll)
 
-
-
     # set pose
     odom.pose.pose = Pose(Point(x, y, z), Quaternion(*odom_quat))
     odom.child_frame_id = "base_link"
@@ -42,8 +40,7 @@ def callback(msg):
     odom.twist.twist = Twist(Vector3(vx, vy, vz), Vector3(0, 0, 0))
     odom_pub.publish(odom)
 
-    
-    
+   
 def listener():   
     #initialize subscirber
     rospy.init_node("dvl_listener")
