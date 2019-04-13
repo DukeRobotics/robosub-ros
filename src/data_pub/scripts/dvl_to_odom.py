@@ -26,9 +26,28 @@ def callback(msg):
     vy = np.float64(msg.bs_longitudinal) 
     vz = np.float64(msg.bs_normal)
 
-    quat = [0.0,0.0,0.0,0.0]
+    # quat
+    yaw = np.float64(msg.sa_roll)
+    pitch = np.float64(msg.sa_pitch)
+    roll = np.float64(msg.sa_heading)
+
+    q =  Quaternion()
+    double cy = cos(yaw * 0.5);
+    double sy = sin(yaw * 0.5);
+    double cp = cos(pitch * 0.5);
+    double sp = sin(pitch * 0.5);
+    double cr = cos(roll * 0.5);
+    double sr = sin(roll * 0.5);
+
+    Quaterniond q;
+    q.w() = cy * cp * cr + sy * sp * sr;
+    q.x() = cy * cp * sr - sy * sp * cr;
+    q.y() = sy * cp * sr + cy * sp * cr;
+    q.z() = sy * cp * cr - cy * sp * sr;
+
+    
     # TODO: quanternion in pose, do not know how to do, uses tf
-    odom.pose.pose = Pose(Point(x, y, z), quat)
+    odom.pose.pose = Pose(Point(x, y, z), q)
     odom.child_frame_id = "base_link"
     # TODO: i have put 0 for all angular velocity, may need update
     odom.twist.twist = Twist(Vector3(vx, vy, vz), Vector3(0, 0, 0))
