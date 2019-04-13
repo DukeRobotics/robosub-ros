@@ -4,7 +4,6 @@ import numpy as np
 from std_msgs.msg import String
 from data_pub.msg import DVLRaw
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Quaternion
 from tf.transformations import quaternion_from_euler
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 
@@ -36,23 +35,16 @@ def callback(msg):
 
 
 
-    # TODO: quanternion in pose, do not know how to do, uses tf
+    # set pose
     odom.pose.pose = Pose(Point(x, y, z), Quaternion(*odom_quat))
     odom.child_frame_id = "base_link"
-    # TODO: i have put 0 for all angular velocity, may need update
+    # set twist (angular velocity to 0,0,0)
     odom.twist.twist = Twist(Vector3(vx, vy, vz), Vector3(0, 0, 0))
     odom_pub.publish(odom)
 
     
     
-def listener():
-
-    # In ROS, nodes are uniquely named. If two nodes with the same
-    # name are launched, the previous one is kicked off. The
-    # anonymous=True flag means that rospy will choose a unique
-    # name for our 'listener' node so that multiple listeners can
-    # run simultaneously.
-    
+def listener():   
     #initialize subscirber
     rospy.init_node("dvl_listener")
     rospy.Subscriber("dvl_raw", DVLRaw, callback)
