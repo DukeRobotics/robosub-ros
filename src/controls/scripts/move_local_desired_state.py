@@ -3,6 +3,9 @@
 import rospy
 from tf.transformations import euler_from_quaternion
 
+from mavros_msgs.srv import ParamSet
+from mavros_msgs.msg import ParamValue
+from mavros_msgs.srv import CommandBool
 from std_srvs.srv import Empty
 from mavros_msgs.msg import OverrideRCIn
 from geometry_msgs.msg import Pose
@@ -11,9 +14,13 @@ from controls.msg import DesiredStateLocal
 class MoveToLocalPose:
 
     NODE_NAME = 'local_pose_movement'
+    GCS_ID = 'SYSID_MYGCS'
+
     LISTENING_TOPIC = 'desired_pose/local'
-    OVERRIDE_TOPIC = '/mavros/rc/override'
+    OVERRIDE_TOPIC = 'mavros/rc/override'
     STOP_SERVICE = 'controls/stop'
+    MAVPARAM_SET_SERVICE = '/mavros/param/set'
+    ARMING_SERVICE = '/mavros/cmd/arming'
 
     INVALID_SPEEDS_MESSAGE = 'Invalid speeds given, ignoring message. Speeds must be between 0 and 1.'
 
@@ -37,12 +44,27 @@ class MoveToLocalPose:
 
     def run(self):
         rospy.init_node(self.NODE_NAME)
+        rospy.wait_for_service(self.MAVPARAM_SET_SERVICE)
+        rospy.wait_for_service(self.ARMING_SERVICE)
 
         rospy.Subscriber(self.LISTENING_TOPIC, DesiredStateLocal, self._on_receive)
         rospy.Service(self.STOP_SERVICE, Empty, self._handle_stop)
 
+        self._set_gcs_id()
+
+        self._arm_robot()
+
         while not rospy.is_shutdown():
             self._move_to_desired_state()
+
+    def _set_gcs_id(self):
+        '''Set a parameter on the pixhawk to allow rc override commands'''
+        set_mavparam = rospy.ServiceProxy(self.MAVPARAM_SET_SERVICE, ParamSet)
+        set_mavparam(self.GCS_ID, ParamValue(1, 1))
+
+    def _arm_robot(self):
+        arm = rospy.ServiceProxy(self.ARMING_SERVICE, CommandBool)
+        arm(True)
 
     def _move_to_desired_state(self):
         '''Generate rc inputs as defined here:
