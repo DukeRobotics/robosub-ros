@@ -4,6 +4,7 @@ import rospy
 from tf.transformations import euler_from_quaternion
 
 from mavros_msgs.msg import OverrideRCIn
+from geometry_msgs.msg import Pose
 from controls.msg import DesiredStateLocal
 
 class MoveToLocalPose:
@@ -15,10 +16,10 @@ class MoveToLocalPose:
     INVALID_SPEEDS_MESSAGE = 'Invalid speeds given, ignoring message. Speeds must be between 0 and 1.'
 
     def __init__(self):
-        self._desired_local_state = DesiredStateLocal()
+        self._desired_local_state = Pose()
         self._desired_relative_speeds = [0] * 6
 
-        self._pub = rospy.Publisher(OVERRIDE_TOPIC, OverrideRCIn, queue_size=10)
+        self._pub = rospy.Publisher(self.OVERRIDE_TOPIC, OverrideRCIn, queue_size=10)
 
     def _on_receive(self, msg):
         if not self._desired_speeds_valid:
@@ -30,7 +31,7 @@ class MoveToLocalPose:
     def run(self):
         rospy.init_node(self.NODE_NAME)
 
-        rospy.Subscriber(LISTENING_TOPIC, DesiredStateLocal, _on_receive)
+        rospy.Subscriber(self.LISTENING_TOPIC, DesiredStateLocal, self._on_receive)
 
         while not rospy.is_shutdown():
             self._move_to_desired_state()
@@ -44,23 +45,25 @@ class MoveToLocalPose:
                 self._desired_local_state.orientation.y,
                 self._desired_local_state.orientation.z,
                 self._desired_local_state.orientation.w ]
-        rpy = eular_from_quaternion(quat)
+        rpy = euler_from_quaternion(quat)
 
         # x: forwards
         # y: left
         # z: up
-        output[4] = self._get_pwm_value(self._desired_local_state.position.x, self.speeds[0])
-        output[5] = self._get_pwm_value(self._desired_local_state.position.y, self.speeds[1])
-        output[2] = self._get_pwm_value(self._desired_local_state.position.z, self.speeds[2])
+        output[4] = self._get_pwm_value(self._desired_local_state.position.x, self._desired_relative_speeds[0])
+        output[5] = self._get_pwm_value(self._desired_local_state.position.y, self._desired_relative_speeds[1])
+        output[2] = self._get_pwm_value(self._desired_local_state.position.z, self._desired_relative_speeds[2])
 
         # roll
         # pitch
         # yaw
-        output[1] = self._get_pwm_value(rpy[0], self.speeds[3])
-        output[0] = self._get_pwm_value(rpy[1], self.speeds[4])
-        output[3] = self._get_pwm_value(rpy[2], self.speeds[5])
+        output[1] = self._get_pwm_value(rpy[0], self._desired_relative_speeds[3])
+        output[0] = self._get_pwm_value(rpy[1], self._desired_relative_speeds[4])
+        output[3] = self._get_pwm_value(rpy[2], self._desired_relative_speeds[5])
 
-        
+        override_message = OverrideRCIn()
+        override_message.channels = output
+        self._pub.publish(override_message)
 
     def _get_pwm_value(self, state_diff, speed):
         pwm_diff = speed * 500
