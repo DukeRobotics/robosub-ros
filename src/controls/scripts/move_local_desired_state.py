@@ -3,6 +3,7 @@
 import rospy
 from tf.transformations import euler_from_quaternion
 
+from std_srvs.srv import Empty
 from mavros_msgs.msg import OverrideRCIn
 from geometry_msgs.msg import Pose
 from controls.msg import DesiredStateLocal
@@ -12,6 +13,7 @@ class MoveToLocalPose:
     NODE_NAME = 'local_pose_movement'
     LISTENING_TOPIC = 'desired_pose/local'
     OVERRIDE_TOPIC = '/mavros/rc/override'
+    STOP_SERVICE = 'controls/stop'
 
     INVALID_SPEEDS_MESSAGE = 'Invalid speeds given, ignoring message. Speeds must be between 0 and 1.'
 
@@ -20,6 +22,7 @@ class MoveToLocalPose:
         self._desired_relative_speeds = [0] * 6
 
         self._pub = rospy.Publisher(self.OVERRIDE_TOPIC, OverrideRCIn, queue_size=10)
+        
 
     def _on_receive(self, msg):
         if not self._desired_speeds_valid:
@@ -28,10 +31,15 @@ class MoveToLocalPose:
         self._desired_local_state = msg.state
         self._desired_relative_speeds = msg.speeds
 
+    def _handle_stop(self, req):
+        self._desired_local_state = Pose()
+        self._desired_relative_speeds = [0] * 6
+
     def run(self):
         rospy.init_node(self.NODE_NAME)
 
         rospy.Subscriber(self.LISTENING_TOPIC, DesiredStateLocal, self._on_receive)
+        rospy.Service(self.STOP_SERVICE, Empty, self._handle_stop)
 
         while not rospy.is_shutdown():
             self._move_to_desired_state()
