@@ -45,7 +45,7 @@ find_package(catkin REQUIRED rospy message_generation geometry_msgs std_srvs)
 ## Generate messages in the 'msg' folder
  add_message_files(
    FILES
-   DesiredStateLocal.msg
+   MoveWithSpeeds.msg
  )
 
 ## Generate services in the 'srv' folder
