@@ -36,7 +36,7 @@ def callback(msg):
     # set pose
     odom.pose.pose = Pose(Point(x, y, z), Quaternion(*odom_quat))
     odom.child_frame_id = "dvl"
-    # set twist (angular velocity to 0,0,0)
+    # set twist (set angular velocity to (0, 0, 0), should not be used)
     odom.twist.twist = Twist(Vector3(vx, vy, vz), Vector3(0, 0, 0))
     odom_pub.publish(odom)
 
