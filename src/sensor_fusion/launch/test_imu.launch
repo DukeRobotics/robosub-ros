@@ -1,0 +1,14 @@
+<launch>
+
+        <param name="robot_description" command="cat $(find sub-urdf)/urdf/sub-urdf.urdf" />
+
+        <node pkg="robot_localization" type="ekf_localization_node" name="ekf_test_imu" clear_params="true">
+                <rosparam command="load" file="$(find sensor_fusion)/params/test_imu.yaml" />
+
+                <!--
+                <remap from="odometry/filtered" to="" />
+                <remap from="accel/filtered" to="" />
+                -->
+        </node>
+</launch>
+
