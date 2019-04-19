@@ -7,10 +7,11 @@ from nav_msgs.msg import Odometry
 from tf.transformations import quaternion_from_euler
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 
-NODE_NAME = "dvl_odom_pub"
-DVL_RAW_TOPIC = "/sensors/dvl_raw"
+NODE_NAME = 'dvl_odom_pub'
+DVL_RAW_TOPIC = 'sensors/dvl/raw'
+DVL_ODOM_TOPIC = 'sensors/dvl/odom'
 
-odom_pub = rospy.Publisher('dvl/odom', Odometry, queue_size=50)
+odom_pub = rospy.Publisher(DVL_ODOM_TOPIC, Odometry, queue_size=50)
 
 def callback(msg):
     # handle message here
