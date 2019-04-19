@@ -42,7 +42,6 @@ def callback(msg):
 
    
 def listener():   
-    #initialize subscirber
     rospy.init_node("dvl_listener")
     rospy.Subscriber("dvl_raw", DVLRaw, callback)
     rospy.spin()
