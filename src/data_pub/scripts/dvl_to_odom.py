@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import rospy
 import numpy as np
+import math
+
 from std_msgs.msg import String
 from data_pub.msg import DVLRaw
 from nav_msgs.msg import Odometry
@@ -31,9 +33,9 @@ def callback(msg):
     vz = np.float64(msg.bs_normal) / 1000
 
     # quat
-    roll = np.float64(msg.sa_roll)
-    pitch = np.float64(msg.sa_pitch)
-    yaw = np.float64(msg.sa_heading)
+    roll = math.radians(np.float64(msg.sa_roll))
+    pitch = math.radians(np.float64(msg.sa_pitch))
+    yaw = math.radians(np.float64(msg.sa_heading))
     odom_quat = quaternion_from_euler(roll, pitch, yaw)
 
     # set pose
