@@ -8,7 +8,7 @@ from tf.transformations import quaternion_from_euler
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 
 
-odom_pub = rospy.Publisher('odom', Odometry, queue_size=50)
+odom_pub = rospy.Publisher('dvl/odom', Odometry, queue_size=50)
 
 def callback(msg):
     # handle message here
@@ -17,15 +17,15 @@ def callback(msg):
     odom.header.stamp = current_time
     odom.header.frame_id = 'odom'
 
-    # be position
-    x = np.float64(msg.be_east)
-    y = np.float64(msg.be_north)
-    z = np.float64(msg.be_upwards)
+    # Position data does not exist, is set to 0 here and should not be used
+    x = 0
+    y = 0
+    z = 0
 
     # bs velocity
-    vx = np.float64(msg.bs_transverse)
-    vy = np.float64(msg.bs_longitudinal) 
-    vz = np.float64(msg.bs_normal)
+    vx = np.float64(msg.bs_transverse) / 1000
+    vy = np.float64(msg.bs_longitudinal) / 1000
+    vz = np.float64(msg.bs_normal) / 1000
 
     # quat
     roll = np.float64(msg.sa_roll)
