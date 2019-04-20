@@ -1,0 +1,4 @@
+<launch>
+	<include file="$(find static_transforms)/launch/static_transforms.launch" />
+	<include file="$(find sensor_fusion)/launch/main.launch" />
+</launch>
