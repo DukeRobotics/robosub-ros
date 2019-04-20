@@ -15,9 +15,9 @@ class MoveToLocalPose:
     NODE_NAME = 'local_pose_movement'
     GCS_ID = 'SYSID_MYGCS'
 
-    LISTENING_TOPIC = 'controls/move'
+    LISTENING_TOPIC = '/robosub/controls/move'
     OVERRIDE_TOPIC = 'mavros/rc/override'
-    STOP_SERVICE = 'controls/stop'
+    STOP_SERVICE = '/robosub/controls/stop'
     MAVPARAM_SET_SERVICE = '/mavros/param/set'
     ARMING_SERVICE = '/mavros/cmd/arming'
 
