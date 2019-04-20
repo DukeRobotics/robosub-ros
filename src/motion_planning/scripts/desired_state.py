@@ -79,7 +79,11 @@ class ToDesiredState:
             return (distance / self.DISTANCE_CUTOFF) * self.MAX_SPEED
 
     def _get_speed_for_angle(self, angle):
-        return (angle / 2 * math.pi) * self.ANGLE_MAX_SPEED
+        sign = (angle > 0) - (angle < 0)
+        if abs(angle) > self.ANGLE_MAX_SPEED:
+            return self.ANGLE_MAX_SPEED * sign
+        else:
+            return (angle / 2 * math.pi) * self.ANGLE_MAX_SPEED
 
     def _get_state_diff(self, pose1, pose2):
         """Get the difference between two poses, returning an array
