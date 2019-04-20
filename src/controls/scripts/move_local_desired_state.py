@@ -30,8 +30,8 @@ class MoveToLocalPose:
 
     def _on_receive(self, msg):
         if not self._desired_speeds_valid(msg.speeds):
-            rospy.logwarn(self.INVALID_SPEEDS_MESSGE)
-            self._stop()
+            rospy.logwarn(self.INVALID_SPEEDS_MESSAGE)
+            self._stop(None)
             return
 
         self._speeds = msg.speeds
