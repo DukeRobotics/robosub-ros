@@ -1,7 +1,7 @@
 <launch>
 
 	<!-- Start mavros -->
-	<include file="$(find mavros)/launch/apm.launch>
+	<include file="$(find mavros)/launch/apm.launch">
 		<!--
 		<arg name="gcs_url" value="">
 		-->
