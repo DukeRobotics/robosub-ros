@@ -16,6 +16,11 @@ DVL_ODOM_TOPIC = 'robosub/sensors/dvl/odom'
 odom_pub = rospy.Publisher(DVL_ODOM_TOPIC, Odometry, queue_size=50)
 
 def callback(msg):
+    # check if the data is good (for now, only check bs and sa status as they are the only two data that we are currently using) (there is no status for sa)
+    # for status: A = good, V = bad
+    status = msg.bs_status
+    if status=="V":
+        return
     # handle message here
     odom = Odometry()
     current_time = rospy.Time.now()
