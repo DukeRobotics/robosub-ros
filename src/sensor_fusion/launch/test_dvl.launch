@@ -5,10 +5,7 @@
         <node pkg="robot_localization" type="ekf_localization_node" name="ekf_test_dvl" clear_params="true">
                 <rosparam command="load" file="$(find sensor_fusion)/params/test_dvl.yaml" />
 
-                <!--
-                <remap from="odometry/filtered" to="" />
-                <remap from="accel/filtered" to="" />
-                -->
+                <remap from="odometry/filtered" to="robosub/state" />
         </node>
 </launch>
 
