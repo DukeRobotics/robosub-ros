@@ -10,7 +10,7 @@ class DvlRawPublisher:
 
     FTDI_STR = 'FT232R'
     BAUDRATE = 9600
-    TOPIC_NAME = 'sensors/dvl/raw'
+    TOPIC_NAME = 'robosub/sensors/dvl/raw'
     NODE_NAME = 'dvl_raw_publisher'
     LINE_DELIM = ','
 
