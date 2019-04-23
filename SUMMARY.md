@@ -1,4 +1,4 @@
 # Table of contents
 
-* [Initial page](README.md)
+* [Welcome to Duke Robotics Club](README.md)
 
