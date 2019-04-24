@@ -14,9 +14,9 @@ class ToDesiredState:
 
     NO_STATE_MESSAGE = 'State has not yet been published, ignoring move commands'
 
-    CONTROLS_TOPIC = '/robosub/controls/move'
-    DESIRED_STATE_TOPIC = 'robosub/motion_planning/desired_state_global'
-    ROBOT_STATE_TOPIC = 'robosub/state'
+    CONTROLS_TOPIC = 'controls/move'
+    DESIRED_STATE_TOPIC = 'motion_planning/desired_state_global'
+    ROBOT_STATE_TOPIC = 'state'
 
     DISTANCE_CUTOFF = 2
     MAX_SPEED = 0.7
