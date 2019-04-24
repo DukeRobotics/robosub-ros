@@ -19,7 +19,7 @@ def callback(msg):
     # check if the data is good (for now, only check bs and sa status as they are the only two data that we are currently using) (there is no status for sa)
     # for status: A = good, V = bad
     status = msg.bs_status
-    if status=="V":
+    if status == "V":
         return
     # handle message here
     odom = Odometry()
