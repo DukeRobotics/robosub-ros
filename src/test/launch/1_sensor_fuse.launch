@@ -1,0 +1,16 @@
+<launch>
+
+	<!-- Start mavros -->
+	<include file="$(find mavros)/launch/apm.launch">
+		<!--
+		<arg name="gcs_url" value="">
+		-->
+	</include>
+
+	<!-- Publishing dvl data -->
+	<include file="$(find data_pub)/launch/pub_dvl.launch" />
+
+	<!-- Static transforms and sensor fusion -->
+	<include file="$(find static_transforms)/launch/static_transforms.launch" />
+	<include file="$(find sensor_fusion)/launch/main.launch" />
+</launch>
