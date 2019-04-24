@@ -10,8 +10,9 @@ from tf.transformations import quaternion_from_euler
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 
 NODE_NAME = 'dvl_odom_pub'
-DVL_RAW_TOPIC = 'robosub/sensors/dvl/raw'
-DVL_ODOM_TOPIC = 'robosub/sensors/dvl/odom'
+DVL_RAW_TOPIC = 'sensors/dvl/raw'
+DVL_ODOM_TOPIC = 'sensors/dvl/odom'
+
 DVL_BAD_STATUS_MSG = 'V'
 
 odom_pub = rospy.Publisher(DVL_ODOM_TOPIC, Odometry, queue_size=50)
