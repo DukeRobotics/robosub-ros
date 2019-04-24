@@ -73,15 +73,15 @@ class MoveToLocalPose:
         # y: left
         # z: up
         output[4] = self._speed_to_pwm(self._speeds[0])
-        output[5] = self._speed_to_pwm(self._speeds[1])
+        output[5] = self._speed_to_pwm(-self._speeds[1])
         output[2] = self._speed_to_pwm(self._speeds[2])
 
         # roll
         # pitch
         # yaw
         output[1] = self._speed_to_pwm(self._speeds[3])
-        output[0] = self._speed_to_pwm(self._speeds[4])
-        output[3] = self._speed_to_pwm(self._speeds[5])
+        output[0] = self._speed_to_pwm(-self._speeds[4])
+        output[3] = self._speed_to_pwm(-self._speeds[5])
 
         override_message = OverrideRCIn()
         override_message.channels = output
