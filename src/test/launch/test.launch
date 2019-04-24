@@ -1,3 +1,0 @@
-<launch>
-	<include file="$(find mavros)/launch/apm.launch" ns="foo" />
-</launch>
