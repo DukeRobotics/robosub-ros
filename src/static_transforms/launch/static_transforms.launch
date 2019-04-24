@@ -1,4 +1,5 @@
 <launch>
 	<node pkg="tf2_ros" type="static_transform_publisher" name="dvl_link_publisher" args="0 0 -.4 0 0 0 base_link dvl_link" />
 	<node pkg="tf2_ros" type="static_transform_publisher" name="cameras_link_publisher" args=".6 .2 .3 0 0 0 base_link cameras_link" />
+	<node pkg="tf2_ros" type="static_transform_publisher" name="imu_link_publisher" args="0 0 0 0 0 0 base_link imu_link" />
 </launch>
