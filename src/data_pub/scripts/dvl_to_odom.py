@@ -12,10 +12,15 @@ from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 NODE_NAME = 'dvl_odom_pub'
 DVL_RAW_TOPIC = 'robosub/sensors/dvl/raw'
 DVL_ODOM_TOPIC = 'robosub/sensors/dvl/odom'
+DVL_BAD_STATUS_MSG = 'V'
 
 odom_pub = rospy.Publisher(DVL_ODOM_TOPIC, Odometry, queue_size=50)
 
 def callback(msg):
+    # check if the data is good (for now, only check bs and sa status as they are the only two data that we are currently using) (there is no status for sa)
+    # for status: A = good, V = bad
+    if msg.bs_status == DVL_BAD_STATUS_MSG:
+        return
     # handle message here
     odom = Odometry()
     current_time = rospy.Time.now()
