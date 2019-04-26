@@ -10,7 +10,7 @@ from std_srvs.srv import Empty
 from mavros_msgs.msg import OverrideRCIn
 from controls.msg import MoveWithSpeeds
 
-OVERRIDERC_PUBLISH_RATE = 0#in Hz
+OVERRIDERC_PUBLISH_RATE = 1#in Hz
 
 class MoveToLocalPose:
 
