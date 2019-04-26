@@ -25,6 +25,8 @@ class MoveToLocalPose:
 
     INVALID_SPEEDS_MESSAGE = 'Invalid speeds given, ignoring message and stopping movement. Speeds must be between -1 and 1.'
 
+    OVERRIDERC_PUBLISH_RATE = 1     #in Hz
+
     def __init__(self):
         self._speeds = [0] * 6
         self._pub = rospy.Publisher(self.OVERRIDE_TOPIC, OverrideRCIn, queue_size=10)
@@ -53,7 +55,7 @@ class MoveToLocalPose:
 
         self._arm_robot()
 
-        rate = rospy.Rate(OVERRIDERC_PUBLISH_RATE)
+        rate = rospy.Rate(self.OVERRIDERC_PUBLISH_RATE)
         while not rospy.is_shutdown():
             self._move()
             rate.sleep()
