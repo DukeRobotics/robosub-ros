@@ -53,7 +53,7 @@ class MoveToLocalPose:
 
         self._arm_robot()
 
-        rate = rospy.Rate(PUBLISH_RATE)
+        rate = rospy.Rate(OVERRIDERC_PUBLISH_RATE)
         while not rospy.is_shutdown():
             self._move()
             rate.sleep()
