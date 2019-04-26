@@ -10,6 +10,8 @@ from std_srvs.srv import Empty
 from mavros_msgs.msg import OverrideRCIn
 from controls.msg import MoveWithSpeeds
 
+OVERRIDERC_PUBLISH_RATE = 0#in Hz
+
 class MoveToLocalPose:
 
     NODE_NAME = 'local_pose_movement'
@@ -26,7 +28,7 @@ class MoveToLocalPose:
     def __init__(self):
         self._speeds = [0] * 6
         self._pub = rospy.Publisher(self.OVERRIDE_TOPIC, OverrideRCIn, queue_size=10)
-        
+
 
     def _on_receive(self, msg):
         if not self._desired_speeds_valid(msg.speeds):
@@ -51,8 +53,10 @@ class MoveToLocalPose:
 
         self._arm_robot()
 
+        rate = rospy.Rate(PUBLISH_RATE)
         while not rospy.is_shutdown():
             self._move()
+            rate.sleep()
 
     def _set_gcs_id(self):
         '''Set a parameter on the pixhawk to allow rc override commands'''
