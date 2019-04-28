@@ -1,4 +1,4 @@
 <launch>
 	<!-- Start node that listens to desired state local and publishes RC override -->
-	<node pkg="controls" type="move_local_desired_state.py" name="controls" />
+	<node pkg="controls" type="move_direction.py" name="move_direction" />
 </launch>
