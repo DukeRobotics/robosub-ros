@@ -2,9 +2,8 @@
 
 	<!-- Start mavros -->
 	<include file="$(find mavros)/launch/apm.launch">
-		<!--
-		<arg name="gcs_url" value="">
-		-->
+		<!-- <arg name="gcs_url" value="" /> -->
+		<!-- <arg name="fcu_url" value="udp://0.0.0.0:14550@" /> -->
 	</include>
 
 	<!-- Publish sensor data -->
