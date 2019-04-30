@@ -15,6 +15,7 @@ class ToDesiredState:
     NODE_NAME = 'desired_state_movement'
 
     NO_STATE_MESSAGE = 'State has not yet been published, ignoring move commands'
+    NO_TRANSFORM_MESSAGE = 'Could not get transform from base_link to odom, trying again'
 
     CONTROLS_TOPIC = 'controls/move'
     DESIRED_STATE_TOPIC = 'motion_planning/desired_state_global'
@@ -22,7 +23,8 @@ class ToDesiredState:
     PUB_RATE = 10
 
     DISTANCE_CUTOFF = 2
-    MAX_SPEED = 0.7
+    DISTANCE_MAX_SPEED = 0.7
+    ANGLE_CUTOFF = 1.571
     ANGLE_MAX_SPEED = 0.3
     
     def __init__(self):
@@ -52,11 +54,19 @@ class ToDesiredState:
             if not self._desired_state_received:
                 continue
 
-            self._to_robot_transform = \
-                 self._tfBuffer.lookup_transform('base_link', 'odom',                                                    rospy.Time(0), rospy.Duration(100))
+            self._to_robot_transform = self._get_robot_transform()
 
             self._publish_speeds()
             self._rate.sleep()
+
+    def _get_robot_transform(self):
+        """Try and get the transform from odom to base_link
+        """
+        while True:
+            try:
+                return self._tfBuffer.lookup_transform('base_link', 'odom',                                                    rospy.Time().now(), rospy.Duration(0.5))
+            except:
+                rospy.logerr(self.NO_TRANSFORM_MESSAGE)
 
     def _publish_speeds(self):
         local_desired_pose = tf2_geometry_msgs.do_transform_pose(self._desired_state,
@@ -85,16 +95,16 @@ class ToDesiredState:
         """
         sign = (distance > 0) - (distance < 0)
         if abs(distance) > self.DISTANCE_CUTOFF:
-            return self.MAX_SPEED * sign
+            return self.DISTANCE_MAX_SPEED * sign
         else:
-            return (distance / self.DISTANCE_CUTOFF) * self.MAX_SPEED
+            return (distance / self.DISTANCE_CUTOFF) * self.DISTANCE_MAX_SPEED
 
     def _get_speed_for_angle(self, angle):
         sign = (angle > 0) - (angle < 0)
-        if abs(angle) > self.ANGLE_MAX_SPEED:
+        if abs(angle) > self.ANGLE_CUTOFF:
             return self.ANGLE_MAX_SPEED * sign
         else:
-            return (angle / (2 * math.pi)) * self.ANGLE_MAX_SPEED
+            return (angle / (self.ANGLE_CUTOFF)) * self.ANGLE_MAX_SPEED
 
 
 if __name__ == '__main__':
