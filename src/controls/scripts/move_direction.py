@@ -23,7 +23,7 @@ class MoveToLocalPose:
 
     INVALID_SPEEDS_MESSAGE = 'Invalid speeds given, ignoring message and stopping movement. Speeds must be between -1 and 1.'
 
-    OVERRIDERC_PUBLISH_RATE = 1     #in Hz
+    OVERRIDERC_PUBLISH_RATE = 10     #in Hz
 
     def __init__(self):
         self._speeds = [0] * 6
