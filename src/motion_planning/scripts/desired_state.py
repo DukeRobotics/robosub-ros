@@ -6,7 +6,7 @@ from tf.transformations import quaternion_from_euler, euler_from_quaternion
 import tf2_ros
 import tf2_geometry_msgs
 
-from geometry_msgs.msg import Pose, TransformStamped
+from geometry_msgs.msg import PoseStamped, TransformStamped
 from nav_msgs.msg import Odometry
 from controls.msg import MoveWithSpeeds
 
@@ -27,14 +27,12 @@ class ToDesiredState:
     
     def __init__(self):
 
-        self._desired_state = Pose()
+        self._desired_state = PoseStamped()
 
         self._desired_state_received = False
 
         self._pub = rospy.Publisher(self.CONTROLS_TOPIC, MoveWithSpeeds, queue_size=10)
-        rospy.Subscriber(self.DESIRED_STATE_TOPIC, Pose, self._receive_desired_state)
-
-        self._rate = rospy.Rate(self.PUB_RATE)
+        rospy.Subscriber(self.DESIRED_STATE_TOPIC, PoseStamped, self._receive_desired_state)
 
     def _receive_desired_state(self, pose):
         self._desired_state = pose
@@ -44,17 +42,18 @@ class ToDesiredState:
 
         rospy.init_node(self.NODE_NAME)
 
+        self._rate = rospy.Rate(self.PUB_RATE)
+
         self._tfBuffer = tf2_ros.Buffer()
         self._tfListener = tf2_ros.TransformListener(self._tfBuffer);
-        self._tfListener.wait_for_transform('base_link', 'odom',
-                                            rospy.Time().now(), rospy.Duration.from_secs(100))
-        self._to_robot_transform = \
-                 self._tfBuffer.lookup_transform('base_link', 'odom',                                                    rospy.Time(0), rospy.Duration(0.5))
-
+        
         while not rospy.is_shutdown():
 
             if not self._desired_state_received:
                 continue
+
+            self._to_robot_transform = \
+                 self._tfBuffer.lookup_transform('base_link', 'odom',                                                    rospy.Time(0), rospy.Duration(100))
 
             self._publish_speeds()
             self._rate.sleep()
@@ -65,14 +64,14 @@ class ToDesiredState:
 
         speeds = [0] * 6
 
-        speeds[0] = self._get_speed_for_distance(local_desired_pose.position.x)
-        speeds[1] = self._get_speed_for_distance(local_desired_pose.position.y)
-        speeds[2] = self._get_speed_for_distance(local_desired_pose.position.z)
+        speeds[0] = self._get_speed_for_distance(local_desired_pose.pose.position.x)
+        speeds[1] = self._get_speed_for_distance(local_desired_pose.pose.position.y)
+        speeds[2] = self._get_speed_for_distance(local_desired_pose.pose.position.z)
 
-        rpy = euler_from_quaternion([ local_desired_pose.orientation.x,
-                                      local_desired_pose.orientation.y,
-                                      local_desired_pose.orientation.z,
-                                      local_desired_pose.orientation.w ])
+        rpy = euler_from_quaternion([ local_desired_pose.pose.orientation.x,
+                                      local_desired_pose.pose.orientation.y,
+                                      local_desired_pose.pose.orientation.z,
+                                      local_desired_pose.pose.orientation.w ])
 
         speeds[3] = self._get_speed_for_angle(rpy[0])
         speeds[4] = self._get_speed_for_angle(rpy[1])
@@ -95,7 +94,7 @@ class ToDesiredState:
         if abs(angle) > self.ANGLE_MAX_SPEED:
             return self.ANGLE_MAX_SPEED * sign
         else:
-            return (angle / 2 * math.pi) * self.ANGLE_MAX_SPEED
+            return (angle / (2 * math.pi)) * self.ANGLE_MAX_SPEED
 
 
 if __name__ == '__main__':
