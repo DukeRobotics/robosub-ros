@@ -3,26 +3,27 @@
 import rospy
 
 from gazebo_msgs.msg import ModelState
-from geometry_msgs.msg import PoseStamped
-
-# Run sitl and look at what is published
-# Make guide on how to run sitl
-# Just get sitl data and republish it to /gazebo/set_model_state (gazebo_msgs/ModelState)
-#  - Just use the pose
+from geometry_msgs.msg import PoseStamped, Twist
 
 class SitlToGazebo:
 
-    NODE_NAME = "sitl_to_gazebo"
+    NODE_NAME = 'sitl_to_gazebo'
+    MODEL_NAME = 'robosub'
+    REFERENCE_FRAME = 'world'
+    PUB_RATE = 20
+
+    GAZEBO_PUB_TOPIC = 'gazebo/set_model_state'
+    SITL_POSE_TOPIC = 'mavros/local_position/pose'
 
     def __init__(self):
-        self._last_sitl_state = PoseStamped()
+        self._last_sitl_pose_stamped = PoseStamped()
         self._sitl_pose_received = False
 
-        self._pub = rospy.Publisher(self.GAZEBO_PUB_TOPIC, ModelState queue_size=10)
+        self._pub = rospy.Publisher(self.GAZEBO_PUB_TOPIC, ModelState, queue_size=10)
         rospy.Subscriber(self.SITL_POSE_TOPIC, PoseStamped, self._receive_sitl_pose)
 
     def _receive_sitl_pose(self, pose):
-        self._last_sitl_state = pose
+        self._last_sitl_pose_stamped = pose
         self._sitl_pose_received = True
 
     def run(self):
@@ -33,10 +34,13 @@ class SitlToGazebo:
             if not self._sitl_pose_received:
                 continue
 
-            self._pub.Publish
+            model_state = ModelState()
+            model_state.model_name = self.MODEL_NAME
+            model_state.pose = self._last_sitl_pose_stamped.pose
+            model_state.twist = Twist()
+            model_state.reference_frame = self.REFERENCE_FRAME
 
+            self._pub.publish(model_state)
 
-
-    rospy.init_node(NODE_NAME)
-
-sitl_
+if __name__ == '__main__':
+    SitlToGazebo().run()
