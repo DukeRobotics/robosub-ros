@@ -1,0 +1,9 @@
+[
+    {
+        "name": "plan0",
+        "tasks": [ "task0", "task1" ]
+    }, {
+        "name": "plan1",
+        "tasks": [ "task1" ]
+    }
+]
