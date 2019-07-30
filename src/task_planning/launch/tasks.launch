@@ -1,0 +1,7 @@
+<launch>
+    <!-- The name of the plan to run -->
+    <arg name="plan" />
+
+    <!-- Run the task planner -->
+    <node name="task_planner" pkg="task_planning" type="task_planner.py" args="$(find task_planning)/plan/plans.json $(find task_planning)/scripts/tasks $(arg plan)" />
+</launch>
