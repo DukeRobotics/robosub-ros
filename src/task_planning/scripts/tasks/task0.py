@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from taskbase import TaskBase
+import rospy
 
 class Task0(TaskBase):
 
@@ -8,5 +9,5 @@ class Task0(TaskBase):
         super(Task0, self).__init__('task0')
 
     def run(self):
-        print('yo yo')
-        return self.FINISHED
+        rospy.loginfo('yo yo')
+        return self.CONTINUE

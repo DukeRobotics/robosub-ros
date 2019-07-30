@@ -7,7 +7,6 @@ import importlib
 
 class TaskPlanner:
     
-    PLANS_FILE = '../plan/plans.json'
     NODE_NAME = 'task_planner'
     
     # REFACTOR THIS
@@ -15,19 +14,23 @@ class TaskPlanner:
     FINISHED = 2
     
     def __init__(self):
-        with open(self.PLANS_FILE) as plans_file:
+        plans_filename = sys.argv[1]
+        tasks_path = sys.argv[2]
+        self.plan_name = sys.argv[3]
+
+        sys.path.append(tasks_path)
+
+        with open(plans_filename) as plans_file:
             self.masterplan= json.load(plans_file)
         
-        self.plan_name = sys.argv[1]
         
         self.init_tasks(self.masterplan)
         self.plan = self.init_plan(self.masterplan, self.plan_name)
         
-        rospy.init_node(self.NODE_NAME)
+        rospy.init_node(self.NODE_NAME, log_level=rospy.INFO)
         
     def init_tasks(self, masterplan):
         self.tasks = []
-        sys.path.append('./tasks')
         for task_info in masterplan['tasks']:
             task = getattr(importlib.import_module(task_info['modulename']), task_info['classname'])()
             self.tasks.append(task)
