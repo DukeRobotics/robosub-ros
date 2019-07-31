@@ -1,0 +1,24 @@
+{
+    "tasks": [
+        {
+            "name": "task0",
+            "modulename": "task0",
+            "classname": "Task0"
+        },
+        {
+            "name": "task1",
+            "modulename": "task1",
+            "classname": "Task1"
+        }
+    ],
+    "plans": [
+        {
+            "name": "plan0",
+            "tasks": [ "task0", "task1" ]
+        },
+        {
+            "name": "plan1",
+            "tasks": [ "task0" ]
+        }
+    ]
+}
