@@ -52,13 +52,14 @@ class MoveToLocalPose:
         rospy.Service(self.STOP_SERVICE, Empty, self._stop)
 
         self._set_gcs_id()
-
         self._arm_robot()
+
+        self._time_speeds_received = rospy.Time.now()
 
         rate = rospy.Rate(self.OVERRIDERC_PUBLISH_RATE)
         while not rospy.is_shutdown():
             if rospy.Time.now() - self._time_speeds_received > self._reset_speeds_duration:
-                self._stop()
+                self._stop(None)
 
             self._move()
             rate.sleep()
