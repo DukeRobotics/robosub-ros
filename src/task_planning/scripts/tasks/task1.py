@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from taskbase import TaskBase
+import rospy
 
 class Task1(TaskBase):
     
@@ -8,4 +9,5 @@ class Task1(TaskBase):
         super(Task1, self).__init__('task1')
     
     def run(self):
-        print('Wazzup')
+        rospy.loginfo('TASK 1')
+        return self.FINISHED

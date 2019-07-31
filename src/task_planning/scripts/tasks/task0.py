@@ -10,4 +10,4 @@ class Task0(TaskBase):
 
     def run(self):
         rospy.loginfo('yo yo')
-        return self.CONTINUE
+        return self.FINISHED
