@@ -4,6 +4,6 @@
 
     <!-- Run the task planner -->
     <include file="$(find task_planning)/launch/tasks.launch"
-        <arg name="plan" value="plan1">
+        <arg name="plan" value="qualification">
     </include>
 </launch>

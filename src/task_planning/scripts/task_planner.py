@@ -21,8 +21,7 @@ class TaskPlanner:
         sys.path.append(tasks_path)
 
         with open(plans_filename) as plans_file:
-            self.masterplan= json.load(plans_file)
-        
+            self.masterplan = json.load(plans_file)
         
         self.init_tasks(self.masterplan)
         self.plan = self.init_plan(self.masterplan, self.plan_name)
@@ -52,14 +51,16 @@ class TaskPlanner:
         return list(filter(lambda task: task.name == name, self.tasks))[0]
     
     def run(self):
-        rate = rospy.Rate(10)
+        rate = rospy.Rate(15)
         for task in self.tasks_plan:
+            task.pre_run()
             while not rospy.is_shutdown():
                 result = task.run()
                 if result == self.CONTINUE:
                     continue
                 elif result == self.FINISHED:
                     break
+                rate.sleep()
 
 if __name__ == '__main__':
     TaskPlanner().run()

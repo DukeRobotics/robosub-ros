@@ -11,7 +11,10 @@ class TaskBase(object):
         self.name = name
     
     def run(self):
-        raise NotImplementedError('Run method of task not implemented, or running base class')
+        raise NotImplementedError('run method of task not implemented, or running base class')
+
+    def pre_run(self):
+        pass
 
 class TaskResult(Enum):
     CONTINUE = 1
