@@ -43,6 +43,7 @@ class ToDesiredState:
     def run(self):
 
         rospy.init_node(self.NODE_NAME)
+        self._desired_state_time_received = rospy.Time.now()
 
         self._rate = rospy.Rate(self.PUB_RATE)
 
