@@ -1,0 +1,9 @@
+<launch>
+    <!-- Include motion to start up services task planning relies on -->
+    <include file="$(find execute)/launch/motion.launch" />
+
+    <!-- Run the task planner -->
+    <include file="$(find task_planning)/launch/tasks.launch"
+        <arg name="plan" value="plan1">
+    </include>
+</launch>
