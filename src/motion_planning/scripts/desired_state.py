@@ -20,7 +20,8 @@ class ToDesiredState:
     CONTROLS_TOPIC = 'controls/move'
     DESIRED_STATE_TOPIC = 'motion_planning/desired_state_global'
 
-    PUB_RATE = 10
+    PUB_RATE = 15
+    RESET_DESIRED_STATE_TIME = 0.1  # seconds
 
     DISTANCE_CUTOFF = 2
     DISTANCE_MAX_SPEED = 0.2
@@ -29,16 +30,15 @@ class ToDesiredState:
     
     def __init__(self):
 
-        self._desired_state = PoseStamped()
-
-        self._desired_state_received = False
+        self._desired_state = None
+        self._reset_desired_state_duration = rospy.Duration(self.RESET_DESIRED_STATE_TIME)
 
         self._pub = rospy.Publisher(self.CONTROLS_TOPIC, MoveWithSpeeds, queue_size=10)
         rospy.Subscriber(self.DESIRED_STATE_TOPIC, PoseStamped, self._receive_desired_state)
 
     def _receive_desired_state(self, pose):
         self._desired_state = pose
-        self._desired_state_received = True
+        self._desired_state_time_received = rospy.Time.now()
 
     def run(self):
 
@@ -51,8 +51,11 @@ class ToDesiredState:
         
         while not rospy.is_shutdown():
 
-            if not self._desired_state_received:
+            if self._desired_state is None:
                 continue
+
+            if rospy.Time.now() - self._desired_state_time_received > self._reset_desired_state_duration:
+                self._desired_state = PoseStamped()
 
             self._to_robot_transform = self._get_robot_transform()
 
@@ -64,7 +67,7 @@ class ToDesiredState:
         """
         while True:
             try:
-                return self._tfBuffer.lookup_transform('base_link', 'odom',                                                    rospy.Time().now(), rospy.Duration(0.5))
+                return self._tfBuffer.lookup_transform('base_link', 'odom', rospy.Time().now(), rospy.Duration(0.5))
             except:
                 rospy.logerr(self.NO_TRANSFORM_MESSAGE)
 
