@@ -9,5 +9,5 @@ class Task0(TaskBase):
         super(Task0, self).__init__('task0')
 
     def run(self):
-        rospy.loginfo('yo yo')
-        return self.FINISHED
+        rospy.loginfo(self.state.pose.pose)
+        return self.CONTINUE
