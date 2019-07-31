@@ -23,7 +23,7 @@ class ToDesiredState:
     PUB_RATE = 10
 
     DISTANCE_CUTOFF = 2
-    DISTANCE_MAX_SPEED = 0.4
+    DISTANCE_MAX_SPEED = 0.2
     ANGLE_CUTOFF = 1.571
     ANGLE_MAX_SPEED = 0.3
     
