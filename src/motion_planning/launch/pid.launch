@@ -13,7 +13,7 @@
          <param name="lower_limit" value="-$(arg pos_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
-         <!-- <remap from="setpoint" to="/setpoint-gx" /> -->
+         <remap from="control_effort" to="controls/move/x" />
     </node>
 
     <node name="controller" pkg="pid" type="controller" ns="global_y" output="screen" >
@@ -25,7 +25,7 @@
          <param name="lower_limit" value="-$(arg pos_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
-         <!-- <remap from="setpoint" to="/setpoint-gx" /> -->
+         <remap from="control_effort" to="controls/move/y" />
     </node>
 
     <node name="controller" pkg="pid" type="controller" ns="global_z" output="screen" >
@@ -37,7 +37,7 @@
          <param name="lower_limit" value="-$(arg pos_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
-         <!-- <remap from="setpoint" to="/setpoint-gx" /> -->
+         <remap from="control_effort" to="controls/move/z" />
     </node>
 
     <node name="controller" pkg="pid" type="controller" ns="global_roll" output="screen" >
@@ -49,7 +49,7 @@
          <param name="lower_limit" value="-$(arg orient_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
-         <!-- <remap from="setpoint" to="/setpoint-gx" /> -->
+         <remap from="control_effort" to="controls/move/roll" />
     </node>
 
     <node name="controller" pkg="pid" type="controller" ns="global_pitch" output="screen" >
@@ -61,7 +61,7 @@
          <param name="lower_limit" value="-$(arg orient_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
-         <!-- <remap from="setpoint" to="/setpoint-gx" /> -->
+         <remap from="control_effort" to="controls/move/pitch" />
     </node>
 
     <node name="controller" pkg="pid" type="controller" ns="global_yaw" output="screen" >
@@ -73,7 +73,7 @@
          <param name="lower_limit" value="-$(arg orient_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
-         <!-- <remap from="setpoint" to="/setpoint-gx" /> -->
+         <remap from="control_effort" to="controls/move/yaw" />
     </node>
 
 </launch>
