@@ -19,11 +19,11 @@
     "plans": [
         {
             "name": "plan0",
-            "tasks": [ "task0", "task1" ]
+            "tasks": [ "task0" ]
         },
         {
             "name": "plan1",
-            "tasks": [ "task0" ]
+            "tasks": [ "task1" ]
         },
         {
             "name": "qualification",
