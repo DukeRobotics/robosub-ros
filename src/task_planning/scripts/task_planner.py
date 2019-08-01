@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import json
 from pprint import pprint
+from robot_localization.srv import SetPose
+from geometry_msgs.msg import PoseWithCovarianceStamped
 import sys
 import rospy
 import importlib
@@ -51,6 +53,11 @@ class TaskPlanner:
         return list(filter(lambda task: task.name == name, self.tasks))[0]
     
     def run(self):
+        rospy.wait_for_service('/set_pose')
+        sp = rospy.ServiceProxy('/set_pose', SetPose)
+        zero_pose = PoseWithCovarianceStamped()
+        #rospy.loginfo(vars(zero_pose))
+        zero_pose.pose.pose.orientation.w = 1
         rate = rospy.Rate(15)
         for task in self.tasks_plan:
             task.pre_run()
