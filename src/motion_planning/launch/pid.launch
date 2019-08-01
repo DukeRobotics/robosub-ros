@@ -1,0 +1,79 @@
+<launch>
+
+    <arg name="pos_max" default="0.2"/>
+    <arg name="orient_max" default="0.15" />
+    <arg name="min_loop_freq" value="15" />
+
+    <node name="controller" pkg="pid" type="controller" ns="global_x" output="screen" >
+         <param name="node_name" value="global_x_pid" />
+         <param name="Kp" value="5.0" />
+         <param name="Ki" value="0.0" />
+         <param name="Kd" value="0.1" />
+         <param name="upper_limit" value="$(arg pos_max)" />
+         <param name="lower_limit" value="-$(arg pos_max)" />
+         <!-- <param name="windup_limit" value="10" /> -->
+         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
+         <!-- <remap from="setpoint" to="/setpoint-gx" /> -->
+    </node>
+
+    <node name="controller" pkg="pid" type="controller" ns="global_y" output="screen" >
+         <param name="node_name" value="global_y_pid" />
+         <param name="Kp" value="5.0" />
+         <param name="Ki" value="0.0" />
+         <param name="Kd" value="0.1" />
+         <param name="upper_limit" value="$(arg pos_max)" />
+         <param name="lower_limit" value="-$(arg pos_max)" />
+         <!-- <param name="windup_limit" value="10" /> -->
+         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
+         <!-- <remap from="setpoint" to="/setpoint-gx" /> -->
+    </node>
+
+    <node name="controller" pkg="pid" type="controller" ns="global_z" output="screen" >
+         <param name="node_name" value="global_z_pid" />
+         <param name="Kp" value="5.0" />
+         <param name="Ki" value="0.0" />
+         <param name="Kd" value="0.1" />
+         <param name="upper_limit" value="$(arg pos_max)" />
+         <param name="lower_limit" value="-$(arg pos_max)" />
+         <!-- <param name="windup_limit" value="10" /> -->
+         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
+         <!-- <remap from="setpoint" to="/setpoint-gx" /> -->
+    </node>
+
+    <node name="controller" pkg="pid" type="controller" ns="global_roll" output="screen" >
+         <param name="node_name" value="global_roll_pid" />
+         <param name="Kp" value="5.0" />
+         <param name="Ki" value="0.0" />
+         <param name="Kd" value="0.1" />
+         <param name="upper_limit" value="$(arg orient_max)" />
+         <param name="lower_limit" value="-$(arg orient_max)" />
+         <!-- <param name="windup_limit" value="10" /> -->
+         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
+         <!-- <remap from="setpoint" to="/setpoint-gx" /> -->
+    </node>
+
+    <node name="controller" pkg="pid" type="controller" ns="global_pitch" output="screen" >
+         <param name="node_name" value="global_pitch_pid" />
+         <param name="Kp" value="5.0" />
+         <param name="Ki" value="0.0" />
+         <param name="Kd" value="0.1" />
+         <param name="upper_limit" value="$(arg orient_max)" />
+         <param name="lower_limit" value="-$(arg orient_max)" />
+         <!-- <param name="windup_limit" value="10" /> -->
+         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
+         <!-- <remap from="setpoint" to="/setpoint-gx" /> -->
+    </node>
+
+    <node name="controller" pkg="pid" type="controller" ns="global_yaw" output="screen" >
+         <param name="node_name" value="global_yaw_pid" />
+         <param name="Kp" value="5.0" />
+         <param name="Ki" value="0.0" />
+         <param name="Kd" value="0.1" />
+         <param name="upper_limit" value="$(arg orient_max)" />
+         <param name="lower_limit" value="-$(arg orient_max)" />
+         <!-- <param name="windup_limit" value="10" /> -->
+         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
+         <!-- <remap from="setpoint" to="/setpoint-gx" /> -->
+    </node>
+
+</launch>
