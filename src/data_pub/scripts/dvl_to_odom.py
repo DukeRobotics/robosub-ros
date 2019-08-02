@@ -34,8 +34,8 @@ def callback(msg):
     z = 0
 
     # bs velocity, normalized to meters (given in mm)
-    vx = np.float64(msg.bs_transverse) / 1000
-    vy = np.float64(msg.bs_longitudinal) / 1000
+    vx = -np.float64(msg.bs_longitudinal) / 1000
+    vy = np.float64(msg.bs_transverse) / 1000
     vz = np.float64(msg.bs_normal) / 1000
 
     # quat

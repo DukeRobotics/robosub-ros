@@ -5,6 +5,8 @@ import rospy
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 import tf2_ros
 import tf2_geometry_msgs
+import numpy as np
+from pprint import pprint
 
 from geometry_msgs.msg import PoseStamped, TransformStamped
 from nav_msgs.msg import Odometry
@@ -23,10 +25,10 @@ class ToDesiredState:
     PUB_RATE = 15
     RESET_DESIRED_STATE_TIME = 0.1  # seconds
 
-    DISTANCE_CUTOFF = 2
-    DISTANCE_MAX_SPEED = 0.2
-    ANGLE_CUTOFF = 1.571
-    ANGLE_MAX_SPEED = 0.3
+    DISTANCE_CUTOFF = .75
+    DISTANCE_MAX_SPEED = 0.3
+    ANGLE_CUTOFF = 0.785
+    ANGLE_MAX_SPEED = 0.2
     
     def __init__(self):
 
@@ -49,7 +51,7 @@ class ToDesiredState:
 
         self._tfBuffer = tf2_ros.Buffer()
         self._tfListener = tf2_ros.TransformListener(self._tfBuffer);
-        
+
         while not rospy.is_shutdown():
 
             if self._desired_state is None:
@@ -75,6 +77,7 @@ class ToDesiredState:
     def _publish_speeds(self):
         local_desired_pose = tf2_geometry_msgs.do_transform_pose(self._desired_state,
                                                                  self._to_robot_transform)
+        pprint(local_desired_pose)
 
         speeds = [0] * 6
 
@@ -97,14 +100,14 @@ class ToDesiredState:
     def _get_speed_for_distance(self, distance):
         """Decide the speed, between -1 and 1 based on the distance
         """
-        sign = (distance > 0) - (distance < 0)
+        sign = np.sign(distance)  #(distance > 0) - (distance < 0)
         if abs(distance) > self.DISTANCE_CUTOFF:
             return self.DISTANCE_MAX_SPEED * sign
         else:
             return (distance / self.DISTANCE_CUTOFF) * self.DISTANCE_MAX_SPEED
 
     def _get_speed_for_angle(self, angle):
-        sign = (angle > 0) - (angle < 0)
+        sign = np.sign(angle)  #(angle > 0) - (angle < 0)
         if abs(angle) > self.ANGLE_CUTOFF:
             return self.ANGLE_MAX_SPEED * sign
         else:
