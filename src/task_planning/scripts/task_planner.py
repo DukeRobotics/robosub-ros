@@ -17,6 +17,8 @@ class TaskPlanner:
     FINISHED = 2
     
     def __init__(self):
+        rospy.init_node(self.NODE_NAME, log_level=rospy.INFO)
+
         plans_filename = sys.argv[1]
         tasks_path = sys.argv[2]
         self.plan_name = sys.argv[3]
@@ -29,7 +31,6 @@ class TaskPlanner:
         self.init_tasks(self.masterplan)
         self.plan = self.init_plan(self.masterplan, self.plan_name)
         
-        rospy.init_node(self.NODE_NAME, log_level=rospy.INFO)
         
     def init_tasks(self, masterplan):
         self.tasks = []
