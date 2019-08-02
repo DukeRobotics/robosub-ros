@@ -43,7 +43,7 @@ class TaskPlanner:
                 target_plan = plan
                 break
         
-        if target_plan == None:
+        if target_plan is None:
             raise Exception('Plan ' + plan_name + ' not found')
         
         task_names = target_plan['tasks']
@@ -56,18 +56,20 @@ class TaskPlanner:
         rospy.wait_for_service('/set_pose')
         sp = rospy.ServiceProxy('/set_pose', SetPose)
         zero_pose = PoseWithCovarianceStamped()
-        #rospy.loginfo(vars(zero_pose))
         zero_pose.pose.pose.orientation.w = 1
+        sp(zero_pose)
         rate = rospy.Rate(15)
         for task in self.tasks_plan:
+            rospy.loginfo('Starting task: ' + task.name)
             task.pre_run()
             while not rospy.is_shutdown():
                 result = task.run()
                 if result == self.CONTINUE:
-                    continue
+                    pass
                 elif result == self.FINISHED:
                     break
                 rate.sleep()
+
 
 if __name__ == '__main__':
     TaskPlanner().run()
