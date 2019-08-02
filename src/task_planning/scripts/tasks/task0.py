@@ -20,5 +20,5 @@ class Task0(TaskBase):
         rospy.loginfo("")
 
     def run(self):
-        
+        rospy.loginfo(self.state.pose.pose)
         return self.CONTINUE
