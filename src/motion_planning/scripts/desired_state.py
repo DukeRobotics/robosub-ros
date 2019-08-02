@@ -26,17 +26,17 @@ class ToDesiredState:
     PUB_RATE = 15
     RESET_DESIRED_STATE_TIME = 0.1  # seconds
 
-    DISTANCE_CUTOFF = .75
-    DISTANCE_MAX_SPEED = 0.3
-    ANGLE_CUTOFF = 0.785
-    ANGLE_MAX_SPEED = 0.2
+    #DISTANCE_CUTOFF = .75
+    #DISTANCE_MAX_SPEED = 0.3
+    #ANGLE_CUTOFF = 0.785
+    #ANGLE_MAX_SPEED = 0.2
     
     def __init__(self):
 
         self._desired_state = None
         self._reset_desired_state_duration = rospy.Duration(self.RESET_DESIRED_STATE_TIME)
 
-        self._pub = rospy.Publisher(self.CONTROLS_TOPIC, MoveWithSpeeds, queue_size=10)
+        #self._pub = rospy.Publisher(self.CONTROLS_TOPIC, MoveWithSpeeds, queue_size=10)
         rospy.Subscriber(self.DESIRED_STATE_TOPIC, PoseStamped, self._receive_desired_state)
 
         # self._pid_response = [None for _ in range(6)]
@@ -127,17 +127,17 @@ class ToDesiredState:
 
     def _publish_pid_setpoints(self, local_pose):
         self._pub_x.publish(local_pose.pose.position.x)
-        self._pub_y.publish(local_pose.pose.position.y)
-        self._pub_z.publish(local_pose.pose.position.z)
+        #self._pub_y.publish(local_pose.pose.position.y)
+        #self._pub_z.publish(local_pose.pose.position.z)
 
         rpy = euler_from_quaternion([local_pose.pose.orientation.x,
                                      local_pose.pose.orientation.y,
                                      local_pose.pose.orientation.z,
                                      local_pose.pose.orientation.w])
 
-        self._pub_roll.publish(rpy[0])
-        self._pub_pitch.publish(rpy[1])
-        self._pub_yaw.publish(rpy[2])
+        #self._pub_roll.publish(rpy[0])
+        #self._pub_pitch.publish(rpy[1])
+        #self._pub_yaw.publish(rpy[2])
 
     # def _wait_for_pid_response(self):
     #     rate = rospy.Rate(10)
