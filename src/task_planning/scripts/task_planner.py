@@ -3,6 +3,7 @@ import json
 from pprint import pprint
 from robot_localization.srv import SetPose
 from geometry_msgs.msg import PoseWithCovarianceStamped
+from mavros_msgs.srv import StreamRate
 import sys
 import rospy
 import importlib
@@ -43,7 +44,7 @@ class TaskPlanner:
                 target_plan = plan
                 break
         
-        if target_plan == None:
+        if target_plan is None:
             raise Exception('Plan ' + plan_name + ' not found')
         
         task_names = target_plan['tasks']
@@ -56,18 +57,25 @@ class TaskPlanner:
         rospy.wait_for_service('/set_pose')
         sp = rospy.ServiceProxy('/set_pose', SetPose)
         zero_pose = PoseWithCovarianceStamped()
-        #rospy.loginfo(vars(zero_pose))
         zero_pose.pose.pose.orientation.w = 1
+        sp(zero_pose)
+
+        rospy.wait_for_service('/mavros/set_stream_rate')
+        ssr = rospy.ServiceProxy('/mavros/set_stream_rate', StreamRate)
+        ssr(0, 15, 1)
+
         rate = rospy.Rate(15)
         for task in self.tasks_plan:
+            rospy.loginfo('Starting task: ' + task.name)
             task.pre_run()
             while not rospy.is_shutdown():
                 result = task.run()
                 if result == self.CONTINUE:
-                    continue
+                    pass
                 elif result == self.FINISHED:
                     break
                 rate.sleep()
+
 
 if __name__ == '__main__':
     TaskPlanner().run()
