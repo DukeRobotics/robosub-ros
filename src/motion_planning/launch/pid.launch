@@ -53,6 +53,7 @@
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="controls/move/roll" />
+         <remap from="state" to="sensors/imu/roll" />
     </node>
 
     <node name="controller" pkg="pid" type="controller" ns="global_pitch" output="screen" >
@@ -65,6 +66,7 @@
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="controls/move/pitch" />
+         <remap from="state" to="sensors/imu/pitch" />
     </node>
 
     <node name="controller" pkg="pid" type="controller" ns="global_yaw" output="screen" >
@@ -77,6 +79,7 @@
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="controls/move/yaw" />
+         <remap from="state" to="sensors/imu/yaw" />
     </node>
 
 </launch>
