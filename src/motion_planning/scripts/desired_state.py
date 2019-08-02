@@ -5,6 +5,8 @@ import rospy
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 import tf2_ros
 import tf2_geometry_msgs
+import numpy as np
+from pprint import pprint
 
 from geometry_msgs.msg import PoseStamped, TransformStamped
 from nav_msgs.msg import Odometry
@@ -24,10 +26,10 @@ class ToDesiredState:
     PUB_RATE = 15
     RESET_DESIRED_STATE_TIME = 0.1  # seconds
 
-    DISTANCE_CUTOFF = 2
-    DISTANCE_MAX_SPEED = 0.2
-    ANGLE_CUTOFF = 1.571
-    ANGLE_MAX_SPEED = 0.3
+    DISTANCE_CUTOFF = .75
+    DISTANCE_MAX_SPEED = 0.3
+    ANGLE_CUTOFF = 0.785
+    ANGLE_MAX_SPEED = 0.2
     
     def __init__(self):
 
@@ -91,7 +93,7 @@ class ToDesiredState:
 
         self._tfBuffer = tf2_ros.Buffer()
         self._tfListener = tf2_ros.TransformListener(self._tfBuffer);
-        
+
         while not rospy.is_shutdown():
 
             if self._desired_state is None:
