@@ -4,15 +4,12 @@ from taskbase import TaskBase
 import rospy
 from controls.msg import MoveWithSpeeds
 
-class Task1(TaskBase):
 
+class Task1(TaskBase):
 
     def __init__(self):
         self.controls_pub = rospy.Publisher('/controls/move', MoveWithSpeeds, queue_size=10)
         super(Task1, self).__init__('task1')
-
-    def pre_run(self):
-        self.time_start = rospy.Time.now()
 
     def run(self):
         if rospy.Time.now() - self.time_start < rospy.Duration(10):
