@@ -3,6 +3,7 @@ import json
 from pprint import pprint
 from robot_localization.srv import SetPose
 from geometry_msgs.msg import PoseWithCovarianceStamped
+from mavros_msgs.srv import StreamRate
 import sys
 import rospy
 import importlib
@@ -58,6 +59,11 @@ class TaskPlanner:
         zero_pose = PoseWithCovarianceStamped()
         zero_pose.pose.pose.orientation.w = 1
         sp(zero_pose)
+
+        rospy.wait_for_service('/mavros/set_stream_rate')
+        ssr = rospy.ServiceProxy('/mavros/set_stream_rate', StreamRate)
+        ssr(0, 15, 1)
+
         rate = rospy.Rate(15)
         for task in self.tasks_plan:
             rospy.loginfo('Starting task: ' + task.name)
