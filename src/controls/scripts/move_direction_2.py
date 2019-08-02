@@ -60,7 +60,7 @@ class DirectionsListener:
         if not self._speed_valid(y_speed.data):
             return
         output = self._no_change_channels()
-        output[5] = self._speed_to_pwm(y_speed.data)
+        output[5] = self._speed_to_pwm(-y_speed.data)
         self._pub.publish(output)
 
     def _on_z(self, z_speed):
@@ -81,14 +81,14 @@ class DirectionsListener:
         if not self._speed_valid(pitch_speed.data):
             return
         output = self._no_change_channels()
-        output[0] = self._speed_to_pwm(pitch_speed.data)
+        output[0] = self._speed_to_pwm(-pitch_speed.data)
         self._pub.publish(output)
 
     def _on_yaw(self, yaw_speed):
         if not self._speed_valid(yaw_speed.data):
             return
         output = self._no_change_channels()
-        output[3] = self._speed_to_pwm(yaw_speed.data)
+        output[3] = self._speed_to_pwm(-yaw_speed.data)
         self._pub.publish(output)
 
     def _no_change_channels(self):
