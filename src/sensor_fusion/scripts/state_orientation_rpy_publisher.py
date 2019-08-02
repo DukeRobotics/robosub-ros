@@ -14,9 +14,9 @@ class StateOrientationRpyPublisher(object):
     PUBLISHING_TOPIC_YAW = 'state/yaw'
 
     def __init__(self):
-        self._pub_roll = rospy.Publisher(self.PUBLISHING_TOPIC_ROLL, Float64)
-        self._pub_pitch = rospy.Publisher(self.PUBLISHING_TOPIC_PITCH, Float64)
-        self._pub_yaw = rospy.Publisher(self.PUBLISHING_TOPIC_YAW, Float64)
+        self._pub_roll = rospy.Publisher(self.PUBLISHING_TOPIC_ROLL, Float64, queue_size=10)
+        self._pub_pitch = rospy.Publisher(self.PUBLISHING_TOPIC_PITCH, Float64, queue_size=10)
+        self._pub_yaw = rospy.Publisher(self.PUBLISHING_TOPIC_YAW, Float64, queue_size=10)
 
         rospy.Subscriber(self.LISTENING_TOPIC, Odometry, self._on_receive_state)
 
@@ -29,6 +29,10 @@ class StateOrientationRpyPublisher(object):
     def to_rpy(self, orientation):
         return euler_from_quaternion([orientation.x, orientation.y, orientation.z, orientation.w])
 
+    def run(self):
+        rospy.init_node('state_rpy_publisher')
+        rospy.spin()
+
 
 if __name__ == '__main__':
-    StateOrientationRpyPublisher()
+    StateOrientationRpyPublisher().run()
