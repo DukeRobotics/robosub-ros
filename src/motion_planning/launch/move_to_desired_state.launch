@@ -1,4 +1,7 @@
 <launch>
+        <!-- Start pid nodes for controls -->
+        <include file="$(find motion_planning)/launch/pid.launch" />
+
 	<!-- Start node that listens to a desired state and publishes movement commands -->
 	<node pkg="motion_planning" name="desired_state" type="desired_state.py" />
 </launch>
