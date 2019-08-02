@@ -7,5 +7,8 @@
 
                 <remap from="odometry/filtered" to="state" />
         </node>
+
+        <node name="state_rpy_publisher" pkg="sensor_fusion" type="state_orientation_rpy_publisher.py" />
+        <node name="position_republisher" pkg="sensor_fusion" type="position_republisher.py" />
 </launch>
 
