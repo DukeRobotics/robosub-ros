@@ -5,6 +5,7 @@ from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PoseStamped
 import rospy
 import numpy as np
+import tf2_ros
 
 class TaskBase(object):
 
@@ -18,6 +19,7 @@ class TaskBase(object):
         self.state = Odometry()
         rospy.Subscriber('/state', Odometry, self._receive_state)
         self._desired_state_pub = rospy.Publisher('/motion_planning/desired_state_global', PoseStamped, queue_size=10)
+        
 
     def _receive_state(self, msg):
         self.state = msg
@@ -26,6 +28,8 @@ class TaskBase(object):
         raise NotImplementedError('run method of task not implemented, or running base class')
 
     def pre_run(self):
+        self._tfBuffer = tf2_ros.Buffer()
+        self._tfListener = tf2_ros.TransformListener(self._tfBuffer)
         self.time_start = rospy.Time.now()
 
     def move_to_point(self, x, y, z):
