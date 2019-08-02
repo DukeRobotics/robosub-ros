@@ -60,7 +60,7 @@
     },
     {
       "name": "semi",
-      "tasks": [ "to_depth", "to_gate", "to_buoy", "to_octagon", "surface" ]
+      "tasks": [ "to_depth", "to_gate", "surface" ]
     }
   ]
 }
