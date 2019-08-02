@@ -19,7 +19,8 @@ class TaskBase(object):
         self.state = Odometry()
         rospy.Subscriber('/state', Odometry, self._receive_state)
         self._desired_state_pub = rospy.Publisher('/motion_planning/desired_state_global', PoseStamped, queue_size=10)
-        
+        self._tfBuffer = tf2_ros.Buffer()
+        self._tfListener = tf2_ros.TransformListener(self._tfBuffer)
 
     def _receive_state(self, msg):
         self.state = msg
@@ -27,23 +28,20 @@ class TaskBase(object):
     def run(self):
         raise NotImplementedError('run method of task not implemented, or running base class')
 
-    def pre_run(self):
-        self._tfBuffer = tf2_ros.Buffer()
-        self._tfListener = tf2_ros.TransformListener(self._tfBuffer)
+    def pre_run_base(self):
         self.time_start = rospy.Time.now()
+        self.task_start_transform_to_global = self._tfBuffer.lookup_transform('odom', 'base_link', rospy.Time(0))
 
-    def move_to_point(self, x, y, z):
-        desired_pose = PoseStamped()
-        desired_pose.pose.orientation = self.state.pose.pose.orientation
+    def pre_run(self):
+        pass
 
-        if self.dist_from_self(x, y, z) < self.AT_POINT_MARGIN:
-            self._desired_state_pub.publish(desired_pose)
+    def move_to_point(self, location):
+        if self.dist_from_self(location.pose.position.x,
+                               location.pose.position.y
+                               location.pose.position.z) < self.AT_POINT_MARGIN:
             return True
 
-        desired_pose.pose.position.x = x
-        desired_pose.pose.position.y = y
-        desired_pose.pose.position.z = z
-        self._desired_state_pub.publish(desired_pose)
+        self._desired_state_pub.publish(location)
         return False
 
     def dist_from_self(self, x, y, z):

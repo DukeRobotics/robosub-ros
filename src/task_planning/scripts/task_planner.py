@@ -68,6 +68,7 @@ class TaskPlanner:
         rate = rospy.Rate(15)
         for task in self.tasks_plan:
             rospy.loginfo('Starting task: ' + task.name)
+            task.pre_run_base()
             task.pre_run()
             while not rospy.is_shutdown():
                 result = task.run()
