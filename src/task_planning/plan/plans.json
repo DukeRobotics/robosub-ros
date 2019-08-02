@@ -9,16 +9,25 @@
             "name": "task1",
             "modulename": "task1",
             "classname": "Task1"
+        },
+        {
+            "name": "qualbasic",
+            "modulename": "qualbasic",
+            "classname": "QualBasic"
         }
     ],
     "plans": [
         {
             "name": "plan0",
-            "tasks": [ "task0", "task1" ]
+            "tasks": [ "task0" ]
         },
         {
             "name": "plan1",
-            "tasks": [ "task0" ]
+            "tasks": [ "task1" ]
+        },
+        {
+            "name": "qualification",
+            "tasks": [ "qualbasic" ]
         }
     ]
 }

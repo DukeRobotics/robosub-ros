@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import json
 from pprint import pprint
+from robot_localization.srv import SetPose
+from geometry_msgs.msg import PoseWithCovarianceStamped
 import sys
 import rospy
 import importlib
@@ -21,8 +23,7 @@ class TaskPlanner:
         sys.path.append(tasks_path)
 
         with open(plans_filename) as plans_file:
-            self.masterplan= json.load(plans_file)
-        
+            self.masterplan = json.load(plans_file)
         
         self.init_tasks(self.masterplan)
         self.plan = self.init_plan(self.masterplan, self.plan_name)
@@ -52,14 +53,21 @@ class TaskPlanner:
         return list(filter(lambda task: task.name == name, self.tasks))[0]
     
     def run(self):
-        rate = rospy.Rate(10)
+        rospy.wait_for_service('/set_pose')
+        sp = rospy.ServiceProxy('/set_pose', SetPose)
+        zero_pose = PoseWithCovarianceStamped()
+        #rospy.loginfo(vars(zero_pose))
+        zero_pose.pose.pose.orientation.w = 1
+        rate = rospy.Rate(15)
         for task in self.tasks_plan:
+            task.pre_run()
             while not rospy.is_shutdown():
                 result = task.run()
                 if result == self.CONTINUE:
                     continue
                 elif result == self.FINISHED:
                     break
+                rate.sleep()
 
 if __name__ == '__main__':
     TaskPlanner().run()
