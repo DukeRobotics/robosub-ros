@@ -10,8 +10,7 @@ class BuoyTask(TaskBase):
 
     def __init__(self):
         super(BuoyTask, self).__init__('buoytask')
-        self.state = 0
-        self.hit_points = [[1, 1], [1, 0], [1, -1]]  # (x, y) where x is forwards
+        self.hit_points = [[0.5, 1], [0.5, 0.5], [0.5, 0], [0.5, -0.5], [0.5, -1]]  # (x, y) where x is forwards
         self.global_start_pose = None
         self.global_point_poses = []
         self.curr_point = 0
@@ -23,6 +22,7 @@ class BuoyTask(TaskBase):
             self.global_point_poses.append(self.get_global_target_pose_from_task_start(point[0], point[1], 0, 0, 0, 0))
 
     def run(self):
+        result = None
 
         # Move
         if self.charging:
@@ -31,7 +31,7 @@ class BuoyTask(TaskBase):
             result = self.move_to_point(self.global_start_pose)
 
         # Update state
-        if result or rospy.Time.now() - (self.time_start + rospy.Duration(self.CYCLE_TIME * self.time_for_state())) > self.CYCLE_TIME:
+        if result or rospy.Time.now() - (self.time_start + rospy.Duration(self.CYCLE_TIME * self.time_for_state())) > rospy.Duration(self.CYCLE_TIME):
             if self.charging:
                 self.charging = False
                 self.curr_point += 1

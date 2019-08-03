@@ -85,7 +85,7 @@
     },
     {
       "name": "semitest",
-      "tasks": [ "spin" ]
+      "tasks": [ "buoytask" ]
     }
   ]
 }
