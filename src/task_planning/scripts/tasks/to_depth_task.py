@@ -2,26 +2,20 @@
 
 from taskbase import TaskBase
 import rospy
-from geometry_msgs.msg import PoseStamped
-import tf2_geometry_msgs
 
 class ToDepthTask(TaskBase):
 
-    DEPTH = -0.1
+    DEPTH = -1
 
     def __init__(self):
         super(ToDepthTask, self).__init__('to_depth')
 
     def pre_run(self):
-        local_target_pose = PoseStamped()
-        local_target_pose.pose.position.z = self.DEPTH
-        self.global_target_pose = tf2_geometry_msgs.do_transform_pose(local_target_pose,
-                                                self.task_start_transform_to_global)
+        self.global_target_pose = self.get_global_target_pose_from_task_start(0, 0, self.DEPTH, 0, 0, 0)
 
     def run(self):
-        rospy.loginfo("here")
-        #if rospy.Time.now() - self.time_start < rospy.Duration(10):
-        #    return self.CONTINUE
+        if rospy.Time.now() - self.time_start > rospy.Duration(10):
+            return self.FINISHED
 
         result = self.move_to_point(self.global_target_pose)
         return self.FINISHED if result else self.CONTINUE
