@@ -15,7 +15,7 @@ class SurfaceTask(TaskBase):
     def run(self):
         result = self.move_to_point(self.global_target_pose)
         
-        if rospy.Time.now() - self.time_start < rospy.Duration(8):
+        if rospy.Time.now() - self.time_start < rospy.Duration(2):
             return self.CONTINUE
 
         return self.FINISHED
