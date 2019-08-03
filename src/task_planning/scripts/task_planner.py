@@ -4,6 +4,7 @@ from pprint import pprint
 from robot_localization.srv import SetPose
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from mavros_msgs.srv import StreamRate
+from std_msgs.msg import Bool
 import sys
 import rospy
 import importlib
@@ -30,6 +31,13 @@ class TaskPlanner:
         
         self.init_tasks(self.masterplan)
         self.plan = self.init_plan(self.masterplan, self.plan_name)
+
+        self.disable_x = rospy.Publisher('/global_x/pid_enable', Bool, queue_size=10)
+        self.disable_y = rospy.Publisher('/global_y/pid_enable', Bool, queue_size=10)
+        self.disable_z = rospy.Publisher('/global_z/pid_enable', Bool, queue_size=10)
+        self.disable_roll = rospy.Publisher('/global_roll/pid_enable', Bool, queue_size=10)
+        self.disable_pitch = rospy.Publisher('/global_pitch/pid_enable', Bool, queue_size=10)
+        self.disable_yaw = rospy.Publisher('/global_yaw/pid_enable', Bool, queue_size=10)
         
         
     def init_tasks(self, masterplan):
@@ -59,7 +67,7 @@ class TaskPlanner:
         sp = rospy.ServiceProxy('/set_pose', SetPose)
         zero_pose = PoseWithCovarianceStamped()
         zero_pose.pose.pose.orientation.w = 1
-        sp(zero_pose)
+        #sp(zero_pose)
 
         rospy.wait_for_service('/mavros/set_stream_rate')
         ssr = rospy.ServiceProxy('/mavros/set_stream_rate', StreamRate)
@@ -77,6 +85,16 @@ class TaskPlanner:
                 elif result == self.FINISHED:
                     break
                 rate.sleep()
+        
+        self.disable_pid()
+    
+    def disable_pid(self):
+        self.disable_x.publish(False)
+        self.disable_y.publish(False)
+        self.disable_z.publish(False)
+        self.disable_roll.publish(False)
+        self.disable_pitch.publish(False)
+        self.disable_yaw.publish(False)
 
 
 if __name__ == '__main__':
