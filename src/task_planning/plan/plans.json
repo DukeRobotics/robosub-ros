@@ -95,7 +95,7 @@
     },
     {
       "name": "semitest",
-      "tasks": [ "to_depth", "to_gate", "spin", "buoylevel", "to_buoys", "buoytask", "surface" ]
+      "tasks": [ "wait", "to_depth", "to_gate", "spin", "buoylevel", "to_buoys", "buoytask", "surface" ]
     }
   ]
 }

@@ -8,7 +8,7 @@ import rospy
 
 class ToBuoysTask(TaskBase):
 
-    BUOYS_DIST = 1 #15
+    BUOYS_DIST = 10
 
     def __init__(self):
         super(ToBuoysTask, self).__init__('to_buoys')

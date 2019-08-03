@@ -5,7 +5,7 @@ import rospy
 
 class SpinTask(TaskBase):
 
-    TURN_TIME = 4
+    TURN_TIME = 3
 
     def __init__(self):
         super(SpinTask, self).__init__('spin')
@@ -45,4 +45,4 @@ class SpinTask(TaskBase):
         if self.state_num != 5:
             return self.TURN_TIME
         else:
-            return 20
+            return 15

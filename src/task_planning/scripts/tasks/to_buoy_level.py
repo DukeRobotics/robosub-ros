@@ -6,7 +6,7 @@ import rospy
 
 class ToBuoyLevelTask(TaskBase):
 
-    DELTA_Z = -0.2
+    DELTA_Z = -0.7
 
     def __init__(self):
         super(ToBuoyLevelTask, self).__init__('buoylevel')
