@@ -10,7 +10,7 @@ class BuoyTask(TaskBase):
 
     def __init__(self):
         super(BuoyTask, self).__init__('buoytask')
-        self.hit_points = [[0.5, 1], [0.5, 0.5], [0.5, 0], [0.5, -0.5], [0.5, -1]]  # (x, y) where x is forwards
+        self.hit_points = [[0.77, 1.85], [1.41, 1.41], [1.77, 0.92], [2, 0], [1.77, -0.92], [1.41, -1.41], [0.77, -1.85]]  # (x, y) where x is forwards
         self.global_start_pose = None
         self.global_point_poses = []
         self.curr_point = 0

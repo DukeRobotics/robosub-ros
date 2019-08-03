@@ -6,7 +6,7 @@ import rospy
 
 class WaitTask(TaskBase):
 
-    DURATION = 5
+    DURATION = 10
 
     def __init__(self):
         super(WaitTask, self).__init__('wait')

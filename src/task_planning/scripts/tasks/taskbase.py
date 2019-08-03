@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 from enum import Enum
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PoseStamped, Quaternion
@@ -25,7 +24,7 @@ class TaskBase(object):
         self._desired_state_pub = rospy.Publisher('/motion_planning/desired_state_global', PoseStamped, queue_size=10)
         self._tfBuffer = tf2_ros.Buffer()
         self._tfListener = tf2_ros.TransformListener(self._tfBuffer)
-        self.mission_start_transform_to_global = self._tfBuffer.lookup_transform('odom', 'base_link', rospy.Time(0), rospy.Duration(0.5))
+        #self.mission_start_transform_to_global = self._tfBuffer.lookup_transform('odom', 'base_link', rospy.Time(0), rospy.Duration(0.5))
 
     def _receive_state(self, msg):
         self.state = msg
@@ -70,21 +69,22 @@ class TaskBase(object):
         local_target_pose.pose.position.x = x
         local_target_pose.pose.position.y = y
         local_target_pose.pose.position.z = z
-        return tf2_geometry_msgs.do_transform_pose(local_target_pose,
-
-     def get_global_target_pose_from_mission_start(self, x, y, z, roll, pitch, yaw):
-        local_target_pose = PoseStamped()
-        local_target_pose.header = Header(stamp=rospy.Time.now(), frame_id='base_link')
-        local_target_pose.pose.orientation = Quaternion(*quaternion_from_euler(roll, pitch, yaw))
-        local_target_pose.pose.position.x = x
-        local_target_pose.pose.position.y = y
-        local_target_pose.pose.position.z = z
-        return tf2_geometry_msgs.do_transform_pose(local_target_pose,
-                                                   self.mission_start_transform_to_global)
-
-                                              self.task_start_transform_to_global)
+        return tf2_geometry_msgs.do_transform_pose(local_target_pose, self.task_start_transform_to_global)
 
 
-class TaskResult(Enum):
-    CONTINUE = 1
-    FINISHED = 2
+     #def get_global_target_pose_from_mission_start(self, x, y, z, roll, pitch, yaw):
+     #   local_target_pose = PoseStamped()
+     #   local_target_pose.header = Header(stamp=rospy.Time.now(), frame_id='base_link')
+     #   local_target_pose.pose.orientation = Quaternion(*quaternion_from_euler(roll, pitch, yaw))
+     #   local_target_pose.pose.position.x = x
+     #   local_target_pose.pose.position.y = y
+     #   local_target_pose.pose.position.z = z
+     #   return tf2_geometry_msgs.do_transform_pose(local_target_pose,
+     #                                              self.mission_start_transform_to_global)
+#
+#                                              self.task_start_transform_to_global)
+#
+#
+#class TaskResult(Enum):
+#    CONTINUE = 1
+#    FINISHED = 2

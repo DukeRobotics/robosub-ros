@@ -6,7 +6,7 @@ import rospy
 
 class ToDepthTask(TaskBase):
 
-    DEPTH = -0.1
+    DEPTH = -0.4
 
     def __init__(self):
         super(ToDepthTask, self).__init__('to_depth')
