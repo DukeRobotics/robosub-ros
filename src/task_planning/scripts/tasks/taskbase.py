@@ -2,8 +2,10 @@
 
 from enum import Enum
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import PoseStamped
-from tf.transformations import euler_from_quaternion
+from geometry_msgs.msg import PoseStamped, Quaternion
+from std_msgs.msg import Header
+from tf.transformations import euler_from_quaternion, quaternion_from_euler
+import tf2_geometry_msgs
 import rospy
 import numpy as np
 import tf2_ros
@@ -14,7 +16,7 @@ class TaskBase(object):
     FINISHED = 2
 
     AT_POINT_MARGIN = 0.05
-    AT_ANGLE_MARGIN = 0.1
+    AT_ANGLE_MARGIN = 0.2
     
     def __init__(self, name):
         self.name = name
@@ -56,11 +58,19 @@ class TaskBase(object):
         self_rpy = euler_from_quaternion([self.state.pose.pose.orientation.x, self.state.pose.pose.orientation.y, self.state.pose.pose.orientation.z, self.state.pose.pose.orientation.w])
         errors = np.array(goal_rpy) - np.array(self_rpy)
         for err in errors:
-            if err > self.AT_ANGLE_MARGIN:
+            if abs(err) > self.AT_ANGLE_MARGIN:
                 return False
         return True
 
-
+    def get_global_target_pose_from_task_start(self, x, y, z, roll, pitch, yaw):
+        local_target_pose = PoseStamped()
+        local_target_pose.header = Header(stamp=rospy.Time.now(), frame_id='base_link')
+        local_target_pose.pose.orientation = Quaternion(*quaternion_from_euler(roll, pitch, yaw))
+        local_target_pose.pose.position.x = x
+        local_target_pose.pose.position.y = y
+        local_target_pose.pose.position.z = z
+        return tf2_geometry_msgs.do_transform_pose(local_target_pose,
+                                                   self.task_start_transform_to_global)
 
 
 class TaskResult(Enum):

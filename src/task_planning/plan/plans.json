@@ -49,6 +49,11 @@
       "modulename": "to_straight_task",
       "classname": "ToStraightTask"
 
+    },
+    {
+      "name": "spin",
+      "modulename": "spin",
+      "classname": "SpinTask"
     }
   ],
   "plans": [
@@ -66,11 +71,11 @@
     },
     {
       "name": "semi",
-      "tasks": [ "to_depth", "to_gate", "surface" ]
+      "tasks": [ "to_depth", "to_gate", "spin", "spin", "spin", "spin", "spin", "spin", "surface" ]
     },
     {
-      "name": "semineil",
-      "tasks": [ "to_straight"]
+      "name": "semitest",
+      "tasks": [ "to_depth", "to_gate", "surface" ]
     }
   ]
 }
