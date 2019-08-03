@@ -71,9 +71,9 @@
 
     <node name="controller" pkg="pid" type="controller" ns="global_yaw" output="screen" >
          <param name="node_name" value="global_yaw_pid" />
-         <param name="Kp" value="0.02" />
+         <param name="Kp" value="0.3" />
          <param name="Ki" value="0.0" />
-         <param name="Kd" value="0.01" />
+         <param name="Kd" value="0.05" />
          <param name="upper_limit" value="$(arg orient_max)" />
          <param name="lower_limit" value="-$(arg orient_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
