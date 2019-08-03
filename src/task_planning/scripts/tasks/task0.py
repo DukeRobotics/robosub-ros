@@ -8,7 +8,7 @@ import rospy
 class Task0(TaskBase):
 
     def __init__(self):
-        rospy.Subscriber('/mavros/imu/data', Imu, self._print_imu)
+        #rospy.Subscriber('/mavros/imu/data', Imu, self._print_imu)
         super(Task0, self).__init__('task0')
 
     def _print_imu(self, data):
