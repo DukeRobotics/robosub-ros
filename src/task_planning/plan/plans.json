@@ -85,7 +85,7 @@
     },
     {
       "name": "semitest",
-      "tasks": [ "to_depth", "to_gate", "surface" ]
+      "tasks": [ "spin" ]
     }
   ]
 }
