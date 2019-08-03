@@ -43,6 +43,12 @@
       "modulename": "surface_task",
       "classname": "SurfaceTask"
 
+    },
+    {
+      "name": "to_straight",
+      "modulename": "to_straight_task",
+      "classname": "ToStraightTask"
+
     }
   ],
   "plans": [
@@ -61,6 +67,10 @@
     {
       "name": "semi",
       "tasks": [ "to_depth", "to_gate", "surface" ]
+    },
+    {
+      "name": "semineil",
+      "tasks": [ "to_straight"]
     }
   ]
 }
