@@ -30,14 +30,14 @@ class TaskBase(object):
 
     def pre_run_base(self):
         self.time_start = rospy.Time.now()
-        self.task_start_transform_to_global = self._tfBuffer.lookup_transform('odom', 'base_link', rospy.Time(0))
+        self.task_start_transform_to_global = self._tfBuffer.lookup_transform('odom', 'base_link', rospy.Time(0), rospy.Duration(0.5))
 
     def pre_run(self):
         pass
 
     def move_to_point(self, location):
         if self.dist_from_self(location.pose.position.x,
-                               location.pose.position.y
+                               location.pose.position.y,
                                location.pose.position.z) < self.AT_POINT_MARGIN:
             return True
 

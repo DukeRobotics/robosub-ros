@@ -2,6 +2,7 @@
 
 from taskbase import TaskBase
 from geometry_msgs.msg import PoseStamped
+import tf2_geometry_msgs
 
 class ToGateTask(TaskBase):
 
