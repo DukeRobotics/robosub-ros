@@ -4,15 +4,16 @@ from taskbase import TaskBase
 import rospy
 
 
-class ToDepthTask(TaskBase):
+class ToBuoyLevelTask(TaskBase):
 
-    DEPTH = -1
+    DELTA_Z = -1
 
     def __init__(self):
-        super(ToDepthTask, self).__init__('to_depth')
+        super(ToBuoyLevelTask, self).__init__('buoylevel')
+        self.state = 0
 
     def pre_run(self):
-        self.global_target_pose = self.get_global_target_pose_from_task_start(0, 0, self.DEPTH, 0, 0, 0)
+        self.global_target_pose = self.get_global_target_pose_from_task_start(0, 0, self.DELTA_Z, 0, 0, 0)
 
     def run(self):
         if rospy.Time.now() - self.time_start > rospy.Duration(10):

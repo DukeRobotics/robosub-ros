@@ -54,6 +54,16 @@
       "name": "spin",
       "modulename": "spin",
       "classname": "SpinTask"
+    },
+    {
+      "name": "buoylevel",
+      "modulename": "to_buoy_level",
+      "classname": "ToBuoyLevelTask"
+    },
+    {
+      "name": "buoytask",
+      "modulename": "buoytask",
+      "classname": "BuoyTask"
     }
   ],
   "plans": [
