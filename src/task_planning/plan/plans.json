@@ -64,6 +64,16 @@
       "name": "buoytask",
       "modulename": "buoytask",
       "classname": "BuoyTask"
+    },
+    {
+      "name": "to_buoys",
+      "modulename": "to_buoys",
+      "classname": "ToBuoysTask"
+    },
+    {
+      "name": "wait",
+      "modulename": "wait_task",
+      "classname": "WaitTask"
     }
   ],
   "plans": [
@@ -85,7 +95,7 @@
     },
     {
       "name": "semitest",
-      "tasks": [ "buoytask" ]
+      "tasks": [ "to_depth", "to_gate", "spin", "buoylevel", "to_buoys", "buoytask", "surface" ]
     }
   ]
 }

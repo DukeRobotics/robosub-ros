@@ -43,6 +43,7 @@ class TaskPlanner:
     def init_tasks(self, masterplan):
         self.tasks = []
         for task_info in masterplan['tasks']:
+            rospy.loginfo('Initializing task ' + task_info['name'])
             task = getattr(importlib.import_module(task_info['modulename']), task_info['classname'])()
             self.tasks.append(task)
     
@@ -60,6 +61,7 @@ class TaskPlanner:
         self.tasks_plan = map(self._get_task_from_name, task_names)
     
     def _get_task_from_name(self, name):
+        rospy.loginfo('Getting task for name ' + name)
         return list(filter(lambda task: task.name == name, self.tasks))[0]
     
     def run(self):

@@ -6,15 +6,15 @@ import tf2_geometry_msgs
 import rospy
 
 
-class ToGateTask(TaskBase):
+class ToBuoysTask(TaskBase):
 
-    GATE_DIST = 1 #15
+    BUOYS_DIST = 1 #15
 
     def __init__(self):
-        super(ToGateTask, self).__init__('to_gate')
+        super(ToBuoysTask, self).__init__('to_buoys')
 
     def pre_run(self):
-        self.global_target_pose = self.get_global_target_pose_from_task_start(self.GATE_DIST, 0, 0, 0, 0, 0)
+        self.global_target_pose = self.get_global_target_pose_from_task_start(self.BUOYS_DIST, 0, 0, 0, 0, 0)
 
     def run(self):
         if rospy.Time.now() - self.time_start > rospy.Duration(10):
