@@ -2,17 +2,17 @@
  - **basicThruGate()** = Order(moveForward(10))
  - **preQualify()** = Order(submerge(), thruGate(), goAroundMarker(), thruGate())
 	- submerge() = Order(moveDown())
-	- thruGate() = Order(goToGate(), moveThru())
+	- thruGate() = Order(gotoGate(), moveThru())
 		- gotoGate() = Order(findGate(), findDistToGate(), )
 	- goAroundMarker() = Order(findMarker(), findDistToMarker(), moveToMarker(), circleAround(), findGate()
 ## Pickup Tasks:
  - **crucifixTask()** = Order(gotoCrucifix(), pickupCrucifix())
- - **garlicTask()** = Order(goToGarlic(), pickupGarlic())
+ - **garlicTask()** = Order(gotoGarlic(), pickupGarlic())
 ## Slay Vampires:
- - **slayVampTask()** = Order(goToSquare(), hitSquare(), goToTriangle(), hitTrangle())
+ - **slayVampTask()** = Order(gotoSquare(), hitSquare(), gotoTriangle(), hitTrangle())
 ## Drop Tasks:
- - **dropGarlic()** = Order(goToBin(), openBin(), centerOverBin(), drop())
+ - **dropGarlic()** = Order(gotoBin(), openBin(), centerOverBin(), drop())
 ## Stake Through The Heart:
- - **stakeHeart()** = Order(goToVamp(), moveLever(), goToHeart(), shankHeart(), goToOval(), shankOval())
+ - **stakeHeart()** = Order(gotoVamp(), moveLever(), gotoHeart(), shankHeart(), gotoOval(), shankOval())
 ## Expose To Sunlight:
- - **exposeToSun()** = Order(goToCoffins(), openClosedCoffin(), center)verCoffin(), drop(), crucifixTask())
+ - **exposeToSun()** = Order(gotoCoffins(), openClosedCoffin(), center)verCoffin(), drop(), crucifixTask())
