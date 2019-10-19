@@ -39,6 +39,7 @@ class DirectionsListener:
     def __init__(self):
         # self._speeds = [0] * 6
         self._pub = rospy.Publisher(self.OVERRIDE_TOPIC, OverrideRCIn, queue_size=10)
+        self.fresh = {'x': False, 'y': False, 'z': False, 'roll': False, 'pitch': False, 'yaw': False}
         # self._reset_speeds_duration = rospy.Duration(self.RESET_SPEEDS_TIME)
 
     def _init_subscribers(self):
@@ -50,6 +51,7 @@ class DirectionsListener:
         rospy.Subscriber(self.LT_YAW, Float64, self._on_yaw)
 
     def _on_x(self, x_speed):
+        self.fresh['x'] = True
         if not self._speed_valid(x_speed.data):
             return
         output = self._no_change_channels()
@@ -57,6 +59,7 @@ class DirectionsListener:
         self._pub.publish(output)
 
     def _on_y(self, y_speed):
+        self.fresh['y'] = True
         if not self._speed_valid(y_speed.data):
             return
         output = self._no_change_channels()
@@ -64,6 +67,7 @@ class DirectionsListener:
         self._pub.publish(output)
 
     def _on_z(self, z_speed):
+        self.fresh['z'] = True
         if not self._speed_valid(z_speed.data):
             return
         output = self._no_change_channels()
@@ -71,6 +75,7 @@ class DirectionsListener:
         self._pub.publish(output)
 
     def _on_roll(self, roll_speed):
+        self.fresh['roll'] = True
         if not self._speed_valid(roll_speed.data):
             return
         output = self._no_change_channels()
@@ -78,6 +83,7 @@ class DirectionsListener:
         self._pub.publish(output)
 
     def _on_pitch(self, pitch_speed):
+        self.fresh['pitch'] = True
         if not self._speed_valid(pitch_speed.data):
             return
         output = self._no_change_channels()
@@ -85,6 +91,7 @@ class DirectionsListener:
         self._pub.publish(output)
 
     def _on_yaw(self, yaw_speed):
+        self.fresh['yaw'] = True
         if not self._speed_valid(yaw_speed.data):
             return
         output = self._no_change_channels()
@@ -120,7 +127,33 @@ class DirectionsListener:
         # self._time_speeds_received = rospy.Time.now()
         self._init_subscribers()
 
-        rospy.spin()
+        rate = rospy.Rate(5)
+        while not rospy.is_shutdown():
+            if not self.fresh['x']:
+                self._on_x(Float64(0))
+            self.fresh['x'] = False
+
+            if not self.fresh['y']:
+                self._on_y(Float64(0))
+            self.fresh['y'] = False
+
+            if not self.fresh['z']:
+                self._on_z(Float64(0))
+            self.fresh['z'] = False
+
+            if not self.fresh['roll']:
+                self._on_roll(Float64(0))
+            self.fresh['roll'] = False
+
+            if not self.fresh['pitch']:
+                self._on_pitch(Float64(0))
+            self.fresh['pitch'] = False
+
+            if not self.fresh['yaw']:
+                self._on_yaw(Float64(0))
+            self.fresh['yaw'] = False
+
+            rate.sleep()
 
         # rate = rospy.Rate(self.OVERRIDERC_PUBLISH_RATE)
         # while not rospy.is_shutdown():

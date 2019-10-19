@@ -43,6 +43,37 @@
       "modulename": "surface_task",
       "classname": "SurfaceTask"
 
+    },
+    {
+      "name": "to_straight",
+      "modulename": "to_straight_task",
+      "classname": "ToStraightTask"
+
+    },
+    {
+      "name": "spin",
+      "modulename": "spin",
+      "classname": "SpinTask"
+    },
+    {
+      "name": "buoylevel",
+      "modulename": "to_buoy_level",
+      "classname": "ToBuoyLevelTask"
+    },
+    {
+      "name": "buoytask",
+      "modulename": "buoytask",
+      "classname": "BuoyTask"
+    },
+    {
+      "name": "to_buoys",
+      "modulename": "to_buoys",
+      "classname": "ToBuoysTask"
+    },
+    {
+      "name": "wait",
+      "modulename": "wait_task",
+      "classname": "WaitTask"
     }
   ],
   "plans": [
@@ -60,7 +91,11 @@
     },
     {
       "name": "semi",
-      "tasks": [ "to_depth", "to_gate", "to_buoy", "to_octagon", "surface" ]
+      "tasks": [ "to_depth", "to_gate", "spin", "spin", "spin", "spin", "spin", "spin", "surface" ]
+    },
+    {
+      "name": "semitest",
+      "tasks": [ "wait", "to_depth", "to_gate", "spin", "buoylevel", "to_buoys", "buoytask", "surface" ]
     }
   ]
 }

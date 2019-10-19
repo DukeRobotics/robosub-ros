@@ -22,9 +22,9 @@ class StateOrientationRpyPublisher(object):
 
     def _on_receive_state(self, state):
         rpy = self.to_rpy(state.pose.pose.orientation)
-        self._pub_roll.publish(rpy[0])
-        self._pub_pitch.publish(rpy[1])
-        self._pub_yaw.publish(rpy[2])
+        self._pub_roll.publish(0)
+        self._pub_pitch.publish(0)
+        self._pub_yaw.publish(0)
 
     def to_rpy(self, orientation):
         return euler_from_quaternion([orientation.x, orientation.y, orientation.z, orientation.w])
