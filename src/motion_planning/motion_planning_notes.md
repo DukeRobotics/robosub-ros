@@ -11,4 +11,4 @@
 ## Stake Through The Heart:
  - stakeHeart() = Order(goToVamp(), moveLever(), goToHeart(), shankHeart(), goToOval(), shankOval())
 ## Expose To Sunlight:
- - exposeToSun() = Order(goToCoffins(), openClosedCoffin(), center)verCoffin(), drop(), crucifixTask())
+ - ### exposeToSun() = Order(goToCoffins(), openClosedCoffin(), center)verCoffin(), drop(), crucifixTask())
