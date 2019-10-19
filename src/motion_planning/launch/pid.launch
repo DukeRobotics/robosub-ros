@@ -1,53 +1,53 @@
 <launch>
 
-    <arg name="pos_max" default="0.2"/>
-    <arg name="orient_max" default="0.15" />
+    <arg name="pos_max" default="0.5"/>
+    <arg name="orient_max" default="0.5" />
     <arg name="min_loop_freq" value="15" />
 
     <node name="controller" pkg="pid" type="controller" ns="global_x" output="screen" >
          <param name="node_name" value="global_x_pid" />
-         <param name="Kp" value="2.0" />
-         <param name="Ki" value="0.1" />
-         <param name="Kd" value="0.0" />
+         <param name="Kp" value="0.5" />
+         <param name="Ki" value="0.0" />
+         <param name="Kd" value="0.07" />
          <param name="upper_limit" value="$(arg pos_max)" />
          <param name="lower_limit" value="-$(arg pos_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="/controls/move/x" />
-         <remap from="state" to="/state/x" />
+         <remap from="state" to="/local_state/x" />
     </node>
 
     <node name="controller" pkg="pid" type="controller" ns="global_y" output="screen" >
          <param name="node_name" value="global_y_pid" />
-         <param name="Kp" value="1.0" />
+         <param name="Kp" value="0.5" />
          <param name="Ki" value="0.0" />
-         <param name="Kd" value="0.0" />
+         <param name="Kd" value="0.04" />
          <param name="upper_limit" value="$(arg pos_max)" />
          <param name="lower_limit" value="-$(arg pos_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="/controls/move/y" />
-         <remap from="state" to="/state/y" />
+         <remap from="state" to="/local_state/y" />
     </node>
 
     <node name="controller" pkg="pid" type="controller" ns="global_z" output="screen" >
          <param name="node_name" value="global_z_pid" />
-         <param name="Kp" value="1.0" />
-         <param name="Ki" value="0.0" />
-         <param name="Kd" value="0.0" />
+         <param name="Kp" value="0.9" />
+         <param name="Ki" value="0.05" />
+         <param name="Kd" value="0.01" />
          <param name="upper_limit" value="$(arg pos_max)" />
          <param name="lower_limit" value="-$(arg pos_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="/controls/move/z" />
-         <remap from="state" to="/state/z" />
+         <remap from="state" to="/local_state/z" />
     </node>
 
     <node name="controller" pkg="pid" type="controller" ns="global_roll" output="screen" >
          <param name="node_name" value="global_roll_pid" />
          <param name="Kp" value=".1" />
          <param name="Ki" value="0.0" />
-         <param name="Kd" value="0.001" />
+         <param name="Kd" value="0.0" />
          <param name="upper_limit" value="$(arg orient_max)" />
          <param name="lower_limit" value="-$(arg orient_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
@@ -60,7 +60,7 @@
          <param name="node_name" value="global_pitch_pid" />
          <param name="Kp" value="0.1" />
          <param name="Ki" value="0.0" />
-         <param name="Kd" value="0.001" />
+         <param name="Kd" value="0.0" />
          <param name="upper_limit" value="$(arg orient_max)" />
          <param name="lower_limit" value="-$(arg orient_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
@@ -71,9 +71,9 @@
 
     <node name="controller" pkg="pid" type="controller" ns="global_yaw" output="screen" >
          <param name="node_name" value="global_yaw_pid" />
-         <param name="Kp" value="0.1" />
-         <param name="Ki" value="0.0" />
-         <param name="Kd" value="0.001" />
+         <param name="Kp" value="0.3" />
+         <param name="Ki" value="0.04" />
+         <param name="Kd" value="0.09" />
          <param name="upper_limit" value="$(arg orient_max)" />
          <param name="lower_limit" value="-$(arg orient_max)" />
          <!-- <param name="windup_limit" value="10" /> -->

@@ -99,13 +99,16 @@ class ToDesiredState:
             if self._desired_state is None:
                 continue
 
-            if rospy.Time.now() - self._desired_state_time_received > self._reset_desired_state_duration:
-                self._desired_state = PoseStamped()
-
             self._to_robot_transform = self._get_robot_transform()
+
+            #if rospy.Time.now() - self._desired_state_time_received > self._reset_desired_state_duration:
+            #    self._desired_state = tf2_geometry_msgs.do_transform_pose(PoseStamped(),
+            #                                                              self._to_robot_transform)
 
             local_desired_pose = tf2_geometry_msgs.do_transform_pose(self._desired_state,
                                                                      self._to_robot_transform)
+            pprint('LOCAL')
+            pprint(local_desired_pose)
             # self._reset_received_values()
             self._publish_pid_setpoints(local_desired_pose)
             # self._wait_for_pid_response()
@@ -118,7 +121,7 @@ class ToDesiredState:
         """
         while True:
             try:
-                return self._tfBuffer.lookup_transform('base_link', 'odom', rospy.Time().now(), rospy.Duration(0.5))
+                return self._tfBuffer.lookup_transform('base_link', 'odom', rospy.Time(0), rospy.Duration(0.5))
             except:
                 rospy.logerr(self.NO_TRANSFORM_MESSAGE)
 
@@ -127,17 +130,17 @@ class ToDesiredState:
 
     def _publish_pid_setpoints(self, local_pose):
         self._pub_x.publish(local_pose.pose.position.x)
-        #self._pub_y.publish(local_pose.pose.position.y)
-        #self._pub_z.publish(local_pose.pose.position.z)
+        self._pub_y.publish(local_pose.pose.position.y)
+        self._pub_z.publish(local_pose.pose.position.z)
 
         rpy = euler_from_quaternion([local_pose.pose.orientation.x,
                                      local_pose.pose.orientation.y,
                                      local_pose.pose.orientation.z,
                                      local_pose.pose.orientation.w])
 
-        #self._pub_roll.publish(rpy[0])
-        #self._pub_pitch.publish(rpy[1])
-        #self._pub_yaw.publish(rpy[2])
+        self._pub_roll.publish(rpy[0])
+        self._pub_pitch.publish(rpy[1])
+        self._pub_yaw.publish(rpy[2])
 
     # def _wait_for_pid_response(self):
     #     rate = rospy.Rate(10)

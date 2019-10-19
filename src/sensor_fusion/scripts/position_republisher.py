@@ -9,9 +9,9 @@ from tf.transformations import euler_from_quaternion
 class PositionRepublisher(object):
 
     LISTENING_TOPIC = 'state'
-    PUBLISHING_TOPIC_X = 'state/x'
-    PUBLISHING_TOPIC_Y = 'state/y'
-    PUBLISHING_TOPIC_Z = 'state/z'
+    PUBLISHING_TOPIC_X = 'local_state/x'
+    PUBLISHING_TOPIC_Y = 'local_state/y'
+    PUBLISHING_TOPIC_Z = 'local_state/z'
 
     def __init__(self):
         self._pub_x = rospy.Publisher(self.PUBLISHING_TOPIC_X, Float64, queue_size=10)
@@ -21,9 +21,9 @@ class PositionRepublisher(object):
         rospy.Subscriber(self.LISTENING_TOPIC, Odometry, self._on_receive_state)
 
     def _on_receive_state(self, state):
-        self._pub_x.publish(state.pose.pose.position.x)
-        self._pub_y.publish(state.pose.pose.position.y)
-        self._pub_z.publish(state.pose.pose.position.z)
+        self._pub_x.publish(0)
+        self._pub_y.publish(0)
+        self._pub_z.publish(0)
 
     def run(self):
         rospy.init_node('state_rpy_publisher')
