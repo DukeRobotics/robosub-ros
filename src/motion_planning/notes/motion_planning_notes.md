@@ -1,12 +1,12 @@
 ## Essential Functions:
- - **BasicThruGate()** = Order(move("Forward",10))
+ - **basicThruGate()** = Order(moveForward(10))
  - **preQualify()** = Order(submerge(), thruGate(), goAroundMarker(), thruGate())
 	- submerge() = Order(moveDown())
 	- thruGate() = Order(goToGate(), moveThru())
-		- goToGate() = Order(findGate(), findDistToGate(), moveThru())
+		- gotoGate() = Order(findGate(), findDistToGate(), )
 	- goAroundMarker() = Order(findMarker(), findDistToMarker(), moveToMarker(), circleAround(), findGate()
 ## Pickup Tasks:
- - **crucifixTask()** = Order(goToCrucifix(), pickupCrucifix())
+ - **crucifixTask()** = Order(gotoCrucifix(), pickupCrucifix())
  - **garlicTask()** = Order(goToGarlic(), pickupGarlic())
 ## Slay Vampires:
  - **slayVampTask()** = Order(goToSquare(), hitSquare(), goToTriangle(), hitTrangle())
