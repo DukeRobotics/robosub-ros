@@ -4,10 +4,16 @@
 	- submerge() = Order(moveDown())
 	- thruGate() = Order(gotoGate(), moveThru())
 		- gotoGate() = Order(findGate(), move(toPos=gatePoint))
-			- findGate() a computer vision function that returns gatePoint
+			- findGate() return gatePoint
 	- goAroundMarker() = Order(findMarker(), move(toPos=markerPoint), circleAround(), findGate()
+		- findMarker() returns markerPoint
+		- circleAround() = Order(makeWaypoints(), gotoWaypoints())
+			- makeWaypoints() returns list of waypoints that forms a square around marker
+			- gotoWaypoints() = move(waypoints[i]) for each waypoint
 ## Pickup Tasks:
  - **crucifixTask()** = Order(gotoCrucifix(), pickupCrucifix())
+	- gotoCrucifix() = Order(findCrucifix(), move(crucifixPoint))
+	- pickupCrucifix() = Order(faceCrucifix(), pickup())
  - **garlicTask()** = Order(gotoGarlic(), pickupGarlic())
 ## Slay Vampires:
  - **slayVampTask()** = Order(gotoSquare(), hitSquare(), gotoTriangle(), hitTrangle())
