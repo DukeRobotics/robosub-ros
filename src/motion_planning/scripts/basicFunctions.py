@@ -1,7 +1,6 @@
-def goTo():
+def Order(*functions):
+    for func in functions:
+        func()
+
+def move(toPos=default, vel=default, orientation=default): 
     pass
-
-def linearMove(absolutePos=default, vel=default, orientation=default, stop=true):
-    pass
-
-

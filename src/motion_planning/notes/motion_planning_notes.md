@@ -3,8 +3,9 @@
  - **preQualify()** = Order(submerge(), thruGate(), goAroundMarker(), thruGate())
 	- submerge() = Order(moveDown())
 	- thruGate() = Order(gotoGate(), moveThru())
-		- gotoGate() = Order(findGate(), findDistToGate(), )
-	- goAroundMarker() = Order(findMarker(), findDistToMarker(), moveToMarker(), circleAround(), findGate()
+		- gotoGate() = Order(findGate(), move(toPos=gatePoint))
+			- findGate() a computer vision function that returns gatePoint
+	- goAroundMarker() = Order(findMarker(), move(toPos=markerPoint), circleAround(), findGate()
 ## Pickup Tasks:
  - **crucifixTask()** = Order(gotoCrucifix(), pickupCrucifix())
  - **garlicTask()** = Order(gotoGarlic(), pickupGarlic())
