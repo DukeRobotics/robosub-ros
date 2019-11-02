@@ -15,8 +15,14 @@
 	- gotoCrucifix() = Order(findCrucifix(), move(crucifixPoint))
 	- pickupCrucifix() = Order(faceCrucifix(), pickup())
  - **garlicTask()** = Order(gotoGarlic(), pickupGarlic())
+	- gotoGarlic() = Order(findGarlic(), move(garlicPoint))
+	- pickupGarlic() = Order(faceGarlic(), pickup())
 ## Slay Vampires:
- - **slayVampTask()** = Order(gotoSquare(), hitSquare(), gotoTriangle(), hitTrangle())
+ - **slayVampTask()** = Order(gotoSquare(), hitSquare(), gotoTriangle(), hitTriangle())
+	- gotoSquare() = Order(findSquare(), move(squarePoint))
+	- hitSquare() = Order(move(squarePoint + delta), move(squarePoint - delta))
+	- gotoTriangle() = Order(findTriangle(), move(trianglePoint))
+	- hitTriangle() = Order(move(trianglePoint + delta), move(trianglePoint - delta)) 
 ## Drop Tasks:
  - **dropGarlic()** = Order(gotoBin(), openBin(), centerOverBin(), drop())
 ## Stake Through The Heart:
