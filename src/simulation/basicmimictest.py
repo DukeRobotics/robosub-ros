@@ -11,7 +11,7 @@
 
 try:
     import vrep
-except:
+except Exception as e:
     print ('--------------------------------------------------------------')
     print ('"vrep.py" could not be imported. This means very probably that')
     print ('either "vrep.py" or the remoteApi library could not be found.')
@@ -19,13 +19,14 @@ except:
     print ('or appropriately adjust the file "vrep.py"')
     print ('--------------------------------------------------------------')
     print ('')
+    print (e)
 
 import time
 
 print ('Program started')
 vrep.simxFinish(-1) # just in case, close all opened connections
 clientID=vrep.simxStart('127.0.0.1',8080,True,True,5000,5) # Connect to V-REP
-winID=vrep.simxStart('127.0.0.1',19996,True,True,5000,5)
+winID=vrep.simxStart('127.0.0.1',20000,True,True,5000,5)
 if clientID!=-1 and winID!=-1:
     print ('Connected to remote API server')
 
