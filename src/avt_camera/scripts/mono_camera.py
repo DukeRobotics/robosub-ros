@@ -16,6 +16,7 @@ class MonoCamera:
         rospy.init_node(self.NODE_NAME)
         self._pub = rospy.Publisher(self.TOPIC_NAME, Image, queue_size=10)
         self._bridge = CvBridge()
+        self._camera_id = rospy.get_param('~camera_id', None)
 
     def run(self):
         
@@ -30,9 +31,15 @@ class MonoCamera:
                 sys.exit(0)
 
             for cam_id in camera_ids:
-                rospy.loginfo("Camera found: " + str(cam_id))
+                rospy.loginfo("Camera found: " + cam_id)
 
-            c0 = vimba.getCamera(camera_ids[0])
+            if  self._camera_id in camera_ids :
+                c0 = vimba.getCamera(self._camera_id)
+            elif self._camera_id is None :
+                c0 = vimba.getCamera(camera_ids[0])
+            else:
+                rospy.logerr("Requested camera not found, sorry")
+                sys.exit(0)
             c0.openCamera()
 
             try:
