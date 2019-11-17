@@ -142,8 +142,8 @@ class VimbaFrame(object):
         # errorCode to be processed by the end user for this function.
         # Prevents system for breaking for example on a hardware trigger
         # timeout
-        #if errorCode != 0:
-            #raise VimbaException(errorCode)
+        if errorCode != 0:
+            raise VimbaException(errorCode)
         return errorCode
 
     # custom method for simplified usage
