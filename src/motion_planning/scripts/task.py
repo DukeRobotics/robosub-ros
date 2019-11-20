@@ -30,7 +30,7 @@ class Task(object):
         
         self.run_task()
     
-    def run_task(self):
+    def _run_task(self):
         """Override this method for a particular task"""
         pass
     
