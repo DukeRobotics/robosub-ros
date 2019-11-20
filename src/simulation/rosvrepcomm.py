@@ -49,7 +49,7 @@ if clientID!=-1 and winID!=-1:
         res, blah, data, blah, blah = vrep.simxCallScriptFunction(clientID, "Cuboid", vrep.sim_scripttype_childscript,"get_ros_data", 
                                                                   [],[],[],bytearray(),vrep.simx_opmode_blocking)
         print(data)
-        res, blah, blah, blah, blah = vrep.simxCallScriptFunction(winID, "Cuboid", vrep.sim_scripttype_childscript, "read_ros_data",
+        res, blah, blah, blah, blah = vrep.simxCallScriptFunction(winID, "Rob", vrep.sim_scripttype_childscript, "read_ros_data",
                                                                   [],data,[],bytearray(),vrep.simx_opmode_blocking)
         time.sleep(0.005)
 
