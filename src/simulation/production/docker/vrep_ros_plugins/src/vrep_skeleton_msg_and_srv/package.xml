@@ -1,0 +1,17 @@
+<package>
+  <name>vrep_skeleton_msg_and_srv</name>
+  <description>Skeleton messages</description>
+  <maintainer email="info@coppeliarobotics.com">Coppelia</maintainer>
+  <version>3.4.0</version>
+  <author>Marc</author>
+  <license>BSD2</license>
+  <url>http://www.coppeliarobotics.com</url>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>message_generation</build_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>message_runtime</run_depend>
+</package>
+
+

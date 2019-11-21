@@ -1,0 +1,8 @@
+#
+# simInt displayText(const simChar* message)
+#
+
+string textToDisplay
+---
+int32 dialogHandle
+
