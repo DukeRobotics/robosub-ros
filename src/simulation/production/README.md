@@ -24,4 +24,4 @@ Testing/Running
 start ros pub code
 source ros and run docker headless
 
-mash enter if stuck on video compression lib or meshcalc (sometimes for meshcalc)
+mash enter if stuck on video compression lib or meshcalc (just sometimes for meshcalc)
