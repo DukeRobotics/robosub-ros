@@ -43,11 +43,7 @@ if clientID!=-1 and winID!=-1:
     startTime=time.time()
     #vrep.simxGetIntegerParameter(clientID,vrep.sim_intparam_mouse_x,vrep.simx_opmode_streaming) # Initialize streaming
     data = []
-<<<<<<< HEAD
     while True: #time.time()-startTime < 20:
-=======
-    while time.time()-startTime < 20:
->>>>>>> 2eb5e5d35e92279d98ff38c4eb0d99b03ab7adc1
         #returnCode,data=vrep.simxGetIntegerParameter(clientID,vrep.sim_intparam_mouse_x,vrep.simx_opmode_buffer) # Try to retrieve the streamed data
         #if returnCode==vrep.simx_return_ok: # After initialization of streaming, it will take a few ms before the first value arrives, so check the return code
         #    print ('Mouse position x: ',data) # Mouse position x is actualized when the cursor is over V-REP's window
@@ -58,20 +54,13 @@ if clientID!=-1 and winID!=-1:
                                                                   [],data,[],bytearray(),vrep.simx_opmode_blocking)
         print("from robot sim",data)
         time.sleep(0.005)
-<<<<<<< HEAD
+
         
     res, blah, data, blah, blah = vrep.simxCallScriptFunction(winID, "Rob", vrep.sim_scripttype_childscript, "read_ros_data",
                                                               [],[0,0,0,0,0,0,0,0],[],bytearray(),vrep.simx_opmode_blocking)
     
     # Now send some data to V-REP in a non-blocking fashion:
     vrep.simxAddStatusbarMessage(clientID,'Simulation ending!',vrep.simx_opmode_oneshot)
-=======
-
-    res, blah, data, blah, blah = vrep.simxCallScriptFunction(clientID, "Cuboid", vrep.sim_scripttype_childscript,"get_ros_data", 
-                                                                  [],data,["kill"],bytearray(),vrep.simx_opmode_blocking)
-    # Now send some data to V-REP in a non-blocking fashion:
-    vrep.simxAddStatusbarMessage(clientID,'Hello V-REP!',vrep.simx_opmode_oneshot)
->>>>>>> 2eb5e5d35e92279d98ff38c4eb0d99b03ab7adc1
 
     # Before closing the connection to V-REP, make sure that the last command sent out had time to arrive. You can guarantee this with (for example):
     vrep.simxGetPingTime(clientID)

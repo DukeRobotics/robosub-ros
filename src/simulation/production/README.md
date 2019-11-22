@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 REMEMBER TO RE-COPY THE SCENE FILES
 
 Install (one time only)
@@ -21,20 +20,10 @@ Personal computer
 
 Testing/Running
 1. In the container, start your publishing code. The bot currently publishes the 
-=======
-Download vrep (put tar in git?)
-tar vrep
-Change remoteAPIconnections
-configure for ros
-download vrep on personal comp (also git?)
-change remoteAPIconnections
->>>>>>> 2eb5e5d35e92279d98ff38c4eb0d99b03ab7adc1
 
 start ros pub code
 source ros and run docker headless
 
-<<<<<<< HEAD
 mash enter if stuck on video compression lib or meshcalc (just sometimes for meshcalc)
-=======
-mash enter if stuck on video compression lib or meshcalc (sometimes for meshcalc)
->>>>>>> 2eb5e5d35e92279d98ff38c4eb0d99b03ab7adc1
+
+git filter-branch --tree-filter 'rm -rf src/simulation/docker/*.tar.xz' HEAD
