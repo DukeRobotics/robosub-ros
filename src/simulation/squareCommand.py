@@ -1,14 +1,20 @@
 import numpy as np
 import time
+import thread
 
 import rospy
 from std_msgs.msg import Float32MultiArray
-  
+
+
+def input_thread(a_list):
+    raw_input()
+    a_list.append(True)
+
 if __name__=="__main__":
     pub = rospy.Publisher("/sim/move", Float32MultiArray, queue_size=10)
-    rospy.init_node("/sim/move")
+    rospy.init_node("move")
     start = time.time()
-    
+
     forwards = [1,1,1,1,0,0,0,0]
     backwards = [-1,-1,-1,-1,0,0,0,0]
     right = [-1,1,1,-1,0,0,0,0] #top view
@@ -16,10 +22,14 @@ if __name__=="__main__":
     dirs = [forwards,right,backwards,left]
     ct = 0
     toPub = forwards
-    while True:
+    a_list = []
+    thread.start_new_thread(input_thread, (a_list,))
+    while not a_list:
         data = Float32MultiArray()
         if (time.time()-start>5):
             ct = (ct+1)%4
             start = time.time()
         data.data = dirs[ct]
         pub.publish(data)
+    pub.publish([0,0,0,0,0,0,0,0])
+    
