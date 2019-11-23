@@ -4,17 +4,17 @@ from pymba import *
 import rospy
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
-from time import sleep
 import numpy as np
 import sys
+from camera_info_manager import CameraInfoManager
 class MonoCamera:
-    TOPIC_NAME = 'mono_camera/raw'
+    TOPIC_NAME = 'raw'
     NODE_NAME = 'mono_camera'
     
 
     def __init__(self):
         rospy.init_node(self.NODE_NAME)
-        self._pub = rospy.Publisher(self.TOPIC_NAME, Image, queue_size=10)
+        self._pub = rospy.Publisher(rospy.get_name() + "/" + self.TOPIC_NAME, Image, queue_size=10)
         self._bridge = CvBridge()
         self._camera_id = rospy.get_param('~camera_id', None)
 
@@ -33,13 +33,14 @@ class MonoCamera:
             for cam_id in camera_ids:
                 rospy.loginfo("Camera found: " + cam_id)
 
-            if  self._camera_id in camera_ids :
-                c0 = vimba.getCamera(self._camera_id)
-            elif self._camera_id is None :
-                c0 = vimba.getCamera(camera_ids[0])
-            else:
+            if self._camera_id is None :
+                self._camera_id = camera_ids[0]
+            elif self._camera_id not in camera_ids:
                 rospy.logerr("Requested camera not found, sorry")
                 sys.exit(0)
+            self._infomanager = CameraInfoManager(cname=self._camera_id, namespace = rospy.get_name(), url="package://avt_camera/calibrations/${NAME}.yaml")
+            self._infomanager.loadCameraInfo()
+            c0 = vimba.getCamera(self._camera_id)
             c0.openCamera()
 
             try:
