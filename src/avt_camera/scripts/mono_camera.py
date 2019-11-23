@@ -27,7 +27,7 @@ class MonoCamera:
 
             camera_ids = vimba.getCameraIds()
             if not camera_ids:
-                rospy.logerr("No cameras found, big RIP")
+                rospy.logerr("Sorry: Cameras were not found.")
                 sys.exit(0)
 
             for cam_id in camera_ids:
@@ -36,7 +36,7 @@ class MonoCamera:
             if self._camera_id is None :
                 self._camera_id = camera_ids[0]
             elif self._camera_id not in camera_ids:
-                rospy.logerr("Requested camera not found, sorry")
+                rospy.logerr("Requested camera ID (" + self._camera_id + ") not found, sorry")
                 sys.exit(0)
             self._infomanager = CameraInfoManager(cname=self._camera_id, namespace = rospy.get_name(), url="package://avt_camera/calibrations/${NAME}.yaml")
             self._infomanager.loadCameraInfo()
