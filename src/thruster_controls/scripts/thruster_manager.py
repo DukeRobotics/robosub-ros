@@ -26,17 +26,6 @@ class ThrusterManager():
 
         self.wrenchmat_pinv = np.linalg.pinv(self.wrenchmat)
 
-
-    def subscribe_to_pid(self):
-        # TODO: actually subscribe to PID messages from ROS
-        # pid = np.random.rand(6)
-        pid = [1, 0, 0, 0, 0, 1]
-
-        thruster_allocations = self.calc_thruster_allocs(pid)
-        print(np.linalg.norm(thruster_allocations))
-        return thruster_allocations
-        # TODO: publish these bad boys
-
     def calc_thruster_allocs(self, pid_wrench):
         thruster_allocations = np.matmul(self.wrenchmat_pinv, pid_wrench)
 
@@ -45,10 +34,3 @@ class ThrusterManager():
             thruster_allocations /= max_pow
 
         return thruster_allocations
-
-
-if __name__ == '__main__':
-    tm = ThrusterManager('cthulhu.config')
-    print(tm.wrenchmat)
-    print(tm.wrenchmat_pinv)
-    print(tm.subscribe_to_pid())
