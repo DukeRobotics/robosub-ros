@@ -1,10 +1,10 @@
 ## Essential Functions:
  - **basicThruGate()** = Order(moveForward(10))
  - **preQualify()** = Order(submerge(), thruGate(), goAroundMarker(), thruGate())
-	- submerge() = Order(moveDown())
+	- submerge() = Order(moveXRel())
 	- thruGate() = Order(gotoGate(), moveThru())
 		- gotoGate() = Order(findGate(), move(toPos=gatePoint))
-			- findGate() return gatePoint
+			- findGate() = Order(EnableVision(VisionTasks.gate), find(gate), DiableVision(VisionTass.gate) return gatePoint
 	- goAroundMarker() = Order(findMarker(), move(toPos=markerPoint), circleAround(), findGate()
 		- findMarker() returns markerPoint
 		- circleAround() = Order(makeWaypoints(), gotoWaypoints())
