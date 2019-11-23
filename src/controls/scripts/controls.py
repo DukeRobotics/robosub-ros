@@ -16,7 +16,7 @@ def controls():
 
     # ROS setup
     pub_to_sim = rospy.Publisher('/sim/move', Float32MultiArray, queue_size=10)
-    rospy.init_node('thruster_controls') # anonymous=True?
+    rospy.init_node('controls') # anonymous=True?
     rate = rospy.Rate(2)  # 2 Hz
 
     # Thruster Manager
