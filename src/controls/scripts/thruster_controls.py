@@ -16,7 +16,7 @@ def controls():
 
     # ROS setup
     pub_to_sim = rospy.Publisher('/sim/move', Float32MultiArray, queue_size=10)
-    rospy.init_node('controls') # anonymous=True?
+    rospy.init_node('thruster_controls') # anonymous=True?
     rate = rospy.Rate(2)  # 2 Hz
 
     # Thruster Manager
@@ -26,7 +26,7 @@ def controls():
 
     # ROS Pub/Sub loop
     while not rospy.is_shutdown():
-        t_allocs = tm.calc_thruster_allocs(np.random.normal(0, 1, 6))
+        t_allocs = tm.calc_thruster_allocs([0.5, 0, 0, 0, 0, 0])#np.random.normal(0, 1, 6))
         f32_t_allocs = Float32MultiArray()
         f32_t_allocs.data = t_allocs
         rospy.loginfo(f32_t_allocs)

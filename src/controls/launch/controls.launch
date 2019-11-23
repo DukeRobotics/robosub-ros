@@ -1,0 +1,7 @@
+<launch>
+    <!-- Start PID nodes for controls -->
+    <include file="$(find controls)/launch/pid.launch" />
+
+	<!-- Start controls node that listens to PID and outputs thruster allocations -->
+	<node pkg="controls" name="controls" type="thruster_controls.py" />
+</launch>
