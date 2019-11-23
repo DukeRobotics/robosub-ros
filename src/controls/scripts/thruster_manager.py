@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import json
+import yaml
 import numpy as np
 from thruster import Thruster
 
@@ -8,7 +8,7 @@ class ThrusterManager():
 
     def __init__(self, config_filename):
         with open(config_filename) as f:
-            self.vehicle = json.load(f)
+            self.vehicle = yaml.load(f)
 
         self.thrusters = []
         for t_dict in self.vehicle['thrusters']:
