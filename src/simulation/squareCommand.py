@@ -25,11 +25,16 @@ if __name__=="__main__":
     a_list = []
     thread.start_new_thread(input_thread, (a_list,))
     while not a_list:
+        now = rospy.get_rostime()
+        #rospy.loginfo("Current time %i %i", now.secs, now.nsecs)
+        print(now)
         data = Float32MultiArray()
         if (time.time()-start>5):
             ct = (ct+1)%4
             start = time.time()
         data.data = dirs[ct]
         pub.publish(data)
-    pub.publish([0,0,0,0,0,0,0,0])
+    data = Float32MultiArray()
+    data.data = [0,0,0,0,0,0,0,0]
+    pub.publish(data)
     
