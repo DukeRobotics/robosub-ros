@@ -26,7 +26,7 @@ if __name__=="__main__":
     thread.start_new_thread(input_thread, (a_list,))
     while not a_list:
         now = rospy.get_rostime()
-        #rospy.loginfo("Current time %i %i", now.secs, now.nsecs)
+        rospy.loginfo("Current time %i %i", now.secs, now.nsecs)
         print(now)
         data = Float32MultiArray()
         if (time.time()-start>5):
