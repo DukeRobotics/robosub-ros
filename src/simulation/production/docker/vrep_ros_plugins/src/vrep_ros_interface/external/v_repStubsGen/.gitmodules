@@ -1,3 +1,0 @@
-[submodule "external/pycpp"]
-	path = external/pycpp
-	url = https://github.com/fferri/pycpp.git
