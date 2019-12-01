@@ -24,10 +24,11 @@ if __name__=="__main__":
     toPub = forwards
     a_list = []
     thread.start_new_thread(input_thread, (a_list,))
+    print("Started sending. Press enter to kill.")
     while not a_list:
-        now = rospy.get_rostime()
-        rospy.loginfo("Current time %i %i", now.secs, now.nsecs)
-        print(now)
+        #now = rospy.get_rostime()
+        #rospy.loginfo("Current time %i %i", now.secs, now.nsecs)
+        #print(now)
         data = Float32MultiArray()
         if (time.time()-start>5):
             ct = (ct+1)%4
