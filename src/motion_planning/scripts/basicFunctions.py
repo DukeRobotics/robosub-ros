@@ -8,5 +8,9 @@ def move(toPos=default, vel=default, orientation=default):
 def moveXRelative():
     pass
 
+
 def moveZRelative():
+    pass
+
+def moveYRelative():
     pass
