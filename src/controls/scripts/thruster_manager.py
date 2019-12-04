@@ -27,6 +27,7 @@ class ThrusterManager():
         self.wrenchmat_pinv = np.linalg.pinv(self.wrenchmat)
 
     def calc_thruster_allocs(self, pid_wrench):
+        # pid_wrench = [x, y, z, roll, pitch, yaw] (PID control efforts)
         # Calculate thruster allocations using pseudoinverse of wrench matrix
         thruster_allocations = np.matmul(self.wrenchmat_pinv, pid_wrench)
 

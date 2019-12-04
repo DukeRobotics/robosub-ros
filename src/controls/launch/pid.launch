@@ -1,6 +1,6 @@
 <launch>
 
-    <arg name="pos_max" default="0.5"/>
+    <arg name="pos_max" default="1"/>
     <arg name="orient_max" default="0.5" />
     <arg name="min_loop_freq" value="15" />
 
@@ -14,7 +14,7 @@
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="/controls/move/x" />
-         <remap from="state" to="/local_state/x" />
+         <remap from="state" to="/state/x" />
     </node>
 
     <node name="controller" pkg="pid" type="controller" ns="global_y" output="screen" >
@@ -27,7 +27,7 @@
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="/controls/move/y" />
-         <remap from="state" to="/local_state/y" />
+         <remap from="state" to="/state/y" />
     </node>
 
     <node name="controller" pkg="pid" type="controller" ns="global_z" output="screen" >
@@ -40,7 +40,7 @@
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="/controls/move/z" />
-         <remap from="state" to="/local_state/z" />
+         <remap from="state" to="/state/z" />
     </node>
 
     <node name="controller" pkg="pid" type="controller" ns="global_roll" output="screen" >
