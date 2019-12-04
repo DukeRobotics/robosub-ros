@@ -6,15 +6,15 @@ Install (one time only)
 Container info
 
 
-source /opt/ros/kinetic/setup.bash
-mkdir simulation
-cd simulation
-wget https://raw.githubusercontent.com/DukeRobotics/robosub-ros/simulation/src/simulation/production/docker/squareCommand.py
-wget coppeliarobotics.com/files/CoppeliaSim_Edu_V4_0_0_Ubuntu16_04.tar.xz
-tar -kxvf CoppeliaSim_Edu_V4_0_0_Ubuntu16_04.tar.xz
-cd CoppeliaSim_Edu_V4_0_0_Ubuntu16_04
-wget https://github.com/DukeRobotics/robosub-ros/raw/simulation/src/simulation/production/docker/servertest1.ttt
-wget https://github.com/DukeRobotics/robosub-ros/raw/simulation/src/simulation/production/docker/libsimExtROSInterface.so
+> source /opt/ros/kinetic/setup.bash
+> mkdir simulation
+> cd simulation
+> wget https://raw.githubusercontent.com/DukeRobotics/robosub-ros/simulation/src/simulation/production/docker/squareCommand.py
+> wget coppeliarobotics.com/files/CoppeliaSim_Edu_V4_0_0_Ubuntu16_04.tar.xz
+> tar -kxvf CoppeliaSim_Edu_V4_0_0_Ubuntu16_04.tar.xz
+> cd CoppeliaSim_Edu_V4_0_0_Ubuntu16_04
+> wget https://github.com/DukeRobotics/robosub-ros/raw/simulation/src/simulation/production/docker/servertest1.ttt
+> wget https://github.com/DukeRobotics/robosub-ros/raw/simulation/src/simulation/production/docker/libsimExtROSInterface.so
 
 sudo apt-get update
 sudo apt-get install ros-kinetic-geometry2
