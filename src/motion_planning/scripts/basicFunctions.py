@@ -7,3 +7,6 @@ def move(toPos=default, vel=default, orientation=default):
 
 def moveXRelative():
     pass
+
+def moveYRelative():
+    pass
