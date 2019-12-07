@@ -8,7 +8,7 @@ from thruster_manager import ThrusterManager
 
 class ThrusterController():
 
-    CONTROLS_MOVE_TOPIC = '/controls/move'
+    CONTROLS_MOVE_TOPIC = '/control_effort'
     CONTROLS_MOVE_X_TOPIC = CONTROLS_MOVE_TOPIC + '/x'
     CONTROLS_MOVE_Y_TOPIC = CONTROLS_MOVE_TOPIC + '/y'
     CONTROLS_MOVE_Z_TOPIC = CONTROLS_MOVE_TOPIC + '/z'
@@ -34,7 +34,7 @@ class ThrusterController():
         self.t_allocs = np.zeros(8)
 
     def update_thruster_allocs(self):
-        self.t_allocs = tm.calc_thruster_allocs(self.pid_outputs)
+        self.t_allocs = self.tm.calc_thruster_allocs(self.pid_outputs)
 
     def _on_x(self, x):
         self.pid_outputs[0] = x
@@ -67,7 +67,7 @@ class ThrusterController():
         while not rospy.is_shutdown():
             f32_t_allocs = Float32MultiArray()
             f32_t_allocs.data = self.t_allocs
-            rospy.loginfo(f32_t_allocs)
+            #rospy.loginfo(f32_t_allocs)
             self.sim_pub.publish(f32_t_allocs)
             rate.sleep()
 

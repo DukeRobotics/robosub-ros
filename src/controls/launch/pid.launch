@@ -13,7 +13,7 @@
          <param name="lower_limit" value="-$(arg pos_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
-         <remap from="control_effort" to="/controls/move/x" />
+         <remap from="control_effort" to="/control_effort/x" />
          <remap from="state" to="/state/x" />
     </node>
 
@@ -26,7 +26,7 @@
          <param name="lower_limit" value="-$(arg pos_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
-         <remap from="control_effort" to="/controls/move/y" />
+         <remap from="control_effort" to="/control_effort/y" />
          <remap from="state" to="/state/y" />
     </node>
 
@@ -39,7 +39,7 @@
          <param name="lower_limit" value="-$(arg pos_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
-         <remap from="control_effort" to="/controls/move/z" />
+         <remap from="control_effort" to="/control_effort/z" />
          <remap from="state" to="/state/z" />
     </node>
 
@@ -52,7 +52,7 @@
          <param name="lower_limit" value="-$(arg orient_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
-         <remap from="control_effort" to="/controls/move/roll" />
+         <remap from="control_effort" to="/control_effort/roll" />
          <remap from="state" to="/state/roll" />
     </node>
 
@@ -65,7 +65,7 @@
          <param name="lower_limit" value="-$(arg orient_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
-         <remap from="control_effort" to="/controls/move/pitch" />
+         <remap from="control_effort" to="/control_effort/pitch" />
          <remap from="state" to="/state/pitch" />
     </node>
 
@@ -78,7 +78,7 @@
          <param name="lower_limit" value="-$(arg orient_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
-         <remap from="control_effort" to="/controls/move/yaw" />
+         <remap from="control_effort" to="/control_effort/yaw" />
          <remap from="state" to="/state/yaw" />
     </node>
 

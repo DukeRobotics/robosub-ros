@@ -7,14 +7,17 @@ from thruster import Thruster
 class ThrusterManager():
 
     def __init__(self, config_filename):
+        # Load vehicle configuration file
         with open(config_filename) as f:
             self.vehicle = yaml.load(f)
 
+        # Initialize thrusters based off of configuration file
         self.thrusters = []
         for t_dict in self.vehicle['thrusters']:
             t = Thruster(t_dict['pos'], t_dict['rpy'])
             self.thrusters.append(t)
-        
+
+        # Creating wrench matrix with column vectors equal to the force and torque of each thruster
         self.wrenchmat = np.empty((6, len(self.thrusters)))
         for i, t in enumerate(self.thrusters):
             self.wrenchmat[0][i] = t.force_hat[0]
@@ -24,11 +27,13 @@ class ThrusterManager():
             self.wrenchmat[4][i] = t.torque[1]
             self.wrenchmat[5][i] = t.torque[2]
 
-        self.wrenchmat_pinv = np.linalg.pinv(self.wrenchmat)
+        self.wrenchmat_pinv = np.linalg.pinv(self.wrenchmat) # Calculate pseudoinverse of wrench matrix
+
 
     def calc_thruster_allocs(self, pid_wrench):
         # pid_wrench = [x, y, z, roll, pitch, yaw] (PID control efforts)
         # Calculate thruster allocations using pseudoinverse of wrench matrix
+        # TODO: Explain math in readme, not here
         thruster_allocations = np.matmul(self.wrenchmat_pinv, pid_wrench)
 
         # Scale all thruster allocations so no allocation has magnitude > 1

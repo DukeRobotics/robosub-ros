@@ -5,6 +5,7 @@ from tf.transformations import quaternion_from_euler, euler_from_quaternion
 import tf2_ros
 import tf2_geometry_msgs
 import numpy as np
+from std_msgs.msg import Float64
 
 from geometry_msgs.msg import PoseStamped, TwistStamped
 # from nav_msgs.msg import Odometry
@@ -13,7 +14,7 @@ from geometry_msgs.msg import PoseStamped, TwistStamped
 class DesiredStateHandler():
 
     DESIRED_TWIST_TOPIC = ''  # TBD - where does this info come from
-    DESIRED_POSE_TOPIC = ''  # TBD - where does this info come from
+    DESIRED_POSE_TOPIC = 'test/desired_pose'  # TBD - where does this info come from
     PUBLISHING_TOPIC_X = 'global_x/setpoint'
     PUBLISHING_TOPIC_Y = 'global_y/setpoint'
     PUBLISHING_TOPIC_Z = 'global_z/setpoint'
@@ -33,7 +34,7 @@ class DesiredStateHandler():
         self._pub_yaw = rospy.Publisher(self.PUBLISHING_TOPIC_YAW, Float64, queue_size=3)
 
         rospy.Subscriber(self.DESIRED_POSE_TOPIC, PoseStamped, self.receive_pose_stamped)
-        rospy.Subscriber(self.DESIRED_TWIST_TOPIC, TwistStamped, self.receive_twist_stamped)
+        #rospy.Subscriber(self.DESIRED_TWIST_TOPIC, TwistStamped, self.receive_twist_stamped)
 
     def receive_pose_stamped(self, pose_stamped):
         self.pose_stamped = pose_stamped
