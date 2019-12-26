@@ -39,7 +39,17 @@ sudo apt-get install ros-kinetic-geometry2
 sudo apt-get install xsltproc
 ```
 
+
 On your personal computer, install the appropriate educational version of CoppeliaSim for your system from the link [here](http://coppeliarobotics.com/downloads). Additionally, download everything in the personal folder in this repo to your personal computer.
+
+### Downloading on Mac
+1. Download the mac version of CoppeliaSim Edu
+2. Unzip the download and move the resulting folder to Applications
+3. To run, click on coppeliaSim inside of that folder
+4. If you get an error about models not found, run the following
+```bash
+sudo xattr -r -d com.apple.quarantine *
+```
 
 ## Running the Simulation
 
