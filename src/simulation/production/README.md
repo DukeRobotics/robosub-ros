@@ -39,8 +39,9 @@ sudo apt-get install ros-kinetic-geometry2
 sudo apt-get install xsltproc
 ```
 
+### Downloading CoppeliaSim for Windows and Linux
 
-On your personal computer, install the appropriate educational version of CoppeliaSim for your system from the link [here](http://coppeliarobotics.com/downloads). Additionally, download everything in the personal folder in this repo to your personal computer.
+On your personal computer, install the appropriate version of CoppeliaSim Edu for your system from the link [here](http://coppeliarobotics.com/downloads). 
 
 ### Downloading on Mac
 1. Download the mac version of CoppeliaSim Edu
@@ -50,6 +51,11 @@ On your personal computer, install the appropriate educational version of Coppel
 ```bash
 sudo xattr -r -d com.apple.quarantine *
 ```
+
+### Downloading Remaining Files
+
+Additionally, download everything in the personal folder in this repo to your personal computer, inside your CoppeliaSim folder. For Windows, this will be at `C:\Program Files\CoppeliaRobotics\CoppeliaSimEdu`.
+
 
 ## Running the Simulation
 
