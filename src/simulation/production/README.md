@@ -14,9 +14,9 @@ You will need the command:
 
 `docker run -td -p 2200:2200 -p 8080:8080 dukerobotics/robosub-ros`
 
-which forwards port 8080. If you want the docker container mounted, run the command you normally do with `-p 8080:8080` added
+which forwards port 8080. If you want the docker container mounted, run the command you normally do with `-p 8080:8080` added.
 
-Once you have that, open your docker container in a terminal window and navigate to where you want your simulation stuff in a , and run the following commands (you can just copy paste the entire block into terminal).
+Once you have that, open your docker container in a terminal window and navigate to where you want your simulation stuff in a terminal window, and run the following commands (you can just copy paste the entire block into terminal).
 
 ```
 source /opt/ros/kinetic/setup.bash
@@ -69,7 +69,7 @@ roscore &
 
 Wait until the terminal says `Initialization successful.` If it delays on the video compression library or meshcalc for an extended period of time, press enter a couple of times. This may be nothing more than confirmation-bias superstition.
 
-In a new terminal window in the docker container, run whatever ROS topic publishing code you have. In the simulation folder in the docker container, there is a python script `squareCommand.py` that you can run to make the robot move approximately in a square. (In reality, the robot will spin in wide circles because the robot isn't balanced.
+In a new terminal window in the docker container, run whatever ROS topic publishing code you have. In the simulation folder in the docker container, there is a python script `squareCommand.py` that you can run to make the robot move approximately in a square. (In reality, the robot will spin in wide circles because the robot isn't balanced.)
 
 Then, on your personal computer, open CoppeliaSim, open buoyancytestwithrob.tt, and run the simulation. The robot should bob up and down in the water. Then, run rosvrepcomm.py. The robot should start moving.
 
