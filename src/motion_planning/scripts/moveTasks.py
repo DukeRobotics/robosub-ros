@@ -34,12 +34,12 @@ class MoveRelative(Task):
 
         quaternion = quaternion_from_euler(self.orientation_x,
                                             self.orientation_y,
-                                            self.orientation_z,
-                                            self.orientation_w)
-        pose.pose.Quaternion.x = quaternion[0]
-        pose.pose.Quaternion.y = quaternion[1]
-        pose.pose.Quaternion.z = quaternion[2]
-        pose.pose.Quaternion.w = quaternion[3]
+                                            self.orientation_z)
+        
+	pose.pose.orientation.x = quaternion[0]
+        pose.pose.orientation.y = quaternion[1]
+        pose.pose.orientation.z = quaternion[2]
+        pose.pose.orientation.w = quaternion[3]
 
 	while(True):
         	self.posePublisher.publish(pose)

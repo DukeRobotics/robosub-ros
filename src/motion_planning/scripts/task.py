@@ -1,4 +1,5 @@
 import rospy
+from nav_msgs.msg import Odometry
 
 class Task(object):
     """High level task that represents some function"""
@@ -10,7 +11,7 @@ class Task(object):
         self.finished = False
         self.initial_state = None
         self.started = False
-        self.state_listener = rospy.Publisher(self.STATE_TOPIC, Odometry, self._on_receive_state)
+        self.state_listener = rospy.Publisher(self.STATE_TOPIC, Odometry, self._on_receive_state, queue_size=5)
         self.state = None
 
     def _initialize(self):
