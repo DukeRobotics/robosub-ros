@@ -43,6 +43,7 @@ class DesiredStateHandler():
         self.twist_stamped = twist_stamped
 
     def run(self):
+
         rospy.init_node('desired_state')
         rate = rospy.Rate(10)  # 10 Hz
 

@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import sys
+import os
 
 import rospy
 from std_msgs.msg import Float64, Float32MultiArray
@@ -20,8 +22,7 @@ class ThrusterController():
 
     def __init__(self):
         self.sim_pub = rospy.Publisher(self.SIM_PUBLISH_TOPIC, Float32MultiArray, queue_size=3)
-
-        self.tm = ThrusterManager('cthulhu.config')
+        self.tm = ThrusterManager(os.path.join(sys.path[0], 'cthulhu.config'))
 
         rospy.Subscriber(self.CONTROLS_MOVE_X_TOPIC, Float64, self._on_x)
         rospy.Subscriber(self.CONTROLS_MOVE_Y_TOPIC, Float64, self._on_y)
@@ -37,27 +38,27 @@ class ThrusterController():
         self.t_allocs = self.tm.calc_thruster_allocs(self.pid_outputs)
 
     def _on_x(self, x):
-        self.pid_outputs[0] = x
+        self.pid_outputs[0] = x.data
         self.update_thruster_allocs()
 
     def _on_y(self, y):
-        self.pid_outputs[1] = y
+        self.pid_outputs[1] = y.data
         self.update_thruster_allocs()
 
     def _on_z(self, z):
-        self.pid_outputs[2] = z
+        self.pid_outputs[2] = z.data
         self.update_thruster_allocs()
 
     def _on_roll(self, roll):
-        self.pid_outputs[3] = roll
+        self.pid_outputs[3] = roll.data
         self.update_thruster_allocs()
 
     def _on_pitch(self, pitch):
-        self.pid_outputs[4] = pitch
+        self.pid_outputs[4] = pitch.data
         self.update_thruster_allocs()
 
     def _on_yaw(self, yaw):
-        self.pid_outputs[5] = yaw
+        self.pid_outputs[5] = yaw.data
         self.update_thruster_allocs()
 
     def run(self):
