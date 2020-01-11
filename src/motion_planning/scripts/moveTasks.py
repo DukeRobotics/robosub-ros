@@ -19,26 +19,31 @@ class MoveRelative(Task):
         self.orientation_w = orientation_w
 
     def _initialize(self):
+        rospy.init_node(self.NODE_NAME, anonymous=True)
         Task._initialize(self)
         self.posePublisher = rospy.Publisher(self.DESIRED_POSE_TOPIC, PoseStamped, queue_size=3)
-        rospy.init_node(self.NODE_NAME, anonymous=True)
         self.rate = rospy.Rate(10)
 
     def _run_task(self):
         pose = PoseStamped()
         pose.header.stamp = rospy.Time.now()
         pose.header.frame_id = ""
-        pose.pose.point.x = self.x
-        pose.pose.point.y = self.y
-        pose.pose.point.z = self.z
+        pose.pose.position.x = self.x
+        pose.pose.position.y = self.y
+        pose.pose.position.z = self.z
 
-        quaternion = quaternion_from_euler([self.orientation_x,
+        quaternion = quaternion_from_euler(self.orientation_x,
                                             self.orientation_y,
                                             self.orientation_z,
-                                            self.orientation_w])
+                                            self.orientation_w)
         pose.pose.Quaternion.x = quaternion[0]
         pose.pose.Quaternion.y = quaternion[1]
         pose.pose.Quaternion.z = quaternion[2]
         pose.pose.Quaternion.w = quaternion[3]
 
-        self.posePublisher.publish(pose)
+	while(True):
+        	self.posePublisher.publish(pose)
+
+move = MoveRelative(1,0,0,0,0,0,0)
+move._initialize()
+move._run_task()
