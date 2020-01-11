@@ -47,7 +47,7 @@ On your personal computer, install the appropriate version of CoppeliaSim Edu fo
 1. Download the mac version of CoppeliaSim Edu
 2. Unzip the download and move the resulting folder to Applications
 3. To run, click on coppeliaSim inside of that folder
-4. If you get an error about models not found, run the following
+4. If you get an error about models not found, run the following at the top of the CoppeliaSim folder
 ```bash
 sudo xattr -r -d com.apple.quarantine *
 ```
