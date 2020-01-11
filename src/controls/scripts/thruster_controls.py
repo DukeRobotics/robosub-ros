@@ -3,7 +3,7 @@ import sys
 import os
 
 import rospy
-from std_msgs.msg import Float64, Float32MultiArray
+from std_msgs.msg import Float64, Float32MultiArray, Int8MultiArray
 import numpy as np
 from thruster_manager import ThrusterManager
 
@@ -18,10 +18,19 @@ class ThrusterController():
     CONTROLS_MOVE_PITCH_TOPIC = CONTROLS_MOVE_TOPIC + '/pitch'
     CONTROLS_MOVE_YAW_TOPIC = CONTROLS_MOVE_TOPIC + '/yaw'
 
-    SIM_PUBLISH_TOPIC = '/sim/move'
+    SIM_PUB_TOPIC = '/sim/move'
+    ARDUINO_PUB_TOPIC = '/offboard_comms/ThrusterSpeeds'
 
     def __init__(self):
-        self.sim_pub = rospy.Publisher(self.SIM_PUBLISH_TOPIC, Float32MultiArray, queue_size=3)
+        self.pub_to = rospy.get_param('~pub_to', 'arduino')  # arduino or sim
+        if self.pub_to == 'arduino':
+            self.pub = rospy.Publisher(self.ARDUINO_PUB_TOPIC, Int8MultiArray, queue_size=3)
+        elif self.pub_to == 'sim':
+            self.pub = rospy.Publisher(self.SIM_PUB_TOPIC, Float32MultiArray, queue_size=3)
+        else:
+            # TODO: alert that unrecognized pub_to destination has been set
+            pass
+
         self.tm = ThrusterManager(os.path.join(sys.path[0], 'cthulhu.config'))
 
         rospy.Subscriber(self.CONTROLS_MOVE_X_TOPIC, Float64, self._on_x)
@@ -66,10 +75,15 @@ class ThrusterController():
         rate = rospy.Rate(10)  # 10 Hz
 
         while not rospy.is_shutdown():
-            f32_t_allocs = Float32MultiArray()
-            f32_t_allocs.data = self.t_allocs
             #rospy.loginfo(f32_t_allocs)
-            self.sim_pub.publish(f32_t_allocs)
+            if self.pub_to == 'arduino':
+                i8_t_allocs = Int8MultiArray()
+                i8_t_allocs.data = (self.t_allocs * 127).astype(int)
+                self.pub.publish(i8_t_allocs)
+            elif self.pub_to == 'sim':
+                f32_t_allocs = Float32MultiArray()
+                f32_t_allocs.data = self.t_allocs
+                self.pub.publish(f32_t_allocs)
             rate.sleep()
 
 
