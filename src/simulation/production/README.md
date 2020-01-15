@@ -56,6 +56,22 @@ sudo xattr -r -d com.apple.quarantine *
 
 Additionally, download everything in the personal folder in this repo to your personal computer, inside your CoppeliaSim folder. For Windows, this will be at `C:\Program Files\CoppeliaRobotics\CoppeliaSimEdu`.
 
+### Important Note if you have Docker Toolbox
+
+This only applies if you have a Windows machine, and it is not running Windows 10 Pro, Education, or Enterprise. You should open rosvrepcomm.py, located in the personal folder and comment out line 28, which reads:
+
+```
+clientID=vrep.simxStart('127.0.0.1',8080,True,True,5000,5)
+```
+
+And uncomment line 29, which reads:
+
+```
+#clientID=vrep.simxStart('192.168.99.100',8080,True,True,5000,5)
+```
+
+The reason for this is that Docker Toolbox handles the containers, and more specifically, their IP addresses, differently, requiring a different IP address. `192.168.99.100` is the default output of `docker-machine ip`, which is why it is used. If the simulation fails to connect, try running `docker-machine ip` to see if the output matches.
+
 
 ## Running the Simulation
 
