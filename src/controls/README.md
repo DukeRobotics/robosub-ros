@@ -5,7 +5,7 @@ These are the instructions to intialize and test our controls algorithm. Current
 
 Thruster information is kept in cthulu.config, which is written in YAML and can be easily updated if thrusters are added/moved. The xyz positions are in meters, and the rpy rotations are in degrees.
 
-### Setup
+## Setup
 
 First, make sure that you've pulled the latest version of the controls branch. Once you have entered the docker container, run the following script:
 
@@ -21,7 +21,7 @@ roslaunch controls controls.launch &
 
 ROS will warn you if nothing is being published to the desired or current state topics once the PID loops are launched.
 
-### Testing
+## Testing
 
 To test the outputs of the PID Loops, edit the values in test_state_publisher.py to whatever current and desired state you wish to test. Then, run the following:
 
@@ -42,10 +42,9 @@ rostopic echo /offboard_comms/ThrusterSpeeds
 ```
 
 
+## Topics
 
-### Topics
-
-#### Listening
+### Listening
 
 Desired State Topics:
 
@@ -68,7 +67,7 @@ Current State Topics:
     + 2 vectors representing the robot's current xyz and rpy velocities in the global frame
     + Type: geometry_msgs/Twist
 
-#### Publishing
+### Publishing
 
 We can choose to publish to either of these topics:
 
@@ -79,7 +78,7 @@ We can choose to publish to either of these topics:
     + An array of 8 8-bit integers [-128,127] describing the allocation of the thrusters sent to the arduino
     + Type: std_msgs/Int8MultiArray
 
-#### Important Notes
+### Important Notes
 
 Only the most recently updated Desired State topic will be used in movement. Therefore any updates will override the current movement of the robot. Controls will warn you if more than one Desired State topic is being published to at any given time to prevent such issues.
 
