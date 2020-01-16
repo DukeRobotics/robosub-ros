@@ -2,7 +2,7 @@
 
 import rospy
 from std_msgs.msg import Float64, Header
-from geometry_msgs.msg import PoseStamped, Pose
+from geometry_msgs.msg import Pose
 
 class TestStatePublisher():
     PUBLISHING_TOPIC_DESIRED_STATE = '/test/desired_pose'
@@ -15,7 +15,7 @@ class TestStatePublisher():
 
     def __init__(self):
 
-        self._pub_desired_state = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_STATE, PoseStamped, queue_size=3)
+        self._pub_desired_state = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_STATE, Pose, queue_size=3)
 
         self._pub_x = rospy.Publisher(self.PUBLISHING_TOPIC_X, Float64, queue_size=3)
         self._pub_y = rospy.Publisher(self.PUBLISHING_TOPIC_Y, Float64, queue_size=3)
@@ -24,21 +24,19 @@ class TestStatePublisher():
         self._pub_pitch = rospy.Publisher(self.PUBLISHING_TOPIC_PITCH, Float64, queue_size=3)
         self._pub_yaw = rospy.Publisher(self.PUBLISHING_TOPIC_YAW, Float64, queue_size=3)
 
+        #These values correspond to the current state of the robot
         self.test_values = [0, 0, 0, 0, 0, 0]
-        self.testPose = Pose()
+
+        self.desired_state = Pose()
 
         #These values correspond to the desired state of the robot
-        self.testPose.position.x = 5
-        self.testPose.position.y = 5
-        self.testPose.position.z = 0
-        self.testPose.orientation.x = 0
-        self.testPose.orientation.y = 0
-        self.testPose.orientation.z = 0
-        self.testPose.orientation.w = 1
-
-
-        self.desired_state = PoseStamped()
-        self.desired_state.pose = self.testPose
+        self.desired_state.position.x = 5
+        self.desired_state.position.y = 5
+        self.desired_state.position.z = 0
+        self.desired_state.orientation.x = 0
+        self.desired_state.orientation.y = 0
+        self.desired_state.orientation.z = 0
+        self.desired_state.orientation.w = 1
 
     def publish_to_state(self):
         rospy.init_node('test_state_publisher')

@@ -7,7 +7,7 @@ import tf2_geometry_msgs
 import numpy as np
 from std_msgs.msg import Float64
 
-from geometry_msgs.msg import PoseStamped, TwistStamped
+from geometry_msgs.msg import Pose, Twist
 # from nav_msgs.msg import Odometry
 
 
@@ -22,8 +22,8 @@ class DesiredStateHandler():
     PUBLISHING_TOPIC_PITCH = 'global_pitch/setpoint'
     PUBLISHING_TOPIC_YAW = 'global_yaw/setpoint' 
 
-    pose_stamped = None
-    twist_stamped = None
+    pose = None
+    twist = None
 
     def __init__(self):
         self._pub_x = rospy.Publisher(self.PUBLISHING_TOPIC_X, Float64, queue_size=3)
@@ -33,14 +33,14 @@ class DesiredStateHandler():
         self._pub_pitch = rospy.Publisher(self.PUBLISHING_TOPIC_PITCH, Float64, queue_size=3)
         self._pub_yaw = rospy.Publisher(self.PUBLISHING_TOPIC_YAW, Float64, queue_size=3)
 
-        rospy.Subscriber(self.DESIRED_POSE_TOPIC, PoseStamped, self.receive_pose_stamped)
-        #rospy.Subscriber(self.DESIRED_TWIST_TOPIC, TwistStamped, self.receive_twist_stamped)
+        rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self.receive_pose)
+        #rospy.Subscriber(self.DESIRED_TWIST_TOPIC, Twist, self.receive_twist)
 
-    def receive_pose_stamped(self, pose_stamped):
-        self.pose_stamped = pose_stamped
+    def receive_pose(self, pose):
+        self.pose = pose
 
-    def receive_twist_stamped(self, twist_stamped):
-        self.twist_stamped = twist_stamped
+    def receive_twist(self, twist):
+        self.twist = twist
 
     def run(self):
 
@@ -48,28 +48,25 @@ class DesiredStateHandler():
         rate = rospy.Rate(10)  # 10 Hz
 
         while not rospy.is_shutdown():
-            if not self.pose_stamped and not self.twist_stamped:
+            if not self.pose and not self.twist:
                 # TODO: If it's been too long, stop PID and warn (timeout)
                 continue
-            if self.pose_stamped and self.twist_stamped:
+            if self.pose and self.twist:
                 # TODO: Both seen in one update cycle, so warn and continue
                 continue
 
-            # Now we have either pose stamped XOR twist stamped
-            if self.pose_stamped:
-                x = self.pose_stamped.pose.position.x
-                y = self.pose_stamped.pose.position.y
-                z = self.pose_stamped.pose.position.z
+            # Now we have either pose XOR twist 
 
-                orientation = self.pose_stamped.pose.orientation
+            if self.pose:
+                x = self.pose.position.x
+                y = self.pose.position.y
+                z = self.pose.position.z
+
+                orientation = self.pose.orientation
                 roll, pitch, yaw = euler_from_quaternion([orientation.x,
                                                           orientation.y,
                                                           orientation.z,
                                                           orientation.w])
-
-                if self.pose_stamped.header.frame_id == 'local':
-                    # TODO: implement transformation to global
-                    pass
 
                 self._pub_x.publish(x)
                 self._pub_y.publish(y)
@@ -78,10 +75,11 @@ class DesiredStateHandler():
                 self._pub_pitch.publish(pitch)
                 self._pub_yaw.publish(yaw)
 
-                self.pose_stamped = None
-            elif self.twist_stamped:
+                self.pose = None
+            # TODO: Somehow differentiate between local and global twist
+            elif self.twist:
                 # TODO: implement this stuff lol
-                self.twist_stamped = None
+                self.twist = None
 
             rate.sleep()
 
