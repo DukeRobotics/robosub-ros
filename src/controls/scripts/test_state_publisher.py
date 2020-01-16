@@ -26,8 +26,10 @@ class TestStatePublisher():
 
         self.test_values = [0, 0, 0, 0, 0, 0]
         self.testPose = Pose()
-        self.testPose.position.x = 1
-        self.testPose.position.y = 0
+
+        #These values correspond to the desired state of the robot
+        self.testPose.position.x = 5
+        self.testPose.position.y = 5
         self.testPose.position.z = 0
         self.testPose.orientation.x = 0
         self.testPose.orientation.y = 0
@@ -50,8 +52,6 @@ class TestStatePublisher():
             self._pub_roll.publish(self.test_values[3])
             self._pub_pitch.publish(self.test_values[4])
             self._pub_yaw.publish(self.test_values[5])
-
-
 
             rate.sleep()
 
