@@ -22,7 +22,7 @@ class ThrusterController():
     ARDUINO_PUB_TOPIC = '/offboard_comms/ThrusterSpeeds'
 
     def __init__(self):
-        self.pub_to = rospy.get_param('~pub_to', 'arduino')  # arduino or sim
+        self.pub_to = rospy.get_param('~pub_to', 'arduino')  # arduino or sim, default to arduino
         if self.pub_to == 'arduino':
             self.pub = rospy.Publisher(self.ARDUINO_PUB_TOPIC, Int8MultiArray, queue_size=3)
         elif self.pub_to == 'sim':

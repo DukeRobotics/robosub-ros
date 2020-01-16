@@ -5,7 +5,7 @@ from std_msgs.msg import Float64, Header
 from geometry_msgs.msg import Pose
 
 class TestStatePublisher():
-    PUBLISHING_TOPIC_DESIRED_STATE = '/test/desired_pose'
+    PUBLISHING_TOPIC_DESIRED_STATE = 'controls/desired_pose_global'
     PUBLISHING_TOPIC_X = '/state/x'
     PUBLISHING_TOPIC_Y = '/state/y'
     PUBLISHING_TOPIC_Z = '/state/z'

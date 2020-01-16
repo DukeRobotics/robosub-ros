@@ -13,8 +13,9 @@ from geometry_msgs.msg import Pose, Twist
 
 class DesiredStateHandler():
 
-    DESIRED_TWIST_TOPIC = ''  # TBD - where does this info come from
-    DESIRED_POSE_TOPIC = 'test/desired_pose'  # TBD - where does this info come from
+    DESIRED_LOCAL_TWIST_TOPIC = 'controls/desired_twist_local'
+    DESIRED_GLOBAL_TWIST_TOPIC = 'controls/desired_twist_global'
+    DESIRED_POSE_TOPIC = 'controls/desired_pose_global'
     PUBLISHING_TOPIC_X = 'global_x/setpoint'
     PUBLISHING_TOPIC_Y = 'global_y/setpoint'
     PUBLISHING_TOPIC_Z = 'global_z/setpoint'
@@ -23,7 +24,8 @@ class DesiredStateHandler():
     PUBLISHING_TOPIC_YAW = 'global_yaw/setpoint' 
 
     pose = None
-    twist = None
+    local_twist = None
+    global_twist = None
 
     def __init__(self):
         self._pub_x = rospy.Publisher(self.PUBLISHING_TOPIC_X, Float64, queue_size=3)
@@ -34,13 +36,17 @@ class DesiredStateHandler():
         self._pub_yaw = rospy.Publisher(self.PUBLISHING_TOPIC_YAW, Float64, queue_size=3)
 
         rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self.receive_pose)
-        #rospy.Subscriber(self.DESIRED_TWIST_TOPIC, Twist, self.receive_twist)
+        #rospy.Subscriber(self.DESIRED_LOCAL_TWIST_TOPIC, Twist, self.receive_local_twist)
+        #rospy.Subscriber(self.DESIRED_GLOBAL_TWIST_TOPIC, Twist, self.receive_global_twist)
 
     def receive_pose(self, pose):
         self.pose = pose
 
-    def receive_twist(self, twist):
-        self.twist = twist
+    def receive_local_twist(self, twist):
+        self.local_twist = twist
+
+    def receive_global_twist(self, twist):
+        self.global_twist = twist
 
     def run(self):
 
@@ -48,14 +54,15 @@ class DesiredStateHandler():
         rate = rospy.Rate(10)  # 10 Hz
 
         while not rospy.is_shutdown():
-            if not self.pose and not self.twist:
+            if not self.pose and not self.local_twist and not self.global_twist:
                 # TODO: If it's been too long, stop PID and warn (timeout)
                 continue
-            if self.pose and self.twist:
-                # TODO: Both seen in one update cycle, so warn and continue
+            if (self.pose and self.local_twist) or (self.pose and self.global_twist) or (self.local_twist and self.global_twist):
+                # Make this if statement prettier
+                # TODO: More than one seen in one update cycle, so warn and continue
                 continue
 
-            # Now we have either pose XOR twist 
+            # Now we have either pose XOR local_twist XOR global_twist
 
             if self.pose:
                 x = self.pose.position.x
@@ -76,10 +83,14 @@ class DesiredStateHandler():
                 self._pub_yaw.publish(yaw)
 
                 self.pose = None
-            # TODO: Somehow differentiate between local and global twist
-            elif self.twist:
-                # TODO: implement this stuff lol
-                self.twist = None
+
+            elif self.local_twist:
+                # TODO: Perform necessary transformations from local to global frame and publish
+                self.local_twist = None
+
+            elif self.global_twist:
+                # TODO: implement this, might be the same implementation as position
+                self.global_twist = None
 
             rate.sleep()
 
