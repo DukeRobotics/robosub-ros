@@ -11,6 +11,8 @@ Additionally, it publishes a [TwistStamped](http://docs.ros.org/melodic/api/geom
 
     `docker run -td -p 2200:2200 -p 8080:8080 dukerobotics/robosub-ros`
     
+    [Here's](https://github.com/DukeRobotics/documentation/tree/master/docker) the link to the documentation repo with the Docker commands, if you need to look yours up.
+    
     If you aren't mounting your files, and you don't have a particular care for where the files get located, you can just ssh into your Docker container and copy/paste the following giant block of commands into your terminal. This will take you to step 10 (running various `sudo apt-get` commands. Alternatively, you can follow all the steps.
     
     <details>
@@ -77,19 +79,19 @@ You can skip to step 3 if you're mounting your files, and you have access to the
 
 ## Running the Simulation
 ### Docker Simulation Setup
-1. Open up a terminal and ssh into your Docker Container with the `-XY` flag (i.e. run `ssh -XY -p 2200 duke@[ip address]).
+1. Open up a terminal and ssh into your Docker Container with the `-XY` flag (i.e. run `ssh -XY -p 2200 duke@[ip address]`).
 2. Navigate into your CoppeliaSim folder. If you just copy/pasted the giant block of commands, run `cd CoppeliaSim_Edu_V4_0_0_Ubuntu16_04'.
 3. Run `source /opt/ros/kinetic/setup.bash` and `roscore &` to be able to use ROS.
 4. Run `./coppeliaSim.sh -h -s servertest1.ttt` to start the simulation in headless mode (with no graphics).
 
     Wait until the terminal says `Initialization successful.` If it delays on the video compression library or meshcalc for an extended period of time, press enter a couple of times. This may be nothing more than confirmation-bias superstition.
-5. In a new terminal window in the docker container, run whatever ROS topic publishing code you have. In `robosub-ros/src/simulation/production/docker`, there is a python script `squareCommand.py` that you can run to make the robot move approximately in a square. (In reality, the robot will spin in wide circles because the robot isn't balanced.) You can use this script to test if communication between the simulations is working.
+5. In a new terminal window, ssh into the Docker container and run whatever ROS topic publishing code you have. In `robosub-ros/src/simulation/production/docker`, there is a python script `squareCommand.py` that you can run to make the robot move approximately in a square. (In reality, the robot will spin in wide circles because the robot isn't balanced.) You can use this script to test if communication between the simulations is working.
 
 ### Personal Computer Simulation Setup
 1. Open CoppeliaSim.
 2. Go to `File>Open Scene...` and open `buoyancytestwithrob.ttt` in `robosub-ros/src/simulation/production/personal`.
 3. Press the play button to start the simulation. The robot should start bobbing up and down.
-4. Run `rosvrepcomm.py` at `robosub-ros/src/simulation/production/personal`. **If you have a Mac,** you must run this file with Python 3. **If you have Docker Toolbox (i.e. you have Windows, but not Windows 10 Pro, Education, or Enterprise)**, you need to run `rosvrepcommDockerToolbox.py` at the same location. For reasoning, see the collapsed explanation below.
+4. On your computer, run `rosvrepcomm.py` at `robosub-ros/src/simulation/production/personal`. **If you have a Mac,** you must run this file with Python 3. **If you have Docker Toolbox (i.e. you have Windows, but not Windows 10 Pro, Education, or Enterprise)**, you need to run `rosvrepcommDockerToolbox.py` at the same location. For reasoning, see the collapsed explanation below.
     <details>
         <summary>Explanation (click me)</summary>        
         The reason for this is that Docker Toolbox handles the containers, and more specifically, their IP addresses, differently, requiring a different IP address. `192.168.99.100` is the default output of `docker-machine ip`, which is why it is used. If the simulation fails to connect, run `docker-machine ip` to see if the output is the IP address above.        
@@ -97,8 +99,10 @@ You can skip to step 3 if you're mounting your files, and you have access to the
 
 5. If the robot starts moving laterally, it worked!
 
-## Stopping/Shutting down the Simulation
+#### A Note for Windows
+On windows machines with high res displays, some apps will not scale the font correctly. This happens because some applications essentially “tell” windows that it will handle the scaling, but then don’t. To fix this, right click on the application icon, go to properties, compatibility, change high DPI settings, check override, and select system.
 
+## Stopping/Shutting down the Simulation
 To pause the simulation, just press the pause button to pause, and press play to resume.
 
 To reset the simulation:
