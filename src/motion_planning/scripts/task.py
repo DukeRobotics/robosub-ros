@@ -20,7 +20,7 @@ class Task(object):
         self.initial_state = self.state if self.state else None
 
     def run(self):
-        """Run the task. This should be called by motion planning, and
+        """Run the task. This should be called by the task planner, and
         will call run_task, which is the task specific run method"""
         if not self.started:
             self._initialize()
@@ -29,7 +29,7 @@ class Task(object):
         if initial_state is None:
             return
         
-        self.run_task()
+        self._run_task()
     
     def _run_task(self):
         """Override this method for a particular task"""
@@ -43,5 +43,5 @@ class Task(object):
         """Receive the state, update initial_state if it is empty
         and the task is running"""
         self.state = state
-        if self.initial_state is None and self.start_time is not None:
+        if self.initial_state is None and not self.started:
             self.initial_state = state
