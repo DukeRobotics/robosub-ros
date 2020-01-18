@@ -17,22 +17,32 @@ class Task(object):
     def _initialize(self):
         """Should be called when the task runs for the first time"""
         self.start_time = rospy.get_rostime()
-        self.initial_state = self.state if self.state else None
+        self.initial_state = self.state
+        self._task_init()
 
     def run(self):
         """Run the task. This should be called by the task planner, and
-        will call run_task, which is the task specific run method"""
+        will call _task_run, which is the task specific run method"""
+
+        if self.finished:
+            return
+
         if not self.started:
             self._initialize()
             self.started = True
         
-        if initial_state is None:
+        if self.initial_state is None:
             return
         
-        self._run_task()
+        self._task_run()
     
-    def _run_task(self):
+    def _task_run(self):
         """Override this method for a particular task"""
+        print("Yeet")
+
+    def _task_init(self):
+        """Override this method with code that must be run once, at the beginning
+        of the task"""
         pass
     
     def finish(self):
