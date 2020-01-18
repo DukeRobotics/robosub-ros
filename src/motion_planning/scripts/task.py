@@ -1,18 +1,26 @@
 import rospy
 from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Pose, Twist
 
 class Task(object):
     """High level task that represents some function"""
 
     STATE_TOPIC = 'state'
+    DESIRED_POSE_TOPIC = 'controls/desired_pose_global'
+    DESIRED_TWIST_LOCAL_TOPIC = 'controls/desired_twist_local'
+    DESIRED_TWIST_GLOBAL_TOPIC = 'controls/desired_twist_global'
 
     def __init__(self):
         self.start_time = None
         self.finished = False
         self.initial_state = None
         self.started = False
-        self.state_listener = rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state, queue_size=5)
         self.state = None
+
+        self.state_listener = rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state)
+        self.desired_pose_global_publisher = rospy.Publisher(self.DESIRED_POSE_TOPIC, Pose, queue_size=5)
+        self.desired_twist_local_publisher = rospy.Publisher(self.DESIRED_TWIST_LOCAL_TOPIC, Twist, queue_size=5)
+        self.desired_twist_global_publisher = rospy.Publisher(self.DESIRED_TWIST_GLOBAL_TOPIC, Twist, queue_size=5)
 
     def _initialize(self):
         """Should be called when the task runs for the first time"""
