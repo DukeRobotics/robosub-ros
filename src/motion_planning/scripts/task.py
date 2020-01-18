@@ -11,7 +11,7 @@ class Task(object):
         self.finished = False
         self.initial_state = None
         self.started = False
-        self.state_listener = rospy.Publisher(self.STATE_TOPIC, Odometry, self._on_receive_state, queue_size=5)
+        self.state_listener = rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state, queue_size=5)
         self.state = None
 
     def _initialize(self):
@@ -38,7 +38,7 @@ class Task(object):
     
     def _task_run(self):
         """Override this method for a particular task"""
-        print("Yeet")
+        pass
 
     def _task_init(self):
         """Override this method with code that must be run once, at the beginning
