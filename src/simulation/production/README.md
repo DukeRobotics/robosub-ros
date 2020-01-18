@@ -80,7 +80,7 @@ You can skip to step 3 if you're mounting your files, and you have access to the
 ## Running the Simulation
 ### Docker Simulation Setup
 1. Open up a terminal and ssh into your Docker Container with the `-XY` flag (i.e. run `ssh -XY -p 2200 duke@[ip address]`).
-2. Navigate into your CoppeliaSim folder. If you just copy/pasted the giant block of commands, run `cd CoppeliaSim_Edu_V4_0_0_Ubuntu16_04'.
+2. Navigate into your CoppeliaSim folder. If you just copy/pasted the giant block of commands, run `cd CoppeliaSim_Edu_V4_0_0_Ubuntu16_04`.
 3. Run `source /opt/ros/kinetic/setup.bash` and `roscore &` to be able to use ROS.
 4. Run `./coppeliaSim.sh -h -s servertest1.ttt` to start the simulation in headless mode (with no graphics).
 
