@@ -22,15 +22,18 @@ except Exception as e:
     print (e)
 
 import time
+import sys
 
 print ('Program started')
 vrep.simxFinish(-1) # just in case, close all opened connections
-<<<<<<< HEAD
-clientID=vrep.simxStart('127.0.0.1',8080,True,True,5000,5) # Connect to V-REP
-=======
-clientID=vrep.simxStart('127.0.0.1',8080,True,True,5000,5) # For most computers
+if (len(sys.argv)==1):
+    ip = '127.0.0.1'
+else:
+    ip = sys.argv[1]
+    print("Using ip address: "+ip)
+clientID=vrep.simxStart(ip,8080,True,True,5000,5) # For most computers
 #clientID=vrep.simxStart('192.168.99.100',8080,True,True,5000,5) # Use if you have Docker Toolbox (i.e. just Windows without full Docker)
->>>>>>> cdfcfe5b6db3fc7ed4bd25a384ad6e3fe03645c1
+
 winID=vrep.simxStart('127.0.0.1',20000,True,True,5000,5)
 if clientID!=-1 and winID!=-1:
     print ('Connected to remote API server')
