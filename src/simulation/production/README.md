@@ -14,9 +14,9 @@ Additionally, it publishes a [TwistStamped](http://docs.ros.org/melodic/api/geom
     If you aren't mounting your files, and you don't have a particular care for where the files get located, you can just ssh into your Docker container and copy/paste the following giant block of commands into your terminal. This will take you to step 10 (running various `sudo apt-get` commands. Alternatively, you can follow all the steps.
     
     <details>
-        <summary>Giant block of commands (click me)</summary>
+        <summary>Giant block of commands (click me)</summary><p>      
+    
         
-        ```bash
         git clone https://github.com/DukeRobotics/robosub-ros.git
         cd robosub-ros
         git checkout -b simulation origin/simulation
@@ -26,10 +26,9 @@ Additionally, it publishes a [TwistStamped](http://docs.ros.org/melodic/api/geom
         cp robosub-ros/src/simulation/production/docker/libsimExtROSInterface.so CoppeliaSim_Edu_V4_0_0_Ubuntu16_04
         cp robosub-ros/src/simulation/production/docker/servertest1.ttt CoppeliaSim_Edu_V4_0_0_Ubuntu16_04
         ls
-        ```
-    
-    </details>
-    
+         
+    </p></details>
+        
 2. Once you have a Docker container, ssh into your Docker container in a terminal window and navigate to where you want your simulation stuff in a terminal window. If mounted, navigate to where your files are mounted.
 3. Run `git clone https://github.com/DukeRobotics/robosub-ros.git`, **unless you've mounted your files and already have the repo cloned on your personal computer**.
 4. Navigate inside the repo with `cd robosub-ros`.
@@ -92,10 +91,8 @@ You can skip to step 3 if you're mounting your files, and you have access to the
 3. Press the play button to start the simulation. The robot should start bobbing up and down.
 4. Run `rosvrepcomm.py` at `robosub-ros/src/simulation/production/personal`. **If you have a Mac,** you must run this file with Python 3. **If you have Docker Toolbox (i.e. you have Windows, but not Windows 10 Pro, Education, or Enterprise)**, you need to run `rosvrepcommDockerToolbox.py` at the same location. For reasoning, see the collapsed explanation below.
     <details>
-        <summary>Explanation (click me)</summary>
-        
-        The reason for this is that Docker Toolbox handles the containers, and more specifically, their IP addresses, differently, requiring a different IP address. `192.168.99.100` is the default output of `docker-machine ip`, which is why it is used. If the simulation fails to connect, run `docker-machine ip` to see if the output is the IP address above.
-        
+        <summary>Explanation (click me)</summary>        
+        The reason for this is that Docker Toolbox handles the containers, and more specifically, their IP addresses, differently, requiring a different IP address. `192.168.99.100` is the default output of `docker-machine ip`, which is why it is used. If the simulation fails to connect, run `docker-machine ip` to see if the output is the IP address above.        
     </details>
 
 5. If the robot starts moving laterally, it worked!
