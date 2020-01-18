@@ -1,9 +1,11 @@
 # Controls
 
 
-These are the instructions to intialize and test our controls algorithm. Currently our goal is to take input from various topics and move the robot based on desired global position or desired local/global velocity. By default, we publish thruster allocations on a range [-128, 127] that are readily available for the arduino. We can also publish values on a range [-1, 1] for use by the simulation.
+These are the instructions to intialize and test our controls algorithm. Currently, our goal is to take input from various topics and move the robot based on desired global position or desired local/global velocity. By default, we publish thruster allocations on a range [-128, 127] that are readily available for the arduino. We can also publish values on a range [-1, 1] for use by the simulation.
 
-Thruster information is kept in cthulu.config, which is written in YAML and can be easily updated if thrusters are added/moved. The xyz positions are in meters, and the rpy rotations are in degrees.
+Thruster information is read from `cthulhu.config`, which is written in YAML and can be easily updated if thrusters are added or moved. The xyz positions are in meters, and the rpy rotations are in degrees.
+
+**Note**: The ordering of the thruster power outputs is determined by the order in which they appear the config file.
 
 ## Setup
 
@@ -23,7 +25,7 @@ ROS will warn you if nothing is being published to the desired or current state 
 
 ## Testing
 
-To test the outputs of the PID Loops, edit the values in test_state_publisher.py to whatever current and desired state you wish to test. Then, run the following:
+To test the outputs of the PID Loops, edit the values in `test_state_publisher.py` to whatever current and desired state you wish to test. Then, run the following:
 
 ```
 rosrun controls test_state_publisher.py &
@@ -48,38 +50,41 @@ rostopic echo /offboard_comms/ThrusterSpeeds
 
 Desired State Topics:
 
-  - controls/desired_pose_global
+  - `controls/desired_pose_global`
     + A point and quaternion representing the robot's desired global xyz position and rpy orientation
     + Type: geometry_msgs/Pose
-  - controls/desired_twist_local
+  - `controls/desired_twist_local`
     + 2 vectors representing the robot's desired xyz and rpy velocities in the local frame
     + Type: geometry_msgs/Twist
-  - controls/desired_twist_global
+  - `controls/desired_twist_global`
     + 2 vectors representing the robot's desired xyz and rpy velocities in the global frame
     + Type: geometry_msgs/Twist
 
 Current State Topics:
 
-  - /state/current_pose
-    + A point and quaternion representing the robot's current global xyz position and rpy orientation
-    + Type: geometry_msgs/Pose
-  - /state/current_twist
-    + 2 vectors representing the robot's current xyz and rpy velocities in the global frame
-    + Type: geometry_msgs/Twist
+  - `/state`
+    + The current state of the actual robot, in global position, orientation, linear velocity, and angular velocity
+    + Type: nav_msgs/Odometry
+  - `/sim/pose`
+    + Current position and orientation of the robot in simulation
+    + Type: geometry_msgs/PoseStamped
+  - `/sim/dvl`
+    + Current linear and angular velocities of the robot in simulation
+    + Type: geometry_msgs/TwistStamped
 
 ### Publishing
 
 We can choose to publish to either of these topics:
 
-  - /sim/move
+  - `/sim/move`
     + An array of 8 floats [-1,1] describing the allocation of the thrusters sent to the simulation
     + Type: std_msgs/Float32MultiArray
-  - /offboard_comms/ThrusterSpeeds
+  - `/offboard_comms/ThrusterSpeeds`
     + An array of 8 8-bit integers [-128,127] describing the allocation of the thrusters sent to the arduino
     + Type: std_msgs/Int8MultiArray
 
 ### Important Notes
 
-Only the most recently updated Desired State topic will be used in movement. Therefore any updates will override the current movement of the robot. Controls will warn you if more than one Desired State topic is being published to at any given time to prevent such issues.
+Only the most recently updated Desired State topic will be used in movement. Therefore any updates will override the current movement of the robot. Controls will warn you if more than one Desired State Topic is being published to at any given time to prevent such issues. Also [TODO], if Controls stops receiving Desired State messages at a high enough rate [TBD], it will output zero power for safety purposes.
 
 The topic that is published to can be configured in controls.launch by editing a rosparam field.
