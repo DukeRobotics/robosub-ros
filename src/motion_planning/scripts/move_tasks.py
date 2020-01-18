@@ -2,7 +2,7 @@ from task import Task
 from geometry_msgs.msg import Pose
 from tf.transformations import quaternion_from_euler
 
-class MoveToPointGlobalTask(Task):
+class MoveToPoseGlobalTask(Task):
 
 	def __init__(self, x, y, z, roll, pitch, yaw):
 		self.x = x
