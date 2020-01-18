@@ -1,31 +1,22 @@
 #!/usr/bin/env python
 
 import rospy
-from std_msgs.msg import Float64, Header
+from std_msgs.msg import Float64
 from geometry_msgs.msg import Pose
+from nav_msgs.msg import Odometry
 
 class TestStatePublisher():
     PUBLISHING_TOPIC_DESIRED_STATE = 'controls/desired_pose_global'
-    PUBLISHING_TOPIC_X = '/state/x'
-    PUBLISHING_TOPIC_Y = '/state/y'
-    PUBLISHING_TOPIC_Z = '/state/z'
-    PUBLISHING_TOPIC_ROLL = '/state/roll'
-    PUBLISHING_TOPIC_PITCH = '/state/pitch'
-    PUBLISHING_TOPIC_YAW = '/state/yaw'
+    PUBLISHING_ODOMETRY_TOPIC = '/state'
 
     def __init__(self):
 
         self._pub_desired_state = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_STATE, Pose, queue_size=3)
 
-        self._pub_x = rospy.Publisher(self.PUBLISHING_TOPIC_X, Float64, queue_size=3)
-        self._pub_y = rospy.Publisher(self.PUBLISHING_TOPIC_Y, Float64, queue_size=3)
-        self._pub_z = rospy.Publisher(self.PUBLISHING_TOPIC_Z, Float64, queue_size=3)
-        self._pub_roll = rospy.Publisher(self.PUBLISHING_TOPIC_ROLL, Float64, queue_size=3)
-        self._pub_pitch = rospy.Publisher(self.PUBLISHING_TOPIC_PITCH, Float64, queue_size=3)
-        self._pub_yaw = rospy.Publisher(self.PUBLISHING_TOPIC_YAW, Float64, queue_size=3)
-
+        self._pub_odometry = rospy.Publisher(self.PUBLISHING_ODOMETRY_TOPIC, Odometry, queue_size=3)
         #These values correspond to the current state of the robot
-        self.test_values = [0, 0, 0, 0, 0, 0]
+        self.test_pose_values = [0, 0, 0, 0, 0, 0, 1]
+        self.test_twist_values = [0, 0, 0, 0, 0, 0]
 
         self.desired_state = Pose()
 
@@ -38,18 +29,30 @@ class TestStatePublisher():
         self.desired_state.orientation.z = 0
         self.desired_state.orientation.w = 1
 
+        self.current_state = Odometry()
+        self.current_state.pose.pose.position.x = self.test_pose_values[0]
+        self.current_state.pose.pose.position.y = self.test_pose_values[1]
+        self.current_state.pose.pose.position.z = self.test_pose_values[2]
+        self.current_state.pose.pose.orientation.x = self.test_pose_values[3]
+        self.current_state.pose.pose.orientation.y = self.test_pose_values[4]
+        self.current_state.pose.pose.orientation.z = self.test_pose_values[5]
+        self.current_state.pose.pose.orientation.w = self.test_pose_values[6]
+
+        self.current_state.twist.twist.linear.x = self.test_twist_values[0]
+        self.current_state.twist.twist.linear.y = self.test_twist_values[1]
+        self.current_state.twist.twist.linear.z = self.test_twist_values[2]
+        self.current_state.twist.twist.angular.x = self.test_twist_values[3]
+        self.current_state.twist.twist.angular.y = self.test_twist_values[4]
+        self.current_state.twist.twist.angular.z = self.test_twist_values[5]
+
+
     def publish_to_state(self):
         rospy.init_node('test_state_publisher')
         rate = rospy.Rate(2)
         while not rospy.is_shutdown():
             self._pub_desired_state.publish(self.desired_state)
-
-            self._pub_x.publish(self.test_values[0])
-            self._pub_y.publish(self.test_values[1])
-            self._pub_z.publish(self.test_values[2])
-            self._pub_roll.publish(self.test_values[3])
-            self._pub_pitch.publish(self.test_values[4])
-            self._pub_yaw.publish(self.test_values[5])
+            
+            self._pub_odometry.publish(self.current_state)
 
             rate.sleep()
 

@@ -19,16 +19,16 @@ class ThrusterController():
     CONTROLS_MOVE_YAW_TOPIC = CONTROLS_MOVE_TOPIC + '/yaw'
 
     SIM_PUB_TOPIC = '/sim/move'
-    ARDUINO_PUB_TOPIC = '/offboard_comms/ThrusterSpeeds'
+    ROBOT_PUB_TOPIC = '/offboard_comms/ThrusterSpeeds'
 
     def __init__(self):
-        self.pub_to = rospy.get_param('~pub_to', 'arduino')  # arduino or sim, default to arduino
-        if self.pub_to == 'arduino':
-            self.pub = rospy.Publisher(self.ARDUINO_PUB_TOPIC, Int8MultiArray, queue_size=3)
-        elif self.pub_to == 'sim':
+        self.mode = rospy.get_param('~mode', 'robot')  # robot or sim, default to robot
+        if self.mode == 'robot':
+            self.pub = rospy.Publisher(self.ROBOT_PUB_TOPIC, Int8MultiArray, queue_size=3)
+        elif self.mode == 'sim':
             self.pub = rospy.Publisher(self.SIM_PUB_TOPIC, Float32MultiArray, queue_size=3)
         else:
-            # TODO: alert that unrecognized pub_to destination has been set
+            # TODO: alert that unrecognized mode destination has been set
             pass
 
         self.tm = ThrusterManager(os.path.join(sys.path[0], 'cthulhu.config'))
@@ -76,11 +76,11 @@ class ThrusterController():
 
         while not rospy.is_shutdown():
             #rospy.loginfo(f32_t_allocs)
-            if self.pub_to == 'arduino':
+            if self.mode == 'robot':
                 i8_t_allocs = Int8MultiArray()
                 i8_t_allocs.data = (self.t_allocs * 127).astype(int)
                 self.pub.publish(i8_t_allocs)
-            elif self.pub_to == 'sim':
+            elif self.mode == 'sim':
                 f32_t_allocs = Float32MultiArray()
                 f32_t_allocs.data = self.t_allocs
                 self.pub.publish(f32_t_allocs)
