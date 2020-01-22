@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <robot
   name="sub-urdf">
   <link
@@ -41,3 +42,48 @@
     </collision>
   </link>
 </robot>
+=======
+<robot
+  name="sub-urdf">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="0 0 0"
+        rpy="1.57 0 0" />
+      <mass
+        value="12.0402580357079" />
+      <inertia
+        ixx="0.339837446412162"
+        ixy="-0.00710856649692138"
+        ixz="-0.00439921566374207"
+        iyy="0.186374894960093"
+        iyz="-0.00780267565736607"
+        izz="0.303768511784769" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="1.57 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sub-urdf/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.647058823529412 0.619607843137255 0.588235294117647 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="1.57 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sub-urdf/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+</robot>
+>>>>>>> 2eb5e5d35e92279d98ff38c4eb0d99b03ab7adc1
