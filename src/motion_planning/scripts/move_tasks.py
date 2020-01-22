@@ -23,3 +23,18 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
 
     def _task_run(self):
         self.publish_desired_pose_global(self.transformed_pose)
+
+class HoldPositionTask(Task):
+    """ docstring here """
+
+    def __init__(self, hold_time=None):
+        """
+        Args:
+            hold_time (double): time to hold in seconds. If None or 0, hold indefinitely
+        """
+        self.hold_time = hold_time
+
+    def _task_run(self):
+        self.publish_desired_pose_global(self.initial_state.pose)
+        if(self.hold_time & ((rospy.get_rostime() - self.start_time) > self.seconds_to_hold)):
+            self.finish()
