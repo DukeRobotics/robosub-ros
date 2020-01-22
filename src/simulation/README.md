@@ -25,8 +25,8 @@ Additionally, it publishes a [TwistStamped](http://docs.ros.org/melodic/api/geom
         cd ..
         wget coppeliarobotics.com/files/CoppeliaSim_Edu_V4_0_0_Ubuntu16_04.tar.xz
         tar -kxvf CoppeliaSim_Edu_V4_0_0_Ubuntu16_04.tar.xz
-        cp robosub-ros/src/simulation/production/docker/libsimExtROSInterface.so CoppeliaSim_Edu_V4_0_0_Ubuntu16_04
-        cp robosub-ros/src/simulation/production/docker/servertest1.ttt CoppeliaSim_Edu_V4_0_0_Ubuntu16_04
+        cp robosub-ros/src/simulation/docker/libsimExtROSInterface.so CoppeliaSim_Edu_V4_0_0_Ubuntu16_04
+        cp robosub-ros/src/simulation/docker/servertest1.ttt CoppeliaSim_Edu_V4_0_0_Ubuntu16_04
         ls
          
     </p></details>
@@ -40,8 +40,8 @@ Additionally, it publishes a [TwistStamped](http://docs.ros.org/melodic/api/geom
 8. Run `tar -kxvf CoppeliaSim_Edu_V4_0_0_Ubuntu16_04.tar.xz` to expand the files.
 9. Run the following commands to copy important files into the CoppeliaSim folder.
     ```bash
-    cp robosub-ros/src/simulation/production/docker/libsimExtROSInterface.so CoppeliaSim_Edu_V4_0_0_Ubuntu16_04
-    cp robosub-ros/src/simulation/production/docker/servertest1.ttt CoppeliaSim_Edu_V4_0_0_Ubuntu16_04
+    cp robosub-ros/src/simulation/docker/libsimExtROSInterface.so CoppeliaSim_Edu_V4_0_0_Ubuntu16_04
+    cp robosub-ros/src/simulation/docker/servertest1.ttt CoppeliaSim_Edu_V4_0_0_Ubuntu16_04
     ```
 10. Run each of the following commands, to install important files in the container. If you did all the above in your mounted files, this is the step you can skip to when making a new docker container.
     ```bash
