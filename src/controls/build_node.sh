@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CATKINDIR="$( cd "$(dirname "$0")" ; pwd -P )"/../..
+CATKINDIR=~/dev/robosub-ros/catkin_ws
 source /opt/ros/kinetic/setup.bash
 cd $CATKINDIR
 catkin build
