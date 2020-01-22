@@ -1,8 +1,0 @@
-git clone --recursive https://github.com/CoppeliaRobotics/simExtROSInterface.git sim_ros_interface
-cd sim_ros_interface
-catkin config --extend /opt/ros/kinetic
-5. catkin init
-6. catkin build
-7. source devel/setup.bash
-8. ./install.sh
-copy the thing (build/devel/lib?)
