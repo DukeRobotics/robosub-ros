@@ -91,7 +91,7 @@ You can skip to step 3 if you're mounting your files, and you have access to the
 1. Open CoppeliaSim.
 2. Go to `File>Open Scene...` and open `buoyancytestwithrob.ttt` in `robosub-ros/src/simulation/production/personal`.
 3. Press the play button to start the simulation. The robot should start bobbing up and down.
-4. On your computer, run `rosvrepcomm.py` at `robosub-ros/src/simulation/production/personal`. **If you have a Mac,** you must run this file with Python 3. **If you have Docker Toolbox (i.e. you have Windows, but not Windows 10 Pro, Education, or Enterprise)**, you need to run `rosvrepcommDockerToolbox.py` at the same location. For reasoning, see the collapsed explanation below.
+4. On your computer, run `rosvrepcomm.py` at `robosub-ros/src/simulation/production/personal`. **If you have a Mac,** you must run this file with Python 3. **If you have Docker Toolbox (i.e. you have Windows, but not Windows 10 Pro, Education, or Enterprise)**, you need to run `rosvrepcomm.py` with the command line argument of the IP address of the Docker container (e.g. `rosvrepcomm.py 192.168.99.100`). By default this is `192.168.99.100`, but you can find the IP address by running `docker-machine ip` in your Docker Toolbox terminal.
     <details>
         <summary>Explanation (click me)</summary>        
         The reason for this is that Docker Toolbox handles the containers, and more specifically, their IP addresses, differently, requiring a different IP address. `192.168.99.100` is the default output of `docker-machine ip`, which is why it is used. If the simulation fails to connect, run `docker-machine ip` to see if the output is the IP address above.        
