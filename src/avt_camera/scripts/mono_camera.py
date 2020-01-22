@@ -15,6 +15,7 @@ class MonoCamera:
 
     def __init__(self):
         rospy.init_node(self.NODE_NAME)
+	print(rospy.get_name() + "/" + self.INFO_TOPIC_NAME)
         self._pub = rospy.Publisher(rospy.get_name() + "/" + self.RAW_TOPIC_NAME, Image, queue_size=10)
         self._info_pub = rospy.Publisher(rospy.get_name() + "/" + self.INFO_TOPIC_NAME, CameraInfo, queue_size=10)
         self._bridge = CvBridge()
@@ -77,7 +78,11 @@ class MonoCamera:
                 img = np.ndarray(buffer=frame_data,
                                 dtype=np.uint8,
                                 shape=(frame.height, frame.width, frame.pixel_bytes))
-                self._pub.publish(self._bridge.cv2_to_imgmsg(img, "mono8"))
+                img_message = self._bridge.cv2_to_imgmsg(img, "mono8")
+		#img_message.header.stamp = rospy.Time.now()
+                ci_message = self._info_manager.getCameraInfo()
+		ci_message.header.stamp = rospy.Time.now()
+		self._pub.publish(img_message)
                 self._info_pub.publish(self._info_manager.getCameraInfo())
             c0.runFeatureCommand("AcquisitionStop")
             c0.endCapture()
