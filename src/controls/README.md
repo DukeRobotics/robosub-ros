@@ -12,43 +12,40 @@ Thruster information is read from `cthulhu.config`, which is written in YAML and
 1. Make sure that you've pulled the latest version of the controls branch.
 2. On your local computer, cd to the git repo (probably a directory named "robosub-ros").
 3. On your local computer, run the docker container with the following command:
-```
-docker run -td -p 2200:2200 --mount type=bind,source=$PWD/src,target=/home/duke/dev/robosub-ros/catkin_ws/src  dukerobotics/robosub-ros
-```
+
+    `docker run -td -p 2200:2200 --mount type=bind,source=$PWD/src,target=/home/duke/dev/robosub-ros/catkin_ws/src  dukerobotics/robosub-ros`
+
 4. SSH into the docker container
 5. In the docker container, run the following command:
 
-```
-~/dev/robosub-ros/catkin_ws/src/controls/build_node.sh
-```
+    `~/dev/robosub-ros/catkin_ws/src/controls/build_node.sh`
 
-which sources, builds the catkin workspace, and creates packages. Then, initialize roscore and paste the following in the terminal to start the PID Loops:
+    which sources, builds the catkin workspace, and creates packages.
+6. Initialize roscore and paste the following in the terminal to start the PID Loops:
 
-```
-roslaunch controls controls.launch &
-```
+    `roslaunch controls controls.launch &`
 
-ROS will warn you if nothing is being published to the desired or current state topics once the PID loops are launched.
+    ROS will warn you if nothing is being published to the desired or current state topics once the PID loops are launched.
 
 ## Testing
 
 To test the outputs of the PID Loops, edit the values in `test_state_publisher.py` to whatever current and desired state you wish to test. Then, run the following:
 
-```
+`
 rosrun controls test_state_publisher.py &
-```
+`
 
 To check direct PID Outputs:
 
-```
+`
 rostopic echo /control_effort/<var>
-```
+`
 
 Where &lt;var&gt; is x, y, z, roll, pitch, or yaw. To check final thruster allocations:
 
-```
+`
 rostopic echo /offboard_comms/ThrusterSpeeds
-```
+`
 
 
 ## Topics
