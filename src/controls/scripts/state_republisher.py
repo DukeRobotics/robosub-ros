@@ -49,7 +49,8 @@ class StateRepublisher():
         if self.mode == 'sim':
             rospy.Subscriber(self.SIMULATION_POSE_TOPIC, PoseStamped, self.receive_pose_stamped)
             rospy.Subscriber(self.SIMULATION_TWIST_TOPIC, TwistStamped, self.receive_twist_stamped)
-        rospy.Subscriber(self.ROBOT_ODOMETRY_TOPIC, Odometry, self.receive_odometry)
+        else:
+            rospy.Subscriber(self.ROBOT_ODOMETRY_TOPIC, Odometry, self.receive_odometry)
 
         rospy.spin()
 
@@ -71,13 +72,13 @@ class StateRepublisher():
 
     def receive_twist_stamped(self, twist_stamped):
         # Linear Velocity
-        self._pub_twist_x.publish(pose_stamped.twist.linear.x)
-        self._pub_twist_y.publish(pose_stamped.twist.linear.y)
-        self._pub_twist_z.publish(pose_stamped.twist.linear.z)
+        self._pub_twist_x.publish(twist_stamped.twist.linear.x)
+        self._pub_twist_y.publish(twist_stamped.twist.linear.y)
+        self._pub_twist_z.publish(twist_stamped.twist.linear.z)
         # Angular Velocity
-        self._pub_twist_roll.publish(pose_stamped.twist.angular.roll)
-        self._pub_twist_pitch.publish(pose_stamped.twist.angular.pitch)
-        self._pub_twist_yaw.publish(pose_stamped.twist.angular.yaw)
+        self._pub_twist_roll.publish(twist_stamped.twist.angular.x)
+        self._pub_twist_pitch.publish(twist_stamped.twist.angular.y)
+        self._pub_twist_yaw.publish(twist_stamped.twist.angular.z)
 
     def receive_odometry(self, odometry):
         # xyz Position
