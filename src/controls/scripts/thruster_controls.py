@@ -22,7 +22,7 @@ class ThrusterController():
     ROBOT_PUB_TOPIC = '/offboard_comms/ThrusterSpeeds'
 
     def __init__(self):
-        self.mode = rospy.get_param('~mode', 'robot')  # robot or sim, default to robot
+        self.mode = rospy.get_param('~/thruster_controls/mode')  # robot or sim, default to robot
         if self.mode == 'robot':
             self.pub = rospy.Publisher(self.ROBOT_PUB_TOPIC, Int8MultiArray, queue_size=3)
         elif self.mode == 'sim':

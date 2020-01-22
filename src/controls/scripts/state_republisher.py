@@ -45,10 +45,10 @@ class StateRepublisher():
 
         rospy.init_node('state_republisher')
 
-        self.mode = rospy.get_param('~mode', 'robot')  # robot or sim, default to robot
-        #if self.mode == 'sim':
-           # rospy.Subscriber(self.SIMULATION_POSE_TOPIC, PoseStamped, self.receive_pose_stamped)
-          #  rospy.Subscriber(self.SIMULATION_TWIST_TOPIC, TwistStamped, self.receive_twist_stamped)
+        self.mode = rospy.get_param('~/state_republisher/mode')  # robot or sim, default to robot
+        if self.mode == 'sim':
+            rospy.Subscriber(self.SIMULATION_POSE_TOPIC, PoseStamped, self.receive_pose_stamped)
+            rospy.Subscriber(self.SIMULATION_TWIST_TOPIC, TwistStamped, self.receive_twist_stamped)
         rospy.Subscriber(self.ROBOT_ODOMETRY_TOPIC, Odometry, self.receive_odometry)
 
         rospy.spin()

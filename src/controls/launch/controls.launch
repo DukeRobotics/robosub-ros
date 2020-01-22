@@ -11,12 +11,12 @@
 
 	<!-- Start controls node that republishes state to seperate topics -->
 	<node pkg="controls" name="state_republisher" type="state_republisher.py">
-		<param name="~mode" value="$(arg mode)" />
+		<param name="mode" value="$(arg mode)" />
 	</node>
 
 	<!-- Start controls node that listens to PID and outputs thruster allocations -->
 	<node pkg="controls" name="thruster_controls" type="thruster_controls.py">
-		<param name="~mode" value="$(arg mode)" />
+		<param name="mode" value="$(arg mode)" />
 	</node>
 
 </launch>
