@@ -1,7 +1,9 @@
 #!/bin/bash
 
+CATKINDIR="$( cd "$(dirname "$0")" ; pwd -P )"/../..
 source /opt/ros/kinetic/setup.bash
-cd ~/dev/robosub-ros/catkin_ws
+cd $CATKINDIR
 catkin build
-source ~/dev/robosub-ros/catkin_ws/devel/setup.bash
+echo "" && echo "Sourcing $CATKINDIR/devel/setup.bash..."
+source $CATKINDIR/devel/setup.bash
 echo "" && echo "Done building!" && echo ""

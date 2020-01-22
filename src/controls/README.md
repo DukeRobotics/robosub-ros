@@ -9,10 +9,17 @@ Thruster information is read from `cthulhu.config`, which is written in YAML and
 
 ## Setup
 
-First, make sure that you've pulled the latest version of the controls branch. Once you have entered the docker container, run the following script:
+1. Make sure that you've pulled the latest version of the controls branch.
+2. On your local computer, cd to the git repo (probably a directory named "robosub-ros").
+3. On your local computer, run the docker container with the following command:
+```
+docker run -td -p 2200:2200 --mount type=bind,source=$PWD/src,target=/home/duke/dev/robosub-ros/catkin_ws/src  dukerobotics/robosub-ros
+```
+4. SSH into the docker container
+5. In the docker container, run the following command:
 
 ```
-. ./dev/robosub-ros/catkin_ws/src/controls/build_node.sh
+~/dev/robosub-ros/catkin_ws/src/controls/build_node.sh
 ```
 
 which sources, builds the catkin workspace, and creates packages. Then, initialize roscore and paste the following in the terminal to start the PID Loops:
