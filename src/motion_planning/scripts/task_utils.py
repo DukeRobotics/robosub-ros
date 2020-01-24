@@ -7,10 +7,10 @@ def distance(self, x1, y1, z1, x2, y2, z2):
     return distance
 
 def linear_distance(point1, point2):
-    """
-    Return distance between two points
-    """
-    pass
+    vector1 = np.array([point1.x, point1.y, point1.z])
+    vector2 = np.array([point2.x, point2.y, point2.z])
+    distance = np.linalg.norm(vector2 - vector1)
+    return distance
 
 def angular_distance_quat(quat1, quat2):
     """
