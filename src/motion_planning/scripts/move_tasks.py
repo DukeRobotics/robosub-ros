@@ -7,7 +7,7 @@ import task_utils
 
 class MoveToPoseGlobalTask(Task):
     """Move to pose given in global coordinates."""
-    
+
     def __init__(self, x, y, z, roll, pitch, yaw):
     	self.desired_pose = Pose()
     	self.desired_pose.point.x = x
@@ -25,8 +25,7 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
 
     def __init__(self, x, y, z, roll, pitch, yaw):
         super().__init__(x, y, z, roll, pitch, yaw)
-        self.transformListener = tf.TransformListener()
-        self.transformed_pose = TransformListener.transformPose(self.desired_pose, self.state.pose) #arguments are incorrect, should call transform function of task_utils.py
+        self.transformed_pose = task_utils.transform(base_link, odom, pose=self.desired_pose)
 
     def _task_run(self):
         self.publish_desired_pose_global(self.transformed_pose)
