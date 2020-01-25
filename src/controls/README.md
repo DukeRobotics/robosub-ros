@@ -92,3 +92,9 @@ We can choose to publish to either of these topics:
 Only the most recently updated Desired State topic will be used in movement. Therefore any updates will override the current movement of the robot. Controls will warn you if more than one Desired State Topic is being published to at any given time to prevent such issues. Also [TODO], if Controls stops receiving Desired State messages at a high enough rate [TBD], it will output zero power for safety purposes.
 
 The topic that is published to can be configured in controls.launch by editing a rosparam field.
+
+## How It Works (Structure and Flow)
+
+This package contains three ROS nodes:
+
+* 
