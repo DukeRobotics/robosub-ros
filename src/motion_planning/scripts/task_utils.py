@@ -66,7 +66,7 @@ def at_pose(current_pose, desired_pose, linear_tol=0.1, angular_tol=3):
     """
     linear = linear_distance(current_pose.point, desired_pose.point) < linear_tol
     angular_dist = angular_distance_quat(current_pose.orientation, desired_pose.orientation)
-    angular = [angular_dist.x, angular_dist.y, angular_dist.z] < [angular_tol, angular_tol, angular_tol]
+    angular = np.all(np.array([angular_dist.x, angular_dist.y, angular_dist.z]) < (np.ones((3)) * angular_tol))
     return (linear and angular)
 
 def transform():
