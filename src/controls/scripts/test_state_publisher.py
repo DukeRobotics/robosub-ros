@@ -13,7 +13,7 @@ class TestStatePublisher():
 
         self._pub_desired_state = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_STATE, Pose, queue_size=3)
 
-        self._pub_odometry = rospy.Publisher(self.PUBLISHING_ODOMETRY_TOPIC, Odometry, queue_size=3)
+        #self._pub_odometry = rospy.Publisher(self.PUBLISHING_ODOMETRY_TOPIC, Odometry, queue_size=3)
         #These values correspond to the current state of the robot
         self.test_pose_values = [0, 0, 0, 0, 0, 0, 1]
         self.test_twist_values = [0, 0, 0, 0, 0, 0]
@@ -28,7 +28,7 @@ class TestStatePublisher():
         self.desired_state.orientation.y = 0
         self.desired_state.orientation.z = 0
         self.desired_state.orientation.w = 1
-
+        '''
         self.current_state = Odometry()
         self.current_state.pose.pose.position.x = self.test_pose_values[0]
         self.current_state.pose.pose.position.y = self.test_pose_values[1]
@@ -44,6 +44,7 @@ class TestStatePublisher():
         self.current_state.twist.twist.angular.x = self.test_twist_values[3]
         self.current_state.twist.twist.angular.y = self.test_twist_values[4]
         self.current_state.twist.twist.angular.z = self.test_twist_values[5]
+        '''
 
 
     def publish_to_state(self):
@@ -52,7 +53,7 @@ class TestStatePublisher():
         while not rospy.is_shutdown():
             self._pub_desired_state.publish(self.desired_state)
             
-            self._pub_odometry.publish(self.current_state)
+            #self._pub_odometry.publish(self.current_state)
 
             rate.sleep()
 
