@@ -2,7 +2,9 @@ import rospy
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose, Twist
 
-class Task(object):
+from abc import ABC, abstractmethod
+
+class Task(ABC):
     """High level task that represents some function"""
 
     STATE_TOPIC = 'state'
@@ -45,13 +47,17 @@ class Task(object):
         
         self._task_run()
     
+    @abstractmethod
     def _task_run(self):
         """Override this method for a particular task"""
         pass
 
     def _task_init(self):
         """Override this method with code that must be run once, at the beginning
-        of the task"""
+        of the task
+
+        Note: Not marked as abstract method because custom init is not always necessary
+        for subclasses"""
         pass
     
     def finish(self):
