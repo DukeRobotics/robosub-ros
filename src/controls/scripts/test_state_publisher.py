@@ -21,9 +21,9 @@ class TestStatePublisher():
         self.desired_state = Pose()
 
         #These values correspond to the desired state of the robot
-        self.desired_state.position.x = 5
-        self.desired_state.position.y = 5
-        self.desired_state.position.z = 0
+        self.desired_state.position.x = 2
+        self.desired_state.position.y = 2
+        self.desired_state.position.z = -2
         self.desired_state.orientation.x = 0
         self.desired_state.orientation.y = 0
         self.desired_state.orientation.z = 0
@@ -49,7 +49,7 @@ class TestStatePublisher():
 
     def publish_to_state(self):
         rospy.init_node('test_state_publisher')
-        rate = rospy.Rate(2)
+        rate = rospy.Rate(10)
         while not rospy.is_shutdown():
             self._pub_desired_state.publish(self.desired_state)
             
