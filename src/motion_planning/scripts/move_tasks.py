@@ -2,9 +2,12 @@ from task import Task
 from geometry_msgs.msg import Pose
 from tf.transformations import quaternion_from_euler
 import tf
+import task_utils
+
 
 class MoveToPoseGlobalTask(Task):
-
+    """Move to pose given in global coordinates."""
+    
     def __init__(self, x, y, z, roll, pitch, yaw):
     	self.desired_pose = Pose()
     	self.desired_pose.point.x = x
@@ -14,20 +17,24 @@ class MoveToPoseGlobalTask(Task):
 
     def _task_run(self):
     	self.publish_desired_pose_global(self.desired_pose)
+        if(task_utils.at_pose(self.desired_pose, self.state.pose)):
+            self.finish()
 
 class MoveToPoseLocalTask(MoveToPoseGlobalTask):
+    """Move to pose given in local coordinates."""
 
-    def __init__(self):
+    def __init__(self, x, y, z, roll, pitch, yaw):
+        super().__init__(x, y, z, roll, pitch, yaw)
         self.transformListener = tf.TransformListener()
-        self.transformed_pose = TransformListener.transformPose(self.desired_pose, self.state.pose)
+        self.transformed_pose = TransformListener.transformPose(self.desired_pose, self.state.pose) #arguments are incorrect, should call transform function of task_utils.py
 
     def _task_run(self):
         self.publish_desired_pose_global(self.transformed_pose)
+        if(task_utils.at_pose(self.transformed_pose, self.state.pose)):
+            self.finish()
 
 class HoldPositionTask(Task):
-    """
-    Task that holds position for a given number of seconds.
-    """
+    """Hold position for a given number of seconds."""
 
     def __init__(self, hold_time=None):
         """
