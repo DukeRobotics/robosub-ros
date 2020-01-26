@@ -2,11 +2,11 @@ import rospy
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose, Twist
 
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 
-class Task(ABC):
+class Task:
     """High level task that represents some function"""
-
+    __metaclass__ = ABCMeta
     def __init__(self):
         self.start_time = None
         self.finished = False

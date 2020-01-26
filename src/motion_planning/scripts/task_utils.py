@@ -1,9 +1,11 @@
+import rospy
 import numpy as np
-from geometry_msgs.msg import Vector3, Quaternion, Odometry, Pose
-from tf.transformations import euler_from_quaterion
+from geometry_msgs.msg import Vector3, Quaternion, Pose
+from nav_msgs.msg import Odometry
+from tf.transformations import euler_from_quaternion
 import math
 import tf2_ros
-from task_runner import TaskRunner
+from task_state import TaskState
 
 def linear_distance(point1, point2):
     """Find linear distance between two points.
@@ -96,10 +98,10 @@ def transform(origin, destination, odometry=None, pose=None):
     return transformed 
 
 def publish_desired_pose_global(pose):
-    TaskRunner.DESIRED_POSE_GLOBAL_PUBLISHER.publish(pose)
+    TaskState.DESIRED_POSE_GLOBAL_PUBLISHER.publish(pose)
 
 def publish_desired_twist_global(twist):
-    TaskRunner.DESIRED_TWIST_GLOBAL_PUBLISHER.publish(twist)
+    TaskState.DESIRED_TWIST_GLOBAL_PUBLISHER.publish(twist)
 
 def publish_desired_twist_local(twist):
-    TaskRunner.DESIRED_TWIST_LOCAL_PUBLISHER.publish(twist)
+    TaskState.DESIRED_TWIST_LOCAL_PUBLISHER.publish(twist)
