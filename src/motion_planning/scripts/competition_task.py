@@ -1,9 +1,10 @@
-from task import Task
+from template_tasks import *
 
-class CompetitionTask(Task):
-	"""
-	High level competition level task, contains a list of tasks for each competition task.
-	"""
+GateTask = ListTask([
+					# Submerge
+					MoveToPoseLocalTask(0, 0, -2, 0, 0, 0),
+					# Go straight
+					MoveToPoseLocalTask(10, 0, 0, 0, 0, 0)
+					])
 
-	def _task_run(self):
-		self.finish()
+CompetitionTask = ListTask([GateTask])
