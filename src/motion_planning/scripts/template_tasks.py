@@ -3,7 +3,7 @@ from geometry_msgs.msg import Pose, Quaternion
 from tf.transformations import quaternion_from_euler
 import tf
 import task_utils
-
+from task_runner import TaskRunner
 
 class MoveToPoseGlobalTask(Task):
     """Move to pose given in global coordinates."""
@@ -17,8 +17,8 @@ class MoveToPoseGlobalTask(Task):
         super(MoveToPoseGlobalTask, self).__init__()
 
     def _task_run(self):
-    	self.publish_desired_pose_global(self.desired_pose)
-        if(task_utils.at_pose(self.desired_pose, self.state.pose)):
+    	task_utils.publish_desired_pose_global(self.desired_pose)
+        if(task_utils.at_pose(self.desired_pose, TaskRunner.STATE.pose)):
             self.finish()
 
 class MoveToPoseLocalTask(MoveToPoseGlobalTask):
@@ -41,7 +41,7 @@ class HoldPositionTask(Task):
         super(HoldPositionTask, self).__init__()
 
     def _task_run(self):
-        self.publish_desired_pose_global(self.initial_state.pose)
+        task_utils.publish_desired_pose_global(self.initial_state.pose)
         if(self.hold_time & ((rospy.get_rostime() - self.start_time) > self.seconds_to_hold)):
             self.finish()
 

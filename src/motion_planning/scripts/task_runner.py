@@ -16,11 +16,11 @@ class TaskRunner(object):
 	DESIRED_POSE_GLOBAL_PUBLISHER = None
 	DESIRED_TWIST_GLOBAL_PUBLISHER = None
 	DESIRED_TWIST_LOCAL_PUBLISHER = None
+	STATE = None
 
 	def __init__(self):
 		self.task = CompetitionTask
 		self.rate = rospy.Rate(self.RATE)
-		self.state = None
 
         self.STATE_LISTENER = rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state)
         self.DESIRED_POSE_GLOBAL_PUBLISHER = rospy.Publisher(self.DESIRED_POSE_TOPIC, Pose, queue_size=5)
@@ -37,8 +37,8 @@ class TaskRunner(object):
     def _on_receive_state(self, state):
         """Receive the state, update initial_state if it is empty
         and the task is running"""
-        self.state = state
+        self.STATE = state
         if self.initial_state is None and not self.started:
-            self.initial_state = state
+            self.initial_state = STATE
 
 TaskRunner().start()
