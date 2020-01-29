@@ -10,10 +10,10 @@ class MoveToPoseGlobalTask(Task):
 
     def __init__(self, x, y, z, roll, pitch, yaw):
     	self.desired_pose = Pose()
-    	self.desired_pose.point.x = x
-    	self.desired_pose.point.y = y
-    	self.desired_pose.point.z = z
-    	self.desired_pose.quaternion = Quaternion(quaternion_from_euler(roll, pitch, yaw))
+    	self.desired_pose.position.x = x
+    	self.desired_pose.position.y = y
+    	self.desired_pose.position.z = z
+    	self.desired_pose.orientation = Quaternion(quaternion_from_euler(roll, pitch, yaw))
 
         super(MoveToPoseGlobalTask, self).__init__()
 
