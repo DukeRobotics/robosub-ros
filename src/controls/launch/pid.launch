@@ -12,6 +12,7 @@
          <param name="upper_limit" value="$(arg pos_max)" />
          <param name="lower_limit" value="-$(arg pos_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
+         <param name="pid_enable_topic" value="/controls/enable/x_pos" />
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="/control_effort/x" />
          <remap from="state" to="/controls/state/pose/x" />
@@ -25,6 +26,7 @@
          <param name="upper_limit" value="$(arg pos_max)" />
          <param name="lower_limit" value="-$(arg pos_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
+         <param name="pid_enable_topic" value="/controls/enable/y_pos" />
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="/control_effort/y" />
          <remap from="state" to="/controls/state/pose/y" />
@@ -38,6 +40,7 @@
          <param name="upper_limit" value="$(arg pos_max)" />
          <param name="lower_limit" value="-$(arg pos_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
+         <param name="pid_enable_topic" value="/controls/enable/z_pos" />
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="/control_effort/z" />
          <remap from="state" to="/controls/state/pose/z" />
@@ -51,6 +54,7 @@
          <param name="upper_limit" value="$(arg orient_max)" />
          <param name="lower_limit" value="-$(arg orient_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
+         <param name="pid_enable_topic" value="/controls/enable/roll_pos" />
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="/control_effort/roll" />
          <remap from="state" to="/controls/state/pose/roll" />
@@ -64,6 +68,7 @@
          <param name="upper_limit" value="$(arg orient_max)" />
          <param name="lower_limit" value="-$(arg orient_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
+         <param name="pid_enable_topic" value="/controls/enable/pitch_pos" />
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="/control_effort/pitch" />
          <remap from="state" to="/controls/state/pose/pitch" />
@@ -77,6 +82,7 @@
          <param name="upper_limit" value="$(arg orient_max)" />
          <param name="lower_limit" value="-$(arg orient_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
+         <param name="pid_enable_topic" value="/controls/enable/yaw_pos" />
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="/control_effort/yaw" />
          <remap from="state" to="/controls/state/pose/yaw" />
@@ -90,6 +96,7 @@
          <param name="upper_limit" value="$(arg pos_max)" />
          <param name="lower_limit" value="-$(arg pos_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
+         <param name="pid_enable_topic" value="/controls/enable/x_vel" />
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="/control_effort/x" />
          <remap from="state" to="/controls/state/twist/x" />
@@ -103,6 +110,7 @@
          <param name="upper_limit" value="$(arg pos_max)" />
          <param name="lower_limit" value="-$(arg pos_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
+         <param name="pid_enable_topic" value="/controls/enable/y_vel" />
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="/control_effort/y" />
          <remap from="state" to="/controls/state/twist/y" />
@@ -116,6 +124,7 @@
          <param name="upper_limit" value="$(arg pos_max)" />
          <param name="lower_limit" value="-$(arg pos_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
+         <param name="pid_enable_topic" value="/controls/enable/z_vel" />
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="/control_effort/z" />
          <remap from="state" to="/controls/state/twist/z" />
@@ -129,6 +138,7 @@
          <param name="upper_limit" value="$(arg orient_max)" />
          <param name="lower_limit" value="-$(arg orient_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
+         <param name="pid_enable_topic" value="/controls/enable/roll_vel" />
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="/control_effort/roll" />
          <remap from="state" to="/controls/state/twist/roll" />
@@ -142,6 +152,7 @@
          <param name="upper_limit" value="$(arg orient_max)" />
          <param name="lower_limit" value="-$(arg orient_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
+         <param name="pid_enable_topic" value="/controls/enable/pitch_vel" />
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="/control_effort/pitch" />
          <remap from="state" to="/controls/state/twist/pitch" />
@@ -155,6 +166,7 @@
          <param name="upper_limit" value="$(arg orient_max)" />
          <param name="lower_limit" value="-$(arg orient_max)" />
          <!-- <param name="windup_limit" value="10" /> -->
+         <param name="pid_enable_topic" value="/controls/enable/yaw_vel" />
          <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
          <remap from="control_effort" to="/control_effort/yaw" />
          <remap from="state" to="/controls/state/twist/yaw" />
