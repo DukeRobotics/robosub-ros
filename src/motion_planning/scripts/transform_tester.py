@@ -16,16 +16,16 @@ def transform(origin, destination, odometry=None, pose=None):
     The transformed odometry message
     """
 
-   if(odometry != None):
-       tfBuffer = tf2_ros.Buffer()
-       listener = tf2_ros.TransformListener(tfBuffer)
-       trans = tfBuffer.lookup_transform(origin, destination, rospy.Time(0))
-       #TODO: transform odometry
-   elif(pose != None):
-       tfBuffer = tf2_ros.Buffer()
-       listener = tf2_ros.TransformListener(tfBuffer)
-       trans = tfBuffer.lookup_transform(origin, destination, rospy.Time(0))
-	   transformed = tf2_geometry_msgs.do_transform_pose(pose, trans)
+    if(odometry != None):
+        tfBuffer = tf2_ros.Buffer()
+        listener = tf2_ros.TransformListener(tfBuffer)
+        trans = tfBuffer.lookup_transform(origin, destination, rospy.Time(0))
+        #TODO: transform odometry
+    elif(pose != None):
+        tfBuffer = tf2_ros.Buffer()
+        listener = tf2_ros.TransformListener(tfBuffer)
+        trans = tfBuffer.lookup_transform(origin, destination, rospy.Time(0))
+	    transformed = tf2_geometry_msgs.do_transform_pose(pose, trans)
 
 
 pose = Pose()
