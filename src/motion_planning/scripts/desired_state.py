@@ -49,7 +49,7 @@ class ToDesiredState:
         self._desired_state_time_received = rospy.Time.now()
 
     def _init_pid_publishers(self):
-        self._pub_x = rospy.Publisher('global_x/setpoint', Float64)
+        self._pub_x = rospy.Publisher('zglobal_x/setpoint', Float64)
         self._pub_y = rospy.Publisher('global_y/setpoint', Float64)
         self._pub_z = rospy.Publisher('global_z/setpoint', Float64)
 
