@@ -27,7 +27,7 @@ Thruster information is read from `cthulhu.config`, which is written in YAML and
 
     ROS will warn you if nothing is being published to the desired or current state topics once the PID loops are launched.
 
-## Testing
+## Testing Outputs
 
 To test the outputs of the PID Loops, edit the values in `test_state_publisher.py` to whatever current and desired state you wish to test. Then, run the following:
 
@@ -46,6 +46,19 @@ Where &lt;var&gt; is x, y, z, roll, pitch, or yaw. To check final thruster alloc
 `
 rostopic echo /offboard_comms/ThrusterSpeeds
 `
+
+## Testing with Simulation
+
+To get the initialize the simulation, follow the instructions in the simulation directory.
+
+Once the simulation is running, execute:
+
+`
+rosrun controls test_state_publisher.py &
+roslaunch controls controls.launch mode:=sim
+`
+
+test_state_publisher.py is where we specify the desired state of the robot. Alternatively, you can publish to any of the 3 desired state topics directly. The second command launches the entire controls node in simulation mode.
 
 
 ## Topics
