@@ -1,0 +1,4 @@
+<launch>
+	<node name="mono_camera" pkg="avt_camera" type="mono_camera1.py" args="
+<launch>
+
