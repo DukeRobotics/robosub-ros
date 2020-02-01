@@ -5,7 +5,7 @@ from tf.transformations import quaternion_from_euler, euler_from_quaternion, eul
 import tf2_ros
 import tf2_geometry_msgs
 import numpy as np
-from std_msgs.msg import Float64, Boolean
+from std_msgs.msg import Float64, Bool
 from drc_math import RpToTrans, Adjoint
 
 from geometry_msgs.msg import Pose, Twist
@@ -52,7 +52,6 @@ class DesiredStateHandler():
     PUBLISHING_TOPIC_ENABLE_PITCH_VEL = 'controls/enable/pitch_vel'
     PUBLISHING_TOPIC_ENABLE_YAW_VEL = 'controls/enable/yaw_vel'
 
-
     x = 0
     y = 0
     z = 0
@@ -60,7 +59,7 @@ class DesiredStateHandler():
     pitch = 0
     yaw = 0
 
-    adjoint = np.zeros(6, 6)
+    adjoint = np.zeros((6, 6))
 
     pose = None
     local_twist = None
@@ -89,19 +88,19 @@ class DesiredStateHandler():
         self._pub_pitch_vel = rospy.Publisher(self.PUBLISHING_TOPIC_PITCH_VEL, Float64, queue_size=3)
         self._pub_yaw_vel = rospy.Publisher(self.PUBLISHING_TOPIC_YAW_VEL, Float64, queue_size=3)
 
-        self._pub_x_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_X_POS, Boolean, queue_size=3)
-        self._pub_y_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_Y_POS, Boolean, queue_size=3)
-        self._pub_z_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_Z_POS, Boolean, queue_size=3)
-        self._pub_roll_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_ROLL_POS, Boolean, queue_size=3)
-        self._pub_pitch_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_PITCH_POS, Boolean, queue_size=3)
-        self._pub_yaw_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_YAW_POS, Boolean, queue_size=3)
+        self._pub_x_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_X_POS, Bool, queue_size=3)
+        self._pub_y_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_Y_POS, Bool, queue_size=3)
+        self._pub_z_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_Z_POS, Bool, queue_size=3)
+        self._pub_roll_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_ROLL_POS, Bool, queue_size=3)
+        self._pub_pitch_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_PITCH_POS, Bool, queue_size=3)
+        self._pub_yaw_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_YAW_POS, Bool, queue_size=3)
 
-        self._pub_x_vel_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_X_VEL, Boolean, queue_size=3)
-        self._pub_y_vel_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_Y_VEL, Boolean, queue_size=3)
-        self._pub_z_vel_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_Z_VEL, Boolean, queue_size=3)
-        self._pub_roll_vel_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_ROLL_VEL, Boolean, queue_size=3)
-        self._pub_pitch_vel_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_PITCH_VEL, Boolean, queue_size=3)
-        self._pub_yaw_vel_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_YAW_VEL, Boolean, queue_size=3)
+        self._pub_x_vel_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_X_VEL, Bool, queue_size=3)
+        self._pub_y_vel_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_Y_VEL, Bool, queue_size=3)
+        self._pub_z_vel_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_Z_VEL, Bool, queue_size=3)
+        self._pub_roll_vel_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_ROLL_VEL, Bool, queue_size=3)
+        self._pub_pitch_vel_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_PITCH_VEL, Bool, queue_size=3)
+        self._pub_yaw_vel_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_YAW_VEL, Bool, queue_size=3)
 
 
         rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self.receive_pose)
@@ -109,28 +108,22 @@ class DesiredStateHandler():
         rospy.Subscriber(self.DESIRED_GLOBAL_TWIST_TOPIC, Twist, self.receive_global_twist)
 
     def receive_x(self, x):
-        self.x = x
-        self.update_transformation()
+        self.x = x.data
 
     def receive_y(self, y):
-        self.y = y
-        self.update_transformation()
+        self.y = y.data
 
     def receive_z(self, z):
-        self.z = z
-        self.update_transformation()
+        self.z = z.data
 
     def receive_roll(self, roll):
-        self.roll = roll
-        self.update_transformation()
+        self.roll = roll.data
 
     def receive_pitch(self, pitch):
-        self.pitch = pitch
-        self.update_transformation()
+        self.pitch = pitch.data
 
     def receive_yaw(self, yaw):
-        self.yaw = yaw
-        self.update_transformation()
+        self.yaw = yaw.data
 
     def receive_pose(self, pose):
         self.pose = pose
@@ -149,7 +142,7 @@ class DesiredStateHandler():
         p = np.array([-self.x, -self.y, -self.z])
 
         # Create transformation matrix
-        t = RpToTrans(r, p)
+        t = RpToTrans(r[:3,:3], p)
 
         # Create adjoint matrix for twist transformation
         self.adjoint = Adjoint(t)
@@ -253,6 +246,7 @@ class DesiredStateHandler():
                 self._pub_yaw_vel_enable.publish(True)
 
                 # Perform necessary transformations from global to local frame then publish
+                self.update_transformation()
                 g = np.array([self.global_twist.linear.x,
                               self.global_twist.linear.y,
                               self.global_twist.linear.z,

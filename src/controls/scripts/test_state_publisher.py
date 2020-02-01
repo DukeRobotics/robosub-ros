@@ -2,63 +2,78 @@
 
 import rospy
 from std_msgs.msg import Float64
-from geometry_msgs.msg import Pose
-from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Pose, Twist
 
 class TestStatePublisher():
-    PUBLISHING_TOPIC_DESIRED_STATE = 'controls/desired_pose_global'
-    PUBLISHING_ODOMETRY_TOPIC = '/state'
+    PUBLISHING_TOPIC_DESIRED_POSE = 'controls/desired_pose_global'
+    PUBLISHING_TOPIC_DESIRED_LOCAL_TWIST = 'controls/desired_twist_local'
+    PUBLISHING_TOPIC_DESIRED_GLOBAL_TWIST = 'controls/desired_twist_global'
 
     def __init__(self):
 
-        self._pub_desired_state = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_STATE, Pose, queue_size=3)
-
-        #self._pub_odometry = rospy.Publisher(self.PUBLISHING_ODOMETRY_TOPIC, Odometry, queue_size=3)
-        #These values correspond to the current state of the robot
-        self.test_pose_values = [0, 0, 0, 0, 0, 0, 1]
-        self.test_twist_values = [0, 0, 0, 0, 0, 0]
-
-        self.desired_state = Pose()
-
-        #These values correspond to the desired state of the robot
-        self.desired_state.position.x = 2
-        self.desired_state.position.y = 2
-        self.desired_state.position.z = -2
-        self.desired_state.orientation.x = 0
-        self.desired_state.orientation.y = 0
-        self.desired_state.orientation.z = 0
-        self.desired_state.orientation.w = 1
-        '''
-        self.current_state = Odometry()
-        self.current_state.pose.pose.position.x = self.test_pose_values[0]
-        self.current_state.pose.pose.position.y = self.test_pose_values[1]
-        self.current_state.pose.pose.position.z = self.test_pose_values[2]
-        self.current_state.pose.pose.orientation.x = self.test_pose_values[3]
-        self.current_state.pose.pose.orientation.y = self.test_pose_values[4]
-        self.current_state.pose.pose.orientation.z = self.test_pose_values[5]
-        self.current_state.pose.pose.orientation.w = self.test_pose_values[6]
-
-        self.current_state.twist.twist.linear.x = self.test_twist_values[0]
-        self.current_state.twist.twist.linear.y = self.test_twist_values[1]
-        self.current_state.twist.twist.linear.z = self.test_twist_values[2]
-        self.current_state.twist.twist.angular.x = self.test_twist_values[3]
-        self.current_state.twist.twist.angular.y = self.test_twist_values[4]
-        self.current_state.twist.twist.angular.z = self.test_twist_values[5]
-        '''
+        self._pub_desired_pose = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_POSE, Pose, queue_size=3)
+        self._pub_desired_local_twist = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_LOCAL_TWIST, Twist, queue_size=3)
+        self._pub_desired_global_twist = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_GLOBAL_TWIST, Twist, queue_size=3)
 
 
-    def publish_to_state(self):
+        #These values correspond to the desired pose of the robot
+        self.desired_pose = Pose()
+        self.desired_pose.position.x = 2
+        self.desired_pose.position.y = 2
+        self.desired_pose.position.z = 0
+        self.desired_pose.orientation.x = 0
+        self.desired_pose.orientation.y = 0
+        self.desired_pose.orientation.z = 0
+        self.desired_pose.orientation.w = 1
+
+        #These values correspond to the desired local twist of the robot
+        self.desired_local_twist = Twist()
+        self.desired_local_twist.linear.x = 1
+        self.desired_local_twist.linear.y = 0
+        self.desired_local_twist.linear.z = 0
+        self.desired_local_twist.angular.x = 0
+        self.desired_local_twist.angular.y = 0
+        self.desired_local_twist.angular.z = 0
+
+
+        #These values correspond to the desired global twist of the robot
+        self.desired_global_twist = Twist()
+        self.desired_global_twist.linear.x = 0
+        self.desired_global_twist.linear.y = 1
+        self.desired_global_twist.linear.z = 0
+        self.desired_global_twist.angular.x = 0
+        self.desired_global_twist.angular.y = 0
+        self.desired_global_twist.angular.z = 0
+
+
+    def publish_desired_pose(self):
         rospy.init_node('test_state_publisher')
         rate = rospy.Rate(10)
         while not rospy.is_shutdown():
-            self._pub_desired_state.publish(self.desired_state)
-            
-            #self._pub_odometry.publish(self.current_state)
-
+            self._pub_desired_pose.publish(self.desired_pose)
             rate.sleep()
 
+    def publish_desired_local_twist(self):
+        rospy.init_node('test_state_publisher')
+        rate = rospy.Rate(10)
+        while not rospy.is_shutdown():
+            self._pub_desired_local_twist.publish(self.desired_local_twist)
+            rate.sleep()
+
+    def publish_desired_global_twist(self):
+        rospy.init_node('test_state_publisher')
+        rate = rospy.Rate(10)
+        while not rospy.is_shutdown():
+            self._pub_desired_global_twist.publish(self.desired_global_twist)
+            rate.sleep()
+
+
+
+
 def main():
-    TestStatePublisher().publish_to_state()
+    #TestStatePublisher().publish_desired_pose()
+    #TestStatePublisher().publish_desired_local_twist()
+    TestStatePublisher().publish_desired_global_twist()
 
 if __name__ == '__main__':
     main()
