@@ -70,25 +70,25 @@ def at_pose(current_pose, desired_pose, linear_tol=0.1, angular_tol=3):
     angular = np.all(np.array([angular_dist.x, angular_dist.y, angular_dist.z]) < (np.ones((3)) * angular_tol))
     return (linear and angular)
 
-def transform(origin, destination, odometry=None, pose=None):
+def transform(origin_frame, destination_frame, untransformed_pose_stamped):
     """Transforms Odometry input from origin frame to destination frame
-    
+
     Arguments:
-    origin: the starting frame
-    destination: the frame to trasform to
-    odometry: the odometry message to transform
+    origin_frame: string, the name of the frame to transform from
+    destination_frame: string, the name of the frame to transform to
+    pose_stamped_untransformed: the PoseStamped message to transform
 
     Returns:
-    The transformed odometry message
+    A PoseStamped in the destination frame
     """
-    if(odometry != None):
+    #if(odometry != None):
+    #    tfBuffer = tf2_ros.Buffer()
+    #    listener = tf2_ros.TransformListener(tfBuffer)
+    #    trans = tfBuffer.lookup_transform(origin, destination, rospy.Time(0))
+        #TODO: transform odometry
+    if(untransformed_pose_stamped != None):
         tfBuffer = tf2_ros.Buffer()
         listener = tf2_ros.TransformListener(tfBuffer)
-        trans = tfBuffer.lookup_transform(origin, destination, rospy.Time(0))
-        #TODO: transform odometry    
-    elif(pose != None):
-        tfBuffer = tf2_ros.Buffer()
-        listener = tf2_ros.TransformListener(tfBuffer)
-        trans = tfBuffer.lookup_transform(origin, destination, rospy.Time(0))
-	transformed = tf2_geometry_msgs.do_transform_pose(pose, trans)
-    return transformed 
+        trans = tfBuffer.lookup_transform(destination_frame, origin_frame, rospy.Time(0), rospy.Duration(0.5))
+        transformed_pose_stamped = tf2_geometry_msgs.do_transform_pose(untransformed_pose_stamped, trans)
+    return transformed_pose_stamped
