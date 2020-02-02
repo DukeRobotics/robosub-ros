@@ -93,8 +93,7 @@ def transform(origin, destination, odometry=None, pose=None):
         tfBuffer = tf2_ros.Buffer()
         listener = tf2_ros.TransformListener(tfBuffer)
         trans = tfBuffer.lookup_transform(origin, destination, rospy.Time(0))
-        #TODO: transform pose
-
+	transformed = tf2_geometry_msgs.do_transform_pose(pose, trans)
     return transformed 
 
 def publish_desired_pose_global(pose):
