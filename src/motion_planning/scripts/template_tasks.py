@@ -26,7 +26,7 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
 
     def __init__(self, x, y, z, roll, pitch, yaw):
         super(MoveToPoseLocalTask, self).__init__(x, y, z, roll, pitch, yaw)
-        self.desired_pose = task_utils.transform("base_link", "odom", pose=self.desired_pose)
+        self.desired_pose = task_utils.transform("base_link", "odom", self.desired_pose)
 
 class HoldPositionTask(Task):
     """Hold position for a given number of seconds."""

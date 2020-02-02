@@ -73,7 +73,7 @@ def at_pose(current_pose, desired_pose, linear_tol=0.1, angular_tol=3):
     angular = np.all(np.array([angular_dist.x, angular_dist.y, angular_dist.z]) < (np.ones((3)) * angular_tol))
     return (linear and angular)
 
-def transform(origin, destination, odometry=None, pose=None):
+def transform(origin, destination, odomORpose):
     """Transforms Odometry input from origin frame to destination frame
     
     Arguments:
@@ -84,16 +84,14 @@ def transform(origin, destination, odometry=None, pose=None):
     Returns:
     The transformed odometry message
     """
-    if(odometry != None):
-        tfBuffer = tf2_ros.Buffer()
-        listener = tf2_ros.TransformListener(tfBuffer)
-        trans = tfBuffer.lookup_transform(origin, destination, rospy.Time(0))
+    tfBuffer = tf2_ros.Buffer()
+    listener = tf2_ros.TransformListener(tfBuffer)
+    trans = tfBuffer.lookup_transform(origin, destination, rospy.Time(0))
+    if(isinstance(odomORpose, Odometry)):
+        pass
         #TODO: transform odometry    
-    elif(pose != None):
-        tfBuffer = tf2_ros.Buffer()
-        listener = tf2_ros.TransformListener(tfBuffer)
-        trans = tfBuffer.lookup_transform(origin, destination, rospy.Time(0))
-	transformed = tf2_geometry_msgs.do_transform_pose(pose, trans)
+    elif(isinstance(odomORpose, Pose)):
+	    transformed = tf2_geometry_msgs.do_transform_pose(odomORpose, trans)
     return transformed 
 
 def publish_desired_pose_global(pose):
