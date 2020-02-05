@@ -1,6 +1,7 @@
 import rospy
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose, Twist
+from task_state import TaskState
 
 from abc import ABC, abstractmethod
 
@@ -8,22 +9,24 @@ class Task(ABC):
     """High level task that represents some function"""
     
 
-    def __init__(self, task_state=None):
+    def __init__(self, *args, **kwargs):
         """ 
         Create a Task.
-            
-        Parameters: 
+
+        **kwargs:
         task_state (TaskState): A TaskState object that contains the state listener and controls publishers
         """
-        if task_state is None:
-            raise ValueError("task_state must be passed in and must not be null")
+        if 'task_state' not in kwargs:
+            raise ValueError("task_state must be passed in **kwargs and must not be None")
+        elif not isinstance(kwargs.get('task_state'), TaskState):
+            raise ValueError("task_state must be an instance of TaskState")
+
+        self.task_state = kwargs.get('task_state')
 
         self.start_time = None
         self.finished = False
         self.initial_state = None
         self.started = False
-
-        self.task_state = task_state
 
     @property
     def state(self):
