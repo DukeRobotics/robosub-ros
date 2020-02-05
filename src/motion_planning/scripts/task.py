@@ -3,11 +3,12 @@ from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose, Twist
 from task_state import TaskState
 
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 
-class Task(ABC):
+class Task:
     """High level task that represents some function"""
     
+    __metaclass__ = ABCMeta
 
     def __init__(self, *args, **kwargs):
         """ 
@@ -38,7 +39,7 @@ class Task(ABC):
         """Should be called when the task runs for the first time"""
         self.start_time = rospy.get_rostime()
         self.initial_state = self.state
-        self._task_init()
+        self._on_task_start()
 
     def run(self):
         """Run the task. This should be called by the task planner, and
@@ -48,13 +49,13 @@ class Task(ABC):
             return
 
         if not self.started:
-            self._initialize()
+            self._on_task_start_default()
             self.started = True
         
         if self.initial_state is None:
             return
         
-        self._task_run()
+        self._on_task_run()
     
     @abstractmethod
     def _on_task_run(self):
