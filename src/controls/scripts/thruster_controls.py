@@ -81,6 +81,7 @@ class ThrusterController():
                 i8_t_allocs.data = (self.t_allocs * 127).astype(int)
                 self.pub.publish(i8_t_allocs)
             elif self.mode == 'sim':
+                #self.t_allocs[4:8] = 0
                 f32_t_allocs = Float32MultiArray()
                 f32_t_allocs.data = self.t_allocs
                 self.pub.publish(f32_t_allocs)

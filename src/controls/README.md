@@ -27,7 +27,7 @@ Thruster information is read from `cthulhu.config`, which is written in YAML and
 
     ROS will warn you if nothing is being published to the desired or current state topics once the PID loops are launched.
 
-## Testing
+## Testing Outputs
 
 To test the outputs of the PID Loops, edit the values in `test_state_publisher.py` to whatever current and desired state you wish to test. Then, run the following:
 
@@ -46,6 +46,19 @@ Where &lt;var&gt; is x, y, z, roll, pitch, or yaw. To check final thruster alloc
 `
 rostopic echo /offboard_comms/ThrusterSpeeds
 `
+
+## Testing with Simulation
+
+To get the initialize the simulation, follow the instructions in the simulation directory.
+
+Once the simulation is running, execute:
+
+`
+rosrun controls test_state_publisher.py &
+roslaunch controls controls.launch mode:=sim
+`
+
+test_state_publisher.py is where we specify the desired state of the robot. Alternatively, you can publish to any of the 3 desired state topics directly. The second command launches the entire controls node in simulation mode.
 
 
 ## Topics
@@ -92,6 +105,10 @@ We can choose to publish to either of these topics:
 Only the most recently updated Desired State topic will be used in movement. Therefore any updates will override the current movement of the robot. Controls will warn you if more than one Desired State Topic is being published to at any given time to prevent such issues. Also [TODO], if Controls stops receiving Desired State messages at a high enough rate [TBD], it will output zero power for safety purposes.
 
 The topic that is published to can be configured in controls.launch by editing a rosparam field.
+
+The topic that is published to can be configured in controls.launch by passing in a parameter through the command line or a parent launch file.
+
+**Not yet, but soon**: When publishing local or global twists for desired state, every axis that is set to 0 will be controlled for by position PID rather than velocity PID to mitigate drift effects or other unwanted perturbations. Only those axes that have nonzero desires will be controlled for by velocity.
 
 ## How It Works (Structure and Flow)
 
