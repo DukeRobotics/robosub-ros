@@ -7,13 +7,14 @@ import tf2_ros
 def linear_distance(point1, point2):
     """Find linear distance between two points.
 
-    Arguments:
-    point1: geometry_msgs/Point representing location 1
-    point2: geometry_msgs/Point representing location 2
+    Parameters:
+    point1 (geometry_msgs/Point): location 1
+    point2 (geometry_msgs/Point): location 2
 
     Returns:
-    magnitude of the linear distance between the points
+    float: magnitude of the linear distance between the points
     """
+
     vector1 = np.array([point1.x, point1.y, point1.z])
     vector2 = np.array([point2.x, point2.y, point2.z])
     distance = np.linalg.norm(vector2 - vector1)
@@ -22,12 +23,12 @@ def linear_distance(point1, point2):
 def angular_distance_quat(quat1, quat2):
     """Find the difference between two orientations (quaternions).
 
-    Arguments:
-    quat1: geometry_msgs/Quaternion of orientation 1
-    quat2: geometry_msgs/Quaternion of orientation 2
+    Parameters:
+    quat1 (geometry_msgs/Quaternion): orientation 1
+    quat2 (geometry_msgs/Quaternion): orientation 2
 
     Returns:
-    geometry_msgs/Vector3 of the magnitude of the two orientations' differences in each axis (roll, pitch, yaw), in radians
+    geometry_msgs/Vector3: magnitude of the two orientations' differences in each axis (roll, pitch, yaw), in radians
     """
     #convert quat1 and quat2 to lists
     quat1 = [quat1.x, quat1.y, quat1.z, quat1.w]
@@ -39,12 +40,12 @@ def angular_distance_quat(quat1, quat2):
 def angular_distance_rpy(rpy1, rpy2):
     """Find the difference between two orientations (roll-pitch-yaw).
 
-    Arguments:
-    rpy1: list of orientation 1 (roll, pitch, yaw), in radians
-    rpy2: list of orientation 2 (roll, pitch, yaw), in radians
+    Parameters:
+    rpy1 (list): orientation 1 (roll, pitch, yaw), in radians
+    rpy2 (list): orientation 2 (roll, pitch, yaw), in radians
 
     Returns:
-    geometry_msgs/Vector3 of the magnitude of the two orientations' differences in each axis
+    geometry_msgs/Vector3: magnitude of the two orientations' differences in each axis
     """
     roll = math.fabs(rpy1[0] - ryp2[0])
     pitch = math.fabs(rpy1[1] - rpy2[1])
@@ -54,16 +55,16 @@ def angular_distance_rpy(rpy1, rpy2):
 def at_pose(current_pose, desired_pose, linear_tol=0.1, angular_tol=3):
     """Check if within tolerance of a pose (position and orientation).
 
-    Arguments:
-    current_pose: geometry_msgs/Pose representing current pose
-    desired_pose: geometry_msgs/Pose representing pose to check with
+    Paramters:
+    current_pose (geometry_msgs/Pose): current pose
+    desired_pose (geometry_msgs/Pose): pose to check with
 
-    Keyword Arugments:
-    linear_tol: allowable linear distance for robot to be considered at pose
-    angular_tol: allowable angular tolerance (radians) for robot to be considered at pose, applied to all axes
+    Keyword Arguments:
+    linear_tol (float): allowable linear distance for robot to be considered at pose
+    angular_tol (float): allowable angular tolerance (radians) for robot to be considered at pose, applied to all axes
 
     Returns:
-    Boolean that is true if current_pose is within tolerances of desired_pose
+    Boolean: true if current_pose is within tolerances of desired_pose
     """
     linear = linear_distance(current_pose.point, desired_pose.point) < linear_tol
     angular_dist = angular_distance_quat(current_pose.orientation, desired_pose.orientation)
@@ -73,13 +74,13 @@ def at_pose(current_pose, desired_pose, linear_tol=0.1, angular_tol=3):
 def transform(origin_frame, destination_frame, untransformed_pose_stamped):
     """Transforms Odometry input from origin frame to destination frame
 
-    Arguments:
-    origin_frame: string, the name of the frame to transform from
-    destination_frame: string, the name of the frame to transform to
-    pose_stamped_untransformed: the PoseStamped message to transform
+    Parameters:
+    origin_frame (string): name of the frame to transform from
+    destination_frame (string): name of the frame to transform to
+    pose_stamped_untransformed (PoseStamped: message to transform
 
     Returns:
-    A PoseStamped in the destination frame
+    PoseStamped: Message in the destination frame
     """
     #if(odometry != None):
     #    tfBuffer = tf2_ros.Buffer()
