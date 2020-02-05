@@ -6,26 +6,32 @@ from abc import ABC, abstractmethod
 
 class Task(ABC):
     """High level task that represents some function"""
-
-    STATE_TOPIC = 'state'
-    DESIRED_POSE_TOPIC = 'controls/desired_pose_global'
-    DESIRED_TWIST_GLOBAL_TOPIC = 'controls/desired_twist_global'
-    DESIRED_TWIST_LOCAL_TOPIC = 'controls/desired_twist_local'
     
 
-    def __init__(self):
+    def __init__(self, task_state=None):
+        """ 
+        Create a Task.
+            
+        Parameters: 
+        task_state (TaskState): A TaskState object that contains the state listener and controls publishers
+        """
+        if task_state is None:
+            raise ValueError("task_state must be passed in and must not be null")
+
         self.start_time = None
         self.finished = False
         self.initial_state = None
         self.started = False
-        self.state = None
 
-        self.state_listener = rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state)
-        self.desired_pose_global_publisher = rospy.Publisher(self.DESIRED_POSE_TOPIC, Pose, queue_size=5)
-        self.desired_twist_global_publisher = rospy.Publisher(self.DESIRED_TWIST_GLOBAL_TOPIC, Twist, queue_size=5)
-        self.desired_twist_local_publisher = rospy.Publisher(self.DESIRED_TWIST_LOCAL_TOPIC, Twist, queue_size=5)
+        self.task_state = task_state
 
-    def _initialize(self):
+    @property
+    def state(self):
+        """Wrap task_state.state with just the state property"""
+        return self.task_state.state
+
+
+    def _on_task_start_default(self):
         """Should be called when the task runs for the first time"""
         self.start_time = rospy.get_rostime()
         self.initial_state = self.state
@@ -48,12 +54,16 @@ class Task(ABC):
         self._task_run()
     
     @abstractmethod
-    def _task_run(self):
-        """Override this method for a particular task"""
+    def _on_task_run(self):
+        """Try to complete the task
+
+        Override this method for a particular task."""
         pass
 
-    def _task_init(self):
-        """Override this method with code that must be run once, at the beginning
+    def _on_task_start(self):
+        """Run one time when a task starts running
+
+        Override this method with code that must be run once, at the beginning
         of the task
 
         Note: Not marked as abstract method because custom init is not always necessary
@@ -65,17 +75,7 @@ class Task(ABC):
         self.finished = True
 
     def publish_desired_pose_global(self, pose):
-        self.desired_pose_global_publisher.publish(pose)
+        self.task_state.desired_pose_global_publisher.publish(pose)
 
-    def publish_desired_twist_global(self, twist):
-        self.desired_twist_global_publisher.publish(twist)
-
-    def publish_desired_twist_local(self, twist):
-        self.desired_twist_local_publisher.publish(twist)
-
-    def _on_receive_state(self, state):
-        """Receive the state, update initial_state if it is empty
-        and the task is running"""
-        self.state = state
-        if self.initial_state is None and not self.started:
-            self.initial_state = state
+    def publish_desired_twist_power(self, twist_power):
+        self.task_state.desired_twist_power_publisher.publish(twist_power)
