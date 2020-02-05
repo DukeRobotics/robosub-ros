@@ -49,9 +49,6 @@ class Task:
             self._on_task_start_default()
             self.started = True
         
-        if self.initial_state is None:
-            return
-        
         self._on_task_run()
     
     @abstractmethod
