@@ -100,11 +100,11 @@ class DesiredStateHandler():
         self._pub_yaw_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_YAW_POS, Bool, queue_size=3)
 
         self._pub_x_effort = rospy.Publisher(self.PUBLISHING_TOPIC_X_EFFORT, Float64, queue_size=3)
-        self._pub_y_effort = rospy.Publisher(self.PUBLISHING_TOPIC_X_EFFORT, Float64, queue_size=3)
-        self._pub_z_effort = rospy.Publisher(self.PUBLISHING_TOPIC_X_EFFORT, Float64, queue_size=3)
-        self._pub_roll_effort = rospy.Publisher(self.PUBLISHING_TOPIC_X_EFFORT, Float64, queue_size=3)
-        self._pub_pitch_effort= rospy.Publisher(self.PUBLISHING_TOPIC_X_EFFORT, Float64, queue_size=3)
-        self._pub_yaw_effort = rospy.Publisher(self.PUBLISHING_TOPIC_X_EFFORT, Float64, queue_size=3)
+        self._pub_y_effort = rospy.Publisher(self.PUBLISHING_TOPIC_Y_EFFORT, Float64, queue_size=3)
+        self._pub_z_effort = rospy.Publisher(self.PUBLISHING_TOPIC_Z_EFFORT, Float64, queue_size=3)
+        self._pub_roll_effort = rospy.Publisher(self.PUBLISHING_TOPIC_ROLL_EFFORT, Float64, queue_size=3)
+        self._pub_pitch_effort= rospy.Publisher(self.PUBLISHING_TOPIC_PITCH_EFFORT, Float64, queue_size=3)
+        self._pub_yaw_effort = rospy.Publisher(self.PUBLISHING_TOPIC_YAW_EFFORT, Float64, queue_size=3)
 
         rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self.receive_pose)
         rospy.Subscriber(self.DESIRED_TWIST_POWER, Twist, self.receive_powers)

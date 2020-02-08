@@ -96,7 +96,7 @@ We can choose to publish to either of these topics:
     + Type: std_msgs/Float32MultiArray
   - ```/offboard/thruster_speeds```
     + An array of 8 8-bit integers [-128,127] describing the allocation of the thrusters sent to the arduino
-    + Type: std_msgs/Int8MultiArray
+    + Type: controls.msg/ThrusterSpeeds
 
 ### Important Notes
 
