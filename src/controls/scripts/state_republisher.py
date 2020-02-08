@@ -4,6 +4,7 @@ import rospy
 from std_msgs.msg import Float64
 from geometry_msgs.msg import PoseStamped, TwistStamped, Quaternion
 from nav_msgs.msg import Odometry
+from tf.transformations import euler_from_quaternion
 
 from drc_math import quad_vec_mult
 
@@ -61,13 +62,13 @@ class StateRepublisher():
         self._pub_pose_y.publish(pose_stamped.pose.position.y)
         self._pub_pose_z.publish(pose_stamped.pose.position.z)
         # rpy Orientation
-        vec = quad_vec_mult([pose_stamped.pose.orientation.x,
-                    pose_stamped.pose.orientation.y,
-                    pose_stamped.pose.orientation.z,
-                    pose_stamped.pose.orientation.w], [1, 0, 0])
-        self._pub_pose_roll.publish(vec[0])
-        self._pub_pose_pitch.publish(vec[1])
-        self._pub_pose_yaw.publish(vec[2])
+        roll, pitch, yaw = euler_from_quaternion([pose_stamped.pose.orientation.x,
+                                                  pose_stamped.pose.orientation.y,
+                                                  pose_stamped.pose.orientation.z,
+                                                  pose_stamped.pose.orientation.w])
+        self._pub_pose_roll.publish(roll)
+        self._pub_pose_pitch.publish(pitch)
+        self._pub_pose_yaw.publish(yaw)
 
 
     def receive_twist_stamped(self, twist_stamped):
@@ -86,13 +87,13 @@ class StateRepublisher():
         self._pub_pose_y.publish(odometry.pose.pose.position.y)
         self._pub_pose_z.publish(odometry.pose.pose.position.z)
         # rpy Orientation
-        vec = quad_vec_mult([odometry.pose.pose.orientation.x,
-                            odometry.pose.pose.orientation.y,
-                            odometry.pose.pose.orientation.z,
-                            odometry.pose.pose.orientation.w], [1, 0, 0])
-        self._pub_pose_roll.publish(vec[0])
-        self._pub_pose_pitch.publish(vec[1])
-        self._pub_pose_yaw.publish(vec[2])
+        roll, pitch, yaw = euler_from_quaternion([odometry.pose.pose.orientation.x,
+                                                  odometry.pose.pose.orientation.y,
+                                                  odometry.pose.pose.orientation.z,
+                                                  odometry.pose.pose.orientation.w])
+        self._pub_pose_roll.publish(roll)
+        self._pub_pose_pitch.publish(pitch)
+        self._pub_pose_yaw.publish(yaw)
 
         # Linear Velocity
         self._pub_twist_x.publish(odometry.twist.twist.linear.x)
