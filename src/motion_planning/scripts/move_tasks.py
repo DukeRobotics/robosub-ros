@@ -15,11 +15,11 @@ class MoveToPoseGlobalTask(Task):
     	self.desired_pose.position.x = x
     	self.desired_pose.position.y = y
     	self.desired_pose.position.z = z
-    	self.desired_pose.orientation = Quaternion(quaternion_from_euler(roll, pitch, yaw))
+    	self.desired_pose.orientation = Quaternion(*quaternion_from_euler(roll, pitch, yaw))
 
         
 
-    def _task_run(self):
+    def _on_task_run(self):
     	self.publish_desired_pose_global(self.desired_pose)
         if(task_utils.at_pose(self.desired_pose, self.state.pose)):
             self.finish()
@@ -33,7 +33,7 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
 
         self.transformed_pose = task_utils.transform(base_link, odom, pose=self.desired_pose)
 
-    def _task_run(self):
+    def _on_task_run(self):
         self.publish_desired_pose_global(self.transformed_pose)
         if(task_utils.at_pose(self.transformed_pose, self.state.pose)):
             self.finish()
@@ -51,7 +51,7 @@ class HoldPositionTask(Task):
         self.hold_time = hold_time
         
 
-    def _task_run(self):
+    def _on_task_run(self):
         self.publish_desired_pose_global(self.initial_state.pose)
         if(self.hold_time & ((rospy.get_rostime() - self.start_time) > self.seconds_to_hold)):
             self.finish()

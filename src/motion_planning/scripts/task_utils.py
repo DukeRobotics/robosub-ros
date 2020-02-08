@@ -1,6 +1,7 @@
 import numpy as np
-from geometry_msgs.msg import Vector3, Quaternion, Odometry, Pose
-from tf.transformations import euler_from_quaterion
+from geometry_msgs.msg import Vector3, Quaternion, Pose
+from nav_msgs.msg import Odometry
+from tf.transformations import euler_from_quaternion
 import math
 import tf2_ros
 

@@ -18,7 +18,7 @@ class Task:
         task_state (TaskState): A TaskState object that contains the state listener and controls publishers
         """
         if 'task_state' not in kwargs:
-            raise ValueError("task_state must be passed in **kwargs and must not be None")
+            raise ValueError("In {}, task_state must be passed in **kwargs and must not be None".format(type(self).__name__))
         elif not isinstance(kwargs.get('task_state'), TaskState):
             raise ValueError("task_state must be an instance of TaskState")
 

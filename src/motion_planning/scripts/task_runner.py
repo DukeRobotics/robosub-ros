@@ -21,7 +21,6 @@ class TaskRunner:
             self.rate.sleep()
         
         while not self.competition_task.finished:
-            print("hai")
             self.competition_task.run()
             self.rate.sleep()
 
