@@ -3,7 +3,9 @@
 	<arg name="mode" default="robot" />
 
     <!-- Start PID nodes for controls -->
-    <include file="$(find controls)/launch/pid.launch" />
+    <include file="$(find controls)/launch/pid.launch">
+        <arg name="mode" value="$(arg mode)" />
+    </include>
 
     <!-- Start desired_state node that processes inputs from motion planning
     and outputs setpoints to PID -->

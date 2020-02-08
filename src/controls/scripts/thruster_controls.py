@@ -19,7 +19,7 @@ class ThrusterController():
     CONTROLS_MOVE_YAW_TOPIC = CONTROLS_MOVE_TOPIC + '/yaw'
 
     SIM_PUB_TOPIC = '/sim/move'
-    ROBOT_PUB_TOPIC = '/offboard_comms/ThrusterSpeeds'
+    ROBOT_PUB_TOPIC = '/offboard/thruster_speeds'
 
     def __init__(self):
         self.mode = rospy.get_param('~/thruster_controls/mode')  # robot or sim, default to robot
