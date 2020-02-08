@@ -11,6 +11,13 @@ from drc_math import RpToTrans, Adjoint
 from geometry_msgs.msg import Pose, Twist
 # from nav_msgs.msg import Odometry
 
+class bcolors:
+    BOLD = '\033[1m'
+    OKGREEN = '\033[92m'
+    WARN = '\033[93m'
+    FAIL = '\033[91m'
+    RESET = '\033[0m'
+
 class DesiredStateHandler():
 
     POSE_TOPIC_X = '/controls/state/pose/x'
@@ -46,8 +53,10 @@ class DesiredStateHandler():
 
     #Refresh rate (in Hz) of main loop
     REFRESH_HZ = 10
-    #Timeout (in seconds) before warning that neither power nor position have been received
-    INPUT_ABSENT_TIMEOUT_SEC = 2.0
+    #Timeout (in seconds) before first warning that neither power nor position have been received
+    INPUT_ABSENT_TIMEOUT_FIRST_WARN_SEC = 1.0
+    #Timeout (in seconds) before repeated warnings that neither power nor position have been received
+    INPUT_ABSENT_TIMEOUT_REPEAT_WARN_SEC = 10.0
 
     x_hold = 0
     y_hold = 0
@@ -125,28 +134,47 @@ class DesiredStateHandler():
         self.powers = twist
 
     def run(self):
-
         rospy.init_node('desired_state')
         rate = rospy.Rate(self.REFRESH_HZ)
+        input_absent_first_warning = True
         input_absent_timer = 0
+        input_absent_last = False
+        event_id = 0
 
         while not rospy.is_shutdown():
-            if not self.pose and not self.powers:
+            rate.sleep()
+
+            input_absent = not self.pose and not self.powers
+            if input_absent:
                 #If it has been too long, stop PID and warn (timeout)
-                rospy.logwarn("===> Input absent timer: %f <===", input_absent_timer)
-                if(input_absent_timer > self.INPUT_ABSENT_TIMEOUT_SEC or np.isclose(input_absent_timer, self.INPUT_ABSENT_TIMEOUT_SEC)):
-                    rospy.logwarn("===> Controls received NEITHER position nor power! <===")
+                first_warning_timeout_exceeded = input_absent_first_warning and (input_absent_timer > self.INPUT_ABSENT_TIMEOUT_FIRST_WARN_SEC or np.isclose(input_absent_timer, self.INPUT_ABSENT_TIMEOUT_FIRST_WARN_SEC))
+                repeat_warning_timeout_exceeded = not input_absent_first_warning and (input_absent_timer > self.INPUT_ABSENT_TIMEOUT_REPEAT_WARN_SEC or np.isclose(input_absent_timer, self.INPUT_ABSENT_TIMEOUT_REPEAT_WARN_SEC))
+                if(first_warning_timeout_exceeded or repeat_warning_timeout_exceeded):
+                    rospy.logwarn((bcolors.FAIL if input_absent_first_warning else bcolors.WARN) + "===> Controls " + ("" if input_absent_first_warning else "still ") + "received neither position nor power! (" + ("Begin event " if input_absent_first_warning else "Event ") + ("%d) <===" % event_id) + bcolors.RESET)
+                    #Set "first warning" flag to false
+                    input_absent_first_warning = False
+                    #Reset timer
+                    input_absent_timer = 0
                 #Else, if timeout has not been reached, increment timer
                 else:
                     input_absent_timer += 1.0 / self.REFRESH_HZ
+                #Save whether input was last absent
+                input_absent_last = True
                 continue
-            else:
-                #Reset input absent timer as soon as we receive pose or power again
+            elif(not input_absent and input_absent_last):
+                if((self.pose or self.powers) and not (self.pose and self.powers)):
+                    rospy.loginfo(bcolors.OKGREEN + ("===> Controls now receiving %s (End event %d) <===" % ("position" if self.pose else "powers", event_id)) + bcolors.RESET)
+                #Set "first warning" flag to true
+                input_absent_first_warning = True
+                #Reset timer
                 input_absent_timer = 0
+                #Increment event id
+                event_id += 1
+            input_absent_last = input_absent
 
             if self.pose and self.powers:
                 #More than one seen in one update cycle, so warn and continue
-                rospy.logerr("===> Controls received BOTH position and power! <===")
+                rospy.logerr("===> Controls received both position and power! <===")
                 continue
 
             # Now we have either pose XOR powers
@@ -229,7 +257,8 @@ class DesiredStateHandler():
 
                 self.local_twist = None
 
-            rate.sleep()
+            #Save whether input was last absent
+            input_absent_last = False
 
 
 def main():
