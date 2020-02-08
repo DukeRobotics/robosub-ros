@@ -1,9 +1,11 @@
 import numpy as np
-from geometry_msgs.msg import Vector3, Quaternion, Pose
+from geometry_msgs.msg import Vector3, Quaternion, Pose, PoseStamped
 from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_quaternion
 import math
 import tf2_ros
+import tf2_geometry_msgs
+import rospy
 
 def linear_distance(point1, point2):
     """Find linear distance between two points.
@@ -72,25 +74,32 @@ def at_pose(current_pose, desired_pose, linear_tol=0.1, angular_tol=3):
     angular = np.all(np.array([angular_dist.x, angular_dist.y, angular_dist.z]) < (np.ones((3)) * angular_tol))
     return (linear and angular)
 
-def transform(origin_frame, destination_frame, untransformed_pose_stamped):
-    """Transforms Odometry input from origin frame to destination frame
+def transform(origin_frame, dest_frame, poseORodom):
+    """Transforms poseORodom from origin_frame to dest_frame frame
 
-    Parameters:
-    origin_frame (string): name of the frame to transform from
-    destination_frame (string): name of the frame to transform to
-    pose_stamped_untransformed (PoseStamped: message to transform
+    Arguments:
+    origin_frame: the starting frame
+    dest_frame: the frame to trasform to
+    poseORodom: the Pose, PoseStamped, Odometry, or OdometryStamped message to transform
 
     Returns:
-    PoseStamped: Message in the destination frame
+    Pose, PoseStamped, Odometry, or OdometryStamped: The transformed position
     """
-    #if(odometry != None):
-    #    tfBuffer = tf2_ros.Buffer()
-    #    listener = tf2_ros.TransformListener(tfBuffer)
-    #    trans = tfBuffer.lookup_transform(origin, destination, rospy.Time(0))
-        #TODO: transform odometry
-    if(untransformed_pose_stamped != None):
-        tfBuffer = tf2_ros.Buffer()
-        listener = tf2_ros.TransformListener(tfBuffer)
-        trans = tfBuffer.lookup_transform(destination_frame, origin_frame, rospy.Time(0), rospy.Duration(0.5))
-        transformed_pose_stamped = tf2_geometry_msgs.do_transform_pose(untransformed_pose_stamped, trans)
-    return transformed_pose_stamped
+
+    tfBuffer = tf2_ros.Buffer()
+    listener = tf2_ros.TransformListener(tfBuffer)
+    trans = tfBuffer.lookup_transform(dest_frame, origin_frame, rospy.Time(), rospy.Duration(0.5))
+    
+    if isinstance(poseORodom, PoseStamped):
+        transformed = tf2_geometry_msgs.do_transform_pose(poseORodom, trans)
+        return transformed
+    
+    elif isinstance(poseORodom, Pose):
+        temp_pose_stamped = PoseStamped()
+        temp_pose_stamped.pose = poseORodom
+        transformed = tf2_geometry_msgs.do_transform_pose(temp_pose_stamped, trans)
+        return transformed.pose
+
+    else:
+        #add wrong message type error here?
+        return
