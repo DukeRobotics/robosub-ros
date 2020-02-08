@@ -52,7 +52,7 @@ class TestStatePublisher():
         rate = rospy.Rate(10)
         while not rospy.is_shutdown():
             self._pub_desired_state.publish(self.desired_state)
-            
+
             #self._pub_odometry.publish(self.current_state)
 
             rate.sleep()
