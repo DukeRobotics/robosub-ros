@@ -9,7 +9,7 @@ class TaskRunner:
 
     def __init__(self):
         self.task_state = TaskState()
-        self.competition_task = CompetitionTask(task_state=self.task_state)
+        self.competition_task = CompetitionTask()
 
     def start(self):
         rospy.init_node("task_planning")

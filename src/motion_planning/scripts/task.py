@@ -2,6 +2,7 @@ import rospy
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose, Twist
 from task_state import TaskState
+import dependency_injector.providers as providers
 
 from abc import ABCMeta, abstractmethod
 
@@ -10,19 +11,15 @@ class Task:
     
     __metaclass__ = ABCMeta
 
+    task_state_provider = providers.Singleton(TaskState)
+
     def __init__(self, *args, **kwargs):
         """ 
         Create a Task.
 
-        **kwargs:
-        task_state (TaskState): A TaskState object that contains the state listener and controls publishers
         """
-        if 'task_state' not in kwargs:
-            raise ValueError("In {}, task_state must be passed in **kwargs and must not be None".format(type(self).__name__))
-        elif not isinstance(kwargs.get('task_state'), TaskState):
-            raise ValueError("task_state must be an instance of TaskState")
 
-        self.task_state = kwargs.get('task_state')
+        self.task_state = self.task_state_provider()
 
         self.start_time = None
         self.finished = False
