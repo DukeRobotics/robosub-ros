@@ -5,10 +5,6 @@
     <!-- Start PID nodes for controls -->
     <include file="$(find controls)/launch/pid.launch" />
 
-    <!-- Start desired_state node that processes inputs from motion planning
-    and outputs setpoints to PID -->
-    <node pkg="controls" name="desired_state" type="desired_state.py" />
-
 	<!-- Start controls node that republishes state to seperate topics -->
 	<node pkg="controls" name="state_republisher" type="state_republisher.py">
 		<param name="mode" value="$(arg mode)" />
@@ -19,4 +15,8 @@
 		<param name="mode" value="$(arg mode)" />
 	</node>
 
+	<!-- Start desired_state node that processes inputs from motion planning
+    and outputs setpoints to PID -->
+	<node pkg="controls" name="desired_state" type="desired_state.py" />
+	
 </launch>
