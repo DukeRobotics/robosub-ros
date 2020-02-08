@@ -1,4 +1,0 @@
-<launch>
-	<!-- Start node that listens to movement commands and publishes RC override -->
-	<node pkg="controls" type="move_direction_2.py" name="move_direction" />
-</launch>
