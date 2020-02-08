@@ -18,8 +18,8 @@ class TestStatePublisher():
 
         #These values correspond to the desired pose of the robot
         self.desired_pose = Pose()
-        self.desired_pose.position.x = 1
-        self.desired_pose.position.y = 0
+        self.desired_pose.position.x = 2
+        self.desired_pose.position.y = 2
         self.desired_pose.position.z = 0
         self.desired_pose.orientation.x = 0
         self.desired_pose.orientation.y = 0
@@ -69,8 +69,8 @@ class TestStatePublisher():
 
 
 def main():
-    TestStatePublisher().publish_desired_pose()
-    #TestStatePublisher().publish_desired_powers()
+    #TestStatePublisher().publish_desired_pose()
+    TestStatePublisher().publish_desired_powers()
 
 if __name__ == '__main__':
     main()
