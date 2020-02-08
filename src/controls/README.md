@@ -16,8 +16,11 @@ Thruster information is read from `cthulhu.config`, which is written in YAML and
 
     ```roslaunch controls controls.launch &```
 
-
 ## Testing Outputs
+
+To enable non-zero thruster output, the following command should be used:
+
+    ```rosservice call /enable_controls true```
 
 To test the outputs of the PID Loops, edit the values in `test_state_publisher.py` to whatever current and desired state you wish to test. Then, run the following:
 
@@ -93,6 +96,8 @@ We can choose to publish to either of these topics by changing the `mode` argume
 ### Important Notes
 
 Only the most recently updated Desired State Topic will be used in movement. Therefore any updates will override the current movement of the robot. Controls will warn you if more than one Desired State Topic is being published to at any given time to prevent such issues. Also, if Controls stops receiving Desired State messages at a high enough rate [TBD], it will warn you and will output zero power for safety purposes.
+
+The controls algorithm will output all 0's unless it is enabled with a call to rosservice as detailed in the setup. This is intended to act as an emergency stop that cuts off all power to the thrusters if necessary.
 
 
 ## How It Works (Structure and Flow)
