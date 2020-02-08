@@ -13,6 +13,3 @@
 # PyCharm/IntelliJ
 /.idea/
 *.DS_Store
-
-# Coppelia Sim
-/CoppeliaSim*
