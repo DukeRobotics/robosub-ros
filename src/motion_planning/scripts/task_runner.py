@@ -8,7 +8,6 @@ class TaskRunner:
     RATE = 30 # Hz
 
     def __init__(self):
-        self.task_state = TaskState()
         self.competition_task = CompetitionTask()
 
     def start(self):
