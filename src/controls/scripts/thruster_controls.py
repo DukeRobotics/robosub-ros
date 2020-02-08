@@ -4,6 +4,7 @@ import os
 
 import rospy
 from std_msgs.msg import Float64, Float32MultiArray, Int8MultiArray
+from controls.msg import ThrusterSpeeds
 import numpy as np
 from thruster_manager import ThrusterManager
 
@@ -24,7 +25,7 @@ class ThrusterController():
     def __init__(self):
         self.mode = rospy.get_param('~/thruster_controls/mode')  # robot or sim, default to robot
         if self.mode == 'robot':
-            self.pub = rospy.Publisher(self.ROBOT_PUB_TOPIC, Int8MultiArray, queue_size=3)
+            self.pub = rospy.Publisher(self.ROBOT_PUB_TOPIC, ThrusterSpeeds, queue_size=3)
         elif self.mode == 'sim':
             self.pub = rospy.Publisher(self.SIM_PUB_TOPIC, Float32MultiArray, queue_size=3)
         else:
@@ -77,8 +78,8 @@ class ThrusterController():
         while not rospy.is_shutdown():
             #rospy.loginfo(f32_t_allocs)
             if self.mode == 'robot':
-                i8_t_allocs = Int8MultiArray()
-                i8_t_allocs.data = (self.t_allocs * 127).astype(int)
+                i8_t_allocs = ThrusterSpeeds()
+                i8_t_allocs.speeds = (self.t_allocs * 127).astype(int)
                 self.pub.publish(i8_t_allocs)
             elif self.mode == 'sim':
                 #self.t_allocs[4:8] = 0

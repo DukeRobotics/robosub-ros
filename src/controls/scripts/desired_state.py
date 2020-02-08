@@ -44,6 +44,11 @@ class DesiredStateHandler():
     PUBLISHING_TOPIC_PITCH_EFFORT = '/control_effort/pitch'
     PUBLISHING_TOPIC_YAW_EFFORT = '/control_effort/yaw'
 
+    #Refresh rate (in Hz) of main loop
+    REFRESH_HZ = 10
+    #Timeout (in seconds) before warning that neither power nor position have been received
+    INPUT_ABSENT_TIMEOUT_SEC = 2.0
+
     x_hold = 0
     y_hold = 0
     z_hold = 0
@@ -122,15 +127,26 @@ class DesiredStateHandler():
     def run(self):
 
         rospy.init_node('desired_state')
-        rate = rospy.Rate(10)  # 10 Hz
+        rate = rospy.Rate(self.REFRESH_HZ)
+        input_absent_timer = 0
 
         while not rospy.is_shutdown():
             if not self.pose and not self.powers:
-                # TODO: If it's been too long, stop PID and warn (timeout)
+                #If it has been too long, stop PID and warn (timeout)
+                rospy.logwarn("===> Input absent timer: %f <===", input_absent_timer)
+                if(input_absent_timer > self.INPUT_ABSENT_TIMEOUT_SEC or np.isclose(input_absent_timer, self.INPUT_ABSENT_TIMEOUT_SEC)):
+                    rospy.logwarn("===> Controls received NEITHER position nor power! <===")
+                #Else, if timeout has not been reached, increment timer
+                else:
+                    input_absent_timer += 1.0 / self.REFRESH_HZ
                 continue
+            else:
+                #Reset input absent timer as soon as we receive pose or power again
+                input_absent_timer = 0
 
             if self.pose and self.powers:
-                # TODO: More than one seen in one update cycle, so warn and continue
+                #More than one seen in one update cycle, so warn and continue
+                rospy.logerr("===> Controls received BOTH position and power! <===")
                 continue
 
             # Now we have either pose XOR powers
