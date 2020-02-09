@@ -102,6 +102,55 @@ The controls algorithm will output all 0's unless it is enabled with a call to r
 
 ## How It Works (Structure and Flow)
 
-This package contains three ROS nodes:
+### Structure
 
-* 
+This package contains the following custom ROS nodes:
+
+* `state_republisher`
+* `desired_state`
+* `thruster_controls`
+
+This package has the following launch files:
+
+* `controls.launch` is the entrypoint to the package. It takes in a `mode` argument to indicate whether we are in `robot` (default) or `sim`ulation mode. It includes the `pid.launch` file to launch the PID for position loops. It then starts the three nodes above.
+* `pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for position control on x, y, z, roll, pitch, and yaw. It defines the PID parameters at the top, depending on the `mode` argument passed in.
+
+This package also defines a new custom message type, `ThrusterSpeeds`, which is the same type as in the package for controlling the Arduino.
+
+### Flow
+
+```
+    Current State Topics        Desired State Topics
+            |                            |
+            |                            |
+            v                            v
+    state_republisher    ---->    desired_state
+                    \             /
+/controls/state/...  \           /   /controls/.../setpoint
+                      \         /
+                          PID
+                           |
+                           |   /control_effort/...
+                           v
+                    thruster_controls
+                           |
+                           |   Publishing topics
+                           v
+                  Arduino or Simulation
+```
+
+### File-by-file description
+
+#### Launch and message
+
+Described above.
+
+#### Scripts
+
+* `state_republisher.py` - listens to Current State Topics and republishes relevant components to their own `/controls/state/...` topics for use in all of the other parts of this controls package.
+* `desired_state.py` - listens to Desired State Topics, warning the user via the console if none or more than one are received, and outputting setpoints to PID loops if desiring position, or powers directly to `thruster_controls` for axes that are velocity/power-controlled.
+* `thruster_controls.py` - listens to control efforts from PID or `desired_state`, uses an instance of `ThrusterManager` to calculate thruster allocations from the them, scales outputs so that the maximum is 1 or -1 in any direction, and publishes to Arudino or simulation movement topics.
+* `thruster_manager.py` - Defines the `ThrusterManager` class, which reads in config file, creates `Thruster` array from it, and has math for calculating thruster allocations.
+* `thruster.py` - Defines the `Thruster` class, which takes in a position and orientation of a thruster relative to the center of the robot, and then calculates and stores the force and torque it exerts on the robot.
+* `drc_math.py` - A library of mathematical functions for controls. (DRC stands for Duke Robotics Club.)
+* `cthulhu.config` - The config file for Cthulhu, our RoboSub 2019 and RoboSub 2020 sub. Thrusters are named, given a type, their xyz position is measured in meters from the center of the robot, and their rpy orientation is an offset from robot frame.
