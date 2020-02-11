@@ -14,13 +14,15 @@ Thruster information is read from `cthulhu.config`, which is written in YAML and
 2. SSH into the docker container, either on the robot or [on your local computer](https://github.com/DukeRobotics/documentation/blob/master/docker/README.md), and maybe [configured for simulation](https://github.com/DukeRobotics/robosub-ros/blob/master/simulation/README.md).
 3. Initialize `roscore` and run the following in the terminal to start the PID Loops:
 
-    ```roslaunch controls controls.launch &```
+    ```
+    roslaunch controls controls.launch &
+    ```
 
 ## Testing Outputs
 
 To enable non-zero thruster output, the following command should be used:
 
-```rosservice call /enable_controls true```
+    rosservice call /enable_controls true
 
 To test the outputs of the PID Loops, edit the values in `test_state_publisher.py` to whatever current and desired state you wish to test. Then, run the following:
 
