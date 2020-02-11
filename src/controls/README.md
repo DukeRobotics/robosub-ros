@@ -20,7 +20,7 @@ Thruster information is read from `cthulhu.config`, which is written in YAML and
 
 To enable non-zero thruster output, the following command should be used:
 
-    ```rosservice call /enable_controls true```
+```rosservice call /enable_controls true```
 
 To test the outputs of the PID Loops, edit the values in `test_state_publisher.py` to whatever current and desired state you wish to test. Then, run the following:
 
