@@ -1,6 +1,6 @@
 from task import Task
 from combination_tasks import ListTask
-from move_tasks import MoveToPoseLocalTask
+from move_tasks import MoveToPoseGlobalTask
 
 class CompetitionTask(Task):
     """
