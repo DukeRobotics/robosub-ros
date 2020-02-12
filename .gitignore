@@ -1,2 +1,18 @@
+# Vim
 *.swp
+
+# Python
 *.pyc
+
+# ROS/Catkin
+/.catkin_tools/
+/build/
+/devel/
+/logs/
+
+# PyCharm/IntelliJ
+/.idea/
+*.DS_Store
+
+# Coppelia Sim
+/CoppeliaSim*
