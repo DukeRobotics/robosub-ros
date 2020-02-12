@@ -150,7 +150,22 @@ class DesiredStateHandler():
                 first_warning_timeout_exceeded = input_absent_first_warning and (input_absent_timer > self.INPUT_ABSENT_TIMEOUT_FIRST_WARN_SEC or np.isclose(input_absent_timer, self.INPUT_ABSENT_TIMEOUT_FIRST_WARN_SEC))
                 repeat_warning_timeout_exceeded = not input_absent_first_warning and (input_absent_timer > self.INPUT_ABSENT_TIMEOUT_REPEAT_WARN_SEC or np.isclose(input_absent_timer, self.INPUT_ABSENT_TIMEOUT_REPEAT_WARN_SEC))
                 if(first_warning_timeout_exceeded or repeat_warning_timeout_exceeded):
-                    rospy.logwarn((bcolors.FAIL if input_absent_first_warning else bcolors.WARN) + "===> Controls " + ("" if input_absent_first_warning else "still ") + "received neither position nor power! (" + ("Begin event " if input_absent_first_warning else "Event ") + ("%d) <===" % event_id) + bcolors.RESET)
+                    #After 1 second of not receiving values, start publishing 0s
+                    self._pub_x_pos_enable.publish(False)
+                    self._pub_y_pos_enable.publish(False)
+                    self._pub_z_pos_enable.publish(False)
+                    self._pub_roll_pos_enable.publish(False)
+                    self._pub_pitch_pos_enable.publish(False)
+                    self._pub_yaw_pos_enable.publish(False)
+
+                    self._pub_x_effort.publish(0)
+                    self._pub_y_effort.publish(0)
+                    self._pub_z_effort.publish(0)
+                    self._pub_roll_effort.publish(0)
+                    self._pub_pitch_effort.publish(0)
+                    self._pub_yaw_effort.publish(0)
+
+                    rospy.logwarn((bcolors.FAIL if input_absent_first_warning else bcolors.WARN) + "===> Controls " + ("" if input_absent_first_warning else "still ") + "received neither position nor power! Halting robot. (" + ("Begin event " if input_absent_first_warning else "Event ") + ("%d) <===" % event_id) + bcolors.RESET)
                     #Set "first warning" flag to false
                     input_absent_first_warning = False
                     #Reset timer
@@ -161,7 +176,7 @@ class DesiredStateHandler():
                 #Save whether input was last absent
                 input_absent_last = True
                 continue
-            elif(not input_absent and input_absent_last):
+            elif(not input_absent and input_absent_last ):
                 if((self.pose or self.powers) and not (self.pose and self.powers)):
                     rospy.loginfo(bcolors.OKGREEN + ("===> Controls now receiving %s (End event %d) <===" % ("position" if self.pose else "powers", event_id)) + bcolors.RESET)
                 #Set "first warning" flag to true
@@ -174,7 +189,21 @@ class DesiredStateHandler():
 
             if self.pose and self.powers:
                 #More than one seen in one update cycle, so warn and continue
-                rospy.logerr("===> Controls received both position and power! <===")
+                rospy.logerr("===> Controls received both position and power! Halting robot. <===")
+                #Stop Moving
+                self._pub_x_pos_enable.publish(False)
+                self._pub_y_pos_enable.publish(False)
+                self._pub_z_pos_enable.publish(False)
+                self._pub_roll_pos_enable.publish(False)
+                self._pub_pitch_pos_enable.publish(False)
+                self._pub_yaw_pos_enable.publish(False)
+
+                self._pub_x_effort.publish(0)
+                self._pub_y_effort.publish(0)
+                self._pub_z_effort.publish(0)
+                self._pub_roll_effort.publish(0)
+                self._pub_pitch_effort.publish(0)
+                self._pub_yaw_effort.publish(0)
                 continue
 
             # Now we have either pose XOR powers
@@ -255,7 +284,7 @@ class DesiredStateHandler():
                 self._pub_pitch_pos.publish(self.pitch_hold)
                 self._pub_yaw_pos.publish(self.yaw_hold)
 
-                self.local_twist = None
+                self.powers = None
 
             #Save whether input was last absent
             input_absent_last = False
