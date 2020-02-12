@@ -13,3 +13,6 @@
 # PyCharm/IntelliJ
 /.idea/
 *.DS_Store
+
+# VSCode
+/.vscode/
