@@ -15,10 +15,6 @@ class TaskRunner:
 
         self.rate = rospy.Rate(self.RATE)
 
-        # Wait to receive state before running any tasks
-        while not self.task_state.state:
-            self.rate.sleep()
-        
         while not self.competition_task.finished:
             self.competition_task.run()
             self.rate.sleep()
