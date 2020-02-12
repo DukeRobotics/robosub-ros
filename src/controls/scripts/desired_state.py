@@ -54,8 +54,6 @@ class DesiredStateHandler():
     PUBLISHING_TOPIC_YAW_EFFORT = '/control_effort/yaw'
 
     REFRESH_HZ = 10  # for main loop
-    INPUT_ABSENT_TIMEOUT = 1.0  # seconds
-    INPUT_ABSENT_TIMEOUT_WARN_RATE = 5.0  # seconds
 
     x_hold = 0
     y_hold = 0
@@ -152,47 +150,29 @@ class DesiredStateHandler():
         rospy.init_node('desired_state')
         rate = rospy.Rate(self.REFRESH_HZ)
         
-        input_last_time = time.time() - self.INPUT_ABSENT_TIMEOUT
         warned = False
         event_id = 0
 
         while not rospy.is_shutdown():
             rate.sleep()
-    
-            now = time.time()
-
-            #rospy.logwarn(bcolors.WARN + ("== Warned: %r ;;; Now: %.2f ;;; Last input time: %.2f ;;; %.2f ==" % (warned, now, input_last_time, self.INPUT_ABSENT_TIMEOUT_WARN_RATE / 2)) + bcolors.RESET)
 
             if self.pose and self.powers:
                 # More than one seen in one update cycle, so warn and continue
                 rospy.logerr("===> Controls received both position and power! Halting robot. <===")
                 self.soft_estop()
                 continue
-            elif not self.pose and not self.powers and now - input_last_time >= self.INPUT_ABSENT_TIMEOUT:
-                # After 1 second of not receiving values, start publishing 0s
+            elif not self.pose and not self.powers:
                 self.soft_estop()
-
-                # Warn that values haven't been received
-                if (now - input_last_time) % self.INPUT_ABSENT_TIMEOUT_WARN_RATE < self.INPUT_ABSENT_TIMEOUT_WARN_RATE / 2:
-                    if not warned:
-                        if now - input_last_time < self.INPUT_ABSENT_TIMEOUT_WARN_RATE:
-                            rospy.logwarn(bcolors.FAIL + ("===> Controls received neither position nor power! Halting robot. (Begin event %d) <===" % event_id) + bcolors.RESET)
-                        else:
-                            rospy.logwarn(bcolors.WARN + ("===> Controls still received neither position nor power! Still halting robot. (Event %d) <===" % event_id) + bcolors.RESET)
-                        
-                        warned = True
-                else:
-                    warned = False
+                if not warned:
+                    rospy.logwarn(bcolors.WARN + ("===> Controls received neither position nor power! Halting robot. (Event %d) <===" % event_id) + bcolors.RESET)
+                    warned = True
                 continue
 
-            # Now we have either pose XOR powers, or neither but haven't timed out yet
-            if now - input_last_time > self.INPUT_ABSENT_TIMEOUT:
+            # Now we have either pose XOR powers
+            if warned:
                 rospy.loginfo(bcolors.OKGREEN + ("===> Controls now receiving %s (End event %d) <===" % ("position" if self.pose else "powers", event_id)) + bcolors.RESET)
                 event_id += 1
                 warned = False
-
-            if self.pose or self.powers:
-                input_last_time = now
 
             if self.pose:
                 self._pub_x_pos_enable.publish(True)
