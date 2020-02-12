@@ -8,6 +8,8 @@ import numpy as np
 from std_msgs.msg import Float64, Bool
 from drc_math import RpToTrans, Adjoint
 
+import time
+
 from geometry_msgs.msg import Pose, Twist
 # from nav_msgs.msg import Odometry
 
@@ -51,12 +53,9 @@ class DesiredStateHandler():
     PUBLISHING_TOPIC_PITCH_EFFORT = '/control_effort/pitch'
     PUBLISHING_TOPIC_YAW_EFFORT = '/control_effort/yaw'
 
-    #Refresh rate (in Hz) of main loop
-    REFRESH_HZ = 10
-    #Timeout (in seconds) before first warning that neither power nor position have been received
-    INPUT_ABSENT_TIMEOUT_FIRST_WARN_SEC = 1.0
-    #Timeout (in seconds) before repeated warnings that neither power nor position have been received
-    INPUT_ABSENT_TIMEOUT_REPEAT_WARN_SEC = 10.0
+    REFRESH_HZ = 10  # for main loop
+    INPUT_ABSENT_TIMEOUT = 1.0  # seconds
+    INPUT_ABSENT_TIMEOUT_WARN_RATE = 5.0  # seconds
 
     x_hold = 0
     y_hold = 0
@@ -133,80 +132,68 @@ class DesiredStateHandler():
     def receive_powers(self, twist):
         self.powers = twist
 
+    def soft_estop(self):
+        #Stop Moving
+        self._pub_x_pos_enable.publish(False)
+        self._pub_y_pos_enable.publish(False)
+        self._pub_z_pos_enable.publish(False)
+        self._pub_roll_pos_enable.publish(False)
+        self._pub_pitch_pos_enable.publish(False)
+        self._pub_yaw_pos_enable.publish(False)
+
+        self._pub_x_effort.publish(0)
+        self._pub_y_effort.publish(0)
+        self._pub_z_effort.publish(0)
+        self._pub_roll_effort.publish(0)
+        self._pub_pitch_effort.publish(0)
+        self._pub_yaw_effort.publish(0)
+
     def run(self):
         rospy.init_node('desired_state')
         rate = rospy.Rate(self.REFRESH_HZ)
-        input_absent_first_warning = True
-        input_absent_timer = 0
-        input_absent_last = False
+        
+        input_last_time = time.time() - self.INPUT_ABSENT_TIMEOUT
+        warned = False
         event_id = 0
 
         while not rospy.is_shutdown():
             rate.sleep()
+    
+            now = time.time()
 
-            input_absent = not self.pose and not self.powers
-            if input_absent:
-                #If it has been too long, stop PID and warn (timeout)
-                first_warning_timeout_exceeded = input_absent_first_warning and (input_absent_timer > self.INPUT_ABSENT_TIMEOUT_FIRST_WARN_SEC or np.isclose(input_absent_timer, self.INPUT_ABSENT_TIMEOUT_FIRST_WARN_SEC))
-                repeat_warning_timeout_exceeded = not input_absent_first_warning and (input_absent_timer > self.INPUT_ABSENT_TIMEOUT_REPEAT_WARN_SEC or np.isclose(input_absent_timer, self.INPUT_ABSENT_TIMEOUT_REPEAT_WARN_SEC))
-                if(first_warning_timeout_exceeded or repeat_warning_timeout_exceeded):
-                    #After 1 second of not receiving values, start publishing 0s
-                    self._pub_x_pos_enable.publish(False)
-                    self._pub_y_pos_enable.publish(False)
-                    self._pub_z_pos_enable.publish(False)
-                    self._pub_roll_pos_enable.publish(False)
-                    self._pub_pitch_pos_enable.publish(False)
-                    self._pub_yaw_pos_enable.publish(False)
-
-                    self._pub_x_effort.publish(0)
-                    self._pub_y_effort.publish(0)
-                    self._pub_z_effort.publish(0)
-                    self._pub_roll_effort.publish(0)
-                    self._pub_pitch_effort.publish(0)
-                    self._pub_yaw_effort.publish(0)
-
-                    rospy.logwarn((bcolors.FAIL if input_absent_first_warning else bcolors.WARN) + "===> Controls " + ("" if input_absent_first_warning else "still ") + "received neither position nor power! Halting robot. (" + ("Begin event " if input_absent_first_warning else "Event ") + ("%d) <===" % event_id) + bcolors.RESET)
-                    #Set "first warning" flag to false
-                    input_absent_first_warning = False
-                    #Reset timer
-                    input_absent_timer = 0
-                #Else, if timeout has not been reached, increment timer
-                else:
-                    input_absent_timer += 1.0 / self.REFRESH_HZ
-                #Save whether input was last absent
-                input_absent_last = True
-                continue
-            elif(not input_absent and input_absent_last ):
-                if((self.pose or self.powers) and not (self.pose and self.powers)):
-                    rospy.loginfo(bcolors.OKGREEN + ("===> Controls now receiving %s (End event %d) <===" % ("position" if self.pose else "powers", event_id)) + bcolors.RESET)
-                #Set "first warning" flag to true
-                input_absent_first_warning = True
-                #Reset timer
-                input_absent_timer = 0
-                #Increment event id
-                event_id += 1
-            input_absent_last = input_absent
+            #rospy.logwarn(bcolors.WARN + ("== Warned: %r ;;; Now: %.2f ;;; Last input time: %.2f ;;; %.2f ==" % (warned, now, input_last_time, self.INPUT_ABSENT_TIMEOUT_WARN_RATE / 2)) + bcolors.RESET)
 
             if self.pose and self.powers:
-                #More than one seen in one update cycle, so warn and continue
+                # More than one seen in one update cycle, so warn and continue
                 rospy.logerr("===> Controls received both position and power! Halting robot. <===")
-                #Stop Moving
-                self._pub_x_pos_enable.publish(False)
-                self._pub_y_pos_enable.publish(False)
-                self._pub_z_pos_enable.publish(False)
-                self._pub_roll_pos_enable.publish(False)
-                self._pub_pitch_pos_enable.publish(False)
-                self._pub_yaw_pos_enable.publish(False)
+                self.soft_estop()
+                continue
+            elif not self.pose and not self.powers and now - input_last_time >= self.INPUT_ABSENT_TIMEOUT:
+                # After 1 second of not receiving values, start publishing 0s
+                self.soft_estop()
 
-                self._pub_x_effort.publish(0)
-                self._pub_y_effort.publish(0)
-                self._pub_z_effort.publish(0)
-                self._pub_roll_effort.publish(0)
-                self._pub_pitch_effort.publish(0)
-                self._pub_yaw_effort.publish(0)
+                # Warn that values haven't been received
+                if (now - input_last_time) % self.INPUT_ABSENT_TIMEOUT_WARN_RATE < self.INPUT_ABSENT_TIMEOUT_WARN_RATE / 2:
+                    if not warned:
+                        if now - input_last_time < self.INPUT_ABSENT_TIMEOUT_WARN_RATE:
+                            rospy.logwarn(bcolors.FAIL + ("===> Controls received neither position nor power! Halting robot. (Begin event %d) <===" % event_id) + bcolors.RESET)
+                        else:
+                            rospy.logwarn(bcolors.WARN + ("===> Controls still received neither position nor power! Still halting robot. (Event %d) <===" % event_id) + bcolors.RESET)
+                        
+                        warned = True
+                else:
+                    warned = False
                 continue
 
-            # Now we have either pose XOR powers
+            # Now we have either pose XOR powers, or neither but haven't timed out yet
+            if now - input_last_time > self.INPUT_ABSENT_TIMEOUT:
+                rospy.loginfo(bcolors.OKGREEN + ("===> Controls now receiving %s (End event %d) <===" % ("position" if self.pose else "powers", event_id)) + bcolors.RESET)
+                event_id += 1
+                warned = False
+
+            if self.pose or self.powers:
+                input_last_time = now
+
             if self.pose:
                 self._pub_x_pos_enable.publish(True)
                 self._pub_y_pos_enable.publish(True)
@@ -235,10 +222,8 @@ class DesiredStateHandler():
                 self.pose = None
 
             elif self.powers:
-
-                if self.powers!=self.last_powers:
-
-                    #Enable all PID Loops
+                if self.powers != self.last_powers:
+                    # Enable all PID Loops
                     self._pub_x_pos_enable.publish(True)
                     self._pub_y_pos_enable.publish(True)
                     self._pub_z_pos_enable.publish(True)
@@ -246,7 +231,7 @@ class DesiredStateHandler():
                     self._pub_pitch_pos_enable.publish(True)
                     self._pub_yaw_pos_enable.publish(True)
 
-                    #Hold Position on the current state
+                    # Hold Position on the current state
                     self.x_hold = self.x
                     self.y_hold = self.y
                     self.z_hold = self.z
@@ -256,7 +241,7 @@ class DesiredStateHandler():
 
                     self.last_powers = self.powers
 
-                #Nonzero entries bypass PID
+                # Nonzero entries bypass PID
                 if self.powers.linear.x != 0:
                     self._pub_x_pos_enable.publish(False)
                     self._pub_x_effort.publish(self.powers.linear.x)
@@ -276,7 +261,7 @@ class DesiredStateHandler():
                     self._pub_yaw_pos_enable.publish(False)
                     self._pub_yaw_effort.publish(self.powers.angular.z)
 
-                #Publish current state to the desired state for PID
+                # Publish current state to the desired state for PID
                 self._pub_x_pos.publish(self.x_hold)
                 self._pub_y_pos.publish(self.y_hold)
                 self._pub_z_pos.publish(self.z_hold)
@@ -285,9 +270,6 @@ class DesiredStateHandler():
                 self._pub_yaw_pos.publish(self.yaw_hold)
 
                 self.powers = None
-
-            #Save whether input was last absent
-            input_absent_last = False
 
 
 def main():
