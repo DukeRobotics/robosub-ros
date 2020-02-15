@@ -49,7 +49,8 @@ class Task:
             self._on_task_start_default()
             self.started = True
         
-        self._on_task_run()
+        if self.initial_state:
+            self._on_task_run()
     
     @abstractmethod
     def _on_task_run(self):

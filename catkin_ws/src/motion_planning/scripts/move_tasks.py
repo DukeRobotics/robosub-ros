@@ -52,7 +52,7 @@ class HoldPositionTask(Task):
         
 
     def _on_task_run(self):
-        print(self.initial_state)
+        #print(self.initial_state)
         self.publish_desired_pose_global(self.initial_state.pose.pose)
         if self.hold_time:
             if (rospy.get_rostime() - self.start_time) > self.hold_time:
