@@ -54,9 +54,13 @@ class HoldPositionTask(Task):
 
     def _on_task_run(self):
 <<<<<<< HEAD:onboard/catkin_ws/src/motion_planning/scripts/move_tasks.py
+<<<<<<< HEAD:onboard/catkin_ws/src/motion_planning/scripts/move_tasks.py
 =======
         print(self.initial_state)
 >>>>>>> fix bugs in MoveToPoseGlobalTask and HoldPositionTask:catkin_ws/src/motion_planning/scripts/move_tasks.py
+=======
+        #print(self.initial_state)
+>>>>>>> don't run task until state is initialized:catkin_ws/src/motion_planning/scripts/move_tasks.py
         self.publish_desired_pose_global(self.initial_state.pose.pose)
         if self.hold_time:
             if (rospy.get_rostime() - self.start_time) > self.hold_time:

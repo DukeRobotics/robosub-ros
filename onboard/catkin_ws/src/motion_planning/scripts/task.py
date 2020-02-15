@@ -44,9 +44,16 @@ class Task:
         if not self.started:
             self._on_task_start_default()
             self.started = True
+<<<<<<< HEAD:onboard/catkin_ws/src/motion_planning/scripts/task.py
 
         self._on_task_run()
 
+=======
+        
+        if self.initial_state:
+            self._on_task_run()
+    
+>>>>>>> don't run task until state is initialized:catkin_ws/src/motion_planning/scripts/task.py
     @abstractmethod
     def _on_task_run(self):
         """Try to complete the task
