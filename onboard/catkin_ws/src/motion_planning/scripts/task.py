@@ -50,8 +50,9 @@ class Task:
 
 =======
         
-        if self.initial_state:
-            self._on_task_run()
+        while not self.initial_state:
+            pass
+        self._on_task_run()
     
 >>>>>>> don't run task until state is initialized:catkin_ws/src/motion_planning/scripts/task.py
     @abstractmethod
