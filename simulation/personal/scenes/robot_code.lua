@@ -1,4 +1,5 @@
 require "math"
+require "pub_code"
 
 function extsysCall_init()
     --check to see relationship between inches and vrep units
@@ -208,44 +209,8 @@ function read_ros_data(inInts, inFloats, inString, inBuffer)
         values = inFloats
         forcesList[1] = values
     end
-    linvel, angvel = sim.getObjectVelocity(hr)
-    quat = sim.getObjectQuaternion(hr, -1)
-    pos = sim.getObjectPosition(hr, -1)
-    accel = {}
-    currentTime = sim.getSystemTimeInMs(startTime)
-    dt = (currentTime-lastTime)/1000
-    for i=1,3 do
-        accel[i] = (linvel[i]-lastVel[i])/dt
-    end
-    lastTime = currentTime
-    lastVel = linvel
-    outFloats = {}
-    feeder = {linvel, angvel, quat, accel}
-    trans = sim.buildMatrix({0,0,0}, sim.getObjectOrientation(hr, -1))
-    res = sim.invertMatrix(trans)
-    linvel = sim.multiplyVector(trans, linvel)
-    --[[for i = 1, 12 do
-        outFloats[i] = feeder[math.floor((i-1)/3)+1][i%3]
-    end ]]-- Loop to do the following 12 lines of code, currently not working
-    outFloats[1] = linvel[1]
-    outFloats[2] = linvel[2]
-    outFloats[3] = linvel[3]
-    outFloats[4] = angvel[1]
-    outFloats[5] = angvel[2]
-    outFloats[6] = angvel[3]
-    outFloats[7] = quat[1]
-    outFloats[8] = quat[2]
-    outFloats[9] = quat[3]
-    outFloats[10] = quat[4]
-    outFloats[11] = accel[1]
-    outFloats[12] = accel[2]
-    outFloats[13] = accel[3]
-    outFloats[14] = pos[1]
-    outFloats[15] = pos[2]
-    outFloats[16] = pos[3]
-    --outFloats[17] = currentTime/1000
-    --print(outFloats)
-    return {}, outFloats, {}, ""
+    
+    return ros_publishing(inInts, inFloats, inString, inBuffer)
 end
 
 function setForces(vals)

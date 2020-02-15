@@ -4,11 +4,12 @@ function extsysCall_init()
     h=sim.getObjectAssociatedWithScript(sim.handle_self)
     m=sim.getShapeMassAndInertia(h)
     simRemoteApi.start(8080)
+
     moveSub=simROS.subscribe('/sim/move', 'std_msgs/Float32MultiArray', 'move_callback')
+    simROS.subscriberTreatUInt8ArrayAsString(moveSub)
     last = nil
     seq = 0;
-    
-    simROS.subscriberTreatUInt8ArrayAsString(moveSub)
+
     dvlPub=simROS.advertise('/sim/dvl', 'geometry_msgs/TwistStamped')
     simROS.publisherTreatUInt8ArrayAsString(dvlPub)
     posePub=simROS.advertise('/sim/pose', 'geometry_msgs/PoseStamped')
