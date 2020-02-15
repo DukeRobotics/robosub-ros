@@ -5,7 +5,7 @@ function tableConcat(t1,t2)
     return t1
 end
 
-function ros_publishing()
+function ros_publishing(inInts, inFloats, inString, inBuffer)
 	HEAD_FLAG = -525600
 	linvel, angvel = sim.getObjectVelocity(hr)
     quat = sim.getObjectQuaternion(hr, -1)
