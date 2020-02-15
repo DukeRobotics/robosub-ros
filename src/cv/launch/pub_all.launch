@@ -1,0 +1,4 @@
+<launch>
+	<node name="cv" pkg="cv" type="detection.py" />
+	<node name="test_images" pkg="cv" type="test_images.py" />
+</launch>
