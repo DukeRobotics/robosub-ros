@@ -1,11 +1,15 @@
 # Controls
 
 
-These are the instructions to intialize and test our controls algorithm. Currently, our goal is to take input from various topics and move the robot based on desired global position or desired power. By default, we publish thruster allocations on a range [-128, 127] that are readily available for the Arduino. We can also publish values on a range [-1, 1] for use by the simulation.
+These are the instructions to initialize and test our controls algorithm. We take input from various topics and move the robot based on desired global position or desired power. By default, we publish thruster allocations on a range [-128, 127] for the Arduino. We can also publish values on a range [-1, 1] for the simulation.
 
-Thruster information is read from `cthulhu.config`, which is written in YAML and can be easily updated if thrusters are added or moved. The xyz positions are in meters, and the rpy (roll, pitch, yaw) rotations are in degrees.
+Thruster information is read from `cthulhu.config`, which is written in YAML and can be updated if thrusters are added or moved. The xyz positions are in meters, and the rpy (roll, pitch, yaw) rotations are in degrees. The ordering of the thruster power outputs is determined by the order in which they appear the config file.
 
-**Note**: The ordering of the thruster power outputs is determined by the order in which they appear the config file.
+`controls.launch` takes in a `mode` argument to indicate whether we are in `robot` (default) or `sim`ulation mode
+
+Only the most recently updated Desired State Topic will be used in movement. Therefore any updates will override the current movement of the robot. Controls will warn you if more than one Desired State Topic is being published to at any given time to prevent such issues. If Controls stops receiving Desired State messages at a high enough rate (at the moment, 10 Hz), it will warn you and will output zero power for safety purposes.
+
+The controls algorithm will output all 0's unless it is enabled with a call to rosservice as detailed in the setup. This is intended to act as an emergency stop that cuts off all power to the thrusters if necessary.
 
 
 ## Setup
@@ -14,16 +18,16 @@ Thruster information is read from `cthulhu.config`, which is written in YAML and
 2. SSH into the docker container, either on the robot or [on your local computer](https://github.com/DukeRobotics/documentation/blob/master/docker/README.md), and maybe [configured for simulation](https://github.com/DukeRobotics/robosub-ros/blob/master/simulation/README.md).
 3. Initialize `roscore` and run the following in the terminal to start the PID Loops:
 
-    ```
-    roslaunch controls controls.launch &
-    ```
+```
+roslaunch controls controls.launch &
+```
 
 ## Testing Outputs
 
 To enable non-zero thruster output, the following command should be used:
-
-    rosservice call /enable_controls true
-
+```
+rosservice call /enable_controls true
+```
 To test the outputs of the PID Loops, edit the values in `test_state_publisher.py` to whatever current and desired state you wish to test. Then, run the following:
 
 ```
@@ -94,12 +98,6 @@ We can choose to publish to either of these topics by changing the `mode` argume
   - ```/sim/move```
     + An array of 8 floats [-1,1] describing the allocation of the thrusters sent to the simulation
     + Type: std_msgs/Float32MultiArray
-
-### Important Notes
-
-Only the most recently updated Desired State Topic will be used in movement. Therefore any updates will override the current movement of the robot. Controls will warn you if more than one Desired State Topic is being published to at any given time to prevent such issues. Also, if Controls stops receiving Desired State messages at a high enough rate [TBD], it will warn you and will output zero power for safety purposes.
-
-The controls algorithm will output all 0's unless it is enabled with a call to rosservice as detailed in the setup. This is intended to act as an emergency stop that cuts off all power to the thrusters if necessary.
 
 
 ## How It Works (Structure and Flow)
