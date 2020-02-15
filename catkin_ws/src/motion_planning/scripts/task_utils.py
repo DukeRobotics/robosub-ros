@@ -36,7 +36,7 @@ def angular_distance_quat(quat1, quat2):
     #convert quat1 and quat2 to lists
     quat1 = [quat1.x, quat1.y, quat1.z, quat1.w]
     quat2 = [quat2.x, quat2.y, quat2.z, quat2.w]
-    rpy1 = euler_from_quaterion(quat1)
+    rpy1 = euler_from_quaternion(quat1)
     rpy2 = euler_from_quaternion(quat2)
     return angular_distance_rpy(rpy1, rpy2)
 
@@ -50,7 +50,7 @@ def angular_distance_rpy(rpy1, rpy2):
     Returns:
     geometry_msgs/Vector3: magnitude of the two orientations' differences in each axis
     """
-    roll = math.fabs(rpy1[0] - ryp2[0])
+    roll = math.fabs(rpy1[0] - rpy2[0])
     pitch = math.fabs(rpy1[1] - rpy2[1])
     yaw = math.fabs(rpy1[2] - rpy2[2])
     return Vector3(roll, pitch, yaw)
@@ -69,7 +69,7 @@ def at_pose(current_pose, desired_pose, linear_tol=0.1, angular_tol=3):
     Returns:
     Boolean: true if current_pose is within tolerances of desired_pose
     """
-    linear = linear_distance(current_pose.point, desired_pose.point) < linear_tol
+    linear = linear_distance(current_pose.position, desired_pose.position) < linear_tol
     angular_dist = angular_distance_quat(current_pose.orientation, desired_pose.orientation)
     angular = np.all(np.array([angular_dist.x, angular_dist.y, angular_dist.z]) < (np.ones((3)) * angular_tol))
     return (linear and angular)
