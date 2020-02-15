@@ -29,7 +29,7 @@ class TestStatePublisher():
         #These values correspond to the desired powers for the robot
         self.desired_powers = Twist()
         self.desired_powers.linear.x = 1
-        self.desired_powers.linear.y = 0
+        self.desired_powers.linear.y = 1
         self.desired_powers.linear.z = 0
         self.desired_powers.angular.x = 0
         self.desired_powers.angular.y = 0
@@ -53,7 +53,7 @@ class TestStatePublisher():
 
     def publish_desired_pose(self):
         rospy.init_node('test_state_publisher')
-        rate = rospy.Rate(10)
+        rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             self._pub_desired_pose.publish(self.desired_pose)
             #self._pub_current_state.publish(self.current_state)
@@ -61,7 +61,7 @@ class TestStatePublisher():
 
     def publish_desired_powers(self):
         rospy.init_node('test_state_publisher')
-        rate = rospy.Rate(10)
+        rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             self._pub_desired_powers.publish(self.desired_powers)
             #self._pub_current_state.publish(self.current_state)

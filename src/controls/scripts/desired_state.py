@@ -222,26 +222,30 @@ class DesiredStateHandler():
                     self.last_powers = self.powers
 
                 # Nonzero entries bypass PID
-                if self.powers.linear.x != 0:
+
+                # If any nonzero xyz power, publish those powers directly
+                if self.powers.linear.x != 0 or self.powers.linear.y != 0:
                     self._pub_x_pos_enable.publish(False)
                     self._pub_x_effort.publish(self.powers.linear.x)
-                if self.powers.linear.y != 0:
                     self._pub_y_pos_enable.publish(False)
                     self._pub_y_effort.publish(self.powers.linear.y)
-                if self.powers.linear.z != 0:
-                    self._pub_z_pos_enable.publish(False)
-                    self._pub_z_effort.publish(self.powers.linear.z)
-                if self.powers.angular.x != 0:
+
+                # If any nonzero rpy power, publish those powers directly
+                elif self.powers.angular.x != 0 or self.powers.angular.y != 0 or self.powers.angular.z != 0:
                     self._pub_roll_pos_enable.publish(False)
                     self._pub_roll_effort.publish(self.powers.angular.x)
-                if self.powers.angular.y != 0:
                     self._pub_pitch_pos_enable.publish(False)
                     self._pub_pitch_effort.publish(self.powers.angular.y)
-                if self.powers.angular.z != 0:
                     self._pub_yaw_pos_enable.publish(False)
                     self._pub_yaw_effort.publish(self.powers.angular.z)
 
-                # Publish current state to the desired state for PID
+                if self.powers.linear.z !=0:
+                    self._pub_z_pos_enable.publish(False)
+                    self._pub_z_effort.publish(self.powers.linear.z)
+
+                #TODO: BOTH cases
+
+                #Publish current state to the desired state for PID
                 self._pub_x_pos.publish(self.x_hold)
                 self._pub_y_pos.publish(self.y_hold)
                 self._pub_z_pos.publish(self.z_hold)
