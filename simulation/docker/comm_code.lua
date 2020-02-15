@@ -5,6 +5,9 @@ function extsysCall_init()
     m=sim.getShapeMassAndInertia(h)
     simRemoteApi.start(8080)
     moveSub=simROS.subscribe('/sim/move', 'std_msgs/Float32MultiArray', 'move_callback')
+    last = nil
+    seq = 0;
+    
     simROS.subscriberTreatUInt8ArrayAsString(moveSub)
     dvlPub=simROS.advertise('/sim/dvl', 'geometry_msgs/TwistStamped')
     simROS.publisherTreatUInt8ArrayAsString(dvlPub)
@@ -12,8 +15,7 @@ function extsysCall_init()
     simROS.publisherTreatUInt8ArrayAsString(dvlPub)
     imuPub=simROS.advertise('/sim/imu', 'sensor_msgs/Imu')
     simROS.publisherTreatUInt8ArrayAsString(imuPub)
-    last = nil
-    seq = 0;
+    
 
     --test, should get removed
     --testdata = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
