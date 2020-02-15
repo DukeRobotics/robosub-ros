@@ -19,10 +19,10 @@ class SimulationRepublisher():
 		self.odom_pub = rospy.Publisher(self.SENSOR_FUSION_ODOM_TOPIC, Odometry, queue_size=3)
 		self.quat_pub = rospy.Publisher(self.SENSOR_FUSION_QUAT_TOPIC, Quaternion, queue_size=3)
 
-		rospy.init_node('simulation_republisher')
-
 		self.odom = Odometry()
 		self.quat = Quaternion()
+		
+		rospy.init_node('simulation_republisher')
 
 	def _on_receive_twist(self, twist_stamped):
 		"""Receive TwistStamped message from simulation and assign to odom"""
@@ -31,7 +31,6 @@ class SimulationRepublisher():
 	def _on_receive_pose(self, pose_stamped):
 		"""Receive PoseStamped message from simulation and assign to odom"""
 		self.odom.pose.pose = pose_stamped.pose
-
 
 	def _on_receive_imu(self, imu):
 		"""Receive imu message from simulation and publish quat for sensor fusion"""
