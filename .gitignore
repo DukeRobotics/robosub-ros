@@ -16,5 +16,10 @@ catkin_ws/logs
 # VS Code
 .vscode
 
+<<<<<<< HEAD
+# VSCode
+/.vscode/
+=======
 # Mac
 *.DS_Store
+>>>>>>> 57c3d881b183d1e70fade6eb9c500e28a42223dd
