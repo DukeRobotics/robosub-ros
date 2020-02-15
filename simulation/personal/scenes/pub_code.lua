@@ -40,9 +40,10 @@ function ros_publishing()
     outPoseData = tableConcat(outPoseData, pos)
     outPoseData = tableConcat(outPoseData, quat)
 
-    
+    outFloats = tableConcat(outDvlData, outPoseData)
+    outStrings = tableConcat(outDvl, outPose)
 
-    return {}, outFloats, {}, ""
+    return {}, outFloats, outStrings, ""
 end
 
 --[[
