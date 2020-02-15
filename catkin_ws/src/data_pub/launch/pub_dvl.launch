@@ -1,0 +1,4 @@
+<launch>
+	<node name="dvl_raw" pkg="data_pub" type="dvl_raw.py" />
+	<node name="dvl_odom" pkg="data_pub" type="dvl_to_odom.py" />
+</launch>

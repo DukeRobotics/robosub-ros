@@ -5,14 +5,21 @@
 *.pyc
 
 # ROS/Catkin
-/.catkin_tools/
-/build/
-/devel/
-/logs/
+catkin_ws/.catkin_tools
+catkin_ws/build
+catkin_ws/devel
+catkin_ws/logs
 
 # PyCharm/IntelliJ
-/.idea/
-*.DS_Store
+.idea
 
+# VS Code
+.vscode
+
+<<<<<<< HEAD
 # VSCode
 /.vscode/
+=======
+# Mac
+*.DS_Store
+>>>>>>> 57c3d881b183d1e70fade6eb9c500e28a42223dd
