@@ -1,0 +1,3 @@
+<launch>
+	<node name="imu_pub" pkg="data_pub" type="imu_pub.py" />
+</launch>
