@@ -43,7 +43,7 @@ function get_ros_data(inInts, inFloats, inString, inBuffer)
 	    head["stamp"] = simROS.getTime()
 	    head["frame_id"] = "global"
 		while i <= #inString do
-			if strsub(inString[i],1,1)== '/' then
+			if string.sub(inString[i],1,1)== '/' then
 				if rospubs == {} then
 					rospubs[#rospubs+1] = simROS.advertise(inStrings[i], inStrings[i+1])
 		    		simROS.publisherTreatUInt8ArrayAsString(rospubs[#rospubs])
@@ -52,7 +52,8 @@ function get_ros_data(inInts, inFloats, inString, inBuffer)
 			end
 			temp = rospubs[#rospubs]
 			splitstr = mysplit(inString[i], '.')
-			for path in splitstr do
+			for k = 1,#splitstr do
+				path = splitstr[k]
 				if temp[path] == nil then
 					temp[path] = {}
 				end
