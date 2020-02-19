@@ -47,7 +47,7 @@ function get_ros_data(inInts, inFloats, inString, inBuffer)
 				rospubs[#rospubs+1] = simROS.advertise(inStrings[i], inStrings[i+1])
 	    		simROS.publisherTreatUInt8ArrayAsString(rospubs[#rospubs])
 	    	end
-    		i += 2
+    		i = i + 2
 		end
 		temp = rospubs[#rospubs]
 		splitstr = mysplit(inString[i], '.')
@@ -71,3 +71,40 @@ function get_ros_data(inInts, inFloats, inString, inBuffer)
     end
     return {}, last, {}, ''
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
