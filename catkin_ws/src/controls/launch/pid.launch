@@ -10,33 +10,33 @@
     <group if="$(eval arg('sim') == 'false')">
         <group ns="controls/x_pos/controller">
             <param name="Kp" value="1" />
-            <param name="Ki" value="1" />
-            <param name="Kd" value="1" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/y_pos/controller">
             <param name="Kp" value="1" />
-            <param name="Ki" value="1" />
-            <param name="Kd" value="1" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/z_pos/controller">
             <param name="Kp" value="1" />
-            <param name="Ki" value="1" />
-            <param name="Kd" value="1" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/roll_pos/controller">
-            <param name="Kp" value="1" />
-            <param name="Ki" value="1" />
-            <param name="Kd" value="1" />
+            <param name="Kp" value="0.1" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/pitch_pos/controller">
-            <param name="Kp" value="1" />
-            <param name="Ki" value="1" />
-            <param name="Kd" value="1" />
+            <param name="Kp" value="0.1" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/yaw_pos/controller">
-            <param name="Kp" value="1" />
-            <param name="Ki" value="1" />
-            <param name="Kd" value="1" />
+            <param name="Kp" value="0.1" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="0.001" />
         </group>
     </group>
 

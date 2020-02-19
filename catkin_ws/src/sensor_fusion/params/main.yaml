@@ -9,7 +9,7 @@ odom0_config: [false, false, false,
                false, false, false,
                false, false, false]
 
-imu0: sensors/imu/quat
+imu0: sensors/imu/imu
 imu0_config: [false, false, false,
               true, true, true,
               false, false, false,
