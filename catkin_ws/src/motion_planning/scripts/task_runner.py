@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import rospy
 from task import Task
 from competition_task import CompetitionTask
