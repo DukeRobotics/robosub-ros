@@ -76,6 +76,6 @@ To shut down the simulation completely:
 1. Stop ros_coppelia_comm.py
 2. Stop the buoyancy simulation on your personal computer.
 3. Open a terminal in the docker container and run `ps -a`.
-4. See which process ids correspond to CoppeliaSim and CoppeliaSim.sh, and run `kill -9 [processid]` for both. If you do not SIGKILL it, the processes appear to linger, which appears to interfere with communication between the simulations.
+4. See which process ids correspond to CoppeliaSim and CoppeliaSim.sh, and run `kill -9 [processid]` for both. The `-9` argument tells the command to send a SIGKILL signal, rather than a SIGTERM. If you do not SIGKILL it, the processes appear to linger, which appears to interfere with communication between the simulations.
     
     It is currently unknown if this is fact or simply paranoia and superstition.
