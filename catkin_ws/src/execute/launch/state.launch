@@ -1,0 +1,8 @@
+<launch>
+	<!-- Publish sensor data -->
+	<include file="$(find data_pub)/launch/pub_all.launch" />
+
+	<!-- Static transforms and sensor fusion -->
+	<include file="$(find static_transforms)/launch/static_transforms.launch" />
+	<include file="$(find sensor_fusion)/launch/fuse.launch" />
+</launch>

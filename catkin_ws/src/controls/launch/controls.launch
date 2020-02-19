@@ -1,0 +1,24 @@
+<launch>
+	
+	<arg name="mode" default="robot" />
+
+    <!-- Start PID nodes for controls -->
+    <include file="$(find controls)/launch/pid.launch">
+        <arg name="mode" value="$(arg mode)" />
+    </include>
+
+	<!-- Start controls node that republishes state to seperate topics -->
+	<node pkg="controls" name="state_republisher" type="state_republisher.py">
+		<param name="mode" value="$(arg mode)" />
+	</node>
+
+	<!-- Start controls node that listens to PID and outputs thruster allocations -->
+	<node pkg="controls" name="thruster_controls" type="thruster_controls.py">
+		<param name="mode" value="$(arg mode)" />
+	</node>
+
+	<!-- Start desired_state node that processes inputs from motion planning
+    and outputs setpoints to PID -->
+	<node pkg="controls" name="desired_state" type="desired_state.py" output="screen" />
+	
+</launch>
