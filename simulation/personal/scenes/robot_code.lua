@@ -30,7 +30,7 @@ function extsysCall_init()
     
     
     --Make forcesList a list of values, and the program will cycle through them, switching every 5 seconds
-    forcesList = {{0,0,0,0,0,0,0,0}}--,
+    forcesList = {{1,1,1,1,0,0,0,0}}--,
                         --{1,1,1,1,0,0,0,0},
                           --{-1,1,1,-1,0,0,0,0},
                           --{-1,-1,-1,-1,0,0,0,0},
@@ -221,12 +221,12 @@ function setForces(vals)
     --[[]]
     forces[1]={1,1,0} --tfr
     forces[2]={1,-1,0} --tfl
-    forces[3]={1,-1,0} --tbr
-    forces[4]={1,1,0} --tbl
-    forces[5]={0,0,1}
-    forces[6]={0,0,1} 
-    forces[7]={0,0,1}
-    forces[8]={0,0,1}
+    forces[3]={-1,1,0} --tbr
+    forces[4]={-1,1,0} --tbl
+    forces[5]={0,0,-1}
+    forces[6]={0,0,-1} 
+    forces[7]={0,0,-1}
+    forces[8]={0,0,-1}
     --]]
     --[[--Original Values
     forces[1]={-1,1,0} --tfr
