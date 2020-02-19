@@ -80,7 +80,7 @@ class IMURawPublisher:
 		self._current_imu_msg.header.stamp = rospy.Time.now()
 		self._current_mag_msg.header.stamp = rospy.Time.now()
 		self._current_imu_msg.header.frame_id = "imu_link"
-		self._current_mag_msg.header.frame_id = "mag_link"
+		self._current_mag_msg.header.frame_id = "imu_link"
 
 		self._pub_imu.publish(self._current_imu_msg)
 		self._current_imu_msg = Imu()
