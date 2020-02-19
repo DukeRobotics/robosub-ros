@@ -3,6 +3,7 @@
 import rospy
 import cv2
 import os
+from cv.srv import ToggleModel
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
@@ -23,13 +24,27 @@ class DummyImagePublisher:
 
         self.image_msg = bridge.cv2_to_imgmsg(image, 'bgr8')
 
-    # Publish dummy image to topic every 5 seconds
+    # Publish dummy image to topic every few seconds
     def run(self):
         rospy.init_node(self.NODE_NAME)
 
-        loop_rate = rospy.Rate(0.2)
+        # Testing toggle_model service
+        rospy.wait_for_service('toggle_model')
+        toggle_model = rospy.ServiceProxy('toggle_model', ToggleModel)
+
+        loop_rate = rospy.Rate(2)
+        model_enabled = False
+
+        count = 1
         while not rospy.is_shutdown():
             self.image_publisher.publish(self.image_msg)
+
+            # Testing toggle_model
+            if count % 4 == 0:
+                toggle_model('buoy', model_enabled)
+                model_enabled = not model_enabled
+
+            count += 1
             loop_rate.sleep()
 
 
