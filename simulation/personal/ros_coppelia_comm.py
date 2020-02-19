@@ -51,6 +51,8 @@ if clientID!=-1 and winID!=-1:
     startTime=time.time()
     #sim.simxGetIntegerParameter(clientID,sim.sim_intparam_mouse_x,sim.simx_opmode_streaming) # Initialize streaming
     data = []
+    ints = []
+    strs = []
     while True: #time.time()-startTime < 20:
         #returnCode,data=sim.simxGetIntegerParameter(clientID,sim.sim_intparam_mouse_x,sim.simx_opmode_buffer) # Try to retrieve the streamed data
         #if returnCode==sim.simx_return_ok: # After initialization of streaming, it will take a few ms before the first value arrives, so check the return code
