@@ -5,7 +5,7 @@ function tableConcat(t1,t2)
     return t1
 end
 
-function ros_publishing_loop(inInts, inFloats, inString, inBuffer)
+function ros_publishing(inInts, inFloats, inString, inBuffer)
 	print("made it")
 	HEAD_FLAG = -525600
 	linvel, angvel = sim.getObjectVelocity(hr)
@@ -47,6 +47,7 @@ function ros_publishing_loop(inInts, inFloats, inString, inBuffer)
     return {}, outFloats, outStrings, ""
 end
 
+--[[
 function ros_publishing(inInts, inFloats, inString, inBuffer)
 	linvel, angvel = sim.getObjectVelocity(hr)
     quat = sim.getObjectQuaternion(hr, -1)
@@ -84,3 +85,4 @@ function ros_publishing(inInts, inFloats, inString, inBuffer)
 
     return {}, outFloats, {}, ""
 end
+]]--
