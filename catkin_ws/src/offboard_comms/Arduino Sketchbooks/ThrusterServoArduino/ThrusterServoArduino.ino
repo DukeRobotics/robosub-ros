@@ -24,6 +24,13 @@ MultiplexedBasicESC *thrusters[NUM_THRUSTERS];
 void thruster_speeds_callback(const offboard_comms::ThrusterSpeeds &ts_msg){
     //copy the contents of the speed message to the local array
     memcpy(thruster_speeds, ts_msg.speeds, sizeof(thruster_speeds));
+    //negate the thruster speeds to match standard assumptions 
+    thruster_speeds[0]*=-1;
+    thruster_speeds[1]*=-1;
+    thruster_speeds[3]*=-1;
+    thruster_speeds[4]*=-1;
+    thruster_speeds[5]*=-1;
+    thruster_speeds[6]*=-1;
     last_cmd_ms_ts = millis();
 }
 
@@ -60,7 +67,6 @@ void loop(){
     if (last_cmd_ms_ts + THRUSTER_TIMEOUT_MS < millis())
         memset(thruster_speeds, 0, sizeof(thruster_speeds));
     for (int i = 0; i < NUM_THRUSTERS; ++i){
-      Serial.print(thruster_speeds[7]);
         thrusters[i]->run(thruster_speeds[i]);
     }
     /*for (int i = 0; i < NUM_SERVO; ++i){
