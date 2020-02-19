@@ -35,36 +35,38 @@ function mysplit (inputstr, sep)
 end
 
 function get_ros_data(inInts, inFloats, inString, inBuffer)
-	i = 1
-	head = {}
-    head["seq"] = seq
-    seq = seq + 1
-    head["stamp"] = simROS.getTime()
-    head["frame_id"] = "global"
-	while i <= #inString do
-		if strsub(inString[i],1,1)== '/' then
-			if rospubs == {} then
-				rospubs[#rospubs+1] = simROS.advertise(inStrings[i], inStrings[i+1])
-	    		simROS.publisherTreatUInt8ArrayAsString(rospubs[#rospubs])
-	    	end
-    		i = i + 2
-		end
-		temp = rospubs[#rospubs]
-		splitstr = mysplit(inString[i], '.')
-		for path in splitstr do
-			if temp[path] == nil then
-				temp[path] = {}
+	if #inString >= 2 then
+		i = 1
+		head = {}
+	    head["seq"] = seq
+	    seq = seq + 1
+	    head["stamp"] = simROS.getTime()
+	    head["frame_id"] = "global"
+		while i <= #inString do
+			if strsub(inString[i],1,1)== '/' then
+				if rospubs == {} then
+					rospubs[#rospubs+1] = simROS.advertise(inStrings[i], inStrings[i+1])
+		    		simROS.publisherTreatUInt8ArrayAsString(rospubs[#rospubs])
+		    	end
+	    		i = i + 2
 			end
-			if path ~= splitstr[#splitstr] then
-				temp = temp[path]
+			temp = rospubs[#rospubs]
+			splitstr = mysplit(inString[i], '.')
+			for path in splitstr do
+				if temp[path] == nil then
+					temp[path] = {}
+				end
+				if path ~= splitstr[#splitstr] then
+					temp = temp[path]
+				end
+				lastpath = path
 			end
-			lastpath = path
+			temp[lastpath] = inFloats[i]
+			if temp[lastpath] == HEAD_FLAG then
+				temp[lastpath] = head
+			end
+			i = i + 1
 		end
-		temp[lastpath] = inFloats[i]
-		if temp[lastpath] == HEAD_FLAG then
-			temp[lastpath] = head
-		end
-		i = i + 1
 	end
 	if last == nil then
         return {}, {0,0,0,0,0,0,0,0}, {}, ''
