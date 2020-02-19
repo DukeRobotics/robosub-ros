@@ -1,11 +1,11 @@
-# CoppeliaSim Simulation for the AUV
+﻿# CoppeliaSim Simulation for the AUV
 These are the instructions to get CoppeliaSim running on your own personal computer, connected to the ROS Topics inside a Docker container. The simulation currently reads a [Float32MultiArray](http://docs.ros.org/melodic/api/std_msgs/html/msg/Float32MultiArray.html) of thruster values from the topic /sim/move. This is expected to be an array of 8 floats, each from -1 to 1. This array should be in the order top-front-right, top-front-left, top-back-right, top-back-left, bottom-front-right, bottom-front-left, bottom-back-right, bottom-back-left.
 
 Additionally, it publishes a [TwistStamped](http://docs.ros.org/melodic/api/geometry_msgs/html/msg/TwistStamped.html) to /sim/dvl, a [PoseStamped](http://docs.ros.org/melodic/api/geometry_msgs/html/msg/PoseStamped.html) to /sim/pose, and an [Imu](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Imu.html) to /sim/imu.
 
 ## Installing the Simulation
 ### Assumptions
-This readme assumes that you are able to mount the git repo in the docker container. 
+This readme assumes that you are able to mount the git repo in the docker container, and that you have the most recent Docker image pulled. 
 
 ### Setting up the Docker Container
 You will need a Docker container with port 8080 forwarded. Additionally, you will need to use the simulation tag for the Docker container. Run the command that you normally do to create your Docker container according to the [documentation repo](https://github.com/DukeRobotics/documentation/tree/master/docker), but with `-p 8080:8080` added, and with `:simulation` at the end.
