@@ -135,11 +135,11 @@ This package also defines a new custom message type, `ThrusterSpeeds`, which is 
 
 ### Configuration
 
-Our configuration files are written in YAML and terminate in `.config`. As of now, they only contain thruster information. Thrusters are named and given a type. A thruster's xyz position is measured in meters from the robot's center of mass, and measurements are done in robot frame. A thruster's rpy (roll, pitch, yaw) orientation is measured using extrinsic [Euler angles](https://en.wikipedia.org/wiki/Euler_angles) in degrees as an offset from robot frame.
+Our configuration files are written in YAML and terminate in `.config`. As of now, they only contain thruster information. Thrusters are named and given a type. A thruster's xyz position is measured in meters from the robot's center of mass, and measurements are done in robot frame. A thruster's rpy (roll, pitch, yaw) orientation is measured using extrinsic [Euler angles](https://en.wikipedia.org/wiki/Euler_angles) in degrees as an offset from robot frame. Thrusters can also be flipped. **This should be the only place in the entire codebase where flipping of thruster allocations occurs.**
 
 Robot frame is defined as the positive x-axis pointing in the "forward" direction of movement, z-axis pointing up, and y-axis follows the right hand rule.
 
-A thruster's starting orientation when aligned with robot frame is defined as the positive x-axis pointing in the "forward" direction of the thruster's movement, z-axis pointing up, and y-axis following the right hand rule. Note that a roll in the thruster orientation theoretically has no effect on its direction of thrust, as it just rotates about the axis of thrust. Sending a positive power to a thruster should make it move towards its "forward" or +x direction. The ordering of the thruster power outputs is determined by the order in which the thrusters appear the config file.
+A thruster's starting orientation when aligned with robot frame is defined as the positive x-axis pointing in the "forward" direction of the thruster's movement, z-axis pointing up, and y-axis following the right hand rule. Note that a roll in the thruster orientation theoretically has no effect on its direction of thrust, as it just rotates about the axis of thrust. Sending a positive power to a thruster should make it move towards its "forward" or +x direction, or "backwards" or -x direction if it is flipped. The ordering of the thruster power outputs is determined by the order in which the thrusters appear the config file.
 
 `cthulhu.config` is the config file for Cthulhu, our RoboSub 2019 and RoboSub 2020 robot.
 

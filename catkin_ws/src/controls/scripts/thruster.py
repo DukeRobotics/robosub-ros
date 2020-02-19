@@ -12,9 +12,10 @@ class Thruster():
     MAX_NEG_POW = -128
     MAX_POS_POW = 127
 
-    def __init__(self, pos, rpy):
+    def __init__(self, pos, rpy, flipped):
         self.pos = pos
         self.rpy = rpy
+        self.flipped = flipped
         
         to_rad = lambda x: x * math.pi / 180  # convert degrees to radians
         q = quaternion_from_euler(to_rad(rpy[0]), to_rad(rpy[1]), to_rad(rpy[2]), 'sxyz') # create a quaternion from euler rpy

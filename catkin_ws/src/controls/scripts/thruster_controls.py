@@ -53,7 +53,7 @@ class ThrusterController():
         return {'success': True, 'message': 'Successfully set enabled to ' + str(req.data)}
 
     def update_thruster_allocs(self):
-        self.t_allocs = self.tm.calc_thruster_allocs(self.pid_outputs)
+        self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs)
 
     def _on_x(self, x):
         self.pid_outputs[0] = x.data
@@ -84,7 +84,6 @@ class ThrusterController():
         rate = rospy.Rate(10)  # 10 Hz
 
         while not rospy.is_shutdown():
-            #rospy.loginfo(f32_t_allocs)
             if not self.enabled:
                 # If not enabled, publish all 0s.
                 if self.sim == 'false':
@@ -92,7 +91,6 @@ class ThrusterController():
                     i8_t_allocs.speeds = np.zeros(8)
                     self.pub.publish(i8_t_allocs)
                 elif self.sim == 'true':
-                    #self.t_allocs[4:8] = 0
                     f32_t_allocs = Float32MultiArray()
                     f32_t_allocs.data = np.zeros(8)
                     self.pub.publish(f32_t_allocs)
@@ -102,7 +100,6 @@ class ThrusterController():
                     i8_t_allocs.speeds = (self.t_allocs * 127).astype(int)
                     self.pub.publish(i8_t_allocs)
                 elif self.sim == 'true':
-                    #self.t_allocs[4:8] = 0
                     f32_t_allocs = Float32MultiArray()
                     f32_t_allocs.data = self.t_allocs
                     self.pub.publish(f32_t_allocs)
