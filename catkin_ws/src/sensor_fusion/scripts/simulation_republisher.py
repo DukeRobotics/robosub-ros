@@ -7,7 +7,7 @@ class SimulationRepublisher():
 	SIM_TWIST_TOPIC = 'sim/dvl' #TwistStamped message
 	SIM_IMU_TOPIC = 'sim/imu' #Imu message
 	SIM_POSE_TOPIC = 'sim/pose' #PoseStamped message
-	SENSOR_FUSION_ODOM_TOPIC = 'state'#'sensors/dvl/odom'
+	SENSOR_FUSION_ODOM_TOPIC = 'sensors/dvl/odom'
 	SENSOR_FUSION_IMU_TOPIC = 'sensors/imu/imu'
 
 	def __init__(self):
