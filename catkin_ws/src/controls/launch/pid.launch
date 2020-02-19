@@ -1,13 +1,13 @@
 <launch>
 
-    <arg name="mode" default="robot" />
+    <arg name="sim" default="false" />
 
     <arg name="pos_max" default="1" />
     <arg name="orient_max" default="0.5" />
     <arg name="min_loop_freq" value="100" />
 
     <!-- ROBOT PID Constants -->
-    <group if="$(eval arg('mode') == 'robot')">
+    <group if="$(eval arg('sim') == 'false')">
         <group ns="controls/x_pos/controller">
             <param name="Kp" value="1" />
             <param name="Ki" value="0.001" />
@@ -41,7 +41,7 @@
     </group>
 
     <!-- SIMULATION PID Constants -->
-    <group if="$(eval arg('mode') == 'sim')">
+    <group if="$(eval arg('sim') == 'true')">
         <group ns="controls/x_pos/controller">
             <param name="Kp" value="5" />
             <param name="Ki" value="0" />
