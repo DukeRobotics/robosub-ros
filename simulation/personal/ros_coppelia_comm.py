@@ -55,11 +55,11 @@ if clientID!=-1 and winID!=-1:
         #returnCode,data=sim.simxGetIntegerParameter(clientID,sim.sim_intparam_mouse_x,sim.simx_opmode_buffer) # Try to retrieve the streamed data
         #if returnCode==sim.simx_return_ok: # After initialization of streaming, it will take a few ms before the first value arrives, so check the return code
         #    print ('Mouse position x: ',data) # Mouse position x is actualized when the cursor is over V-REP's window
-        res, blah, data, blah, blah = sim.simxCallScriptFunction(clientID, "Cuboid", sim.sim_scripttype_childscript,"get_ros_data", 
-                                                                  [],data,[],bytearray(),sim.simx_opmode_blocking)
+        res, ints, data, strs, blah = sim.simxCallScriptFunction(clientID, "Cuboid", sim.sim_scripttype_childscript,"get_ros_data", 
+                                                                  ints,data,strs,bytearray(),sim.simx_opmode_blocking)
         print("from docker sim",data)
-        res, blah, data, blah, blah = sim.simxCallScriptFunction(winID, "Rob", sim.sim_scripttype_childscript, "read_ros_data",
-                                                                  [],data,[],bytearray(),sim.simx_opmode_blocking)
+        res, ints, data, strs, blah = sim.simxCallScriptFunction(winID, "Rob", sim.sim_scripttype_childscript, "read_ros_data",
+                                                                  ints,data,strs,bytearray(),sim.simx_opmode_blocking)
         print("from robot sim",data)
         time.sleep(0.005)
         
