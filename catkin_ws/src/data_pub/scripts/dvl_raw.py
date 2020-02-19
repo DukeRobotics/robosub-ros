@@ -8,7 +8,7 @@ from data_pub.msg import DVLRaw
 
 class DvlRawPublisher:
 
-    FTDI_STR = 'FT232R'
+    FTDI_STR = '7006fIP'
     BAUDRATE = 115200
     TOPIC_NAME = 'sensors/dvl/raw'
     NODE_NAME = 'dvl_raw_publisher'
