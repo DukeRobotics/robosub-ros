@@ -62,7 +62,7 @@ function get_ros_data(inInts, inFloats, inString, inBuffer)
 		end
 		temp[lastpath] = inFloats[i]
 		if temp[lastpath] == HEAD_FLAG then
-			temp[lastpath] == head
+			temp[lastpath] = head
 		end
 		i += 1
 	end
