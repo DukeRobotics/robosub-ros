@@ -1,8 +1,18 @@
 <launch>
-	<!-- Publish sensor data -->
-	<include file="$(find data_pub)/launch/pub_all.launch" />
+	
+	<!-- Include all launch files required to keep track of the state of the robot -->
+	
+	<arg name="sim" default="false" />
+
+	<!-- If sim is false -->
+	<group unless="$(arg sim)">
+		<!-- Publish sensor data -->
+		<include file="$(find data_pub)/launch/pub_all.launch" />
+	</group>
 
 	<!-- Static transforms and sensor fusion -->
 	<include file="$(find static_transforms)/launch/static_transforms.launch" />
-	<include file="$(find sensor_fusion)/launch/fuse.launch" />
+	<include file="$(find sensor_fusion)/launch/fuse.launch">
+		<arg name="sim" value="$(arg sim)" />
+	</include>
 </launch>
