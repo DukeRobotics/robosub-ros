@@ -13,7 +13,7 @@ from tf.transformations import euler_from_quaternion
 
 class IMURawPublisher:
 
-	IMU_DEST_TOPIC_QUAT = 'sensors/imu/quat'
+	IMU_DEST_TOPIC_QUAT = 'sensors/imu/imu'
 	IMU_DEST_TOPIC_MAG = 'sensors/imu/mag'
 
 	FTDI_STR = 'FT1WDFQ2'
