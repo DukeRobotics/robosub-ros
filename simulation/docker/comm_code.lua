@@ -64,7 +64,7 @@ function get_ros_data(inInts, inFloats, inString, inBuffer)
 		if temp[lastpath] == HEAD_FLAG then
 			temp[lastpath] = head
 		end
-		i += 1
+		i = i + 1
 	end
 	if last == nil then
         return {}, {0,0,0,0,0,0,0,0}, {}, ''
