@@ -1,11 +1,16 @@
 <launch>
+	
+	<!-- Include all launch files required to move the robot, i.e. state tracking and controls -->
+	
+	<arg name="sim" default="false" />
 
 	<!-- Start state tracking -->
-	<include file="$(find execute)/launch/state.launch" />
+	<include file="$(find execute)/launch/state.launch">
+		<arg name="sim" value="$(arg sim)" />
+	</include>
 
-	<!-- Start low level motion script -->
-	<include file="$(find controls)/launch/base_controls_listener.launch" />
-
-	<!-- Start desired state publishing script -->
-	<include file="$(find motion_planning)/launch/move_to_desired_state.launch" />
+	<!-- Start controls -->
+	<include file="$(find controls)/launch/controls.launch">
+		<arg name="sim" value="$(arg sim)" />
+	</include>
 </launch>

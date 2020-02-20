@@ -1,15 +1,15 @@
 # Controls
 
 
-These are the instructions to initialize and test our controls algorithm. We take input from various topics and move the robot based on desired global position or desired power. By default, we publish thruster allocations on a range [-128, 127] for the Arduino. We can also publish values on a range [-1, 1] for the simulation.
+These are the instructions to initialize and test our controls algorithm. We take input from various topics and move the robot based on desired global position or desired power. By default, we publish thruster power outputs (thruster allocations) on a range [-128, 127] for the Arduino. We can also publish values on a range [-1, 1] for the simulation.
 
-Thruster information is read from `cthulhu.config`, which is written in YAML and can be updated if thrusters are added or moved. The xyz positions are in meters, and the rpy (roll, pitch, yaw) rotations are in degrees. The ordering of the thruster power outputs is determined by the order in which they appear the config file.
+Thruster information is read from `*.config` files, which are written in YAML. The ordering of the thruster allocations is determined by the order in which the thrusters appear the config file.
 
-`controls.launch` takes in a `mode` argument to indicate whether we are in `robot` (default) or `sim`ulation mode
+`controls.launch` takes in a `sim` argument to indicate whether we are publishing for the simulation or the Arduino.
 
 Only the most recently updated Desired State Topic will be used in movement. Therefore any updates will override the current movement of the robot. Controls will warn you if more than one Desired State Topic is being published to at any given time to prevent such issues. If Controls stops receiving Desired State messages at a high enough rate (at the moment, 10 Hz), it will warn you and will output zero power for safety purposes.
 
-The controls algorithm will output all 0's unless it is enabled with a call to rosservice as detailed in the setup. This is intended to act as an emergency stop that cuts off all power to the thrusters if necessary.
+The controls algorithm will output all 0's unless it is enabled with a call to rosservice as detailed in the setup. Sending the disable call to the service acts as an emergency stop that cuts off all power to the thrusters.
 
 
 ## Setup
@@ -79,18 +79,12 @@ Desired State Topics:
 Current State Topics:
 
   - ```/state``` 
-    + The current state of the actual robot, in global position, orientation, linear velocity, and angular velocity
+    + The current state of the robot or simulated robot, in global position, orientation, linear velocity, and angular velocity
     + Type: nav_msgs/Odometry
-  - ```/sim/pose```
-    + Current position and orientation of the robot in simulation
-    + Type: geometry_msgs/PoseStamped
-  - ```/sim/dvl```
-    + Current linear and angular velocities of the robot in simulation
-    + Type: geometry_msgs/TwistStamped 
 
 ### Publishing
 
-We can choose to publish to either of these topics by changing the `mode` argument in the `controls.launch` file. It defaults to `robot`, but can also be `sim`.
+We can choose to publish to either of these topics by changing the `sim` argument in the `controls.launch` file. It defaults to `false` for the Arduino, but can also be `true` for the simulation.
 
   - ```/offboard/thruster_speeds```
     + An array of 8 8-bit integers [-128,127] describing the allocation of the thrusters sent to the Arduino
@@ -112,8 +106,8 @@ This package contains the following custom ROS nodes:
 
 This package has the following launch files:
 
-* `controls.launch` is the entrypoint to the package. It takes in a `mode` argument to indicate whether we are in `robot` (default) or `sim`ulation mode. It includes the `pid.launch` file to launch the PID for position loops. It then starts the three nodes above.
-* `pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for position control on x, y, z, roll, pitch, and yaw. It defines the PID parameters at the top, depending on the `mode` argument passed in.
+* `controls.launch` is the entrypoint to the package. It takes in a `sim` argument to indicate whether we are publishing for the simulation or the Arduino. It includes the `pid.launch` file to launch the PID for position loops. It then starts the three nodes above.
+* `pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for position control on x, y, z, roll, pitch, and yaw. It defines the PID parameters at the top, depending on the `sim` argument passed in.
 
 This package also defines a new custom message type, `ThrusterSpeeds`, which is the same type as in the package for controlling the Arduino.
 
@@ -139,18 +133,22 @@ This package also defines a new custom message type, `ThrusterSpeeds`, which is 
                   Arduino or Simulation
 ```
 
-### File-by-file description
+### Configuration
 
-#### Launch and message
+Our configuration files are written in YAML and terminate in `.config`. As of now, they only contain thruster information. Thrusters are named and given a type. A thruster's xyz position is measured in meters from the robot's center of mass, and measurements are done in robot frame. A thruster's rpy (roll, pitch, yaw) orientation is measured using extrinsic [Euler angles](https://en.wikipedia.org/wiki/Euler_angles) in degrees as an offset from robot frame. Thrusters can also be flipped. **This should be the only place in the entire codebase where flipping of thruster allocations occurs.**
 
-Described above.
+Robot frame is defined as the positive x-axis pointing in the "forward" direction of movement, z-axis pointing up, and y-axis follows the right hand rule.
 
-#### Scripts
+A thruster's starting orientation when aligned with robot frame is defined as the positive x-axis pointing in the "forward" direction of the thruster's movement, z-axis pointing up, and y-axis following the right hand rule. Note that a roll in the thruster orientation theoretically has no effect on its direction of thrust, as it just rotates about the axis of thrust. Sending a positive power to a thruster should make it move towards its "forward" or +x direction, or "backwards" or -x direction if it is flipped. The ordering of the thruster power outputs is determined by the order in which the thrusters appear the config file.
+
+`cthulhu.config` is the config file for Cthulhu, our RoboSub 2019 and RoboSub 2020 robot.
+
+
+### Scripts
 
 * `state_republisher.py` - listens to Current State Topics and republishes relevant components to their own `/controls/state/...` topics for use in all of the other parts of this controls package.
 * `desired_state.py` - listens to Desired State Topics, warning the user via the console if none or more than one are received, and outputting setpoints to PID loops if desiring position, or powers directly to `thruster_controls` for axes that are velocity/power-controlled.
-* `thruster_controls.py` - listens to control efforts from PID or `desired_state`, uses an instance of `ThrusterManager` to calculate thruster allocations from the them, scales outputs so that the maximum is 1 or -1 in any direction, and publishes to Arudino or simulation movement topics.
+* `thruster_controls.py` - listens to control efforts from PID or `desired_state`, uses an instance of `ThrusterManager` to calculate thruster allocations from the them, scales outputs so that the maximum is 1 or -1 in any direction, and publishes to Arduino or simulation movement topics.
 * `thruster_manager.py` - Defines the `ThrusterManager` class, which reads in config file, creates `Thruster` array from it, and has math for calculating thruster allocations.
 * `thruster.py` - Defines the `Thruster` class, which takes in a position and orientation of a thruster relative to the center of the robot, and then calculates and stores the force and torque it exerts on the robot.
 * `drc_math.py` - A library of mathematical functions for controls. (DRC stands for Duke Robotics Club.)
-* `cthulhu.config` - The config file for Cthulhu, our RoboSub 2019 and RoboSub 2020 sub. Thrusters are named, given a type, their xyz position is measured in meters from the center of the robot, and their rpy orientation is an offset from robot frame.
