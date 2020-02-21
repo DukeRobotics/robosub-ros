@@ -139,7 +139,7 @@ Our configuration files are written in YAML and terminate in `.config`. As of no
 
 Robot frame is defined as the positive x-axis pointing in the "forward" direction of movement, z-axis pointing up, and y-axis follows the right hand rule.
 
-A thruster's starting orientation when aligned with robot frame is defined as the positive x-axis pointing in the "forward" direction of the thruster's movement, z-axis pointing up, and y-axis following the right hand rule. Note that a roll in the thruster orientation theoretically has no effect on its direction of thrust, as it just rotates about the axis of thrust. Sending a positive power to a thruster should make it move towards its "forward" or +x direction, or "backwards" or -x direction if it is flipped. The ordering of the thruster power outputs is determined by the order in which the thrusters appear the config file.
+A thruster's starting orientation when aligned with robot frame is defined as the positive x-axis pointing in the "forward" direction of the thruster's movement, z-axis pointing up, and y-axis following the right hand rule. Note that a roll in the thruster orientation theoretically has no effect on its direction of thrust, as it just rotates about the axis of thrust. After accounting for flipping, sending a positive power to a thruster should make it move towards its "forward" or +x direction. The ordering of the thruster power outputs is determined by the order in which the thrusters appear the config file.
 
 `cthulhu.config` is the config file for Cthulhu, our RoboSub 2019 and RoboSub 2020 robot.
 
