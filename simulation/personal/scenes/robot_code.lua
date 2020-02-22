@@ -213,6 +213,9 @@ function read_ros_data(inInts, inFloats, inString, inBuffer)
     return ros_publishing(inInts, inFloats, inString, inBuffer)
 end
 
+function flipThrusters()
+    flipped = {true, true, false, true, true, false, true, false}
+end
 function setForces(vals)
     if (vals == nil) then
         return
