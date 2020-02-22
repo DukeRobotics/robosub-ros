@@ -10,3 +10,7 @@ class MasterSlaveTask:
     def _on_task_run(self):
         if(self.master.finished):
             self.slave.finish()
+            self.finish()
+
+        self.master.run()
+        self.slave.run()
