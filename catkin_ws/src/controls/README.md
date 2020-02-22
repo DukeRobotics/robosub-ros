@@ -55,7 +55,7 @@ Once the simulation is running, execute:
 
 ```
 rosrun controls test_state_publisher.py &
-roslaunch controls controls.launch mode:=sim
+roslaunch controls controls.launch sim:=true
 ```
 
 `test_state_publisher.py` is where we specify the desired state of the robot. Alternatively, you can publish to either of the desired state topics directly using your own code. The second command launches the entire controls node in simulation mode.

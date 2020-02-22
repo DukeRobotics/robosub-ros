@@ -26,9 +26,9 @@ class ThrusterController():
 
     def __init__(self):
         self.sim = rospy.get_param('~/thruster_controls/sim')
-        if self.sim == 'false':
+        if self.sim == False:
             self.pub = rospy.Publisher(self.ROBOT_PUB_TOPIC, ThrusterSpeeds, queue_size=3)
-        elif self.sim == 'true':
+        elif self.sim == True:
             self.pub = rospy.Publisher(self.SIM_PUB_TOPIC, Float32MultiArray, queue_size=3)
         else:
             # TODO: alert that unrecognized mode destination has been set
@@ -36,7 +36,7 @@ class ThrusterController():
 
         self.enable_service = rospy.Service('enable_controls', SetBool, self.handle_enable_controls)
 
-        self.tm = ThrusterManager(os.path.join(sys.path[0], 'cthulhu.config'))
+        self.tm = ThrusterManager(os.path.join(sys.path[0], '../config/cthulhu.config'))
 
         rospy.Subscriber(self.CONTROLS_MOVE_X_TOPIC, Float64, self._on_x)
         rospy.Subscriber(self.CONTROLS_MOVE_Y_TOPIC, Float64, self._on_y)
@@ -86,23 +86,25 @@ class ThrusterController():
         while not rospy.is_shutdown():
             if not self.enabled:
                 # If not enabled, publish all 0s.
-                if self.sim == 'false':
+                if self.sim == False:
                     i8_t_allocs = ThrusterSpeeds()
                     i8_t_allocs.speeds = np.zeros(8)
                     self.pub.publish(i8_t_allocs)
-                elif self.sim == 'true':
+                elif self.sim == True:
                     f32_t_allocs = Float32MultiArray()
                     f32_t_allocs.data = np.zeros(8)
                     self.pub.publish(f32_t_allocs)
+
             if self.enabled:
-                if self.sim == 'false':
+                if self.sim == False:
                     i8_t_allocs = ThrusterSpeeds()
                     i8_t_allocs.speeds = (self.t_allocs * 127).astype(int)
                     self.pub.publish(i8_t_allocs)
-                elif self.sim == 'true':
+                elif self.sim == True:
                     f32_t_allocs = Float32MultiArray()
                     f32_t_allocs.data = self.t_allocs
                     self.pub.publish(f32_t_allocs)
+
             rate.sleep()
 
 

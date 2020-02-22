@@ -18,7 +18,7 @@ class Thruster():
         self.flipped = flipped
         
         to_rad = lambda x: x * math.pi / 180  # convert degrees to radians
-        q = quaternion_from_euler(to_rad(rpy[0]), to_rad(rpy[1]), to_rad(rpy[2]), 'sxyz') # create a quaternion from euler rpy
+        q = quaternion_from_euler(to_rad(rpy[0]), to_rad(rpy[1]), to_rad(rpy[2])) # create a quaternion from euler rpy
         # sxyz denotes a static (extrinsic) frame of reference.
         # https://github.com/matthew-brett/transforms3d/blob/master/transforms3d/euler.py
         # https://en.wikipedia.org/wiki/Euler_angles
