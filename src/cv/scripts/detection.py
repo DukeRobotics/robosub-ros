@@ -8,8 +8,6 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from detecto.core import Model
 
-import torch  # TODO testing toggle_model
-
 
 class Detector:
 
@@ -25,13 +23,22 @@ class Detector:
             'weights': '../models/buoy.pth',
             'topic': '/cv/buoy',
             'predictor': None,  # Set dynamically based on what's running to save memory
-            'publisher': None,  # Release model if enabled set to false - save memory?
+            'publisher': None,
+        },
+        'test': {
+            'enabled': True,
+            'classes': ['test1', 'test2', 'test3', '_', '_', '_', '_'],
+            'weights': '../models/buoy.pth',
+            'topic': '/cv/buoy',
+            'predictor': None,
+            'publisher': None,
         },
     }
 
     # Load in models and other misc. setup work
     def __init__(self):
         self.bridge = CvBridge()
+        self.ready = True  # Ready to predict next frame
 
         # Initialize any enabled models
         for model_name in self.MODELS:
@@ -57,16 +64,22 @@ class Detector:
 
     # Camera subscriber callback; publishes predictions for each frame
     def detect(self, img_msg):
+        if not self.ready:
+            return
+
+        self.ready = False
         image = self.bridge.imgmsg_to_cv2(img_msg, 'rgb8')
 
         for model_name in self.MODELS:
             model = self.MODELS[model_name]
 
             # Generate predictions for each enabled model
-            if model['enabled']:
-                # preds = model['predictor'].predict_top(image)  # TODO testing toggle_model
-                preds = ([model_name], [torch.ones(4)], [0.5])   # TODO testing toggle_model
+            # Make sure model is enabled AND that the predictor is initialized
+            if model['enabled'] and model['predictor']:
+                preds = model['predictor'].predict_top(image)
                 self.publish_predictions(preds, model['publisher'])
+
+        self.ready = True
 
     # Publish predictions with the given publisher
     def publish_predictions(self, preds, publisher):
@@ -81,7 +94,9 @@ class Detector:
             object_msg.xmax = box[2].item()
             object_msg.ymax = box[3].item()
 
-            publisher.publish(object_msg)
+            # Safety check that publisher is not None
+            if publisher:
+                publisher.publish(object_msg)
 
     # Service for toggling specific models on and off
     def toggle_model(self, req):
@@ -91,6 +106,9 @@ class Detector:
 
             if model['enabled']:
                 self.init_model(req.model_name)
+            else:  # Delete model from memory
+                model['predictor'] = None
+                model['publisher'] = None
 
         return True
 

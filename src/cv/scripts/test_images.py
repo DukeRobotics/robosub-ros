@@ -33,15 +33,16 @@ class DummyImagePublisher:
         toggle_model = rospy.ServiceProxy('toggle_model', ToggleModel)
 
         loop_rate = rospy.Rate(2)
-        model_enabled = False
+        model_enabled = True
 
         count = 1
         while not rospy.is_shutdown():
             self.image_publisher.publish(self.image_msg)
 
             # Testing toggle_model
-            if count % 4 == 0:
+            if count % 60 == 0:
                 toggle_model('buoy', model_enabled)
+                # toggle_model('test', not model_enabled)
                 model_enabled = not model_enabled
 
             count += 1
