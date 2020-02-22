@@ -1,6 +1,6 @@
 from task import Task
 
-class MasterSlaveTask:
+class MasterSlaveTask(Task):
 
     def __init__(self, master, slave):
         super(MasterSlaveTask, self).__init__()
