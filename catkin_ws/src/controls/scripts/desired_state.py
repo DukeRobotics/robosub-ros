@@ -10,7 +10,7 @@ from drc_math import RpToTrans, Adjoint
 
 import time
 
-from geometry_msgs.msg import Pose, Twist
+from geometry_msgs.msg import Pose, Twist, Vector3
 # from nav_msgs.msg import Odometry
 
 class bcolors:
@@ -146,6 +146,18 @@ class DesiredStateHandler():
         self._pub_pitch_effort.publish(0)
         self._pub_yaw_effort.publish(0)
 
+    def twists_equal(self, t1, t2):
+        return (t1.linear.x == t2.linear.x and
+                t1.linear.y == t2.linear.y and
+                t1.linear.z == t2.linear.z and
+                t1.angular.x == t2.angular.x and
+                t1.angular.y == t2.angular.y and
+                t1.angular.z == t2.angular.z)
+
+    def copy_twist(self, t):
+        return Twist(Vector3(t.linear.x, t.linear.y, t.linear.z),
+                     Vector3(t.angular.x, t.angular.y, t.angular.z))
+
     def run(self):
         rospy.init_node('desired_state')
         rate = rospy.Rate(self.REFRESH_HZ)
@@ -202,7 +214,7 @@ class DesiredStateHandler():
                 self.pose = None
 
             elif self.powers:
-                if self.powers != self.last_powers:
+                if self.last_powers is None or not self.twists_equal(self.powers, self.last_powers):
                     # Enable all PID Loops
                     self._pub_x_pos_enable.publish(True)
                     self._pub_y_pos_enable.publish(True)
@@ -219,7 +231,7 @@ class DesiredStateHandler():
                     self.pitch_hold = self.pitch
                     self.yaw_hold = self.yaw
 
-                    self.last_powers = self.powers
+                    self.last_powers = self.copy_twist(self.powers)
 
                 # Nonzero entries bypass PID
 
