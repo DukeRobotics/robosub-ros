@@ -49,5 +49,4 @@ class ThrusterManager():
             if self.thrusters[i].flipped:
                 t_allocs[i] = -t_allocs[i]
 
-
         return t_allocs
