@@ -232,8 +232,8 @@ function setForces(vals)
     --[[]]
     forces[1]={1,1,0} --tfr
     forces[2]={1,-1,0} --tfl
-    forces[3]={1,-1,0} --tbr
-    forces[4]={1,1,0} --tbl
+    forces[3]={-1,1,0} --tbr
+    forces[4]={-1,-1,0} --tbl
     forces[5]={0,0,-1}
     forces[6]={0,0,-1} 
     forces[7]={0,0,-1}
