@@ -57,8 +57,8 @@ class ThrusterController():
         self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs)
 
         # Scale thruster alloc max to PID max
-        pid_max = np.maximum(np.absolute(self.pid_outputs))
-        t_alloc_max = np.maximum(np.absolute(self.t_allocs))
+        pid_max = np.max(np.absolute(self.pid_outputs))
+        t_alloc_max = np.max(np.absolute(self.t_allocs))
 
         # Multiply each thruster allocation by scaling ratio
         self.t_allocs *= pid_max / t_alloc_max
