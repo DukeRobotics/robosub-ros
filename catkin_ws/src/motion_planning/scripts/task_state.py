@@ -6,7 +6,7 @@ from geometry_msgs.msg import Pose, Twist
 class TaskState:
 
     STATE_TOPIC = 'state'
-    DESIRED_POSE_TOPIC = 'controls/desired_pose_global'
+    DESIRED_POSE_TOPIC = 'controls/desired_pose'
     DESIRED_TWIST_POWER_TOPIC = 'controls/desired_twist_power'
 
     def __init__(self):

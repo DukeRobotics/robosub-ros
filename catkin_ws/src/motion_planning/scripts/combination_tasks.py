@@ -13,8 +13,14 @@ class ListTask(Task):
 		if self.curr_index == len(self.tasks):
 			self.finish()
 
+		elif self.tasks[self.curr_index].finished:
+			self.curr_index += 1
+
 		else:
 			self.tasks[self.curr_index].run()
-                        self.curr_index++
+
+#		else:
+#			self.tasks[self.curr_index].run()
+#                       self.curr_index +=1
 
                 
