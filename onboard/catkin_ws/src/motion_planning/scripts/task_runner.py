@@ -6,7 +6,7 @@ from competition_task import CompetitionTask
 
 
 class TaskRunner:
-    RATE = 15  # Hz
+    RATE = 15 # Hz
 
     def __init__(self):
         rospy.init_node("task_planning")
