@@ -1,0 +1,3 @@
+<launch>
+	<node name="joy_pub" pkg="joystick" type="joystick.py" />
+</launch>
