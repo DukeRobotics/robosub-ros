@@ -21,7 +21,7 @@ class MoveToPoseGlobalTask(Task):
 
     def _on_task_run(self):
     	self.publish_desired_pose_global(self.desired_pose)
-        if(task_utils.at_pose(self.desired_pose, self.state.pose.pose)):
+        if task_utils.at_pose(self.desired_pose, self.state.pose.pose):
             self.finish()
 
 
@@ -35,7 +35,7 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
 
     def _on_task_run(self):
         self.publish_desired_pose_global(self.transformed_pose)
-        if(task_utils.at_pose(self.transformed_pose, self.state.pose.pose)):
+        if task_utils.at_pose(self.transformed_pose, self.state.pose.pose):
             self.finish()
 
 
@@ -52,8 +52,8 @@ class HoldPositionTask(Task):
         
 
     def _on_task_run(self):
-        #print(self.initial_state)
         self.publish_desired_pose_global(self.initial_state.pose.pose)
         if self.hold_time:
             if (rospy.get_rostime() - self.start_time) > self.hold_time:
                 self.finish()
+
