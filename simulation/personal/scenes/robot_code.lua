@@ -88,8 +88,8 @@ function extsysCall_init()
     
     -- -4, 1, 3 from vincent
     --these numbers calc'd for a 15 deg pitch, and arbitrary roll (it looks about right)
-    centerOfBuoy = {-.1749*a, -.15*a * 0, 2*a}
-    --centerOfBuoy = {0,0,a}
+    --centerOfBuoy = {-.1749*a, -.15*a * 0, 2*a}
+    centerOfBuoy = {0,0,2*a}
     centerOfMass = {.032,  0, .005} --currently unused
 
     startTime = sim.getSystemTimeInMs(-1)
