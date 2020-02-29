@@ -53,6 +53,7 @@ class ThrusterController():
         return {'success': True, 'message': 'Successfully set enabled to ' + str(req.data)}
 
     def update_thruster_allocs(self):
+        # Calculate thruster allocations
         self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs)
 
     def _on_x(self, x):
@@ -96,6 +97,14 @@ class ThrusterController():
                     self.pub.publish(f32_t_allocs)
 
             if self.enabled:
+                # Scale thruster alloc max to PID max
+                t_alloc_max = float(np.max(np.absolute(self.t_allocs)))
+                pid_max = float(np.max(np.absolute(self.pid_outputs)))
+
+                if(t_alloc_max != 0):
+                    # Multiply each thruster allocation by scaling ratio
+                    self.t_allocs *= pid_max / t_alloc_max
+
                 if self.sim == False:
                     i8_t_allocs = ThrusterSpeeds()
                     i8_t_allocs.speeds = (self.t_allocs * 127).astype(int)
