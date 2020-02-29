@@ -34,23 +34,22 @@ class Task:
 
     def _on_task_start_default(self):
         """Should be called when the task runs for the first time"""
-        self.start_time = rospy.get_rostime()
+        while not self.state:
+            pass
         self.initial_state = self.state
+
         self._on_task_start()
 
     def run(self):
         """Run the task. This should be called by the task planner, and
         will call _task_run, which is the task specific run method"""
-
         if self.finished:
             return
 
         if not self.started:
             self._on_task_start_default()
             self.started = True
-        
-        while not self.initial_state:
-            pass
+            
         self._on_task_run()
     
     @abstractmethod
