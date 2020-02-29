@@ -14,20 +14,15 @@ from geometry_msgs.msg import Twist
 class ParserMain(threading.Thread):
     NODE_NAME = 'joy_pub'
     JOY_DEST_TOPIC_LOCAL = 'controls/desired_twist_power'
-    JOY_DEST_TOPIC_GLOBAL = 'controls/desired_twist_global'
 
     def __init__(self):
 	self._pub_joy_local = rospy.Publisher(self.JOY_DEST_TOPIC_LOCAL, Twist, queue_size=50)
-       	self._pub_joy_global = rospy.Publisher(self.JOY_DEST_TOPIC_GLOBAL, Twist, queue_size=50)
        
        	self._current_joy_local_msg = Twist()
-       	self._current_joy_global_msg = Twist()
 	
 	self._movement_type = 0		# Where 0 defines the left joystick to translational movement (x, y)
 				        #   and 1 defines the left joystick to rotation (roll, pitch)
 		
-	self._global_state = 0		# Where 0 is local movement
-				        #   and 1 is global movement
 	
 	# Create bus object
 	self.bus = Bus()
@@ -54,20 +49,12 @@ class ParserMain(threading.Thread):
 	    
         while not rospy.is_shutdown():
             rospy.loginfo(self._leftLR)
-            #rospy.loginfo(self._global_state)
             self._initialize_joystick_data()       
 
-	    if (self._global_state == 0):
-		if (self._movement_type == 0): 
-                    self._parse_local_linear()
-	        else:
-                    self._parse_local_angular()
-			
-            if (self._global_state == 1):
-	        if (self._movement_type == 0): 
-                    self._parse_global_linear()
-	        else:
-		    self._parse_global_angular()
+	    if (self._movement_type == 0): 
+                self._parse_local_linear()
+	    else:
+                self._parse_local_angular()
 	    self._publish_current_msg()
 
     def _parse_local_linear(self):
@@ -88,24 +75,6 @@ class ParserMain(threading.Thread):
        	self._current_joy_local_msg.angular.y = self._leftUD				
 	self._current_joy_local_msg.angular.z = self._rightLR
 
-    def _parse_global_linear(self):
-        self._current_joy_global_msg.linear.x = self._leftLR
-        self._current_joy_global_msg.linear.y = self._leftUD
-	self._current_joy_global_msg.linear.z = self._rightUD
-
-	self._current_joy_global_msg.angular.x = 0			
-	self._current_joy_global_msg.angular.y = 0			
-	self._current_joy_global_msg.angular.z = self._rightLR
-
-    def _parse_global_angular(self):
-	self._current_joy_global_msg.linear.x = 0			
-	self._current_joy_global_msg.linear.y = 0
-	self._current_joy_global_msg.linear.z = self._rightUD
-
-        self._current_joy_global_msg.angular.x = self._leftLR
-	self._current_joy_global_msg.angular.y = self._leftUD				
-	self._current_joy_global_msg.angular.z = self._rightLR
-
     def _initialize_joystick_data(self):
 
         self._leftLR = (self.states['LJ/Left'] + self.states['LJ/Right']) / 128.0
@@ -118,19 +87,11 @@ class ParserMain(threading.Thread):
 
         if (self.states['Y'] == 1):
     	    self._movement_type = 1		
-    		
-        if (self.states['A'] == 1):
-    	    self._global_state = 0
-    		
-        if (self.states['B'] == 1):
-            self._global_state = 1
 
 
     def _publish_current_msg(self):
         self._pub_joy_local.publish(self._current_joy_local_msg)
         self._current_joy_local_msg = Twist()
-        self._pub_joy_global.publish(self._current_joy_global_msg)
-	self._current_joy_global_msg = Twist()
 				
 if __name__ == '__main__':
     try:
