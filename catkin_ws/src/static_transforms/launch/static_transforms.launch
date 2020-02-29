@@ -1,6 +1,6 @@
 <launch>
-	<node pkg="tf2_ros" type="static_transform_publisher" name="corner_link_publisher" args="0.0762 0.1077 0.1575 0 0 0 base_link corner_link" />
-	<node pkg="tf2_ros" type="static_transform_publisher" name="dvl_link_publisher" args="-0.1872 -0.1077 -0.3820 0 0 0 corner_link dvl_link" />
+	<node pkg="tf2_ros" type="static_transform_publisher" name="corner_link_publisher" args="0.1080 0.1014 0.1575 0 0 0 base_link corner_link" />
+	<node pkg="tf2_ros" type="static_transform_publisher" name="dvl_link_publisher" args="-0.3118 -0.1014 -0.3894 0 0 0 corner_link dvl_link" />
 	<node pkg="tf2_ros" type="static_transform_publisher" name="cameras_link_publisher" args="0.6 0.2 0.3 0 0 0 corner_link cameras_link" />
-	<node pkg="tf2_ros" type="static_transform_publisher" name="imu_link_publisher" args="-0.0572 -0.1077 -0.1280 0 0 0 corner_link imu_link" />
+	<node pkg="tf2_ros" type="static_transform_publisher" name="imu_link_publisher" args="-0.0450 -0.1013 -0.1282 0 0 0 corner_link imu_link" />
 </launch>
