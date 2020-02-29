@@ -8,7 +8,7 @@ class LogTask(Task):
         self.level = level
         self.message = message
 
-    def _on_task_run():
+    def _on_task_run(self):
         if(self.level == "DEBUG"):
             rospy.logdebug(self.message)
 
