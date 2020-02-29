@@ -26,8 +26,8 @@ function ros_publishing(inInts, inFloats, inString, inBuffer)
     linvel = sim.multiplyVector(trans, linvel)
 
     outDvl = {'/sim/dvl', 'geometry_msgs/TwistStamped', 'header', 
-    	"twist.linear.x", "twist.linear.y, twist.linear.z", 
-		"twist.angular.x", "twist.angular.y, twist.angular.z"}
+    	"twist.linear.x", "twist.linear.y", "twist.linear.z", 
+		"twist.angular.x", "twist.angular.y", "twist.angular.z"}
 
 	outDvlData = {-1, -1, HEAD_FLAG}
 	outDvlData = tableConcat(outDvlData, linvel)

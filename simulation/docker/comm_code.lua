@@ -34,24 +34,45 @@ function mysplit (inputstr, sep)
     return t
 end
 
-function get_ros_data(inInts, inFloats, inString, inBuffer)
-	if #inString >= 2 then
-		i = 1
+function dump(o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. dump(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
+
+function get_ros_data(inInts, inFloats, inStrings, inBuffer)
+	if #inStrings >= 2 then
 		head = {}
 	    head["seq"] = seq
 	    seq = seq + 1
 	    head["stamp"] = simROS.getTime()
 	    head["frame_id"] = "global"
-		while i <= #inString do
-			if string.sub(inString[i],1,1)== '/' then
-				if rospubs == {} then
-					rospubs[#rospubs+1] = simROS.advertise(inStrings[i], inStrings[i+1])
-		    		simROS.publisherTreatUInt8ArrayAsString(rospubs[#rospubs])
+	    i = 1
+	    lastpub = nil
+		while i <= #inStrings do
+			if string.sub(inStrings[i],1,1)== '/' then
+				if lastpub ~= nil then
+					print(dump(pub))
+					simROS.publish(lastpub, pub)
+				end
+				if rospubs[inStrings[i]] == nil then
+					rospubs[inStrings[i]] = simROS.advertise(inStrings[i], inStrings[i+1])
+		    		simROS.publisherTreatUInt8ArrayAsString(rospubs[inStrings[i]])
 		    	end
+		    	lastpub = rospubs[inStrings[i]]
+		    	pub = {}
 	    		i = i + 2
 			end
-			temp = rospubs[#rospubs]
-			splitstr = mysplit(inString[i], '.')
+			--temp = rospubs[inStrings[i-2]]
+			temp = pub
+			splitstr = mysplit(inStrings[i], '.')
 			for k = 1,#splitstr do
 				path = splitstr[k]
 				if temp[path] == nil then
@@ -67,6 +88,10 @@ function get_ros_data(inInts, inFloats, inString, inBuffer)
 				temp[lastpath] = head
 			end
 			i = i + 1
+		end
+		if (lastpub ~= nil) then
+			print(dump(pub))
+			simROS.publish(lastpub, pub)
 		end
 	end
 	if last == nil then
