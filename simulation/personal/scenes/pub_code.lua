@@ -6,8 +6,8 @@ function tableConcat(t1,t2)
 end
 
 function ros_publishing(inInts, inFloats, inString, inBuffer)
-	print("made it")
 	HEAD_FLAG = -525600
+	ARRAY_FLAG = -8675309
 	linvel, angvel = sim.getObjectVelocity(hr)
     quat = sim.getObjectQuaternion(hr, -1)
     pos = sim.getObjectPosition(hr, -1)
@@ -41,8 +41,13 @@ function ros_publishing(inInts, inFloats, inString, inBuffer)
     outPoseData = tableConcat(outPoseData, pos)
     outPoseData = tableConcat(outPoseData, quat)
 
+    outArray = {'/sim/test_array', 'std_msgs/Float32MultiArray', 'data:14,13,151,12'}
+    outArrayData = {-1,-1,ARRAY_FLAG}
+
     outFloats = tableConcat(outDvlData, outPoseData)
+    outFloats = tableConcat(outFloats, outArrayData)
     outStrings = tableConcat(outDvl, outPose)
+    outStrings = tableConcat(outStrings, outArray)
 
     return {}, outFloats, outStrings, ""
 end

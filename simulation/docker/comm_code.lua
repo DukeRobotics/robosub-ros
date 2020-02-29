@@ -9,6 +9,7 @@ function extsysCall_init()
     simROS.subscriberTreatUInt8ArrayAsString(moveSub)
 
     HEAD_FLAG = -525600
+    ARRAY_FLAG = -8675309
     rospubs = {}
     last = nil
     seq = 0;    
@@ -72,7 +73,13 @@ function get_ros_data(inInts, inFloats, inStrings, inBuffer)
 			end
 			--temp = rospubs[inStrings[i-2]]
 			temp = pub
-			splitstr = mysplit(inStrings[i], '.')
+			tobesplit = inStrings[i]
+			if inFloats[i] == ARRAY_FLAG then
+				tobesplit = mysplit(tobesplit, ':')
+				arrayString = tobesplit[2]
+				tobesplit = tobesplit[1]
+			end
+			splitstr = mysplit(tobesplit, '.')
 			for k = 1,#splitstr do
 				path = splitstr[k]
 				if temp[path] == nil then
@@ -87,6 +94,10 @@ function get_ros_data(inInts, inFloats, inStrings, inBuffer)
 			if temp[lastpath] == HEAD_FLAG then
 				temp[lastpath] = head
 			end
+			if temp[lastpath] == ARRAY_FLAG then
+				print(dump(arrayFromString(arrayString)))
+				temp[lastpath] = arrayFromString(arrayString)
+			end
 			i = i + 1
 		end
 		if (lastpub ~= nil) then
@@ -98,6 +109,15 @@ function get_ros_data(inInts, inFloats, inStrings, inBuffer)
         return {}, {0,0,0,0,0,0,0,0}, {}, ''
     end
     return {}, last, {}, ''
+end
+
+function arrayFromString( arrStr )
+	ret = {}
+	nums = mysplit(arrStr, ',')
+	for i = 1,#nums do
+		ret[i] = tonumber(nums[i])
+	end
+	return ret
 end
 
 
