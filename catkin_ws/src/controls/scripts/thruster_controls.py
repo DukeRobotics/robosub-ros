@@ -25,10 +25,10 @@ class ThrusterController():
     enabled = False
 
     def __init__(self):
-        self.mode = rospy.get_param('~/thruster_controls/mode')  # robot or sim, default to robot
-        if self.mode == 'robot':
+        self.sim = rospy.get_param('~/thruster_controls/sim')
+        if self.sim == False:
             self.pub = rospy.Publisher(self.ROBOT_PUB_TOPIC, ThrusterSpeeds, queue_size=3)
-        elif self.mode == 'sim':
+        elif self.sim == True:
             self.pub = rospy.Publisher(self.SIM_PUB_TOPIC, Float32MultiArray, queue_size=3)
         else:
             # TODO: alert that unrecognized mode destination has been set
@@ -36,7 +36,7 @@ class ThrusterController():
 
         self.enable_service = rospy.Service('enable_controls', SetBool, self.handle_enable_controls)
 
-        self.tm = ThrusterManager(os.path.join(sys.path[0], 'cthulhu.config'))
+        self.tm = ThrusterManager(os.path.join(sys.path[0], '../config/cthulhu.config'))
 
         rospy.Subscriber(self.CONTROLS_MOVE_X_TOPIC, Float64, self._on_x)
         rospy.Subscriber(self.CONTROLS_MOVE_Y_TOPIC, Float64, self._on_y)
@@ -50,10 +50,10 @@ class ThrusterController():
 
     def handle_enable_controls(self, req):
         self.enabled = req.data
-        return {'success':True,'message':'Successfully set enabled to '+str(req.data)}
+        return {'success': True, 'message': 'Successfully set enabled to ' + str(req.data)}
 
     def update_thruster_allocs(self):
-        self.t_allocs = self.tm.calc_thruster_allocs(self.pid_outputs)
+        self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs)
 
     def _on_x(self, x):
         self.pid_outputs[0] = x.data
@@ -84,28 +84,27 @@ class ThrusterController():
         rate = rospy.Rate(10)  # 10 Hz
 
         while not rospy.is_shutdown():
-            #rospy.loginfo(f32_t_allocs)
             if not self.enabled:
                 # If not enabled, publish all 0s.
-                if self.mode == 'robot':
+                if self.sim == False:
                     i8_t_allocs = ThrusterSpeeds()
                     i8_t_allocs.speeds = np.zeros(8)
                     self.pub.publish(i8_t_allocs)
-                elif self.mode == 'sim':
-                    #self.t_allocs[4:8] = 0
+                elif self.sim == True:
                     f32_t_allocs = Float32MultiArray()
                     f32_t_allocs.data = np.zeros(8)
                     self.pub.publish(f32_t_allocs)
+
             if self.enabled:
-                if self.mode == 'robot':
+                if self.sim == False:
                     i8_t_allocs = ThrusterSpeeds()
                     i8_t_allocs.speeds = (self.t_allocs * 127).astype(int)
                     self.pub.publish(i8_t_allocs)
-                elif self.mode == 'sim':
-                    #self.t_allocs[4:8] = 0
+                elif self.sim == True:
                     f32_t_allocs = Float32MultiArray()
                     f32_t_allocs.data = self.t_allocs
                     self.pub.publish(f32_t_allocs)
+
             rate.sleep()
 
 

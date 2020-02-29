@@ -70,7 +70,7 @@ function extsysCall_init()
     --]]
     thrusterPoints={top_front_right,top_front_left,top_back_right,top_back_left,
                     bottom_front_right,bottom_front_left,bottom_back_right,bottom_back_left}
-    numThrusters=8
+    numThrusters=table.getn(thrusterPoints)
     forces={}
     
     --from buoyancytest
@@ -213,6 +213,17 @@ function read_ros_data(inInts, inFloats, inString, inBuffer)
     return ros_publishing(inInts, inFloats, inString, inBuffer)
 end
 
+function flipThrusters(forces)
+    flipped = {true, true, false, true, true, false, true, false}
+    for count = 1, numThrusters do
+        if flipped[count] then
+            for num = 1, 3 do
+                forces[count][num] = -1 * forces[count][num]
+            end
+        end
+    end
+end
+
 function setForces(vals)
     if (vals == nil) then
         return
@@ -221,12 +232,13 @@ function setForces(vals)
     --[[]]
     forces[1]={1,1,0} --tfr
     forces[2]={1,-1,0} --tfl
-    forces[3]={1,-1,0} --tbr
-    forces[4]={1,1,0} --tbl
-    forces[5]={0,0,1}
-    forces[6]={0,0,1} 
-    forces[7]={0,0,1}
-    forces[8]={0,0,1}
+    forces[3]={-1,1,0} --tbr
+    forces[4]={-1,-1,0} --tbl
+    forces[5]={0,0,-1}
+    forces[6]={0,0,-1} 
+    forces[7]={0,0,-1}
+    forces[8]={0,0,-1}
+    flipThrusters(forces)
     --]]
     --[[--Original Values
     forces[1]={-1,1,0} --tfr
