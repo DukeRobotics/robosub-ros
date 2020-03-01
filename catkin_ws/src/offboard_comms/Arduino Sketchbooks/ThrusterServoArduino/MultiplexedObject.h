@@ -16,8 +16,8 @@ public:
     void attach(int);
     void detach(int);
     void writeMicroseconds(int secs);
-    virtual void initialise();
-    virtual void run(int);
+    virtual void initialise() = 0;
+    virtual void run(int) = 0;
 };
 
 #endif
