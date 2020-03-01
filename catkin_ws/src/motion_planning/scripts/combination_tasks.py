@@ -30,9 +30,9 @@ class SimulTask(Task):
 	def _on_task_run(self):
 		self.all_finished = True
 		for task in self.tasks:
+			task.run()
 			if not task.finished:
 				self.all_finished = False
-				task.run()
 
 		if self.all_finished:
 			self.finish()
