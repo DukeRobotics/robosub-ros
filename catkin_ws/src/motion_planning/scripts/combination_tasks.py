@@ -28,10 +28,25 @@ class SimulTask(Task):
 		self.tasks = tasks
 
 	def _on_task_run(self):
-		bool all_finished = True
-		for task in tasks:
+		all_finished = True
+		for task in self.tasks:
 			if not task.finished:
 				all_finished = False
 				task.run()
 		if all_finished:
 			self.finish()
+
+class MasterSlaveTask(Task):
+
+    def __init__(self, master, slave):
+        super(MasterSlaveTask, self).__init__()
+        self.master = master
+        self.slave = slave
+
+    def _on_task_run(self):
+        if(self.master.finished):
+            self.slave.finish()
+            self.finish()
+
+        self.master.run()
+        self.slave.run()
