@@ -34,8 +34,8 @@ class Task:
 
     def _on_task_start_default(self):
         """Should be called when the task runs for the first time"""
-        while not self.state:
-            pass
+        #while not self.state:
+        #    pass
         self.initial_state = self.state
 
         self._on_task_start()
@@ -43,13 +43,13 @@ class Task:
     def run(self):
         """Run the task. This should be called by the task planner, and
         will call _task_run, which is the task specific run method"""
-        if self.finished:
+        if self.finished or not self.state:
             return
 
         if not self.started:
             self._on_task_start_default()
             self.started = True
-            
+
         self._on_task_run()
     
     @abstractmethod
