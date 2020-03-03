@@ -18,12 +18,11 @@ class PreQualGlobalTask(Task):
     def __init__(self, *args, **kwargs):
         super(PreQualGlobalTask, self).__init__(*args, **kwargs)
 
-        self.x1, self.y1, self.z1, self.
-        self.list_task = ListTask([ MoveToPoseGlobalTask(*POSE1), 
-                                    MoveToPoseGlobalTask(*POSE2),
-                                    MoveToPoseGlobalTask(*POSE3),
-                                    MoveToPoseGlobalTask(*POSE4),
-                                    MoveToPoseGlobalTask(*POSE5) ])
+        self.list_task = ListTask([ MoveToPoseGlobalTask(*self.POSE1), 
+                                    MoveToPoseGlobalTask(*self.POSE2),
+                                    MoveToPoseGlobalTask(*self.POSE3),
+                                    MoveToPoseGlobalTask(*self.POSE4),
+                                    MoveToPoseGlobalTask(*self.POSE5) ])
 
     def _on_task_run(self):
         self.list_task.run()
@@ -46,12 +45,11 @@ class PreQualLocalTask(Task):
     def __init__(self, *args, **kwargs):
         super(PreQualLocalTask, self).__init__(*args, **kwargs)
 
-        self.x1, self.y1, self.z1, self.
-        self.list_task = ListTask([ MoveToPoseGlobalTask(*POSE1), 
-                                    MoveToPoseGlobalTask(*POSE2),
-                                    MoveToPoseGlobalTask(*POSE3),
-                                    MoveToPoseGlobalTask(*POSE4),
-                                    MoveToPoseGlobalTask(*POSE5) ])
+        self.list_task = ListTask([ MoveToPoseLocalTask(*POSE1), 
+                                    MoveToPoseLocalTask(*POSE2),
+                                    MoveToPoseLocalTask(*POSE3),
+                                    MoveToPoseLocalTask(*POSE4),
+                                    MoveToPoseLocalTask(*POSE5) ])
 
     def _on_task_run(self):
         self.list_task.run()
