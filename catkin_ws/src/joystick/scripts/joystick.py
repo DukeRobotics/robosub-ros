@@ -36,8 +36,8 @@ class ParserMain(threading.Thread):
 	self._publish_current_msg()
 
     def _parse_local_linear(self):
-	self._current_joy_local_msg.linear.x = self._leftLR
-	self._current_joy_local_msg.linear.y = self._leftUD
+	self._current_joy_local_msg.linear.x = self._leftUD
+	self._current_joy_local_msg.linear.y = self._leftLR
 	self._current_joy_local_msg.linear.z = self._rightUD
 
 	self._current_joy_local_msg.angular.x = 0			
@@ -49,8 +49,8 @@ class ParserMain(threading.Thread):
 	self._current_joy_local_msg.linear.y = 0
 	self._current_joy_local_msg.linear.z = self._rightUD
 
-	self._current_joy_local_msg.angular.x = self._leftLR
-       	self._current_joy_local_msg.angular.y = self._leftUD				
+	self._current_joy_local_msg.angular.x = -self._leftLR
+       	self._current_joy_local_msg.angular.y = -self._leftUD				
 	self._current_joy_local_msg.angular.z = self._rightLR
 
     def _initialize_joystick_data(self, raw_joystick_data):
@@ -69,7 +69,6 @@ class ParserMain(threading.Thread):
 
     def _publish_current_msg(self):
         self._pub_joy_local.publish(self._current_joy_local_msg)
-        self._current_joy_local_msg = Twist()
 				
 if __name__ == '__main__':
     try:
