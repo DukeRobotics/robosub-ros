@@ -50,7 +50,7 @@ class ParserMain(threading.Thread):
 	self._current_joy_local_msg.linear.z = self._rightUD
 
 	self._current_joy_local_msg.angular.x = -self._leftLR
-       	self._current_joy_local_msg.angular.y = -self._leftUD				
+       	self._current_joy_local_msg.angular.y = self._leftUD				
 	self._current_joy_local_msg.angular.z = self._rightLR
 
     def _initialize_joystick_data(self, raw_joystick_data):
