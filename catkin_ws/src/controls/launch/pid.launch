@@ -7,8 +7,8 @@
     <arg name="min_loop_freq" value="100" />
 
     <!-- ROBOT PID Constants -->
-    <group if="$(eval arg('sim') == 'false')">
-        <group ns="controls/x_pos/controller">
+    <group unless="$(arg sim)">
+	<group ns="controls/x_pos/controller">
             <param name="Kp" value="1" />
             <param name="Ki" value="0.001" />
             <param name="Kd" value="0.001" />
@@ -24,24 +24,24 @@
             <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/roll_pos/controller">
-            <param name="Kp" value="0.1" />
+            <param name="Kp" value="0.01" />
             <param name="Ki" value="0.001" />
             <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/pitch_pos/controller">
-            <param name="Kp" value="0.1" />
+            <param name="Kp" value="0.01" />
             <param name="Ki" value="0.001" />
             <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/yaw_pos/controller">
-            <param name="Kp" value="0.1" />
+            <param name="Kp" value="1" />
             <param name="Ki" value="0.001" />
             <param name="Kd" value="0.001" />
         </group>
     </group>
 
     <!-- SIMULATION PID Constants -->
-    <group if="$(eval arg('sim') == 'true')">
+    <group if="$(arg sim)">
         <group ns="controls/x_pos/controller">
             <param name="Kp" value="5" />
             <param name="Ki" value="0" />

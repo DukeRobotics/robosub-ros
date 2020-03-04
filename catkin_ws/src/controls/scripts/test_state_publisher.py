@@ -11,6 +11,7 @@ class TestStatePublisher():
     PUBLISHING_TOPIC_CURRENT_STATE = '/state'
 
     def __init__(self):
+        rospy.init_node('test_state_publisher')
 
         self._pub_desired_pose = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_POSE, Pose, queue_size=3)
         self._pub_desired_powers = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_POWERS, Twist, queue_size=3)
@@ -18,8 +19,8 @@ class TestStatePublisher():
 
         #These values correspond to the desired pose of the robot
         self.desired_pose = Pose()
-        self.desired_pose.position.x = 2
-        self.desired_pose.position.y = 2
+        self.desired_pose.position.x = 0
+        self.desired_pose.position.y = 0
         self.desired_pose.position.z = 0
         self.desired_pose.orientation.x = 0
         self.desired_pose.orientation.y = 0
@@ -29,7 +30,7 @@ class TestStatePublisher():
         #These values correspond to the desired powers for the robot
         self.desired_powers = Twist()
         self.desired_powers.linear.x = 0
-        self.desired_powers.linear.y = 0 
+        self.desired_powers.linear.y = 0.5
         self.desired_powers.linear.z = 0
         self.desired_powers.angular.x = 0
         self.desired_powers.angular.y = 0
@@ -41,8 +42,8 @@ class TestStatePublisher():
         self.current_state.pose.pose.position.z = 0
         self.current_state.pose.pose.orientation.x = 0
         self.current_state.pose.pose.orientation.y = 0
-        self.current_state.pose.pose.orientation.z = 0
-        self.current_state.pose.pose.orientation.w = 1
+        self.current_state.pose.pose.orientation.z = -0.7070727
+        self.current_state.pose.pose.orientation.w = 0.7071408
 
         self.current_state.twist.twist.linear.x = 0
         self.current_state.twist.twist.linear.y = 0
@@ -50,9 +51,12 @@ class TestStatePublisher():
         self.current_state.twist.twist.angular.x = 0
         self.current_state.twist.twist.angular.y = 0
         self.current_state.twist.twist.angular.z = 0
+        
+        #self.current_state.header.frame_id = 'odom'
+        #self.current_state.header.stamp = rospy.Time()
 
     def publish_desired_pose(self):
-        rospy.init_node('test_state_publisher')
+        
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             self._pub_desired_pose.publish(self.desired_pose)
@@ -60,7 +64,7 @@ class TestStatePublisher():
             rate.sleep()
 
     def publish_desired_powers(self):
-        rospy.init_node('test_state_publisher')
+        
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             self._pub_desired_powers.publish(self.desired_powers)
@@ -69,8 +73,8 @@ class TestStatePublisher():
 
 
 def main():
-    TestStatePublisher().publish_desired_pose()
-    #TestStatePublisher().publish_desired_powers()
+    #TestStatePublisher().publish_desired_pose()
+    TestStatePublisher().publish_desired_powers()
 
 if __name__ == '__main__':
     main()

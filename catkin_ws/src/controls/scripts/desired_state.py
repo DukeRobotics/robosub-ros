@@ -53,6 +53,13 @@ class DesiredStateHandler():
     PUBLISHING_TOPIC_PITCH_EFFORT = '/control_effort/pitch'
     PUBLISHING_TOPIC_YAW_EFFORT = '/control_effort/yaw'
 
+    PUBLISHING_TOPIC_POWER_X = '/controls/power/x'
+    PUBLISHING_TOPIC_POWER_Y = '/controls/power/y'
+    PUBLISHING_TOPIC_POWER_Z = '/controls/power/z'
+    PUBLISHING_TOPIC_POWER_ROLL = '/controls/power/roll'
+    PUBLISHING_TOPIC_POWER_PITCH = '/controls/power/pitch'
+    PUBLISHING_TOPIC_POWER_YAW = '/controls/power/yaw'
+
     REFRESH_HZ = 10  # for main loop
 
     x_hold = 0
@@ -96,12 +103,12 @@ class DesiredStateHandler():
         self._pub_pitch_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_PITCH_POS, Bool, queue_size=3)
         self._pub_yaw_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_YAW_POS, Bool, queue_size=3)
 
-        self._pub_x_effort = rospy.Publisher(self.PUBLISHING_TOPIC_X_EFFORT, Float64, queue_size=3)
-        self._pub_y_effort = rospy.Publisher(self.PUBLISHING_TOPIC_Y_EFFORT, Float64, queue_size=3)
-        self._pub_z_effort = rospy.Publisher(self.PUBLISHING_TOPIC_Z_EFFORT, Float64, queue_size=3)
-        self._pub_roll_effort = rospy.Publisher(self.PUBLISHING_TOPIC_ROLL_EFFORT, Float64, queue_size=3)
-        self._pub_pitch_effort= rospy.Publisher(self.PUBLISHING_TOPIC_PITCH_EFFORT, Float64, queue_size=3)
-        self._pub_yaw_effort = rospy.Publisher(self.PUBLISHING_TOPIC_YAW_EFFORT, Float64, queue_size=3)
+        self._pub_x_power = rospy.Publisher(self.PUBLISHING_TOPIC_POWER_X, Float64, queue_size=3)
+        self._pub_y_power = rospy.Publisher(self.PUBLISHING_TOPIC_POWER_Y, Float64, queue_size=3)
+        self._pub_z_power = rospy.Publisher(self.PUBLISHING_TOPIC_POWER_Z, Float64, queue_size=3)
+        self._pub_roll_power = rospy.Publisher(self.PUBLISHING_TOPIC_POWER_ROLL, Float64, queue_size=3)
+        self._pub_pitch_power= rospy.Publisher(self.PUBLISHING_TOPIC_POWER_PITCH, Float64, queue_size=3)
+        self._pub_yaw_power = rospy.Publisher(self.PUBLISHING_TOPIC_POWER_YAW, Float64, queue_size=3)
 
         rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self.receive_pose)
         rospy.Subscriber(self.DESIRED_TWIST_POWER, Twist, self.receive_powers)
@@ -139,12 +146,12 @@ class DesiredStateHandler():
         self._pub_pitch_pos_enable.publish(False)
         self._pub_yaw_pos_enable.publish(False)
 
-        self._pub_x_effort.publish(0)
-        self._pub_y_effort.publish(0)
-        self._pub_z_effort.publish(0)
-        self._pub_roll_effort.publish(0)
-        self._pub_pitch_effort.publish(0)
-        self._pub_yaw_effort.publish(0)
+        self._pub_x_power.publish(0)
+        self._pub_y_power.publish(0)
+        self._pub_z_power.publish(0)
+        self._pub_roll_power.publish(0)
+        self._pub_pitch_power.publish(0)
+        self._pub_yaw_power.publish(0)
 
     def twists_equal(self, t1, t2):
         return (t1.linear.x == t2.linear.x and
@@ -236,24 +243,33 @@ class DesiredStateHandler():
                 # Nonzero entries bypass PID
 
                 # If any nonzero xyz power, publish those powers directly
+
                 if self.powers.linear.x != 0 or self.powers.linear.y != 0:
                     self._pub_x_pos_enable.publish(False)
-                    self._pub_x_effort.publish(self.powers.linear.x)
+                    #self._pub_x_power.publish(self.powers.linear.x)
                     self._pub_y_pos_enable.publish(False)
-                    self._pub_y_effort.publish(self.powers.linear.y)
+                    #self._pub_y_power.publish(self.powers.linear.y)
 
                 # If any nonzero rpy power, publish those powers directly
                 elif self.powers.angular.x != 0 or self.powers.angular.y != 0 or self.powers.angular.z != 0:
                     self._pub_roll_pos_enable.publish(False)
-                    self._pub_roll_effort.publish(self.powers.angular.x)
+                    #self._pub_roll_power.publish(self.powers.angular.x)
                     self._pub_pitch_pos_enable.publish(False)
-                    self._pub_pitch_effort.publish(self.powers.angular.y)
+                    #self._pub_pitch_power.publish(self.powers.angular.y)
                     self._pub_yaw_pos_enable.publish(False)
-                    self._pub_yaw_effort.publish(self.powers.angular.z)
+                    #self._pub_yaw_power.publish(self.powers.angular.z)
 
                 if self.powers.linear.z !=0:
                     self._pub_z_pos_enable.publish(False)
-                    self._pub_z_effort.publish(self.powers.linear.z)
+                    #self._pub_z_power.publish(self.powers.linear.z)
+
+                self._pub_x_power.publish(self.powers.linear.x)
+                self._pub_y_power.publish(self.powers.linear.y)
+                self._pub_z_power.publish(self.powers.linear.z)
+                self._pub_roll_power.publish(self.powers.angular.x)
+                self._pub_pitch_power.publish(self.powers.angular.y)
+                self._pub_yaw_power.publish(self.powers.angular.z)
+
 
                 #TODO: BOTH cases
 

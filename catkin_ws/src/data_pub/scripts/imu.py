@@ -51,10 +51,20 @@ class IMURawPublisher:
 		return line.split(self.LINE_DELIM)
 
 	def _parse_orient(self, items):
-		self._current_imu_msg.orientation.x = float(items[1])
-		self._current_imu_msg.orientation.y = float(items[2])
-		self._current_imu_msg.orientation.z = float(items[3])
-		self._current_imu_msg.orientation.w = float(items[4])
+		r, p, y = euler_from_quaternion([float(items[1]),float(items[2]),float(items[3]),float(items[4])])
+ 		p = -p
+ 		y = -y
+ 		updated_quat = quaternion_from_euler(r, p, y)
+
+ 		#self._current_imu_msg.orientation.x = float(updated_quat[0])
+ 		#self._current_imu_msg.orientation.y = float(updated_quat[1])
+ 		#self._current_imu_msg.orientation.z = float(updated_quat[2])
+ 		#self._current_imu_msg.orientation.w = float(updated_quat[3])
+
+ 		self._current_imu_msg.orientation.x = updated_quat[0]
+ 		self._current_imu_msg.orientation.y = updated_quat[1]
+ 		self._current_imu_msg.orientation.z = updated_quat[2]
+ 		self._current_imu_msg.orientation.w = updated_quat[3]
 		#self._current_imu_msg.orientation_covariance[0] = -1
 
 	def _parse_accel(self, items):
