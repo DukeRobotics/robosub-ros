@@ -19,7 +19,7 @@ def quad_vec_mult(q1, v1):
 ##### Following functions from https://github.com/NxRLab/ModernRobotics/ #####
 
 def VecToso3(omg):
-    """Converts a 3-vector to an so (3) representation
+    """Converts a 3-vector to an so(3) representation
     :param omg: A 3-vector
     :return: The skew symmetric representation of omg
     Example Input:
