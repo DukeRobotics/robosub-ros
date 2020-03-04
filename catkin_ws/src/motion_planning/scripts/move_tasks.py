@@ -1,5 +1,5 @@
 from task import Task
-from geometry_msgs.msg import Pose, Quaternion
+from geometry_msgs.msg import Pose, Quaternion, Twist, Vector3
 from tf.transformations import quaternion_from_euler
 import tf
 import task_utils
@@ -16,12 +16,12 @@ class MoveToPoseGlobalTask(Task):
     	self.desired_pose.position.y = y
     	self.desired_pose.position.z = z
     	self.desired_pose.orientation = Quaternion(*quaternion_from_euler(roll, pitch, yaw))
-
+        self.desired_twist = Twist(0, 0, 0, 0, 0, 0)
         
 
     def _on_task_run(self):
     	self.publish_desired_pose_global(self.desired_pose)
-        if task_utils.at_pose(self.desired_pose, self.state.pose.pose):
+        if task_utils.at_pose(self.state.pose.pose, self.desired_pose) and task_utils.at_vel(self.state.twist.twist, self.desired_twist):
             self.finish()
 
 
@@ -38,7 +38,7 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
 
     def _on_task_run(self):
         self.publish_desired_pose_global(self.transformed_pose)
-        if task_utils.at_pose(self.transformed_pose, self.state.pose.pose):
+        if task_utils.at_pose(self.state.pose.pose, self.transformed_pose) and task_utils.at_vel(self.state.twist.twist, self.desired_twist):
             self.finish()
 
 
