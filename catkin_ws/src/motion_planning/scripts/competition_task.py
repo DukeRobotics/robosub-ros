@@ -4,6 +4,7 @@ from move_tasks import MoveToPoseGlobalTask
 from move_tasks import MoveToPoseLocalTask
 from move_tasks import HoldPositionTask
 from log_task import LogTask
+from prequal_tasks import PreQualGlobalTask, PreQualLocalTask
 
 class CompetitionTask(Task):
     """
@@ -18,10 +19,10 @@ class CompetitionTask(Task):
 #        self.list_task = ListTask([HoldPositionTask()])
 #        self.list_task = ListTask([LogTask("FATAL", "This is falal")])
 #        self.list_task = ListTask([SimulTask([LogTask("WARN", "Warning"), MoveToPoseGlobalTask(30,0,0,0,0,0)])])	
-        self.prequal_task = PreQualGlobalTask()
+#        self.prequal_task = PreQualGlobalTask()
 
     def _on_task_run(self):
-        self.prequal_task.run()
+        self.list_task.run()
 
-        if self.prequal_task.finished:
+        if self.list_task.finished:
             self.finish()
