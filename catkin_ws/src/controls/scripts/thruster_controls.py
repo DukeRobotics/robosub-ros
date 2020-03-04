@@ -4,10 +4,12 @@ import os
 
 import rospy
 from std_msgs.msg import Float64, Float32MultiArray, Int8MultiArray
+from geometry_msgs.msg import Vector3Stamped
 from controls.msg import ThrusterSpeeds
 import numpy as np
 from thruster_manager import ThrusterManager
 from std_srvs.srv import SetBool
+from tf import TransformListener
 
 class ThrusterController():
 
@@ -25,6 +27,8 @@ class ThrusterController():
     enabled = False
 
     def __init__(self):
+        rospy.init_node('thruster_controls')
+
         self.sim = rospy.get_param('~/thruster_controls/sim')
         if self.sim == False:
             self.pub = rospy.Publisher(self.ROBOT_PUB_TOPIC, ThrusterSpeeds, queue_size=3)
@@ -37,6 +41,8 @@ class ThrusterController():
         self.enable_service = rospy.Service('enable_controls', SetBool, self.handle_enable_controls)
 
         self.tm = ThrusterManager(os.path.join(sys.path[0], '../config/cthulhu.config'))
+
+        self.listener = TransformListener()
 
         rospy.Subscriber(self.CONTROLS_MOVE_X_TOPIC, Float64, self._on_x)
         rospy.Subscriber(self.CONTROLS_MOVE_Y_TOPIC, Float64, self._on_y)
@@ -52,9 +58,35 @@ class ThrusterController():
         self.enabled = req.data
         return {'success': True, 'message': 'Successfully set enabled to ' + str(req.data)}
 
+    def transform_twist(self, base_frame, target_frame, twist):
+        lin = Vector3Stamped()
+        ang = Vector3Stamped()
+
+        lin.header.frame_id = base_frame
+        ang.header.frame_id = base_frame
+
+        lin.vector.x = twist[0]
+        lin.vector.y = twist[1]
+        lin.vector.z = twist[2]
+        ang.vector.x = twist[3]
+        ang.vector.y = twist[4]
+        ang.vector.z = twist[5]
+
+        lin_local = self.listener.transformVector3(target_frame, lin)
+        ang_local = self.listener.transformVector3(target_frame, ang)
+
+        return np.array([lin_local.vector.x, 
+                         lin_local.vector.y, 
+                         lin_local.vector.z,
+                         ang_local.vector.x,
+                         ang_local.vector.y,
+                         ang_local.vector.z])
+
     def update_thruster_allocs(self):
+        pid_outputs_local = self.transform_twist('odom', 'base_link', self.pid_outputs)
+        rospy.loginfo(pid_outputs_local)
         # Calculate thruster allocations
-        self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs)
+        self.t_allocs = self.tm.calc_t_allocs(pid_outputs_local)
 
     def _on_x(self, x):
         self.pid_outputs[0] = x.data
@@ -81,7 +113,6 @@ class ThrusterController():
         self.update_thruster_allocs()
 
     def run(self):
-        rospy.init_node('thruster_controls')
         rate = rospy.Rate(10)  # 10 Hz
 
         while not rospy.is_shutdown():
