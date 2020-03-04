@@ -21,6 +21,13 @@ class ThrusterController():
     CONTROLS_MOVE_PITCH_TOPIC = CONTROLS_MOVE_TOPIC + '/pitch'
     CONTROLS_MOVE_YAW_TOPIC = CONTROLS_MOVE_TOPIC + '/yaw'
 
+    CONTROLS_POWER_X_TOPIC = '/controls/power/x'
+    CONTROLS_POWER_Y_TOPIC = '/controls/power/y'
+    CONTROLS_POWER_Z_TOPIC = '/controls/power/z'
+    CONTROLS_POWER_ROLL_TOPIC = '/controls/power/roll'
+    CONTROLS_POWER_PITCH_TOPIC = '/controls/power/pitch'
+    CONTROLS_POWER_YAW_TOPIC = '/controls/power/yaw'
+
     SIM_PUB_TOPIC = '/sim/move'
     ROBOT_PUB_TOPIC = '/offboard/thruster_speeds'
 
@@ -51,7 +58,16 @@ class ThrusterController():
         rospy.Subscriber(self.CONTROLS_MOVE_PITCH_TOPIC, Float64, self._on_pitch)
         rospy.Subscriber(self.CONTROLS_MOVE_YAW_TOPIC, Float64, self._on_yaw)
 
+        rospy.Subscriber(self.CONTROLS_POWER_X_TOPIC, Float64, self._on_x_power)
+        rospy.Subscriber(self.CONTROLS_POWER_Y_TOPIC, Float64, self._on_y_power)
+        rospy.Subscriber(self.CONTROLS_POWER_Z_TOPIC, Float64, self._on_z_power)
+        rospy.Subscriber(self.CONTROLS_POWER_ROLL_TOPIC, Float64, self._on_roll_power)
+        rospy.Subscriber(self.CONTROLS_POWER_PITCH_TOPIC, Float64, self._on_pitch_power)
+        rospy.Subscriber(self.CONTROLS_POWER_YAW_TOPIC, Float64, self._on_yaw_power)
+
         self.pid_outputs = np.zeros(6)
+        self.pid_outputs_local = np.zeros(6)
+        self.powers = np.zeros(6)
         self.t_allocs = np.zeros(8)
 
     def handle_enable_controls(self, req):
@@ -83,10 +99,14 @@ class ThrusterController():
                          ang_local.vector.z])
 
     def update_thruster_allocs(self):
-        pid_outputs_local = self.transform_twist('odom', 'base_link', self.pid_outputs)
-        rospy.loginfo(pid_outputs_local)
-        # Calculate thruster allocations
-        self.t_allocs = self.tm.calc_t_allocs(pid_outputs_local)
+        self.pid_outputs_local = self.transform_twist('odom', 'base_link', self.pid_outputs)
+        #rospy.loginfo(pid_outputs_local)
+        for i in range(len(self.powers)):
+            if(self.powers[i]!=0):
+                self.pid_outputs_local[i]=self.powers[i]
+
+        self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs_local)
+
 
     def _on_x(self, x):
         self.pid_outputs[0] = x.data
@@ -112,6 +132,32 @@ class ThrusterController():
         self.pid_outputs[5] = yaw.data
         self.update_thruster_allocs()
 
+
+
+    def _on_x_power(self, x):
+        self.powers[0] = x.data
+        self.update_thruster_allocs()
+
+    def _on_y_power(self, y):
+        self.powers[1] = y.data
+        self.update_thruster_allocs()
+
+    def _on_z_power(self, z):
+        self.powers[2] = z.data
+        self.update_thruster_allocs()
+
+    def _on_roll_power(self, roll):
+        self.powers[3] = roll.data
+        self.update_thruster_allocs()
+
+    def _on_pitch_power(self, pitch):
+        self.powers[4] = pitch.data
+        self.update_thruster_allocs()
+
+    def _on_yaw_power(self, yaw):
+        self.powers[5] = yaw.data
+        self.update_thruster_allocs()
+
     def run(self):
         rate = rospy.Rate(10)  # 10 Hz
 
@@ -130,7 +176,7 @@ class ThrusterController():
             if self.enabled:
                 # Scale thruster alloc max to PID max
                 t_alloc_max = float(np.max(np.absolute(self.t_allocs)))
-                pid_max = float(np.max(np.absolute(self.pid_outputs)))
+                pid_max = float(np.max(np.absolute(self.pid_outputs_local)))
 
                 if(t_alloc_max != 0):
                     # Multiply each thruster allocation by scaling ratio

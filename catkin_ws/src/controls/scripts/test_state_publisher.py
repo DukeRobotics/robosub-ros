@@ -20,7 +20,7 @@ class TestStatePublisher():
         #These values correspond to the desired pose of the robot
         self.desired_pose = Pose()
         self.desired_pose.position.x = 0
-        self.desired_pose.position.y = -1
+        self.desired_pose.position.y = 0
         self.desired_pose.position.z = 0
         self.desired_pose.orientation.x = -0.7070727
         self.desired_pose.orientation.y = 0
@@ -29,8 +29,8 @@ class TestStatePublisher():
 
         #These values correspond to the desired powers for the robot
         self.desired_powers = Twist()
-        self.desired_powers.linear.x = 1
-        self.desired_powers.linear.y = 0 
+        self.desired_powers.linear.x = 0
+        self.desired_powers.linear.y = 1
         self.desired_powers.linear.z = 0
         self.desired_powers.angular.x = 0
         self.desired_powers.angular.y = 0
@@ -40,9 +40,9 @@ class TestStatePublisher():
         self.current_state.pose.pose.position.x = 0
         self.current_state.pose.pose.position.y = 0
         self.current_state.pose.pose.position.z = 0
-        self.current_state.pose.pose.orientation.x = -0.7070727
+        self.current_state.pose.pose.orientation.x = 0
         self.current_state.pose.pose.orientation.y = 0
-        self.current_state.pose.pose.orientation.z = 0
+        self.current_state.pose.pose.orientation.z = -0.7070727
         self.current_state.pose.pose.orientation.w = 0.7071408
 
         self.current_state.twist.twist.linear.x = 0
@@ -60,7 +60,7 @@ class TestStatePublisher():
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             self._pub_desired_pose.publish(self.desired_pose)
-            self._pub_current_state.publish(self.current_state)
+            #self._pub_current_state.publish(self.current_state)
             rate.sleep()
 
     def publish_desired_powers(self):
@@ -73,8 +73,8 @@ class TestStatePublisher():
 
 
 def main():
-    TestStatePublisher().publish_desired_pose()
-    #TestStatePublisher().publish_desired_powers()
+    #TestStatePublisher().publish_desired_pose()
+    TestStatePublisher().publish_desired_powers()
 
 if __name__ == '__main__':
     main()
