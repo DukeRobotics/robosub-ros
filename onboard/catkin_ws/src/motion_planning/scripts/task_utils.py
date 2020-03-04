@@ -1,3 +1,8 @@
+import numpy as np
+from geometry_msgs.msg import Vector3, Quaternion, Pose, PoseStampedm Twist
+from nav_msgs.msg import Odometry
+from tf.transformations import euler_from_quaternion
+>>>>>>> add condition that velocity is near zero before move task ends:catkin_ws/src/motion_planning/scripts/task_utils.py
 import math
 
 import numpy as np
@@ -78,6 +83,24 @@ def at_pose(current_pose, desired_pose, linear_tol=0.1, angular_tol=3):
     angular = np.all(np.array([angular_dist.x, angular_dist.y, angular_dist.z]) < (np.ones((3)) * angular_tol))
     return linear and angular
 
+
+def at_vel(current_twist, desired_twist, linear_tol=0.1, angular_tol=0.3):
+    """Check if within tolerance of a twist (linear and angular velocity)
+    
+    """
+    lin_curr_vel_vec = np.array([current_twist.linear.x, current_twist.linear.y, current_twist.linear.z])
+    lin_curr_vel_mag = np.linalg.norm(lin_curr_vel_vec)
+    lin_des_vel_vec = np.array([desired_twist.linear.x, desired_twist.linear.y, desired_twist.linear.z])
+    lin_des_vel_mag = np.linalg.norm(lin_des_vel_vec)
+    linear = math.fabs(lin_curr_vel_mag - lin_des_vel_mag) < linear_tol
+
+    ang_curr_vel_vec = np.array([current_twist.angular.x, current_twist.angular.y, current_twist.angular.z])
+    ang_curr_vel_mag = np.linalg.norm(ang_curr_vel_vec)
+    ang_des_vel_vec = np.array([desired_twist.angular.x, desired_twist.angular.y, desired_twist.angular.z])
+    ang_des_vel_mag = np.linalg.norm(ang_des_vel_vec)
+    angular = math.fabs(ang_curr_vel_mag - ang_des_vel_mag) < angular_tol
+
+    return (linear and angular)
 
 def transform(origin_frame, dest_frame, poseORodom):
     """Transforms poseORodom from origin_frame to dest_frame frame
