@@ -28,7 +28,7 @@ class TestStatePublisher():
 
         #These values correspond to the desired powers for the robot
         self.desired_powers = Twist()
-        self.desired_powers.linear.x = 0.5
+        self.desired_powers.linear.x = 0
         self.desired_powers.linear.y = 0 
         self.desired_powers.linear.z = 0
         self.desired_powers.angular.x = 0
