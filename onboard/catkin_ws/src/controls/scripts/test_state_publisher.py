@@ -22,15 +22,15 @@ class TestStatePublisher():
         self.desired_pose.position.x = 0
         self.desired_pose.position.y = 0
         self.desired_pose.position.z = 0
-        self.desired_pose.orientation.x = -0.7070727
+        self.desired_pose.orientation.x = 0
         self.desired_pose.orientation.y = 0
         self.desired_pose.orientation.z = 0
-        self.desired_pose.orientation.w = 0.7071408
+        self.desired_pose.orientation.w = 1
 
         #These values correspond to the desired powers for the robot
         self.desired_powers = Twist()
         self.desired_powers.linear.x = 0
-        self.desired_powers.linear.y = 1
+        self.desired_powers.linear.y = 0.5
         self.desired_powers.linear.z = 0
         self.desired_powers.angular.x = 0
         self.desired_powers.angular.y = 0
