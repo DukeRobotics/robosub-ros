@@ -1,17 +1,13 @@
 #!/usr/bin/env python
 
 import rospy
-from tf.transformations import quaternion_from_euler, euler_from_quaternion, euler_matrix
-import tf2_ros
-import tf2_geometry_msgs
-import numpy as np
+from tf.transformations import euler_from_quaternion
+#import tf2_ros
+#import tf2_geometry_msgs
+
 from std_msgs.msg import Float64, Bool
-from drc_math import RpToTrans, Adjoint
-
 import time
-
 from geometry_msgs.msg import Pose, Twist, Vector3
-# from nav_msgs.msg import Odometry
 
 class bcolors:
     BOLD = '\033[1m'
@@ -32,49 +28,31 @@ class DesiredStateHandler():
     DESIRED_TWIST_POWER = 'controls/desired_twist_power'
     DESIRED_POSE_TOPIC = 'controls/desired_pose'
 
-    PUBLISHING_TOPIC_X_POS = 'controls/x_pos/setpoint'
-    PUBLISHING_TOPIC_Y_POS = 'controls/y_pos/setpoint'
-    PUBLISHING_TOPIC_Z_POS = 'controls/z_pos/setpoint'
-    PUBLISHING_TOPIC_ROLL_POS = 'controls/roll_pos/setpoint'
-    PUBLISHING_TOPIC_PITCH_POS = 'controls/pitch_pos/setpoint'
-    PUBLISHING_TOPIC_YAW_POS = 'controls/yaw_pos/setpoint'
+    PID_TOPIC_X = 'controls/x_pos/setpoint'
+    PID_TOPIC_Y = 'controls/y_pos/setpoint'
+    PID_TOPIC_Z = 'controls/z_pos/setpoint'
+    PID_TOPIC_ROLL = 'controls/roll_pos/setpoint'
+    PID_TOPIC_PITCH = 'controls/pitch_pos/setpoint'
+    PID_TOPIC_YAW = 'controls/yaw_pos/setpoint'
 
-    PUBLISHING_TOPIC_ENABLE_X_POS = 'controls/enable/x_pos'
-    PUBLISHING_TOPIC_ENABLE_Y_POS = 'controls/enable/y_pos'
-    PUBLISHING_TOPIC_ENABLE_Z_POS = 'controls/enable/z_pos'
-    PUBLISHING_TOPIC_ENABLE_ROLL_POS = 'controls/enable/roll_pos'
-    PUBLISHING_TOPIC_ENABLE_PITCH_POS = 'controls/enable/pitch_pos'
-    PUBLISHING_TOPIC_ENABLE_YAW_POS = 'controls/enable/yaw_pos'
+    PID_ENABLE_X = 'controls/enable/x_pos'
+    PID_ENABLE_Y = 'controls/enable/y_pos'
+    PID_ENABLE_Z = 'controls/enable/z_pos'
+    PID_ENABLE_ROLL = 'controls/enable/roll_pos'
+    PID_ENABLE_PITCH = 'controls/enable/pitch_pos'
+    PID_ENABLE_YAW = 'controls/enable/yaw_pos'
 
-    PUBLISHING_TOPIC_X_EFFORT = '/control_effort/x'
-    PUBLISHING_TOPIC_Y_EFFORT = '/control_effort/y'
-    PUBLISHING_TOPIC_Z_EFFORT = '/control_effort/z'
-    PUBLISHING_TOPIC_ROLL_EFFORT = '/control_effort/roll'
-    PUBLISHING_TOPIC_PITCH_EFFORT = '/control_effort/pitch'
-    PUBLISHING_TOPIC_YAW_EFFORT = '/control_effort/yaw'
-
-    PUBLISHING_TOPIC_POWER_X = '/controls/power/x'
-    PUBLISHING_TOPIC_POWER_Y = '/controls/power/y'
-    PUBLISHING_TOPIC_POWER_Z = '/controls/power/z'
-    PUBLISHING_TOPIC_POWER_ROLL = '/controls/power/roll'
-    PUBLISHING_TOPIC_POWER_PITCH = '/controls/power/pitch'
-    PUBLISHING_TOPIC_POWER_YAW = '/controls/power/yaw'
+    POWER_TOPIC_X = '/controls/power/x'
+    POWER_TOPIC_Y = '/controls/power/y'
+    POWER_TOPIC_Z = '/controls/power/z'
+    POWER_TOPIC_ROLL = '/controls/power/roll'
+    POWER_TOPIC_PITCH = '/controls/power/pitch'
+    POWER_TOPIC_YAW = '/controls/power/yaw'
 
     REFRESH_HZ = 10  # for main loop
 
-    x_hold = 0
-    y_hold = 0
-    z_hold = 0
-    roll_hold = 0
-    pitch_hold = 0
-    yaw_hold = 0
-
-    x = 0
-    y = 0
-    z = 0
-    roll = 0
-    pitch = 0
-    yaw = 0
+    x_hold, y_hold, z_hold, roll_hold, pitch_hold, yaw_hold = 0, 0, 0, 0, 0, 0
+    x, y, z, roll, pitch, yaw = 0, 0, 0, 0, 0, 0
 
     pose = None
     powers = None
@@ -89,26 +67,26 @@ class DesiredStateHandler():
         rospy.Subscriber(self.POSE_TOPIC_YAW, Float64, self.receive_yaw)
 
         #PID Position publishers
-        self._pub_x_pos = rospy.Publisher(self.PUBLISHING_TOPIC_X_POS, Float64, queue_size=3)
-        self._pub_y_pos = rospy.Publisher(self.PUBLISHING_TOPIC_Y_POS, Float64, queue_size=3)
-        self._pub_z_pos = rospy.Publisher(self.PUBLISHING_TOPIC_Z_POS, Float64, queue_size=3)
-        self._pub_roll_pos = rospy.Publisher(self.PUBLISHING_TOPIC_ROLL_POS, Float64, queue_size=3)
-        self._pub_pitch_pos = rospy.Publisher(self.PUBLISHING_TOPIC_PITCH_POS, Float64, queue_size=3)
-        self._pub_yaw_pos = rospy.Publisher(self.PUBLISHING_TOPIC_YAW_POS, Float64, queue_size=3)
+        self._pub_x_pos = rospy.Publisher(self.PID_TOPIC_X, Float64, queue_size=3)
+        self._pub_y_pos = rospy.Publisher(self.PID_TOPIC_Y, Float64, queue_size=3)
+        self._pub_z_pos = rospy.Publisher(self.PID_TOPIC_Z, Float64, queue_size=3)
+        self._pub_roll_pos = rospy.Publisher(self.PID_TOPIC_ROLL, Float64, queue_size=3)
+        self._pub_pitch_pos = rospy.Publisher(self.PID_TOPIC_PITCH, Float64, queue_size=3)
+        self._pub_yaw_pos = rospy.Publisher(self.PID_TOPIC_YAW, Float64, queue_size=3)
 
-        self._pub_x_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_X_POS, Bool, queue_size=3)
-        self._pub_y_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_Y_POS, Bool, queue_size=3)
-        self._pub_z_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_Z_POS, Bool, queue_size=3)
-        self._pub_roll_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_ROLL_POS, Bool, queue_size=3)
-        self._pub_pitch_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_PITCH_POS, Bool, queue_size=3)
-        self._pub_yaw_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_YAW_POS, Bool, queue_size=3)
+        self._pub_x_pos_enable = rospy.Publisher(self.PID_ENABLE_X, Bool, queue_size=3)
+        self._pub_y_pos_enable = rospy.Publisher(self.PID_ENABLE_Y, Bool, queue_size=3)
+        self._pub_z_pos_enable = rospy.Publisher(self.PID_ENABLE_Z, Bool, queue_size=3)
+        self._pub_roll_pos_enable = rospy.Publisher(self.PID_ENABLE_ROLL, Bool, queue_size=3)
+        self._pub_pitch_pos_enable = rospy.Publisher(self.PID_ENABLE_PITCH, Bool, queue_size=3)
+        self._pub_yaw_pos_enable = rospy.Publisher(self.PID_ENABLE_YAW, Bool, queue_size=3)
 
-        self._pub_x_power = rospy.Publisher(self.PUBLISHING_TOPIC_POWER_X, Float64, queue_size=3)
-        self._pub_y_power = rospy.Publisher(self.PUBLISHING_TOPIC_POWER_Y, Float64, queue_size=3)
-        self._pub_z_power = rospy.Publisher(self.PUBLISHING_TOPIC_POWER_Z, Float64, queue_size=3)
-        self._pub_roll_power = rospy.Publisher(self.PUBLISHING_TOPIC_POWER_ROLL, Float64, queue_size=3)
-        self._pub_pitch_power= rospy.Publisher(self.PUBLISHING_TOPIC_POWER_PITCH, Float64, queue_size=3)
-        self._pub_yaw_power = rospy.Publisher(self.PUBLISHING_TOPIC_POWER_YAW, Float64, queue_size=3)
+        self._pub_x_power = rospy.Publisher(self.POWER_TOPIC_X, Float64, queue_size=3)
+        self._pub_y_power = rospy.Publisher(self.POWER_TOPIC_Y, Float64, queue_size=3)
+        self._pub_z_power = rospy.Publisher(self.POWER_TOPIC_Z, Float64, queue_size=3)
+        self._pub_roll_power = rospy.Publisher(self.POWER_TOPIC_ROLL, Float64, queue_size=3)
+        self._pub_pitch_power= rospy.Publisher(self.POWER_TOPIC_PITCH, Float64, queue_size=3)
+        self._pub_yaw_power = rospy.Publisher(self.POWER_TOPIC_YAW, Float64, queue_size=3)
 
         rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self.receive_pose)
         rospy.Subscriber(self.DESIRED_TWIST_POWER, Twist, self.receive_powers)
@@ -153,6 +131,10 @@ class DesiredStateHandler():
         self._pub_pitch_power.publish(0)
         self._pub_yaw_power.publish(0)
 
+        self.powers = None
+        self.last_powers = None
+        self.pose = None
+
     def twists_equal(self, t1, t2):
         return (t1.linear.x == t2.linear.x and
                 t1.linear.y == t2.linear.y and
@@ -164,6 +146,15 @@ class DesiredStateHandler():
     def copy_twist(self, t):
         return Twist(Vector3(t.linear.x, t.linear.y, t.linear.z),
                      Vector3(t.angular.x, t.angular.y, t.angular.z))
+
+    def enable_loops(self):
+        #Enable all PID Loops
+        self._pub_x_pos_enable.publish(True)
+        self._pub_y_pos_enable.publish(True)
+        self._pub_z_pos_enable.publish(True)
+        self._pub_roll_pos_enable.publish(True)
+        self._pub_pitch_pos_enable.publish(True)
+        self._pub_yaw_pos_enable.publish(True)
 
     def run(self):
         rospy.init_node('desired_state')
@@ -194,12 +185,7 @@ class DesiredStateHandler():
                 warned = False
 
             if self.pose:
-                self._pub_x_pos_enable.publish(True)
-                self._pub_y_pos_enable.publish(True)
-                self._pub_z_pos_enable.publish(True)
-                self._pub_roll_pos_enable.publish(True)
-                self._pub_pitch_pos_enable.publish(True)
-                self._pub_yaw_pos_enable.publish(True)
+                self.enable_loops()
 
                 x = self.pose.position.x
                 y = self.pose.position.y
@@ -222,13 +208,7 @@ class DesiredStateHandler():
 
             elif self.powers:
                 if self.last_powers is None or not self.twists_equal(self.powers, self.last_powers):
-                    # Enable all PID Loops
-                    self._pub_x_pos_enable.publish(True)
-                    self._pub_y_pos_enable.publish(True)
-                    self._pub_z_pos_enable.publish(True)
-                    self._pub_roll_pos_enable.publish(True)
-                    self._pub_pitch_pos_enable.publish(True)
-                    self._pub_yaw_pos_enable.publish(True)
+                    self.enable_loops()
 
                     # Hold Position on the current state
                     self.x_hold = self.x
@@ -242,26 +222,22 @@ class DesiredStateHandler():
 
                 # Nonzero entries bypass PID
 
-                # If any nonzero xyz power, publish those powers directly
-
+                # If any nonzero xy power, disable those position pid loops
                 if self.powers.linear.x != 0 or self.powers.linear.y != 0:
                     self._pub_x_pos_enable.publish(False)
-                    #self._pub_x_power.publish(self.powers.linear.x)
                     self._pub_y_pos_enable.publish(False)
-                    #self._pub_y_power.publish(self.powers.linear.y)
 
-                # If any nonzero rpy power, publish those powers directly
+                # If any nonzero rpy power, disable those position pid loops
                 elif self.powers.angular.x != 0 or self.powers.angular.y != 0 or self.powers.angular.z != 0:
                     self._pub_roll_pos_enable.publish(False)
-                    #self._pub_roll_power.publish(self.powers.angular.x)
                     self._pub_pitch_pos_enable.publish(False)
-                    #self._pub_pitch_power.publish(self.powers.angular.y)
                     self._pub_yaw_pos_enable.publish(False)
-                    #self._pub_yaw_power.publish(self.powers.angular.z)
 
+                # If any nonzero z power, disable those position pid loops
                 if self.powers.linear.z !=0:
                     self._pub_z_pos_enable.publish(False)
-                    #self._pub_z_power.publish(self.powers.linear.z)
+
+                #TODO: BOTH cases
 
                 self._pub_x_power.publish(self.powers.linear.x)
                 self._pub_y_power.publish(self.powers.linear.y)
@@ -269,9 +245,6 @@ class DesiredStateHandler():
                 self._pub_roll_power.publish(self.powers.angular.x)
                 self._pub_pitch_power.publish(self.powers.angular.y)
                 self._pub_yaw_power.publish(self.powers.angular.z)
-
-
-                #TODO: BOTH cases
 
                 #Publish current state to the desired state for PID
                 self._pub_x_pos.publish(self.x_hold)
