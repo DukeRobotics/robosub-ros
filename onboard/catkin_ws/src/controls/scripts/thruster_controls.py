@@ -21,12 +21,12 @@ class ThrusterController():
     CONTROLS_MOVE_PITCH_TOPIC = CONTROLS_MOVE_TOPIC + '/pitch'
     CONTROLS_MOVE_YAW_TOPIC = CONTROLS_MOVE_TOPIC + '/yaw'
 
-    CONTROLS_POWER_X_TOPIC = '/controls/power/x'
-    CONTROLS_POWER_Y_TOPIC = '/controls/power/y'
-    CONTROLS_POWER_Z_TOPIC = '/controls/power/z'
-    CONTROLS_POWER_ROLL_TOPIC = '/controls/power/roll'
-    CONTROLS_POWER_PITCH_TOPIC = '/controls/power/pitch'
-    CONTROLS_POWER_YAW_TOPIC = '/controls/power/yaw'
+    POWER_TOPIC_X = '/controls/power/x'
+    POWER_TOPIC_Y = '/controls/power/y'
+    POWER_TOPIC_Z = '/controls/power/z'
+    POWER_TOPIC_ROLL = '/controls/power/roll'
+    POWER_TOPIC_PITCH = '/controls/power/pitch'
+    POWER_TOPIC_YAW = '/controls/power/yaw'
 
     SIM_PUB_TOPIC = '/sim/move'
     ROBOT_PUB_TOPIC = '/offboard/thruster_speeds'
@@ -41,9 +41,6 @@ class ThrusterController():
             self.pub = rospy.Publisher(self.ROBOT_PUB_TOPIC, ThrusterSpeeds, queue_size=3)
         elif self.sim == True:
             self.pub = rospy.Publisher(self.SIM_PUB_TOPIC, Float32MultiArray, queue_size=3)
-        else:
-            # TODO: alert that unrecognized mode destination has been set
-            pass
 
         self.enable_service = rospy.Service('enable_controls', SetBool, self.handle_enable_controls)
 
@@ -58,12 +55,12 @@ class ThrusterController():
         rospy.Subscriber(self.CONTROLS_MOVE_PITCH_TOPIC, Float64, self._on_pitch)
         rospy.Subscriber(self.CONTROLS_MOVE_YAW_TOPIC, Float64, self._on_yaw)
 
-        rospy.Subscriber(self.CONTROLS_POWER_X_TOPIC, Float64, self._on_x_power)
-        rospy.Subscriber(self.CONTROLS_POWER_Y_TOPIC, Float64, self._on_y_power)
-        rospy.Subscriber(self.CONTROLS_POWER_Z_TOPIC, Float64, self._on_z_power)
-        rospy.Subscriber(self.CONTROLS_POWER_ROLL_TOPIC, Float64, self._on_roll_power)
-        rospy.Subscriber(self.CONTROLS_POWER_PITCH_TOPIC, Float64, self._on_pitch_power)
-        rospy.Subscriber(self.CONTROLS_POWER_YAW_TOPIC, Float64, self._on_yaw_power)
+        rospy.Subscriber(self.POWER_TOPIC_X, Float64, self._on_x_power)
+        rospy.Subscriber(self.POWER_TOPIC_Y, Float64, self._on_y_power)
+        rospy.Subscriber(self.POWER_TOPIC_Z, Float64, self._on_z_power)
+        rospy.Subscriber(self.POWER_TOPIC_ROLL, Float64, self._on_roll_power)
+        rospy.Subscriber(self.POWER_TOPIC_PITCH, Float64, self._on_pitch_power)
+        rospy.Subscriber(self.POWER_TOPIC_YAW, Float64, self._on_yaw_power)
 
         self.pid_outputs = np.zeros(6)
         self.pid_outputs_local = np.zeros(6)
@@ -99,8 +96,9 @@ class ThrusterController():
                          ang_local.vector.z])
 
     def update_thruster_allocs(self):
-        self.pid_outputs_local = self.transform_twist('odom', 'base_link', self.pid_outputs)
-        #rospy.loginfo(pid_outputs_local)
+        if self.enabled:
+            self.pid_outputs_local = self.transform_twist('odom', 'base_link', self.pid_outputs)
+
         for i in range(len(self.powers)):
             if(self.powers[i]!=0):
                 self.pid_outputs_local[i]=self.powers[i]
@@ -131,8 +129,6 @@ class ThrusterController():
     def _on_yaw(self, yaw):
         self.pid_outputs[5] = yaw.data
         self.update_thruster_allocs()
-
-
 
     def _on_x_power(self, x):
         self.powers[0] = x.data
@@ -181,6 +177,8 @@ class ThrusterController():
                 if(t_alloc_max != 0):
                     # Multiply each thruster allocation by scaling ratio
                     self.t_allocs *= pid_max / t_alloc_max
+                #Clamp values of t_allocs to between -1 to 1
+                self.t_allocs = np.clip(self.t_allocs, -1 , 1)
 
                 if self.sim == False:
                     i8_t_allocs = ThrusterSpeeds()
