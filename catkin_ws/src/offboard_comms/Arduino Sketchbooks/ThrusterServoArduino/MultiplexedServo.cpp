@@ -10,7 +10,6 @@ MultiplexedServo::MultiplexedServo(Adafruit_PWMServoDriver *_multiplexer,int _nu
 
 void MultiplexedServo::initialise(){
     attach(num);
-    run(90);
 }
 
 void MultiplexedServo::run(int power){
