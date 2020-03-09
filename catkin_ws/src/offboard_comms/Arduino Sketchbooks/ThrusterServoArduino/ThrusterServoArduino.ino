@@ -30,7 +30,7 @@ void servo_control_callback(const offboard_comms::SetServo::Request &sc_req, off
     //copy the contents of the angle message to the local array
     uint8_t pin = sc_req.num;
     uint16_t angle = sc_req.angle;
-    if(pin >= NUM_SERVO || angle < 0 || angle > 180){
+    if(pin >= NUM_SERVO || angle > 180){
       sc_res.success = false;
       return;
     }
