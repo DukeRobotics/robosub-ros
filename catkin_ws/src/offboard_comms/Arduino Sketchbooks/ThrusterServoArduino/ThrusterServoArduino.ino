@@ -28,14 +28,14 @@ void thruster_speeds_callback(const offboard_comms::ThrusterSpeeds &ts_msg){
 
 void servo_control_callback(const offboard_comms::SetServo::Request &sc_req, offboard_comms::SetServo::Response &sc_res){
     //copy the contents of the angle message to the local array
-    int pin = sc_req.num;
-    int angle = sc_req.angle;
-    if(pin>=NUM_SERVO || angle<0 || angle>180){
-      sc_res.success=false;
+    uint8_t pin = sc_req.num;
+    uint16_t angle = sc_req.angle;
+    if(pin >= NUM_SERVO || angle < 0 || angle > 180){
+      sc_res.success = false;
       return;
     }
     servos[pin]->run(angle);
-    sc_res.success=true;
+    sc_res.success = true;
 }
 
 //Sets node handle to have 2 subscribers, 2 publishers, and 150 bytes for input and output buffer
