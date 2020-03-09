@@ -27,6 +27,14 @@ static const char SETMAVFRAME[] = "mavros_msgs/SetMavFrame";
       enum { FRAME_BODY_OFFSET_NED =  9           };
       enum { FRAME_GLOBAL_TERRAIN_ALT =  10       };
       enum { FRAME_GLOBAL_TERRAIN_ALT_INT =  11   };
+      enum { FRAME_BODY_FRD =  12                 };
+      enum { FRAME_BODY_FLU =  13                 };
+      enum { FRAME_MOCAP_NED =  14                };
+      enum { FRAME_MOCAP_ENU =  15                };
+      enum { FRAME_VISION_NED =  16               };
+      enum { FRAME_VISION_ENU =  17               };
+      enum { FRAME_ESTIM_NED =  18                };
+      enum { FRAME_ESTIM_ENU =  19                };
 
     SetMavFrameRequest():
       mav_frame(0)
@@ -50,7 +58,7 @@ static const char SETMAVFRAME[] = "mavros_msgs/SetMavFrame";
     }
 
     const char * getType(){ return SETMAVFRAME; };
-    const char * getMD5(){ return "4102fcf8d7971e4f06392711a40bc2cd"; };
+    const char * getMD5(){ return "4d2cf24886f660cde0f73cf6fc86e24c"; };
 
   };
 

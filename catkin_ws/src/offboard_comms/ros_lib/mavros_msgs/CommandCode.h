@@ -20,7 +20,6 @@ namespace mavros_msgs
       enum { CONDITION_DISTANCE =  114                     };
       enum { CONDITION_YAW =  115                          };
       enum { CONDITION_LAST =  159                         };
-      enum { CONDITION_GATE =  4501                        };
       enum { CONTROL_HIGH_LATENCY =  2600                  };
       enum { DO_FOLLOW =  32                               };
       enum { DO_FOLLOW_REPOSITION =  33                    };
@@ -45,6 +44,9 @@ namespace mavros_msgs
       enum { DO_SET_ROI_WPNEXT_OFFSET =  196               };
       enum { DO_SET_ROI_NONE =  197                        };
       enum { DO_CONTROL_VIDEO =  200                       };
+      enum { DO_SET_ROI =  201                             };
+      enum { DO_DIGICAM_CONFIGURE =  202                   };
+      enum { DO_DIGICAM_CONTROL =  203                     };
       enum { DO_MOUNT_CONFIGURE =  204                     };
       enum { DO_MOUNT_CONTROL =  205                       };
       enum { DO_SET_CAM_TRIGG_DIST =  206                  };
@@ -57,13 +59,16 @@ namespace mavros_msgs
       enum { DO_GUIDED_MASTER =  221                       };
       enum { DO_GUIDED_LIMITS =  222                       };
       enum { DO_ENGINE_CONTROL =  223                      };
+      enum { DO_SET_MISSION_CURRENT =  224                 };
       enum { DO_LAST =  240                                };
+      enum { DO_JUMP_TAG =  601                            };
       enum { DO_TRIGGER_CONTROL =  2003                    };
       enum { DO_VTOL_TRANSITION =  3000                    };
       enum { GET_HOME_POSITION =  410                      };
       enum { GET_MESSAGE_INTERVAL =  510                   };
       enum { IMAGE_START_CAPTURE =  2000                   };
       enum { IMAGE_STOP_CAPTURE =  2001                    };
+      enum { JUMP_TAG =  600                               };
       enum { LOGGING_START =  2510                         };
       enum { LOGGING_STOP =  2511                          };
       enum { MISSION_START =  300                          };
@@ -79,6 +84,7 @@ namespace mavros_msgs
       enum { NAV_FOLLOW =  25                              };
       enum { NAV_CONTINUE_AND_CHANGE_ALT =  30             };
       enum { NAV_LOITER_TO_ALT =  31                       };
+      enum { NAV_ROI =  80                                 };
       enum { NAV_PATHPLANNING =  81                        };
       enum { NAV_SPLINE_WAYPOINT =  82                     };
       enum { NAV_VTOL_TAKEOFF =  84                        };
@@ -103,15 +109,13 @@ namespace mavros_msgs
       enum { PREFLIGHT_UAVCAN =  243                       };
       enum { PREFLIGHT_STORAGE =  245                      };
       enum { PREFLIGHT_REBOOT_SHUTDOWN =  246              };
-      enum { REQUEST_PROTOCOL_VERSION =  519               };
+      enum { REQUEST_MESSAGE =  512                        };
       enum { REQUEST_AUTOPILOT_CAPABILITIES =  520         };
       enum { REQUEST_CAMERA_INFORMATION =  521             };
       enum { REQUEST_CAMERA_SETTINGS =  522                };
       enum { REQUEST_STORAGE_INFORMATION =  525            };
       enum { REQUEST_CAMERA_CAPTURE_STATUS =  527          };
       enum { REQUEST_FLIGHT_INFORMATION =  528             };
-      enum { REQUEST_CAMERA_IMAGE_CAPTURE =  2002          };
-      enum { REQUEST_VIDEO_STREAM_INFORMATION =  2504      };
       enum { RESET_CAMERA_SETTINGS =  529                  };
       enum { SET_MESSAGE_INTERVAL =  511                   };
       enum { SET_CAMERA_MODE =  530                        };
@@ -122,8 +126,6 @@ namespace mavros_msgs
       enum { UAVCAN_GET_NODE_INFO =  5200                  };
       enum { VIDEO_START_CAPTURE =  2500                   };
       enum { VIDEO_STOP_CAPTURE =  2501                    };
-      enum { VIDEO_START_STREAMING =  2502                 };
-      enum { VIDEO_STOP_STREAMING =  2503                  };
 
     CommandCode()
     {
@@ -142,7 +144,7 @@ namespace mavros_msgs
     }
 
     const char * getType(){ return "mavros_msgs/CommandCode"; };
-    const char * getMD5(){ return "03a2b9eca2a527279a43b976fb73a9f3"; };
+    const char * getMD5(){ return "9c980aa1230f756ac9d693ff35accb29"; };
 
   };
 

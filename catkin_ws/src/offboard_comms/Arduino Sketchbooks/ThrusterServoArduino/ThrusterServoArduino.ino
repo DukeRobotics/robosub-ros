@@ -3,7 +3,7 @@
 #include "MultiplexedServo.h"
 #include <ros.h>
 #include <offboard_comms/ThrusterSpeeds.h>
-#include <offboard_comms/ServoControl.h>
+#include <offboard_comms/SetServos.h>
 #include <Arduino.h>
 
 Adafruit_PWMServoDriver pwm_multiplexer(0x40);
@@ -27,21 +27,21 @@ void thruster_speeds_callback(const offboard_comms::ThrusterSpeeds &ts_msg){
     last_cmd_ms_ts = millis();
 }
 
-void servo_control_callback(const offboard_comms::ServoControl &sc_msg){
+void servo_control_callback(const offboard_comms::SetServos::Request &sc_req, offboard_comms::SetServos::Response &sc_res){
     //copy the contents of the angle message to the local array
-    memcpy(servo_angle, sc_msg.speeds, sizeof(servo_angle));
+    memcpy(servo_angle, sc_req.angles, sizeof(servo_angle));
 }
 
-//Sets node handle to have 2 subscribers, 0 publishers, and 150 bytes for input and output buffer
-ros::NodeHandle_<ArduinoHardware,2,0,150,150> nh;  
+//Sets node handle to have 2 subscribers, 2 publishers, and 150 bytes for input and output buffer
+ros::NodeHandle_<ArduinoHardware,2,2,150,150> nh;  
 ros::Subscriber<offboard_comms::ThrusterSpeeds> ts_sub("/offboard/thruster_speeds", &thruster_speeds_callback);
-ros::Subscriber<offboard_comms::ServoControl> sc_sub("/offboard/servo_control", &servo_control_callback);
+ros::ServiceServer<offboard_comms::SetServos::Request, offboard_comms::SetServos::Response> servo_service("/offboard/servo_angle", &servo_control_callback);
 
 void setup(){
-    Serial.begin(115200);
+    Serial.begin(57600);
     nh.initNode();
     nh.subscribe(ts_sub);
-    nh.subscribe(sc_sub);
+    nh.advertiseService(servo_service);
     pwm_multiplexer.begin();
     for (int i = 0; i < NUM_THRUSTERS; ++i){
         thrusters[i] = new MultiplexedBasicESC(&pwm_multiplexer, i);
@@ -50,6 +50,7 @@ void setup(){
     for (int i = 0; i < NUM_SERVO; ++i){
         servos[i] = new MultiplexedServo(&pwm_multiplexer, i + NUM_THRUSTERS);
         servos[i]->initialise();
+        servo_angle[i]=90;
     }
     // Wait for motors to fully initialise
     delay(2000);
@@ -64,6 +65,7 @@ void loop(){
         thrusters[i]->run(thruster_speeds[i]);
     }
     for (int i = 0; i < NUM_SERVO; ++i){
+        Serial.println(servo_angle[i]);
         servos[i]->run(servo_angle[i]);
     }
     nh.spinOnce();

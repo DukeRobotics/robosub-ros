@@ -21,6 +21,8 @@ namespace mavros_msgs
       _armed_type armed;
       typedef bool _guided_type;
       _guided_type guided;
+      typedef bool _manual_input_type;
+      _manual_input_type manual_input;
       typedef const char* _mode_type;
       _mode_type mode;
       typedef uint8_t _system_status_type;
@@ -31,6 +33,7 @@ namespace mavros_msgs
       connected(0),
       armed(0),
       guided(0),
+      manual_input(0),
       mode(""),
       system_status(0)
     {
@@ -61,6 +64,13 @@ namespace mavros_msgs
       u_guided.real = this->guided;
       *(outbuffer + offset + 0) = (u_guided.base >> (8 * 0)) & 0xFF;
       offset += sizeof(this->guided);
+      union {
+        bool real;
+        uint8_t base;
+      } u_manual_input;
+      u_manual_input.real = this->manual_input;
+      *(outbuffer + offset + 0) = (u_manual_input.base >> (8 * 0)) & 0xFF;
+      offset += sizeof(this->manual_input);
       uint32_t length_mode = strlen(this->mode);
       varToArr(outbuffer + offset, length_mode);
       offset += 4;
@@ -99,6 +109,14 @@ namespace mavros_msgs
       u_guided.base |= ((uint8_t) (*(inbuffer + offset + 0))) << (8 * 0);
       this->guided = u_guided.real;
       offset += sizeof(this->guided);
+      union {
+        bool real;
+        uint8_t base;
+      } u_manual_input;
+      u_manual_input.base = 0;
+      u_manual_input.base |= ((uint8_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      this->manual_input = u_manual_input.real;
+      offset += sizeof(this->manual_input);
       uint32_t length_mode;
       arrToVar(length_mode, (inbuffer + offset));
       offset += 4;
@@ -114,7 +132,7 @@ namespace mavros_msgs
     }
 
     const char * getType(){ return "mavros_msgs/State"; };
-    const char * getMD5(){ return "63d9a29b6abd9e0beeba06109556d062"; };
+    const char * getMD5(){ return "ce783f756cab1193cb71ba9e90fece50"; };
 
   };
 
