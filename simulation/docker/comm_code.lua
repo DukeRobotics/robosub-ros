@@ -7,24 +7,16 @@ function extsysCall_init()
 
     moveSub=simROS.subscribe('/sim/move', 'std_msgs/Float32MultiArray', 'move_callback')
     simROS.subscriberTreatUInt8ArrayAsString(moveSub)
+
+    HEAD_FLAG = -525600
+    ARRAY_FLAG = -8675309
+    rospubs = {}
     last = nil
-    seq = 0;
-
-    dvlPub=simROS.advertise('/sim/dvl', 'geometry_msgs/TwistStamped')
-    simROS.publisherTreatUInt8ArrayAsString(dvlPub)
-    posePub=simROS.advertise('/sim/pose', 'geometry_msgs/PoseStamped')
-    simROS.publisherTreatUInt8ArrayAsString(dvlPub)
-    imuPub=simROS.advertise('/sim/imu', 'sensor_msgs/Imu')
-    simROS.publisherTreatUInt8ArrayAsString(imuPub)
-    
-
-    --test, should get removed
-    --testdata = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
-    --get_ros_data({}, testdata, {}, '')
+    seq = 0;    
 end
 
 function extsysCall_actuation() 
-    --get_ros_data({}, testdata, {}, '')
+
 end
 
 function move_callback(msg)
@@ -32,74 +24,134 @@ function move_callback(msg)
     print(last)
 end
 
-function get_ros_data(inInts, inFloats, inString, inBuffer)
-    if inString[1]=="stop" then last = nil end
-    -- 3 linvel, 3 angvel, 4 quat, 3 accel, 3 pos, 1 time
-    if #inFloats>=16 then
-        head = {}
-        head["seq"] = seq
-        seq = seq + 1
-        head["stamp"] = simROS.getTime()
-        head["frame_id"] = "global"
-        linear = {}
-        angular = {}
-        quat = {}
-        accel = {}
-        pos = {}
-        linear['x'] = inFloats[1]
-        linear['y'] = inFloats[2]
-        linear['z'] = inFloats[3]
-        angular['x'] = inFloats[4]
-        angular['y'] = inFloats[5]
-        angular['z'] = inFloats[6]
-        quat['x'] = inFloats[7]
-        quat['y'] = inFloats[8]
-        quat['z'] = inFloats[9]
-        quat['w'] = inFloats[10]
-        accel['x'] = inFloats[11]
-        accel['y'] = inFloats[12]
-        accel['z'] = inFloats[13]
-        pos['x'] = inFloats[14]
-        pos['y'] = inFloats[15]
-        pos['z'] = inFloats[16]
-        
-        cov = {0,0,0,0,0,0,0,0,0} --all zeros because unknown
-        
-        imu = {}
-        imu['header'] = head
-        imu['orientation'] = quat
-        imu['orientation_covariance'] = cov
-        imu['angular_velocity'] = angular
-        imu['angular_velocity_covariance'] = cov
-        imu['linear_acceleration'] = accel
-        imu['linear_acceleration_covariance'] = cov
-
-        poseS = {}
-        pose = {}
-        pose['position'] = pos
-        pose['orientation'] = quat
-        poseS['header'] = head
-        poseS['pose'] = pose
-        
-
-        twistS = {}
-        twist = {}
-        twist['linear'] = linear
-        twist['angular'] = angular
-        twistS['header'] = head
-        twistS['twist'] = twist
-
-        simROS.publish(dvlPub, twistS)
-        simROS.publish(posePub, poseS)
-        simROS.publish(imuPub, imu)
-        
-        
+function mysplit (inputstr, sep)
+    if sep == nil then
+            sep = "%s"
     end
-    if last == nil then
+    local t={}
+    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+            table.insert(t, str)
+    end
+    return t
+end
+
+function dump(o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. dump(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
+
+function get_ros_data(inInts, inFloats, inStrings, inBuffer)
+	if #inStrings >= 2 then
+		head = {}
+	    head["seq"] = seq
+	    seq = seq + 1
+	    head["stamp"] = simROS.getTime()
+	    head["frame_id"] = "global"
+	    i = 1
+	    lastpub = nil
+		while i <= #inStrings do
+			if string.sub(inStrings[i],1,1)== '/' then
+				if lastpub ~= nil then
+					print(dump(pub))
+					simROS.publish(lastpub, pub)
+				end
+				if rospubs[inStrings[i]] == nil then
+					rospubs[inStrings[i]] = simROS.advertise(inStrings[i], inStrings[i+1])
+		    		simROS.publisherTreatUInt8ArrayAsString(rospubs[inStrings[i]])
+		    	end
+		    	lastpub = rospubs[inStrings[i]]
+		    	pub = {}
+	    		i = i + 2
+			end
+			--temp = rospubs[inStrings[i-2]]
+			temp = pub
+			tobesplit = inStrings[i]
+			if inFloats[i] == ARRAY_FLAG then
+				tobesplit = mysplit(tobesplit, ':')
+				arrayString = tobesplit[2]
+				tobesplit = tobesplit[1]
+			end
+			splitstr = mysplit(tobesplit, '.')
+			for k = 1,#splitstr do
+				path = splitstr[k]
+				if temp[path] == nil then
+					temp[path] = {}
+				end
+				if path ~= splitstr[#splitstr] then
+					temp = temp[path]
+				end
+				lastpath = path
+			end
+			temp[lastpath] = inFloats[i]
+			if temp[lastpath] == HEAD_FLAG then
+				temp[lastpath] = head
+			end
+			if temp[lastpath] == ARRAY_FLAG then
+				print(dump(arrayFromString(arrayString)))
+				temp[lastpath] = arrayFromString(arrayString)
+			end
+			i = i + 1
+		end
+		if (lastpub ~= nil) then
+			print(dump(pub))
+			simROS.publish(lastpub, pub)
+		end
+	end
+	if last == nil then
         return {}, {0,0,0,0,0,0,0,0}, {}, ''
     end
-    return {}, last, {}, ""
+    return {}, last, {}, ''
 end
+
+function arrayFromString( arrStr )
+	ret = {}
+	nums = mysplit(arrStr, ',')
+	for i = 1,#nums do
+		ret[i] = tonumber(nums[i])
+	end
+	return ret
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

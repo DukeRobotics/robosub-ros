@@ -1,12 +1,14 @@
 <launch>
+	
+    <!-- Run everything -->
 
-    <arg name="plan" default="semi" />
+    <arg name="sim" default="false" />
 
-    <!-- Include motion to start up services task planning relies on -->
-    <include file="$(find execute)/launch/motion.launch" />
+    <!-- Include motion to start up services used to control the robot -->
+    <include file="$(find execute)/launch/motion.launch">
+    	<arg name="sim" value="$(arg sim)" />
+    </include>
 
     <!-- Run the task planner -->
-    <include file="$(find task_planning)/launch/tasks.launch"
-        <arg name="plan" value="$(arg plan)">
-    </include>
+    <include file="$(find motion_planning)/launch/task_runner.launch" />
 </launch>

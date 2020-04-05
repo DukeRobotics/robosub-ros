@@ -10,7 +10,6 @@ function extsysCall_init()
     quadratic = true -- make true to set drag to quadratic
     
     --[[]]--Original values
-    -- change this for new robot
     dytop = 7.69 * a--same front and back
     dybottom = 6.47 * a
     dxtopfront = 9.71 * a
@@ -23,11 +22,22 @@ function extsysCall_init()
         --MC note: density assumed to be uniform? In any case, very little force rotates the bot
 
     dzbottom = -5.44 * a
-
+    --]]
+    
+    --cx = 0.16971 -- percent needed if only front or back two bottom thrusters are used to straighten rob
+    cx = 0.2136
+    c2 = 0.08485 -- percent needed if all four bottom thrusters are used to straighten top thrusters at 1
     
     
     --Make forcesList a list of values, and the program will cycle through them, switching every 5 seconds
-    values = {-1,-1,-1,1,0,0,0,0}
+    forcesList = {{0,0,0,0,0,0,0,0}}--,
+                        --{1,1,1,1,0,0,0,0},
+                          --{-1,1,1,-1,0,0,0,0},
+                          --{-1,-1,-1,-1,0,0,0,0},
+                          --{1,-1,-1,1,0,0,0,0}}
+    ct = 1
+    
+    values = forcesList[1]
     --values = {1,1,1,1,0,0,-cx,-cx}
     --values = {-1,1,-1,1,0,0,0,0}
     
@@ -60,22 +70,7 @@ function extsysCall_init()
     --]]
     thrusterPoints={top_front_right,top_front_left,top_back_right,top_back_left,
                     bottom_front_right,bottom_front_left,bottom_back_right,bottom_back_left}
-    --this was a merge conflict. I (Maverick) put both codes in.
-    numThrusters=8
-    directions={}
-    directions[1]={1,1,0} --tfr
-    directions[2]={1,-1,0} --tfl
-    directions[3]={-1,1,0} --tbr
-    directions[4]={-1,-1,0} --tbl
-    directions[5]={0,0,-1}
-    directions[6]={0,0,-1} 
-    directions[7]={0,0,-1}
-    directions[8]={0,0,-1}
-    directions = flipThrusters(directions) --changed by mav
-
     numThrusters=table.getn(thrusterPoints)
-    --end merge conflict
-
     forces={}
     
     --from buoyancytest
@@ -147,6 +142,17 @@ function extsysCall_actuation()
     dragforceang[2] = calc_dragforceang(angv[2], ysize, xsize)
     dragforceang[3] = calc_dragforceang(angv[3], ysize, subdepth)
 
+    --print("ang drag" .. dragforceang[1])
+    lastTime = sim.getSystemTimeInMs(startTime)
+    --print(lastTime .. " " .. startTime)
+    if lastTime> 5000 then
+        print("switch!")
+        ct = (ct)%#forcesList+1
+        values = forcesList[ct]
+        print(values)
+        startTime = sim.getSystemTimeInMs(-1)
+    end
+
     sim.addForceAndTorque(hr, {dragforcelin[1],
                               dragforcelin[2],
                               dragforcelin[3]},dragforceang)--centerOfMass)
@@ -207,16 +213,15 @@ function read_ros_data(inInts, inFloats, inString, inBuffer)
     return ros_publishing(inInts, inFloats, inString, inBuffer)
 end
 
-function flipThrusters(forcesloc)
+function flipThrusters(forces)
     flipped = {true, true, false, true, true, false, true, false}
     for count = 1, numThrusters do
         if flipped[count] then
             for num = 1, 3 do
-                forcesloc[count][num] = -1 * forcesloc[count][num]
+                forces[count][num] = -1 * forces[count][num]
             end
         end
     end
-    return forcesloc
 end
 
 function setForces(vals)
@@ -249,9 +254,9 @@ function setForces(vals)
     for count = 1,numThrusters do
         for num =1, 3 do
             if count < 5 then 
-                forces[count][num] = (vals[count])*((1/math.sqrt(2))*fudgeforce*(directions[count][num]))                            
+                forces[count][num] = (vals[count])*((1/math.sqrt(2))*fudgeforce*(forces[count][num]))                            
             else
-                forces[count][num] = (vals[count])*fudgeforce*(directions[count][num])
+                forces[count][num] = (vals[count])*fudgeforce*(forces[count][num])
             end
         end
     end

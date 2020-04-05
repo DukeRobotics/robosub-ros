@@ -8,6 +8,8 @@ Additionally, it publishes a [TwistStamped](http://docs.ros.org/melodic/api/geom
 This readme assumes that you are able to mount the git repo in the docker container, and that you have the most recent Docker image pulled. 
 
 ### Setting up the Docker Container
+First, pull the latest simulation docker image, if you don't already have it, with `docker pull dukerobotics/robosub-ros:simulation`.
+
 You will need a Docker container with port 8080 forwarded. Additionally, you will need to use the simulation tag for the Docker container. Run the command that you normally do to create your Docker container according to the [documentation repo](https://github.com/DukeRobotics/documentation/tree/master/docker), but with `-p 8080:8080` added, and with `:simulation` at the end.
     
 For example, you might run the command:
@@ -47,7 +49,6 @@ Make sure you have some version of python installed on your personal computer. *
 1. Open up a terminal and ssh into your Docker Container with the `-XY` flag (i.e. run `ssh -XY -p 2200 duke@[ip address]`).
 2. Run `source /opt/ros/kinetic/setup.bash` and `roscore &`.
 3. Run `cd dev/robosub-ros/simulation` and then `./runSim.sh &` (you may first need to run `chmod +x runSim.sh`). Wait until the terminal says `Initialization successful.` If it delays on the video compression library or meshcalc for an extended period of time, press enter a couple of times. This may be nothing more than confirmation-bias superstition.
-4. Run whatever ROS topic publishing code you have. In `robosub-ros/simulation/docker`, there is a python script `squareCommand.py` that you can run to make the robot move approximately in a square. (In reality, the robot will spin in wide circles because the robot isn't balanced.) You can use this script to test if communication between the simulations is working.
 
 ### Personal Computer Simulation Setup
 1. Open CoppeliaSim.
@@ -59,7 +60,9 @@ Make sure you have some version of python installed on your personal computer. *
         The reason for this is that Docker Toolbox handles the containers, and more specifically, their IP addresses, differently, requiring a different IP address. `192.168.99.100` is the default output of `docker-machine ip`, which is why it is used. If the simulation fails to connect, run `docker-machine ip` to see if the output is the IP address above.        
     </details>
 
-5. If the robot starts moving laterally, it worked!
+### Controls Code Setup
+1. In the docker container, run whatever ROS topic publishing code you have. In `robosub-ros/simulation/docker`, there is a python script `squareCommand.py` that you can run to make the robot move approximately in a square. (In reality, the robot will spin in wide circles because the robot isn't balanced.) You can use this script to test if communication between the simulations is working.
+2. If the robot starts moving laterally, it worked!
 
 #### A Note for Windows
 On windows machines with high res displays, some apps will not scale the font correctly. This happens because some applications essentially “tell” windows that it will handle the scaling, but then don’t. To fix this, right click on the application icon, go to properties, compatibility, change high DPI settings, check override, and select system.

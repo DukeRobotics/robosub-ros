@@ -5,9 +5,9 @@ function tableConcat(t1,t2)
     return t1
 end
 
-function ros_publishing_loop(inInts, inFloats, inString, inBuffer)
-	print("made it")
+function ros_publishing(inInts, inFloats, inString, inBuffer)
 	HEAD_FLAG = -525600
+	ARRAY_FLAG = -8675309
 	linvel, angvel = sim.getObjectVelocity(hr)
     quat = sim.getObjectQuaternion(hr, -1)
     pos = sim.getObjectPosition(hr, -1)
@@ -26,8 +26,8 @@ function ros_publishing_loop(inInts, inFloats, inString, inBuffer)
     linvel = sim.multiplyVector(trans, linvel)
 
     outDvl = {'/sim/dvl', 'geometry_msgs/TwistStamped', 'header', 
-    	"twist.linear.x", "twist.linear.y, twist.linear.z", 
-		"twist.angular.x", "twist.angular.y, twist.angular.z"}
+    	"twist.linear.x", "twist.linear.y", "twist.linear.z", 
+		"twist.angular.x", "twist.angular.y", "twist.angular.z"}
 
 	outDvlData = {-1, -1, HEAD_FLAG}
 	outDvlData = tableConcat(outDvlData, linvel)
@@ -41,12 +41,18 @@ function ros_publishing_loop(inInts, inFloats, inString, inBuffer)
     outPoseData = tableConcat(outPoseData, pos)
     outPoseData = tableConcat(outPoseData, quat)
 
+    outArray = {'/sim/test_array', 'std_msgs/Float32MultiArray', 'data:14,13,151,12'}
+    outArrayData = {-1,-1,ARRAY_FLAG}
+
     outFloats = tableConcat(outDvlData, outPoseData)
+    outFloats = tableConcat(outFloats, outArrayData)
     outStrings = tableConcat(outDvl, outPose)
+    outStrings = tableConcat(outStrings, outArray)
 
     return {}, outFloats, outStrings, ""
 end
 
+--[[
 function ros_publishing(inInts, inFloats, inString, inBuffer)
 	linvel, angvel = sim.getObjectVelocity(hr)
     quat = sim.getObjectQuaternion(hr, -1)
@@ -84,3 +90,4 @@ function ros_publishing(inInts, inFloats, inString, inBuffer)
 
     return {}, outFloats, {}, ""
 end
+]]--
