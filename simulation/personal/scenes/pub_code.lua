@@ -44,10 +44,28 @@ function ros_publishing(inInts, inFloats, inString, inBuffer)
     outArray = {'/sim/test_array', 'std_msgs/Float32MultiArray', 'data:14,13,151,12'}
     outArrayData = {-1,-1,ARRAY_FLAG}
 
+    outImu = {'/sim/imu', 'sensor_msgs/Imu', "header",  
+    	"orientation.x", "orientation.y", "orientation.z", "orientation.w",
+		"orientation_covariance:0,0,0,0,0,0,0,0,0",
+		"angular_velocity.x", "angular_velocity.y", "angular_velocity.z",
+		"angular_velocity_covariance:0,0,0,0,0,0,0,0,0",
+		"linear_acceleration.x", "linear_acceleration.y", "linear_acceleration.z",
+		"linear_acceleration_covariance:0,0,0,0,0,0,0,0,0"}
+
+	outImuData = {-1, -1, HEAD_FLAG}
+	outImuData = tableConcat(outImuData, quat)
+	outImuData = tableConcat(outImuData, {ARRAY_FLAG})
+	outImuData = tableConcat(outImuData, angvel)
+	outImuData = tableConcat(outImuData, {ARRAY_FLAG})
+	outImuData = tableConcat(outImuData, accel)
+	outImuData = tableConcat(outImuData, {ARRAY_FLAG})
+
     outFloats = tableConcat(outDvlData, outPoseData)
-    outFloats = tableConcat(outFloats, outArrayData)
+    --outFloats = tableConcat(outFloats, outArrayData)
+    outFloats = tableConcat(outFloats, outImuData)
     outStrings = tableConcat(outDvl, outPose)
-    outStrings = tableConcat(outStrings, outArray)
+    --outStrings = tableConcat(outStrings, outArray)
+    outStrings = tableConcat(outStrings, outImu)
 
     return {}, outFloats, outStrings, ""
 end
