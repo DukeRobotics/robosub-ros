@@ -1,4 +1,4 @@
-# This servo contains data on changing servo angles
+# This service type contains data on changing servo angles
 
 std_msgs/Header header
 
