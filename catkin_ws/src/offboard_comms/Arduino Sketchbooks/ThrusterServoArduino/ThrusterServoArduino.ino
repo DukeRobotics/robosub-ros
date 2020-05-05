@@ -27,7 +27,7 @@ void thruster_speeds_callback(const offboard_comms::ThrusterSpeeds &ts_msg){
 }
 
 void servo_control_callback(const offboard_comms::SetServo::Request &sc_req, offboard_comms::SetServo::Response &sc_res){
-    //copy the contents of the angle message to the local array
+    //copy the contents of the servo request to the local variables
     uint8_t pin = sc_req.num;
     uint16_t angle = sc_req.angle;
     if(pin >= NUM_SERVO || angle > 180){

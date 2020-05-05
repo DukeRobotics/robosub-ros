@@ -2,7 +2,7 @@
 
 std_msgs/Header header
 
-# The index of the servo to change (0-8 on current muliplexer) 
+# The index of the servo to change (zero-indexed)
 uint8 num 
 
 # The new angle of the servo
