@@ -28,8 +28,5 @@ class StateRepublisher():
         twist = utils.parse_twist(odometry.twist.twist)
         utils.publish_data_dictionary(self._pub_twist, self.DIRECTIONS, twist)
 
-def main():
-    StateRepublisher()
-
 if __name__ == '__main__':
-    main()
+    StateRepublisher()

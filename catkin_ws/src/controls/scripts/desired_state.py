@@ -28,7 +28,7 @@ class DesiredStateHandler():
     pose = None
     powers = None
     last_powers = None
-    # These dictionaries contain mappings between the strings in DIRECTION to the corresponding rospy publisher objects
+    # These dictionaries contain mappings between the strings in DIRECTIONS to the corresponding rospy publisher objects
     pub_pos = {}
     pub_pos_enable = {}
     pub_power = {}
@@ -57,7 +57,7 @@ class DesiredStateHandler():
     def soft_estop(self):
         #Stop Moving
         utils.publish_data_constant(self.pub_pos_enable, self.DIRECTIONS, False)
-        utils.publish_data_constant(self.pub_power, self.DIRECTIONS, False)
+        utils.publish_data_constant(self.pub_power, self.DIRECTIONS, 0)
         self.powers = None
         self.last_powers = None
         self.pose = None
