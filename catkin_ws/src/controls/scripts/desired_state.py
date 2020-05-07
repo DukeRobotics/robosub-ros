@@ -125,7 +125,10 @@ class DesiredStateHandler():
                 self.powers = None
 
 def main():
-    DesiredStateHandler().run()
+    try:
+        DesiredStateHandler().run()
+    except rospy.ROSInterruptException:
+        pass
 
 if __name__ == '__main__':
     main()

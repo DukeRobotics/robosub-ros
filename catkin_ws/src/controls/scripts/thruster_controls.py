@@ -125,9 +125,11 @@ class ThrusterController():
                     self.pub.publish(f32_t_allocs)
 
             rate.sleep()
-
-if __name__ == '__main__':
+def main():
     try:
         ThrusterController().run()
     except rospy.ROSInterruptException:
         pass
+
+if __name__ == '__main__':
+    main()
