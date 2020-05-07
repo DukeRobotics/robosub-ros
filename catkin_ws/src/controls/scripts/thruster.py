@@ -4,7 +4,7 @@ import rospy
 import numpy as np
 from tf.transformations import quaternion_from_euler
 import math
-from drc_math import quat_vec_mult 
+from drc_utils import quat_vec_mult 
 
 class Thruster():
 

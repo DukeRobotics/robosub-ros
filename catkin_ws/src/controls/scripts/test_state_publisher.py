@@ -71,8 +71,8 @@ class TestStatePublisher():
 
 
 def main():
-    #TestStatePublisher().publish_desired_pose()
-    TestStatePublisher().publish_desired_powers()
+    TestStatePublisher().publish_desired_pose()
+    #TestStatePublisher().publish_desired_powers()
 
 if __name__ == '__main__':
     main()

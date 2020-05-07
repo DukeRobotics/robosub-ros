@@ -10,23 +10,9 @@ import numpy as np
 from thruster_manager import ThrusterManager
 from std_srvs.srv import SetBool
 from tf import TransformListener
+import drc_utils as utils
 
 class ThrusterController():
-
-    CONTROLS_MOVE_TOPIC = '/control_effort'
-    CONTROLS_MOVE_X_TOPIC = CONTROLS_MOVE_TOPIC + '/x'
-    CONTROLS_MOVE_Y_TOPIC = CONTROLS_MOVE_TOPIC + '/y'
-    CONTROLS_MOVE_Z_TOPIC = CONTROLS_MOVE_TOPIC + '/z'
-    CONTROLS_MOVE_ROLL_TOPIC = CONTROLS_MOVE_TOPIC + '/roll'
-    CONTROLS_MOVE_PITCH_TOPIC = CONTROLS_MOVE_TOPIC + '/pitch'
-    CONTROLS_MOVE_YAW_TOPIC = CONTROLS_MOVE_TOPIC + '/yaw'
-
-    POWER_TOPIC_X = '/controls/power/x'
-    POWER_TOPIC_Y = '/controls/power/y'
-    POWER_TOPIC_Z = '/controls/power/z'
-    POWER_TOPIC_ROLL = '/controls/power/roll'
-    POWER_TOPIC_PITCH = '/controls/power/pitch'
-    POWER_TOPIC_YAW = '/controls/power/yaw'
 
     SIM_PUB_TOPIC = '/sim/move'
     ROBOT_PUB_TOPIC = '/offboard/thruster_speeds'
@@ -37,9 +23,10 @@ class ThrusterController():
         rospy.init_node('thruster_controls')
 
         self.sim = rospy.get_param('~/thruster_controls/sim')
-        if self.sim == False:
+        if not self.sim :
             self.pub = rospy.Publisher(self.ROBOT_PUB_TOPIC, ThrusterSpeeds, queue_size=3)
-        elif self.sim == True:
+
+        else:
             self.pub = rospy.Publisher(self.SIM_PUB_TOPIC, Float32MultiArray, queue_size=3)
 
         self.enable_service = rospy.Service('enable_controls', SetBool, self.handle_enable_controls)
@@ -48,19 +35,11 @@ class ThrusterController():
 
         self.listener = TransformListener()
 
-        rospy.Subscriber(self.CONTROLS_MOVE_X_TOPIC, Float64, self._on_x)
-        rospy.Subscriber(self.CONTROLS_MOVE_Y_TOPIC, Float64, self._on_y)
-        rospy.Subscriber(self.CONTROLS_MOVE_Z_TOPIC, Float64, self._on_z)
-        rospy.Subscriber(self.CONTROLS_MOVE_ROLL_TOPIC, Float64, self._on_roll)
-        rospy.Subscriber(self.CONTROLS_MOVE_PITCH_TOPIC, Float64, self._on_pitch)
-        rospy.Subscriber(self.CONTROLS_MOVE_YAW_TOPIC, Float64, self._on_yaw)
 
-        rospy.Subscriber(self.POWER_TOPIC_X, Float64, self._on_x_power)
-        rospy.Subscriber(self.POWER_TOPIC_Y, Float64, self._on_y_power)
-        rospy.Subscriber(self.POWER_TOPIC_Z, Float64, self._on_z_power)
-        rospy.Subscriber(self.POWER_TOPIC_ROLL, Float64, self._on_roll_power)
-        rospy.Subscriber(self.POWER_TOPIC_PITCH, Float64, self._on_pitch_power)
-        rospy.Subscriber(self.POWER_TOPIC_YAW, Float64, self._on_yaw_power)
+        for d in utils.get_directions():
+            rospy.Subscriber(utils.get_controls_move_topic(d), Float64, self._on, d)
+            rospy.Subscriber(utils.get_power_topic(d), Float64, self._on_power, d)
+
 
         self.pid_outputs = np.zeros(6)
         self.pid_outputs_local = np.zeros(6)
@@ -100,58 +79,18 @@ class ThrusterController():
             self.pid_outputs_local = self.transform_twist('odom', 'base_link', self.pid_outputs)
 
         for i in range(len(self.powers)):
-            if(self.powers[i]!=0):
-                self.pid_outputs_local[i]=self.powers[i]
+            if self.powers[i] != 0:
+                self.pid_outputs_local[i] = self.powers[i]
 
         self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs_local)
 
 
-    def _on_x(self, x):
-        self.pid_outputs[0] = x.data
+    def _on(self, val, direction):
+        self.pid_outputs[utils.get_directions().index(direction)] = val.data
         self.update_thruster_allocs()
 
-    def _on_y(self, y):
-        self.pid_outputs[1] = y.data
-        self.update_thruster_allocs()
-
-    def _on_z(self, z):
-        self.pid_outputs[2] = z.data
-        self.update_thruster_allocs()
-
-    def _on_roll(self, roll):
-        self.pid_outputs[3] = roll.data
-        self.update_thruster_allocs()
-
-    def _on_pitch(self, pitch):
-        self.pid_outputs[4] = pitch.data
-        self.update_thruster_allocs()
-
-    def _on_yaw(self, yaw):
-        self.pid_outputs[5] = yaw.data
-        self.update_thruster_allocs()
-
-    def _on_x_power(self, x):
-        self.powers[0] = x.data
-        self.update_thruster_allocs()
-
-    def _on_y_power(self, y):
-        self.powers[1] = y.data
-        self.update_thruster_allocs()
-
-    def _on_z_power(self, z):
-        self.powers[2] = z.data
-        self.update_thruster_allocs()
-
-    def _on_roll_power(self, roll):
-        self.powers[3] = roll.data
-        self.update_thruster_allocs()
-
-    def _on_pitch_power(self, pitch):
-        self.powers[4] = pitch.data
-        self.update_thruster_allocs()
-
-    def _on_yaw_power(self, yaw):
-        self.powers[5] = yaw.data
+    def _on_power(self, val, direction):
+        self.powers[utils.get_directions().index(direction)] = val.data
         self.update_thruster_allocs()
 
     def run(self):
@@ -160,11 +99,11 @@ class ThrusterController():
         while not rospy.is_shutdown():
             if not self.enabled:
                 # If not enabled, publish all 0s.
-                if self.sim == False:
+                if not self.sim:
                     i8_t_allocs = ThrusterSpeeds()
                     i8_t_allocs.speeds = np.zeros(8)
                     self.pub.publish(i8_t_allocs)
-                elif self.sim == True:
+                else:
                     f32_t_allocs = Float32MultiArray()
                     f32_t_allocs.data = np.zeros(8)
                     self.pub.publish(f32_t_allocs)
@@ -180,18 +119,16 @@ class ThrusterController():
                 #Clamp values of t_allocs to between -1 to 1
                 self.t_allocs = np.clip(self.t_allocs, -1 , 1)
 
-                if self.sim == False:
+                if not self.sim:
                     i8_t_allocs = ThrusterSpeeds()
                     i8_t_allocs.speeds = (self.t_allocs * 127).astype(int)
                     self.pub.publish(i8_t_allocs)
-                elif self.sim == True:
+                else:
                     f32_t_allocs = Float32MultiArray()
                     f32_t_allocs.data = self.t_allocs
                     self.pub.publish(f32_t_allocs)
 
             rate.sleep()
-
-
 def main():
     try:
         ThrusterController().run()
