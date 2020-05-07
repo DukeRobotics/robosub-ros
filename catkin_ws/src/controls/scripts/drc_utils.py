@@ -1,5 +1,8 @@
 from tf.transformations import euler_from_quaternion, quaternion_multiply, quaternion_conjugate
 
+def get_directions():
+  return ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
+
 def get_pose_topic(direction):
     return '/controls/state/pose/' + direction
 
