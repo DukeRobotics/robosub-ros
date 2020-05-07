@@ -15,8 +15,6 @@ class bcolors:
 
 class DesiredStateHandler():
 
-    DIRECTIONS = ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
-
     DESIRED_TWIST_POWER = 'controls/desired_twist_power'
     DESIRED_POSE_TOPIC = 'controls/desired_pose'
 
@@ -34,7 +32,7 @@ class DesiredStateHandler():
     pub_power = {}
 
     def __init__(self):
-        for d in self.DIRECTIONS:
+        for d in utils.get_directions():
             self.state[d] = 0
             self.hold[d] = 0
             rospy.Subscriber(utils.get_pose_topic(d), Float64, self.receive, d)
@@ -56,15 +54,15 @@ class DesiredStateHandler():
 
     def soft_estop(self):
         #Stop Moving
-        utils.publish_data_constant(self.pub_pos_enable, self.DIRECTIONS, False)
-        utils.publish_data_constant(self.pub_power, self.DIRECTIONS, 0)
+        utils.publish_data_constant(self.pub_pos_enable, utils.get_directions(), False)
+        utils.publish_data_constant(self.pub_power, utils.get_directions(), 0)
         self.powers = None
         self.last_powers = None
         self.pose = None
 
     def enable_loops(self):
         #Enable all PID Loops
-        utils.publish_data_constant(self.pub_pos_enable, self.DIRECTIONS, True)
+        utils.publish_data_constant(self.pub_pos_enable, utils.get_directions(), True)
 
     def run(self):
         rospy.init_node('desired_state')
@@ -96,7 +94,7 @@ class DesiredStateHandler():
 
             if self.pose:
                 self.enable_loops()
-                utils.publish_data_dictionary(self.pub_pos, self.DIRECTIONS, self.pose)
+                utils.publish_data_dictionary(self.pub_pos, utils.get_directions(), self.pose)
                 self.pose = None
 
             elif self.powers:
@@ -121,10 +119,13 @@ class DesiredStateHandler():
 
                 #TODO: BOTH cases
 
-                utils.publish_data_dictionary(self.pub_power, self.DIRECTIONS, self.powers)
+                utils.publish_data_dictionary(self.pub_power, utils.get_directions(), self.powers)
                 # Publish current state to the desired state for PID
-                utils.publish_data_dictionary(self.pub_pos, self.DIRECTIONS, self.hold)
+                utils.publish_data_dictionary(self.pub_pos, utils.get_directions(), self.hold)
                 self.powers = None
 
+def main():
+    DesiredStateHandler.run()
+
 if __name__ == '__main__':
-    DesiredStateHandler().run()
+    main()

@@ -13,7 +13,6 @@ from tf import TransformListener
 import drc_utils as utils
 
 class ThrusterController():
-    DIRECTIONS = ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
 
     SIM_PUB_TOPIC = '/sim/move'
     ROBOT_PUB_TOPIC = '/offboard/thruster_speeds'
@@ -35,7 +34,7 @@ class ThrusterController():
 
         self.listener = TransformListener()
 
-        for d in self.DIRECTIONS:
+        for d in utils.get_directions():
             rospy.Subscriber(utils.get_controls_move_topic(d), Float64, self._on, d)
             rospy.Subscriber(utils.get_power_topic(d), Float64, self._on_power, d)
 
@@ -83,11 +82,11 @@ class ThrusterController():
         self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs_local)
 
     def _on(self, val, direction):
-        self.pid_outputs[self.DIRECTIONS.index(direction)] = val.data
+        self.pid_outputs[utils.get_directions().index(direction)] = val.data
         self.update_thruster_allocs()
 
     def _on_power(self, val, direction):
-        self.powers[self.DIRECTIONS.index(direction)] = val.data
+        self.powers[utils.get_directions().index(direction)] = val.data
         self.update_thruster_allocs()
 
     def run(self):
