@@ -1,4 +1,4 @@
-from tf.transformations import euler_from_quaternion
+from tf.transformations import euler_from_quaternion, quaternion_multiply, quaternion_conjugate
 
 def get_pose_topic(direction):
     return '/controls/state/pose/' + direction
@@ -35,6 +35,17 @@ def parse_twist(twist):
                   'pitch': twist.angular.y,
                   'yaw': twist.angular.z}
     return twist_dict
+
+def quat_vec_mult(q1, v1):
+    """Rotate vector v1 by quaternion q1, and return the resulting vector.
+    From https://answers.ros.org/question/196149/how-to-rotate-vector-by-quaternion-in-python/
+    """
+    q2 = list(v1)
+    q2.append(0.0)
+    return quaternion_multiply(
+        quaternion_multiply(q1, q2), 
+        quaternion_conjugate(q1)
+    )[:3]
 
 
 def publish_data_dictionary(publishers, indexes, vals):
