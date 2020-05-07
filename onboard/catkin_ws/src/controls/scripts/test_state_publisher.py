@@ -58,7 +58,7 @@ class TestStatePublisher():
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             self._pub_desired_pose.publish(self.desired_pose)
-            self._pub_current_state.publish(self.current_state)
+            #self._pub_current_state.publish(self.current_state)
             rate.sleep()
 
     def publish_desired_powers(self):
@@ -66,13 +66,13 @@ class TestStatePublisher():
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             self._pub_desired_powers.publish(self.desired_powers)
-            self._pub_current_state.publish(self.current_state)
+            #self._pub_current_state.publish(self.current_state)
             rate.sleep()
 
 
 def main():
-    #TestStatePublisher().publish_desired_pose()
-    TestStatePublisher().publish_desired_powers()
+    TestStatePublisher().publish_desired_pose()
+    #TestStatePublisher().publish_desired_powers()
 
 if __name__ == '__main__':
     main()

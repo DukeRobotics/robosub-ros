@@ -23,11 +23,11 @@ class DesiredStateHandler():
     REFRESH_HZ = 10  # for main loop
 
     # All variables are a dictionary with mappings between the strings in DIRECTIONS to its corresponding value
-    vals = {}
-    hold = {}
-    pose = None
-    powers = None
-    last_powers = None
+    state = {} # Current State of the Robot
+    hold = {} # State that should be held at the start of power control
+    pose = None # Desired pose
+    powers = None # Desired power
+    last_powers = None # Power from previous loop
     # These dictionaries contain mappings between the strings in DIRECTIONS to the corresponding rospy publisher objects
     pub_pos = {}
     pub_pos_enable = {}
@@ -35,7 +35,7 @@ class DesiredStateHandler():
 
     def __init__(self):
         for d in self.DIRECTIONS:
-            self.vals[d] = 0
+            self.state[d] = 0
             self.hold[d] = 0
             rospy.Subscriber(utils.get_pose_topic(d), Float64, self.receive, d)
             self.pub_pos[d] = rospy.Publisher(utils.get_pid_topic(d), Float64, queue_size=3)
@@ -46,7 +46,7 @@ class DesiredStateHandler():
         rospy.Subscriber(self.DESIRED_TWIST_POWER, Twist, self.receive_powers)
 
     def receive(self, val, direction):
-        self.vals[direction] = val.data
+        self.state[direction] = val.data
 
     def receive_pose(self, pose):
         self.pose = utils.parse_pose(pose)
@@ -96,15 +96,14 @@ class DesiredStateHandler():
 
             if self.pose:
                 self.enable_loops()
-                self.vals = dict(self.pose)
-                utils.publish_data_dictionary(self.pub_pos, self.DIRECTIONS, self.vals)
+                utils.publish_data_dictionary(self.pub_pos, self.DIRECTIONS, self.pose)
                 self.pose = None
 
             elif self.powers:
                 if self.last_powers is None or self.powers != self.last_powers:
                     self.enable_loops()
                     # Hold Position on the current state
-                    self.hold = dict(self.vals)
+                    self.hold = dict(self.state)
                     self.last_powers = dict(self.powers)
 
                 # Nonzero entries bypass PID
