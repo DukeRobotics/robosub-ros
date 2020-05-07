@@ -125,7 +125,7 @@ class DesiredStateHandler():
                 self.powers = None
 
 def main():
-    DesiredStateHandler.run()
+    DesiredStateHandler().run()
 
 if __name__ == '__main__':
     main()
