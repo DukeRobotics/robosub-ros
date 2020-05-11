@@ -38,7 +38,6 @@ class Detector:
     # Load in models and other misc. setup work
     def __init__(self):
         self.bridge = CvBridge()
-        self.ready = True  # Ready to predict next frame
 
         # Initialize any enabled models
         for model_name in self.MODELS:
@@ -64,22 +63,18 @@ class Detector:
 
     # Camera subscriber callback; publishes predictions for each frame
     def detect(self, img_msg):
-        if not self.ready:
-            return
-
-        self.ready = False
         image = self.bridge.imgmsg_to_cv2(img_msg, 'rgb8')
 
         for model_name in self.MODELS:
             model = self.MODELS[model_name]
 
             # Generate predictions for each enabled model
-            # Make sure model is enabled AND that the predictor is initialized
-            if model['enabled'] and model['predictor']:
+            if model['enabled']:
+                # Initialize predictor if not already
+                self.init_model(model_name)
+
                 preds = model['predictor'].predict_top(image)
                 self.publish_predictions(preds, model['publisher'])
-
-        self.ready = True
 
     # Publish predictions with the given publisher
     def publish_predictions(self, preds, publisher):
@@ -104,13 +99,14 @@ class Detector:
             model = self.MODELS[req.model_name]
             model['enabled'] = req.enabled
 
-            if model['enabled']:
-                self.init_model(req.model_name)
-            else:  # Delete model from memory
+            # Delete model from memory if setting to disabled
+            if not model['enabled']:
                 model['predictor'] = None
                 model['publisher'] = None
 
-        return True
+            return True
+
+        return False
 
     # Initialize node and set up Subscriber to generate and
     # publish predictions at every camera frame
