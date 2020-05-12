@@ -2,6 +2,7 @@
 
 import rospy
 import os
+import yaml
 from cv.msg import Object
 from cv.srv import ToggleModel
 from sensor_msgs.msg import Image
@@ -16,44 +17,28 @@ class Detector:
 
     TOGGLE_MODEL_SERVICE = 'toggle_model'
 
-    MODELS = {
-        'buoy': {
-            'enabled': True,
-            'classes': ['alien', 'bat', 'witch', 'brick', '_start_gate', '_start_tick', '_'],
-            'weights': '../models/buoy.pth',
-            'topic': '/cv/buoy',
-            'predictor': None,  # Set dynamically based on what's running to save memory
-            'publisher': None,
-        },
-        'test': {
-            'enabled': True,
-            'classes': ['test1', 'test2', 'test3', '_', '_', '_', '_'],
-            'weights': '../models/buoy.pth',
-            'topic': '/cv/buoy',
-            'predictor': None,
-            'publisher': None,
-        },
-    }
-
     # Load in models and other misc. setup work
     def __init__(self):
         self.bridge = CvBridge()
 
+        with open('../models/models.yaml') as f:
+            self.models = yaml.load(f)
+
         # Initialize any enabled models
-        for model_name in self.MODELS:
-            if self.MODELS[model_name]['enabled']:
+        for model_name in self.models:
+            if self.models[model_name]['enabled']:
                 self.init_model(model_name)
 
     # Initialize model predictor and publisher if not already initialized
     def init_model(self, model_name):
-        model = self.MODELS[model_name]
+        model = self.models[model_name]
 
         # Model already initialized; return from method
         if model['predictor'] is not None:
             return
 
         path = os.path.dirname(__file__)
-        weights_file = os.path.join(path, model['weights'])
+        weights_file = os.path.join(path, '../models', model['weights'])
 
         predictor = Model.load(weights_file, model['classes'])
         publisher = rospy.Publisher(model['topic'], Object, queue_size=10)
@@ -65,8 +50,8 @@ class Detector:
     def detect(self, img_msg):
         image = self.bridge.imgmsg_to_cv2(img_msg, 'rgb8')
 
-        for model_name in self.MODELS:
-            model = self.MODELS[model_name]
+        for model_name in self.models:
+            model = self.models[model_name]
 
             # Generate predictions for each enabled model
             if model['enabled']:
@@ -95,8 +80,8 @@ class Detector:
 
     # Service for toggling specific models on and off
     def toggle_model(self, req):
-        if req.model_name in self.MODELS:
-            model = self.MODELS[req.model_name]
+        if req.model_name in self.models:
+            model = self.models[req.model_name]
             model['enabled'] = req.enabled
 
             # Delete model from memory if setting to disabled

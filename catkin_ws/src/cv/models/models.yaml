@@ -1,0 +1,14 @@
+buoy:
+  classes: [alien, bat, witch, brick, _start_gate, _start_tick, _]
+  enabled: true
+  predictor: null
+  publisher: null
+  topic: /cv/buoy
+  weights: buoy.pth
+test:
+  classes: [test1, test2, test3, _, _, _, _]
+  enabled: false
+  predictor: null
+  publisher: null
+  topic: /cv/buoy
+  weights: buoy.pth
