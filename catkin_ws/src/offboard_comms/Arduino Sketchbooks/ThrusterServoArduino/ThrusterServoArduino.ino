@@ -8,6 +8,7 @@
 
 Adafruit_PWMServoDriver pwm_multiplexer(0x40);
 
+#define BAUD_RATE 57600
 #define NUM_THRUSTERS 8
 #define THRUSTER_TIMEOUT_MS 500
 #define NUM_SERVO 8
@@ -44,7 +45,7 @@ ros::Subscriber<offboard_comms::ThrusterSpeeds> ts_sub("/offboard/thruster_speed
 ros::ServiceServer<offboard_comms::SetServo::Request, offboard_comms::SetServo::Response> servo_service("/offboard/servo_angle", &servo_control_callback);
 
 void setup(){
-    Serial.begin(57600);
+    Serial.begin(BAUD_RATE);
     nh.initNode();
     nh.subscribe(ts_sub);
     nh.advertiseService(servo_service);
