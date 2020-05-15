@@ -18,7 +18,7 @@ class SynchronousCamera:
         for cam in cam_name:
             pub = rospy.Publisher(rospy.get_name() + "/" + cam + "/" + self.RAW_TOPIC_NAME, Image, queue_size=10)
             info_pub = rospy.Publisher(rospy.get_name() + "/" + cam + "/" + self.INFO_TOPIC_NAME, CameraInfo, queue_size=10)
-            self._cameras.append(Camera(pub, info_pub, cam_name[cam], cam_ids[cam]))
+            self._cameras.append(Camera(pub, info_pub, cam, cam_ids[cam]))
 
     def for_each_camera(self, fn):
         for camera in self._cameras:
