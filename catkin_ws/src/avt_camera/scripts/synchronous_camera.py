@@ -36,7 +36,7 @@ class SynchronousCamera:
                 time = rospy.Time.now()
                 self.for_each_camera(lambda camera: camera.publish_image(time))
 
-            self.for_each_camera(lambda camera: camera.stop_acquistion())
+            self.for_each_camera(lambda camera: camera.stop_acquisition())
 
 if __name__ == '__main__':
     try:

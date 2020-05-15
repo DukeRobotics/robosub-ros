@@ -29,7 +29,7 @@ class MonoCamera:
                 time = rospy.Time.now()
                 self._camera.publish_image(time)
 
-            self._camera.stop_acquistion()
+            self._camera.stop_acquisition()
 
 if __name__ == '__main__':
     try:

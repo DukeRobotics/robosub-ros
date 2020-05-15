@@ -90,10 +90,10 @@ class Camera:
         self._pub.publish(img_message)
 
         ci_message = self._info_manager.getCameraInfo()
-        ci_message.header.stamp = rospy.Time.now()
+        ci_message.header.stamp = time
         self._info_pub.publish(self._info_manager.getCameraInfo())
 
-    def stop_acquistion(self):
+    def stop_acquisition(self):
         self._c0.runFeatureCommand("AcquisitionStop")
         self._c0.endCapture()
         self._c0.revokeAllFrames()
