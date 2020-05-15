@@ -209,7 +209,7 @@ function read_ros_data(inInts, inFloats, inString, inBuffer)
 end
 
 function flipThrusters(forcesloc)
-    flipped = {true, true, false, true, true, false, true, false}
+    flipped = {true, true, false, true, false, true, true, false}
     for count = 1, numThrusters do
         if flipped[count] then
             for num = 1, 3 do

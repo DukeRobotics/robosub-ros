@@ -41,6 +41,7 @@ function get_GridPoint(gate_pt)
     print("new " ..mag2)
     print("should be same "..mag3)
 --]]
+--maybe change to -1
     for i = 1, 2 do
         if (gridPt[i] < 0) then
             gridPt[i] = 0
