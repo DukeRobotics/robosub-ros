@@ -4,7 +4,11 @@ import rospy
 
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
+from enum import Enum
 
+class Movement(Enum):
+    TRANSLATION = 0
+    ROTATION = 1
 
 class JoystickParser():
     NODE_NAME = 'joystick_parser'
@@ -14,8 +18,7 @@ class JoystickParser():
     def __init__(self):
         self._pub = rospy.Publisher(self.JOY_DEST_TOPIC, Twist, queue_size=50)
         self._current_joy_msg = Twist()
-        self._movement_type = 0     # Where 0 defines the left joystick to translational movement (x, y)
-                                    #   and 1 defines the left joystick to rotation (roll, pitch)
+        self._movement_type = Movement.TRANSLATION
 
         rospy.init_node(self.NODE_NAME)
         rospy.Subscriber(self.JOYSTICK_RAW_TOPIC, Joy, self.parse_data)
@@ -24,7 +27,7 @@ class JoystickParser():
     def parse_data(self, raw_joystick_data):
         self._read_joystick_data(raw_joystick_data)
 
-        if self._movement_type == 0:
+        if self._movement_type == Movement.TRANSLATION:
             self._parse_linear()
         else:
             self._parse_angular()
@@ -37,10 +40,10 @@ class JoystickParser():
         self._rightUD = raw_joystick_data.axes[3]
 
         if raw_joystick_data.buttons[2] == 1:
-            self._movement_type = 0
+            self._movement_type = Movement.TRANSLATION
 
         if raw_joystick_data.buttons[3] == 1:
-            self._movement_type = 1
+            self._movement_type = Movement.ROTATION
 
     def _parse_linear(self):
         self._current_joy_msg.linear.x = self._leftUD
