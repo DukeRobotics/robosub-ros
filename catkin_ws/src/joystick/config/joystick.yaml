@@ -1,0 +1,9 @@
+# Contains mapping from buttons to their corresponding index in the joystick input
+
+F310:
+  linearButton: 2
+  rotButton: 3
+
+thrustmaster:
+  linearButton: 0
+  rotButton: 1

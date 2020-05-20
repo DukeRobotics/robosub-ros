@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 import rospy
-
+import yaml
+import sys
+import os
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
 from enum import Enum
@@ -10,8 +12,8 @@ class Movement(Enum):
     TRANSLATION = 0
     ROTATION = 1
 
-class JoystickParser():
-    NODE_NAME = 'joystick_parser'
+class JoystickParser:
+    NODE_NAME = 'joy_pub'
     JOYSTICK_RAW_TOPIC = 'joystick/raw'
     JOY_DEST_TOPIC = 'controls/desired_twist_power'
 
@@ -20,13 +22,17 @@ class JoystickParser():
         self._current_joy_msg = Twist()
         self._movement_type = Movement.TRANSLATION
 
+        joystick_type = rospy.get_param("~/joy_pub/joystick_type")
+        with open(os.path.join(sys.path[0], '../config/joystick.yaml')) as f:
+            data = yaml.load(f)
+        self._button_indices = data[joystick_type]
+
         rospy.init_node(self.NODE_NAME)
-        rospy.Subscriber(self.JOYSTICK_RAW_TOPIC, Joy, self.parse_data)
+        rospy.Subscriber(self.JOYSTICK_RAW_TOPIC, Joy, self._parse_data)
         rospy.spin()
 
-    def parse_data(self, raw_joystick_data):
+    def _parse_data(self, raw_joystick_data):
         self._read_joystick_data(raw_joystick_data)
-
         if self._movement_type == Movement.TRANSLATION:
             self._parse_linear()
         else:
@@ -39,11 +45,17 @@ class JoystickParser():
         self._rightLR = raw_joystick_data.axes[2]
         self._rightUD = raw_joystick_data.axes[3]
 
-        if raw_joystick_data.buttons[2] == 1:
+        if raw_joystick_data.buttons[self._get_linear_button()] == 1:
             self._movement_type = Movement.TRANSLATION
 
-        if raw_joystick_data.buttons[3] == 1:
+        if raw_joystick_data.buttons[self._get_rotation_button()] == 1:
             self._movement_type = Movement.ROTATION
+
+    def _get_linear_button(self):
+        return self._button_indices["linearButton"]
+
+    def _get_rotation_button(self):
+        return self._button_indices["rotButton"]
 
     def _parse_linear(self):
         self._current_joy_msg.linear.x = self._leftUD
