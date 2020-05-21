@@ -10,3 +10,4 @@ then
 else
       $COPPELIA_SIM_SCRIPT -h -s $SERVER_LOCATION
 fi
+
