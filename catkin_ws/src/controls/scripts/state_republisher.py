@@ -5,7 +5,6 @@ from std_msgs.msg import Float64
 from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_quaternion
 
-from drc_math import quad_vec_mult
 
 class StateRepublisher():
     STATE_TOPIC = '/state'

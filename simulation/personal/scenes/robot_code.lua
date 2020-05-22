@@ -232,8 +232,8 @@ function setForces(vals)
     forces[4]={-1,-1,0} --tbl
     forces[5]={0,0,-1}
     forces[6]={0,0,-1} 
-    forces[7]={0,0,-1}
-    forces[8]={0,0,-1}
+    forces[7]={0,0,1}
+    forces[8]={0,0,1}
     flipThrusters(forces)
     --]]
     --[[--Original Values
