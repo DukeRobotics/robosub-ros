@@ -1,3 +1,6 @@
 <launch>
-	<node name="cv" pkg="cv" type="detection.py" />
+	<arg name="camera" />
+	<node name="cv" pkg="cv" type="detection.py">
+		<param name="camera" value="$(arg camera)" />
+	</node>
 </launch>

@@ -13,16 +13,19 @@ from detecto.core import Model
 class Detector:
 
     NODE_NAME = 'cv'
-    CAMERA_FEED_TOPIC = '/test_images/image'
-
     TOGGLE_MODEL_SERVICE = 'toggle_model'
 
     # Load in models and other misc. setup work
     def __init__(self):
         self.bridge = CvBridge()
 
-        with open('../models/models.yaml') as f:
+        # Load in model configurations
+        curr_directory = os.path.dirname(__file__)
+        with open(os.path.join(curr_directory, '../models/models.yaml')) as f:
             self.models = yaml.load(f)
+
+        # Camera feed topic with default for testing purposes
+        self.camera_feed_topic = rospy.get_param('~/cv/camera', '/test_images/image')
 
         # Initialize any enabled models
         for model_name in self.models:
@@ -97,7 +100,7 @@ class Detector:
     # publish predictions at every camera frame
     def run(self):
         rospy.init_node(self.NODE_NAME)
-        rospy.Subscriber(self.CAMERA_FEED_TOPIC, Image, self.detect)
+        rospy.Subscriber(self.camera_feed_topic, Image, self.detect)
 
         # Allow service for toggling of models
         rospy.Service(self.TOGGLE_MODEL_SERVICE, ToggleModel, self.toggle_model)

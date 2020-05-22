@@ -1,6 +1,6 @@
 buoy:
   classes: [alien, bat, witch, brick, _start_gate, _start_tick, _]
-  enabled: true
+  enabled: false
   predictor: null
   publisher: null
   topic: /cv/buoy
