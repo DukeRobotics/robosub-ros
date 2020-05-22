@@ -33,7 +33,7 @@ def point_rel_to_bot(point, pos, orientation):
 	rel_point = r.apply(point)
 
 	for i in range(len(rel_point)):
-		rel_point[i] += pos[i]
+		rel_point[i] -= pos[i]
 	return rel_point
 
 def get_box(xs, ys):
