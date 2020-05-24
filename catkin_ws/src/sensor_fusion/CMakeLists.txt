@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(sensor_fusion)
 
-if ($ENV{COMPUTER_TYPE}==onboard)
+if ("$ENV{COMPUTER_TYPE}" STREQUAL "onboard")
 
   ## Find catkin macros and libraries
   find_package(catkin REQUIRED COMPONENTS
@@ -12,10 +12,14 @@ if ($ENV{COMPUTER_TYPE}==onboard)
     geometry_msgs
   )
 
-  ## The catkin_package macro generates cmake config files for your package
-  catkin_package(
-    LIBRARIES sensor_fusion
-    CATKIN_DEPENDS rospy robot_localization nav_msgs sensor_msgs geometry_msgs robosub_description
-  )
+else()
 
-endif ($ENV{COMPUTER_TYPE}==onboard)
+  find_package(catkin REQUIRED)
+
+endif ("$ENV{COMPUTER_TYPE}" STREQUAL "onboard")
+
+## The catkin_package macro generates cmake config files for your package
+catkin_package(
+  LIBRARIES sensor_fusion
+  CATKIN_DEPENDS rospy robot_localization nav_msgs sensor_msgs geometry_msgs robosub_description
+)
