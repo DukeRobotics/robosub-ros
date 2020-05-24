@@ -22,5 +22,4 @@ endif ("$ENV{COMPUTER_TYPE}" STREQUAL "landside")
 catkin_package(
   LIBRARIES joystick
   CATKIN_DEPENDS rospy sensor_msgs geometry_msgs joy
-  DEPENDS python-yaml
 )

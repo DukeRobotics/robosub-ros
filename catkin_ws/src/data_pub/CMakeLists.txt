@@ -40,5 +40,4 @@ generate_messages(
 catkin_package(
   LIBRARIES data_pub
   CATKIN_DEPENDS rospy message_runtime std_msgs nav_msgs geometry_msgs tf
-  DEPENDS python-numpy python-serial
 )

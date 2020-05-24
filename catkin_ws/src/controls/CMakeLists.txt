@@ -41,5 +41,4 @@ generate_messages(
 catkin_package(
   LIBRARIES controls
   CATKIN_DEPENDS rospy std_msgs nav_msgs geometry_msgs std_srvs tf pid
-  DEPENDS python-numpy python-yaml
 )
