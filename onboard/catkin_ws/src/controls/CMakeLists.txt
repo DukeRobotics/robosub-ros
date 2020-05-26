@@ -1,28 +1,16 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(controls)
 
-if ("$ENV{COMPUTER_TYPE}" STREQUAL "onboard")
-
-  ## Find catkin macros and libraries
-  find_package(catkin REQUIRED COMPONENTS
-	message_generation
-	std_msgs
-	nav_msgs
-	geometry_msgs
-	std_srvs
-	tf
-	pid
-  )
-
-else()
-
-  ## Find catkin macros and libraries only needed to create new messages
-  find_package(catkin REQUIRED COMPONENTS
-	message_generation
-	std_msgs
-  )
-
-endif ("$ENV{COMPUTER_TYPE}" STREQUAL "onboard")
+## Find catkin macros and libraries
+find_package(catkin REQUIRED COMPONENTS
+  message_generation
+  std_msgs
+  nav_msgs
+  geometry_msgs
+  std_srvs
+  tf
+  pid
+)
 
 ## Generate messages in the 'msg' folder
 add_message_files(

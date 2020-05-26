@@ -1,26 +1,14 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(offboard_comms)
 
-if ("$ENV{COMPUTER_TYPE}" STREQUAL "onboard")
-
-  ## Find catkin macros and libraries
-  find_package(catkin REQUIRED COMPONENTS
-    rosserial_arduino
-    rosserial_client
-    rosserial_python
-    message_generation
-    std_msgs
-  )
-
-else()
-
-  ## Find catkin macros and libraries only needed to create new messages
-  find_package(catkin REQUIRED COMPONENTS
-	message_generation
-	std_msgs
-  )
-
-endif ("$ENV{COMPUTER_TYPE}" STREQUAL "onboard")
+## Find catkin macros and libraries
+find_package(catkin REQUIRED COMPONENTS
+  rosserial_arduino
+  rosserial_client
+  rosserial_python
+  message_generation
+  std_msgs
+)
 
 ## Generate messages in the 'msg' folder
 add_message_files(
