@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>offboard_comms</name>
+  <name>cthulhu_msgs</name>
   <version>0.0.0</version>
   <description>
-    Package that contains code that we run offboard, on an Arduino.
+    Package that contains the custom message for our robot.
   </description>
 
   <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>
 
   <license>MIT</license>
 
-  <depend>rosserial</depend>
-  <depend>rosserial_arduino</depend>
-  <depend>cthulhu_msgs</depend>
   <depend>std_msgs</depend>
+
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
 
   <buildtool_depend>catkin</buildtool_depend>
 

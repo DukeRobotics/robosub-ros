@@ -1,19 +1,30 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(data_pub)
+project(cthulhu_msgs)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
-  rospy
-  tf
-  cthulhu_msgs
+  message_generation
   std_msgs
-  nav_msgs
-  geometry_msgs
+)
+
+add_message_files(
+  FILES
+  DVLRaw.msg
+  ThrusterSpeeds.msg
+)
+
+add_service_files(
+  FILES
+  SetServo.srv
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
 )
 
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
 catkin_package(
-  LIBRARIES data_pub
-  CATKIN_DEPENDS rospy cthulhu_msgs std_msgs nav_msgs geometry_msgs tf
+  CATKIN_DEPENDS message_runtime std_msgs
 )

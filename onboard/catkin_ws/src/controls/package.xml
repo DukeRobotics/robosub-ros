@@ -11,15 +11,13 @@
   <license>MIT</license>
 
   <depend>rospy</depend>
+  <depend>cthulhu_msgs</depend>
   <depend>std_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>std_srvs</depend>
   <depend>tf</depend>
   <depend>pid</depend>
-
-  <build_depend>message_generation</build_depend>
-  <exec_depend>message_runtime</exec_depend>
 
   <exec_depend>python-numpy</exec_depend>
   <exec_depend>python-yaml</exec_depend>
