@@ -4,7 +4,4 @@ project(execute)
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED)
 
-catkin_package(
-    LIBRARIES execute
-    CATKIN_DEPENDS data_pub controls static_transforms motion_planning sensor_fusion
-)
+catkin_package(CATKIN_DEPENDS data_pub controls static_transforms motion_planning sensor_fusion)

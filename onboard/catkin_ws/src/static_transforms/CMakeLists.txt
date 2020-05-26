@@ -7,7 +7,4 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
-catkin_package(
-  LIBRARIES static_transforms
-  CATKIN_DEPENDS tf2_ros
-)
+catkin_package(CATKIN_DEPENDS tf2_ros)

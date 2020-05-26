@@ -11,7 +11,5 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ## The catkin_package macro generates cmake config files for your package
-catkin_package(
-  LIBRARIES sensor_fusion
-  CATKIN_DEPENDS rospy robot_localization nav_msgs sensor_msgs geometry_msgs robosub_description
-)
+## Declare things to be passed to dependent projects
+catkin_package(CATKIN_DEPENDS rospy robot_localization nav_msgs sensor_msgs geometry_msgs robosub_description)
