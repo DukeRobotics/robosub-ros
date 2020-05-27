@@ -3,5 +3,4 @@
 		<param name="~autorepeat_rate" value="20"/>
 		<remap from="joy" to="joystick/raw" />
 	</node>
-	
 </launch>
