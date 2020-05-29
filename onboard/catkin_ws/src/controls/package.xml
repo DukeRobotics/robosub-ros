@@ -11,7 +11,7 @@
   <license>MIT</license>
 
   <depend>rospy</depend>
-  <depend>cthulhu_msgs</depend>
+  <depend>custom_msgs</depend>
   <depend>std_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>geometry_msgs</depend>

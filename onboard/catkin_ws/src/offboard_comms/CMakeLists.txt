@@ -6,13 +6,13 @@ find_package(catkin REQUIRED COMPONENTS
   rosserial_arduino
   rosserial_client
   rosserial_python
-  cthulhu_msgs
+  custom_msgs
   std_msgs
 )
 
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
-catkin_package(CATKIN_DEPENDS rosserial rosserial_arduino std_msgs cthulhu_msgs)
+catkin_package(CATKIN_DEPENDS rosserial rosserial_arduino std_msgs custom_msgs)
 
 include_directories(
   ${catkin_INCLUDE_DIRS}

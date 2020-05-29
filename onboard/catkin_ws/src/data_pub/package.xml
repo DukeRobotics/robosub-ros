@@ -14,7 +14,7 @@
   <depend>std_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>geometry_msgs</depend>
-  <depend>cthulhu_msgs</depend>
+  <depend>custom_msgs</depend>
   <depend>tf</depend>
 
   <exec_depend>python-serial</exec_depend>

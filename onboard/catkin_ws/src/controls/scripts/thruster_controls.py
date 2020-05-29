@@ -5,7 +5,7 @@ import os
 import rospy
 from std_msgs.msg import Float64, Float32MultiArray, Int8MultiArray
 from geometry_msgs.msg import Vector3Stamped
-from cthulhu_msgs.msg import ThrusterSpeeds
+from custom_msgs.msg import ThrusterSpeeds
 import numpy as np
 from thruster_manager import ThrusterManager
 from std_srvs.srv import SetBool

@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>cthulhu_msgs</name>
+  <name>custom_msgs</name>
   <version>0.0.0</version>
   <description>
-    Package that contains the custom message for our robot.
+    Package that contains the custom messages for our robot.
   </description>
 
   <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>

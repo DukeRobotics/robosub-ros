@@ -2,8 +2,8 @@
 #include "MultiplexedBasicESC.h"
 #include "MultiplexedServo.h"
 #include <ros.h>
-#include <cthulhu_msgs/ThrusterSpeeds.h>
-#include <cthulhu_msgs/SetServo.h>
+#include <custom_msgs/ThrusterSpeeds.h>
+#include <custom_msgs/SetServo.h>
 #include <Arduino.h>
 
 Adafruit_PWMServoDriver pwm_multiplexer(0x40);

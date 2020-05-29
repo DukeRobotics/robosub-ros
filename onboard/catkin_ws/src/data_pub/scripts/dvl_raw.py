@@ -4,7 +4,7 @@ import serial
 import serial.tools.list_ports as list_ports
 import rospy
 
-from cthulhu_msgs.msg import DVLRaw
+from custom_msgs.msg import DVLRaw
 
 class DvlRawPublisher:
 

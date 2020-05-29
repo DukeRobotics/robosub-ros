@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(cthulhu_msgs)
+project(custom_msgs)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS

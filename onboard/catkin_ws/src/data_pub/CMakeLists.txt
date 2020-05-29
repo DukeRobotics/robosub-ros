@@ -5,7 +5,7 @@ project(data_pub)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   tf
-  cthulhu_msgs
+  custom_msgs
   std_msgs
   nav_msgs
   geometry_msgs
@@ -13,4 +13,4 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
-catkin_package(CATKIN_DEPENDS rospy cthulhu_msgs std_msgs nav_msgs geometry_msgs tf)
+catkin_package(CATKIN_DEPENDS rospy custom_msgs std_msgs nav_msgs geometry_msgs tf)

@@ -12,7 +12,7 @@
 
   <depend>rosserial</depend>
   <depend>rosserial_arduino</depend>
-  <depend>cthulhu_msgs</depend>
+  <depend>custom_msgs</depend>
   <depend>std_msgs</depend>
 
   <buildtool_depend>catkin</buildtool_depend>

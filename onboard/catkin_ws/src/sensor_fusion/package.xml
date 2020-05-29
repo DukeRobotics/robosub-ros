@@ -2,7 +2,9 @@
 <package format="2">
   <name>sensor_fusion</name>
   <version>0.0.0</version>
-  <description>The sensor_fusion package</description>
+  <description>
+    Package that combines multiple sources of sensor data together and uses an EKF for robot localization.
+  </description>
 
   <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>
 
