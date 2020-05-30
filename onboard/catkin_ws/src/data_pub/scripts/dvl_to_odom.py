@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import rospy
 import numpy as np
 import math
@@ -17,8 +18,11 @@ DVL_BAD_STATUS_MSG = 'V'
 
 odom_pub = rospy.Publisher(DVL_ODOM_TOPIC, Odometry, queue_size=50)
 
+
 def callback(msg):
-    # check if the data is good (for now, only check bs and sa status as they are the only two data that we are currently using) (there is no status for sa)
+    # check if the data is good
+    # for now, only check bs and sa status as they are the only two data that we are currently using
+    # there is no status for sa
     # for status: A = good, V = bad
     if msg.bs_status == DVL_BAD_STATUS_MSG:
         return
@@ -51,8 +55,8 @@ def callback(msg):
     odom.twist.twist = Twist(Vector3(vx, vy, vz), Vector3(0, 0, 0))
     odom_pub.publish(odom)
 
-   
-def listener():   
+
+def listener():
     rospy.init_node(NODE_NAME)
     rospy.Subscriber(DVL_RAW_TOPIC, DVLRaw, callback)
     rospy.spin()
@@ -60,4 +64,3 @@ def listener():
 
 if __name__ == '__main__':
     listener()
-    
