@@ -8,9 +8,11 @@ from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
 from enum import Enum
 
+
 class Movement(Enum):
     TRANSLATION = 0
     ROTATION = 1
+
 
 class JoystickParser:
     NODE_NAME = 'joy_pub'
@@ -77,6 +79,7 @@ class JoystickParser:
 
     def _publish_current_msg(self):
         self._pub.publish(self._current_joy_msg)
+
 
 if __name__ == '__main__':
     try:
