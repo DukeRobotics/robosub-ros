@@ -1,19 +1,14 @@
 #!/bin/bash
 # A convenience script used to build our code. Takes one argument that specifies the workspace to build.
 
-# If sourcing file then return instead of exiting shell
-if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
-    trap "trap - ERR;return 1" ERR
-else
-    trap "trap - ERR;exit 1" ERR
-fi
+set -e
 
 # Print help message on invalid argument
 if [[ "$1" != "onboard" ]] && [[ "$1" != "landside" ]]; then
     echo "ERROR. Invalid argument or no argument specified. Please specify either onboard or landside, as in:"
-    echo "source ./build.sh onboard"
-    echo "source ./build.sh landside"
-    false
+    echo "./build.sh onboard"
+    echo "./build.sh landside"
+    exit 1
 fi
 
 source /opt/ros/melodic/setup.bash
@@ -26,6 +21,7 @@ cd ../..
 cd "$1"/catkin_ws
 catkin build
 source devel/setup.bash
+cd ../..
 
-# All commands successful, release trap on err
-trap - ERR
+echo "If you did not source this scipt, please run"
+echo "source ${1}/catkin_ws/devel/setup.bash"
