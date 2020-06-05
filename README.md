@@ -1,4 +1,4 @@
-![](https://github.com/dukerobotics/robosub-ros-docker/workflows/build/badge.svg)
+![](https://github.com/dukerobotics/robosub-ros/workflows/build/badge.svg)
 
 # Welcome to Duke Robotics Club
 
