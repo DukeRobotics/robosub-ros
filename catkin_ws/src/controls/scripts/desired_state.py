@@ -2,9 +2,11 @@
 
 import rospy
 from tf.transformations import euler_from_quaternion
+
 from std_msgs.msg import Float64, Bool
 from geometry_msgs.msg import Pose, Twist, Vector3
 import drc_utils as utils
+
 
 class bcolors:
     BOLD = '\033[1m'
@@ -12,6 +14,7 @@ class bcolors:
     WARN = '\033[93m'
     FAIL = '\033[91m'
     RESET = '\033[0m'
+
 
 class DesiredStateHandler():
 
@@ -21,11 +24,11 @@ class DesiredStateHandler():
     REFRESH_HZ = 10  # for main loop
 
     # All variables are a dictionary with mappings between the strings in DIRECTIONS to its corresponding value
-    state = {} # Current State of the Robot
-    hold = {} # State that should be held at the start of power control
-    pose = None # Desired pose
-    powers = None # Desired power
-    last_powers = None # Power from previous loop
+    state = {}  # Current State of the Robot
+    hold = {}  # State that should be held at the start of power control
+    pose = None  # Desired pose
+    powers = None  # Desired power
+    last_powers = None  # Power from previous loop
     # These dictionaries contain mappings between the strings in DIRECTIONS to the corresponding rospy publisher objects
     pub_pos = {}
     pub_pos_enable = {}
@@ -39,7 +42,6 @@ class DesiredStateHandler():
             self.pub_pos[d] = rospy.Publisher(utils.get_pid_topic(d), Float64, queue_size=3)
             self.pub_pos_enable[d] = rospy.Publisher(utils.get_pid_enable(d), Bool, queue_size=3)
             self.pub_power[d] = rospy.Publisher(utils.get_power_topic(d), Float64, queue_size=3)
-
         rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self.receive_pose)
         rospy.Subscriber(self.DESIRED_TWIST_POWER, Twist, self.receive_powers)
 
@@ -53,7 +55,7 @@ class DesiredStateHandler():
         self.powers = utils.parse_twist(twist)
 
     def soft_estop(self):
-        #Stop Moving
+        # Stop Moving
         utils.publish_data_constant(self.pub_pos_enable, utils.get_directions(), False)
         utils.publish_data_constant(self.pub_power, utils.get_directions(), 0)
         self.powers = None
@@ -61,13 +63,13 @@ class DesiredStateHandler():
         self.pose = None
 
     def enable_loops(self):
-        #Enable all PID Loops
+        # Enable all PID Loops
         utils.publish_data_constant(self.pub_pos_enable, utils.get_directions(), True)
 
     def run(self):
         rospy.init_node('desired_state')
         rate = rospy.Rate(self.REFRESH_HZ)
-        
+
         warned = False
         event_id = 0
 
@@ -82,13 +84,15 @@ class DesiredStateHandler():
             elif not self.pose and not self.powers:
                 self.soft_estop()
                 if not warned:
-                    rospy.logwarn(bcolors.WARN + ("===> Controls received neither position nor power! Halting robot. (Event %d) <===" % event_id) + bcolors.RESET)
+                    rospy.logwarn(
+                        bcolors.WARN + ("===> Controls received neither position nor power! Halting robot. (Event %d) <===" % event_id) + bcolors.RESET)
                     warned = True
                 continue
 
             # Now we have either pose XOR powers
             if warned:
-                rospy.loginfo(bcolors.OKGREEN + ("===> Controls now receiving %s (End event %d) <===" % ("position" if self.pose else "powers", event_id)) + bcolors.RESET)
+                rospy.loginfo(bcolors.OKGREEN + ("===> Controls now receiving %s (End event %d) <===" %
+                              ("position" if self.pose else "powers", event_id)) + bcolors.RESET)
                 event_id += 1
                 warned = False
 
@@ -117,18 +121,20 @@ class DesiredStateHandler():
                 if self.powers['z'] != 0:
                     utils.publish_data_constant(self.pub_pos_enable, ['z'], False)
 
-                #TODO: BOTH cases
+                # TODO: BOTH cases
 
                 utils.publish_data_dictionary(self.pub_power, utils.get_directions(), self.powers)
                 # Publish current state to the desired state for PID
                 utils.publish_data_dictionary(self.pub_pos, utils.get_directions(), self.hold)
                 self.powers = None
 
+
 def main():
     try:
         DesiredStateHandler().run()
     except rospy.ROSInterruptException:
         pass
+
 
 if __name__ == '__main__':
     main()
