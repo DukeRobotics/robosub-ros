@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>data_pub</name>
+  <version>0.0.0</version>
+  <description>
+    Package that reads and parses through sensor data.
+  </description>
+
+  <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>
+
+  <license>MIT</license>
+
+  <depend>rospy</depend>
+  <depend>std_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>custom_msgs</depend>
+  <depend>tf</depend>
+
+  <exec_depend>python-serial</exec_depend>
+  <exec_depend>python-numpy</exec_depend>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+</package>
