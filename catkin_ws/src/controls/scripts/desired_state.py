@@ -64,16 +64,6 @@ class DesiredStateHandler():
         #Enable all PID Loops
         utils.publish_data_constant(self.pub_pos_enable, utils.get_directions(), True)
 
-
-    def enable_loops(self):
-        #Enable all PID Loops
-        self._pub_x_pos_enable.publish(True)
-        self._pub_y_pos_enable.publish(True)
-        self._pub_z_pos_enable.publish(True)
-        self._pub_roll_pos_enable.publish(True)
-        self._pub_pitch_pos_enable.publish(True)
-        self._pub_yaw_pos_enable.publish(True)
-
     def run(self):
         rospy.init_node('desired_state')
         rate = rospy.Rate(self.REFRESH_HZ)
