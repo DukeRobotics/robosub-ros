@@ -12,6 +12,7 @@ from std_srvs.srv import SetBool
 from tf import TransformListener
 import drc_utils as utils
 
+
 class ThrusterController():
 
     SIM_PUB_TOPIC = '/sim/move'
@@ -23,8 +24,9 @@ class ThrusterController():
         rospy.init_node('thruster_controls')
 
         self.sim = rospy.get_param('~/thruster_controls/sim')
-        if not self.sim :
+        if not self.sim:
             self.pub = rospy.Publisher(self.ROBOT_PUB_TOPIC, ThrusterSpeeds, queue_size=3)
+
         else:
             self.pub = rospy.Publisher(self.SIM_PUB_TOPIC, Float32MultiArray, queue_size=3)
 
@@ -34,9 +36,11 @@ class ThrusterController():
 
         self.listener = TransformListener()
 
+
         for d in utils.get_directions():
             rospy.Subscriber(utils.get_controls_move_topic(d), Float64, self._on, d)
             rospy.Subscriber(utils.get_power_topic(d), Float64, self._on_power, d)
+
 
         self.pid_outputs = np.zeros(6)
         self.pid_outputs_local = np.zeros(6)
@@ -64,8 +68,8 @@ class ThrusterController():
         lin_local = self.listener.transformVector3(target_frame, lin)
         ang_local = self.listener.transformVector3(target_frame, ang)
 
-        return np.array([lin_local.vector.x, 
-                         lin_local.vector.y, 
+        return np.array([lin_local.vector.x,
+                         lin_local.vector.y,
                          lin_local.vector.z,
                          ang_local.vector.x,
                          ang_local.vector.y,
@@ -80,6 +84,7 @@ class ThrusterController():
                 self.pid_outputs_local[i] = self.powers[i]
 
         self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs_local)
+
 
     def _on(self, val, direction):
         self.pid_outputs[utils.get_directions().index(direction)] = val.data
@@ -112,8 +117,8 @@ class ThrusterController():
                 if(t_alloc_max != 0):
                     # Multiply each thruster allocation by scaling ratio
                     self.t_allocs *= pid_max / t_alloc_max
-                #Clamp values of t_allocs to between -1 to 1
-                self.t_allocs = np.clip(self.t_allocs, -1 , 1)
+                # Clamp values of t_allocs to between -1 to 1
+                self.t_allocs = np.clip(self.t_allocs, -1, 1)
 
                 if not self.sim:
                     i8_t_allocs = ThrusterSpeeds()
@@ -125,11 +130,14 @@ class ThrusterController():
                     self.pub.publish(f32_t_allocs)
 
             rate.sleep()
+
+
 def main():
     try:
         ThrusterController().run()
     except rospy.ROSInterruptException:
         pass
+
 
 if __name__ == '__main__':
     main()
