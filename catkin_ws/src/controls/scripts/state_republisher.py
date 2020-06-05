@@ -27,11 +27,13 @@ class StateRepublisher():
         twist = utils.parse_twist(odometry.twist.twist)
         utils.publish_data_dictionary(self._pub_twist, utils.get_directions(), twist)
 
+
 def main():
     try:
         StateRepublisher()
     except rospy.ROSInterruptException:
         pass
+
 
 if __name__ == '__main__':
     main()
