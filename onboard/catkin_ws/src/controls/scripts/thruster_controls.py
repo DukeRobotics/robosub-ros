@@ -12,7 +12,8 @@ from std_srvs.srv import SetBool
 from tf import TransformListener
 import drc_utils as utils
 
-class ThrusterController():
+
+class ThrusterController:
 
     SIM_PUB_TOPIC = '/sim/move'
     ROBOT_PUB_TOPIC = '/offboard/thruster_speeds'
@@ -23,7 +24,7 @@ class ThrusterController():
         rospy.init_node('thruster_controls')
 
         self.sim = rospy.get_param('~/thruster_controls/sim')
-        if not self.sim :
+        if not self.sim:
             self.pub = rospy.Publisher(self.ROBOT_PUB_TOPIC, ThrusterSpeeds, queue_size=3)
         else:
             self.pub = rospy.Publisher(self.SIM_PUB_TOPIC, Float32MultiArray, queue_size=3)
@@ -109,11 +110,11 @@ class ThrusterController():
                 t_alloc_max = float(np.max(np.absolute(self.t_allocs)))
                 pid_max = float(np.max(np.absolute(self.pid_outputs_local)))
 
-                if(t_alloc_max != 0):
+                if t_alloc_max != 0:
                     # Multiply each thruster allocation by scaling ratio
                     self.t_allocs *= pid_max / t_alloc_max
-                #Clamp values of t_allocs to between -1 to 1
-                self.t_allocs = np.clip(self.t_allocs, -1 , 1)
+                # Clamp values of t_allocs to between -1 to 1
+                self.t_allocs = np.clip(self.t_allocs, -1, 1)
 
                 if not self.sim:
                     i8_t_allocs = ThrusterSpeeds()
@@ -125,11 +126,14 @@ class ThrusterController():
                     self.pub.publish(f32_t_allocs)
 
             rate.sleep()
+
+
 def main():
     try:
         ThrusterController().run()
     except rospy.ROSInterruptException:
         pass
+
 
 if __name__ == '__main__':
     main()
