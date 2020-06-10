@@ -13,6 +13,7 @@ def get_bounding_box(points, pos, orientation):
 		ys[i] = grid_point[1]
 
 	bounding_box = get_box(xs, ys)
+	return bounding_box
 
 def get_grid_point(point, pos, orientation):
 	rel_point = point_rel_to_bot(point, pos, orientation)
