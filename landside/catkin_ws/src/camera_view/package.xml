@@ -3,7 +3,7 @@
   <name>camera_view</name>
   <version>0.0.0</version>
   <description>
-    Package that allows for joystick input on our robot.
+    Package that allows for viewing, saving, and loading videos to simulate camera input.
   </description>
 
   <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>

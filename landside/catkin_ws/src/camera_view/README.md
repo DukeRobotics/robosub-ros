@@ -58,3 +58,22 @@ You can stream avi motion files using the image publisher node. To do this, use
 rosrun image_publisher image_publisher image_raw:=<image_topic>
 ```
 
+## Converting between ROS bags and Video files
+
+### ROS Bag to Video file
+You can use the `bag_to_video` script provided using
+```bash
+rosrun camera_view bag_to_video.py _bag_file:=<bag_file_name> _video_file:=<list_of_video_files> _topic_name:=<list_of_topic_names>
+```
+where the `bag_file_name` is the name of the bag file to convert. The `list_of_video_files` is a list of the video files to write. The `list_of_topic_names` is a list of topic names that correspond to the topic names to write to video files. Each video file will be the stream of images to the corresponding topic at the same index in the topic list. The video file list and topic list must be the same length.
+For instance, you can run 
+```bash
+rosrun camera_view bag_to_video.py _bag_file:="vid.bag" _video_file:=["vid1.avi", "vid2.avi"] _topic_name:=["/camera/image/vid1", "/camera/image/vid2]
+```
+
+### Video file to ROS Bag
+You can use the `video_to_bag` script provided using
+```bash
+rosrun camera_view video_to_bag.py _bag_file:=<bag_file_name> _video_file:=<list_of_video_files> _topic_name:=<list_of_topic_names>
+```
+which has the same parameters as in the ROS bag to video file converter. Multiple video files can be written to the same ROS bag using this script.
