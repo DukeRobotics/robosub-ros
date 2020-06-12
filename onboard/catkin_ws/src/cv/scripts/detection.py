@@ -67,20 +67,23 @@ class Detector:
 
     # Publish predictions with the given publisher
     def publish_predictions(self, preds, publisher):
-        for label, box, score in zip(*preds):
-            object_msg = Object()
+        if not len(preds[0]): # if there are no predictions
+            publisher.publish(None)
+        else:
+            for label, box, score in zip(*preds):
+                object_msg = Object()
 
-            object_msg.label = label
-            object_msg.score = score
+                object_msg.label = label
+                object_msg.score = score
 
-            object_msg.xmin = box[0].item()
-            object_msg.ymin = box[1].item()
-            object_msg.xmax = box[2].item()
-            object_msg.ymax = box[3].item()
+                object_msg.xmin = box[0].item()
+                object_msg.ymin = box[1].item()
+                object_msg.xmax = box[2].item()
+                object_msg.ymax = box[3].item()
 
-            # Safety check that publisher is not None
-            if publisher:
-                publisher.publish(object_msg)
+                # Safety check that publisher is not None
+                if publisher:
+                    publisher.publish(object_msg)
 
     # Service for toggling specific models on and off
     def toggle_model(self, req):
