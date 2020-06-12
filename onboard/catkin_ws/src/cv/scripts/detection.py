@@ -67,7 +67,7 @@ class Detector:
 
     # Publish predictions with the given publisher
     def publish_predictions(self, preds, publisher):
-        if not len(preds[0]): # if there are no predictions
+        if not preds[0]: # if there are no predictions
             publisher.publish(None)
         else:
             for label, box, score in zip(*preds):
