@@ -45,7 +45,7 @@ class Detector:
         weights_file = os.path.join(path, '../models', model['weights'])
 
         predictor = Model.load(weights_file, model['classes'])
-        publisher = rospy.Publisher(model['topic'], Object, queue_size=10)
+        publisher = rospy.Publisher(model['topic'] + rospy.get_param('~/cv/camera', ''), Object, queue_size=10)
 
         model['predictor'] = predictor
         model['publisher'] = publisher
