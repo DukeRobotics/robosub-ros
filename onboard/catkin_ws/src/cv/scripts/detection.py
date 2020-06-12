@@ -13,7 +13,6 @@ from detecto.core import Model
 class Detector:
 
     NODE_NAME = 'cv'
-    TOGGLE_MODEL_SERVICE = 'toggle_model'
 
     # Load in models and other misc. setup work
     def __init__(self):
@@ -26,6 +25,8 @@ class Detector:
 
         # Camera feed topic with default for testing purposes
         self.camera_feed_topic = rospy.get_param('~/cv/camera', '/test_images/image')
+        # Toggle model service with camera included at the end
+        self.toggle_model_service = 'toggle_model_' + rospy.get_param('~/cv/camera', '')
 
         # Initialize any enabled models
         for model_name in self.models:
@@ -103,7 +104,7 @@ class Detector:
         rospy.Subscriber(self.camera_feed_topic, Image, self.detect)
 
         # Allow service for toggling of models
-        rospy.Service(self.TOGGLE_MODEL_SERVICE, ToggleModel, self.toggle_model)
+        rospy.Service(self.toggle_model_service, ToggleModel, self.toggle_model)
 
         # Keep node running until shut down
         rospy.spin()
