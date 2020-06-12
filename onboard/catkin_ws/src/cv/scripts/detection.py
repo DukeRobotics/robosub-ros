@@ -12,11 +12,11 @@ from detecto.core import Model
 
 class Detector:
 
-    NODE_NAME = 'cv'
-
     # Load in models and other misc. setup work
     def __init__(self):
         self.bridge = CvBridge()
+        # TODO bug: cv should be cv_{camera} - how to do this?
+        self.camera = rospy.get_param('~/cv/camera')
 
         # Load in model configurations
         curr_directory = os.path.dirname(__file__)
@@ -24,11 +24,14 @@ class Detector:
             self.models = yaml.load(f)
 
         # Camera feed topic with default for testing purposes
-        self.camera_feed_topic = rospy.get_param('~/cv/camera', '/test_images/image')
+        # TODO: add actual camera topic name format
+        self.camera_feed_topic = '/camera/{}'.format(self.camera)
+
         # Toggle model service with camera included at the end
-        self.toggle_model_service = 'toggle_model_' + rospy.get_param('~/cv/camera', '')
+        self.toggle_service = 'toggle_model_{}'.format(self.camera)
 
         # Initialize any enabled models
+        # TODO this can probably be removed
         for model_name in self.models:
             if self.models[model_name]['enabled']:
                 self.init_model(model_name)
@@ -45,7 +48,9 @@ class Detector:
         weights_file = os.path.join(path, '../models', model['weights'])
 
         predictor = Model.load(weights_file, model['classes'])
-        publisher = rospy.Publisher(model['topic'] + rospy.get_param('~/cv/camera', ''), Object, queue_size=10)
+
+        publisher_name = '{}/{}'.format(model['topic'], self.camera)
+        publisher = rospy.Publisher(publisher_name, Object, queue_size=10)
 
         model['predictor'] = predictor
         model['publisher'] = publisher
@@ -67,10 +72,13 @@ class Detector:
 
     # Publish predictions with the given publisher
     def publish_predictions(self, preds, publisher):
-        if not preds[0]: # if there are no predictions
+        labels, boxes, scores = preds
+
+        # TODO bug: this doesn't seem to work
+        if not labels:  # if there are no predictions
             publisher.publish(None)
         else:
-            for label, box, score in zip(*preds):
+            for label, box, score in zip(labels, boxes, scores):
                 object_msg = Object()
 
                 object_msg.label = label
@@ -103,11 +111,12 @@ class Detector:
     # Initialize node and set up Subscriber to generate and
     # publish predictions at every camera frame
     def run(self):
-        rospy.init_node(self.NODE_NAME)
+        node_name = 'cv_{}'.format(self.camera)
+        rospy.init_node(node_name)
         rospy.Subscriber(self.camera_feed_topic, Image, self.detect)
 
         # Allow service for toggling of models
-        rospy.Service(self.toggle_model_service, ToggleModel, self.toggle_model)
+        rospy.Service(self.toggle_service, ToggleModel, self.toggle_model)
 
         # Keep node running until shut down
         rospy.spin()
