@@ -1,0 +1,46 @@
+while true
+	while (dist_to_gate > x)
+		while (cannot see gate)
+			rotate
+		select smaller box of seen boxes
+		find normal vector from middle of smaller box
+		move to and align with normal vector	
+		while (within tolerance of normal vector and dist_to_gate > x)
+			move to gate
+			calculate normal, calculate distance
+
+	if (dist_to_gate < x)
+		calculate normal
+		move to normal
+		move through gate
+		break		
+
+
+normal vector and distance functions return false if the gate is not seen
+
+
+ifTask (BodyTask, condition)
+	if(condition)
+		BodyTask
+	finish
+
+whileTask (BodyTask, condition)
+	ifTask (BodyTask, condition)
+	ifTask.run()
+	
+
+
+
+
+Useful functions
+
+Get gate size (pixels) from vision data (x, y length)
+distance to gate
+horizontal and vertical angle to gate
+--> talk to vision about FOV, resolution, etc
+normal vector
+
+Vision Data
+
+two bounding boxes: one around entire gate, one around tick
+format: xmin, xmax, ymin, ymax (4 points, 8 numbers)
