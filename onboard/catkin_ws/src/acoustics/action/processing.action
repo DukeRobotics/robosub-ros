@@ -1,15 +1,13 @@
 # Define the goal
-char[] filename
+string filename
 bool if_double
 uint32 version
 uint32 samp_f
 uint32 tar_f
-float32 guess_x
-float32 guess_y
-float32 guess_z
+Point guess
 ---
 # Define the result
-float32 hz_angle
+float64 hz_angle
 uint32 total_count
 uint32 success_count
 uint32 valid_count
