@@ -11,6 +11,9 @@ services:
       local_net:
         ipv4_address: 192.168.1.1
     tty: true
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     volumes:
       - type: bind
         source: .
@@ -27,6 +30,9 @@ services:
       local_net:
         ipv4_address: 192.168.1.2
     tty: true
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     volumes:
       - type: bind
         source: .
