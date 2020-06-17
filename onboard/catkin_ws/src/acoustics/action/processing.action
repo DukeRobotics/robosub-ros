@@ -4,7 +4,7 @@ bool if_double
 uint32 version
 uint32 samp_f
 uint32 tar_f
-Point guess
+geometry_msgs/Point guess
 ---
 # Define the result
 float64 hz_angle

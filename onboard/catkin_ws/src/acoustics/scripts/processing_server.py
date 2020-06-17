@@ -2,7 +2,7 @@
 
 import rospy
 import actionlib
-from acoustic.msg import processingFeedback, processingResult, processingAction
+from acoustics.msg import processingFeedback, processingResult, processingAction
 from cross_corr_fft import AcousticProcessor
 
 
