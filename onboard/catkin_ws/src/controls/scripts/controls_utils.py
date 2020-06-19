@@ -1,32 +1,32 @@
 from tf.transformations import euler_from_quaternion, quaternion_multiply, quaternion_conjugate
 
 
-def get_directions():
+def get_axes():
     return ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
 
 
-def get_pose_topic(direction):
-    return '/controls/state/pose/' + direction
+def get_pose_topic(axis):
+    return '/controls/state/pose/' + axis
 
 
-def get_twist_topic(direction):
-    return '/controls/state/twist/' + direction
+def get_twist_topic(axis):
+    return '/controls/state/twist/' + axis
 
 
-def get_pid_topic(direction):
-    return 'controls/' + direction + '_pos/setpoint'
+def get_pid_topic(axis):
+    return 'controls/' + axis + '_pos/setpoint'
 
 
-def get_pid_enable(direction):
-    return 'controls/enable/' + direction + '_pos'
+def get_pid_enable(axis):
+    return 'controls/enable/' + axis + '_pos'
 
 
-def get_power_topic(direction):
-    return '/controls/power/' + direction
+def get_power_topic(axis):
+    return '/controls/power/' + axis
 
 
-def get_controls_move_topic(direction):
-    return '/control_effort/' + direction
+def get_controls_move_topic(axis):
+    return '/control_effort/' + axis
 
 
 def parse_pose(pose):

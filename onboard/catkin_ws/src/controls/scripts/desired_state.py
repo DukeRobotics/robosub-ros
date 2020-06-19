@@ -3,7 +3,7 @@
 import rospy
 from geometry_msgs.msg import Pose, Twist
 from std_msgs.msg import Float64, Bool
-import drc_utils as utils
+import controls_utils as utils
 
 
 class bcolors:
@@ -33,37 +33,37 @@ class DesiredStateHandler:
     pub_power = {}
 
     def __init__(self):
-        for d in utils.get_directions():
+        for d in utils.get_axes():
             self.state[d] = 0
             self.hold[d] = 0
-            rospy.Subscriber(utils.get_pose_topic(d), Float64, self.receive, d)
+            rospy.Subscriber(utils.get_pose_topic(d), Float64, self._on_state_received, d)
             self.pub_pos[d] = rospy.Publisher(utils.get_pid_topic(d), Float64, queue_size=3)
             self.pub_pos_enable[d] = rospy.Publisher(utils.get_pid_enable(d), Bool, queue_size=3)
             self.pub_power[d] = rospy.Publisher(utils.get_power_topic(d), Float64, queue_size=3)
 
-        rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self.receive_pose)
-        rospy.Subscriber(self.DESIRED_TWIST_POWER, Twist, self.receive_powers)
+        rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self._on_pose_received)
+        rospy.Subscriber(self.DESIRED_TWIST_POWER, Twist, self.on_powers_received)
 
-    def receive(self, val, direction):
+    def _on_state_received(self, val, direction):
         self.state[direction] = val.data
 
-    def receive_pose(self, pose):
+    def _on_pose_received(self, pose):
         self.pose = utils.parse_pose(pose)
 
-    def receive_powers(self, twist):
+    def on_powers_received(self, twist):
         self.powers = utils.parse_twist(twist)
 
     def soft_estop(self):
         # Stop Moving
-        utils.publish_data_constant(self.pub_pos_enable, utils.get_directions(), False)
-        utils.publish_data_constant(self.pub_power, utils.get_directions(), 0)
+        utils.publish_data_constant(self.pub_pos_enable, utils.get_axes(), False)
+        utils.publish_data_constant(self.pub_power, utils.get_axes(), 0)
         self.powers = None
         self.last_powers = None
         self.pose = None
 
     def enable_loops(self):
         # Enable all PID Loops
-        utils.publish_data_constant(self.pub_pos_enable, utils.get_directions(), True)
+        utils.publish_data_constant(self.pub_pos_enable, utils.get_axes(), True)
 
     def run(self):
         rospy.init_node('desired_state')
@@ -95,7 +95,7 @@ class DesiredStateHandler:
 
             if self.pose:
                 self.enable_loops()
-                utils.publish_data_dictionary(self.pub_pos, utils.get_directions(), self.pose)
+                utils.publish_data_dictionary(self.pub_pos, utils.get_axes(), self.pose)
                 self.pose = None
 
             elif self.powers:
@@ -120,9 +120,9 @@ class DesiredStateHandler:
 
                 # TODO: BOTH cases
 
-                utils.publish_data_dictionary(self.pub_power, utils.get_directions(), self.powers)
+                utils.publish_data_dictionary(self.pub_power, utils.get_axes(), self.powers)
                 # Publish current state to the desired state for PID
-                utils.publish_data_dictionary(self.pub_pos, utils.get_directions(), self.hold)
+                utils.publish_data_dictionary(self.pub_pos, utils.get_axes(), self.hold)
                 self.powers = None
 
 

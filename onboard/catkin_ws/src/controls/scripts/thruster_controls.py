@@ -10,7 +10,7 @@ import numpy as np
 from thruster_manager import ThrusterManager
 from std_srvs.srv import SetBool
 from tf import TransformListener
-import drc_utils as utils
+import controls_utils as utils
 
 
 class ThrusterController:
@@ -35,9 +35,9 @@ class ThrusterController:
 
         self.listener = TransformListener()
 
-        for d in utils.get_directions():
-            rospy.Subscriber(utils.get_controls_move_topic(d), Float64, self._on, d)
-            rospy.Subscriber(utils.get_power_topic(d), Float64, self._on_power, d)
+        for d in utils.get_axes():
+            rospy.Subscriber(utils.get_controls_move_topic(d), Float64, self._on_pid_received, d)
+            rospy.Subscriber(utils.get_power_topic(d), Float64, self._on_power_received, d)
 
         self.pid_outputs = np.zeros(6)
         self.pid_outputs_local = np.zeros(6)
@@ -82,12 +82,12 @@ class ThrusterController:
 
         self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs_local)
 
-    def _on(self, val, direction):
-        self.pid_outputs[utils.get_directions().index(direction)] = val.data
+    def _on_pid_received(self, val, direction):
+        self.pid_outputs[utils.get_axes().index(direction)] = val.data
         self.update_thruster_allocs()
 
-    def _on_power(self, val, direction):
-        self.powers[utils.get_directions().index(direction)] = val.data
+    def _on_power_received(self, val, direction):
+        self.powers[utils.get_axes().index(direction)] = val.data
         self.update_thruster_allocs()
 
     def run(self):

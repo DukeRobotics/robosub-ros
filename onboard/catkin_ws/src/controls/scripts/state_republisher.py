@@ -3,7 +3,7 @@
 import rospy
 from std_msgs.msg import Float64
 from nav_msgs.msg import Odometry
-import drc_utils as utils
+import controls_utils as utils
 
 
 class StateRepublisher:
@@ -12,7 +12,7 @@ class StateRepublisher:
     def __init__(self):
         self._pub_pose = {}
         self._pub_twist = {}
-        for d in utils.get_directions():
+        for d in utils.get_axes():
             self._pub_pose[d] = rospy.Publisher(utils.get_pose_topic(d), Float64, queue_size=3)
             self._pub_twist[d] = rospy.Publisher(utils.get_twist_topic(d), Float64, queue_size=3)
 
@@ -22,10 +22,10 @@ class StateRepublisher:
 
     def receive_odometry(self, odometry):
         pose = utils.parse_pose(odometry.pose.pose)
-        utils.publish_data_dictionary(self._pub_pose, utils.get_directions(), pose)
+        utils.publish_data_dictionary(self._pub_pose, utils.get_axes(), pose)
 
         twist = utils.parse_twist(odometry.twist.twist)
-        utils.publish_data_dictionary(self._pub_twist, utils.get_directions(), twist)
+        utils.publish_data_dictionary(self._pub_twist, utils.get_axes(), twist)
 
 
 def main():
