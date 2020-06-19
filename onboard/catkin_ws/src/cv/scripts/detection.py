@@ -3,8 +3,8 @@
 import rospy
 import os
 import yaml
-from cv.msg import Object
-from cv.srv import ToggleModel
+from custom_msgs.msg import Object
+from custom_msgs.srv import ToggleModel
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from detecto.core import Model
