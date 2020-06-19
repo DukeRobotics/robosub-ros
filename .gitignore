@@ -27,3 +27,5 @@ catkin_ws/src/offboard_comms/ros_lib
 # Remember to load in the model files manaully
 *.pth
 
+# Test script from CV package
+*test_images.py
