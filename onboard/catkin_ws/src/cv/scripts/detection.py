@@ -68,10 +68,10 @@ class Detector:
                 self.init_model(model_name)
 
                 preds = model['predictor'].predict_top(image)
-                self.publish_predictions(preds, model['publisher'])
+                self.publish_predictions(preds, model['publisher'], image.shape)
 
     # Publish predictions with the given publisher
-    def publish_predictions(self, preds, publisher):
+    def publish_predictions(self, preds, publisher, shape):
         labels, boxes, scores = preds
 
         # TODO bug: this doesn't seem to work
@@ -84,10 +84,10 @@ class Detector:
                 object_msg.label = label
                 object_msg.score = score
 
-                object_msg.xmin = box[0].item()
-                object_msg.ymin = box[1].item()
-                object_msg.xmax = box[2].item()
-                object_msg.ymax = box[3].item()
+                object_msg.xmin = box[0].item() / shape[1]
+                object_msg.ymin = box[1].item() / shape[0]
+                object_msg.xmax = box[2].item() / shape[1]
+                object_msg.ymax = box[3].item() / shape[0]
 
                 # Safety check that publisher is not None
                 if publisher:
