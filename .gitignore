@@ -28,4 +28,4 @@ catkin_ws/src/offboard_comms/ros_lib
 *.pth
 
 # Test script from CV package
-*test_images.py
+*test_images.*

@@ -15,26 +15,19 @@ class Detector:
     # Load in models and other misc. setup work
     def __init__(self):
         self.bridge = CvBridge()
-        # TODO bug: cv should be cv_{camera} - how to do this?
-        self.camera = rospy.get_param('~/cv/camera')
+        self.camera = rospy.get_param('~/{}/camera'.format(rospy.get_name()))
 
         # Load in model configurations
         curr_directory = os.path.dirname(__file__)
         with open(os.path.join(curr_directory, '../models/models.yaml')) as f:
             self.models = yaml.load(f)
 
-        # Camera feed topic with default for testing purposes
+        # The topic that the camera publishes its feed to
         # TODO: add actual camera topic name format
         self.camera_feed_topic = '/camera/{}'.format(self.camera)
 
-        # Toggle model service with camera included at the end
+        # Toggle model service name
         self.toggle_service = 'toggle_model_{}'.format(self.camera)
-
-        # Initialize any enabled models
-        # TODO this can probably be removed
-        for model_name in self.models:
-            if self.models[model_name]['enabled']:
-                self.init_model(model_name)
 
     # Initialize model predictor and publisher if not already initialized
     def init_model(self, model_name):
@@ -74,9 +67,11 @@ class Detector:
     def publish_predictions(self, preds, publisher, shape):
         labels, boxes, scores = preds
 
-        # TODO bug: this doesn't seem to work
-        if not labels:  # if there are no predictions
-            publisher.publish(None)
+        # If there are no predictions, publish 'none' as the object label
+        if not labels:
+            object_msg = Object()
+            object_msg.label = 'none'
+            publisher.publish(object_msg)
         else:
             for label, box, score in zip(labels, boxes, scores):
                 object_msg = Object()
@@ -111,8 +106,8 @@ class Detector:
     # Initialize node and set up Subscriber to generate and
     # publish predictions at every camera frame
     def run(self):
-        node_name = 'cv_{}'.format(self.camera)
-        rospy.init_node(node_name)
+        # node_name = 'cv_{}'.format(self.camera)
+        rospy.init_node(rospy.get_name())
         rospy.Subscriber(self.camera_feed_topic, Image, self.detect)
 
         # Allow service for toggling of models
