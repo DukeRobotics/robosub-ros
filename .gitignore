@@ -15,6 +15,9 @@
 # ROS_Serial
 catkin_ws/src/offboard_comms/ros_lib
 
+# Acoustics
+*.csv
+
 # PyCharm/IntelliJ
 .idea
 

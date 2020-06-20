@@ -2,6 +2,8 @@
 # change fft_w_size, large_window_portion, and invalidation requirement in get_pdiff
 import numpy as np
 import acoustics_math as ac
+import sys
+import os
 
 
 class AcousticProcessor:
@@ -13,15 +15,15 @@ class AcousticProcessor:
     SPAC = 0.0115
 
     def __init__(self, filename, if_double, version, fs, freq, guess, publish_counts, if_plot=False):
-        self.publish_counts = publish_counts
-        self.filename = filename
+        self.filename = os.path.join(sys.path[0], '../data', filename)
         self.if_double = if_double
         self.version = version
-        self.if_plot = if_plot
         self.fs = fs
         self.pingc = self.fs * 0.004
         self.freq = freq
         self.guess = guess
+        self.publish_counts = publish_counts
+        self.if_plot = if_plot
         self.hp = [np.array([0, 0, 0]),
                    np.array([0, -self.SPAC, 0]),
                    np.array([-self.SPAC, 0, 0]),
