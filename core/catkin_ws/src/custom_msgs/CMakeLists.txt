@@ -11,6 +11,7 @@ add_message_files(
   FILES
   DVLRaw.msg
   ThrusterSpeeds.msg
+  Object.msg
 )
 
 add_service_files(
