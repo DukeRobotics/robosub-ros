@@ -14,6 +14,8 @@ class Detector:
 
     # Load in models and other misc. setup work
     def __init__(self):
+        rospy.init_node('cv', anonymous=True)
+
         self.bridge = CvBridge()
         self.camera = rospy.get_param('~/{}/camera'.format(rospy.get_name()))
 
@@ -106,7 +108,6 @@ class Detector:
     # Initialize node and set up Subscriber to generate and
     # publish predictions at every camera frame
     def run(self):
-        rospy.init_node('cv', anonymous=True)
         rospy.Subscriber(self.camera_feed_topic, Image, self.detect)
 
         # Allow service for toggling of models
