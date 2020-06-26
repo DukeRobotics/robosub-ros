@@ -1,0 +1,26 @@
+
+m: 10
+xg: 0
+yg: 0
+zg: 0
+Ix:
+Iy:
+Iz:
+Ixy: 0
+Ixz: 0
+Iyz: 0
+
+
+
+center_of_gravity: [0, 0, 0]
+center_of_buoyancy: [0, 0, 0]
+gravity: 9.8
+rho: 1000
+V:
+
+Xdot: [0, 0, 0, 0, 0, 0]
+Ydot: [0, 0, 0, 0, 0, 0]
+Zdot: [0, 0, 0, 0, 0, 0]
+Kdot: [0, 0, 0, 0, 0, 0]
+Mdot: [0, 0, 0, 0, 0, 0]
+Ndot: [0, 0, 0, 0, 0, 0]
