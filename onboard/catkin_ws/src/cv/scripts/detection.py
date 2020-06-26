@@ -106,8 +106,7 @@ class Detector:
     # Initialize node and set up Subscriber to generate and
     # publish predictions at every camera frame
     def run(self):
-        # node_name = 'cv_{}'.format(self.camera)
-        rospy.init_node(rospy.get_name())
+        rospy.init_node('cv', anonymous=True)
         rospy.Subscriber(self.camera_feed_topic, Image, self.detect)
 
         # Allow service for toggling of models
