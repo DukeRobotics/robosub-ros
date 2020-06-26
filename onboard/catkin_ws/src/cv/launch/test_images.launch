@@ -1,0 +1,3 @@
+<launch>
+	<node name="test_images" pkg="cv" type="test_images.py" />
+</launch>
