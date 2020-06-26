@@ -36,7 +36,7 @@ class Detector:
         model = self.models[model_name]
 
         # Model already initialized; return from method
-        if model['predictor'] is not None:
+        if model.get('predictor') is not None:
             return
 
         path = os.path.dirname(__file__)
@@ -58,7 +58,7 @@ class Detector:
             model = self.models[model_name]
 
             # Generate predictions for each enabled model
-            if model['enabled']:
+            if model.get('enabled'):
                 # Initialize predictor if not already
                 self.init_model(model_name)
 
@@ -97,7 +97,7 @@ class Detector:
             model['enabled'] = req.enabled
 
             # Delete model from memory if setting to disabled
-            if not model['enabled']:
+            if not model.get('enabled'):
                 model['predictor'] = None
                 model['publisher'] = None
 
