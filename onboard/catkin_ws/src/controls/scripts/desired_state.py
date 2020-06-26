@@ -1,17 +1,10 @@
 #!/usr/bin/env python
 
 import rospy
-from tf.transformations import quaternion_from_euler, euler_from_quaternion, euler_matrix
-import tf2_ros
-import tf2_geometry_msgs
-import numpy as np
+from geometry_msgs.msg import Pose, Twist
 from std_msgs.msg import Float64, Bool
-from drc_math import RpToTrans, Adjoint
+import controls_utils as utils
 
-import time
-
-from geometry_msgs.msg import Pose, Twist, Vector3
-# from nav_msgs.msg import Odometry
 
 class bcolors:
     BOLD = '\033[1m'
@@ -20,150 +13,57 @@ class bcolors:
     FAIL = '\033[91m'
     RESET = '\033[0m'
 
-class DesiredStateHandler():
 
-    POSE_TOPIC_X = '/controls/state/pose/x'
-    POSE_TOPIC_Y = '/controls/state/pose/y'
-    POSE_TOPIC_Z = '/controls/state/pose/z'
-    POSE_TOPIC_ROLL = '/controls/state/pose/roll'
-    POSE_TOPIC_PITCH = '/controls/state/pose/pitch'
-    POSE_TOPIC_YAW = '/controls/state/pose/yaw'
+class DesiredStateHandler:
 
     DESIRED_TWIST_POWER = 'controls/desired_twist_power'
     DESIRED_POSE_TOPIC = 'controls/desired_pose'
 
-    PUBLISHING_TOPIC_X_POS = 'controls/x_pos/setpoint'
-    PUBLISHING_TOPIC_Y_POS = 'controls/y_pos/setpoint'
-    PUBLISHING_TOPIC_Z_POS = 'controls/z_pos/setpoint'
-    PUBLISHING_TOPIC_ROLL_POS = 'controls/roll_pos/setpoint'
-    PUBLISHING_TOPIC_PITCH_POS = 'controls/pitch_pos/setpoint'
-    PUBLISHING_TOPIC_YAW_POS = 'controls/yaw_pos/setpoint'
-
-    PUBLISHING_TOPIC_ENABLE_X_POS = 'controls/enable/x_pos'
-    PUBLISHING_TOPIC_ENABLE_Y_POS = 'controls/enable/y_pos'
-    PUBLISHING_TOPIC_ENABLE_Z_POS = 'controls/enable/z_pos'
-    PUBLISHING_TOPIC_ENABLE_ROLL_POS = 'controls/enable/roll_pos'
-    PUBLISHING_TOPIC_ENABLE_PITCH_POS = 'controls/enable/pitch_pos'
-    PUBLISHING_TOPIC_ENABLE_YAW_POS = 'controls/enable/yaw_pos'
-
-    PUBLISHING_TOPIC_X_EFFORT = '/control_effort/x'
-    PUBLISHING_TOPIC_Y_EFFORT = '/control_effort/y'
-    PUBLISHING_TOPIC_Z_EFFORT = '/control_effort/z'
-    PUBLISHING_TOPIC_ROLL_EFFORT = '/control_effort/roll'
-    PUBLISHING_TOPIC_PITCH_EFFORT = '/control_effort/pitch'
-    PUBLISHING_TOPIC_YAW_EFFORT = '/control_effort/yaw'
-
-    PUBLISHING_TOPIC_POWER_X = '/controls/power/x'
-    PUBLISHING_TOPIC_POWER_Y = '/controls/power/y'
-    PUBLISHING_TOPIC_POWER_Z = '/controls/power/z'
-    PUBLISHING_TOPIC_POWER_ROLL = '/controls/power/roll'
-    PUBLISHING_TOPIC_POWER_PITCH = '/controls/power/pitch'
-    PUBLISHING_TOPIC_POWER_YAW = '/controls/power/yaw'
-
     REFRESH_HZ = 10  # for main loop
 
-    x_hold = 0
-    y_hold = 0
-    z_hold = 0
-    roll_hold = 0
-    pitch_hold = 0
-    yaw_hold = 0
-
-    x = 0
-    y = 0
-    z = 0
-    roll = 0
-    pitch = 0
-    yaw = 0
-
-    pose = None
-    powers = None
-    last_powers = None
+    # All variables are a dictionary with mappings between the strings in DIRECTIONS to its corresponding value
+    state = {}  # Current State of the Robot
+    hold = {}  # State that should be held at the start of power control
+    pose = None  # Desired pose
+    powers = None  # Desired power
+    last_powers = None  # Power from previous loop
+    # These dictionaries contain mappings between the strings in DIRECTIONS to the corresponding rospy publisher objects
+    pub_pos = {}
+    pub_pos_enable = {}
+    pub_power = {}
 
     def __init__(self):
-        rospy.Subscriber(self.POSE_TOPIC_X, Float64, self.receive_x)
-        rospy.Subscriber(self.POSE_TOPIC_Y, Float64, self.receive_y)
-        rospy.Subscriber(self.POSE_TOPIC_Z, Float64, self.receive_z)
-        rospy.Subscriber(self.POSE_TOPIC_ROLL, Float64, self.receive_roll)
-        rospy.Subscriber(self.POSE_TOPIC_PITCH, Float64, self.receive_pitch)
-        rospy.Subscriber(self.POSE_TOPIC_YAW, Float64, self.receive_yaw)
+        for d in utils.get_axes():
+            self.state[d] = 0
+            self.hold[d] = 0
+            rospy.Subscriber(utils.get_pose_topic(d), Float64, self._on_state_received, d)
+            self.pub_pos[d] = rospy.Publisher(utils.get_pid_topic(d), Float64, queue_size=3)
+            self.pub_pos_enable[d] = rospy.Publisher(utils.get_pid_enable(d), Bool, queue_size=3)
+            self.pub_power[d] = rospy.Publisher(utils.get_power_topic(d), Float64, queue_size=3)
 
-        #PID Position publishers
-        self._pub_x_pos = rospy.Publisher(self.PUBLISHING_TOPIC_X_POS, Float64, queue_size=3)
-        self._pub_y_pos = rospy.Publisher(self.PUBLISHING_TOPIC_Y_POS, Float64, queue_size=3)
-        self._pub_z_pos = rospy.Publisher(self.PUBLISHING_TOPIC_Z_POS, Float64, queue_size=3)
-        self._pub_roll_pos = rospy.Publisher(self.PUBLISHING_TOPIC_ROLL_POS, Float64, queue_size=3)
-        self._pub_pitch_pos = rospy.Publisher(self.PUBLISHING_TOPIC_PITCH_POS, Float64, queue_size=3)
-        self._pub_yaw_pos = rospy.Publisher(self.PUBLISHING_TOPIC_YAW_POS, Float64, queue_size=3)
+        rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self._on_pose_received)
+        rospy.Subscriber(self.DESIRED_TWIST_POWER, Twist, self.on_powers_received)
 
-        self._pub_x_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_X_POS, Bool, queue_size=3)
-        self._pub_y_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_Y_POS, Bool, queue_size=3)
-        self._pub_z_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_Z_POS, Bool, queue_size=3)
-        self._pub_roll_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_ROLL_POS, Bool, queue_size=3)
-        self._pub_pitch_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_PITCH_POS, Bool, queue_size=3)
-        self._pub_yaw_pos_enable = rospy.Publisher(self.PUBLISHING_TOPIC_ENABLE_YAW_POS, Bool, queue_size=3)
+    def _on_state_received(self, val, direction):
+        self.state[direction] = val.data
 
-        self._pub_x_power = rospy.Publisher(self.PUBLISHING_TOPIC_POWER_X, Float64, queue_size=3)
-        self._pub_y_power = rospy.Publisher(self.PUBLISHING_TOPIC_POWER_Y, Float64, queue_size=3)
-        self._pub_z_power = rospy.Publisher(self.PUBLISHING_TOPIC_POWER_Z, Float64, queue_size=3)
-        self._pub_roll_power = rospy.Publisher(self.PUBLISHING_TOPIC_POWER_ROLL, Float64, queue_size=3)
-        self._pub_pitch_power= rospy.Publisher(self.PUBLISHING_TOPIC_POWER_PITCH, Float64, queue_size=3)
-        self._pub_yaw_power = rospy.Publisher(self.PUBLISHING_TOPIC_POWER_YAW, Float64, queue_size=3)
+    def _on_pose_received(self, pose):
+        self.pose = utils.parse_pose(pose)
 
-        rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self.receive_pose)
-        rospy.Subscriber(self.DESIRED_TWIST_POWER, Twist, self.receive_powers)
-
-    def receive_x(self, x):
-        self.x = x.data
-
-    def receive_y(self, y):
-        self.y = y.data
-
-    def receive_z(self, z):
-        self.z = z.data
-
-    def receive_roll(self, roll):
-        self.roll = roll.data
-
-    def receive_pitch(self, pitch):
-        self.pitch = pitch.data
-
-    def receive_yaw(self, yaw):
-        self.yaw = yaw.data
-
-    def receive_pose(self, pose):
-        self.pose = pose
-
-    def receive_powers(self, twist):
-        self.powers = twist
+    def on_powers_received(self, twist):
+        self.powers = utils.parse_twist(twist)
 
     def soft_estop(self):
-        #Stop Moving
-        self._pub_x_pos_enable.publish(False)
-        self._pub_y_pos_enable.publish(False)
-        self._pub_z_pos_enable.publish(False)
-        self._pub_roll_pos_enable.publish(False)
-        self._pub_pitch_pos_enable.publish(False)
-        self._pub_yaw_pos_enable.publish(False)
+        # Stop Moving
+        utils.publish_data_constant(self.pub_pos_enable, utils.get_axes(), False)
+        utils.publish_data_constant(self.pub_power, utils.get_axes(), 0)
+        self.powers = None
+        self.last_powers = None
+        self.pose = None
 
-        self._pub_x_power.publish(0)
-        self._pub_y_power.publish(0)
-        self._pub_z_power.publish(0)
-        self._pub_roll_power.publish(0)
-        self._pub_pitch_power.publish(0)
-        self._pub_yaw_power.publish(0)
-
-    def twists_equal(self, t1, t2):
-        return (t1.linear.x == t2.linear.x and
-                t1.linear.y == t2.linear.y and
-                t1.linear.z == t2.linear.z and
-                t1.angular.x == t2.angular.x and
-                t1.angular.y == t2.angular.y and
-                t1.angular.z == t2.angular.z)
-
-    def copy_twist(self, t):
-        return Twist(Vector3(t.linear.x, t.linear.y, t.linear.z),
-                     Vector3(t.angular.x, t.angular.y, t.angular.z))
+    def enable_loops(self):
+        # Enable all PID Loops
+        utils.publish_data_constant(self.pub_pos_enable, utils.get_axes(), True)
 
     def run(self):
         rospy.init_node('desired_state')
@@ -194,98 +94,44 @@ class DesiredStateHandler():
                 warned = False
 
             if self.pose:
-                self._pub_x_pos_enable.publish(True)
-                self._pub_y_pos_enable.publish(True)
-                self._pub_z_pos_enable.publish(True)
-                self._pub_roll_pos_enable.publish(True)
-                self._pub_pitch_pos_enable.publish(True)
-                self._pub_yaw_pos_enable.publish(True)
-
-                x = self.pose.position.x
-                y = self.pose.position.y
-                z = self.pose.position.z
-
-                orientation = self.pose.orientation
-                roll, pitch, yaw = euler_from_quaternion([orientation.x,
-                                                          orientation.y,
-                                                          orientation.z,
-                                                          orientation.w])
-
-                self._pub_x_pos.publish(x)
-                self._pub_y_pos.publish(y)
-                self._pub_z_pos.publish(z)
-                self._pub_roll_pos.publish(roll)
-                self._pub_pitch_pos.publish(pitch)
-                self._pub_yaw_pos.publish(yaw)
-
+                self.enable_loops()
+                utils.publish_data_dictionary(self.pub_pos, utils.get_axes(), self.pose)
                 self.pose = None
 
             elif self.powers:
-                if self.last_powers is None or not self.twists_equal(self.powers, self.last_powers):
-                    # Enable all PID Loops
-                    self._pub_x_pos_enable.publish(True)
-                    self._pub_y_pos_enable.publish(True)
-                    self._pub_z_pos_enable.publish(True)
-                    self._pub_roll_pos_enable.publish(True)
-                    self._pub_pitch_pos_enable.publish(True)
-                    self._pub_yaw_pos_enable.publish(True)
-
+                if self.last_powers is None or self.powers != self.last_powers:
+                    self.enable_loops()
                     # Hold Position on the current state
-                    self.x_hold = self.x
-                    self.y_hold = self.y
-                    self.z_hold = self.z
-                    self.roll_hold = self.roll
-                    self.pitch_hold = self.pitch
-                    self.yaw_hold = self.yaw
-
-                    self.last_powers = self.copy_twist(self.powers)
+                    self.hold = dict(self.state)
+                    self.last_powers = dict(self.powers)
 
                 # Nonzero entries bypass PID
+                # If any nonzero xy power, disable those position pid loops
+                if self.powers['x'] != 0 or self.powers['y'] != 0:
+                    utils.publish_data_constant(self.pub_pos_enable, ['x', 'y'], False)
 
-                # If any nonzero xyz power, publish those powers directly
+                # If any nonzero rpy power, disable those position pid loops
+                elif self.powers['roll'] != 0 or self.powers['pitch'] != 0 or self.powers['yaw'] != 0:
+                    utils.publish_data_constant(self.pub_pos_enable, ['roll', 'pitch', 'yaw'], False)
 
-                if self.powers.linear.x != 0 or self.powers.linear.y != 0:
-                    self._pub_x_pos_enable.publish(False)
-                    #self._pub_x_power.publish(self.powers.linear.x)
-                    self._pub_y_pos_enable.publish(False)
-                    #self._pub_y_power.publish(self.powers.linear.y)
+                # If any nonzero z power, disable those position pid loops
+                if self.powers['z'] != 0:
+                    utils.publish_data_constant(self.pub_pos_enable, ['z'], False)
 
-                # If any nonzero rpy power, publish those powers directly
-                elif self.powers.angular.x != 0 or self.powers.angular.y != 0 or self.powers.angular.z != 0:
-                    self._pub_roll_pos_enable.publish(False)
-                    #self._pub_roll_power.publish(self.powers.angular.x)
-                    self._pub_pitch_pos_enable.publish(False)
-                    #self._pub_pitch_power.publish(self.powers.angular.y)
-                    self._pub_yaw_pos_enable.publish(False)
-                    #self._pub_yaw_power.publish(self.powers.angular.z)
+                # TODO: BOTH cases
 
-                if self.powers.linear.z !=0:
-                    self._pub_z_pos_enable.publish(False)
-                    #self._pub_z_power.publish(self.powers.linear.z)
-
-                self._pub_x_power.publish(self.powers.linear.x)
-                self._pub_y_power.publish(self.powers.linear.y)
-                self._pub_z_power.publish(self.powers.linear.z)
-                self._pub_roll_power.publish(self.powers.angular.x)
-                self._pub_pitch_power.publish(self.powers.angular.y)
-                self._pub_yaw_power.publish(self.powers.angular.z)
-
-
-                #TODO: BOTH cases
-
-                #Publish current state to the desired state for PID
-                self._pub_x_pos.publish(self.x_hold)
-                self._pub_y_pos.publish(self.y_hold)
-                self._pub_z_pos.publish(self.z_hold)
-                self._pub_roll_pos.publish(self.roll_hold)
-                self._pub_pitch_pos.publish(self.pitch_hold)
-                self._pub_yaw_pos.publish(self.yaw_hold)
-
+                utils.publish_data_dictionary(self.pub_power, utils.get_axes(), self.powers)
+                # Publish current state to the desired state for PID
+                utils.publish_data_dictionary(self.pub_pos, utils.get_axes(), self.hold)
                 self.powers = None
 
 
 def main():
-    DesiredStateHandler().run()
+    try:
+        DesiredStateHandler().run()
+    except rospy.ROSInterruptException:
+        pass
+
 
 if __name__ == '__main__':
     main()
