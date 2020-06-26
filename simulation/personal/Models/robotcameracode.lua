@@ -102,7 +102,7 @@ function sysCall_init()
     sim.adjustView(frontView,frontCam,0)
     rel_cam_pos = {0.309, 0.138, 0.18}   --relative position of camera
     
-    camScriptHandle = sim.getScriptHandle("Gate")
+    gateScriptHandle = sim.getScriptHandle("Gate")
 end
  
 function sysCall_actuation()
@@ -198,7 +198,7 @@ function get_sign(x)
 end
 
 function getBoundingBox()
-    boundingBox = sim.callScriptFunction("get_BoundingBox@Gate", camScriptHandle)
+    boundingBox = sim.callScriptFunction("get_BoundingBox@Gate", gateScriptHandle)
     return boundingBox
 end
 function calc_dragforcelin(linvel, length, depth)

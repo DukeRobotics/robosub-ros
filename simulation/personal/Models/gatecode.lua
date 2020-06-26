@@ -1,4 +1,4 @@
-function sysCall_init()
+function extsysCall_init()
     -- do some initialization here
     lc = sim.getObjectHandle("GateLeftChild")
     rc = sim.getObjectHandle("GateRightChild")
@@ -9,7 +9,7 @@ function sysCall_init()
     robScriptHandle = sim.getScriptHandle("Rob")
 end
 
-function sysCall_actuation()
+function extsysCall_actuation()
     -- put your actuation code here
 end
 
