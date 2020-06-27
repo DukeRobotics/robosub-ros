@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 
-import rospy
-import numpy as np
 import math
-
-from std_msgs.msg import String
+import numpy as np
+import rospy
 from data_pub.msg import DVLRaw
+from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
 from tf.transformations import quaternion_from_euler
-from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 
 NODE_NAME = 'dvl_odom_pub'
 DVL_RAW_TOPIC = 'sensors/dvl/raw'
