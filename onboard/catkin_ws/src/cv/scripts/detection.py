@@ -17,7 +17,7 @@ class Detector:
         rospy.init_node('cv', anonymous=True)
 
         self.bridge = CvBridge()
-        self.camera = rospy.get_param('~/{}/camera'.format(rospy.get_name()))
+        self.camera = rospy.get_param('~camera')
 
         # Load in model configurations
         curr_directory = os.path.dirname(__file__)

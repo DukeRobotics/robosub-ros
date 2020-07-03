@@ -12,8 +12,9 @@ from cv_bridge import CvBridge
 class DummyImagePublisher:
 
     NODE_NAME = 'test_images'
+    CAMERA = 'left'
+    IMAGE_TOPIC = '/camera/{}'.format(CAMERA)
     # IMAGE_TOPIC = '/test_images/image'
-    IMAGE_TOPIC = '/camera/{CAMERA_GOES_HERE}'
 
     # Read in the dummy image and other misc. setup work
     def __init__(self):
@@ -30,7 +31,7 @@ class DummyImagePublisher:
         rospy.init_node(self.NODE_NAME)
 
         # Testing toggle_model service
-        service_name = 'toggle_model_{CAMERA_GOES_HERE}'
+        service_name = 'toggle_model_{}'.format(self.CAMERA)
         rospy.wait_for_service(service_name)
         toggle_model = rospy.ServiceProxy(service_name, ToggleModel)
 
