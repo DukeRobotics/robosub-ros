@@ -3,7 +3,7 @@
 import rospy
 import cv2
 import os
-from custom_msgs.srv import ToggleModel
+from custom_msgs.srv import EnableModel
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
@@ -14,7 +14,6 @@ class DummyImagePublisher:
     NODE_NAME = 'test_images'
     CAMERA = 'left'
     IMAGE_TOPIC = '/camera/{}'.format(CAMERA)
-    # IMAGE_TOPIC = '/test_images/image'
 
     # Read in the dummy image and other misc. setup work
     def __init__(self):
@@ -30,10 +29,10 @@ class DummyImagePublisher:
     def run(self):
         rospy.init_node(self.NODE_NAME)
 
-        # Testing toggle_model service
-        service_name = 'toggle_model_{}'.format(self.CAMERA)
+        # Testing enable_model service
+        service_name = 'enable_model_{}'.format(self.CAMERA)
         rospy.wait_for_service(service_name)
-        toggle_model = rospy.ServiceProxy(service_name, ToggleModel)
+        enable_model = rospy.ServiceProxy(service_name, EnableModel)
 
         loop_rate = rospy.Rate(1)
         model_enabled = True
@@ -42,10 +41,9 @@ class DummyImagePublisher:
         while not rospy.is_shutdown():
             self.image_publisher.publish(self.image_msg)
 
-            # Testing toggle_model
+            # Testing enable
             if count % 30 == 0:
-                toggle_model('buoy', model_enabled)
-                # toggle_model('test', not model_enabled)
+                enable_model('buoy', model_enabled)
                 model_enabled = not model_enabled
 
             count += 1

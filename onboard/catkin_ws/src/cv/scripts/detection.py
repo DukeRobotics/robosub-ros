@@ -3,8 +3,8 @@
 import rospy
 import os
 import yaml
-from custom_msgs.msg import Object
-from custom_msgs.srv import ToggleModel
+from custom_msgs.msg import CVObject
+from custom_msgs.srv import EnableModel
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from detecto.core import Model
@@ -29,7 +29,7 @@ class Detector:
         self.camera_feed_topic = '/camera/{}'.format(self.camera)
 
         # Toggle model service name
-        self.toggle_service = 'toggle_model_{}'.format(self.camera)
+        self.enable_service = 'enable_model_{}'.format(self.camera)
 
     # Initialize model predictor and publisher if not already initialized
     def init_model(self, model_name):
@@ -45,7 +45,7 @@ class Detector:
         predictor = Model.load(weights_file, model['classes'])
 
         publisher_name = '{}/{}'.format(model['topic'], self.camera)
-        publisher = rospy.Publisher(publisher_name, Object, queue_size=10)
+        publisher = rospy.Publisher(publisher_name, CVObject, queue_size=10)
 
         model['predictor'] = predictor
         model['publisher'] = publisher
@@ -71,12 +71,12 @@ class Detector:
 
         # If there are no predictions, publish 'none' as the object label
         if not labels:
-            object_msg = Object()
+            object_msg = CVObject()
             object_msg.label = 'none'
             publisher.publish(object_msg)
         else:
             for label, box, score in zip(labels, boxes, scores):
-                object_msg = Object()
+                object_msg = CVObject()
 
                 object_msg.label = label
                 object_msg.score = score
@@ -91,7 +91,7 @@ class Detector:
                     publisher.publish(object_msg)
 
     # Service for toggling specific models on and off
-    def toggle_model(self, req):
+    def enable_model(self, req):
         if req.model_name in self.models:
             model = self.models[req.model_name]
             model['enabled'] = req.enabled
@@ -111,7 +111,7 @@ class Detector:
         rospy.Subscriber(self.camera_feed_topic, Image, self.detect)
 
         # Allow service for toggling of models
-        rospy.Service(self.toggle_service, ToggleModel, self.toggle_model)
+        rospy.Service(self.enable_service, EnableModel, self.enable_model)
 
         # Keep node running until shut down
         rospy.spin()

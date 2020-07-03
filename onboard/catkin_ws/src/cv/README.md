@@ -15,6 +15,49 @@ TODO: description
 
 ## Setup
 
+# Computer Vision
+
+TODO: description
+
+## Structure
+
+TODO: describe scripts, messages in core, models, etc.
+
+## Setup
+
+* Create object detection models and save them as .pth files (see [here](https://github.com/DukeRobotics/robosub-cv/tree/master/training))
+* Place these models in the `/models` folder
+* Update the `/models/models.yaml` file with your model details in the following format:
+
+```yaml
+model_name:  # A name for your model
+  classes: [class1, class2, ...]  # The classes the model is trained to predict
+  topic: /cv/model_name  # the base topic name your predictions will be published to
+  weights: buoy.pth  # the relative path to your model file
+```
+
+* 
+
+mention default 
+scp 
+
+TODO: models.yaml, .pth files, download and move default model
+
+## Testing
+
+TODO: how to test in docker
+
+## Listening
+
+TODO
+
+## Publishing
+
+TODO
+
+
+
+
 TODO: models.yaml, .pth files, download and move default model
 
 ## Testing
