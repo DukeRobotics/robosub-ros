@@ -110,15 +110,17 @@ class DesiredStateHandler:
                 if self.powers['x'] != 0 or self.powers['y'] != 0:
                     utils.publish_data_constant(self.pub_pos_enable, ['x', 'y'], False)
 
-                # If any nonzero rpy power, disable those position pid loops
-                elif self.powers['roll'] != 0 or self.powers['pitch'] != 0 or self.powers['yaw'] != 0:
-                    utils.publish_data_constant(self.pub_pos_enable, ['roll', 'pitch', 'yaw'], False)
+                # If any nonzero roll or pitch power, disable those position pid loops
+                if self.powers['roll'] != 0 or self.powers['pitch'] != 0:
+                    utils.publish_data_constant(self.pub_pos_enable, ['roll', 'pitch'], False)
+
+                # If nonzero yaw power, disable those position pid loops
+                if self.powers['yaw'] != 0:
+                    utils.publish_data_constant(self.pub_pos_enable, ['yaw'], False)
 
                 # If any nonzero z power, disable those position pid loops
                 if self.powers['z'] != 0:
                     utils.publish_data_constant(self.pub_pos_enable, ['z'], False)
-
-                # TODO: BOTH cases
 
                 utils.publish_data_dictionary(self.pub_power, utils.get_axes(), self.powers)
                 # Publish current state to the desired state for PID
