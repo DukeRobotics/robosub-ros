@@ -4,7 +4,8 @@ TODO: description
 
 ## Structure
 
-TODO: describe scripts, messages in core, models, etc.
+`assets`: Folder with a dummy image to test the CV package on
+`launch`: Contains the various launch files for our CV package. There is a general launch file for all the cameras, and then there are specific launch files for each camera (left, right, and down). Finally, we have a launch file for our testing script `test_images.launch`.
 
 ## Setup
 
