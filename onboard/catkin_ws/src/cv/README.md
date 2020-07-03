@@ -1,6 +1,6 @@
 # Computer Vision
 
-TODO: description
+The computer vision package listens for images coming from 3 different cameras: left, right, and down. The package will then run a pre-trained machine learning model on the image and output bounding boxes for the various objects in the frame. These objects could be the gate, buoys, etc.
 
 ## Structure
 
