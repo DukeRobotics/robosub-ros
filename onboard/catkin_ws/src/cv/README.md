@@ -45,7 +45,17 @@ TODO: models.yaml, .pth files, download and move default model
 
 ## Testing
 
-TODO: how to test in docker
+The following test plan walks through how to launch a camera node which takes in fake image data and publishes bounding box predictions to a separate topic.
+
+1. Kick off one of the camera launch files. This will start up the detection node. Since we have three camera launch files, any of the three launch files ending in  *_right*, *_left*, or *_bottom* can be used. 
+ `roslaunch cv cv_left.launch`
+2. Kick off the test_images launch file. This will start up the test_images node and simulate a camera feed by repeatedly publishing a test image to the camera topic.  
+ `roslaunch cv test_images.launch`  
+3. Ensure that the detection node is working properly. First, view the list of active topics via
+`rostopic list` 
+Output the contents of the topic via
+`rostopic echo /cv/buoy/left` (or other topic name depending on models.yaml and camera)
+Ensure that correct coordinates are being published.
 
 ## Listening
 
