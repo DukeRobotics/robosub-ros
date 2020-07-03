@@ -4,7 +4,7 @@ The computer vision package listens for images coming from 3 different cameras: 
 
 ## Structure
 
-The following are the folders and files in the CV package
+The following are the folders and files in the CV package.
 
 `assets`: Folder with a dummy image to test the CV package on
 
@@ -18,6 +18,18 @@ The following are the folders and files in the CV package
 
 `package.xml`: A xml file stating the basic information about the CV package
 
+The CV package also has dependencies in the `core/catkin_ws/src/custom_msgs` folder.
+
+
+## Setup
+
+# Computer Vision
+
+TODO: description
+
+## Structure
+
+TODO: describe scripts, messages in core, models, etc.
 
 ## Setup
 
@@ -32,16 +44,12 @@ model_name:  # A name for your model
   weights: buoy.pth  # the relative path to your model file
 ```
 
-* Verify that the package runs correctly by referring to the following [testing section](#testing)
+* Ensure 
 
-Note: To get the model files onto the docker container, you may have to use `scp`. Also, if you come across the following error: 
+mention default 
+scp 
 
-`URLError: <urlopen error [Errno -3] Temporary failure in name resolution>`
-
-Navigate to [this url](https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth) 
-to manually download the default model file used by the Detecto package. Move this file onto the Docker
-container under the directory `/root/.cache/torch/checkpoints/` (do not rename the file). 
-
+TODO: models.yaml, .pth files, download and move default model
 
 ## Testing
 
