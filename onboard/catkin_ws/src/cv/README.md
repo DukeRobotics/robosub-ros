@@ -36,7 +36,7 @@ model_name:  # A name for your model
   weights: buoy.pth  # the relative path to your model file
 ```
 
-* 
+* Ensure 
 
 mention default 
 scp 

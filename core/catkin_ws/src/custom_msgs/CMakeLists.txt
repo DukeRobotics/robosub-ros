@@ -11,13 +11,13 @@ add_message_files(
   FILES
   DVLRaw.msg
   ThrusterSpeeds.msg
-  Object.msg
+  CVObject.msg
 )
 
 add_service_files(
   FILES
   SetServo.srv
-  ToggleModel.srv
+  EnableModel.srv
 )
 
 generate_messages(
