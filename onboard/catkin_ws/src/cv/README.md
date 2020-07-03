@@ -21,16 +21,6 @@ The following are the folders and files in the CV package
 
 ## Setup
 
-# Computer Vision
-
-TODO: description
-
-## Structure
-
-TODO: describe scripts, messages in core, models, etc.
-
-## Setup
-
 * Create object detection models and save them as .pth files (see [here](https://github.com/DukeRobotics/robosub-cv/tree/master/training))
 * Place these models in the `/models` folder
 * Update the `/models/models.yaml` file with your model details in the following format:
@@ -42,12 +32,16 @@ model_name:  # A name for your model
   weights: buoy.pth  # the relative path to your model file
 ```
 
-* Ensure 
+* Verify that the package runs correctly by referring to the following [testing section](#testing)
 
-mention default 
-scp 
+Note: To get the model files onto the docker container, you may have to use `scp`. Also, if you come across the following error: 
 
-TODO: models.yaml, .pth files, download and move default model
+`URLError: <urlopen error [Errno -3] Temporary failure in name resolution>`
+
+Navigate to [this url](https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth) 
+to manually download the default model file used by the Detecto package. Move this file onto the Docker
+container under the directory `/root/.cache/torch/checkpoints/` (do not rename the file). 
+
 
 ## Testing
 
