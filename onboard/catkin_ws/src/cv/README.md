@@ -61,8 +61,8 @@ Ensure that correct coordinates are being published.
 
 ### Listening
 
-The topic that stores information about an object's bounding box
  - ```'{}/{}'.format(model['topic'], camera)```
+ The topic that stores information about an object's bounding box
    + model['topic'] is the path to the topic stored in ```models.yaml```
    + camera is the ```'~camera'``` parameter 
    + It contains 4 float64s representing the coordinates of the bounding box, 1 float64 representing the accuracy of the prediciton, and a String representing the name of the image.
@@ -70,8 +70,8 @@ The topic that stores information about an object's bounding box
 
 ### Publishing
 
-The topic that the camera publishes its feed to
  - ```'/camera/{}'.format(CAMERA)```
+ The topic that the camera publishes its feed to
    + ```CAMERA``` represents the camera the image is received from (ex: left)
    + An image should be published to this topic
      + The image must be processed using ``.cv2_to_imgmsg(image, 'bgr8')``` 
