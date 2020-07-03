@@ -61,7 +61,8 @@ Ensure that correct coordinates are being published.
 
 ### Listening
 
- - ```'{}/{}'.format(model['topic'], camera)```
+ ```'{}/{}'.format(model['topic'], camera)```
+ 
  The topic that stores information about an object's bounding box
    + model['topic'] is the path to the topic stored in ```models.yaml```
    + camera is the ```'~camera'``` parameter 
@@ -70,7 +71,8 @@ Ensure that correct coordinates are being published.
 
 ### Publishing
 
- - ```'/camera/{}'.format(CAMERA)```
+ ```'/camera/{}'.format(CAMERA)```
+ 
  The topic that the camera publishes its feed to
    + ```CAMERA``` represents the camera the image is received from (ex: left)
    + An image should be published to this topic
