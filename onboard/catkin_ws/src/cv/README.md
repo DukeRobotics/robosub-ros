@@ -57,11 +57,23 @@ Output the contents of the topic via
 `rostopic echo /cv/buoy/left` (or other topic name depending on models.yaml and camera)
 Ensure that correct coordinates are being published.
 
+## Topics 
 
-## Listening
+### Listening
 
-TODO
+The topic that stores information about an object's bounding box
+ - ```'{}/{}'.format(model['topic'], camera)```
+   + model['topic'] is the path to the topic stored in ```models.yaml```
+   + camera is the ```'~camera'``` parameter 
+   + It contains 4 float64s representing the coordinates of the bounding box, 1 float64 representing the accuracy of the prediciton, and a String representing the name of the image.
+   + Type: custom_msgs/CVObject
 
-## Publishing
+### Publishing
 
-TODO
+The topic that the camera publishes its feed to
+ - ```'/camera/{}'.format(CAMERA)```
+   + ```CAMERA``` represents the camera the image is received from (ex: left)
+   + An image should be published to this topic
+     + The image must be processed using ``.cv2_to_imgmsg(image, 'bgr8')``` 
+       + Make sure you import CvBridge for the above method (```from cv_bridge import CvBridge```)
+   + Type: sensor_msgs/Image
