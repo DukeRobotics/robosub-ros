@@ -12,6 +12,10 @@ TODO: description
 
 `scripts`: This is the "meat" of our package. We have a detection script `detection.py` that will read in images and publish predictions onto a node. We also have a `test_images.py` script that is used for testing our package on a dummy video feed (basically one image repeated over and over). We can simulate different video feeds coming in on the different cameras on our `test_images.py` script.
 
+`CMakeLists.txt`: A text file stating the necessary package dependencies and the files in our package.
+
+`package.xml`: A xml file stating the basic information about the CV package
+
 
 ## Setup
 
