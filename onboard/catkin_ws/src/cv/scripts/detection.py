@@ -25,8 +25,7 @@ class Detector:
             self.models = yaml.load(f)
 
         # The topic that the camera publishes its feed to
-        # TODO: add actual camera topic name format
-        self.camera_feed_topic = '/camera/{}'.format(self.camera)
+        self.camera_feed_topic = '/camera/{}/image_raw'.format(self.camera)
 
         # Toggle model service name
         self.enable_service = 'enable_model_{}'.format(self.camera)

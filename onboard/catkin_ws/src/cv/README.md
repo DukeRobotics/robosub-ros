@@ -59,7 +59,7 @@ Ensure that correct coordinates are being published.
 
 ## Topics 
 
-### Listening
+### Publishing
 
  ```'{}/{}'.format(model['topic'], camera)```
  
@@ -69,13 +69,13 @@ Ensure that correct coordinates are being published.
    + It contains 4 float64s representing the coordinates of the bounding box, 1 float64 representing the accuracy of the prediciton, and a String representing the name of the image.
    + Type: custom_msgs/CVObject
 
-### Publishing
+### Listening
 
- ```'/camera/{}'.format(CAMERA)```
+ ```'/camera/{}/image_raw'.format(CAMERA)```
  
  The topic that the camera publishes its feed to
    + ```CAMERA``` represents the camera the image is received from (ex: left)
    + An image should be published to this topic
-     + The image must be processed using ``.cv2_to_imgmsg(image, 'bgr8')``` 
+     + The image must be processed using ```.cv2_to_imgmsg(image, 'bgr8')``` 
        + Make sure you import CvBridge for the above method (```from cv_bridge import CvBridge```)
    + Type: sensor_msgs/Image

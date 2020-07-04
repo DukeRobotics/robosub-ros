@@ -13,7 +13,7 @@ class DummyImagePublisher:
 
     NODE_NAME = 'test_images'
     CAMERA = 'left'
-    IMAGE_TOPIC = '/camera/{}'.format(CAMERA)
+    IMAGE_TOPIC = '/camera/{}/image_raw'.format(CAMERA)
 
     # Read in the dummy image and other misc. setup work
     def __init__(self):
