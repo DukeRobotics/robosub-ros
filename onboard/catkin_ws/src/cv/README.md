@@ -67,7 +67,7 @@ Ensure that correct coordinates are being published.
    + `<model_topic>` is the path to the topic stored in ```models.yaml```
    + `<camera>` is the ```'~camera'``` parameter (left, right, or down)
    + It contains 4 float64s representing the coordinates of the bounding box, 1 float64 representing the accuracy of the prediciton, and a String representing the name of the image.
-   + Type: custom_msgs/CVObject
+   + Data Type: custom_msgs/CVObject
 
 ### Listening
 
@@ -78,4 +78,4 @@ Ensure that correct coordinates are being published.
    + An image should be published to this topic
      + The image must be processed using ```.cv2_to_imgmsg(image, 'bgr8')``` 
        + Make sure you import CvBridge for the above method (```from cv_bridge import CvBridge```)
-   + Type: sensor_msgs/Image
+   + Data Type: sensor_msgs/Image
