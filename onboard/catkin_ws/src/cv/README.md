@@ -64,8 +64,8 @@ Ensure that correct coordinates are being published.
  ```<model_topic>/<camera>```
  
  The topic that stores information about an object's bounding box
-   + model_topic is the path to the topic stored in ```models.yaml```
-   + camera is the ```'~camera'``` parameter (left, right, or down)
+   + `<model_topic>` is the path to the topic stored in ```models.yaml```
+   + `<camera>` is the ```'~camera'``` parameter (left, right, or down)
    + It contains 4 float64s representing the coordinates of the bounding box, 1 float64 representing the accuracy of the prediciton, and a String representing the name of the image.
    + Type: custom_msgs/CVObject
 
