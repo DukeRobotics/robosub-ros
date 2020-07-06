@@ -30,7 +30,7 @@ class BagToVideo(BagVideoConverter):
                                      np.ceil(maxrates[topic] * 10), sizes[topic])
             iterator = bag.read_messages(topics=topic)
             for (t, msg, time), reps in izip(iterator, nframes[topic]):
-                img = np.asarray(self.bridge.imgmsg_to_cv2(msg, 'bgr8'))
+                img = np.asarray(self.bridge.imgmsg_to_cv2(msg, 'rgb8'))
                 for _ in range(reps):
                     writer.write(img)
             writer.release()

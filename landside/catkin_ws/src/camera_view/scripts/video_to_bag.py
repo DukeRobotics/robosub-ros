@@ -22,7 +22,7 @@ class VideoToBag(BagVideoConverter):
                 if not ret:
                     # Frame not read correctly
                     break
-                img = self.bridge.cv2_to_imgmsg(frame, "bgr8")
+                img = self.bridge.cv2_to_imgmsg(frame, "rgb8")
                 img.header.stamp = start_time + rospy.Duration(counter / fps)
                 bag.write(topic, img, img.header.stamp)
                 counter += 1
