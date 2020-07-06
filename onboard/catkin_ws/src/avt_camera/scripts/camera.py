@@ -1,9 +1,10 @@
 from pymba import *
 import rospy
-from cv_bridge import CvBridge, CvBridgeError
+from cv_bridge import CvBridge
 import numpy as np
 import sys
 from camera_info_manager import CameraInfoManager
+
 
 class Camera:
 
