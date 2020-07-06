@@ -5,16 +5,21 @@ import rospy
 from sensor_msgs.msg import Image, CameraInfo
 from camera import Camera
 
+
 class MonoCamera:
-    RAW_TOPIC_NAME = 'raw'
-    INFO_TOPIC_NAME = 'camera_info'
+
     NODE_NAME = 'mono_camera'
 
     def __init__(self):
-        rospy.init_node(self.NODE_NAME)
-        pub = rospy.Publisher(rospy.get_name() + "/" + self.RAW_TOPIC_NAME, Image, queue_size=10)
-        info_pub = rospy.Publisher(rospy.get_name() + "/" + self.INFO_TOPIC_NAME, CameraInfo, queue_size=10)
+        rospy.init_node(self.NODE_NAME, anonymous=True)
+        camera_name = rospy.get_param('~camera', 'camera')
         camera_id = rospy.get_param('~camera_id', None)
+
+        image_topic = '/camera/{}/image_raw'.format(camera_name)
+        info_topic = '/camera/{}/camera_info'.format(camera_name)
+
+        pub = rospy.Publisher(image_topic, Image, queue_size=10)
+        info_pub = rospy.Publisher(info_topic, CameraInfo, queue_size=10)
         self._camera = Camera(pub, info_pub, rospy.get_name(), camera_id)
 
     def run(self):
@@ -30,6 +35,7 @@ class MonoCamera:
                 self._camera.publish_image(time)
 
             self._camera.stop_acquisition()
+
 
 if __name__ == '__main__':
     try:

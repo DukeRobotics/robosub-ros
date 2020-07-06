@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from pymba import *
 import rospy
 from cv_bridge import CvBridge, CvBridgeError
