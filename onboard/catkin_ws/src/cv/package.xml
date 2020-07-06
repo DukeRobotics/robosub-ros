@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>cv</name>
+  <version>0.0.0</version>
+  <description>CV package that detects objects from the camera feed.</description>
+
+  <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>
+
+  <license>MIT</license>
+
+  <depend>rospy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>custom_msgs</depend>
+  <depend>cv_bridge</depend>
+
+  <exec_depend>python-yaml</exec_depend>
+  <exec_depend>python-opencv</exec_depend>
+  <exec_depend>detecto</exec_depend>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+</package>
