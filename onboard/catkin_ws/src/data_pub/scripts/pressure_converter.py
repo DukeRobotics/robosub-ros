@@ -4,7 +4,8 @@ import rospy
 from sensor_msgs.msg import FluidPressure
 from std_msgs.msg import Float64
 
-class PressureToDepthConverter():
+
+class PressureToDepthConverter:
 
     NODE_NAME = "depth_pub"
     PRESSURE_SUB_TOPIC = "offboard/pressure"
@@ -27,6 +28,7 @@ class PressureToDepthConverter():
 
     def pressure_to_depth(self, pressure):
         return (pressure - self.ATMOSPHERIC_PRESSURE)/(self.DENSITY_WATER * self.ACCEL_GRAVITY)
+
 
 if __name__ == '__main__':
     try:
