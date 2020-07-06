@@ -1,0 +1,10 @@
+<launch>
+    <node name="stereo" pkg="avt_camera" type="synchronous_camera.py">
+        <rosparam>
+          cameras: [left, right]
+          camera_id:
+            left: DEV_000F315C1ED5
+            right: DEV_000F315C1ED8
+        </rosparam>
+    </node>
+</launch>
