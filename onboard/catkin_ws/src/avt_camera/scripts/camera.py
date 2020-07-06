@@ -22,7 +22,7 @@ class Camera:
 
         camera_ids = vimba.getCameraIds()
         if not camera_ids:
-            rospy.logerr("Sorry: Cameras were not found.")
+            rospy.logerr("Cameras were not found.")
             sys.exit(0)
 
         for cam_id in camera_ids:
@@ -31,14 +31,17 @@ class Camera:
         if self._camera_id is None:
             self._camera_id = camera_ids[0]
         elif self._camera_id not in camera_ids:
-            rospy.logerr("Requested camera ID (" + self._camera_id + ") not found, sorry")
-            sys.exit(0)
+            rospy.logerr("Requested camera ID {} not found".format(self._camera_id))
+            sys.exit(1)
         self._info_manager = CameraInfoManager(cname=self._camera_id, namespace=self._namespace,
                                                url="package://avt_camera/calibrations/${NAME}.yaml")
         self._info_manager.loadCameraInfo()
 
     def get_camera(self, vimba):
         self._c0 = vimba.getCamera(self._camera_id)
+        if self._c0.getInfo().permittedAccess != 0:
+            rospy.logerr("Requested camera is already in use")
+            sys.exit(1)
         self._c0.openCamera()
 
     def gigE_camera(self):
@@ -48,7 +51,7 @@ class Camera:
         self._c0.StreamBytesPerSecond = 100000000
 
     def set_pixel_format(self):
-        self._c0.PixelFormat = "Mono8"
+        self._c0.PixelFormat = "RGB8"
         self._c0.AcquisitionMode = "Continuous"
         self._c0.ExposureAuto = "Continuous"
         self._c0.Width = 1210
@@ -83,7 +86,7 @@ class Camera:
         img = np.ndarray(buffer=self._frame_data,
                          dtype=np.uint8,
                          shape=(self._frame.height, self._frame.width, self._frame.pixel_bytes))
-        img_message = self._bridge.cv2_to_imgmsg(img, "mono8")
+        img_message = self._bridge.cv2_to_imgmsg(img, "rgb8")
         img_message.header.stamp = time
         self._pub.publish(img_message)
 
