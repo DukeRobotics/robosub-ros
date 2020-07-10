@@ -1,26 +1,26 @@
 
-m: 10
-xg: 0
-yg: 0
-zg: 0
-Ix:
-Iy:
-Iz:
-Ixy: 0
-Ixz: 0
-Iyz: 0
+m: 22
+xg: 0.032
+yg: 0.1
+zg: 0.005
+Ix: 1.833
+Iy: 1.833
+Iz: 1.833
+Ixy: 0.1
+Ixz: 0.1
+Iyz: 0.1
 
 
 
-center_of_gravity: [0, 0, 0]
-center_of_buoyancy: [0, 0, 0]
+center_of_gravity: [0.032, 0, 0.005]
+center_of_buoyancy: [-0.0044, 0, 0.0508]
 gravity: 9.8
 rho: 1000
-V:
+V: 5
 
-Xdot: [0, 0, 0, 0, 0, 0]
-Ydot: [0, 0, 0, 0, 0, 0]
-Zdot: [0, 0, 0, 0, 0, 0]
-Kdot: [0, 0, 0, 0, 0, 0]
-Mdot: [0, 0, 0, 0, 0, 0]
-Ndot: [0, 0, 0, 0, 0, 0]
+Xdot: [50, 0, 0, 0, 75, 0]
+Ydot: [0, 50, 0, 75, 0, 0]
+Zdot: [0, 0, 50, 0, 0, 0]
+Kdot: [0, 75, 0, 50, 0, 0]
+Mdot: [75, 0, 0, 0, 50, 0]
+Ndot: [0, 0, 0, 0, 0, 50]

@@ -109,7 +109,7 @@ def getSystem(var):
     f2 = sym.zeros(12, 1)
     f2[6:12, 0] = -M.inv() * G
     f = f1*var["state"] + f2
-    g = sym.zeros(12, 8)
+    g = sym.zeros(12, 1)
     g[6:12, :] = M.inv()*var["thruster"]*var["output"]
     state_model = f + g
 
