@@ -15,6 +15,10 @@
 # ROS_Serial
 catkin_ws/src/offboard_comms/ros_lib
 
+# Video and Bags
+*.avi
+*.bag
+
 # PyCharm/IntelliJ
 .idea
 
