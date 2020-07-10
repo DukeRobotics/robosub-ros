@@ -6,7 +6,7 @@ from sensor_msgs.msg import Image, CameraInfo
 from camera import Camera
 
 
-class SynchronousCamera:
+class SynchronizedCameras:
 
     NODE_NAME = 'stereo'
 
@@ -18,9 +18,9 @@ class SynchronousCamera:
         for cam in cam_name:
             image_topic = '/camera/{}/image_raw'.format(cam)
             info_topic = '/camera/{}/camera_info'.format(cam)
-            pub = rospy.Publisher(image_topic, Image, queue_size=10)
+            img_pub = rospy.Publisher(image_topic, Image, queue_size=10)
             info_pub = rospy.Publisher(info_topic, CameraInfo, queue_size=10)
-            self._cameras.append(Camera(pub, info_pub, cam, cam_ids[cam]))
+            self._cameras.append(Camera(img_pub, info_pub, cam, cam_ids[cam]))
 
     def for_each_camera(self, fn):
         for camera in self._cameras:
@@ -43,6 +43,6 @@ class SynchronousCamera:
 
 if __name__ == '__main__':
     try:
-        SynchronousCamera().run()
+        SynchronizedCameras().run()
     except rospy.ROSInterruptException:
         pass

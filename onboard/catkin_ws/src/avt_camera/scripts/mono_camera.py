@@ -18,9 +18,9 @@ class MonoCamera:
         image_topic = '/camera/{}/image_raw'.format(camera_name)
         info_topic = '/camera/{}/camera_info'.format(camera_name)
 
-        pub = rospy.Publisher(image_topic, Image, queue_size=10)
+        img_pub = rospy.Publisher(image_topic, Image, queue_size=10)
         info_pub = rospy.Publisher(info_topic, CameraInfo, queue_size=10)
-        self._camera = Camera(pub, info_pub, rospy.get_name(), camera_id)
+        self._camera = Camera(img_pub, info_pub, rospy.get_name(), camera_id)
 
     def run(self):
         with Vimba() as vimba:

@@ -8,8 +8,8 @@ from camera_info_manager import CameraInfoManager
 
 class Camera:
 
-    def __init__(self, pub, info_pub, namespace, camera_id):
-        self._pub = pub
+    def __init__(self, img_pub, info_pub, namespace, camera_id):
+        self._img_pub = img_pub
         self._info_pub = info_pub
         self._bridge = CvBridge()
         self._camera_id = camera_id
@@ -89,10 +89,7 @@ class Camera:
                          shape=(self._frame.height, self._frame.width, self._frame.pixel_bytes))
         img_message = self._bridge.cv2_to_imgmsg(img, "rgb8")
         img_message.header.stamp = time
-        self._pub.publish(img_message)
-
-        ci_message = self._info_manager.getCameraInfo()
-        ci_message.header.stamp = time
+        self._img_pub.publish(img_message)
         self._info_pub.publish(self._info_manager.getCameraInfo())
 
     def stop_acquisition(self):
