@@ -6,7 +6,7 @@ import scipy.linalg as linalg
 from std_msgs.msg import Bool
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose
-from std_msgs.msg import Float64, Float32MultiArray
+from std_msgs.msg import Float32MultiArray
 from tf.transformations import euler_from_quaternion
 from symbolic_state import SymbolicState
 import control
@@ -64,21 +64,21 @@ class lqrController:
                 error = self.curr_state - self.desired_state
                 error[3:6] = np.arctan2(np.sin(self.curr_state[3:6]-self.desired_state[3:6]),
                                         np.cos(self.curr_state[3:6]-self.desired_state[3:6]))
-
+                print(np.linalg.norm(error))
                 A, B, Q, R = self.symbolic_state.get_state_space(self.curr_state)
-                print(A)
-                print(B)
                 #X = linalg.solve_continuous_are(A, B, Q, R)
                 #K = np.matmul(linalg.inv(R), np.matmul(B.T, X))
                 try:
                     K, S, E = control.lqr(A, B, Q, R)
-                    du = -np.matmul(K, error)
+                    du = -np.matmul(K, error).T
                 except:
                     print("fail")
                     du = np.zeros(8)
-                print(du)
+                du_max = np.max(du)
+                if du_max != 0:
+                    du /= du_max
                 f32_t_allocs = Float32MultiArray()
-                f32_t_allocs.data = list(du)
+                f32_t_allocs.data = du
                 self.pub.publish(f32_t_allocs)
 
 if __name__ == '__main__':
