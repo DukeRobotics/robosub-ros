@@ -18,8 +18,8 @@ geometry_msgs/Point guess
 ---
 # Feedback
 
-# Completed bandpass filtering
-bool filtered
+# Current stage the program is on
+uint32 curr_stage
 
-# Completed cross correlation
-bool cross_correlated
+# Total number of stages in program
+uint32 total_stage
