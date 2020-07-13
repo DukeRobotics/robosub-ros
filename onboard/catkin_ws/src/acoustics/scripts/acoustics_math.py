@@ -1,6 +1,7 @@
 import pandas
 import numpy as np
 from scipy.optimize import fsolve
+from scipy.signal import butter, lfilter, freqz, correlate
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -136,3 +137,26 @@ def final_hz_angle(hz_arr):
     max_len = np.max([len(each) for each in quadrant])
     ave = np.array([q for q in quadrant if len(q) == max_len]).flatten()
     return np.mean(ave), len(ave)
+
+def butter_bandpass(lowcut, highcut, fs, order=5):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = butter(order, [low, high], btype='band')
+    return b, a
+
+def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
+    b, a = butter_bandpass(lowcut, highcut, fs, order=order)
+    y = lfilter(b, a, data)
+    return y
+
+def plot_filter(lowcut, highcut, fs, order):
+    b, a = butter_bandpass(lowcut, highcut, fs, order=order)
+    w, h = freqz(b, a, worN=2000)
+    plt.plot((fs * 0.5 / np.pi) * w, abs(h), label="order = %d" % order)
+    plt.plot([0, 0.5 * fs], [np.sqrt(0.5), np.sqrt(0.5)], '--', label='sqrt(0.5)')
+    plt.xlabel('Frequency (Hz)')
+    plt.ylabel('Gain')
+    plt.grid(True)
+    plt.legend(loc='best')
+    plt.show()

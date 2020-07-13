@@ -1,0 +1,25 @@
+# Goal
+
+# The base filename of the data without the version
+string filename
+
+# Sampling frequency
+uint32 samp_f
+
+# Target frequency
+uint32 tar_f
+
+---
+# Result
+
+# Guess of the location of the pinger
+geometry_msgs/Point guess
+
+---
+# Feedback
+
+# Current stage the program is on
+uint32 curr_stage
+
+# Total number of stages in program
+uint32 total_stage
