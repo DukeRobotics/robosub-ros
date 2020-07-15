@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-import sys
-import os
-
 import rospy
 from std_msgs.msg import Float64, Float32MultiArray, Int8MultiArray
 from geometry_msgs.msg import Vector3Stamped
@@ -11,6 +8,7 @@ from thruster_manager import ThrusterManager
 from std_srvs.srv import SetBool
 from tf import TransformListener
 import controls_utils as utils
+import resource_retriever as rr
 
 
 class ThrusterController:
@@ -31,7 +29,7 @@ class ThrusterController:
 
         self.enable_service = rospy.Service('enable_controls', SetBool, self.handle_enable_controls)
 
-        self.tm = ThrusterManager(os.path.join(sys.path[0], '../config/cthulhu.config'))
+        self.tm = ThrusterManager(rr.get_filename('package://controls/config/cthulhu.config', use_protocol=False))
 
         self.listener = TransformListener()
 

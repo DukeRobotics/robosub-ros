@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 import rospy
-import os
 import yaml
 from custom_msgs.msg import CVObject
 from custom_msgs.srv import EnableModel
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from detecto.core import Model
+import resource_retriever as rr
 
 
 class Detector:
@@ -20,8 +20,7 @@ class Detector:
         self.camera = rospy.get_param('~camera')
 
         # Load in model configurations
-        curr_directory = os.path.dirname(__file__)
-        with open(os.path.join(curr_directory, '../models/models.yaml')) as f:
+        with open(rr.get_filename('package://cv/models/models.yaml', use_protocol=False)) as f:
             self.models = yaml.load(f)
 
         # The topic that the camera publishes its feed to
@@ -38,8 +37,7 @@ class Detector:
         if model.get('predictor') is not None:
             return
 
-        path = os.path.dirname(__file__)
-        weights_file = os.path.join(path, '../models', model['weights'])
+        weights_file = rr.get_filename('package://cv/models/{}'.format(model['weights']), use_protocol=False)
 
         predictor = Model.load(weights_file, model['classes'])
 

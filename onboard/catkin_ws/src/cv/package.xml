@@ -12,6 +12,7 @@
   <depend>sensor_msgs</depend>
   <depend>custom_msgs</depend>
   <depend>cv_bridge</depend>
+  <depend>resource_retriever</depend>
 
   <exec_depend>python-yaml</exec_depend>
   <exec_depend>python-opencv</exec_depend>
