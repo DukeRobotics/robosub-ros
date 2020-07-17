@@ -1,6 +1,8 @@
 #!/usr/bin/env python
+
 import rospy
 from std_msgs.msg import Float32MultiArray
+from geometry_msgs.msg import PoseStamped
 import tf
 
 pos = [0,0,0]
@@ -11,6 +13,7 @@ def node_code():
 	rospy.Subscriber("/sim/object_points", Float32MultiArray, callback)
 	rospy.Subscriber("/sim/pose", PoseStamped, pose_callback)	
 	rate = rospy.Rate(10)
+	rospy.spin()
 
 def pose_callback(data):
 	global pos
@@ -54,25 +57,40 @@ def parse_array(array):
 	y = 0
 	i = 0
 	objects_count = 0
-	all_points = [[[]]]
-	objects = []
+	all_points = []
+	ids = []
 	while (i < len(array)):
-		objects[objects_count] = array[i]
+		#ids[objects_count] = array[i]
+		ids.append(array[i])
 		objects_count = objects_count + 1
+		current_object = []
 		y = 0
 		i = i + 1
-		while (i != -999999):
+		while (array[i] != -999999):
+			point = []
 			for j in range(3):
-				all_points[x][y][j] = array[i]
+				#all_points[x][y][j] = array[i]
+				point.append(array[i])
 				i = i + 1
+			current_object.append(point)
 			y = y + 1
 		i = i + 1
 		x = x + 1
-	return all_points, objects
+		all_points.append(current_object)
+	return all_points, ids
 
 def bounding_boxes(all_points, pos, orientation):
 	boxes = [[]]
 	for i in range(len(all_points)):
 		boxes[i] = BoundingBox.get_bounding_box(all_points[i], pos, orientation)
 	return boxes
+
+if __name__ == "__main__":
+	node_code()
+	"""}
+	a = [-1,1,2,3,2,3,4,-999999,0,5,5,5,3,3,3,2,2,2,-999999]
+	b, c = parse_array(a)
+	print(b)
+	print(c)
+	"""
 

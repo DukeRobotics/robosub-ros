@@ -6,11 +6,13 @@ def get_bounding_box(points, pos, orientation):
 	cam_pos = [0.309,0.138,0.18]
 	for i in range(3):
 		pos[i] += cam_pos[i]
-
+		
+	xs = []
+	ys = []
 	for i in range(len(points)):
 		grid_point = get_grid_point(point, pos, orientation)
-		xs[i] = grid_point[0]
-		ys[i] = grid_point[1]
+		xs.append(grid_point[0])
+		ys.append(grid_point[1])
 
 	bounding_box = get_box(xs, ys)
 	return bounding_box
