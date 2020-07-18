@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 
-import rospy
 import rosbag
 import numpy as np
 import cv2
-from cv_bridge import CvBridge
 from converter_interface import BagVideoConverter
 from itertools import izip
 

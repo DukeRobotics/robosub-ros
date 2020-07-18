@@ -17,6 +17,7 @@
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
   <depend>cv_bridge</depend>
+  <depend>resource_retriever</depend>
 
   <exec_depend>opencv-python</exec_depend>
 

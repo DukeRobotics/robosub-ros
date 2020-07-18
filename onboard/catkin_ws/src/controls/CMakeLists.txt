@@ -10,8 +10,9 @@ find_package(catkin REQUIRED COMPONENTS
   std_srvs
   tf
   pid
+  resource_retriever
 )
 
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
-catkin_package(CATKIN_DEPENDS rospy std_msgs nav_msgs geometry_msgs std_srvs custom_msgs tf pid)
+catkin_package(CATKIN_DEPENDS rospy std_msgs nav_msgs geometry_msgs std_srvs custom_msgs tf pid resource_retriever)

@@ -2,10 +2,7 @@
 
 import rospy
 import rosbag
-import numpy as np
 import cv2
-from sensor_msgs.msg import Image
-from std_msgs.msg import Header
 from converter_interface import BagVideoConverter
 
 
