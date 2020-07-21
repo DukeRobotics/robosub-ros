@@ -3,7 +3,7 @@
   <name>google_drive</name>
   <version>0.0.0</version>
   <description>
-    This package contains various tools to
+    This package contains a script to download and upload files to Google Drive.
   </description>
 
   <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>
