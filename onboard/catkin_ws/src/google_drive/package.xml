@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>google_drive</name>
+  <version>0.0.0</version>
+  <description>
+    This package contains various tools to
+  </description>
+
+  <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>
+
+  <license>MIT</license>
+
+  <depend>rospy</depend>
+  <depend>custom_msgs</depend>
+  <depend>resource_retriever</depend>
+
+  <exec_depend>googleapiclient</exec_depend>
+  <exec_depend>httplib2</exec_depend>
+  <exec_depend>oauth2client</exec_depend>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+</package>

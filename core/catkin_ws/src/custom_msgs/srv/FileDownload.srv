@@ -1,0 +1,7 @@
+# Google drive id of file to download
+string file_id
+
+# Package URL or local filepath to download file to
+string filepath
+---
+bool success

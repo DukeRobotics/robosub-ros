@@ -1,0 +1,10 @@
+# Google Drive id of folder under which uploaded file will be placed under
+string folder_id
+
+# Name of uploaded file in Google Drive
+string drive_filename
+
+# Package URL or local filepath of file to upload
+string filepath
+---
+bool success

@@ -18,6 +18,8 @@ add_service_files(
   FILES
   SetServo.srv
   EnableModel.srv
+  FileDownload.srv
+  FileUpload.srv
 )
 
 generate_messages(
