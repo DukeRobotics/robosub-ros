@@ -2,31 +2,30 @@
 #include <Wire.h>
 #include "MultiplexedObject.h"
 
-MultiplexedObject::MultiplexedObject(Adafruit_PWMServoDriver *_multiplexer):multiplexer(_multiplexer){
+MultiplexedObject::MultiplexedObject(Adafruit_PWMServoDriver *_multiplexer, int _num):multiplexer(_multiplexer), num(_num){
     attached = false;
 }
 
 MultiplexedObject::~MultiplexedObject(){
-    detach(num);
+    detach();
 }
 
 void MultiplexedObject::attach(int _num){
-    // make sure it isn't trying to run multiple pins
+    // Make sure it isn't trying to run multiple pins
     if(attached)
-        detach(num);
+        detach();
     attached = true;
     num = _num;
     multiplexer->setPWMFreq(250);
 }
 
-void MultiplexedObject::detach(int _num){
+void MultiplexedObject::detach(){
     attached = false;
-    multiplexer->setPin(num,0,false);
+    multiplexer->setPin(num, 0, false);
 }
 
 void MultiplexedObject::writeMicroseconds(int secs){
-    if (attached)
-    {
+    if (attached){
         int mappedPulse = map(secs, 1100, 1900, 1000, 1720);
         multiplexer->setPin(num, mappedPulse, false);
     }
