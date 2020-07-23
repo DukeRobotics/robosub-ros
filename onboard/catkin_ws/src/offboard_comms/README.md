@@ -23,7 +23,7 @@ rosrun rosserial_python serial_node.py /dev/ttyUSB0
 ```
 Now to test, start sending messages to the offboard device. For instance, to run all the thrusters at speed 0, you can use:
 ```
-rostopic pub -r 10 /offboard/thruster_speeds offboard_comms/ThrusterSpeeds '{speeds: [0,0,0,0,0,0,0,0]}'
+rostopic pub -r 10 /offboard/thruster_speeds custom_msgs/ThrusterSpeeds '{speeds: [0,0,0,0,0,0,0,0]}'
 ```
 To set the first servo to a 90 degree angle, you can use:
 ```
@@ -32,8 +32,8 @@ rosservice call /offboard/servo_angle '{num: 0, angle: 90}'
 
 ## Topics and Services
 ### Thrusters
-The thrusters are subscribed to the `/offboard/thruster_speeds` topic that is of type `offboard_comms/ThrusterSpeeds.msg`. This is an array of 8 signed 8-bit integers, which have range of [-128,127]. Negative values correspond to reverse (<1500 microseconds PWM), and positive values correspond to forward (>1500 microseconds PWM). 
+The thrusters are subscribed to the `/offboard/thruster_speeds` topic that is of type `custom_msgs/ThrusterSpeeds.msg`. This is an array of 8 signed 8-bit integers, which have range of [-128,127]. Negative values correspond to reverse (<1500 microseconds PWM), and positive values correspond to forward (>1500 microseconds PWM). 
 ### Servos
-The servos utilize the  `/offboard/servo_angle` service that is of type `offboard_comms/SetServo.srv`. The request to this service consists of an unsigned 8-bit integer `num` that corresponds to the pin number of the servo, and an unsigned 16 bit integer `angle` that corresponds to the desired angle (0-180). The reply consists of a bool `success` that corresponds to whether the request successfully set the angle.
+The servos utilize the  `/offboard/servo_angle` service that is of type `custom_msgs/SetServo.srv`. The request to this service consists of an unsigned 8-bit integer `num` that corresponds to the pin number of the servo, and an unsigned 16 bit integer `angle` that corresponds to the desired angle (0-180). The reply consists of a bool `success` that corresponds to whether the request successfully set the angle.
 
 Values for `num` are 0-indexed (meaning the first servo corresponds to pin number 0) and values that are greater than or equal to the number of servos will result in an unsuccessfull call. Values for `angle` that are >180 will also result in an unsuccessful call.
