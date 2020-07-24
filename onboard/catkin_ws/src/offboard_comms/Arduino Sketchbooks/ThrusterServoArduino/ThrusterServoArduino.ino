@@ -21,13 +21,13 @@ MultiplexedBasicESC *thrusters[NUM_THRUSTERS];
 MultiplexedServo *servos[NUM_SERVO];
 
 // reusing ESC library code
-void thruster_speeds_callback(const offboard_comms::ThrusterSpeeds &ts_msg){
+void thruster_speeds_callback(const custom_msgs::ThrusterSpeeds &ts_msg){
     //copy the contents of the speed message to the local array
     memcpy(thruster_speeds, ts_msg.speeds, sizeof(thruster_speeds));
     last_cmd_ms_ts = millis();
 }
 
-void servo_control_callback(const offboard_comms::SetServo::Request &sc_req, offboard_comms::SetServo::Response &sc_res){
+void servo_control_callback(const custom_msgs::SetServo::Request &sc_req, custom_msgs::SetServo::Response &sc_res){
     //copy the contents of the servo request to the local variables
     uint8_t pin = sc_req.num;
     uint16_t angle = sc_req.angle;
@@ -41,8 +41,8 @@ void servo_control_callback(const offboard_comms::SetServo::Request &sc_req, off
 
 //Sets node handle to have 2 subscribers, 2 publishers, and 150 bytes for input and output buffer
 ros::NodeHandle_<ArduinoHardware,2,2,150,150> nh;  
-ros::Subscriber<offboard_comms::ThrusterSpeeds> ts_sub("/offboard/thruster_speeds", &thruster_speeds_callback);
-ros::ServiceServer<offboard_comms::SetServo::Request, offboard_comms::SetServo::Response> servo_service("/offboard/servo_angle", &servo_control_callback);
+ros::Subscriber<custom_msgs::ThrusterSpeeds> ts_sub("/offboard/thruster_speeds", &thruster_speeds_callback);
+ros::ServiceServer<custom_msgs::SetServo::Request, custom_msgs::SetServo::Response> servo_service("/offboard/servo_angle", &servo_control_callback);
 
 void setup(){
     Serial.begin(BAUD_RATE);
