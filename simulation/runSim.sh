@@ -4,7 +4,7 @@ echo "Starting CoppeliaSim"
 
 SERVER_LOCATION=$(find /root -name $SERVER | head -1)
 
-if [ -z $SERVER_LOCATION ]
+if [ -z $SERVER_LOCATION ] 
 then
       echo "Server file not found"
 else

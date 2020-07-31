@@ -2,10 +2,10 @@ function extsysCall_init()
     -- do some initialization here
     lc = sim.getObjectHandle("GateLeftChild")
     rc = sim.getObjectHandle("GateRightChild")
-    
-    hr=sim.getObjectHandle("Rob")
 
-    rel_cam_pos = {0.309, 0.138, 0.18}   --relative position of camera
+    hr = sim.getObjectHandle("Rob")
+
+    rel_cam_pos = { 0.309, 0.138, 0.18 }   --relative position of camera
     robScriptHandle = sim.getScriptHandle("Rob")
 end
 
@@ -21,17 +21,17 @@ function get_GridPoint(gate_pt)
     trans_matrix_inv = sim.invertMatrix(rob_trans_matrix)
     --abs_cam_pos = sim.multiplyVector(trans_matrix_inv, rel_cam_pos)  --absolute camera position
     --rob_trans_matrix = sim.getObjectMatrix(hr, -1)
-   
+
     -- supposed to be same point as gate_pt but with reference of robot
     gate_pt_new = sim.multiplyVector(rob_trans_matrix, gate_pt)
-    gate_pt_reltocam = {gate_pt_new[1] - rel_cam_pos[1],gate_pt_new[2] - rel_cam_pos[2],gate_pt_new[3] - rel_cam_pos[3]}
-    robToGate = {gate_pt[1] - robPos[1], gate_pt[2] - robPos[2], gate_pt[3] - robPos[3]}
+    gate_pt_reltocam = { gate_pt_new[1] - rel_cam_pos[1], gate_pt_new[2] - rel_cam_pos[2], gate_pt_new[3] - rel_cam_pos[3] }
+    robToGate = { gate_pt[1] - robPos[1], gate_pt[2] - robPos[2], gate_pt[3] - robPos[3] }
     --gate_pt_new = sim.multiplyVector(rob_trans_matrix, robToGate)
     xFOV = 0.933 * gate_pt_reltocam[1]
     yFOV = 0.586 * gate_pt_reltocam[1]
     xPix = (xFOV / 2 - gate_pt_reltocam[2]) / xFOV
     yPix = (yFOV / 2 - gate_pt_reltocam[3]) / yFOV
-    gridPt = {xPix, yPix}
+    gridPt = { xPix, yPix }
     --print(gate_pt_new)
     --[[
     mag1 = calc_magnitude(gate_pt)
@@ -41,7 +41,7 @@ function get_GridPoint(gate_pt)
     print("new " ..mag2)
     print("should be same "..mag3)
 --]]
---maybe change to -1
+    --maybe change to -1
     for i = 1, 2 do
         if (gridPt[i] < 0) then
             gridPt[i] = 0
@@ -60,16 +60,16 @@ function get_BoundingBox()
     res, rightzmax = sim.getObjectFloatParameter(rc, 20)
     res, leftzmin = sim.getObjectFloatParameter(lc, 17)
     res, rightzmin = sim.getObjectFloatParameter(rc, 17)
-    
-    topLeft = {leftGatePos[1], leftGatePos[2], leftGatePos[3] + leftzmax}
-    bottomLeft = {leftGatePos[1], leftGatePos[2], leftGatePos[3] + leftzmin}
-    topRight = {rightGatePos[1], rightGatePos[2], rightGatePos[3] + rightzmax}
-    bottomRight = {rightGatePos[1], rightGatePos[2], rightGatePos[3] + rightzmin}
-    fourGlobalPoints = {topLeft, topRight, bottomLeft, bottomRight}
+
+    topLeft = { leftGatePos[1], leftGatePos[2], leftGatePos[3] + leftzmax }
+    bottomLeft = { leftGatePos[1], leftGatePos[2], leftGatePos[3] + leftzmin }
+    topRight = { rightGatePos[1], rightGatePos[2], rightGatePos[3] + rightzmax }
+    bottomRight = { rightGatePos[1], rightGatePos[2], rightGatePos[3] + rightzmin }
+    fourGlobalPoints = { topLeft, topRight, bottomLeft, bottomRight }
     boundingBoxPoints = {}
     xs = {}
     ys = {}
-    
+
     for i = 1, table.getn(fourGlobalPoints) do
         boundingBoxPoints[i] = get_GridPoint(fourGlobalPoints[i])
     end
@@ -95,7 +95,7 @@ function get_BoundingBox()
             ymin = ys[i]
         end
     end
-    return {xmin, xmax, ymin, ymax}
+    return { xmin, xmax, ymin, ymax }
 end
 
 function sysCall_sensing()
