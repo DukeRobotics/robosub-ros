@@ -168,9 +168,6 @@ function extsysCall_actuation()
     for i = 1, numThrusters do
         sim.addForce(hr, thrusterPoints[i], forces[i])
     end
-
-    getObjectPoints()
-
 end
 
 function get_sign(x)
@@ -240,6 +237,7 @@ function setForces(vals)
     forces[7] = { 0, 0, 1 }
     forces[8] = { 0, 0, 1 }
     flipThrusters(forces)
+
     --]]
     --[[--Original Values
     forces[1]={-1,1,0} --tfr

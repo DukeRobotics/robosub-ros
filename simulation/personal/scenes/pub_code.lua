@@ -141,6 +141,7 @@ function getObjectPoints()
         ret = tableConcat(ret, { -999999 })
     end
     print(ret)
+
     return ret
 end
 

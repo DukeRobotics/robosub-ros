@@ -10,7 +10,7 @@ def get_bounding_box(points, pos, orientation):
 	xs = []
 	ys = []
 	for i in range(len(points)):
-		grid_point = get_grid_point(point, pos, orientation)
+		grid_point = get_grid_point(points[i], pos, orientation)
 		xs.append(grid_point[0])
 		ys.append(grid_point[1])
 
@@ -19,12 +19,13 @@ def get_bounding_box(points, pos, orientation):
 
 def get_grid_point(point, pos, orientation):
 	rel_point = point_rel_to_bot(point, pos, orientation)
+	#FOV - field of view
 	xFOV = 0.933 * rel_point[0]
 	yFOV = 0.586 * rel_point[0]
 	xPix = (xFOV / 2 - rel_point[1]) / xFOV
 	yPix = (yFOV / 2 - rel_point[2]) / yFOV
 	grid_point = [xPix, yPix]
-	for i in range(2)
+	for i in range(2):
 		if (grid_point[i] < 0):
 			grid_point[i] = 0
 		if (grid_point[i] > 1):
@@ -47,11 +48,11 @@ def get_box(xs, ys):
 
 	for i in range(len(xs)):
 		if (xs[i] > xmax):
-			xman = xs[i]
+			xmax = xs[i]
 		if (xs[i] < xmin):
 			xmin = xs[i]
 		if (ys[i] > ymax):
-			yman = ys[i]
+			ymax = ys[i]
 		if (ys[i] < ymin):
 			ymin = ys[i]
 
