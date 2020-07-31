@@ -7,6 +7,8 @@ from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import PoseStamped
 import tf
 
+pub_gate = rospy.Publisher('gate_data',Float32MultiArray)
+pub_buoy = rospy.Publisher('buoy_data',Float32MultiArray)
 
 pos = [0,0,0]
 orientation = [0,0,0]
@@ -36,13 +38,10 @@ def pose_callback(data):
 	orientation[2] = y
 
 def callback(data):
-	global pos
-	global orientation
+	global pos, orientation, pub_gate, pub_buoy
 
 	points, objects = parse_array(data.data)
 	boxes = bounding_boxes(points, pos, orientation, objects)
-	pub_gate = rospy.Publisher('GateData',Float32MultiArray)
-	pub_buoy = rospy.Publisher('BuoyData',Float32MultiArray)	
 
 	for i in range(len(objects)):
 		if (objects[i] == 1):
