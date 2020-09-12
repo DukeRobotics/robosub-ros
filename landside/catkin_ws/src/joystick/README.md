@@ -44,4 +44,4 @@ roslaunch pub_joy.launch
 
 ### Dependencies
 
-This parser depends on the ROS joystick driver package `joy`. It requires the Linux kernel.
+This parser depends on the ROS joystick driver package [`joy`](http://wiki.ros.org/joy). It requires the host OS to use the Linux kernel, regardless of whether or not you are using Docker.
