@@ -28,7 +28,7 @@ The following components make up our software stack:
     * [Computer Vision](onboard/catkin_ws/src/cv) - Locates objects (goals/obstacles) via camera input and machine learning.
     * [Data Pub](onboard/catkin_ws/src/data_pub) - Collects and parses data from sensors and publishes it for use by other packages.
     * [Execute](onboard/catkin_ws/src/execute) - Houses launch files that simplify starting and stopping our stack.
-    * [Motion Planning](onboard/catkin_ws/src/motion_planning)/[Task Planning](onboard/catkin_ws/src/task_planning) [WIP] - Determines and defines the tasks and motion of the robot.
+    * [Task Planning](onboard/catkin_ws/src/motion_planning) - Plans the tasks and motion of the robot by synthesizing inputs.
     * [Offboard Comms](onboard/catkin_ws/src/offboard_comms) - Allows communication between ROS code and the onboard Arduino.
     * [RoboSub Description](onboard/catkin_ws/src/robosub_description) - Contains files to describe and display our robot.
     * [Sensor Fusion](onboard/catkin_ws/src/sensor_fusion) - Interprets sensor data and publishes an estimation of the current robot state.
