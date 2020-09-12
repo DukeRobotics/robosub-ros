@@ -41,10 +41,36 @@ The following components make up our software stack:
 
 ## Flow 
 
-The general flow of information between components is shown in the diagram below:
+The general flow of information between components is shown in the diagram below, from top to bottom:
 
-(Diagram to be added)
+```
+        sensors (IMU, DVL, etc.)                cameras
+            \                                     / \
+             \                                   /   \
+              v                                 /     v
+            Data Pub                           /   Camera View
+                \                             /
+ Simulation ---> \                           /
+                  v                         v
+                Sensor Fusion          Computer Vision
+                    \                     /
+                     \                   /
+                      v                 v
+                         Task Planning
+                               |
+                               |
+                               v
+              Joystick ---> Controls
+                               |
+                               | ---> Simulation
+                               v
+                         Offboard Comms
+                               |
+                               |
+                               v
+                    thrusters, actuators, etc.
 
+```
 
 ## Running Our Docker Images
 
