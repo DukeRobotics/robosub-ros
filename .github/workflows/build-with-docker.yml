@@ -74,13 +74,13 @@ jobs:
       - name: Test build for pull request
         if: github.event_name == 'pull_request'
         env:
-          - COMMIT_REF: ${{ github.event.pull_request.head.sha }}
+          COMMIT_REF: ${{ github.event.pull_request.head.sha }}
         run: |
           ./.github/workflows/test.sh
       - name: Test build for push
         if: github.event_name == 'push'
         env:
-          - COMMIT_REF: ${{ github.sha }}
+          COMMIT_REF: ${{ github.sha }}
         run: |
           ./.github/workflows/test.sh
       - name: Push image to dockerhub
@@ -131,13 +131,13 @@ jobs:
       - name: Test build for pull request
         if: github.event_name == 'pull_request'
         env:
-          - COMMIT_REF: ${{ github.event.pull_request.head.sha }}
+          COMMIT_REF: ${{ github.event.pull_request.head.sha }}
         run: |
           ./.github/workflows/test.sh
       - name: Test build for push
         if: github.event_name == 'push'
         env:
-          - COMMIT_REF: ${{ github.sha }}
+          COMMIT_REF: ${{ github.sha }}
         run: |
           ./.github/workflows/test.sh
       - name: Push image to dockerhub
