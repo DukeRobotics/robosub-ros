@@ -5,10 +5,10 @@ on:
   push:
     branches:
       - master
-    paths:
+    paths-ignore:
       - '!docker/**'
   pull_request:
-    paths:
+    paths-ignore:
       - '!docker/**'
 
 jobs:
