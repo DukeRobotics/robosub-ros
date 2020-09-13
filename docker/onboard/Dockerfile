@@ -39,11 +39,12 @@ RUN pip install --no-cache-dir --no-deps detecto
 
 # Install Vimba libraries for avt_vimba_camera
 RUN git clone https://github.com/muthuArivoli/camera-driver.git && \
-    cd $TARGETPLATFORM && \
+    mv camera-driver/$TARGETPLATFORM/Vimba.tgz Vimba.tgz && \
     tar -xf Vimba.tgz && \
     cd Vimba_3_0/VimbaGigETL && \
     ./Install.sh
-RUN rm Vimba.tgz
+RUN rm -rf camera-driver && \
+    rm Vimba.tgz
 
 # Set computer type
 ENV COMPUTER_TYPE=onboard
