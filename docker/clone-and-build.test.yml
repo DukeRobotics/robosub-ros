@@ -4,6 +4,6 @@ sut:
   entrypoint: ["/bin/sh", "-c",  "cd ~/dev && \
                                   git clone https://github.com/DukeRobotics/robosub-ros.git && \
                                   cd robosub-ros && \
-                                  git checkout ${GITHUB_REF} && \
+                                  git checkout ${COMMIT_REF} && \
                                   git merge master && \
                                   ./build.sh ${SERVICE_NAME}"]

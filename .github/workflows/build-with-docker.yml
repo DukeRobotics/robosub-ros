@@ -71,7 +71,16 @@ jobs:
       - name: Setup environment and build
         run: |
           ./.github/workflows/build.sh
-      - name: Test build
+      - name: Test build for pull request
+        if: github.event_name == 'pull_request'
+        env:
+          - COMMIT_REF: ${{ github.event.pull_request.head.sha }}
+        run: |
+          ./.github/workflows/test.sh
+      - name: Test build for push
+        if: github.event_name == 'push'
+        env:
+          - COMMIT_REF: ${{ github.sha }}
         run: |
           ./.github/workflows/test.sh
       - name: Push image to dockerhub
@@ -119,7 +128,16 @@ jobs:
         run: |
           cd docker/${SERVICE_NAME}
           docker build --build-arg BASE_IMAGE=${BASE_IMAGE} -t  ${IMAGE_NAME} .
-      - name: Test build
+      - name: Test build for pull request
+        if: github.event_name == 'pull_request'
+        env:
+          - COMMIT_REF: ${{ github.event.pull_request.head.sha }}
+        run: |
+          ./.github/workflows/test.sh
+      - name: Test build for push
+        if: github.event_name == 'push'
+        env:
+          - COMMIT_REF: ${{ github.sha }}
         run: |
           ./.github/workflows/test.sh
       - name: Push image to dockerhub
