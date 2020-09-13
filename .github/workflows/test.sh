@@ -2,4 +2,4 @@
 
 set -ex
 
-docker-compose --file docker/clone-and-build.test.yml run sut
+docker-compose run --entrypoint /bin/bash "${SERVICE_NAME}" -c "cd ~/dev/robosub-ros && ls -R && ./build.sh ${SERVICE_NAME}"
