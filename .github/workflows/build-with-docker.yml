@@ -5,11 +5,11 @@ on:
     # Publish `master` as Docker `latest` image. Run only when the docker subdirectory is modified.
     branches:
       - master
-    files:
+    paths:
       - 'docker/**'
   # Run tests for any PRs that have changed a file in the docker subdirectory.
   pull_request:
-    files:
+    paths:
       - 'docker/**'
 
 jobs:

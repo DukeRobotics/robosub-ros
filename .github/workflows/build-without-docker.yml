@@ -5,11 +5,11 @@ on:
   push:
     branches:
       - master
-    files:
-      - '!docker/**'
+    paths-ignore:
+      - 'docker/**'
   pull_request:
-    files:
-      - '!docker/**'
+    paths-ignore:
+      - 'docker/**'
 
 jobs:
   build:
