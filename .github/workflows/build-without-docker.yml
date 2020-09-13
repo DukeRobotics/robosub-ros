@@ -6,10 +6,10 @@ on:
     branches:
       - master
     paths-ignore:
-      - '!docker/**'
+      - 'docker/**'
   pull_request:
     paths-ignore:
-      - '!docker/**'
+      - 'docker/**'
 
 jobs:
   build:
