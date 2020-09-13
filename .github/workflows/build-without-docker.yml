@@ -6,9 +6,11 @@ on:
     branches:
       - master
     paths:
+      - '**'
       - '!docker/**'
   pull_request:
     paths:
+      - '**'
       - '!docker/**'
 
 jobs:
