@@ -1,7 +1,6 @@
 # Duke Robotics Club - RoboSub ROS
 
-![Build](https://github.com/DukeRobotics/robosub-ros/workflows/build-without-docker/badge.svg?event=push)
-![Docker](https://github.com/DukeRobotics/robosub-ros/workflows/build-with-docker/badge.svg?event=push)
+![Build](https://github.com/DukeRobotics/robosub-ros/workflows/build/badge.svg)
 ![Docker Pulls](https://img.shields.io/docker/pulls/dukerobotics/robosub-ros)
 
 We are a Duke University club competing in the RoboSub Competition. Check out [our website](https://duke-robotics.com).

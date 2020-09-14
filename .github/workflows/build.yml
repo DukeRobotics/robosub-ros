@@ -23,7 +23,7 @@ jobs:
           docker:
             - 'docker/**'
 
-  core:
+  core-docker:
     runs-on: ubuntu-latest
     needs: check-docker
     if: needs.check-docker.outputs.docker == 'true'
@@ -56,9 +56,9 @@ jobs:
           name: core
           path: ${{ env.FILE_NAME }}
 
-  onboard:
+  onboard-docker:
     runs-on: ubuntu-latest
-    needs: core
+    needs: core-docker
     strategy:
       matrix:
         arch: [arm64, amd64]
@@ -101,9 +101,9 @@ jobs:
           echo "${{ secrets.DOCKER_BOT_TOKEN }}" | docker login -u dukeroboticsbot --password-stdin
           docker push ${IMAGE_NAME}
 
-  push:
+  push-docker:
     runs-on: ubuntu-latest
-    needs: [onboard, landside]
+    needs: [onboard-docker, landside-docker]
     steps:
       - uses: actions/checkout@v2
       - name: Push images to latest on dockerhub
@@ -118,9 +118,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./.github/workflows/cleanup.sh
 
-  landside:
+  landside-docker:
     runs-on: ubuntu-latest
-    needs: core
+    needs: core-docker
     env:
       IMAGE_NAME: dukerobotics/robosub-ros:landside
       BASE_IMAGE: dukerobotics/robosub-ros:core-amd64

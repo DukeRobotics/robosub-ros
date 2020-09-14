@@ -1,10 +1,6 @@
 # Duke Robotics Club - RoboSub ROS Docker
 
-![Build Status](https://github.com/dukerobotics/robosub-ros-docker/workflows/build/badge.svg)
-![Docker Pulls](https://img.shields.io/docker/pulls/dukerobotics/robosub-ros)
-
 Our images are automatically built and pushed to [our Docker Hub repo](https://hub.docker.com/r/dukerobotics/robosub-ros) using GitHub Actions.
-
 
 ## Our images
 
