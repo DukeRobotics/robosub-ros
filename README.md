@@ -1,13 +1,13 @@
 # Duke Robotics Club - RoboSub ROS
 
-![](https://github.com/dukerobotics/robosub-ros/workflows/build/badge.svg)
+![Build](https://github.com/DukeRobotics/robosub-ros/workflows/build/badge.svg)
+![Docker Pulls](https://img.shields.io/docker/pulls/dukerobotics/robosub-ros)
 
 We are a Duke University club competing in the RoboSub Competition. Check out [our website](https://duke-robotics.com).
 
-Our codebase is split into three repositories:
+Our codebase is split into two repositories:
 
 1. This repo contains all of the code required for running and testing our robots.
-1. The [robosub-ros-docker](https://github.com/DukeRobotics/robosub-ros-docker) repo contains our Dockerfiles and instructions for how to build them.
 1. The [documentation](https://github.com/DukeRobotics/documentation) repo contains introductory projects, tutorials, and miscellaneous docs.
 
 Our code is Dockerized, making it straightforward to set up and run. See [Running Docker Images](#running-docker-images).
@@ -17,7 +17,7 @@ Once the containers are up and running, go to [Running our Code](#running-our-co
 
 ## Software Stack
 
-Our stack is split into two workspaces -- onboard and landside -- each with corresponding Docker containers of the same name. Onboard consists of the code that runs on the robot's internal computer. Landside consists of the code that should be run on your local machine. The corresponding containers are connected via a local network and are configured to share ROS messages. For an in-depth explanation of the containers, see [robosub-ros-docker](https://github.com/DukeRobotics/robosub-ros-docker).
+Our stack is split into two workspaces -- onboard and landside -- each with corresponding Docker containers of the same name. Onboard consists of the code that runs on the robot's internal computer. Landside consists of the code that should be run on your local machine. The corresponding containers are connected via a local network and are configured to share ROS messages. For an in-depth explanation of the containers, see [docker](docker).
 
 Our codebase is powered by the [Robot Operating System](https://www.ros.org) (ROS), and written primarily in Python.
 
@@ -39,7 +39,7 @@ The following components make up our software stack:
     * [Simulation](simulation) - Physics-enabled simulation that can be used for local testing. (not in landside, but run using the landside container)
 
 
-## Flow 
+## Flow
 
 The general flow of information between components is shown in the diagram below, from top to bottom:
 
@@ -124,7 +124,7 @@ Use these instructions to test code on your computer by simulating the robot's e
     docker-compose up -d
     ```
     This will pull the images if you don't have them, create a new network that simulates the network we use on our robot, mount the code, and start the containers.
-    
+
     To update the images, or to just pull them without running them, use `docker-compose pull`.
 
 1. SSH into the onboard container. Password is `robotics`.
@@ -145,10 +145,10 @@ Use these instructions to test code on your computer by simulating the robot's e
     ```
 
 
-## Running Our Code 
+## Running Our Code
 
 :warning: All commands should be run inside of a Docker container.
- 
+
 ### Building and Sourcing
 The following needs to be done once at the beginning, and then later only when making larger structural changes to the workspace (such as adding a package).
 
