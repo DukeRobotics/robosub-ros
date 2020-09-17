@@ -6,14 +6,14 @@ The `data_pub` package contains scripts that interface with various sensors, cur
 Publishes an `sensor_msgs/IMU` message to the `sensors/imu/imu` topic that contains information about
 - orientation (using quaternions)
 - angular velocity
-- linear acceleration 
+- linear acceleration
 
 
 and publishes a `sensor_msgs/MagneticField` message with magnetometer measurements to the `sensors/imu/mag` topic.
 
-Locates the serial name of the IMU and reads its input as a string: 
+Locates the serial name of the IMU and reads its input as a string:
 
-```
+```md
 $VNQMR,-0.017057,-0.000767,+0.056534,+0.998255,+1.0670,-0.2568,+3.0696,
 -00.019,+00.320,-09.802,-0.002801,-0.001186,-0.001582*65
 ```
@@ -27,14 +27,14 @@ In the transition from the old computer (`NUC`) to the new computer (`Jetson`), 
 First you want to make sure that both the IMU and (ADAPTER) are plugged into the robot *before* booting it up.
 
 In this case we want to run the `data_pub` package's file `IMU.py`:
-```
+```bash
 rosrun data_pub IMU.py
 ```
 You can also use the launch file provided, `pub_imu.launch`.
 
 You should see data being printed out in the following format for the `sensor_msgs/IMU` topic in this new terminal:
 
-```
+```md
 header:
  seq: ####
  stamp:
@@ -59,7 +59,7 @@ header:
   z: X.XXXXXXXXXX
  linear_acceleration_covariance: [-1.0, 0, 0, 0, 0, 0, 0, 0, 0]
  ```
-## DVL Documentation 
+## DVL Documentation
 The `dvl_raw` script publishes the raw DVL data using the `dvl_raw` message from our custom messages. It publishes to topic `sensors/dvl/raw`.
 
 The `dvl_to_odom` script converts the raw dvl data to an `odometry` message for use in other scripts. It publishes to topic `sensors/dvl/odom`.
