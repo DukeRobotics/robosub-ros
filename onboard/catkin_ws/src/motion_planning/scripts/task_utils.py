@@ -1,11 +1,12 @@
-import numpy as np
-from geometry_msgs.msg import Vector3, Quaternion, Pose, PoseStamped
-from nav_msgs.msg import Odometry
-from tf.transformations import euler_from_quaternion
 import math
-import tf2_ros
-import tf2_geometry_msgs
+
+import numpy as np
 import rospy
+import tf2_geometry_msgs
+import tf2_ros
+from geometry_msgs.msg import Vector3, Pose, PoseStamped
+from tf.transformations import euler_from_quaternion
+
 
 def linear_distance(point1, point2):
     """Find linear distance between two points.
@@ -23,6 +24,7 @@ def linear_distance(point1, point2):
     distance = np.linalg.norm(vector2 - vector1)
     return distance
 
+
 def angular_distance_quat(quat1, quat2):
     """Find the difference between two orientations (quaternions).
 
@@ -33,12 +35,13 @@ def angular_distance_quat(quat1, quat2):
     Returns:
     geometry_msgs/Vector3: magnitude of the two orientations' differences in each axis (roll, pitch, yaw), in radians
     """
-    #convert quat1 and quat2 to lists
+    # convert quat1 and quat2 to lists
     quat1 = [quat1.x, quat1.y, quat1.z, quat1.w]
     quat2 = [quat2.x, quat2.y, quat2.z, quat2.w]
     rpy1 = euler_from_quaternion(quat1)
     rpy2 = euler_from_quaternion(quat2)
     return angular_distance_rpy(rpy1, rpy2)
+
 
 def angular_distance_rpy(rpy1, rpy2):
     """Find the difference between two orientations (roll-pitch-yaw).
@@ -54,6 +57,7 @@ def angular_distance_rpy(rpy1, rpy2):
     pitch = math.fabs(rpy1[1] - rpy2[1])
     yaw = math.fabs(rpy1[2] - rpy2[2])
     return Vector3(roll, pitch, yaw)
+
 
 def at_pose(current_pose, desired_pose, linear_tol=0.1, angular_tol=3):
     """Check if within tolerance of a pose (position and orientation).
@@ -72,7 +76,8 @@ def at_pose(current_pose, desired_pose, linear_tol=0.1, angular_tol=3):
     linear = linear_distance(current_pose.position, desired_pose.position) < linear_tol
     angular_dist = angular_distance_quat(current_pose.orientation, desired_pose.orientation)
     angular = np.all(np.array([angular_dist.x, angular_dist.y, angular_dist.z]) < (np.ones((3)) * angular_tol))
-    return (linear and angular)
+    return linear and angular
+
 
 def transform(origin_frame, dest_frame, poseORodom):
     """Transforms poseORodom from origin_frame to dest_frame frame
@@ -87,13 +92,13 @@ def transform(origin_frame, dest_frame, poseORodom):
     """
 
     tfBuffer = tf2_ros.Buffer()
-    listener = tf2_ros.TransformListener(tfBuffer)
+    # listener = tf2_ros.TransformListener(tfBuffer)
     trans = tfBuffer.lookup_transform(dest_frame, origin_frame, rospy.Time(), rospy.Duration(0.5))
-    
+
     if isinstance(poseORodom, PoseStamped):
         transformed = tf2_geometry_msgs.do_transform_pose(poseORodom, trans)
         return transformed
-    
+
     elif isinstance(poseORodom, Pose):
         temp_pose_stamped = PoseStamped()
         temp_pose_stamped.pose = poseORodom

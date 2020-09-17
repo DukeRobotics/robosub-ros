@@ -50,7 +50,7 @@ class TestStatePublisher:
         self.current_state.twist.twist.angular.x = 0
         self.current_state.twist.twist.angular.y = 0
         self.current_state.twist.twist.angular.z = 0
-        
+
         self.current_state.header.frame_id = 'odom'
         self.current_state.header.stamp = rospy.Time()
 
@@ -62,7 +62,7 @@ class TestStatePublisher:
             rate.sleep()
 
     def publish_desired_powers(self):
-        
+
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             self._pub_desired_powers.publish(self.desired_powers)

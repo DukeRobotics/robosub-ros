@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
 import rospy
-from task import Task
+
 from competition_task import CompetitionTask
-from task_state import TaskState
+
 
 class TaskRunner:
-
-    RATE = 15 # Hz
+    RATE = 15  # Hz
 
     def __init__(self):
         rospy.init_node("task_planning")

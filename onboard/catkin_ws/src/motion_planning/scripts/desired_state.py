@@ -1,20 +1,16 @@
 #!/usr/bin/env python
 
-import math
-import rospy
-from tf.transformations import quaternion_from_euler, euler_from_quaternion
-import tf2_ros
-import tf2_geometry_msgs
-import numpy as np
 from pprint import pprint
 
-from geometry_msgs.msg import PoseStamped, TransformStamped
-from nav_msgs.msg import Odometry
-from controls.msg import MoveWithSpeeds
+import rospy
+import tf2_geometry_msgs
+import tf2_ros
+from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Float64
+from tf.transformations import euler_from_quaternion
+
 
 class ToDesiredState:
-
     NODE_NAME = 'desired_state_movement'
 
     NO_STATE_MESSAGE = 'State has not yet been published, ignoring move commands'
@@ -26,17 +22,17 @@ class ToDesiredState:
     PUB_RATE = 15
     RESET_DESIRED_STATE_TIME = 0.1  # seconds
 
-    #DISTANCE_CUTOFF = .75
-    #DISTANCE_MAX_SPEED = 0.3
-    #ANGLE_CUTOFF = 0.785
-    #ANGLE_MAX_SPEED = 0.2
-    
+    # DISTANCE_CUTOFF = .75
+    # DISTANCE_MAX_SPEED = 0.3
+    # ANGLE_CUTOFF = 0.785
+    # ANGLE_MAX_SPEED = 0.2
+
     def __init__(self):
 
         self._desired_state = None
         self._reset_desired_state_duration = rospy.Duration(self.RESET_DESIRED_STATE_TIME)
 
-        #self._pub = rospy.Publisher(self.CONTROLS_TOPIC, MoveWithSpeeds, queue_size=10)
+        # self._pub = rospy.Publisher(self.CONTROLS_TOPIC, MoveWithSpeeds, queue_size=10)
         rospy.Subscriber(self.DESIRED_STATE_TOPIC, PoseStamped, self._receive_desired_state)
 
         # self._pid_response = [None for _ in range(6)]
@@ -92,7 +88,7 @@ class ToDesiredState:
         self._rate = rospy.Rate(self.PUB_RATE)
 
         self._tfBuffer = tf2_ros.Buffer()
-        self._tfListener = tf2_ros.TransformListener(self._tfBuffer);
+        self._tfListener = tf2_ros.TransformListener(self._tfBuffer)
 
         while not rospy.is_shutdown():
 
@@ -101,7 +97,7 @@ class ToDesiredState:
 
             self._to_robot_transform = self._get_robot_transform()
 
-            #if rospy.Time.now() - self._desired_state_time_received > self._reset_desired_state_duration:
+            # if rospy.Time.now() - self._desired_state_time_received > self._reset_desired_state_duration:
             #    self._desired_state = tf2_geometry_msgs.do_transform_pose(PoseStamped(),
             #                                                              self._to_robot_transform)
 
@@ -113,7 +109,7 @@ class ToDesiredState:
             self._publish_pid_setpoints(local_desired_pose)
             # self._wait_for_pid_response()
             # self._publish_pid_response()
-            
+
             self._rate.sleep()
 
     def _get_robot_transform(self):
@@ -122,7 +118,7 @@ class ToDesiredState:
         while True:
             try:
                 return self._tfBuffer.lookup_transform('base_link', 'odom', rospy.Time(0), rospy.Duration(0.5))
-            except:
+            except Exception:
                 rospy.logerr(self.NO_TRANSFORM_MESSAGE)
 
     def _reset_received_values(self):

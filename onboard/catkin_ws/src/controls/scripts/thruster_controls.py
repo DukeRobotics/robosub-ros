@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from std_msgs.msg import Float64, Float32MultiArray, Int8MultiArray
+from std_msgs.msg import Float64, Float32MultiArray
 from geometry_msgs.msg import Vector3Stamped
 from custom_msgs.msg import ThrusterSpeeds
 import numpy as np
@@ -63,8 +63,8 @@ class ThrusterController:
         lin_local = self.listener.transformVector3(target_frame, lin)
         ang_local = self.listener.transformVector3(target_frame, ang)
 
-        return np.array([lin_local.vector.x, 
-                         lin_local.vector.y, 
+        return np.array([lin_local.vector.x,
+                         lin_local.vector.y,
                          lin_local.vector.z,
                          ang_local.vector.x,
                          ang_local.vector.y,
