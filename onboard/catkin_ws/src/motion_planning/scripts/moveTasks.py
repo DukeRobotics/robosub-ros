@@ -3,8 +3,8 @@ from task import Task
 from geometry_msgs.msg import Pose
 from tf.transformations import quaternion_from_euler
 
-class MoveGlobal(Task):
 
+class MoveGlobal(Task):
     DESIRED_POSE_TOPIC = 'controls/desired_pose_global'
     NODE_NAME = 'moveTask'  # TBD
 
@@ -40,6 +40,7 @@ class MoveGlobal(Task):
         while not rospy.is_shutdown():
             self.posePublisher.publish(self.pose)
             self.rate.sleep()
+
 
 move = MoveGlobal(1, 0, 0, 0, 0, 0)
 move._initialize()

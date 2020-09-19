@@ -2,7 +2,7 @@
 
 import numpy as np
 from tf.transformations import quaternion_from_euler
-from controls_utils import quat_vec_mult 
+from controls_utils import quat_vec_mult
 
 
 class Thruster:
@@ -23,5 +23,5 @@ class Thruster:
         # https://en.wikipedia.org/wiki/Euler_angles
 
         self.force_hat = quat_vec_mult(q, [1, 0, 0])  # unit vector representing force of thruster in x,y,z directions
-        
+
         self.torque = np.cross(self.pos, self.force_hat)  # vector representing torque generated from thruster
