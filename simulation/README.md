@@ -8,13 +8,11 @@ Additionally, it publishes a [TwistStamped](http://docs.ros.org/melodic/api/geom
 This readme assumes that you are able to mount the git repo in the docker container, and that you have the most recent Docker image pulled. 
 
 ### Setting up the Docker Container
-You will need a Docker container with port 8080 forwarded. Additionally, you will need to use the simulation tag for the Docker container. Run the command that you normally do to create your Docker container according to the [documentation repo](https://github.com/DukeRobotics/documentation/tree/master/docker), but with `-p 8080:8080` added, and with `:simulation` at the end.
+You will need a Docker container with port 8080 forwarded. You will be using the landside container. Run the command that you normally do to create your Docker container, but with `-p 8080:8080` added.
     
 For example, you might run the command:
 
-`docker run -td -p 2200:2200 -p 8080:8080 --mount type=bind,source=C:\Users\Eric\Documents\Robotics\CS,target=/home/duke/dev/robosub-ros/src dukerobotics/robosub-ros:simulation`
-    
-[Here's](https://github.com/DukeRobotics/documentation/tree/master/docker) the link to the documentation repo with the Docker commands, if you need to look yours up.
+`docker run -td -p 2201:2201 -p 8080:8080 --mount type=bind,source=[source path],target=[mount path] dukerobotics/robosub-ros:landside`
 
 ### Downloading CoppeliaSim on your personal computer
 #### Downloading on Windows
@@ -44,8 +42,8 @@ Make sure you have some version of python installed on your personal computer. *
 
 ## Running the Simulation
 ### Docker Simulation Setup
-1. Open up a terminal and ssh into your Docker Container with the `-XY` flag (i.e. run `ssh -XY -p 2200 duke@[ip address]`).
-2. Run `source /opt/ros/kinetic/setup.bash` and `roscore &`.
+1. Open up a terminal and ssh into your Docker Container with the `-XY` flag (i.e. run `ssh -XY -p 2201 duke@[ip address]`).
+2. Run `source /opt/ros/melodic/setup.bash` and `roscore &`.
 3. Run `cd dev/robosub-ros/simulation` and then `./runSim.sh &` (you may first need to run `chmod +x runSim.sh`). Wait until the terminal says `Initialization successful.` If it delays on the video compression library or meshcalc for an extended period of time, press enter a couple of times. This may be nothing more than confirmation-bias superstition.
 4. Run whatever ROS topic publishing code you have. In `robosub-ros/simulation/docker`, there is a python script `squareCommand.py` that you can run to make the robot move approximately in a square. (In reality, the robot will spin in wide circles because the robot isn't balanced.) You can use this script to test if communication between the simulations is working.
 
