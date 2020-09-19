@@ -16,7 +16,7 @@ class MoveToPoseGlobalTask(Task):
     	self.desired_pose.position.y = y
     	self.desired_pose.position.z = z
     	self.desired_pose.orientation = Quaternion(*quaternion_from_euler(roll, pitch, yaw))
-        self.desired_twist = Twist(0, 0, 0, 0, 0, 0)
+        self.desired_twist = Twist()
         
 
     def _on_task_run(self):
