@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>robosub_description</name>
+  <version>0.0.0</version>
+  <description>
+    A package that contains relevant data and models about our robot.
+  </description>
+
+  <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>
+
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+</package>

@@ -7,10 +7,17 @@
 *.pyc
 
 # ROS/Catkin
-catkin_ws/.catkin_tools
-catkin_ws/build
-catkin_ws/devel
-catkin_ws/logs
+*/catkin_ws/.catkin_tools
+*/catkin_ws/build
+*/catkin_ws/devel
+*/catkin_ws/logs
+
+# ROS_Serial
+catkin_ws/src/offboard_comms/ros_lib
+
+# Video and Bags
+*.avi
+*.bag
 
 # PyCharm/IntelliJ
 .idea
@@ -20,3 +27,6 @@ catkin_ws/logs
 
 # Mac
 *.DS_Store
+
+# Remember to load in the model files manaully
+*.pth

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>offboard_comms</name>
+  <version>0.0.0</version>
+  <description>
+    Package that contains code that we run offboard, on an Arduino.
+  </description>
+
+  <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>
+
+  <license>MIT</license>
+
+  <depend>rosserial</depend>
+  <depend>rosserial_arduino</depend>
+  <depend>custom_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+</package>

@@ -1,0 +1,5 @@
+# Represents the servo and angle to set
+ServoAngle angle
+---
+# Indicates whether the new angle was successful
+bool success

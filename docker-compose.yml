@@ -1,0 +1,47 @@
+version: "3.3"
+
+services:
+  onboard:
+    image: dukerobotics/robosub-ros:onboard
+    container_name: onboard
+    privileged: true
+    ports: 
+      - 2200:2200
+    networks:
+      local_net:
+        ipv4_address: 192.168.1.1
+    tty: true
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    volumes:
+      - type: bind
+        source: .
+        target: /root/dev/robosub-ros
+
+  landside:
+    image: dukerobotics/robosub-ros:landside
+    container_name: landside
+    privileged: true
+    ports:
+      - 2201:2201
+      - 8080:8080
+    networks:
+      local_net:
+        ipv4_address: 192.168.1.2
+    tty: true
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    volumes:
+      - type: bind
+        source: .
+        target: /root/dev/robosub-ros
+
+ 
+networks:
+  local_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.0.0/16
