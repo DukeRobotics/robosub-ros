@@ -1,5 +1,5 @@
 import numpy as np
-from geometry_msgs.msg import Vector3, Quaternion, Pose, PoseStampedm Twist
+from geometry_msgs.msg import Vector3, Quaternion, Pose, PoseStamped, Twist
 from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_quaternion
 >>>>>>> add condition that velocity is near zero before move task ends:catkin_ws/src/motion_planning/scripts/task_utils.py
