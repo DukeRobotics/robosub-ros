@@ -17,7 +17,7 @@ class CompetitionTask(Task):
         # self.list_task = ListTask([HoldPositionTask()])
         # self.list_task = ListTask([LogTask("FATAL", "This is falal")])
         # self.list_task = ListTask([SimulTask([LogTask("WARN", "Warning"), MoveToPoseGlobalTask(30,0,0,0,0,0)])])
-        self.prequal_task = PreQualGlobalTask()
+        # self.prequal_task = PreQualGlobalTask()
 
     def _on_task_run(self):
         self.prequal_task.run()

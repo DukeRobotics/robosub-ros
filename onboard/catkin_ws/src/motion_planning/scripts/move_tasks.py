@@ -59,4 +59,3 @@ class HoldPositionTask(Task):
         if self.hold_time:
             if (rospy.get_rostime() - self.start_time) > self.hold_time:
                 self.finish()
-
