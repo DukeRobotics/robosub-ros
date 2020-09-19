@@ -30,8 +30,8 @@ Make sure you have some version of Python3 installed on your personal computer. 
 
 ## Running the Simulation
 ### Docker Simulation Setup
-1. In the landside container, make sure `roscore` is running.
-2. Run `cd dev/robosub-ros/simulation` and then `./runSim.sh &` (you may first need to run `chmod +x runSim.sh`). Wait until the terminal says `Initialization successful.` If it delays on the video compression library or meshcalc for an extended period of time, press enter a couple of times. This may be nothing more than confirmation-bias superstition.
+1. In the onboard container, make sure `roscore` is running.
+2. In the landside container, run `cd dev/robosub-ros/simulation` and then `./runSim.sh &` (you may first need to run `chmod +x runSim.sh`). Wait until the terminal says `Initialization successful.` If it delays on the video compression library or meshcalc for an extended period of time, press enter a couple of times. This may be nothing more than confirmation-bias superstition.
 3. Run whatever ROS topic publishing code you have. In `robosub-ros/simulation/docker`, there is a Python script `squareCommand.py` that you can run to make the robot move approximately in a square. (In reality, the robot will spin in wide circles because the robot isn't balanced.) You can use this script to test if communication between the simulations is working.
 
 ### Personal Computer Simulation Setup
