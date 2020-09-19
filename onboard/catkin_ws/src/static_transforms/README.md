@@ -4,9 +4,9 @@ The `static_transforms.launch` file publishes the static transforms that define 
 
 Most recently updated on 2/29/2020 for Cthulhu 2.0.
 
-## Transform Tree
+### Transform Tree
 
-```md
+```
             odom
               |
             d |
@@ -24,7 +24,7 @@ dvl_link  cameras_link  imu_link
 
 `s` = static transform (based on fixed geometry), `d` = dynamic transform (updates as the robot moves)
 
-## Transform explanation
+### Transform explanation
 
 * `odom` - world frame
 * `base_link` - robot frame, measured to center of the robot (center is the center of the four upper vectored thrusters)
@@ -33,5 +33,5 @@ dvl_link  cameras_link  imu_link
 * `cameras_link` - measured to a location on the cameras, TBD exactly where that location is
 * `imu_link` - measured to the center of the IMU
 
-## Robot frame orientation
+### Robot frame orientation
 ![robot_frame](robot_frame.png)

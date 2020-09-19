@@ -18,31 +18,31 @@ The controls algorithm will output all 0's unless it is enabled with a call to r
 2. SSH into the docker container, either on the robot or [on your local computer](https://github.com/DukeRobotics/documentation/blob/master/docker/README.md), and maybe [configured for simulation](https://github.com/DukeRobotics/robosub-ros/blob/master/simulation/README.md).
 3. Initialize `roscore` and run the following in the terminal to start the PID Loops:
 
-```bash
+```
 roslaunch controls controls.launch &
 ```
 
 ## Testing Outputs
 
 To enable non-zero thruster output, the following command should be used:
-```bash
+```
 rosservice call /enable_controls true
 ```
 To test the outputs of the PID Loops, edit the values in `test_state_publisher.py` to whatever current and desired state you wish to test. Then, run the following:
 
-```bash
+```
 rosrun controls test_state_publisher.py &
 ```
 
 To check direct PID Outputs:
 
-```bash
+```
 rostopic echo /control_effort/<var>
 ```
 
 Where &lt;var&gt; is x, y, z, roll, pitch, or yaw. To check final thruster allocations:
 
-```bash
+```
 rostopic echo /offboard_comms/ThrusterSpeeds
 ```
 
@@ -53,7 +53,7 @@ To get the initialize the simulation, follow the instructions in the simulation 
 
 Once the simulation is running, execute:
 
-```bash
+```
 rosrun controls test_state_publisher.py &
 roslaunch controls controls.launch sim:=true
 ```
@@ -67,31 +67,31 @@ roslaunch controls controls.launch sim:=true
 
 Desired State Topics:
 
-- ```controls/desired_pose```
-  + A point and quaternion representing the robot's desired global xyz position and rpy orientation
-  + Type: geometry_msgs/Pose
-- ```controls/desired_twist_power```
-  + A twist with values [-1,1] corresponding to relative linear or angular velocity. 1 is full speed in a positive direction, -1 is full speed in the negative direction.
-  + 0 values are interpreted as axes to stabilize on. Stabilization is performed by using position control rather than velocity control on 0'ed axes to mitigate drift effects or other unwanted perturbations.
-  + For instance, a twist with values [1,0,0,0,0,0] will result in full speed in the positive local x-direction and stabilization along all other axes.
-  + Type: geometry_msgs/Twist
+  - ```controls/desired_pose```
+    + A point and quaternion representing the robot's desired global xyz position and rpy orientation
+    + Type: geometry_msgs/Pose
+  - ```controls/desired_twist_power```
+    + A twist with values [-1,1] corresponding to relative linear or angular velocity. 1 is full speed in a positive direction, -1 is full speed in the negative direction.
+    + 0 values are interpreted as axes to stabilize on. Stabilization is performed by using position control rather than velocity control on 0'ed axes to mitigate drift effects or other unwanted perturbations.
+    + For instance, a twist with values [1,0,0,0,0,0] will result in full speed in the positive local x-direction and stabilization along all other axes.
+    + Type: geometry_msgs/Twist
 
 Current State Topics:
 
-- ```/state```
-  + The current state of the robot or simulated robot, in global position, orientation, linear velocity, and angular velocity
-  + Type: nav_msgs/Odometry
+  - ```/state``` 
+    + The current state of the robot or simulated robot, in global position, orientation, linear velocity, and angular velocity
+    + Type: nav_msgs/Odometry
 
 ### Publishing
 
 We can choose to publish to either of these topics by changing the `sim` argument in the `controls.launch` file. It defaults to `false` for the Arduino, but can also be `true` for the simulation.
 
-- ```/offboard/thruster_speeds```
-  + An array of 8 8-bit integers [-128,127] describing the allocation of the thrusters sent to the Arduino
-  + Type: controls.msg/ThrusterSpeeds
-- ```/sim/move```
-  + An array of 8 floats [-1,1] describing the allocation of the thrusters sent to the simulation
-  + Type: std_msgs/Float32MultiArray
+  - ```/offboard/thruster_speeds```
+    + An array of 8 8-bit integers [-128,127] describing the allocation of the thrusters sent to the Arduino
+    + Type: controls.msg/ThrusterSpeeds
+  - ```/sim/move```
+    + An array of 8 floats [-1,1] describing the allocation of the thrusters sent to the simulation
+    + Type: std_msgs/Float32MultiArray
 
 
 ## How It Works (Structure and Flow)
@@ -113,7 +113,7 @@ This package also defines a new custom message type, `ThrusterSpeeds`, which is 
 
 ### Flow
 
-```md
+```
     Current State Topics        Desired State Topics
             |                            |
             |                            |

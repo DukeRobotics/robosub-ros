@@ -3,7 +3,7 @@
 This metapackage contains the necessary tools to view, save, and load video streams/files.
 
 ## Viewing Videos
-### Single Video Stream
+### Single Video Stream 
 You can view a live video stream by using the command
 ```bash
 rosrun image_view image_view image:=<image_topic>
@@ -26,7 +26,7 @@ rosrun image_view stereo_view stereo:=camera image:=raw_image
 where the subscribed topics are `/camera/left/raw_image` and `/camera/right/raw_image`.
 
 ## Saving Videos
-### ROS bags for saving videos
+### ROS bags
 You can save your video stream to ROS bags for easy playback to ROS topics. Be warned that this will take significant storage space. To record a basic ROS bag, use
 ```bash
 rosbag record -O output_name <topic_names>
@@ -46,7 +46,7 @@ rosrun image_view video_recorder image:=<image_topic>
 where `image_topic` is the topic of the video steam.
 
 ## Streaming Videos
-### ROS bags for streaming videos
+### ROS bags
 To stream a ROS bag from a bag file, you can simply use
 ```bash
 rosbag play <bag_files>
@@ -66,7 +66,7 @@ You can use the `bag_to_video` script provided using
 rosrun camera_view bag_to_video.py _bag_file:=<bag_file_name> _video_file:=<list_of_video_files> _topic_name:=<list_of_topic_names>
 ```
 where the `bag_file_name` is the name of the bag file to convert. The `list_of_video_files` is a list of the video files to write. The `list_of_topic_names` is a list of topic names that correspond to the topic names to write to video files. Each video file will be the stream of images to the corresponding topic at the same index in the topic list. The video file list and topic list must be the same length.
-For instance, you can run
+For instance, you can run 
 ```bash
 rosrun camera_view bag_to_video.py _bag_file:="vid.bag" _video_file:=["vid1.avi", "vid2.avi"] _topic_name:=["/camera/image/vid1", "/camera/image/vid2]
 ```
