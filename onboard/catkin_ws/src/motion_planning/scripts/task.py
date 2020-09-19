@@ -18,9 +18,7 @@ class Task:
         Create a Task.
 
         """
-
         self.task_state = self.task_state_provider()
-
         self.start_time = None
         self.finished = False
         self.initial_state = None
@@ -41,7 +39,7 @@ class Task:
     def run(self):
         """Run the task. This should be called by the task planner, and
         will call _task_run, which is the task specific run method"""
-        if self.finished or not self.state:
+        if self.finished or not self.state: # note: if state is not being published to this will continue returning
             return
 
         if not self.started:
