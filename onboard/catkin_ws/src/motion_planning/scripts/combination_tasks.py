@@ -38,17 +38,17 @@ class SimulTask(Task):
 			self.finish()
 			
 
-class MasterSlaveTask(Task):
+class LeaderFollowerTask(Task):
 
-    def __init__(self, master, slave):
-        super(MasterSlaveTask, self).__init__()
-        self.master = master
-        self.slave = slave
+    def __init__(self, leader, follower):
+        super(LeaderFollowerTask, self).__init__()
+        self.leader = leader
+        self.follower = follower
 
     def _on_task_run(self):
-        if(self.master.finished):
-            self.slave.finish()
+        if self.leader.finished:
+            self.follower.finish()
             self.finish()
 
-        self.master.run()
-        self.slave.run()
+        self.leader.run()
+        self.follower.run()
