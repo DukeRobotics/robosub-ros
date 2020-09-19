@@ -10,9 +10,9 @@ Our codebase is split into two repositories:
 1. This repo contains all of the code required for running and testing our robots.
 1. The [documentation](https://github.com/DukeRobotics/documentation) repo contains introductory projects, tutorials, and miscellaneous docs.
 
-Our code is Dockerized, making it straightforward to set up and run. See [Running Docker Images](#running-docker-images).
+Our code is Dockerized, making it straightforward to set up and run. See [Running Our Docker Images](#running-our-docker-images).
 
-Once the containers are up and running, go to [Running our Code](#running-our-code).
+Once the containers are up and running, go to [Running Our Code](#running-our-code).
 
 
 ## Software Stack
@@ -36,7 +36,7 @@ The following components make up our software stack:
 - Landside:
     * [Camera View](landside/catkin_ws/src/camera_view) - Package that allows for viewing, saving, and loading videos to simulate camera input.
     * [Joystick](landside/catkin_ws/src/joystick) - Allows manual joystick control for testing.
-    * [Simulation](simulation) - Physics-enabled simulation that can be used for local testing. (not in landside, but run using the landside container)
+    * [Simulation](simulation) - Physics-enabled simulation that can be used for local testing. (not in the landside workspace, but run using the landside container)
 
 
 ## Flow
@@ -115,6 +115,7 @@ Use these instructions when running code on the robot itself.
     ```bash
     source /opt/ros/melodic/setup_network.bash
     ```
+1. Now go to [Running Our Code](#running-our-code).
 
 ### Local Testing
 Use these instructions to test code on your computer by simulating the robot's execution.
@@ -139,6 +140,7 @@ Use these instructions to test code on your computer by simulating the robot's e
     ```bash
     source /opt/ros/melodic/setup_network.bash
     ```
+1. Now go to [Running Our Code](#running-our-code). Also set up our [simulation](simulation).
 1. To stop and delete both containers and their network, in the `robosub-ros` directory, execute
     ```bash
     docker-compose down
