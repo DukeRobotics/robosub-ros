@@ -1,15 +1,7 @@
 from combination_tasks import ListTask
 from move_tasks import MoveToPoseGlobalTask
-<<<<<<< HEAD
 from task import Task
 from prequal_tasks import PreQualGlobalTask
-
-=======
-from move_tasks import MoveToPoseLocalTask
-from move_tasks import HoldPositionTask
-from log_task import LogTask
-from prequal_tasks import PreQualGlobalTask, PreQualLocalTask
->>>>>>> 63a38d726a101fd30c47c60da0fbcf1ba1fdf04f
 
 class CompetitionTask(Task):
     """
