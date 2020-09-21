@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from pymba import *
+from pymba import *  # noqa
 import rospy
 from sensor_msgs.msg import Image, CameraInfo
 from camera import Camera
@@ -27,7 +27,7 @@ class SynchronizedCameras:
             fn(camera)
 
     def run(self):
-        with Vimba() as vimba:
+        with Vimba() as vimba:  # noqa
             self.for_each_camera(lambda camera: camera.initialize_camera(vimba))
             self.for_each_camera(lambda camera: camera.start_capture())
             self.for_each_camera(lambda camera: camera.start_acquisition())

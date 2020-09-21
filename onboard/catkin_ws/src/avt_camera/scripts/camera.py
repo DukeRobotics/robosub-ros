@@ -1,4 +1,4 @@
-from pymba import *
+from pymba import *  # noqa
 import rospy
 from cv_bridge import CvBridge
 import numpy as np
@@ -65,7 +65,7 @@ class Camera:
         try:
             # gigE camera
             self.gigE_camera()
-        except:
+        except Exception:
             # not a gigE camera
             pass
         self.set_pixel_format()

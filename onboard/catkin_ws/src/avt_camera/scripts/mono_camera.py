@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from pymba import *
+from pymba import *  # noqa
 import rospy
 from sensor_msgs.msg import Image, CameraInfo
 from camera import Camera
@@ -23,7 +23,7 @@ class MonoCamera:
         self._camera = Camera(img_pub, info_pub, rospy.get_name(), camera_id)
 
     def run(self):
-        with Vimba() as vimba:
+        with Vimba() as vimba:  # noqa
             self._camera.initialize_camera(vimba)
             self._camera.start_capture()
             self._camera.start_acquisition()
