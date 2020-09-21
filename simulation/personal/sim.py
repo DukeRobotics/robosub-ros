@@ -1,3 +1,5 @@
+# flake8: noqa
+
 import platform
 import struct
 import sys

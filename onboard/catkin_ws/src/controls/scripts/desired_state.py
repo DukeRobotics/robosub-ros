@@ -15,7 +15,6 @@ class bcolors:
 
 
 class DesiredStateHandler:
-
     DESIRED_TWIST_POWER = 'controls/desired_twist_power'
     DESIRED_POSE_TOPIC = 'controls/desired_pose'
 
@@ -68,7 +67,7 @@ class DesiredStateHandler:
     def run(self):
         rospy.init_node('desired_state')
         rate = rospy.Rate(self.REFRESH_HZ)
-        
+
         warned = False
         event_id = 0
 
@@ -83,13 +82,15 @@ class DesiredStateHandler:
             elif not self.pose and not self.powers:
                 self.soft_estop()
                 if not warned:
-                    rospy.logwarn(bcolors.WARN + ("===> Controls received neither position nor power! Halting robot. (Event %d) <===" % event_id) + bcolors.RESET)
+                    rospy.logwarn(bcolors.WARN + ("===> Controls received neither position nor power! Halting robot. "
+                                                  "(Event %d) <===" % event_id) + bcolors.RESET)
                     warned = True
                 continue
 
             # Now we have either pose XOR powers
             if warned:
-                rospy.loginfo(bcolors.OKGREEN + ("===> Controls now receiving %s (End event %d) <===" % ("position" if self.pose else "powers", event_id)) + bcolors.RESET)
+                rospy.loginfo(bcolors.OKGREEN + ("===> Controls now receiving %s (End event %d) <===" %
+                                                 ("position" if self.pose else "powers", event_id)) + bcolors.RESET)
                 event_id += 1
                 warned = False
 

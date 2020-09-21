@@ -1,8 +1,8 @@
-from task import Task
 from combination_tasks import ListTask
 from move_tasks import MoveToPoseGlobalTask
 from move_tasks import MoveToPoseLocalTask
-from move_tasks import HoldPositionTask
+from task import Task
+
 
 class PreQualGlobalTask(Task):
     """
@@ -18,11 +18,11 @@ class PreQualGlobalTask(Task):
     def __init__(self, *args, **kwargs):
         super(PreQualGlobalTask, self).__init__(*args, **kwargs)
 
-        self.list_task = ListTask([ MoveToPoseGlobalTask(*self.POSE1), 
-                                    MoveToPoseGlobalTask(*self.POSE2),
-                                    MoveToPoseGlobalTask(*self.POSE3),
-                                    MoveToPoseGlobalTask(*self.POSE4),
-                                    MoveToPoseGlobalTask(*self.POSE5) ])
+        self.list_task = ListTask([MoveToPoseGlobalTask(*self.POSE1),
+                                   MoveToPoseGlobalTask(*self.POSE2),
+                                   MoveToPoseGlobalTask(*self.POSE3),
+                                   MoveToPoseGlobalTask(*self.POSE4),
+                                   MoveToPoseGlobalTask(*self.POSE5)])
 
     def _on_task_run(self):
         self.list_task.run()
@@ -45,11 +45,11 @@ class PreQualLocalTask(Task):
     def __init__(self, *args, **kwargs):
         super(PreQualLocalTask, self).__init__(*args, **kwargs)
 
-        self.list_task = ListTask([ MoveToPoseLocalTask(*POSE1), 
-                                    MoveToPoseLocalTask(*POSE2),
-                                    MoveToPoseLocalTask(*POSE3),
-                                    MoveToPoseLocalTask(*POSE4),
-                                    MoveToPoseLocalTask(*POSE5) ])
+        self.list_task = ListTask([MoveToPoseLocalTask(*self.POSE1),
+                                   MoveToPoseLocalTask(*self.POSE2),
+                                   MoveToPoseLocalTask(*self.POSE3),
+                                   MoveToPoseLocalTask(*self.POSE4),
+                                   MoveToPoseLocalTask(*self.POSE5)])
 
     def _on_task_run(self):
         self.list_task.run()

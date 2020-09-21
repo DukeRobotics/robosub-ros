@@ -56,7 +56,7 @@ def quat_vec_mult(q1, v1):
     q2 = list(v1)
     q2.append(0.0)
     return quaternion_multiply(
-        quaternion_multiply(q1, q2), 
+        quaternion_multiply(q1, q2),
         quaternion_conjugate(q1)
     )[:3]
 

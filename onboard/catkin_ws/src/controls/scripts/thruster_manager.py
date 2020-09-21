@@ -44,7 +44,7 @@ class ThrusterManager:
         t_allocs[np.abs(t_allocs) < 0.001] = 0
 
         # Flip thrusters that are marked as such
-        
+
         for i in range(len(t_allocs)):
             if self.thrusters[i].flipped:
                 t_allocs[i] = -t_allocs[i]

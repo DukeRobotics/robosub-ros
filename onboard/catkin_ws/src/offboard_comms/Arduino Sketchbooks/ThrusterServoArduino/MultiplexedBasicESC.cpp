@@ -4,9 +4,7 @@
 #include "MultiplexedBasicESC.h"
 #include "MultiplexedObject.h"
 
-MultiplexedBasicESC::MultiplexedBasicESC(Adafruit_PWMServoDriver *_multiplexer,int _num):MultiplexedObject(_multiplexer){
-    num=_num;
-}
+MultiplexedBasicESC::MultiplexedBasicESC(Adafruit_PWMServoDriver *_multiplexer,int _num):MultiplexedObject(_multiplexer, _num){}
 
 void MultiplexedBasicESC::initialise(){
     attach(num);
