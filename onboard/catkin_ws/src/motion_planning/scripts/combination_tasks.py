@@ -40,17 +40,17 @@ class SimulTask(Task):
             self.finish()
 
 
-class ParentChildTask(Task):
+class LeaderFollowerTask(Task):
 
     def __init__(self, parent, child):
-        super(ParentChildTask, self).__init__()
-        self.parent = parent
-        self.child = child
+        super(LeaderFollowerTask, self).__init__()
+        self.leader = leader
+        self.follower = follower
 
     def _on_task_run(self):
-        if self.parent.finished:
-            self.child.finish()
+        if self.leader.finished:
+            self.follower.finish()
             self.finish()
 
-        self.parent.run()
-        self.child.run()
+        self.leader.run()
+        self.follower.run()
