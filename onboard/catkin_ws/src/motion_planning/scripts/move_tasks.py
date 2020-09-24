@@ -29,8 +29,7 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
     """Move to pose given in local coordinates."""
 
     def __init__(self, x, y, z, roll, pitch, yaw, *args, **kwargs):
-        super(MoveToPoseLocalTask, self).__init__(
-            x, y, z, roll, pitch, yaw, *args, **kwargs)
+        super(MoveToPoseLocalTask, self).__init__(x, y, z, roll, pitch, yaw, *args, **kwargs)
 
     def _on_task_start(self):
         self.transformed_pose = task_utils.transform(
