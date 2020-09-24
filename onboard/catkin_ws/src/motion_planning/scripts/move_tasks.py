@@ -19,7 +19,8 @@ class MoveToPoseGlobalTask(Task):
 
     def _on_task_run(self):
         self.publish_desired_pose_global(self.desired_pose)
-        if task_utils.at_pose(self.state.pose.pose, self.desired_pose) and task_utils.at_vel(self.state.twist.twist, self.desired_twist):
+        if task_utils.at_pose(self.state.pose.pose, self.desired_pose) and \
+                task_utils.at_vel(self.state.twist.twist, self.desired_twist):
             self.finish()
 
 
@@ -36,7 +37,8 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
 
     def _on_task_run(self):
         self.publish_desired_pose_global(self.transformed_pose)
-        if task_utils.at_pose(self.state.pose.pose, self.transformed_pose) and task_utils.at_vel(self.state.twist.twist, self.desired_twist):
+        if task_utils.at_pose(self.state.pose.pose, self.transformed_pose) and \
+                task_utils.at_vel(self.state.twist.twist, self.desired_twist):
             self.finish()
 
 
