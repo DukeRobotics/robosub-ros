@@ -42,7 +42,7 @@ class SimulTask(Task):
 
 class LeaderFollowerTask(Task):
 
-    def __init__(self, parent, child):
+    def __init__(self, leader, follower):
         super(LeaderFollowerTask, self).__init__()
         self.leader = leader
         self.follower = follower
