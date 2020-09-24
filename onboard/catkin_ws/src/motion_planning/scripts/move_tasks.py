@@ -1,5 +1,5 @@
 from task import Task
-from geometry_msgs.msg import Pose, Quaternion, Twist, Vector3
+from geometry_msgs.msg import Pose, Quaternion, Twist, Vector3, Point
 from tf.transformations import quaternion_from_euler
 import task_utils
 import rospy
@@ -11,12 +11,8 @@ class MoveToPoseGlobalTask(Task):
     def __init__(self, x, y, z, roll, pitch, yaw, *args, **kwargs):
         super(MoveToPoseGlobalTask, self).__init__(*args, **kwargs)
 
-    	self.desired_pose = Pose()
-    	self.desired_pose.position.x = x
-    	self.desired_pose.position.y = y
-    	self.desired_pose.position.z = z
-    	self.desired_pose.orientation = Quaternion(*quaternion_from_euler(roll, pitch, yaw))
-        self.desired_twist = Twist()
+    	self.desired_pose = Pose(position=Point(x=x, y=y, z=z), orientation=Quaternion(*quaternion_from_euler(roll, pitch, yaw)))
+        self.desired_twist = Twist() # default 0 angular and linear velocity
 
     def _on_task_run(self):
     	self.publish_desired_pose_global(self.desired_pose)
