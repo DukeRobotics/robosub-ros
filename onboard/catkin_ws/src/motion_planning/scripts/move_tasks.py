@@ -11,10 +11,9 @@ class MoveToPoseGlobalTask(Task):
     def __init__(self, x, y, z, roll, pitch, yaw, *args, **kwargs):
         super(MoveToPoseGlobalTask, self).__init__(*args, **kwargs)
 
-        self.desired_pose = Pose(
-                            position=Point(x=x, y=y, z=z),
-                            orientation=Quaternion(
-                                *quaternion_from_euler(roll, pitch, yaw)))
+        self.desired_pose = Pose()
+        self.desired_pose.position = Point(x=x, y=y, z=z)
+        self.desired_pose.orientation = Quaternion(*quaternion_from_euler(roll, pitch, yaw))
         self.desired_twist = Twist()  # default 0 angular and linear velocity
 
     def _on_task_run(self):
