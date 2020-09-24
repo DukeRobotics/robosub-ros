@@ -48,7 +48,7 @@ class ParentChildTask(Task):
         self.child = child
 
     def _on_task_run(self):
-        if(self.parent.finished):
+        if self.parent.finished:
             self.child.finish()
             self.finish()
 
