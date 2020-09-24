@@ -36,7 +36,7 @@ class Task:
     def run(self):
         """Run the task. This should be called by the task planner, and
         will call _task_run, which is the task specific run method"""
-        if self.finished or not self.state: # note: if state is not being published to this will continue returning
+        if self.finished or not self.state:  # note: if state is not being published to this will continue returning
             return
 
         if not self.started:
@@ -45,8 +45,6 @@ class Task:
 
         self._on_task_run()
 
-        
-    
     @abstractmethod
     def _on_task_run(self):
         """Try to complete the task

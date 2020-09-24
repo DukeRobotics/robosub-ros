@@ -78,9 +78,8 @@ def at_pose(current_pose, desired_pose, linear_tol=0.1, angular_tol=3):
 
 
 def at_vel(current_twist, desired_twist, linear_tol=0.1, angular_tol=0.3):
-    """Check if within tolerance of a twist (linear and angular velocity)
-    
-    """
+    """Check if within tolerance of a twist (linear and angular velocity)"""
+
     lin_curr_vel = np.linalg.norm([current_twist.linear.x, current_twist.linear.y, current_twist.linear.z])
     lin_des_vel = np.linalg.norm([desired_twist.linear.x, desired_twist.linear.y, desired_twist.linear.z])
     linear = np.fabs(lin_curr_vel - lin_des_vel) < linear_tol
