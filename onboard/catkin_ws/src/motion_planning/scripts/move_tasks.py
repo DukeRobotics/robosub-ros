@@ -47,8 +47,7 @@ class HoldPositionTask(Task):
     def __init__(self, hold_time=None, *args, **kwargs):
         """
         Parameters:
-            hold_time (double): time to hold in seconds.
-            If None or 0, hold indefinitely
+            hold_time (double): time to hold in seconds. If None or 0, hold indefinitely
         """
         super(HoldPositionTask, self).__init__(*args, **kwargs)
         self.hold_time = hold_time
