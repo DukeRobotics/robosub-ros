@@ -1,5 +1,3 @@
-import math
-
 import numpy as np
 import rospy
 import tf2_geometry_msgs
@@ -53,9 +51,9 @@ def angular_distance_rpy(rpy1, rpy2):
     Returns:
     geometry_msgs/Vector3: magnitude of the two orientations' differences in each axis
     """
-    roll = math.fabs(rpy1[0] - rpy2[0])
-    pitch = math.fabs(rpy1[1] - rpy2[1])
-    yaw = math.fabs(rpy1[2] - rpy2[2])
+    roll = np.fabs(rpy1[0] - rpy2[0])
+    pitch = np.fabs(rpy1[1] - rpy2[1])
+    yaw = np.fabs(rpy1[2] - rpy2[2])
     return Vector3(roll, pitch, yaw)
 
 
@@ -76,6 +74,20 @@ def at_pose(current_pose, desired_pose, linear_tol=0.1, angular_tol=3):
     linear = linear_distance(current_pose.position, desired_pose.position) < linear_tol
     angular_dist = angular_distance_quat(current_pose.orientation, desired_pose.orientation)
     angular = np.all(np.array([angular_dist.x, angular_dist.y, angular_dist.z]) < (np.ones((3)) * angular_tol))
+    return linear and angular
+
+
+def at_vel(current_twist, desired_twist, linear_tol=0.1, angular_tol=0.3):
+    """Check if within tolerance of a twist (linear and angular velocity)"""
+
+    lin_curr_vel = np.linalg.norm([current_twist.linear.x, current_twist.linear.y, current_twist.linear.z])
+    lin_des_vel = np.linalg.norm([desired_twist.linear.x, desired_twist.linear.y, desired_twist.linear.z])
+    linear = np.fabs(lin_curr_vel - lin_des_vel) < linear_tol
+
+    ang_curr_vel = np.linalg.norm([current_twist.angular.x, current_twist.angular.y, current_twist.angular.z])
+    ang_des_vel = np.linalg.norm([desired_twist.angular.x, desired_twist.angular.y, desired_twist.angular.z])
+    angular = np.fabs(ang_curr_vel - ang_des_vel) < angular_tol
+
     return linear and angular
 
 
