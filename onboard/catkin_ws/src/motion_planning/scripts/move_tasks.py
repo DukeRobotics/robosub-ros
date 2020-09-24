@@ -32,8 +32,7 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
         super(MoveToPoseLocalTask, self).__init__(x, y, z, roll, pitch, yaw, *args, **kwargs)
 
     def _on_task_start(self):
-        self.transformed_pose = task_utils.transform(
-            'base_link', 'odom', self.desired_pose)
+        self.transformed_pose = task_utils.transform('base_link', 'odom', self.desired_pose)
 
     def _on_task_run(self):
         self.publish_desired_pose_global(self.transformed_pose)
