@@ -1,0 +1,61 @@
+while (dist_to_gate > x | cannot see gate)
+	while (cannot see gate)
+		rotate
+	select smaller box of seen boxes
+	find normal vector from middle of smaller box
+	move to and align with normal vector	
+	while (within tolerance of normal vector and dist_to_gate > x)
+		move to gate
+		calculate normal, calculate distance
+
+calculate normal
+move to normal
+move through gate
+break		
+
+normal vector and distance functions return false if the gate is not seen
+
+This code goes back to the beginning of the while loop whenever a single
+frame of vision data is lost. We might want some sort of weighting system
+that averages multiple frames into the gate position. If we lost one frame,
+we wouldn't want to go back to the rotate loop.
+If we lose vision data entirely, we would want to return to the rotate loop.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ifTask (BodyTask, condition)
+	if(condition)
+		BodyTask
+	finish
+
+whileTask (BodyTask, condition)
+	ifTask (BodyTask, condition)
+	ifTask.run()
+	
+
+
+
+
+Useful functions
+
+Get gate size (pixels) from vision data (x, y length)
+distance to gate
+horizontal and vertical angle to gate
+--> talk to vision about FOV, resolution, etc
+normal vector
+
+Vision Data
+
+two bounding boxes: one around entire gate, one around tick
+format: xmin, xmax, ymin, ymax (4 points, 8 numbers)
