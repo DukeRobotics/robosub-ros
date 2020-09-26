@@ -1,8 +1,22 @@
+from move_tasks import MoveToPoseGlobalTask
+from combination_tasks import SimulTask, LeaderFollowerTask, ListTask
+from task import Task
+
 class GateTask(Task):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super(GateTask, self).__init__(*args, **kwargs)
 
+    def _on_task_start(self):
+        self.threshold = 10
+        self.begin_gate_search = SimulTask([DistanceToGateTask(self.threshold), IsThereAGateTask()])
+        self.gate_search = LeaderFollowerTask(self.begin_gate_search, MoveToPoseGlobalTask(7, 0, 0, 0, 0, 0))
+        self.after_gate_search_dummy = MoveToPoseGlobalTask(10, 0, 0, 0, 0, 0)
+        self.go_to_gate = ListTask([self.gate_search, self.after_gate_search_dummy])
+
     def _on_task_run(self):
+
+
+        """ 
         listtask1 = ListTask([
             LeaderFollowerTask(IsThereAGateTask, RotateTask(...)),
             select_smaller_box_of_seen_boxes_task,
@@ -14,21 +28,32 @@ class GateTask(Task):
         task2 = ListTask([CalculateNormalTask, AlignWithNormalTask, MoveTask])
 
         ListTask of listtask1, task1, task2
+        """
+
+        self.go_to_gate.run()
+
 
 
 class DistanceToGateTask(Task):
-    def __init__(self, threshold):
-        super...
+    def __init__(self, threshold, *args, **kwargs):
+        super(DistanceToGateTask, self).__init__(*args, **kwargs)
+        self.threshold = threshold
+
+    def _on_task_start(self):
+        self.distance_counter_test = 300
 
     def _on_task_run(self):
-        if(distance < threshold):
+        self.distance_counter_test -= 1
+        print(self.distance_counter_test)
+        if self.distance_counter_test < self.threshold:
             self.finish()
 
 
 class IsThereAGateTask(Task):
-    def __init__(self):
-        super...
+    def __init__(self, *args, **kwargs):
+        super(IsThereAGateTask, self).__init__(*args, **kwargs)
 
     def _on_task_run(self):
-        if data_from_cv:
-            self.finish()
+        self.finish()
+        # if data_from_cv:
+        #     self.finish()
