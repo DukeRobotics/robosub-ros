@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>execute</name>
+  <version>0.0.0</version>
+  <description>
+    A wrapper package that allows for easy startup of the main processes for our robot.
+  </description>
+
+  <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>
+
+  <license>MIT</license>
+
+  <depend>data_pub</depend>
+  <depend>controls</depend>
+  <depend>static_transforms</depend>
+  <depend>motion_planning</depend>
+  <depend>sensor_fusion</depend>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+</package>

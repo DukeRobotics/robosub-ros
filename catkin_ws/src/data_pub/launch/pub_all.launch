@@ -1,4 +1,0 @@
-<launch>
-	<include file="$(find data_pub)/launch/pub_dvl.launch" />
-	<include file="$(find data_pub)/launch/pub_imu.launch" />
-</launch>
