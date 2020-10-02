@@ -90,6 +90,16 @@ def at_vel(current_twist, desired_twist, linear_tol=0.1, angular_tol=0.3):
 
     return linear and angular
 
+def stopped_at_pose(current_pose, desired_pose, current_twist):
+    """Check if within tolerance of a pose (position and orientation) and within tolerance of twist = 0"""
+
+    twist_zero = Twist()
+    
+    at_desired_pose = task_utils.at_pose(current_pose, desired_pose)
+    at_desired_vel = task_utils.at_vel(current_twist, twist_zero)
+
+    return at_desired_pose and at_desired_vel    
+    
 
 def transform(origin_frame, dest_frame, poseORodom):
     """Transforms poseORodom from origin_frame to dest_frame frame
