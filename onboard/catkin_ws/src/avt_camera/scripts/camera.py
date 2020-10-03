@@ -39,10 +39,10 @@ class Camera:
         self._info_manager.loadCameraInfo()
 
     def get_camera(self, vimba):
-        self._c0 = vimba.getCamera(self._camera_id)
-        if self._c0.getInfo().permittedAccess != 0:
+        if self._camera_id in vimba._cameras:
             rospy.logerr("Requested camera is already in use")
             sys.exit(1)
+        self._c0 = vimba.getCamera(self._camera_id)
         self._c0.openCamera()
 
     def gigE_camera(self):
@@ -52,12 +52,13 @@ class Camera:
         self._c0.StreamBytesPerSecond = 100000000
 
     def set_pixel_format(self):
-        self._c0.PixelFormat = "RGB8"
+        self._c0.PixelFormat = "RGB8Packed"
         self._c0.AcquisitionMode = "Continuous"
         self._c0.ExposureAuto = "Continuous"
         self._c0.Width = 1210
         self._c0.Height = 760
         self._frame = self._c0.getFrame()
+        self._frame.announceFrame()
 
     def initialize_camera(self, vimba):
         self.find_camera(vimba)
