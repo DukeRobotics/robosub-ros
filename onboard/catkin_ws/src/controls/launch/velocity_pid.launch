@@ -1,0 +1,143 @@
+<launch>
+
+    <arg name="sim" default="false" />
+
+    <arg name="vel_max" default="1" />
+    <arg name="orient_max" default="0.5" />
+    <arg name="min_loop_freq" value="100" />
+
+    <!-- ROBOT PID Constants -->
+    <group unless="$(arg sim)">
+	   <group ns="controls/x_vel/controller">
+            <param name="Kp" value="1" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="0.001" />
+        </group>
+        <group ns="controls/y_vel/controller">
+            <param name="Kp" value="1" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="0.001" />
+        </group>
+        <group ns="controls/z_vel/controller">
+            <param name="Kp" value="1" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="0.001" />
+        </group>
+        <group ns="controls/roll_vel/controller">
+            <param name="Kp" value="0.01" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="0.001" />
+        </group>
+        <group ns="controls/pitch_vel/controller">
+            <param name="Kp" value="0.01" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="0.001" />
+        </group>
+        <group ns="controls/yaw_vel/controller">
+            <param name="Kp" value="1" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="0.001" />
+        </group>
+    </group>
+
+    <!-- SIMULATION PID Constants -->
+    <group if="$(arg sim)">
+       <group ns="controls/x_vel/controller">
+            <param name="Kp" value="1" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="0.001" />
+        </group>
+        <group ns="controls/y_vel/controller">
+            <param name="Kp" value="1" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="0.001" />
+        </group>
+        <group ns="controls/z_vel/controller">
+            <param name="Kp" value="1" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="0.001" />
+        </group>
+        <group ns="controls/roll_vel/controller">
+            <param name="Kp" value="0.01" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="0.001" />
+        </group>
+        <group ns="controls/pitch_vel/controller">
+            <param name="Kp" value="0.01" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="0.001" />
+        </group>
+        <group ns="controls/yaw_vel/controller">
+            <param name="Kp" value="1" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="0.001" />
+        </group>
+    </group>
+
+    <node name="controller" pkg="pid" type="controller" ns="controls/x_vel" output="log" >
+        <param name="node_name" value="global_x_vel_pid" />
+        <param name="upper_limit" value="$(arg vel_max)" />
+        <param name="lower_limit" value="-$(arg vel_max)" />
+        <!-- <param name="windup_limit" value="10" /> -->
+        <param name="pid_enable_topic" value="/controls/enable/x_vel" />
+        <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
+        <remap from="control_effort" to="/control_effort/x_vel" />
+        <remap from="state" to="/controls/state/vel/x" />
+    </node>
+
+    <node name="controller" pkg="pid" type="controller" ns="controls/y_vel" output="log" >
+        <param name="node_name" value="global_y_vel_pid" />
+        <param name="upper_limit" value="$(arg vel_max)" />
+        <param name="lower_limit" value="-$(arg vel_max)" />
+        <!-- <param name="windup_limit" value="10" /> -->
+        <param name="pid_enable_topic" value="/controls/enable/y_vel" />
+        <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
+        <remap from="control_effort" to="/control_effort/y_vel" />
+        <remap from="state" to="/controls/state/vel/y" />
+    </node>
+
+    <node name="controller" pkg="pid" type="controller" ns="controls/z_vel" output="log" >
+        <param name="node_name" value="global_z_vel_pid" />
+        <param name="upper_limit" value="$(arg vel_max)" />
+        <param name="lower_limit" value="-$(arg vel_max)" />
+        <!-- <param name="windup_limit" value="10" /> -->
+        <param name="pid_enable_topic" value="/controls/enable/z_vel" />
+        <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
+        <remap from="control_effort" to="/control_effort/z_vel" />
+        <remap from="state" to="/controls/state/vel/z" />
+    </node>
+
+    <node name="controller" pkg="pid" type="controller" ns="controls/roll_vel" output="log" >
+        <param name="node_name" value="global_roll_vel_pid" />
+        <param name="upper_limit" value="$(arg orient_max)" />
+        <param name="lower_limit" value="-$(arg orient_max)" />
+        <!-- <param name="windup_limit" value="10" /> -->
+        <param name="pid_enable_topic" value="/controls/enable/roll_vel" />
+        <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
+        <remap from="control_effort" to="/control_effort/roll_vel" />
+        <remap from="state" to="/controls/state/vel/roll" />
+    </node>
+
+    <node name="controller" pkg="pid" type="controller" ns="controls/pitch_vel" output="log" >
+        <param name="node_name" value="global_pitch_vel_pid" />
+        <param name="upper_limit" value="$(arg orient_max)" />
+        <param name="lower_limit" value="-$(arg orient_max)" />
+        <!-- <param name="windup_limit" value="10" /> -->
+        <param name="pid_enable_topic" value="/controls/enable/pitch_vel" />
+        <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
+        <remap from="control_effort" to="/control_effort/pitch_vel" />
+        <remap from="state" to="/controls/state/vel/pitch" />
+    </node>
+
+    <node name="controller" pkg="pid" type="controller" ns="controls/yaw_vel" output="log" >
+        <param name="node_name" value="global_yaw_vel_pid" />
+        <param name="upper_limit" value="$(arg orient_max)" />
+        <param name="lower_limit" value="-$(arg orient_max)" />
+        <!-- <param name="windup_limit" value="10" /> -->
+        <param name="pid_enable_topic" value="/controls/enable/yaw_vel" />
+        <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
+        <remap from="control_effort" to="/control_effort/yaw_vel" />
+        <remap from="state" to="/controls/state/vel/yaw" />
+    </node>
+
+</launch>
