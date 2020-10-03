@@ -24,7 +24,7 @@ class Camera:
         camera_ids = vimba.getCameraIds()
         if not camera_ids:
             rospy.logerr("Cameras were not found.")
-            sys.exit(0)
+            sys.exit(1)
 
         for cam_id in camera_ids:
             rospy.loginfo("Camera found: " + cam_id)
