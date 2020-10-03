@@ -81,8 +81,8 @@
         <!-- <param name="windup_limit" value="10" /> -->
         <param name="pid_enable_topic" value="/controls/enable/x_vel" />
         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
-        <remap from="control_effort" to="/control_effort/x_vel" />
-        <remap from="state" to="/controls/state/vel/x" />
+        <remap from="control_effort" to="/control_effort/x" />
+        <remap from="state" to="/controls/state/twist/x" />
     </node>
 
     <node name="controller" pkg="pid" type="controller" ns="controls/y_vel" output="log" >
@@ -92,8 +92,8 @@
         <!-- <param name="windup_limit" value="10" /> -->
         <param name="pid_enable_topic" value="/controls/enable/y_vel" />
         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
-        <remap from="control_effort" to="/control_effort/y_vel" />
-        <remap from="state" to="/controls/state/vel/y" />
+        <remap from="control_effort" to="/control_effort/y" />
+        <remap from="state" to="/controls/state/twist/y" />
     </node>
 
     <node name="controller" pkg="pid" type="controller" ns="controls/z_vel" output="log" >
@@ -103,8 +103,8 @@
         <!-- <param name="windup_limit" value="10" /> -->
         <param name="pid_enable_topic" value="/controls/enable/z_vel" />
         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
-        <remap from="control_effort" to="/control_effort/z_vel" />
-        <remap from="state" to="/controls/state/vel/z" />
+        <remap from="control_effort" to="/control_effort/z" />
+        <remap from="state" to="/controls/state/twist/z" />
     </node>
 
     <node name="controller" pkg="pid" type="controller" ns="controls/roll_vel" output="log" >
@@ -114,8 +114,8 @@
         <!-- <param name="windup_limit" value="10" /> -->
         <param name="pid_enable_topic" value="/controls/enable/roll_vel" />
         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
-        <remap from="control_effort" to="/control_effort/roll_vel" />
-        <remap from="state" to="/controls/state/vel/roll" />
+        <remap from="control_effort" to="/control_effort/roll" />
+        <remap from="state" to="/controls/state/twist/roll" />
     </node>
 
     <node name="controller" pkg="pid" type="controller" ns="controls/pitch_vel" output="log" >
@@ -125,8 +125,8 @@
         <!-- <param name="windup_limit" value="10" /> -->
         <param name="pid_enable_topic" value="/controls/enable/pitch_vel" />
         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
-        <remap from="control_effort" to="/control_effort/pitch_vel" />
-        <remap from="state" to="/controls/state/vel/pitch" />
+        <remap from="control_effort" to="/control_effort/pitch" />
+        <remap from="state" to="/controls/state/twist/pitch" />
     </node>
 
     <node name="controller" pkg="pid" type="controller" ns="controls/yaw_vel" output="log" >
@@ -136,8 +136,8 @@
         <!-- <param name="windup_limit" value="10" /> -->
         <param name="pid_enable_topic" value="/controls/enable/yaw_vel" />
         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
-        <remap from="control_effort" to="/control_effort/yaw_vel" />
-        <remap from="state" to="/controls/state/vel/yaw" />
+        <remap from="control_effort" to="/control_effort/yaw" />
+        <remap from="state" to="/controls/state/twist/yaw" />
     </node>
 
 </launch>
