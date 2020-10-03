@@ -12,10 +12,10 @@ function extsysCall_init()
     ARRAY_FLAG = -8675309
     rospubs = {}
     last = nil
-    seq = 0;    
+    seq = 0;
 end
 
-function extsysCall_actuation() 
+function extsysCall_actuation()
 
 end
 
@@ -119,40 +119,3 @@ function arrayFromString( arrStr )
 	end
 	return ret
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
