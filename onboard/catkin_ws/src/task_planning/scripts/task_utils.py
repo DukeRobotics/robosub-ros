@@ -2,7 +2,7 @@ import numpy as np
 import rospy
 import tf2_geometry_msgs
 import tf2_ros
-from geometry_msgs.msg import Vector3, Pose, PoseStamped
+from geometry_msgs.msg import Vector3, Pose, PoseStamped, Twist
 from tf.transformations import euler_from_quaternion
 
 
@@ -95,8 +95,8 @@ def stopped_at_pose(current_pose, desired_pose, current_twist):
 
     twist_zero = Twist()
     
-    at_desired_pose = task_utils.at_pose(current_pose, desired_pose)
-    at_desired_vel = task_utils.at_vel(current_twist, twist_zero)
+    at_desired_pose = at_pose(current_pose, desired_pose)
+    at_desired_vel = at_vel(current_twist, twist_zero)
 
     return at_desired_pose and at_desired_vel    
     
