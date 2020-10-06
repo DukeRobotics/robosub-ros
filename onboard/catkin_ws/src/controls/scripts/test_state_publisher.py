@@ -37,7 +37,7 @@ class TestStatePublisher:
         self.desired_powers.angular.z = 0
 
         self.current_state = Odometry()
-        self.current_state.pose.pose.position.x = 0
+        self.current_state.pose.pose.position.x = -7
         self.current_state.pose.pose.position.y = 0
         self.current_state.pose.pose.position.z = 0
         self.current_state.pose.pose.orientation.x = 0
@@ -57,8 +57,8 @@ class TestStatePublisher:
     def publish_desired_pose(self):
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
-            self._pub_desired_pose.publish(self.desired_pose)
-            # self._pub_current_state.publish(self.current_state)
+            #self._pub_desired_pose.publish(self.desired_pose)
+            self._pub_current_state.publish(self.current_state)
             rate.sleep()
 
     def publish_desired_powers(self):
@@ -71,7 +71,7 @@ class TestStatePublisher:
 
 
 def main():
-    TestStatePublisher().publish_desired_pose()
+     TestStatePublisher().publish_desired_pose()
     # TestStatePublisher().publish_desired_powers()
 
 

@@ -22,6 +22,22 @@ class MoveToPoseGlobalTask(Task):
         if at_desired_pose_vel:
             self.finish()
 
+class AllocatePowerTask(Task):
+    """Allocate specified power amount in a direction"""
+
+    def __init__(self, twist_power):
+        """
+        Parameters:
+            twist_power (Twist): values [-1,1] representing relative linear or angular velocity.
+                0 values represent axes to stabilize on.
+                [1,0,0,0,0,0] is full speed in +x-direction and stabilization on all other axes.
+        """
+        self.twist_power = twist_power
+
+    def _on_task_run(self):
+        self.publish_desired_twist_power(self.twist_power)
+
+
 
 class MoveToPoseLocalTask(MoveToPoseGlobalTask):
     """Move to pose given in local coordinates."""
