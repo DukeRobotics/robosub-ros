@@ -132,7 +132,7 @@ Use these instructions to test code on your computer by simulating the robot's e
     ```bash
     ssh -p 2200 root@localhost
     ```
-1. SSH into the landside container. Password is `robotics`.
+1. In a new tab, SSH into the landside container. Password is `robotics`.
     ```bash
     ssh -XY -p 2201 root@localhost
     ```
