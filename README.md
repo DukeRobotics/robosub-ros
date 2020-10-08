@@ -163,8 +163,6 @@ To build our workspaces for ROS, in the `/dev/robosub-ros` directory, execute
 ```
 where `<workspace>` is the workspace to build, either `onboard` or `landside`.
 
-If executing this command with a Windows machine, first run `git config --global core.autocrlf true` to fix some encoding issues.
-
 #### Sourcing Setup File
 Once the build script has finished executing, source the setup file using
 ```bash
