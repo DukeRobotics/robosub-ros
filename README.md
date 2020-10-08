@@ -140,6 +140,10 @@ Use these instructions to test code on your computer by simulating the robot's e
     ```bash
     source /opt/ros/melodic/setup_network.bash
     ```
+1. Inside onboard, source the ROS commands so you can use them.
+   ```bash
+   source /opt/ros/melodic/local_setup.bash
+   ```
 1. Now go to [Running Our Code](#running-our-code). Also set up our [simulation](simulation).
 1. To stop and delete both containers and their network, in the `robosub-ros` directory, execute
     ```bash
