@@ -112,8 +112,7 @@ function get_ros_data(inInts, inFloats, inStrings, inBuffer)
 end
 
 function arrayFromString( arrStr )
-	ret = {}
-	nums = mysplit(arrStr, ',')
+	ret = {}	nums = mysplit(arrStr, ',')
 	for i = 1,#nums do
 		ret[i] = tonumber(nums[i])
 	end
