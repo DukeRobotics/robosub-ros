@@ -54,8 +54,10 @@ if clientID != -1 and winID != -1:
     ints = []
     strs = []
     while True:  # time.time()-startTime < 20:
-        # returnCode,data=sim.simxGetIntegerParameter(clientID,sim.sim_intparam_mouse_x,sim.simx_opmode_buffer) # Try to retrieve the streamed data
-        # if returnCode==sim.simx_return_ok: # After initialization of streaming, it will take a few ms before the first value arrives, so check the return code
+        # Try to retrieve the streamed data
+        # returnCode,data=sim.simxGetIntegerParameter(clientID,sim.sim_intparam_mouse_x,sim.simx_opmode_buffer)
+        # After initialization of streaming, it will take a few ms before the first value arrives, so check return code
+        # if returnCode==sim.simx_return_ok:
         #    print ('Mouse position x: ',data) # Mouse position x is actualized when the cursor is over V-REP's window
         res, ints, data, strs, byts = sim.simxCallScriptFunction(clientID, "Cuboid", sim.sim_scripttype_childscript,
                                                                  "get_ros_data",
