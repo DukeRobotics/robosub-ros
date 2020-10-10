@@ -24,6 +24,7 @@ Our codebase is powered by the [Robot Operating System](https://www.ros.org) (RO
 The following components make up our software stack:
 
 - Onboard:
+    * [AVT Camera](onboard/catkin_ws/src/avt_camera) - Drives our ethernet cameras and publishes a live video feed.
     * [Controls](onboard/catkin_ws/src/controls) - Determines thruster outputs given a current and desired state.
     * [Computer Vision](onboard/catkin_ws/src/cv) - Locates objects (goals/obstacles) via camera input and machine learning.
     * [Data Pub](onboard/catkin_ws/src/data_pub) - Collects and parses data from sensors and publishes it for use by other packages.
@@ -36,7 +37,7 @@ The following components make up our software stack:
 - Landside:
     * [Camera View](landside/catkin_ws/src/camera_view) - Package that allows for viewing, saving, and loading videos to simulate camera input.
     * [Joystick](landside/catkin_ws/src/joystick) - Allows manual joystick control for testing.
-    * [Simulation](simulation) - Physics-enabled simulation that can be used for local testing. (not in the landside workspace, but run using the landside container)
+    * [Simulation](landside/catkin_ws/src/simulation) - Physics-enabled simulation that can be used for local testing.
 
 
 ## Flow
@@ -132,7 +133,7 @@ Use these instructions to test code on your computer by simulating the robot's e
     ```bash
     ssh -p 2200 root@localhost
     ```
-1. SSH into the landside container. Password is `robotics`.
+1. In a new tab, SSH into the landside container. Password is `robotics`.
     ```bash
     ssh -XY -p 2201 root@localhost
     ```

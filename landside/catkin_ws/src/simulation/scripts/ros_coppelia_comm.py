@@ -21,8 +21,8 @@ except Exception as e:
     print('')
     print(e)
 
-import time
 import sys
+import time
 
 print('Program started')
 sim.simxFinish(-1)  # just in case, close all opened connections
@@ -34,8 +34,7 @@ else:
 clientID = sim.simxStart(ip, 8080, True, True, 5000, 5)  # For most computers
 # clientID=sim.simxStart('192.168.99.100',8080,True,True,5000,5) # Use if you have Docker Toolbox (i.e. just Windows
 # without full Docker)
-
-winID = sim.simxStart('127.0.0.1', 20000, True, True, 5000, 5)
+winID = sim.simxStart('127.0.0.1', 5555, True, True, 5000, 5)
 if clientID != -1 and winID != -1:
     print('Connected to remote API server')
 
@@ -52,37 +51,30 @@ if clientID != -1 and winID != -1:
     startTime = time.time()
     # sim.simxGetIntegerParameter(clientID,sim.sim_intparam_mouse_x,sim.simx_opmode_streaming) # Initialize streaming
     data = []
+    ints = []
+    strs = []
     while True:  # time.time()-startTime < 20:
-        # returnCode,data=sim.simxGetIntegerParameter(clientID,sim.sim_intparam_mouse_x,sim.simx_opmode_buffer) # Try
-        # to retrieve the streamed data if returnCode==sim.simx_return_ok: # After initialization of streaming,
-        # it will take a few ms before the first value arrives, so check the return code print ('Mouse position x: ',
-        # data) # Mouse position x is actualized when the cursor is over V-REP's window
-        res, blah, data, blah, blah = sim.simxCallScriptFunction(clientID, "Cuboid", sim.sim_scripttype_childscript,
+        # Try to retrieve the streamed data
+        # returnCode,data=sim.simxGetIntegerParameter(clientID,sim.sim_intparam_mouse_x,sim.simx_opmode_buffer)
+        # After initialization of streaming, it will take a few ms before the first value arrives, so check return code
+        # if returnCode==sim.simx_return_ok:
+        #    print ('Mouse position x: ',data) # Mouse position x is actualized when the cursor is over V-REP's window
+        res, ints, data, strs, byts = sim.simxCallScriptFunction(clientID, "Cuboid", sim.sim_scripttype_childscript,
                                                                  "get_ros_data",
-                                                                 [], data, [], bytearray(), sim.simx_opmode_blocking)
+                                                                 ints, data, strs, bytearray(),
+                                                                 sim.simx_opmode_blocking)
         print("from docker sim", data)
-        res, blah, data, blah, blah = sim.simxCallScriptFunction(winID, "Rob", sim.sim_scripttype_childscript,
+        res, ints, data, strs, byts = sim.simxCallScriptFunction(winID, "Rob", sim.sim_scripttype_childscript,
                                                                  "read_ros_data",
-                                                                 [], data, [], bytearray(), sim.simx_opmode_blocking)
+                                                                 ints, data, strs, bytearray(),
+                                                                 sim.simx_opmode_blocking)
         print("from robot sim", data)
         time.sleep(0.005)
-
-    res, blah, data, blah, blah = sim.simxCallScriptFunction(winID, "Rob", sim.sim_scripttype_childscript,
-                                                             "read_ros_data",
-                                                             [], [0, 0, 0, 0, 0, 0, 0, 0], [], bytearray(),
-                                                             sim.simx_opmode_blocking)
-
-    # Now send some data to V-REP in a non-blocking fashion:
-    sim.simxAddStatusbarMessage(clientID, 'Simulation ending!', sim.simx_opmode_oneshot)
-
-    # Before closing the connection to V-REP, make sure that the last command sent out had time to arrive. You can
-    # guarantee this with (for example):
-    sim.simxGetPingTime(clientID)
-
-    # Now close the connection to V-REP:
-    sim.simxFinish(clientID)
 else:
     print('Failed connecting to remote API server')
     print(clientID)
     print(winID)
+
+    sim.simxFinish(-1)  # just in case, close all opened connections
+
 print('Program ended')
