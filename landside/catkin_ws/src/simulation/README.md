@@ -30,7 +30,6 @@ You'll be using files in this folder.
 Make sure you have some version of Python3 installed on your personal computer. You can download and install it at [this link](https://www.python.org/downloads/release/python-381/).
 
 ## Running the Simulation
-You must complete both the Docker and the personal computer simulation setup steps.
 
 ### Docker Simulation Setup
 1. In the onboard container, make sure `roscore` is running.
