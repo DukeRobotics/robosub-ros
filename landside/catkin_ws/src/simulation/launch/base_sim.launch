@@ -1,0 +1,3 @@
+<launch>
+    <node name="coppeliaSim" pkg="simulation" type="runSim.sh" output="screen"/>
+</launch>

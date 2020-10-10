@@ -36,7 +36,7 @@ The following components make up our software stack:
 - Landside:
     * [Camera View](landside/catkin_ws/src/camera_view) - Package that allows for viewing, saving, and loading videos to simulate camera input.
     * [Joystick](landside/catkin_ws/src/joystick) - Allows manual joystick control for testing.
-    * [Simulation](simulation) - Physics-enabled simulation that can be used for local testing. (not in the landside workspace, but run using the landside container)
+    * [Simulation](landside/catkin_ws/src/simulation) - Physics-enabled simulation that can be used for local testing.
 
 
 ## Flow

@@ -1,0 +1,4 @@
+<launch>
+    <include file="$(find simulation)/launch/base_sim.launch"/>
+    <node name="square_command" pkg="simulation" type="squareCommand.py"/>
+</launch>
