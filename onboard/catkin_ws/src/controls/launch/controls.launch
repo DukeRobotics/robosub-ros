@@ -3,11 +3,11 @@
 	<arg name="sim" default="false" />
 
     <!-- Start PID nodes for controls -->
-    <include file="position_pid.launch">
+    <include file="$(find controls)/launch/position_pid.launch">
         <arg name="sim" value="$(arg sim)" />
     </include>
 
-    <include file="velocity_pid.launch">
+    <include file="$(find controls)/launch/velocity_pid.launch">
         <arg name="sim" value="$(arg sim)" />
     </include>
 
