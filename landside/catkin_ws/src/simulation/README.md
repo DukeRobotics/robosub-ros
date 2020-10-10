@@ -32,7 +32,7 @@ Make sure you have some version of Python3 installed on your personal computer. 
 ## Running the Simulation
 ### Docker Simulation Setup
 1. In the onboard container, make sure `roscore` is running.
-2. Run `roslaunch simulation base_sim.launch &`. If you don't have any thruster speed publishing code and would just like to test the communication, instead run `roslaunch simulation test_sim_comm.launch &`. Wait until the terminal says `Initialization successful.` If it delays on the video compression library or meshcalc for an extended period of time, press enter a couple of times. This may be nothing more than confirmation-bias superstition.
+2. Run `roslaunch simulation base_sim.launch &` in the landsie container. If you don't have any thruster speed publishing code and would just like to test the communication, instead run `roslaunch simulation test_sim_comm.launch &`. Wait until the terminal says `Initialization successful.` If it delays on the video compression library or meshcalc for an extended period of time, press enter a couple of times. This may be nothing more than confirmation-bias superstition.
 3. Run whatever ROS topic publishing code you have. If you ran the test_sim_comm launch file, `scripts/squareCommand.py` will be executed, which publishes thruster values to naively make the robot move in a square (in reality, the robot will spin in wide circles because the robot isn't balanced).
 
 ### Personal Computer Simulation Setup
