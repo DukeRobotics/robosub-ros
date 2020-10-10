@@ -29,6 +29,8 @@ You'll be using files in `robosub-ros/simulation/personal`.
 Make sure you have some version of Python3 installed on your personal computer. You can download and install it at [this link](https://www.python.org/downloads/release/python-381/).
 
 ## Running the Simulation
+You must complete both the Docker and the personal computer simulation setup steps.
+
 ### Docker Simulation Setup
 1. In the onboard container, make sure `roscore` is running.
 2. In the landside container, run `cd dev/robosub-ros/simulation` and then `./runSim.sh &` (you may first need to run `chmod +x runSim.sh`). Wait until the terminal says `Initialization successful.` If it delays on the video compression library or meshcalc for an extended period of time, press enter a couple of times. This may be nothing more than confirmation-bias superstition.
