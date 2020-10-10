@@ -24,7 +24,7 @@ add_action_files(
   FILES
   AcousticsProcessing.action
   AcousticsGuess.action
-  MessageType.action
+  AcousticsWrapperMessage.action
 )
 
 generate_messages(
