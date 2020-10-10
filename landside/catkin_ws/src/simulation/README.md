@@ -1,7 +1,7 @@
 # CoppeliaSim Simulation for the AUV
-These are the instructions to get CoppeliaSim running on your own personal computer, connected to the ROS Topics inside a Docker container. The simulation currently reads a [Float32MultiArray](http://docs.ros.org/melodic/api/std_msgs/html/msg/Float32MultiArray.html) of thruster values from the topic /sim/move. This is expected to be an array of 8 floats, each from -1 to 1. This array should be in the order top-front-right, top-front-left, top-back-right, top-back-left, bottom-front-right, bottom-front-left, bottom-back-right, bottom-back-left.
+These are the instructions to get CoppeliaSim running on your own personal computer, connected to the ROS Topics inside a Docker container. The simulation currently reads a [Float32MultiArray](http://docs.ros.org/melodic/api/std_msgs/html/msg/Float32MultiArray.html) of thruster values from the topic `/sim/move`. This is expected to be an array of 8 floats, each from -1 to 1. This array should be in the order top-front-right, top-front-left, top-back-right, top-back-left, bottom-front-right, bottom-front-left, bottom-back-right, bottom-back-left.
 
-Additionally, it publishes a [TwistStamped](http://docs.ros.org/melodic/api/geometry_msgs/html/msg/TwistStamped.html) to /sim/dvl, a [PoseStamped](http://docs.ros.org/melodic/api/geometry_msgs/html/msg/PoseStamped.html) to /sim/pose, and an [Imu](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Imu.html) to /sim/imu.
+Additionally, it publishes a [TwistStamped](http://docs.ros.org/melodic/api/geometry_msgs/html/msg/TwistStamped.html) to `/sim/dvl`, a [PoseStamped](http://docs.ros.org/melodic/api/geometry_msgs/html/msg/PoseStamped.html) to `/sim/pose`, and an [Imu](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Imu.html) to `/sim/imu`.
 
 ## Installing the Simulation
 ### Assumptions
@@ -25,7 +25,7 @@ sudo xattr -r -d com.apple.quarantine *
 ```
 
 ### Downloading Remaining Files
-You'll be using files in `robosub-ros/simulation/personal`.
+You'll be using files in this folder.
 
 Make sure you have some version of Python3 installed on your personal computer. You can download and install it at [this link](https://www.python.org/downloads/release/python-381/).
 
@@ -37,9 +37,9 @@ Make sure you have some version of Python3 installed on your personal computer. 
 
 ### Personal Computer Simulation Setup
 1. Open CoppeliaSim.
-2. Go to `File>Open Scene...` and open `empty_scene.ttt` in `robosub-ros/simulation/personal/scenes`.
+2. Go to `File>Open Scene...` and open `empty_scene.ttt` in `personal/scenes`.
 3. Press the play button to start the simulation. The robot should start bobbing up and down.
-4. In `robosub-ros/simulation/personal` on your local machine, run `python3 run_coppelia_comm.py`.
+4. In the `scripts` folder on your local machine, run `python3 run_coppelia_comm.py`.
 5. If the robot starts moving laterally, it worked!
 
 
@@ -51,7 +51,7 @@ To pause the simulation, just press the pause button to pause, and press play to
 
 To reset the simulation:
 1. Stop ros_coppelia_comm.py
-2. Stop the buoyancy simulation on your personal computer. 
+2. Stop the buoyancy simulation on your personal computer.
 3. Nothing needs to be done with the docker simulation.
 
 To shut down the simulation completely:
@@ -59,5 +59,5 @@ To shut down the simulation completely:
 2. Stop the buoyancy simulation on your personal computer.
 3. Open a terminal in the docker container and run `ps -a`.
 4. See which process ids correspond to CoppeliaSim and CoppeliaSim.sh, and run `kill -9 [processid]` for both. The `-9` argument tells the command to send a SIGKILL signal, rather than a SIGTERM. If you do not SIGKILL it, the processes appear to linger, which appears to interfere with communication between the simulations.
-    
+
     It is currently unknown if this is fact or simply paranoia and superstition.
