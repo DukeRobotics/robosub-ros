@@ -1,5 +1,5 @@
 <launch>
-	
+
 	<arg name="sim" default="false" />
 
     <!-- Start PID nodes for controls -->
@@ -24,5 +24,5 @@
 	<!-- Start desired_state node that processes inputs from motion planning
     and outputs setpoints to PID -->
 	<node pkg="controls" name="desired_state" type="desired_state.py" output="screen" />
-	
+
 </launch>
