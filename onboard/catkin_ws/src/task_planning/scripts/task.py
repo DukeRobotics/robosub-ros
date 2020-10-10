@@ -11,7 +11,7 @@ class Task:
 
     task_state_provider = providers.Singleton(TaskState)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         """
         Create a Task.
 

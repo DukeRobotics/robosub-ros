@@ -1,14 +1,14 @@
 from move_tasks import MoveToPoseGlobalTask
-from combination_tasks import SimulTask, LeaderFollowerTask, ListTask
+from combination_tasks import IndSimulTask, LeaderFollowerTask, ListTask
 from task import Task
 
 class GateTask(Task):
-    def __init__(self, *args, **kwargs):
-        super(GateTask, self).__init__(*args, **kwargs)
+    def __init__(self):
+        super(GateTask, self).__init__()
 
     def _on_task_start(self):
         self.threshold = 10
-        self.begin_gate_search = SimulTask([DistanceToGateTask(self.threshold), IsThereAGateTask()])
+        self.begin_gate_search = IndSimulTask([DistanceToGateTask(self.threshold), IsThereAGateTask()])
         self.gate_search = LeaderFollowerTask(self.begin_gate_search, MoveToPoseGlobalTask(7, 0, 0, 0, 0, 0))
         self.after_gate_search_dummy = MoveToPoseGlobalTask(10, 0, 0, 0, 0, 0)
         self.go_to_gate = ListTask([self.gate_search, self.after_gate_search_dummy])
@@ -35,8 +35,8 @@ class GateTask(Task):
 
 
 class DistanceToGateTask(Task):
-    def __init__(self, threshold, *args, **kwargs):
-        super(DistanceToGateTask, self).__init__(*args, **kwargs)
+    def __init__(self, threshold):
+        super(DistanceToGateTask, self).__init__()
         self.threshold = threshold
 
     def _on_task_start(self):
@@ -50,8 +50,8 @@ class DistanceToGateTask(Task):
 
 
 class IsThereAGateTask(Task):
-    def __init__(self, *args, **kwargs):
-        super(IsThereAGateTask, self).__init__(*args, **kwargs)
+    def __init__(self):
+        super(IsThereAGateTask, self).__init__()
 
     def _on_task_run(self):
         self.finish()

@@ -4,8 +4,8 @@ from task import Task
 class ListTask(Task):
     """Run a list of tasks sequentially"""
 
-    def __init__(self, tasks, *args, **kwargs):
-        super(ListTask, self).__init__(*args, **kwargs)
+    def __init__(self, tasks):
+        super(ListTask, self).__init__()
 
         self.tasks = tasks
         self.curr_index = 0
@@ -24,8 +24,8 @@ class ListTask(Task):
 class IndSimulTask(Task):
     """Run a list of tasks simulataneously, exits when all tasks finished"""
 
-    def __init__(self, tasks, *args, **kwargs):
-        super(IndSimulTask, self).__init__(*args, **kwargs)
+    def __init__(self, tasks):
+        super(IndSimulTask, self).__init__()
 
         self.tasks = tasks
 
@@ -43,8 +43,8 @@ class IndSimulTask(Task):
 class DepSimulTask(Task):
     """Run a list of tasks simulataneously, exits when any task finished"""
 
-    def __init__(self, tasks, *args, **kwargs):
-        super(DepSimulTask, self).__init__(*args, **kwargs)
+    def __init__(self, tasks):
+        super(DepSimulTask, self).__init__()
 
         self.tasks = tasks
 
