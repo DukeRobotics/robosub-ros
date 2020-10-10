@@ -158,7 +158,7 @@ The following needs to be done once at the beginning, and then later only when m
 #### Executing Build Script
 We use a custom build script that simplifies the process of building and overlaying catkin workspaces.
 
-To build our workspaces for ROS, in the `robosub-ros` directory, execute
+To build our workspaces for ROS, in the `~/dev/robosub-ros` directory, execute
 ```bash
 ./build.sh <workspace>
 ```
