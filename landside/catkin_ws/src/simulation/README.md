@@ -39,7 +39,7 @@ Make sure you have some version of Python3 installed on your personal computer. 
 1. Open CoppeliaSim.
 2. Go to `File>Open Scene...` and open `empty_scene.ttt` in `personal/scenes`.
 3. Press the play button to start the simulation. The robot should start bobbing up and down.
-4. In the `scripts` folder on your local machine, run `python3 run_coppelia_comm.py`.
+4. In the `scripts` folder on your local machine, run `python3 ros_coppelia_comm.py`.
 5. If the robot starts moving laterally, it worked!
 
 
