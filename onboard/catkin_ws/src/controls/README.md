@@ -19,7 +19,7 @@ The controls algorithm will output all 0's unless it is enabled with a call to r
 3. Initialize `roscore` and run the following in the terminal to start the PID Loops:
 
 ```
-roslaunch execute motion.launch &
+roslaunch execute motion.launch sim:=true
 ```
 
 ## Testing Outputs
