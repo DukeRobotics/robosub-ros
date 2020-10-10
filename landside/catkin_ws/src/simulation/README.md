@@ -30,6 +30,8 @@ You'll be using files in this folder.
 Make sure you have some version of Python3 installed on your personal computer. You can download and install it at [this link](https://www.python.org/downloads/release/python-381/).
 
 ## Running the Simulation
+You must complete both the Docker and the personal computer simulation setup steps.
+
 ### Docker Simulation Setup
 1. In the onboard container, make sure `roscore` is running.
 2. Run `roslaunch simulation base_sim.launch &` in the landside container. If you don't have any thruster speed publishing code and would just like to test the communication, instead run `roslaunch simulation test_sim_comm.launch &`. Wait until the terminal says `Initialization successful.` If it delays on the video compression library or meshcalc for an extended period of time, press enter a couple of times. This may be nothing more than confirmation-bias superstition.
