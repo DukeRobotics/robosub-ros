@@ -1,5 +1,5 @@
 from move_tasks import MoveToPoseGlobalTask
-from combination_tasks import SimulTask, LeaderFollowerTask, ListTask
+from combination_tasks import IndSimulTask, LeaderFollowerTask, ListTask
 from task import Task
 
 class GateTask(Task):
@@ -8,7 +8,7 @@ class GateTask(Task):
 
     def _on_task_start(self):
         self.threshold = 10
-        self.begin_gate_search = SimulTask([DistanceToGateTask(self.threshold), IsThereAGateTask()])
+        self.begin_gate_search = IndSimulTask([DistanceToGateTask(self.threshold), IsThereAGateTask()])
         self.gate_search = LeaderFollowerTask(self.begin_gate_search, MoveToPoseGlobalTask(7, 0, 0, 0, 0, 0))
         self.after_gate_search_dummy = MoveToPoseGlobalTask(10, 0, 0, 0, 0, 0)
         self.go_to_gate = ListTask([self.gate_search, self.after_gate_search_dummy])

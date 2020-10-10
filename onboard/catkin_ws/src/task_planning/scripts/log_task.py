@@ -9,21 +9,19 @@ class LogTask(Task):
         self.level = level
         self.message = message
 
+        self.logDict = {
+            "DEBUG" : rospy.logdebug,
+            "INFO" : rospy.loginfo,
+            "WARN" : rospy.logwarn,
+            "ERROR" : rospy.logerr,
+            "FATAL" : rospy.logfatal
+        }
+
     def _on_task_run(self):
-        if self.level == "DEBUG":
-            rospy.logdebug(self.message)
-
-        elif self.level == "INFO":
-            rospy.loginfo(self.message)
-
-        elif self.level == "WARN":
-            rospy.logwarn(self.message)
-
-        elif self.level == "ERROR":
-            rospy.logerr(self.message)
-
-        elif self.level == "FATAL":
-            rospy.logfatal(self.message)
+        if self.level in self.logDict:
+            self.logDict[self.level](self.message)
 
         else:
             rospy.logwarn("Incorrect logging level specified")
+
+        self.finish()
