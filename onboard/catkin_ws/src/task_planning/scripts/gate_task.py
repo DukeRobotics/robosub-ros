@@ -3,8 +3,8 @@ from combination_tasks import SimulTask, LeaderFollowerTask, ListTask
 from task import Task
 
 class GateTask(Task):
-    def __init__(self, *args, **kwargs):
-        super(GateTask, self).__init__(*args, **kwargs)
+    def __init__(self):
+        super(GateTask, self).__init__()
 
     def _on_task_start(self):
         self.threshold = 10
@@ -35,8 +35,8 @@ class GateTask(Task):
 
 
 class DistanceToGateTask(Task):
-    def __init__(self, threshold, *args, **kwargs):
-        super(DistanceToGateTask, self).__init__(*args, **kwargs)
+    def __init__(self, threshold):
+        super(DistanceToGateTask, self).__init__()
         self.threshold = threshold
 
     def _on_task_start(self):
@@ -50,8 +50,8 @@ class DistanceToGateTask(Task):
 
 
 class IsThereAGateTask(Task):
-    def __init__(self, *args, **kwargs):
-        super(IsThereAGateTask, self).__init__(*args, **kwargs)
+    def __init__(self):
+        super(IsThereAGateTask, self).__init__()
 
     def _on_task_run(self):
         self.finish()

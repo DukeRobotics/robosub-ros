@@ -6,7 +6,7 @@ import rospy
 
 class StyleTask(Task):
     def __init__(self, axis, power):
-        super(StyleTask, self).__init__(*args, **kwargs)
+        super(StyleTask, self).__init__()
 
         self.twist_power = power
         self.axis = axis # either x, y, z
