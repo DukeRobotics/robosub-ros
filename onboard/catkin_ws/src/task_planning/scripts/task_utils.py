@@ -2,8 +2,8 @@ import numpy as np
 import rospy
 import tf2_geometry_msgs
 import tf2_ros
-from geometry_msgs.msg import Vector3, Pose, PoseStamped, Twist
-from tf.transformations import euler_from_quaternion
+from geometry_msgs.msg import Vector3, Pose, PoseStamped, Twist, Point, Quaternion
+from tf.transformations import euler_from_quaternion, quaternion_multiply
 
 
 def linear_distance(point1, point2):
@@ -130,3 +130,25 @@ def transform(origin_frame, dest_frame, poseORodom):
     else:
         # add invalid message type message here
         return poseORodom
+
+def pose_additon(pose_list):
+    """Adds a list of poses
+
+    Arguments:
+    pose_list: list of poses to add
+
+    Returns:
+    Pose: the sum of the Poses
+    """
+
+    p_sum = Point(0, 0, 0)
+    q_sum = Quaternion(0, 0, 0, 1)
+
+    for pose in pose_list:
+        p_sum.x += pose.position.x
+        p_sum.y += pose.position.y
+        p_sum.z += pose.position.z
+
+        q_sum = quaternion_multiply(pose.orientation, q_sum)
+    
+    return Pose(p_sum, q_sum)
