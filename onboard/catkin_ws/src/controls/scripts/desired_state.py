@@ -31,13 +31,16 @@ class DesiredStateHandler:
     pub_pos_enable = {}
     pub_power = {}
 
+    pub_vel_enable = {}
+
     def __init__(self):
         for d in utils.get_axes():
             self.state[d] = 0
             self.hold[d] = 0
             rospy.Subscriber(utils.get_pose_topic(d), Float64, self._on_state_received, d)
             self.pub_pos[d] = rospy.Publisher(utils.get_pid_topic(d), Float64, queue_size=3)
-            self.pub_pos_enable[d] = rospy.Publisher(utils.get_pid_enable(d), Bool, queue_size=3)
+            self.pub_pos_enable[d] = rospy.Publisher(utils.get_pos_pid_enable(d), Bool, queue_size=3)
+            self.pub_vel_enable[d] = rospy.Publisher(utils.get_vel_pid_enable(d), Bool, queue_size=3)
             self.pub_power[d] = rospy.Publisher(utils.get_power_topic(d), Float64, queue_size=3)
 
         rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self._on_pose_received)
@@ -55,6 +58,7 @@ class DesiredStateHandler:
     def soft_estop(self):
         # Stop Moving
         utils.publish_data_constant(self.pub_pos_enable, utils.get_axes(), False)
+        utils.publish_data_constant(self.pub_vel_enable, utils.get_axes(), False)
         utils.publish_data_constant(self.pub_power, utils.get_axes(), 0)
         self.powers = None
         self.last_powers = None
@@ -63,6 +67,7 @@ class DesiredStateHandler:
     def enable_loops(self):
         # Enable all PID Loops
         utils.publish_data_constant(self.pub_pos_enable, utils.get_axes(), True)
+        utils.publish_data_constant(self.pub_vel_enable, utils.get_axes(), True)
 
     def run(self):
         rospy.init_node('desired_state')
