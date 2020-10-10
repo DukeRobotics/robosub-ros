@@ -24,6 +24,7 @@ Our codebase is powered by the [Robot Operating System](https://www.ros.org) (RO
 The following components make up our software stack:
 
 - Onboard:
+    * [AVT Camera](onboard/catkin_ws/src/avt_camera) - Drives our ethernet cameras and publishes a live video feed.
     * [Controls](onboard/catkin_ws/src/controls) - Determines thruster outputs given a current and desired state.
     * [Computer Vision](onboard/catkin_ws/src/cv) - Locates objects (goals/obstacles) via camera input and machine learning.
     * [Data Pub](onboard/catkin_ws/src/data_pub) - Collects and parses data from sensors and publishes it for use by other packages.
