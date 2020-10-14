@@ -14,6 +14,7 @@
   <depend>joy</depend>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
+  <depend>resource_retriever</depend>
 
   <exec_depend>python-yaml</exec_depend>
 

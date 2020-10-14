@@ -4,9 +4,7 @@
 #include "MultiplexedServo.h"
 #include "MultiplexedObject.h"
 
-MultiplexedServo::MultiplexedServo(Adafruit_PWMServoDriver *_multiplexer,int _num):MultiplexedObject(_multiplexer){
-    num=_num;
-}
+MultiplexedServo::MultiplexedServo(Adafruit_PWMServoDriver *_multiplexer,int _num):MultiplexedObject(_multiplexer, _num){}
 
 void MultiplexedServo::initialise(){
     attach(num);

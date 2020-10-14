@@ -11,15 +11,18 @@ if [[ "$1" != "onboard" ]] && [[ "$1" != "landside" ]]; then
     exit 1
 fi
 
+# shellcheck disable=SC1091
 source /opt/ros/melodic/setup.bash
 
 cd core/catkin_ws
 catkin build
+# shellcheck disable=SC1091
 source devel/setup.bash
 cd ../..
 
 cd "$1"/catkin_ws
 catkin build
+# shellcheck disable=SC1091
 source devel/setup.bash
 cd ../..
 

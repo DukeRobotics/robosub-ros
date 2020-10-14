@@ -13,11 +13,14 @@ add_message_files(
   FILES
   DVLRaw.msg
   ThrusterSpeeds.msg
+  ServoAngle.msg
+  CVObject.msg
 )
 
 add_service_files(
   FILES
   SetServo.srv
+  EnableModel.srv
 )
 
 add_action_files(

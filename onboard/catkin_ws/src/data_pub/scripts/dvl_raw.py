@@ -6,6 +6,7 @@ import rospy
 
 from custom_msgs.msg import DVLRaw
 
+
 class DvlRawPublisher:
 
     FTDI_STR = '7006fIP'
@@ -16,7 +17,7 @@ class DvlRawPublisher:
 
     def __init__(self):
         self._pub = rospy.Publisher(self.TOPIC_NAME, DVLRaw, queue_size=10)
-        
+
         self._current_msg = DVLRaw()
 
         self._serial_port = None
@@ -31,15 +32,14 @@ class DvlRawPublisher:
             'BD': self._parse_BD
         }
 
-
     def run(self):
         rospy.init_node(self.NODE_NAME)
 
         self._serial_port = next(list_ports.grep(self.FTDI_STR)).device
-        self._serial = serial.Serial(self._serial_port, self.BAUDRATE, 
-                timeout=0.1, write_timeout=1.0,
-                bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
-                stopbits=serial.STOPBITS_ONE)
+        self._serial = serial.Serial(self._serial_port, self.BAUDRATE,
+                                     timeout=0.1, write_timeout=1.0,
+                                     bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
+                                     stopbits=serial.STOPBITS_ONE)
 
         while not rospy.is_shutdown():
             line = self._serial.readline()
@@ -104,10 +104,8 @@ class DvlRawPublisher:
         """Return a list of floats from a given string,
         using LINE_DELIM and going from start to stop
         """
-        return [float(num) 
-            for num 
-            in num_string.split(self.LINE_DELIM)[start:stop]]
-    
+        return [float(num) for num in num_string.split(self.LINE_DELIM)[start:stop]]
+
     def _publish_current_msg(self):
         """Publish the current DVL message and set the message to empty
         """
@@ -115,9 +113,8 @@ class DvlRawPublisher:
         self._current_msg = DVLRaw()
 
 
-
 if __name__ == '__main__':
     try:
-    	DvlRawPublisher().run()
+        DvlRawPublisher().run()
     except rospy.ROSInterruptException:
-    	pass
+        pass
