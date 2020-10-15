@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>simulation</name>
+  <version>0.0.0</version>
+  <description>
+    Physics-enabled simulation that can be used for local testing.
+  </description>
+
+  <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>
+
+  <license>MIT</license>
+
+  <depend>rospy</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+</package>
