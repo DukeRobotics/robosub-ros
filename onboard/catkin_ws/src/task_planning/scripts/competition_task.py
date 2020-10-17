@@ -2,6 +2,7 @@ from combination_tasks import ListTask
 from move_tasks import MoveToPoseGlobalTask
 from task import Task
 from gate_task import GateTask
+from style_task import StyleTask
 # from prequal_tasks import PreQualGlobalTask
 
 
@@ -13,11 +14,12 @@ class CompetitionTask(Task):
     def __init__(self, *args, **kwargs):
         super(CompetitionTask, self).__init__(*args, **kwargs)
 
-        self.gate = GateTask()
+        # self.gate = GateTask()
         # self.list_task = ListTask([MoveToPoseGlobalTask(-7, 0, 0, 0, 0, 0)])
+        self.style = StyleTask("z", 1)
 
     def _on_task_run(self):
-        self.gate.run()
+        self.style.run()
 
-        if self.gate.finished:
+        if self.style.finished:
             self.finish()
