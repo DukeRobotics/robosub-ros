@@ -1,5 +1,5 @@
 from task import Task
-from geometry_msgs.msg import Pose, Quaternion, Twist, Point
+from geometry_msgs.msg import Pose, Quaternion, Twist, Point, Vector3
 from tf.transformations import quaternion_from_euler
 import task_utils
 import rospy
@@ -25,15 +25,20 @@ class MoveToPoseGlobalTask(Task):
 class AllocatePowerTask(Task):
     """Allocate specified power amount in a direction"""
 
-    def __init__(self, twist_power):
+    def __init__(self, x, y, z, roll, pitch, yaw):
         """
         Parameters:
-            twist_power (Twist): values [-1,1] representing relative linear or angular velocity.
-                0 values represent axes to stabilize on.
-                [1,0,0,0,0,0] is full speed in +x-direction and stabilization on all other axes.
+            x (float): x-component of linear velocity
+            y (float): y-component of linear velocity
+            z (float): z-component of linear velocity
+            roll (float): roll-component of angular velocity;
+            pitch (float): pitch-component of angular velocity
+            yaw (float): yaw-component of angular velocity
         """
         super(AllocatePowerTask, self).__init__()
-        self.twist_power = twist_power
+        linear = Vector3(x=x,y=y,z=z)
+        angular = Vector3(x=roll, y=pitch, z=yaw)
+        self.twist_power = Twist(linear=linear, angular=angular)  # Twist representing six components of power
 
     def _on_task_run(self):
         self.publish_desired_twist_power(self.twist_power)
