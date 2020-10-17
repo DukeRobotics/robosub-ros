@@ -38,15 +38,15 @@ void MultiplexedServo::detach(){
   multiplexer->setPin(pin, 0, false);
 }
 
-uint16_t MultiplexedServo::read(){return last_value;}
+int16_t MultiplexedServo::read(){return last_value;}
 
-void MultiplexedServo::write(uint16_t angle){
+void MultiplexedServo::write(int16_t angle){
  last_value = angle;
  writeMicroseconds(map(angle, in_min, in_max, out_min, out_max));
 }
 
 void MultiplexedServo::writeMicroseconds(uint16_t uS){
-  if (is_attached){
+  if(is_attached) {
       multiplexer->setPin(pin, map(uS, 1100, 1900, 1000, 1720), false);
   }
 }
