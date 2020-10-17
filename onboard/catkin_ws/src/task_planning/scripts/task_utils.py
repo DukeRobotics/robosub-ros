@@ -142,13 +142,13 @@ def add_poses(pose_list):
     """
 
     p_sum = Point(0, 0, 0)
-    q_sum = Quaternion(0, 0, 0, 1)
+    q_sum = [0, 0, 0, 1]
 
     for pose in pose_list:
         p_sum.x += pose.position.x
         p_sum.y += pose.position.y
         p_sum.z += pose.position.z
 
-        q_sum = quaternion_multiply(pose.orientation, q_sum)
+        q_sum = quaternion_multiply([pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w], q_sum)
     
-    return Pose(p_sum, q_sum)
+    return Pose(p_sum, Quaternion(*q_sum))

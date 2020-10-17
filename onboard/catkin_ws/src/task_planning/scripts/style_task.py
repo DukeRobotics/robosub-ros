@@ -27,16 +27,16 @@ class StyleTask(Task):
     
     def _on_task_start(self):
         self.current_segment = 0
-        self.angle_pose = Pose(Point(), self.q_angle)
+        self.angle_pose = Pose(Point(), Quaternion(*self.q_angle))
         self.target_pose = task_utils.add_poses([self.state.pose.pose, self.angle_pose])
         
     def _on_task_run(self):
-        self.publish_desired_twist_power(self, self.twist)
+        self.publish_desired_twist_power(self.twist)
 
         if task_utils.at_pose(self.state.pose.pose, self.target_pose):
             self.current_segment += 1
             self.target_pose = task_utils.add_poses([self.target_pose, self.angle_pose])
         
         if self.current_segment == self.num_segments:
-            self.publish_desired_twist_power(self, Twist())
+            self.publish_desired_twist_power(Twist())
             self.finish()
