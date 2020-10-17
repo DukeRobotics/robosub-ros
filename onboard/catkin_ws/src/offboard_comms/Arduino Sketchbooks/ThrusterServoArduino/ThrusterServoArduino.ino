@@ -40,8 +40,8 @@ void servo_control_callback(const custom_msgs::ServoAngle &sa_msg){
 //Message to use with the pressure sensor
 sensor_msgs::FluidPressure pressure_msg;
 
-// Sets node handle to have 2 subscribers, 1 publishers, and 64 bytes for input and output buffer
-ros::NodeHandle_<ArduinoHardware,2,1,64,64> nh;
+// Sets node handle to have 2 subscribers, 1 publishers, and 128 bytes for input and output buffer
+ros::NodeHandle_<ArduinoHardware,2,1,128,128> nh;
 ros::Subscriber<custom_msgs::ThrusterSpeeds> ts_sub("/offboard/thruster_speeds", &thruster_speeds_callback);
 ros::Subscriber<custom_msgs::ServoAngle> sa_sub("/offboard/servo_angles", &servo_control_callback);
 ros::Publisher pressure_pub("/offboard/pressure", &pressure_msg);
