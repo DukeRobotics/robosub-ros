@@ -131,7 +131,7 @@ def transform(origin_frame, dest_frame, poseORodom):
         # add invalid message type message here
         return poseORodom
 
-def pose_additon(pose_list):
+def add_poses(pose_list):
     """Adds a list of poses
 
     Arguments:
