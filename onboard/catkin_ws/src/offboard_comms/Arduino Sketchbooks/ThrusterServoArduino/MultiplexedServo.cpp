@@ -36,7 +36,7 @@ void MultiplexedServo::write(uint8_t angle){
 }
 
 void MultiplexedServo::writeMicroseconds(uint16_t uS){
-   if(is_attached) {
-      multiplexer->setPin(pin, map(uS, 1100, 1900, 1000, 1720), false);
+  if(is_attached) {
+    multiplexer->setPin(pin, map(uS, 1100, 1900, 1000, 1720), false);
   }
 }
