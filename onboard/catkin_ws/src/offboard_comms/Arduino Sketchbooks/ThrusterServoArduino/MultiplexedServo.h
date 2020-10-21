@@ -8,22 +8,15 @@ class MultiplexedServo{
 private:
   uint8_t pin;
   bool is_attached;
-  int16_t last_value;
-  int16_t in_min;
-  int16_t in_max;
-  uint16_t out_min;
-  uint16_t out_max;
   Adafruit_PWMServoDriver *multiplexer;
 public:
-  MultiplexedServo(Adafruit_PWMServoDriver *);
+  MultiplexedServo();
   ~MultiplexedServo();
+  void initialize(Adafruit_PWMServoDriver *);
   void attach(uint8_t);
-  void attach(uint8_t, uint16_t, uint16_t);
-  void attach(uint8_t, uint16_t, uint16_t, int16_t, int16_t);
   bool attached();
   void detach();
-  int16_t read();
-  void write(int16_t);
+  void write(uint8_t);
   void writeMicroseconds(uint16_t);
 };
 

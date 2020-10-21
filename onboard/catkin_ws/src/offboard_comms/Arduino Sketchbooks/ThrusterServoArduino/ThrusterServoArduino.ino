@@ -1,5 +1,6 @@
 #include "Adafruit_PWMServoDriver.h"
 #include "MultiplexedServo.h"
+#include "MultiplexedBasicESC.h"
 #include "MS5837.h"
 #include <ros.h>
 #include <custom_msgs/ThrusterSpeeds.h>
@@ -18,8 +19,8 @@ uint64_t last_cmd_ms_ts;
 
 int8_t thruster_speeds[NUM_THRUSTERS];
 
-MultiplexedServo *thrusters[NUM_THRUSTERS];
-MultiplexedServo *servos[NUM_SERVO];
+MultiplexedBasicESC thrusters[NUM_THRUSTERS];
+MultiplexedServo servos[NUM_SERVO];
 
 MS5837 pressure_sensor;
 
@@ -34,7 +35,7 @@ void servo_control_callback(const custom_msgs::ServoAngle &sa_msg){
     if(sa_msg.num >= NUM_SERVO || sa_msg.angle > 180){
         return;
     }
-    servos[sa_msg.num]->write(sa_msg.angle);
+    servos[sa_msg.num].write(sa_msg.angle);
 }
 
 //Message to use with the pressure sensor
@@ -55,13 +56,12 @@ void setup(){
 
     pwm_multiplexer.begin();
     for (uint8_t i = 0; i < NUM_THRUSTERS; ++i){
-        thrusters[i] = new MultiplexedServo(&pwm_multiplexer);
-        thrusters[i]->attach(i, 1100, 1900, -128, 128);
-        thrusters[i]->write(0);
+        thrusters[i].initialize(&pwm_multiplexer);
+        thrusters[i].attach(i);
     }
     for (uint8_t i = 0; i < NUM_SERVO; ++i){
-        servos[i] = new MultiplexedServo(&pwm_multiplexer);
-        servos[i]->attach(i + NUM_THRUSTERS, 650, 2450);
+        servos[i].initialize(&pwm_multiplexer);
+        servos[i].attach(i + NUM_THRUSTERS);
     }
 
     Wire.begin();
@@ -81,7 +81,7 @@ void loop(){
     if (last_cmd_ms_ts + THRUSTER_TIMEOUT_MS < millis())
         memset(thruster_speeds, 0, sizeof(thruster_speeds));
     for (uint8_t i = 0; i < NUM_THRUSTERS; ++i){
-        thrusters[i]->write(thruster_speeds[i]);
+        thrusters[i].write(thruster_speeds[i]);
     }
     pressure_sensor.read();
     pressure_msg.fluid_pressure = pressure_sensor.pressure(100.0f);
