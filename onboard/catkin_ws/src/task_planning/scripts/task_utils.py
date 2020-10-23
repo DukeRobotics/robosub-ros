@@ -2,8 +2,11 @@ import numpy as np
 import rospy
 import tf2_geometry_msgs
 import tf2_ros
-from geometry_msgs.msg import Vector3, Pose, PoseStamped, Twist, Point, Quaternion
+from geometry_msgs.msg import Vector3, Vector3Stamped, Pose, PoseStamped, PoseWithCovariance, \
+    Twist, TwistStamped, TwistWithCovariance, Point, Quaternion, TransformStamped, PointStamped
+from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_quaternion, quaternion_multiply
+from std_msgs.msg import Header
 
 
 def linear_distance(point1, point2):
@@ -107,15 +110,17 @@ def transform(origin_frame, dest_frame, poseORodom):
     Arguments:
     origin_frame: the starting frame
     dest_frame: the frame to trasform to
-    poseORodom: the Pose, PoseStamped, Odometry, or OdometryStamped message to transform
+    poseORodom: the Pose, PoseStamped, Odometry, or  message to transform
 
     Returns:
-    Pose, PoseStamped, Odometry, or OdometryStamped: The transformed position
+    Pose, PoseStamped, Odometry : The transformed position
     """
 
     tfBuffer = tf2_ros.Buffer()
-    # listener = tf2_ros.TransformListener(tfBuffer)
+    listener = tf2_ros.TransformListener(tfBuffer)
     trans = tfBuffer.lookup_transform(dest_frame, origin_frame, rospy.Time(), rospy.Duration(0.5))
+    trans_stamped = TransformStamped(transform=trans)
+
 
     if isinstance(poseORodom, PoseStamped):
         transformed = tf2_geometry_msgs.do_transform_pose(poseORodom, trans)
@@ -126,6 +131,44 @@ def transform(origin_frame, dest_frame, poseORodom):
         temp_pose_stamped.pose = poseORodom
         transformed = tf2_geometry_msgs.do_transform_pose(temp_pose_stamped, trans)
         return transformed.pose
+
+    elif isinstance(poseORodom, Odometry):
+        temp_pose_stamped = PoseStamped()
+        temp_twist_stamped = TwistStamped()
+        temp_pose_stamped.pose = poseORodom.pose.pose
+        temp_twist_stamped.twist = poseORodom.twist.twist
+        transformed_pose_stamped = tf2_geometry_msgs.do_transform_pose(temp_pose_stamped, trans)
+
+        # twist as points
+        twist_poseORodom = poseORodom.twist.twist
+        temp_twist_point_linear = Point()
+        temp_twist_point_angular = Point()
+        temp_twist_point_linear.x = twist_poseORodom.linear.x
+        temp_twist_point_linear.y = twist_poseORodom.linear.y
+        temp_twist_point_linear.z = twist_poseORodom.linear.z
+        temp_twist_point_angular.x = twist_poseORodom.angular.x
+        temp_twist_point_angular.y = twist_poseORodom.angular.y
+        temp_twist_point_angular.z = twist_poseORodom.angular.z
+        twist_point_linear_stamped = PointStamped(point=temp_twist_point_linear)
+        twist_point_angular_stamped = PointStamped(point=temp_twist_point_angular)
+
+        # points transformed
+        transformed_twist_point_linear_stamped = tf2_geometry_msgs.do_transform_point(twist_point_linear_stamped, trans)
+        transformed_twist_point_angular_stamped = tf2_geometry_msgs.do_transform_point(twist_point_angular_stamped, trans)
+
+        # points to twist
+        transformed_twist = Twist()
+        transformed_twist.linear.x = transformed_twist_point_linear_stamped.point.x
+        transformed_twist.linear.y = transformed_twist_point_linear_stamped.point.y
+        transformed_twist.linear.z = transformed_twist_point_linear_stamped.point.z
+        transformed_twist.angular.x = transformed_twist_point_angular_stamped.point.x
+        transformed_twist.angular.y = transformed_twist_point_angular_stamped.point.y
+        transformed_twist.angular.z = transformed_twist_point_angular_stamped.point.z
+
+        transformed_odometry = Odometry(header=Header(frame_id=dest_frame), child_frame_id=dest_frame,
+                                        pose=PoseWithCovariance(pose=transformed_pose_stamped.pose),
+                                        twist=TwistWithCovariance(twist=transformed_twist))
+        return transformed_odometry
 
     else:
         # add invalid message type message here
