@@ -16,7 +16,7 @@ class CompetitionTask(Task):
 
         # self.gate = GateTask()
         # self.list_task = ListTask([MoveToPoseGlobalTask(-7, 0, 0, 0, 0, 0)])
-        self.style = StyleTask("z", 1)
+        self.style = StyleTask("z", 0.2)
 
     def _on_task_run(self):
         self.style.run()

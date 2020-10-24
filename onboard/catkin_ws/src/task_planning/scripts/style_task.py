@@ -13,7 +13,8 @@ class StyleTask(Task):
         Parameters:
         axis (string): orientation (x, y, z) of turn
         power (float): desired twist power of turn in (0, 1]
-        angle
+        angle (float): desired angle of turn in radians
+        num_segments (int): number of segments to check position durning turn (must be >= 3)
 
         """
         super(StyleTask, self).__init__()
@@ -24,7 +25,6 @@ class StyleTask(Task):
         if power <= 0 or power > 1:
             raise Exception("power must be between (0, 1] for StyleTask.")
         
-        self.axis = axis # either x, y, z
         self.num_segments = num_segments
         self.twist = Twist()
         self.seg_rads = angle / num_segments
@@ -48,22 +48,20 @@ class StyleTask(Task):
         self.target_pose = task_utils.add_poses([self.state.pose.pose, self.angle_pose])
         self.starting_pose = self.state.pose.pose
         self.on_finish_segment = False
+        rospy.loginfo("Now starting turn...")
 
     def _on_task_run(self):
         """Go through the rotation using power control, checking that we hit certain segments as we go."""
         self.publish_desired_twist_power(self.twist)
 
-        print("Now starting turn...")
-        if not self.on_finish_segment and task_utils.at_pose(self.state.pose.pose, self.target_pose, float("inf"), self.seg_rads):
+        if not self.on_finish_segment and task_utils.at_pose(self.state.pose.pose, self.target_pose, float("inf"), self.seg_rads / 2):
             self.current_segment += 1
             self.target_pose = task_utils.add_poses([self.target_pose, self.angle_pose])
-            print("Now on segment " + self.current_segment)
+            rospy.loginfo("Now on segment " + str(self.current_segment))
         
         if not self.on_finish_segment and self.current_segment == self.num_segments:
             self.on_finish_segment = True
-            self.target_pose = task_utils.add_poses([self.target_pose, self.angle_pose])
         
-        if self.on_finish_segment and task_utils.at_pose(self.state.pose.pose, self.target_pose, float("inf"), 2 * self.seg_rads):
-            self.publish_desired_twist_power(Twist())
-            print("Turn Complete!\n")
+        if self.on_finish_segment and task_utils.at_pose(self.state.pose.pose, self.target_pose, float("inf"), self.seg_rads):
+            rospy.loginfo("Turn Complete!\n")
             self.finish()
