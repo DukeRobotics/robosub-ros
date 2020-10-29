@@ -13,6 +13,10 @@ def get_twist_topic(axis):
     return '/controls/state/twist/' + axis
 
 
+def get_vel_topic(axis):
+    return 'controls/' + axis + '_vel/setpoint'
+
+
 def get_pid_topic(axis):
     return 'controls/' + axis + '_pos/setpoint'
 
