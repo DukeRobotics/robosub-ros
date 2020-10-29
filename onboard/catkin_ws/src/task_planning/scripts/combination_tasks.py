@@ -4,17 +4,25 @@ from task import Task
 class ListTask(Task):
     """Run a list of tasks sequentially"""
 
-    def __init__(self, tasks):
+    def __init__(self, tasks, num_loops = 1):
         super(ListTask, self).__init__()
-
+        
+        self.num_loops = num_loops
         self.tasks = tasks
         self.curr_index = 0
 
     def _on_task_run(self):
         if self.curr_index == len(self.tasks):
-            self.finish()
+            if self.num_loops > 0:
+                self.num_loops -= 1
+                if self.num_loops == 0:
+                    self.finish()
+
+            self.curr_index = 0
 
         elif self.tasks[self.curr_index].finished:
+            if self.num_loops > 1:
+                self.tasks[self.curr_index].restart()
             self.curr_index += 1
 
         else:

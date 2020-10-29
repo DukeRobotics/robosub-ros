@@ -66,6 +66,14 @@ class Task:
         """Mark the task as finished"""
         self.finished = True
 
+    def unfinish(self):
+        """Mark task as unfinished"""
+        self.finished = False
+
+    def restart(self):
+        self.unfinish()
+        self._on_task_start()
+
     def publish_desired_pose_global(self, pose):
         self.task_state.desired_pose_global_publisher.publish(pose)
 
