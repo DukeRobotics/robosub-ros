@@ -36,13 +36,33 @@ class AllocatePowerTask(Task):
             yaw (float): yaw-component of angular velocity
         """
         super(AllocatePowerTask, self).__init__()
-        linear = Vector3(x=x,y=y,z=z)
+        linear = Vector3(x=x, y=y, z=z)
         angular = Vector3(x=roll, y=pitch, z=yaw)
         self.twist_power = Twist(linear=linear, angular=angular)  # Twist representing six components of power
 
     def _on_task_run(self):
         self.publish_desired_twist_power(self.twist_power)
 
+class AllocateVelocityTask(Task):
+    """Allocate specified velocity in a direction"""
+
+    def __init__(self, x, y, z, roll, pitch, yaw):
+        """
+        Parameters:
+            x (float): x-component of linear velocity
+            y (float): y-component of linear velocity
+            z (float): z-component of linear velocity
+            roll (float): roll-component of angular velocity;
+            pitch (float): pitch-component of angular velocity
+            yaw (float): yaw-component of angular velocity
+        """
+        super(AllocateVelocityTask, self).__init__()
+        linear = Vector3(x=x, y=y, z=z)
+        angular = Vector3(x=roll, y=pitch, z=yaw)
+        self.twist_velocity = Twist(linear=linear, angular=angular)
+
+    def _on_task_run(self):
+        self.publish_desired_twist_velocity(self.twist_velocity)
 
 class MoveToPoseLocalTask(MoveToPoseGlobalTask):
     """Move to pose given in local coordinates."""

@@ -79,3 +79,6 @@ class Task:
 
     def publish_desired_twist_power(self, twist_power):
         self.task_state.desired_twist_power_publisher.publish(twist_power)
+
+    def publish_desired_twist_velocity(self, twist_velocity):
+        self.task_state.desired_twist_velocity_publisher.publish(twist_velocity)
