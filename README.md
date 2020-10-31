@@ -224,9 +224,13 @@ Here are some common launch configurations for both pool and local testing.
         ```
 
 ### Cleaning Build
-To clean the build outputs from a workspace (build, devel, and logs folders), in `robosub-ros/<workspace>/catkin_ws`, execute
+To clean the build outputs from a workspace (build, devel, and logs folders), in the `~/dev/robosub-ros` directory, execute
 ```bash
-catkin clean
+./build.sh clean <workspace>
+```
+where `<workspace>` is either onboard or landside. If you would like to clean all workspaces, then you may simply execute
+```bash
+./build.sh clean
 ```
 
 
