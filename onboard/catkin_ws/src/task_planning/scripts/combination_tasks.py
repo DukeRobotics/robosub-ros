@@ -4,9 +4,9 @@ from task import Task
 class ListTask(Task):
     """Run a list of tasks sequentially"""
 
-    def __init__(self, tasks, num_loops = 1):
+    def __init__(self, tasks, num_loops=1):
         super(ListTask, self).__init__()
-        
+
         self.num_loops = num_loops
         self.tasks = tasks
         self.curr_index = 0
@@ -83,3 +83,24 @@ class LeaderFollowerTask(Task):
 
         self.leader.run()
         self.follower.run()
+
+
+class IfElseTask(Task):
+
+    def __init__(self, condition, taskone, tasktwo):
+        super(IfElseTask, self).__init__()
+        self.condition = condition
+        self.taskOne = taskone
+        self.taskTwo = tasktwo
+
+    def _on_task_start(self):
+        if self.condition:
+            self.taskRunning = self.taskOne
+        else:
+            self.taskRunning = self.taskTwo
+        self.taskRunning.run()
+
+    def _on_task_run(self):
+        if self.taskRunning.finished:
+            self.finish()
+
