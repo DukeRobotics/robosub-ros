@@ -29,6 +29,7 @@ class DesiredStateHandler:
     pub_pos_enable = {}
     pub_vel = {}
     pub_vel_enable = {}
+    pub_control_effort = {}
 
     def __init__(self):
         for d in utils.get_axes():
@@ -36,6 +37,7 @@ class DesiredStateHandler:
             self.pub_pos_enable[d] = rospy.Publisher(utils.get_pos_pid_enable(d), Bool, queue_size=3)
             self.pub_vel_enable[d] = rospy.Publisher(utils.get_vel_pid_enable(d), Bool, queue_size=3)
             self.pub_vel[d] = rospy.Publisher(utils.get_vel_topic(d), Float64, queue_size=3)
+            self.pub_control_effort[d] = rospy.Publisher(utils.get_controls_move_topic(d), Float64, queue_size=3)
 
         rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self._on_pose_received)
         rospy.Subscriber(self.DESIRED_TWIST_TOPIC, Twist, self._on_twist_received)
@@ -51,6 +53,7 @@ class DesiredStateHandler:
         utils.publish_data_constant(self.pub_pos_enable, utils.get_axes(), False)
         utils.publish_data_constant(self.pub_vel_enable, utils.get_axes(), False)
         # Fix - figure out how to enforce that the code is publishing zeros
+        utils.publish_data_constant(self.pub_control_effort, utils.get_axes(), 0)
         self.twist = None
         self.pose = None
 
