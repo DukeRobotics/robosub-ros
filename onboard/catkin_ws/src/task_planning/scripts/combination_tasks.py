@@ -21,7 +21,7 @@ class ListTask(Task):
             self.curr_index = 0
 
         elif self.tasks[self.curr_index].finished:
-            if self.num_loops > 1:
+            if self.num_loops != 1:
                 self.tasks[self.curr_index].restart()
             self.curr_index += 1
 
