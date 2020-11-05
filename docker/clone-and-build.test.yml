@@ -5,5 +5,5 @@ sut:
                                   git clone https://github.com/DukeRobotics/robosub-ros.git && \
                                   cd robosub-ros && \
                                   git checkout ${COMMIT_REF} && \
-                                  git merge master && \
+                                  git merge ${COMMIT_BASE} && \
                                   ./build.sh ${SERVICE_NAME}"]
