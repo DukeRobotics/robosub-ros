@@ -21,6 +21,7 @@ class Task:
         self.finished = False
         self.initial_state = None
         self.started = False
+        self.output = {}
 
     @property
     def state(self):
