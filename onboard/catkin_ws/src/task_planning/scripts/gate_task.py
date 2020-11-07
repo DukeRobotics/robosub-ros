@@ -1,6 +1,8 @@
 from move_tasks import MoveToPoseGlobalTask, AllocatePowerTask, MoveToPoseLocalTask
 from combination_tasks import IndSimulTask, DepSimulTask, LeaderFollowerTask, ListTask
 from task import Task
+import task_utils
+import numpy as np
 from geometry_msgs.msg import Point
 
 
@@ -12,7 +14,8 @@ class GateTask(Task):
         self.power = power
 
     def _on_task_start(self):
-        self.gate_search_condition = IndSimulTask([DistanceToGateTask(self.DIST_THRESH), ListTask([IsThereAGateTask()], -1)]
+        self.gate_search_condition = IndSimulTask(
+            [DistanceToGateTask(self.DIST_THRESH), ListTask([IsThereAGateTask()], -1)])
         self.rotate_to_gate = LeaderFollowerTask(IsThereAGateTask(), AllocatePowerTask(0, 0, 0, 0, 0, self.power))
         self.move_along_x_y = MoveToGateTask()
         self.gate_path_condition = OnGatePathTask()  # finishes if fall off path or lose camera data
@@ -22,7 +25,7 @@ class GateTask(Task):
                                        self.move_forward], 100)
         self.move_through_gate = AllocatePowerTask(self.power, 0, 0, 0, 0, 0)
         self.do_gate_magic = LeaderFollowerTask(self.gate_search_condition,
-                                             ListTask[self.gate_sequence, self.move_through_gate])
+                                                ListTask[self.gate_sequence, self.move_through_gate])
 
     def _on_task_run(self):
         self.do_gate_magic.run()
@@ -44,12 +47,10 @@ class DistanceToGateTask(Task):
         self.threshold = threshold
 
     def _on_task_start(self):
-        self.distance_counter_test = 300
+        self.distance_to_gate = np.linalg.norm(self.gate_data.x, self.gate_data.y, self.gate_data.z)
 
     def _on_task_run(self):
-        # self.distance_counter_test -= 1
-        # print(self.distance_counter_test)
-        if self.distance_counter_test < self.threshold:
+        if self.distance_to_gate < self.threshold:
             self.finish()
 
 
@@ -58,9 +59,8 @@ class IsThereAGateTask(Task):  # finishes if cannot see a gate
         super(IsThereAGateTask, self).__init__()
 
     def _on_task_run(self):
-        self.finish()
-        #  if (self.gate_data.x != None) & (self.gate_data.y != None) & (self.gate_data.z != None):   
-        #      self.finish()
+        if (self.gate_data.x is not None) and (self.gate_data.y is not None) and (self.gate_data.z is not None):
+            self.finish()
 
 
 class OnGatePathTask(Task):
@@ -68,13 +68,12 @@ class OnGatePathTask(Task):
         super(OnGatePathTask, self).__init__()
 
     def _on_task_run(self):
-        if self.gate_data.x == None:  # if gate data is bad finish
+        if self.gate_data.x is None:  # if gate data is bad finish
             self.finish()
         desired_pose = self.state.pose.pose
         desired_pose.position.x = self.gate_data.x
         desired_pose.position.y = self.gate_data.y
-        if !task_utils.at_pose(self.state.pose.pose, desired_pose):
+        if not task_utils.at_pose(self.state.pose.pose, desired_pose):
             self.finish()
-
 
 # write some function that checks if gate data is bad
