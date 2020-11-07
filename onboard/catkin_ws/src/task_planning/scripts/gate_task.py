@@ -1,37 +1,41 @@
-from move_tasks import MoveToPoseGlobalTask
-from combination_tasks import IndSimulTask, LeaderFollowerTask, ListTask
+from move_tasks import MoveToPoseGlobalTask, AllocatePowerTask, MoveToPoseLocalTask
+from combination_tasks import IndSimulTask, DepSimulTask, LeaderFollowerTask, ListTask
 from task import Task
+from geometry_msgs.msg import Point
+
 
 class GateTask(Task):
-    def __init__(self):
+    DIST_THRESH = 5  # distance to get before blindly move through gate
+
+    def __init__(self, power=0.2):
         super(GateTask, self).__init__()
+        self.power = power
 
     def _on_task_start(self):
-        self.threshold = 10
-        self.begin_gate_search = IndSimulTask([DistanceToGateTask(self.threshold), IsThereAGateTask()])
-        self.gate_search = LeaderFollowerTask(self.begin_gate_search, MoveToPoseGlobalTask(7, 0, 0, 0, 0, 0))
-        self.after_gate_search_dummy = MoveToPoseGlobalTask(10, 0, 0, 0, 0, 0)
-        self.go_to_gate = ListTask([self.gate_search, self.after_gate_search_dummy])
+        self.gate_search_condition = IndSimulTask([DistanceToGateTask(self.DIST_THRESH), ListTask([IsThereAGateTask()], -1)]
+        self.rotate_to_gate = LeaderFollowerTask(IsThereAGateTask(), AllocatePowerTask(0, 0, 0, 0, 0, self.power))
+        self.move_along_x_y = MoveToGateTask()
+        self.gate_path_condition = OnGatePathTask()  # finishes if fall off path or lose camera data
+        self.move_forward = LeaderFollowerTask(self.gate_path_condition, AllocatePowerTask(self.power, 0, 0, 0, 0, 0))
+        self.gate_sequence = ListTask([self.rotate_to_gate,
+                                       self.move_along_x_y,
+                                       self.move_forward], 100)
+        self.move_through_gate = AllocatePowerTask(self.power, 0, 0, 0, 0, 0)
+        self.do_gate_magic = LeaderFollowerTask(self.gate_search_condition,
+                                             ListTask[self.gate_sequence, self.move_through_gate])
 
     def _on_task_run(self):
+        self.do_gate_magic.run()
 
 
-        """ 
-        listtask1 = ListTask([
-            LeaderFollowerTask(IsThereAGateTask, RotateTask(...)),
-            select_smaller_box_of_seen_boxes_task,
-            find_normal_vector_from_middle_of_smaller_box_task,
-            move_to_and_align_with_normal_vector_task,
-            LeaderFollowerTask(within_tolerance_of_normal_vector_task & DistanceToGateTask, ListTask([move_to_gate_task, calculate_normal_task, calculate_dist_task]))
-            ])
-        task1 = LeaderFollowerTask(DistanceToGateTask, listtask1)
-        task2 = ListTask([CalculateNormalTask, AlignWithNormalTask, MoveTask])
+class MoveToGateTask(MoveToPoseGlobalTask):  # this will be local
+    def __init__(self):
+        super(MoveToGateTask, self).__init__(0, 0, 0, 0, 0, 0)
 
-        ListTask of listtask1, task1, task2
-        """
-
-        self.go_to_gate.run()
-
+    def _on_task_start(self):
+        self.gate_vector = self.gate_data
+        self.desired_pose.position = self.gate_vector
+        #  super(MoveToGateTask, self)._on_task_start()  # transforms pose
 
 
 class DistanceToGateTask(Task):
@@ -43,17 +47,34 @@ class DistanceToGateTask(Task):
         self.distance_counter_test = 300
 
     def _on_task_run(self):
-        self.distance_counter_test -= 1
-        print(self.distance_counter_test)
+        # self.distance_counter_test -= 1
+        # print(self.distance_counter_test)
         if self.distance_counter_test < self.threshold:
             self.finish()
 
 
-class IsThereAGateTask(Task):
+class IsThereAGateTask(Task):  # finishes if cannot see a gate
     def __init__(self):
         super(IsThereAGateTask, self).__init__()
 
     def _on_task_run(self):
         self.finish()
-        # if data_from_cv:
-        #     self.finish()
+        #  if (self.gate_data.x != None) & (self.gate_data.y != None) & (self.gate_data.z != None):   
+        #      self.finish()
+
+
+class OnGatePathTask(Task):
+    def __init__(self):
+        super(OnGatePathTask, self).__init__()
+
+    def _on_task_run(self):
+        if self.gate_data.x == None:  # if gate data is bad finish
+            self.finish()
+        desired_pose = self.state.pose.pose
+        desired_pose.position.x = self.gate_data.x
+        desired_pose.position.y = self.gate_data.y
+        if !task_utils.at_pose(self.state.pose.pose, desired_pose):
+            self.finish()
+
+
+# write some function that checks if gate data is bad
