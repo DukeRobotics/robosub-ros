@@ -4,7 +4,7 @@ from task import Task
 class ListTask(Task):
     """Run a list of tasks sequentially"""
 
-    def __init__(self, tasks, num_loops = 1):
+    def __init__(self, tasks, num_loops=1):
         super(ListTask, self).__init__()
         
         self.num_loops = num_loops

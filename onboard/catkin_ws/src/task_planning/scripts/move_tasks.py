@@ -22,6 +22,23 @@ class MoveToPoseGlobalTask(Task):
         if at_desired_pose_vel:
             self.finish()
 
+
+class MoveToPoseLocalTask(MoveToPoseGlobalTask):
+    """Move to pose given in local coordinates."""
+
+    def __init__(self, x, y, z, roll, pitch, yaw):
+        super(MoveToPoseLocalTask, self).__init__(x, y, z, roll, pitch, yaw)
+
+    def _on_task_start(self):
+        self.transformed_pose = task_utils.transform('base_link', 'odom', self.desired_pose)
+
+    def _on_task_run(self):
+        self.publish_desired_pose_global(self.transformed_pose)
+        at_desired_pose_vel = task_utils.stopped_at_pose(self.state.pose.pose, self.transformed_pose, self.state.twist.twist)
+        if at_desired_pose_vel:
+            self.finish()
+
+
 class AllocatePowerTask(Task):
     """Allocate specified power amount in a direction"""
 
@@ -43,6 +60,7 @@ class AllocatePowerTask(Task):
     def _on_task_run(self):
         self.publish_desired_twist_power(self.twist_power)
 
+
 class AllocateVelocityTask(Task):
     """Allocate specified velocity in a direction"""
 
@@ -63,21 +81,6 @@ class AllocateVelocityTask(Task):
 
     def _on_task_run(self):
         self.publish_desired_twist_velocity(self.twist_velocity)
-
-class MoveToPoseLocalTask(MoveToPoseGlobalTask):
-    """Move to pose given in local coordinates."""
-
-    def __init__(self, x, y, z, roll, pitch, yaw):
-        super(MoveToPoseLocalTask, self).__init__(x, y, z, roll, pitch, yaw)
-
-    def _on_task_start(self):
-        self.transformed_pose = task_utils.transform('base_link', 'odom', self.desired_pose)
-
-    def _on_task_run(self):
-        self.publish_desired_pose_global(self.transformed_pose)
-        at_desired_pose_vel = task_utils.stopped_at_pose(self.state.pose.pose, self.transformed_pose, self.state.twist.twist)
-        if at_desired_pose_vel:
-            self.finish()
 
 
 class HoldPositionTask(Task):
