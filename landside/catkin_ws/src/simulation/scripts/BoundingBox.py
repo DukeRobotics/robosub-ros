@@ -61,3 +61,6 @@ def get_box(xs, ys):
 		for x in box:
 			x = -1
 	return box
+
+	#if __name__ == "__main__":
+		
