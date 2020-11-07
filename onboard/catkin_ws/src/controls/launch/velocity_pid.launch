@@ -6,6 +6,30 @@
     <arg name="orient_max" default="0.5" />
     <arg name="min_loop_freq" value="100" />
 
+    <arg name = "x_vel_Kp" default = "1" />
+    <arg name = "x_vel_Ki" default = "0.001" />
+    <arg name = "x_vel_Kd" default = "0.001" />
+
+    <arg name = "y_vel_Kp" default = "1" />
+    <arg name = "y_vel_Ki" default = "0.001" />
+    <arg name = "y_vel_Kd" default = "0.001" />
+
+    <arg name = "z_vel_Kp" default = "1" />
+    <arg name = "z_vel_Ki" default = "0.001" />
+    <arg name = "z_vel_Kd" default = "0.001" />
+
+    <arg name = "roll_vel_Kp" default = "0.01" />
+    <arg name = "roll_vel_Ki" default = "0.001" />
+    <arg name = "roll_vel_Kd" default = "0.001" />
+
+    <arg name = "pitch_vel_Kp" default = "0.01" />
+    <arg name = "pitch_vel_Ki" default = "0.001" />
+    <arg name = "pitch_vel_Kd" default = "0.001" />
+
+    <arg name = "yaw_vel_Kp" default = "0.01" />
+    <arg name = "yaw_vel_Ki" default = "0.001" />
+    <arg name = "yaw_vel_Kd" default = "0.001" />
+
     <!-- ROBOT PID Constants -->
     <group unless="$(arg sim)">
 	   <group ns="controls/x_vel/controller">
@@ -43,34 +67,34 @@
     <!-- SIMULATION PID Constants -->
     <group if="$(arg sim)">
        <group ns="controls/x_vel/controller">
-            <param name="Kp" value="1" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+            <param name="Kp" value="$(arg x_vel_Kp)" />
+            <param name="Ki" value="$(arg x_vel_Ki)" />
+            <param name="Kd" value="$(arg x_vel_Kd)" />
         </group>
         <group ns="controls/y_vel/controller">
-            <param name="Kp" value="1" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+            <param name="Kp" value="$(arg y_vel_Kp)" />
+            <param name="Ki" value="$(arg y_vel_Ki)" />
+            <param name="Kd" value="$(arg y_vel_Kd)" />
         </group>
         <group ns="controls/z_vel/controller">
-            <param name="Kp" value="1" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+            <param name="Kp" value="$(arg z_vel_Kp)" />
+            <param name="Ki" value="$(arg z_vel_Ki)" />
+            <param name="Kd" value="$(arg z_vel_Kd)" />
         </group>
         <group ns="controls/roll_vel/controller">
-            <param name="Kp" value="0.01" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+            <param name="Kp" value="$(arg roll_vel_Kp)" />
+            <param name="Ki" value="$(arg roll_vel_Ki)" />
+            <param name="Kd" value="$(arg roll_vel_Kd)" />
         </group>
         <group ns="controls/pitch_vel/controller">
-            <param name="Kp" value="0.01" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+            <param name="Kp" value="(arg pitch_vel_Kp)" />
+            <param name="Ki" value="(arg pitch_vel_Ki)" />
+            <param name="Kd" value="(arg pitch_vel_Kd)" />
         </group>
         <group ns="controls/yaw_vel/controller">
-            <param name="Kp" value="1" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+            <param name="Kp" value="(arg yaw_vel_Kp)" />
+            <param name="Ki" value="(arg yaw_vel_Ki)" />
+            <param name="Kd" value="(arg yaw_vel_Kd)" />
         </group>
     </group>
 
