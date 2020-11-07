@@ -26,9 +26,10 @@ class StyleTask(Task):
             raise Exception("power must be between (0, 1] for StyleTask.")
         
         self.num_segments = num_segments
+        self.angle = angle
         self.twist = Twist()
         self.seg_rads = angle / num_segments
-        
+        self.nintey_points = 100
         direction = angle / abs(angle)
 
         if axis == "x":
@@ -48,6 +49,8 @@ class StyleTask(Task):
         self.target_pose = task_utils.add_poses([self.state.pose.pose, self.angle_pose])
         self.starting_pose = self.state.pose.pose
         self.on_finish_segment = False
+        self.output["rads_turned"] = 0.0
+        self.output["points_scored"] = 0
         rospy.loginfo("Now starting turn...")
 
     def _on_task_run(self):
@@ -58,10 +61,14 @@ class StyleTask(Task):
             self.current_segment += 1
             self.target_pose = task_utils.add_poses([self.target_pose, self.angle_pose])
             rospy.loginfo("Now on segment " + str(self.current_segment))
+            self.output["rads_turned"] += self.seg_rads
+            self.output["points_scored"] = int(self.output["rads_turned"] / (math.pi / 2)) * self.nintey_points
         
         if not self.on_finish_segment and self.current_segment == self.num_segments:
             self.on_finish_segment = True
         
         if self.on_finish_segment and task_utils.at_pose(self.state.pose.pose, self.target_pose, float("inf"), self.seg_rads):
             rospy.loginfo("Turn Complete!\n")
+            self.output["rads_turned"] = self.angle
+            self.output["points_scored"] = int(self.output["rads_turned"] / (math.pi / 2)) * self.nintey_points
             self.finish()
