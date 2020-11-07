@@ -27,6 +27,11 @@ class Task:
         """Wrap task_state.state with just the state property"""
         return self.task_state.state
 
+    @property
+    def gate_data(self):
+        return self.task_state.gate_data
+    
+
     def _on_task_start_default(self):
         """Should be called when the task runs for the first time"""
         self.initial_state = self.state
