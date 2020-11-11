@@ -16,6 +16,7 @@ class GateTask(Task):
     def _on_task_start(self):
         self.gate_search_condition = IndSimulTask(
             [DistanceToGateTask(self.DIST_THRESH), ListTask([IsThereAGateTask()], -1)])
+
         self.rotate_to_gate = LeaderFollowerTask(IsThereAGateTask(), AllocatePowerTask(0, 0, 0, 0, 0, self.power))
         self.move_along_x_y = MoveToGateTask()
         self.gate_path_condition = OnGatePathTask()  # finishes if fall off path or lose camera data
@@ -29,6 +30,8 @@ class GateTask(Task):
 
     def _on_task_run(self):
         self.do_gate_magic.run()
+        if self.do_gate_magic.finished:
+            self.finish()
 
 
 class MoveToGateTask(MoveToPoseGlobalTask):  # this will be local

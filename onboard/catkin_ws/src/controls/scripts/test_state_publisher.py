@@ -65,7 +65,7 @@ class TestStatePublisher:
 
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
-            self._pub_desired_powers.publish(self.desired_powers)
+            # self._pub_desired_powers.publish(self.desired_powers)
             # self._pub_current_state.publish(self.current_state)
             rate.sleep()
 
