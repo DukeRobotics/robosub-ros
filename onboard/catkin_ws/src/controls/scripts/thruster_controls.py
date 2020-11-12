@@ -33,14 +33,14 @@ class ThrusterController:
 
         self.listener = TransformListener()
 
-        for d in utils.get_axes():
-            rospy.Subscriber(utils.get_controls_move_topic(d), Float64, self._on_pid_received, d)
-            rospy.Subscriber(utils.get_power_topic(d), Float64, self._on_power_received, d)
-
         self.pid_outputs = np.zeros(6)
         self.pid_outputs_local = np.zeros(6)
         self.powers = np.zeros(6)
         self.t_allocs = np.zeros(8)
+
+        for d in utils.get_axes():
+            rospy.Subscriber(utils.get_controls_move_topic(d), Float64, self._on_pid_received, d)
+            rospy.Subscriber(utils.get_power_topic(d), Float64, self._on_power_received, d)
 
     def handle_enable_controls(self, req):
         self.enabled = req.data
@@ -70,23 +70,19 @@ class ThrusterController:
                          ang_local.vector.y,
                          ang_local.vector.z])
 
-    def update_thruster_allocs(self):
-        if self.enabled:
-            self.pid_outputs_local = self.transform_twist('odom', 'base_link', self.pid_outputs)
-
-        for i in range(len(self.powers)):
-            if self.powers[i] != 0:
-                self.pid_outputs_local[i] = self.powers[i]
-
-        self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs_local)
-
     def _on_pid_received(self, val, direction):
         self.pid_outputs[utils.get_axes().index(direction)] = val.data
-        self.update_thruster_allocs()
+        # TODO: Better check for if the odom exists. 
+        # If the service is enabled before the simulation/robot is started, 
+        # controls spits out a bunch of errors. 
+        if self.enabled: 
+            self.pid_outputs_local = self.transform_twist('odom', 'base_link', self.pid_outputs)
+        self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs_local)
 
     def _on_power_received(self, val, direction):
         self.powers[utils.get_axes().index(direction)] = val.data
-        self.update_thruster_allocs()
+        self.pid_outputs_local = self.powers
+        self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs_local)
 
     def run(self):
         rate = rospy.Rate(10)  # 10 Hz
