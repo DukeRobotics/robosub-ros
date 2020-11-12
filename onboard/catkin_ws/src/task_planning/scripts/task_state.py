@@ -7,8 +7,8 @@ from geometry_msgs.msg import Pose, Twist, Vector3
 class TaskState:
     STATE_TOPIC = 'state'
     DESIRED_POSE_TOPIC = 'controls/desired_pose'
-    DESIRED_TWIST_POWER_TOPIC = 'controls/desired_twist_power'
-    DESIRED_TWIST_VELOCITY_TOPIC = 'controls/desired_twist_velocity'
+    DESIRED_TWIST_POWER_TOPIC = 'controls/desired_power'
+    DESIRED_TWIST_VELOCITY_TOPIC = 'controls/desired_twist'
     CV_GATE_DATA_TOPIC = 'cv/gate_data'
 
     def __init__(self):
