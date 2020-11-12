@@ -1,4 +1,4 @@
-from move_tasks import MoveToPoseGlobalTask, AllocatePowerTask, MoveToPoseLocalTask
+from move_tasks import MoveToPoseGlobalTask, AllocateVelocityTask, MoveToPoseLocalTask
 from combination_tasks import IndSimulTask, DepSimulTask, LeaderFollowerTask, ListTask
 from task import Task
 import task_utils
@@ -9,20 +9,20 @@ from geometry_msgs.msg import Point
 class GateTask(Task):
     DIST_THRESH = 5  # distance to get before blindly move through gate
 
-    def __init__(self, power=0.2):
+    def __init__(self, velocity=0.2):
         super(GateTask, self).__init__()
-        self.power = power
+        self.velocity = velocity
 
     def _on_task_start(self):
         self.gate_search_condition = IndSimulTask(
             [DistanceToGateTask(self.DIST_THRESH), ListTask([IsThereAGateTask()], -1)])
 
-        self.rotate_to_gate = LeaderFollowerTask(IsThereAGateTask(), AllocatePowerTask(0, 0, 0, 0, 0, self.power))
+        self.rotate_to_gate = LeaderFollowerTask(IsThereAGateTask(), AllocateVelocityTask(0, 0, 0, 0, 0, self.velocity))
         self.move_to_gate = LeaderFollowerTask(IsThereAGateTask(finish_with_data=False), MoveToGateTask())
         # self.gate_path_condition = OnGatePathTask()  # finishes if fall off path or lose camera data
         # self.move_forward = LeaderFollowerTask(self.gate_path_condition, AllocatePowerTask(self.power, 0, 0, 0, 0, 0))
         self.gate_sequence = ListTask([self.rotate_to_gate, self.move_to_gate], 100)
-        self.move_through_gate = AllocatePowerTask(self.power, 0, 0, 0, 0, 0)
+        self.move_through_gate = AllocateVelocityTask(self.velocity, 0, 0, 0, 0, 0)
         self.do_gate_magic = LeaderFollowerTask(self.gate_search_condition,
                                                 ListTask[self.gate_sequence, self.move_through_gate])
 
