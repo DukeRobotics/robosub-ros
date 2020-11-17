@@ -5,6 +5,7 @@ from task import Task
 from style_task import StyleTask
 # from gate_task import MoveToGateTask, GateTask
 from geometry_msgs.msg import Pose
+import task_utils
 # from prequal_tasks import PreQualGlobalTask
 
 
@@ -23,7 +24,7 @@ class CompetitionTask(Task):
         # self.test = GateTask()
         self.test_vel_local = AllocateVelocityLocalTask(0.2, 0, 0, 0, 0, 0)
         self.test_vel_global = AllocateVelocityGlobalTask(0.2, 0, 0, 0, 0, 0)
-        self.test_style = StyleTask()
+        self.test_style = StyleTask("x", 0.2)
 
     def _on_task_run(self):
         # self.test_style.run()

@@ -84,7 +84,7 @@ class AllocateVelocityLocalTask(AllocateVelocityGlobalTask):
             pitch (float): pitch-component of angular velocity
             yaw (float): yaw-component of angular velocity
         """
-        super(AllocateVelocityLocalTask, self).__init__()
+        super(AllocateVelocityLocalTask, self).__init__(x, y, z, roll, pitch, yaw)
 
     def _on_task_start(self):
         self.odom_local = Odometry()
