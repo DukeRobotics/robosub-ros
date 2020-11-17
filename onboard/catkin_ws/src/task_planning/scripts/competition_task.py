@@ -30,6 +30,8 @@ class CompetitionTask(Task):
         # if self.test_style.finish():
         #     self.finish()
 
+###### this checking condition from parent task is likely not how we want to actually
+# do it, just for this pool test
 
         # self.test_vel_local.run()
         # desired_pose = Pose()
