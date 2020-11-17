@@ -83,8 +83,8 @@ class Task:
     def publish_desired_pose_global(self, pose):
         self.task_state.desired_pose_global_publisher.publish(pose)
 
-    def publish_desired_twist_power(self, twist_power):
+    def publish_desired_power(self, twist_power):
         self.task_state.desired_twist_power_publisher.publish(twist_power)
 
-    def publish_desired_twist_velocity(self, twist_velocity):
+    def publish_desired_twist(self, twist_velocity):
         self.task_state.desired_twist_velocity_publisher.publish(twist_velocity)

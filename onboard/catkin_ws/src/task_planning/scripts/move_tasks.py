@@ -1,5 +1,6 @@
 from task import Task
 from geometry_msgs.msg import Pose, Quaternion, Twist, Point, Vector3
+from nav_msgs.msg import Odometry
 from tf.transformations import quaternion_from_euler
 import task_utils
 import rospy
@@ -25,7 +26,7 @@ class MoveToPoseGlobalTask(Task):
 
 class MoveToPoseLocalTask(MoveToPoseGlobalTask):
     """Move to pose given in local coordinates."""
-
+    # this can be shortened, no reason to override _on_task_run
     def __init__(self, x, y, z, roll, pitch, yaw):
         super(MoveToPoseLocalTask, self).__init__(x, y, z, roll, pitch, yaw)
 
@@ -60,8 +61,17 @@ class AllocatePowerTask(Task):
     def _on_task_run(self):
         self.publish_desired_twist_power(self.twist_power)
 
+class AllocateVelocityGlobalTask(Task):
+    def __init__(self, x, y, z, roll, pitch, yaw):
+        super(AllocateVelocityGlobalTask, self).__init__()
+        linear = Vector3(x=x, y=y, z=z)
+        angular = Vector3(x=roll, y=pitch, z=yaw)
+        self.desired_twist = Twist(linear=linear, angular=angular)
 
-class AllocateVelocityTask(Task):
+    def _on_task_run(self):
+        self.publish_desired_twist(self.desired_twist)
+
+class AllocateVelocityLocalTask(AllocateVelocityGlobalTask):
     """Allocate specified velocity in a direction"""
 
     def __init__(self, x, y, z, roll, pitch, yaw):
@@ -74,13 +84,14 @@ class AllocateVelocityTask(Task):
             pitch (float): pitch-component of angular velocity
             yaw (float): yaw-component of angular velocity
         """
-        super(AllocateVelocityTask, self).__init__()
-        linear = Vector3(x=x, y=y, z=z)
-        angular = Vector3(x=roll, y=pitch, z=yaw)
-        self.twist_velocity = Twist(linear=linear, angular=angular)
+        super(AllocateVelocityLocalTask, self).__init__()
 
-    def _on_task_run(self):
-        self.publish_desired_twist_velocity(self.twist_velocity)
+    def _on_task_start(self):
+        self.odom_local = Odometry()
+        self.odom_local.twist.twist = self.desired_twist
+        self.odom_global = task_utils.transform('base_link', 'odom', self.ddom_local)
+        self.desired_twist = self.odom_global.twist.twist
+
 
 
 class HoldPositionTask(Task):

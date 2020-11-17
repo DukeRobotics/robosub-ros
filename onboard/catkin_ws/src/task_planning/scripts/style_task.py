@@ -4,6 +4,7 @@ from tf.transformations import quaternion_from_euler
 import task_utils
 import math
 import rospy
+from move_tasks import AllocateVelocityGlobalTask, AllocateVelocityLocalTask
 
 
 class StyleTask(Task):
@@ -51,11 +52,26 @@ class StyleTask(Task):
         self.on_finish_segment = False
         self.output["rads_turned"] = 0.0
         self.output["points_scored"] = 0
+        self.velocity_task = AllocateVelocityLocalTask(self.twist.linear.x,
+                                                        self.twist.linear.y,
+                                                        self.twist.linear.z,
+                                                        self.twist.angular.x,
+                                                        self.twist.angular.y,
+                                                        self.twist.angular.z)
         rospy.loginfo("Now starting turn...")
+
 
     def _on_task_run(self):
         """Go through the rotation using power control, checking that we hit certain segments as we go."""
-        self.publish_desired_twist_power(self.twist)  # change to ALlocateVeloictyTask
+        # self.publish_desired_twist_power(self.twist)  # change to ALlocateVelocityTask
+        # self.publish_desired_twist(self.twist.linear.x,
+        #                              self.twist.linear.y,
+        #                              self.twist.linear.z,
+        #                              self.twist.angular.x,
+        #                              self.twist.angular.y,
+        #                              self.twist.angular.z
+        #                              )
+        self.velocity_task.run()
 
         if not self.on_finish_segment and task_utils.at_pose(self.state.pose.pose, self.target_pose, float("inf"), self.seg_rads / 2):
             self.current_segment += 1
