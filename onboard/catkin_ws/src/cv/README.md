@@ -1,6 +1,83 @@
 # Computer Vision
 
-The computer vision package listens for images coming from 3 different cameras: left, right, and down. The package will then run a pre-trained machine learning model on the image and output bounding boxes for the various objects in the frame. These objects could be the gate, buoys, etc. The package will publish on different topics depending on which camera's image is being analyzed.
+The computer vision package listens for images coming from 3 different cameras: left, right, and down. The package 
+will then run pre-trained machine learning models on the image and output bounding boxes for the various objects 
+in the frame. These objects could be the gate, buoys, etc. The package will publish on different topics depending 
+on which camera's image is being analyzed.
+
+## Setup
+
+Generally, for each task you need computer vision for (gates, buoys, etc.), you would train a separate
+object detection model for each one. You can then load them as follows:
+
+* Create object detection models and save them as .pth files (see [here](https://github.com/DukeRobotics/documentation/tree/master/cv/training))
+* Place these models in the `/models` folder
+* Update the `/models/models.yaml` file with each model's details in the following format:
+
+```yaml
+<model_name>:  # A name/identifier for your model
+  classes: [<class1>, <class2>, ...]  # The classes the model is trained to predict
+  topic: <topic_name>  # the base topic name your predictions will be published to
+  weights: <file_name>  # the name of your model file
+...
+```
+
+Example entry for a buoy model:
+
+```yaml
+buoy:
+  classes: [alien, bat, witch]
+  topic: /cv/buoy
+  weights: buoy_model.pth
+```
+
+Note: To get the model files onto the docker container, you may have to use `scp`. Also, if you come across the following error: 
+
+`URLError: <urlopen error [Errno -3] Temporary failure in name resolution>`
+
+Navigate to [this url](https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth) 
+to manually download the default model file used by the Detecto package. Move this file onto the Docker
+container under the directory `/root/.cache/torch/checkpoints/` (do not rename the file). 
+
+
+## Running
+
+To start up a CV node, run the following command:
+
+```bash
+roslaunch cv cv_<camera>.launch
+```
+
+Where `<camera>` is one of `left`, `right`, or `down`. 
+
+After starting up a CV node, all models are initially disabled. You can select which model(s) you
+want to enable for this camera by using the following service: 
+
+* `enable_model_<camera>`
+  * TODO
+  * `<camera>` is determined based on which camera you chose when running `roslaunch`
+  * Type: custom_msgs/EnableModel
+  
+TODO description
+
+## Topics
+
+#### Listening:
+
+ * `/camera/<camera>/image_raw`
+   * The topic that the camera publishes each frame to
+   * `<camera>` is determined based on which camera you chose when running `roslaunch`
+   * Type: sensor_msgs/Image
+
+#### Publishing:
+
+* `<topic_name>/<camera>`
+  * The topic that predictions and bounding boxes are published to 
+  * `<topic_name>` is what was specified under `topic` in the `models.yaml` file for each enabled model
+  * `<camera>` is determined based on which camera you chose when running `roslaunch`
+  * TODO (mention test_images)
+  * Type: custom_msgs/CVObject
+
 
 ## Structure
 
@@ -20,62 +97,3 @@ The following are the folders and files in the CV package.
 
 The CV package also has dependencies in the `core/catkin_ws/src/custom_msgs` folder.
 
-
-## Setup
-
-* Create object detection models and save them as .pth files (see [here](https://github.com/DukeRobotics/robosub-cv/tree/master/training))
-* Place these models in the `/models` folder
-* Update the `/models/models.yaml` file with your model details in the following format:
-
-```yaml
-model_name:  # A name for your model
-  classes: [class1, class2, ...]  # The classes the model is trained to predict
-  topic: /cv/model_name  # the base topic name your predictions will be published to
-  weights: buoy.pth  # the relative path to your model file
-```
-
-Note: To get the model files onto the docker container, you may have to use `scp`. Also, if you come across the following error: 
-
-`URLError: <urlopen error [Errno -3] Temporary failure in name resolution>`
-
-Navigate to [this url](https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth) 
-to manually download the default model file used by the Detecto package. Move this file onto the Docker
-container under the directory `/root/.cache/torch/checkpoints/` (do not rename the file). 
-
-
-## Testing
-
-The following test plan walks through how to launch a camera node which takes in fake image data and publishes bounding box predictions to a separate topic.
-
-1. Kick off one of the camera launch files. This will start up the detection node. Since we have three camera launch files, any of the three launch files ending in  *_right*, *_left*, or *_bottom* can be used. 
- `roslaunch cv cv_left.launch`
-2. Kick off the test_images launch file. This will start up the test_images node and simulate a camera feed by repeatedly publishing a test image to the camera topic.  
- `roslaunch cv test_images.launch`  
-3. Ensure that the detection node is working properly. First, view the list of active topics via
-`rostopic list` 
-Output the contents of the topic via
-`rostopic echo /cv/buoy/left` (or other topic name depending on models.yaml and camera)
-Ensure that correct coordinates are being published.
-
-## Topics 
-
-### Publishing
-
- ```<model_topic>/<camera>```
- 
- The topic that stores information about an object's bounding box
-   + `<model_topic>` is the path to the topic stored in ```models.yaml```
-   + `<camera>` is the ```'~camera'``` parameter (left, right, or down)
-   + It contains 4 float64s representing the coordinates of the bounding box, 1 float64 representing the accuracy of the prediciton, and a String representing the name of the image.
-   + Data Type: custom_msgs/CVObject
-
-### Listening
-
- ```/camera/<camera>/image_raw```
- 
- The topic that the camera publishes its feed to
-   + ```<camera>``` represents the camera the image is received from (left, right, or down)
-   + An image should be published to this topic
-     + The image must be processed using ```.cv2_to_imgmsg(image, 'bgr8')``` 
-       + Make sure you import CvBridge for the above method (```from cv_bridge import CvBridge```)
-   + Data Type: sensor_msgs/Image
