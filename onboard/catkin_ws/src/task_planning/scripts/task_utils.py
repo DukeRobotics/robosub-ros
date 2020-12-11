@@ -63,7 +63,7 @@ def angular_distance_rpy(rpy1, rpy2):
 def at_pose(current_pose, desired_pose, linear_tol=0.1, angular_tol=3):
     """Check if within tolerance of a pose (position and orientation).
 
-    Paramters:
+    Parameters:
     current_pose (geometry_msgs/Pose): current pose
     desired_pose (geometry_msgs/Pose): pose to check with
 
@@ -81,7 +81,19 @@ def at_pose(current_pose, desired_pose, linear_tol=0.1, angular_tol=3):
 
 
 def at_vel(current_twist, desired_twist, linear_tol=0.1, angular_tol=0.3):
-    """Check if within tolerance of a twist (linear and angular velocity)"""
+    """Check if within tolerance of a twist (linear and angular velocity)
+
+    Parameters:
+    current_twist (geometry_msgs/Twist): current twist
+    desired_twist (geometry_msgs/Twist): twist to check with
+
+    Keyword Arguments:
+    linear_tol (float): allowable linear velocity for robot to be considered at twist
+    angular_tol (float): allowable angular velocity for robot to be considered at twist, applied to all axes
+
+    Returns:
+    Boolean: true if current_twist is within tolerances of desired_twist
+    """
 
     lin_curr_vel = np.linalg.norm([current_twist.linear.x, current_twist.linear.y, current_twist.linear.z])
     lin_des_vel = np.linalg.norm([desired_twist.linear.x, desired_twist.linear.y, desired_twist.linear.z])
@@ -93,8 +105,18 @@ def at_vel(current_twist, desired_twist, linear_tol=0.1, angular_tol=0.3):
 
     return linear and angular
 
+
 def stopped_at_pose(current_pose, desired_pose, current_twist):
-    """Check if within tolerance of a pose (position and orientation) and within tolerance of twist = 0"""
+    """Check if within tolerance of a pose (position and orientation) and current_twist = 0
+
+    Parameters:
+    current_pose (geometry_msgs/Pose): current pose
+    desired_pose (geometry_msgs/Pose): pose to check with
+    current_twist (geometry_msgs.Twist): current twist
+
+    Returns:
+    Boolean: true if stopped (current_twist = 0) at desired_pose
+    """
 
     twist_zero = Twist()
     
