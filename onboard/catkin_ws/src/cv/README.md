@@ -1,9 +1,9 @@
 # Computer Vision
 
-The computer vision package listens for images coming from 3 different cameras: left, right, and down. The package 
-will then run pre-trained machine learning models on the image and output bounding boxes for the various objects 
-in the frame. These objects could be the gate, buoys, etc. The package will publish on different topics depending 
-on which camera's image is being analyzed.
+The computer vision package listens for images/frames coming from 3 different cameras: left, right, and down. The package 
+will then run pre-trained machine learning models on each frame and output bounding boxes for the various objects 
+in the frame. These objects could be the gate, buoys, etc. The package will publish to different topics depending 
+on which models are enabled and which cameras are being used.
 
 ## Setup
 
@@ -51,14 +51,15 @@ roslaunch cv cv_<camera>.launch
 Where `<camera>` is one of `left`, `right`, or `down`. 
 
 After starting up a CV node, all models are initially disabled. You can select which model(s) you
-want to enable for this camera by using the following service: 
+want to enable for this camera by using the following service (where `<camera>` is the value you
+chose above): 
 
 * `enable_model_<camera>`
-  * TODO
-  * `<camera>` is determined based on which camera you chose when running `roslaunch`
+  * Takes in the model name (string) and a boolean flag to specify whether to turn the model on or off
+  * Returns a boolean indicating whether the attempt was successful
   * Type: custom_msgs/EnableModel
   
-TODO description
+Once 1+ models are enabled for a specific node, they listen and publish to topics as described below.
 
 ## Topics
 
@@ -66,22 +67,28 @@ TODO description
 
  * `/camera/<camera>/image_raw`
    * The topic that the camera publishes each frame to
-   * `<camera>` is determined based on which camera you chose when running `roslaunch`
+   * If no actual camera feed is available, you can simulate one using `roslaunch cv test_images.launch`
    * Type: sensor_msgs/Image
 
 #### Publishing:
 
 * `<topic_name>/<camera>`
-  * The topic that predictions and bounding boxes are published to 
+  * For each camera frame feed that a model processes, it will publish predictions to this topic  
   * `<topic_name>` is what was specified under `topic` in the `models.yaml` file for each enabled model
-  * `<camera>` is determined based on which camera you chose when running `roslaunch`
-  * TODO (mention test_images)
+    (e.g. the example `buoy` model above might publish to `/cv/buoy/left`)
+  * For each detected object in a frame, the model will publish the `xmin`, `ymin`, `xmax`, and `ymax` 
+    coordinates (normalized to \[0, 1\]), `label` of the object, `score` (a confidence value in the range
+    of \[0, 1\]), and the `width` and `height` of the frame. 
   * Type: custom_msgs/CVObject
+
+Note that the camera feed frame rate will likely be greater than the rate at which predictions can 
+be generated (especially if more than one model is enabled at the same time), so the publishing rate
+could be anywhere from like 0.2 to 10 FPS depending on computing power/the GPU/other factors.  
 
 
 ## Structure
 
-The following are the folders and files in the CV package.
+The following are the folders and files in the CV package:
 
 `assets`: Folder with a dummy image to test the CV package on
 
