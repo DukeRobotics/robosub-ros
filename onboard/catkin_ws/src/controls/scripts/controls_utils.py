@@ -13,12 +13,20 @@ def get_twist_topic(axis):
     return '/controls/state/twist/' + axis
 
 
+def get_vel_topic(axis):
+    return 'controls/' + axis + '_vel/setpoint'
+
+
 def get_pid_topic(axis):
     return 'controls/' + axis + '_pos/setpoint'
 
 
-def get_pid_enable(axis):
+def get_pos_pid_enable(axis):
     return 'controls/enable/' + axis + '_pos'
+
+
+def get_vel_pid_enable(axis):
+    return 'controls/enable/' + axis + '_vel'
 
 
 def get_power_topic(axis):
