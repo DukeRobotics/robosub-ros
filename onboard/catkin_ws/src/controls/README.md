@@ -58,7 +58,7 @@ rosrun controls test_state_publisher.py &
 roslaunch controls controls.launch sim:=true
 ```
 
-`test_state_publisher.py` is where we specify the desired state of the robot. Alternatively, you can publish to either of the desired state topics directly using your own code. The second command launches the entire controls node in simulation mode.
+`test_state_publisher.py` is where we specify the desired state of the robot. Alternatively, you can publish to any of the desired state topics directly using your own code. The second command launches the entire controls node in simulation mode.
 
 
 ## Topics
@@ -68,12 +68,15 @@ roslaunch controls controls.launch sim:=true
 Desired State Topics:
 
   - ```controls/desired_pose```
-    + A point and quaternion representing the robot's desired global xyz position and rpy orientation
+    + A point and quaternion representing the robot's desired global xyz position and rpy orientation.
     + Type: geometry_msgs/Pose
-  - ```controls/desired_twist_power```
-    + A twist with values [-1,1] corresponding to relative linear or angular velocity. 1 is full speed in a positive direction, -1 is full speed in the negative direction.
-    + 0 values are interpreted as axes to stabilize on. Stabilization is performed by using position control rather than velocity control on 0'ed axes to mitigate drift effects or other unwanted perturbations.
-    + For instance, a twist with values [1,0,0,0,0,0] will result in full speed in the positive local x-direction and stabilization along all other axes.
+  - ```controls/desired_power```
+    +  A twist with values [-1,1] (TBD) corresponding to global linear and angular velocities.
+    + Type: geometry_msgs/Twist
+
+  - ```controls/desired_twist```
+    + A twist with values [-1,1] corresponding to relative linear and angular velocities. 1 is full speed in a positive direction, -1 is full speed in the negative direction.
+    + This option completely ignores all PID loops, and offers no stabilization. It is mainly for use with joysticks.
     + Type: geometry_msgs/Twist
 
 Current State Topics:
@@ -94,7 +97,7 @@ We can choose to publish to either of these topics by changing the `sim` argumen
     + Type: std_msgs/Float32MultiArray
 
 
-## How It Works (Structure and Flow)
+## How It Works
 
 ### Structure
 
@@ -107,7 +110,8 @@ This package contains the following custom ROS nodes:
 This package has the following launch files:
 
 * `controls.launch` is the entrypoint to the package. It takes in a `sim` argument to indicate whether we are publishing for the simulation or the Arduino. It includes the `pid.launch` file to launch the PID for position loops. It then starts the three nodes above.
-* `pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for position control on x, y, z, roll, pitch, and yaw. It defines the PID parameters at the top, depending on the `sim` argument passed in.
+* `position_pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for position control on x, y, z, roll, pitch, and yaw. It defines the PID parameters at the top, depending on the `sim` argument passed in.
+* `velocity_pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for velocity control on x, y, z, roll, pitch, and yaw. It defines the PID parameters at the top, depending on the `sim` argument passed in.
 
 This package also defines a new custom message type, `ThrusterSpeeds`, which is the same type as in the package for controlling the Arduino.
 
@@ -131,7 +135,22 @@ This package also defines a new custom message type, `ThrusterSpeeds`, which is 
                            |   Publishing topics
                            v
                   Arduino or Simulation
+
 ```
+
+### PID Flow
+
+This package uses nested PID Loops. When using Position Control, the desired state input is used as the setpoint for the position loop and the output of the position loops is used as a setpoint for the velocity loops. When using Velocity Control, the position loop is bypassed and the desired state input is used as a setpoint for the velocity loops. When using Power Control both of the PID loops are bypassed and the input is directly published to thruster_controls.
+```
+
+                      Velocity Control
+      +-----------------------------------------------+
+      |                                               |
+      |                                               v
+desired_state ---------------> position_pid ---> velocity_pid ---> thruster_controls
+              Position Control
+```
+
 
 ### Configuration
 
@@ -147,8 +166,8 @@ A thruster's starting orientation when aligned with robot frame is defined as th
 ### Scripts
 
 * `state_republisher.py` - listens to Current State Topics and republishes relevant components to their own `/controls/state/...` topics for use in all of the other parts of this controls package.
-* `desired_state.py` - listens to Desired State Topics, warning the user via the console if none or more than one are received, and outputting setpoints to PID loops if desiring position, or powers directly to `thruster_controls` for axes that are velocity/power-controlled.
+* `desired_state.py` - listens to Desired State Topics, warns the user via the console if none or more than one are received, and outputs setpoints to PID loops if desiring position or velocirty, or outputs powers directly to `thruster_controls`.
 * `thruster_controls.py` - listens to control efforts from PID or `desired_state`, uses an instance of `ThrusterManager` to calculate thruster allocations from the them, scales outputs so that the maximum is 1 or -1 in any direction, and publishes to Arduino or simulation movement topics.
 * `thruster_manager.py` - Defines the `ThrusterManager` class, which reads in config file, creates `Thruster` array from it, and has math for calculating thruster allocations.
 * `thruster.py` - Defines the `Thruster` class, which takes in a position and orientation of a thruster relative to the center of the robot, and then calculates and stores the force and torque it exerts on the robot.
-* `drc_math.py` - A library of mathematical functions for controls. (DRC stands for Duke Robotics Club.)
+* `controls_utils.py` - A library of mathematical and helper functions for controls.

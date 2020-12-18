@@ -72,10 +72,7 @@ class ThrusterController:
 
     def _on_pid_received(self, val, direction):
         self.pid_outputs[utils.get_axes().index(direction)] = val.data
-        # TODO: Better check for if the odom exists. 
-        # If the service is enabled before the simulation/robot is started, 
-        # controls spits out a bunch of errors. 
-        if self.enabled: 
+        if self.enabled and 'base_link' in self.listener.getFrameStrings(): 
             self.pid_outputs_local = self.transform_twist('odom', 'base_link', self.pid_outputs)
         self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs_local)
 
