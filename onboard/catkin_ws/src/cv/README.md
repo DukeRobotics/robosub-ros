@@ -7,8 +7,7 @@ on which models are enabled and which cameras are being used.
 
 ## Setup
 
-Generally, for each task you need computer vision for (gates, buoys, etc.), you would train a separate
-object detection model for each one. You can then load them as follows:
+Generally, you would train a separate object detection model for each task you need computer vision for (gates, buoys, etc.). You can then load them as follows:
 
 * Create object detection models and save them as .pth files (see [here](https://github.com/DukeRobotics/documentation/tree/master/cv/training))
 * Place these models in the `/models` folder
