@@ -6,5 +6,8 @@ float64 ymin
 float64 xmax
 float64 ymax
 
+int32 height
+int32 width
+
 string label
 float64 score
