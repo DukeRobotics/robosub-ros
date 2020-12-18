@@ -2,6 +2,8 @@
 sut:
   image: ${IMAGE_NAME}
   entrypoint: ["/bin/sh", "-c",  "cd ~/dev && \
+                                  git config --global user.email action@github.com && \
+                                  git config --global user.name github-actions && \
                                   git clone https://github.com/DukeRobotics/robosub-ros.git && \
                                   cd robosub-ros && \
                                   git checkout ${COMMIT_REF} && \
