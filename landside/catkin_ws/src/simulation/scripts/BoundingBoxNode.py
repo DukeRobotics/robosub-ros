@@ -17,11 +17,16 @@ def node_code():
 	rospy.Subscriber("/sim/object_points", Float32MultiArray, callback)
 	rospy.Subscriber("/sim/pose", PoseStamped, pose_callback)	
 	rate = rospy.Rate(10)
-	rospy.spin()
+	while not rospy.is_shutdown():
+    	hello_str = "hello world %s" % rospy.get_time()
+    	rospy.loginfo(hello_str)
+    	rate.sleep()
 
 def pose_callback(data):
 	global pos
 	global orientation
+
+	rospy.loginfo("pose received")
 
 	position = data.pose.position
 	pos[0] = position.x
@@ -39,8 +44,14 @@ def pose_callback(data):
 def callback(data):
 	global pos, orientation, pub_gate, pub_buoy
 
+	rospy.loginfo("object points received")
+
 	points, objects = parse_array(data.data)
 	boxes = bounding_boxes(points, pos, orientation, objects)
+
+	objstr = ""
+	objstr.join(objects)
+	rospy.loginfo(objstr)
 
 	for i in range(len(objects)):
 		if (objects[i] == 1):
