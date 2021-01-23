@@ -12,11 +12,10 @@ break
 New algo:
 
 while ((can see gate and dist_to_gate > x) | can't see gate (no data))
-	while (cannot see gate)
+	while (cannot see gate | gate not centered)
 		rotate
-	while (can see gate)
-		read gate's pose from CV
-		move to gate's pose
+	while (gate centered (within tolerance))
+		move forward
 
 move through gate (forward)
 break		
