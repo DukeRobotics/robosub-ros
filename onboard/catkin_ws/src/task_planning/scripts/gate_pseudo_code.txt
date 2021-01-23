@@ -11,10 +11,10 @@ break
 
 New algo:
 
-while ((can see gate and dist_to_gate > x) | can't see gate (no data))
-	while (cannot see gate | gate not centered)
+while (not close to gate (i.e. gate not at edge of frame) | cannot see gate (no data))
+	while (cannot see gate | gate not centered (small section not centered if visible))
 		rotate
-	while (gate centered (within tolerance))
+	while (gate centered (within a tolerance))
 		move forward
 
 move through gate (forward)
