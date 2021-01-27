@@ -30,7 +30,7 @@ class GateTask(Task):
         if self.do_gate_magic.finished:
             self.finish()
 
-    def interpret_gate(self, gate_data, gate_tick_data):
+    def scrutinize_gate(self, gate_data, gate_tick_data):
         """Finds the distance from the gate to each of the four edges of the frame
 
         Parameters:
@@ -38,7 +38,12 @@ class GateTask(Task):
         gate_tick_data (custom_msgs/CVObject): cv data for the gate tick
 
         Returns:
-        dict: distances from target area to frame edges from 0 to 1
+        dict: left - distance from left edge of gate to frame edge (from 0 to 1)
+              right - distance from right edge of gate to frame edge (from 0 to 1)
+              top - distance from top edge of gate to frame edge (from 0 to 1)
+              bottom - distance from bottom edge of gate to frame edge (from 0 to 1)
+              offset_h - difference between distances on the right and left sides (from 0 to 1)
+              offset_v - difference between distances on the top and bottom sides (from 0 to 1)
         """
         if gate_data.label == 'none':
             return None
@@ -57,6 +62,9 @@ class GateTask(Task):
                 res["left"] = gate_tick_data.xmin
             
             res["bottom"] = 1 - gate_tick_data.ymax
+
+        res["offset_h"] = res["right"] - res["left"]
+        res["offset_v"] = res["bottom"] - res["left"]
 
         return res
 
