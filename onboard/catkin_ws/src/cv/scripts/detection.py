@@ -83,6 +83,9 @@ class Detector:
                 object_msg.xmax = box[2].item() / shape[1]
                 object_msg.ymax = box[3].item() / shape[0]
 
+                object_msg.height = shape[0]
+                object_msg.width = shape[1]
+
                 # Safety check that publisher is not None
                 if publisher:
                     publisher.publish(object_msg)

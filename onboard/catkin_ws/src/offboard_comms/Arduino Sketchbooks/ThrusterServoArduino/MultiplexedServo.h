@@ -1,15 +1,23 @@
-#ifndef Servos_h
-#define Servos_h
+#ifndef MULTIPLEXEDSERVO_H
+#define MULTIPLEXEDSERVO_H
 
 #include <Arduino.h>
-#include "MultiplexedObject.h"
 #include "Adafruit_PWMServoDriver.h"
 
-class MultiplexedServo:public MultiplexedObject{
+class MultiplexedServo{
+private:
+  uint8_t pin;
+  bool is_attached;
+  Adafruit_PWMServoDriver *multiplexer;
 public:
-    MultiplexedServo(Adafruit_PWMServoDriver *, int);
-    void initialise();
-    void run(int);
+  MultiplexedServo();
+  ~MultiplexedServo();
+  void initialize(Adafruit_PWMServoDriver *);
+  void attach(uint8_t);
+  bool attached();
+  void detach();
+  void write(uint8_t);
+  void writeMicroseconds(uint16_t);
 };
 
-#endif
+#endif // MULTIPLEXEDSERVO_H
