@@ -22,14 +22,14 @@ class CompetitionTask(Task):
         # self.gate = GateTask()
         # self.list_task = ListTask([MoveToPoseGlobalTask(-7, 0, 0, 0, 0, 0)])
         # self.test = GateTask()
-        self.test_vel_local = AllocateVelocityLocalTask(0.2, 0, 0, 0, 0, 0)
-        self.test_vel_global = AllocateVelocityGlobalTask(0.2, 0, 0, 0, 0, 0)
-        self.test_style = StyleTask("x", 0.2)
+        # self.test_vel_local = AllocateVelocityLocalTask(0.2, 0, 0, 0, 0, 0)
+        # self.test_vel_global = AllocateVelocityGlobalTask(0.2, 0, 0, 0, 0, 0)
+        self.test_style = StyleTask("z", .2)
 
     def _on_task_run(self):
-        # self.test_style.run()
-        # if self.test_style.finish():
-        #     self.finish()
+        self.test_style.run()
+        if self.test_style.finish():
+            self.finish()
 
 ###### this checking condition from parent task is likely not how we want to actually
 # do it, just for this pool test
@@ -44,11 +44,11 @@ class CompetitionTask(Task):
         #     self.finish()
 
 
-        self.test_vel_global.run()
-        desired_pose = Pose()
-        desired_pose.position.x = 1
-        desired_pose.position.y = 0
-        desired_pose.position.z = 0
-        if task_utils.at_pose(self.state.pose.pose, desired_pose):
-            self.test_vel_global.finish()
-            self.finish()
+        # self.test_vel_global.run()
+        # desired_pose = Pose()
+        # desired_pose.position.x = 1
+        # desired_pose.position.y = 0
+        # desired_pose.position.z = 0
+        # if task_utils.at_pose(self.state.pose.pose, desired_pose):
+        #     self.test_vel_global.finish()
+        #     self.finish()

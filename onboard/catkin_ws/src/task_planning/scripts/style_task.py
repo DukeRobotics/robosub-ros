@@ -26,6 +26,8 @@ class StyleTask(Task):
         if speed <= 0 or speed > 1:
             raise Exception("power must be between (0, 1] for StyleTask.")
         
+        speed *= 100
+
         self.num_segments = num_segments
         self.angle = angle
         self.seg_rads = angle / num_segments
@@ -33,16 +35,19 @@ class StyleTask(Task):
         direction = angle / abs(angle)
 
         if axis == "x":
-            self.rotate_task = move_tasks.AllocateVelocityTask(0,0,0,speed*direction,0,0)
+            self.rotate_task = move_tasks.AllocateVelocityLocalTask(0,0,0,speed*direction,0,0)
             self.q_angle = quaternion_from_euler(self.seg_rads, 0, 0)
         elif axis == "y":
-            self.rotate_task = move_tasks.AllocateVelocityTask(0,0,0,0,speed*direction,0)
+            self.rotate_task = move_tasks.AllocateVelocityLocalTask(0,0,0,0,speed*direction,0)
             self.q_angle = quaternion_from_euler(0, self.seg_rads, 0)
         elif axis == "z":
-            self.rotate_task = move_tasks.AllocateVelocityTask(0,0,0,0,0,speed*direction)
+            self.rotate_task = move_tasks.AllocateVelocityLocalTask(0,0,0,0,0,speed*direction)
             self.q_angle = quaternion_from_euler(0, 0, self.seg_rads)
         else:
             raise Exception("axis must be \"x\", \"y\", or \"z\"")
+            
+        rospy.loginfo("{} axis turn of {}".format(axis, speed*direction))
+    
     
     def _on_task_start(self):
         """Set some starting values for the style rotation."""
@@ -53,14 +58,14 @@ class StyleTask(Task):
         self.on_finish_segment = False
         self.output["rads_turned"] = 0.0
         self.output["points_scored"] = 0
-        self.velocity_task = AllocateVelocityLocalTask(self.twist.linear.x,
-                                                        self.twist.linear.y,
-                                                        self.twist.linear.z,
-                                                        self.twist.angular.x,
-                                                        self.twist.angular.y,
-                                                        self.twist.angular.z)
-        rospy.loginfo("Now starting turn...")
-
+        self.rotate_task.run()
+        # self.velocity_task = AllocateVelocityLocalTask(self.twist.linear.x,
+        #                                                 self.twist.linear.y,
+        #                                                 self.twist.linear.z,
+        #                                                 self.twist.angular.x,
+        #                                                 self.twist.angular.y,
+        #                                                 self.twist.angular.z)
+        
 
     def _on_task_run(self):
         """Go through the rotation using power control, checking that we hit certain segments as we go."""
@@ -72,7 +77,7 @@ class StyleTask(Task):
         #                              self.twist.angular.y,
         #                              self.twist.angular.z
         #                              )
-        self.velocity_task.run()
+        rospy.loginfo("Now starting turn...")
 
         if not self.on_finish_segment and task_utils.at_pose(self.state.pose.pose, self.target_pose, float("inf"), self.seg_rads / 2):
             self.current_segment += 1

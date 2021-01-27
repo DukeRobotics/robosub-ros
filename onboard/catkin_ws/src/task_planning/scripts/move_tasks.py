@@ -69,6 +69,7 @@ class AllocateVelocityGlobalTask(Task):
         self.desired_twist = Twist(linear=linear, angular=angular)
 
     def _on_task_run(self):
+        rospy.loginfo("publishing desired twist...")
         self.publish_desired_twist(self.desired_twist)
 
 class AllocateVelocityLocalTask(AllocateVelocityGlobalTask):
@@ -89,7 +90,7 @@ class AllocateVelocityLocalTask(AllocateVelocityGlobalTask):
     def _on_task_start(self):
         self.odom_local = Odometry()
         self.odom_local.twist.twist = self.desired_twist
-        self.odom_global = task_utils.transform('base_link', 'odom', self.ddom_local)
+        self.odom_global = task_utils.transform('base_link', 'odom', self.odom_local)
         self.desired_twist = self.odom_global.twist.twist
 
 
