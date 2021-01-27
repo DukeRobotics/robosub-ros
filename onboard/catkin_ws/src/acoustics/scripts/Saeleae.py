@@ -29,7 +29,7 @@ class AcousticsWrapper:
     def publish_feedback(self, stage):
         feedback = SaeleaeFeedback()
         feedback.curr_stage = stage
-        feedback.total_stage = 3
+        feedback.total_stage = 2
         self.server.publish_feedback(feedback)
 
     def publish_result(self, return_file):
@@ -48,8 +48,18 @@ class AcousticsWrapper:
         s = saleae.Saleae(self.IP_ADDRESS, self.PORT)
         analyzer_names = []
         save_file = SaeleaeGoal.save_path
-        publish_feedback(1)
-
+        self.publish_feedback(1)
+        if SaeleaeGoal.hydrophone_set == 1:
+            s.export_data2(SaeleaeGoal.save_path, digital_channels=HYDROPHONE_SET_1, analog_channels=None,
+                           time_span=[0, 0.04], format='csv', column_headers=False, delimiter='comma',
+                           timestamp='time_stamp', display_base='separate', rows_per_change=True)
+        if SaeleaeGoal.hydrophone_set == 2:
+            s.export_data2(SaeleaeGoal.save_path, digital_channels=HYDROPHONE_SET_2, analog_channels=None,
+                           time_span=[0, 0.04], format='csv', column_headers=False, delimiter='comma',
+                           timestamp='time_stamp', display_base='separate', rows_per_change=True)
+        self.publish_feedback(2)
+        self.publish_result(save_file)
+"""
         for x in range(self.CAPTURE_COUNT):
             # set capture duration
             s.set_capture_seconds(self.CAPTURE_DURATION)
@@ -96,9 +106,7 @@ class AcousticsWrapper:
                   #  print('exporting analyzer ' + analyzer[0] + ' to ' + save_path)
                    # s.export_analyzer(analyzer[1], save_path)
                     #analyzer_names.append((analyzer[0],x))
-
-
-        self.publish_result(save_file)
+                    """
 
 
 
