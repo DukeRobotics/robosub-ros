@@ -84,6 +84,12 @@ class LeaderFollowerTask(Task):
         self.leader.run()
         self.follower.run()
 
+    def restart(self):
+        self.unfinish()
+        self.leader.restart()
+        self.follower.restart()
+        self._on_task_start()
+
 
 class IfElseTask(Task):
 
