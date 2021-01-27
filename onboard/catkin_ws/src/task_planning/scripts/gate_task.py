@@ -5,7 +5,6 @@ import task_utils
 import numpy as np
 from geometry_msgs.msg import Point
 
-
 class GateTask(Task):
     DIST_THRESH = 5  # distance to get before blindly move through gate
 
@@ -30,6 +29,36 @@ class GateTask(Task):
         self.do_gate_magic.run()
         if self.do_gate_magic.finished:
             self.finish()
+
+    def interpret_gate(self, gate_data, gate_tick_data):
+        """Finds the distance from the gate to each of the four edges of the frame
+
+        Parameters:
+        gate_data (custom_msgs/CVObject): cv data for the gate
+        gate_tick_data (custom_msgs/CVObject): cv data for the gate tick
+
+        Returns:
+        dict: distances from target area to frame edges from 0 to 1
+        """
+        if gate_data.label == 'none':
+            return None
+        res = {}
+        res["left"] = gate_data.xmin
+        res["right"] = 1 - gate_data.xmax
+        res["top"] = gate_data.ymin
+        res["bottom"] = 1 - gate_data.ymax
+
+        # Adjust the target area if the gate tick is detected
+        if gate_tick_data.label != 'none' and gate_tick_data.score > 0.5:
+            # If the tick is closer to the left side
+            if abs(gate_tick_data.xmin - gate_data.xmin) < abs(gate_tick_data.xmax - gate_data.xmax):
+                res["right"] = 1 - gate_tick_data.xmax
+            else:
+                res["left"] = gate_tick_data.xmin
+            
+            res["bottom"] = 1 - gate_tick_data.ymax
+
+        return res
 
 
 class MoveToGateTask(Task):  # this can be generalized to dynamic point, relies on gate data already accounting for single bad frames
