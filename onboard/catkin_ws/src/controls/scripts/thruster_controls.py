@@ -72,7 +72,7 @@ class ThrusterController:
 
     def _on_pid_received(self, val, direction):
         self.pid_outputs[utils.get_axes().index(direction)] = val.data
-        if self.enabled and 'base_link' in self.listener.getFrameStrings(): 
+        if self.enabled and 'base_link' in self.listener.getFrameStrings():
             self.pid_outputs_local = self.transform_twist('odom', 'base_link', self.pid_outputs)
         self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs_local)
 

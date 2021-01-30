@@ -22,9 +22,9 @@ class DesiredStateHandler:
     REFRESH_HZ = 10  # for main loop
 
     # All variables are a dictionary with mappings between the strings in DIRECTIONS to its corresponding value
-    pose = None  # Desired pose
-    twist = None # Desired twist
-    power = None # Desired power
+    pose = None   # Desired pose
+    twist = None  # Desired twist
+    power = None  # Desired power
     # These dictionaries contain mappings between the strings in DIRECTIONS to the corresponding rospy publisher objects
     pub_pos = {}
     pub_pos_enable = {}
@@ -32,8 +32,6 @@ class DesiredStateHandler:
     pub_vel_enable = {}
     pub_control_effort = {}
     pub_power = {}
-
-
 
     def __init__(self):
         for d in utils.get_axes():
@@ -43,7 +41,6 @@ class DesiredStateHandler:
             self.pub_vel[d] = rospy.Publisher(utils.get_vel_topic(d), Float64, queue_size=3)
             self.pub_control_effort[d] = rospy.Publisher(utils.get_controls_move_topic(d), Float64, queue_size=3)
             self.pub_power[d] = rospy.Publisher(utils.get_power_topic(d), Float64, queue_size=3)
-
 
         rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self._on_pose_received)
         rospy.Subscriber(self.DESIRED_TWIST_TOPIC, Twist, self._on_twist_received)
