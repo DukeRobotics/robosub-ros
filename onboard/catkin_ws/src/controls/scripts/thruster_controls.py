@@ -102,7 +102,7 @@ class ThrusterController:
                     self.t_allocs *= pid_max / t_alloc_max
                 # Clamp values of t_allocs to between -1 to 1
                 self.t_allocs = np.clip(self.t_allocs, -1, 1)
-                
+
                 i8_t_allocs = ThrusterSpeeds()
                 i8_t_allocs.speeds = (self.t_allocs * 127).astype(int)
                 self.pub.publish(i8_t_allocs)

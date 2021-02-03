@@ -55,5 +55,6 @@ class SimulationRepublisher():
         f32_t_allocs.data = np.clip(thruster_speeds/127, -1, 1)
         self.move_pub.publish(f32_t_allocs)
 
+
 SimulationRepublisher()
 rospy.spin()
