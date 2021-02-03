@@ -13,7 +13,7 @@ class StateRepublisher:
     def __init__(self):
         self._pub_pose = {}
         self._pub_twist = {}
-        self.TransformListener = TransformListener()
+        self.listener = TransformListener()
 
         for d in utils.get_axes():
             self._pub_pose[d] = rospy.Publisher(utils.get_pose_topic(d), Float64, queue_size=3)
@@ -24,20 +24,22 @@ class StateRepublisher:
         rospy.spin()
 
     def receive_odometry(self, odometry):
-        # pose = utils.parse_pose(odometry.pose.pose)
-        # utils.publish_data_dictionary(
-        #     self._pub_pose,
-        #     utils.get_axes(),
-        #     utils.transform_pose(self.TransformListener, 'base_link', 'odom', pose)
-        # )
-
-        utils.publish_data_dictionary(
-            self._pub_twist,
-            utils.get_axes(),
-            utils.parse_twist(
-                utils.transform_pose(self.TransformListener, 'base_link', 'odom', odometry.twist.twist)
+        if 'base_link' in self.listener.getFrameStrings():
+            utils.publish_data_dictionary(
+                self._pub_pose,
+                utils.get_axes(),
+                utils.parse_pose(
+                    utils.transform_pose(self.listener, 'base_link', 'odom', odometry.pose.pose)
+                )
             )
-        )
+
+            utils.publish_data_dictionary(
+                self._pub_twist,
+                utils.get_axes(),
+                utils.parse_twist(
+                    utils.transform_pose(self.listener, 'base_link', 'odom', odometry.twist.twist)
+                )
+            )
 
 
 def main():

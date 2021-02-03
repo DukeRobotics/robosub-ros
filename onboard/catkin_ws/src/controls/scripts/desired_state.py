@@ -4,6 +4,7 @@ import rospy
 from geometry_msgs.msg import Pose, Twist
 from std_msgs.msg import Float64, Bool
 import controls_utils as utils
+from tf import TransformListener
 
 
 class bcolors:
@@ -42,15 +43,17 @@ class DesiredStateHandler:
             self.pub_control_effort[d] = rospy.Publisher(utils.get_controls_move_topic(d), Float64, queue_size=3)
             self.pub_power[d] = rospy.Publisher(utils.get_power_topic(d), Float64, queue_size=3)
 
+        self.listener = TransformListener()
+
         rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self._on_pose_received)
         rospy.Subscriber(self.DESIRED_TWIST_TOPIC, Twist, self._on_twist_received)
         rospy.Subscriber(self.DESIRED_POWER_TOPIC, Twist, self._on_power_received)
 
     def _on_pose_received(self, pose):
-        self.pose = utils.parse_pose(pose)
+        self.pose = utils.parse_pose(utils.transform_pose(self.listener, 'base_link', 'odom', pose))
 
     def _on_twist_received(self, twist):
-        self.twist = utils.parse_twist(twist)
+        self.twist = utils.parse_twist(utils.transform_pose(self.listener, 'base_link', 'odom', twist))
 
     def _on_power_received(self, power):
         self.power = utils.parse_twist(power)

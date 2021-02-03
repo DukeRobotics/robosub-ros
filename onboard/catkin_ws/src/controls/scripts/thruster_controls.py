@@ -4,7 +4,6 @@ from std_msgs.msg import Float64, Float32MultiArray
 from custom_msgs.msg import ThrusterSpeeds
 import numpy as np
 from thruster_manager import ThrusterManager
-from tf import TransformListener
 from std_srvs.srv import SetBool
 import controls_utils as utils
 import resource_retriever as rr
@@ -30,8 +29,6 @@ class ThrusterController:
 
         self.tm = ThrusterManager(rr.get_filename('package://controls/config/cthulhu.config', use_protocol=False))
 
-        self.listener = TransformListener()
-
         self.pid_outputs = np.zeros(6)
         self.pid_outputs_local = np.zeros(6)
         self.powers = np.zeros(6)
@@ -48,8 +45,6 @@ class ThrusterController:
 
     def _on_pid_received(self, val, direction):
         self.pid_outputs[utils.get_axes().index(direction)] = val.data
-        if self.enabled and 'base_link' in self.listener.getFrameStrings():
-            self.pid_outputs_local = utils.transform_twist(self.listener, 'odom', 'base_link', self.pid_outputs)
         self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs_local)
 
     def _on_power_received(self, val, direction):
