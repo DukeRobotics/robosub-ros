@@ -3,7 +3,7 @@
 import rospy
 import numpy as np
 from sensor_msgs.msg import Imu
-from std_msgs.msg import Float64, Float32MultiArray
+from std_msgs.msg import Float32MultiArray
 from nav_msgs.msg import Odometry
 from custom_msgs.msg import ThrusterSpeeds
 from geometry_msgs.msg import TwistStamped
