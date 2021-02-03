@@ -15,12 +15,16 @@ class GateTask(Task):
 
     def _on_task_start(self):
         self.gate_search_condition = NearGateTask(self.SIDE_THRESHOLD)  # finishes when can see gate and close to gate
-        self.rotate_condition = GateCenteredTask(self.CENTERED_THRESHOLD)  # finishes when gate is centered
+        self.rotate_condition = GateCenteredTask(self.CENTERED_THRESHOLD)  # finishes when gate is centered horizontally
         self.rotate = LeaderFollowerTask(self.rotate_condition, AllocateVelocityLocalTask(0, 0, 0, 0, 0, self.velocity))
+        self.descend_condition = GateInDirectionTask(self.CENTERED_THRESHOLD, "bottom", return_when_true=False) # finishes when gate is no longer below the robot
+        self.descend = LeaderFollowerTask(self.descend_condition, AllocateVelocityLocalTask(0, 0, -self.velocity, 0, 0, 0))
+        self.ascend_condition = GateInDirectionTask(self.CENTERED_THRESHOLD, "top", return_when_true=False) # finishes when gate is no longer above the robot
+        self.ascend = LeaderFollowerTask(self.ascend_condition, AllocateVelocityLocalTask(0, 0, self.velocity, 0, 0, 0))
         self.advance_condition = GateCenteredTask(self.CENTERED_THRESHOLD, return_on_center=False)  # finishes when/if gate is not centered
-        self.advance = LeaderFollowerTask(self.center_condition, AllocateVelocityLocalTask(self.velocity, 0, 0, 0, 0, 0))
+        self.advance = LeaderFollowerTask(self.advance_condition, AllocateVelocityLocalTask(self.velocity, 0, 0, 0, 0, 0))
         self.gate_magic = ListTask([
-            LeaderFollowerTask(self.gate_search_condition, ListTask([self.rotate, self.advance], -1)),
+            LeaderFollowerTask(self.gate_search_condition, ListTask([self.rotate, self.descend, self.ascend, self.advance], -1)),
             MoveToPoseLocalTask(3, 0, 0, 0, 0, 0)])
 
     def _on_task_run(self):
@@ -63,7 +67,7 @@ class GateTask(Task):
             res["bottom"] = 1 - gate_tick_data.ymax
 
         res["offset_h"] = res["right"] - res["left"]
-        res["offset_v"] = res["bottom"] - res["left"]
+        res["offset_v"] = res["bottom"] - res["top"]
 
         return res
 
@@ -80,18 +84,39 @@ class NearGateTask(Task):
                 self.finish()
 
 
+# Returns when the gate appears towards the direction specified
+class GateInDirectionTask(Task):
+    def __init__(self, threshold, direction, return_when_true=True):
+        super(GateInDirectionTask, self).__init__()
+        self.threshold = threshold
+        # direction should be "left", "right", "top", or "bottom"
+        self.direction = direction.lower()
+        self.return_when_true = return_when_true
+
+    def _on_task_run(self):
+        gate_info = scrutinize_gate(self.gate_data, self.gate_tick_data)
+        if gate_info:
+            offset = gate_info["offset_h" if direction in ["left", "right"] else "offset_v"]
+            if abs(offset) > self.threshold and (offset < 0 if direction in ["right", "bottom"] else offset > 0):
+                if self.return_when_true:
+                    self.finish()
+            elif not(return_when_true):
+                self.finish()
+
+
 class GateCenteredTask(Task):
-    def __init__(self, threshold, return_on_center=True):
+    def __init__(self, threshold, return_on_center=True, horizontal=True):
         super(GateCenteredTask, self).__init__()
         self.threshold = threshold
         self.return_on_center = return_on_center
+        self.horizontal = horizontal
 
     def _on_task_run(self):
         gate_info = scrutinize_gate(self.gate_data, self.gate_tick_data)
         if gate_info:
             if self.return_on_center:
-                if gate_info["offset_h"] < threshold:
+                if abs(gate_info["offset_h" if horizontal else "offset_v"]) < threshold:
                     self.finish()
             else:
-                if gate_info["offset_h"] > threshold:
+                if abs(gate_info["offset_h" if horizontal else "offset_v"]) > threshold:
                     self.finish()
