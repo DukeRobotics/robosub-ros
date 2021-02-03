@@ -46,6 +46,12 @@ class IndSimulTask(Task):
 
         if self.all_finished:
             self.finish()
+    
+    def restart(self):
+        self.unfinish()
+        for task in self.tasks:
+            task.restart()
+        self._on_task_start()
 
 
 class DepSimulTask(Task):
@@ -65,8 +71,14 @@ class DepSimulTask(Task):
 
         if self.any_finished:
             for task in self.tasks:
-                task.finish
+                task.finish()
             self.finish()
+
+    def restart(self):
+        self.unfinish()
+        for task in self.tasks:
+            task.restart()
+        self._on_task_start()
 
 
 class LeaderFollowerTask(Task):
