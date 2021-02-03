@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 import rospy
 from std_msgs.msg import Float64, Float32MultiArray
-from geometry_msgs.msg import Vector3Stamped
 from custom_msgs.msg import ThrusterSpeeds
 import numpy as np
 from thruster_manager import ThrusterManager
-from std_srvs.srv import SetBool
 from tf import TransformListener
+from std_srvs.srv import SetBool
 import controls_utils as utils
 import resource_retriever as rr
 
@@ -46,34 +45,11 @@ class ThrusterController:
         self.enabled = req.data
         return {'success': True, 'message': 'Successfully set enabled to ' + str(req.data)}
 
-    def transform_twist(self, base_frame, target_frame, twist):
-        lin = Vector3Stamped()
-        ang = Vector3Stamped()
-
-        lin.header.frame_id = base_frame
-        ang.header.frame_id = base_frame
-
-        lin.vector.x = twist[0]
-        lin.vector.y = twist[1]
-        lin.vector.z = twist[2]
-        ang.vector.x = twist[3]
-        ang.vector.y = twist[4]
-        ang.vector.z = twist[5]
-
-        lin_local = self.listener.transformVector3(target_frame, lin)
-        ang_local = self.listener.transformVector3(target_frame, ang)
-
-        return np.array([lin_local.vector.x,
-                         lin_local.vector.y,
-                         lin_local.vector.z,
-                         ang_local.vector.x,
-                         ang_local.vector.y,
-                         ang_local.vector.z])
 
     def _on_pid_received(self, val, direction):
         self.pid_outputs[utils.get_axes().index(direction)] = val.data
         if self.enabled and 'base_link' in self.listener.getFrameStrings():
-            self.pid_outputs_local = self.transform_twist('odom', 'base_link', self.pid_outputs)
+            self.pid_outputs_local = utils.transform_twist(self.listener, 'odom', 'base_link', self.pid_outputs)
         self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs_local)
 
     def _on_power_received(self, val, direction):
