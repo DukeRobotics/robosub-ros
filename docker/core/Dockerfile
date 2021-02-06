@@ -65,8 +65,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
 
 # Install pip
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python3 get-pip.py && \
-    python -m pip install pip==8.1.1 
+    python3 get-pip.py pip==8.1.1
 
 # Set up locales
 RUN locale-gen en_GB.UTF-8 && locale-gen en_US.UTF-8
