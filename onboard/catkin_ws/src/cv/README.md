@@ -76,7 +76,7 @@ Once 1+ models are enabled for a specific node, they listen and publish to topic
   * `<topic_name>` is what was specified under `topic` in the `models.yaml` file for each enabled model
     (e.g. the example `buoy` model above might publish to `/cv/buoy/left`)
   * For each detected object in a frame, the model will publish the `xmin`, `ymin`, `xmax`, and `ymax` 
-    coordinates (normalized to \[0, 1\]), `label` of the object, `score` (a confidence value in the range
+    coordinates (normalized to \[0, 1\], with (0, 0) being the top-left corner), `label` of the object, `score` (a confidence value in the range
     of \[0, 1\]), and the `width` and `height` of the frame. 
     * Note: Only the highest-confidence prediction of each label type is published (e.g. if 5 bounding boxes 
       were predicted for a gate object, only the one with the highest score is chosen)
