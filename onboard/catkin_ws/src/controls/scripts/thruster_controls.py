@@ -45,12 +45,12 @@ class ThrusterController:
 
     def _on_pid_received(self, val, direction):
         self.pid_outputs[utils.get_axes().index(direction)] = val.data
-        self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs_local)
+        self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs)
 
     def _on_power_received(self, val, direction):
         self.powers[utils.get_axes().index(direction)] = val.data
-        self.pid_outputs_local = self.powers
-        self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs_local)
+        self.pid_outputs = self.powers
+        self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs)
 
     def run(self):
         rate = rospy.Rate(10)  # 10 Hz
@@ -70,7 +70,7 @@ class ThrusterController:
             if self.enabled:
                 # Scale thruster alloc max to PID max
                 t_alloc_max = float(np.max(np.absolute(self.t_allocs)))
-                pid_max = float(np.max(np.absolute(self.pid_outputs_local)))
+                pid_max = float(np.max(np.absolute(self.pid_outputs)))
 
                 if t_alloc_max != 0:
                     # Multiply each thruster allocation by scaling ratio

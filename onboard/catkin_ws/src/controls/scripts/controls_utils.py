@@ -1,5 +1,4 @@
 from tf.transformations import euler_from_quaternion, quaternion_multiply, quaternion_conjugate
-import numpy as np
 from geometry_msgs.msg import Vector3Stamped, Twist, PoseStamped
 
 
@@ -74,11 +73,9 @@ def quat_vec_mult(q1, v1):
 def transform_pose(listener, base_frame, target_frame, pose):
     pose_stamped = PoseStamped()
     pose_stamped.pose = pose
-
     pose_stamped.header.frame_id = base_frame
 
     return listener.transformPose(target_frame, pose_stamped).pose
-
 
 
 def transform_twist(listener, base_frame, target_frame, twist):

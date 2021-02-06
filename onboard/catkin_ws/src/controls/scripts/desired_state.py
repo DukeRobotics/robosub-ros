@@ -35,6 +35,7 @@ class DesiredStateHandler:
     pub_power = {}
 
     def __init__(self):
+        rospy.init_node('desired_state')
         for d in utils.get_axes():
             self.pub_pos[d] = rospy.Publisher(utils.get_pid_topic(d), Float64, queue_size=3)
             self.pub_pos_enable[d] = rospy.Publisher(utils.get_pos_pid_enable(d), Bool, queue_size=3)
@@ -50,10 +51,10 @@ class DesiredStateHandler:
         rospy.Subscriber(self.DESIRED_POWER_TOPIC, Twist, self._on_power_received)
 
     def _on_pose_received(self, pose):
-        self.pose = utils.parse_pose(utils.transform_pose(self.listener, 'base_link', 'odom', pose))
+        self.pose = utils.parse_pose(utils.transform_pose(self.listener, 'odom', 'base_link', pose))
 
     def _on_twist_received(self, twist):
-        self.twist = utils.parse_twist(utils.transform_pose(self.listener, 'base_link', 'odom', twist))
+        self.twist = utils.parse_twist(utils.transform_twist(self.listener, 'odom', 'base_link', twist))
 
     def _on_power_received(self, power):
         self.power = utils.parse_twist(power)

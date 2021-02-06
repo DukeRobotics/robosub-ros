@@ -88,9 +88,9 @@ class TestStatePublisher:
 
 
 def main():
-    # TestStatePublisher().publish_desired_pose()
+    TestStatePublisher().publish_desired_pose()
     # TestStatePublisher().publish_desired_twist()
-    TestStatePublisher().publish_desired_power()
+    # TestStatePublisher().publish_desired_power()
 
 
 if __name__ == '__main__':

@@ -11,6 +11,7 @@ class StateRepublisher:
     STATE_TOPIC = '/state'
 
     def __init__(self):
+        rospy.init_node('state_republisher')
         self._pub_pose = {}
         self._pub_twist = {}
         self.listener = TransformListener()
@@ -29,7 +30,7 @@ class StateRepublisher:
                 self._pub_pose,
                 utils.get_axes(),
                 utils.parse_pose(
-                    utils.transform_pose(self.listener, 'base_link', 'odom', odometry.pose.pose)
+                    utils.transform_pose(self.listener, 'odom', 'base_link', odometry.pose.pose)
                 )
             )
 
@@ -37,7 +38,7 @@ class StateRepublisher:
                 self._pub_twist,
                 utils.get_axes(),
                 utils.parse_twist(
-                    utils.transform_pose(self.listener, 'base_link', 'odom', odometry.twist.twist)
+                    utils.transform_twist(self.listener, 'odom', 'base_link', odometry.twist.twist)
                 )
             )
 
