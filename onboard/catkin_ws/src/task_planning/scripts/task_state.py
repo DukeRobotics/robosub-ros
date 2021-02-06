@@ -19,11 +19,14 @@ class TaskState:
         self.desired_twist_power_publisher = rospy.Publisher(self.DESIRED_TWIST_POWER_TOPIC, Twist, queue_size=5)
         self.desired_twist_velocity_publisher = rospy.Publisher(self.DESIRED_TWIST_VELOCITY_TOPIC, Twist, queue_size=5)
         self.state = None
+
+        self.cv_data = {
+            'gate': None,
+            'gate_tick': None
+        }
         self.cv_gate_data_listener = rospy.Subscriber(self.CV_GATE_DATA_TOPIC, CVObject, self._on_receive_gate_data)
         self.cv_gate_tick_data_listener = rospy.Subscriber(self.CV_GATE_TICK_DATA_TOPIC, CVObject,
                                                            self._on_receive_gate_tick_data)
-        self.gate_data = None
-        self.gate_tick_data = None
 
     def _on_receive_state(self, state):
         """Receive the state, update initial_state if it is empty
@@ -31,7 +34,7 @@ class TaskState:
         self.state = state
 
     def _on_receive_gate_data(self, gate_data):
-        self.gate_data = gate_data
+        self.cv_data['gate'] = gate_data
 
     def _on_receive_gate_tick_data(self, gate_tick_data):
-        self.gate_tick_data = gate_tick_data
+        self.cv_data['gate_tick'] = gate_tick_data

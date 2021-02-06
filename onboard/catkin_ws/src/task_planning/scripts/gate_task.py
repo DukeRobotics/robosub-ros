@@ -78,7 +78,7 @@ class NearGateTask(Task):
         self.threshold = threshold
 
     def _on_task_run(self):
-        gate_info = scrutinize_gate(self.gate_data, self.gate_tick_data)
+        gate_info = scrutinize_gate(self.cv_data['gate'], self.cv_data['gate_tick'])
         if gate_info:
             if (gate_info["left"] > self.threshold) and (gate_info["right"] > self.threshold):
                 self.finish()
@@ -94,7 +94,7 @@ class GateInDirectionTask(Task):
         self.return_when_true = return_when_true
 
     def _on_task_run(self):
-        gate_info = scrutinize_gate(self.gate_data, self.gate_tick_data)
+        gate_info = scrutinize_gate(self.cv_data['gate'], self.cv_data['gate_tick'])
         if gate_info:
             offset = gate_info["offset_h" if direction in ["left", "right"] else "offset_v"]
             if abs(offset) > self.threshold and (offset < 0 if direction in ["right", "bottom"] else offset > 0):
@@ -112,7 +112,7 @@ class GateCenteredTask(Task):
         self.horizontal = horizontal
 
     def _on_task_run(self):
-        gate_info = scrutinize_gate(self.gate_data, self.gate_tick_data)
+        gate_info = scrutinize_gate(self.cv_data['gate'], self.cv_data['gate_tick'])
         if gate_info:
             if self.return_on_center:
                 if abs(gate_info["offset_h" if horizontal else "offset_v"]) < threshold:
