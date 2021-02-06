@@ -1,3 +1,4 @@
+
 from task import Task
 
 
@@ -105,20 +106,20 @@ class LeaderFollowerTask(Task):
 
 class IfElseTask(Task):
 
-    def __init__(self, condition, taskone, tasktwo):
+    def __init__(self, condition, task_one, task_two):
         super(IfElseTask, self).__init__()
         self.condition = condition
-        self.taskOne = taskone
-        self.taskTwo = tasktwo
+        self.task_one = task_one
+        self.task_two = task_two
 
     def _on_task_start(self):
         if self.condition:
-            self.taskRunning = self.taskOne
+            self.task_running = self.task_one
         else:
-            self.taskRunning = self.taskTwo
-        self.taskRunning.run()
+            self.task_running = self.task_two
+        self.task_running.run()
 
     def _on_task_run(self):
-        if self.taskRunning.finished:
+        if self.task_running.finished:
             self.finish()
 
