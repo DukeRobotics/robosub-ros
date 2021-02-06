@@ -14,9 +14,9 @@
     <arg name = "y_vel_Ki" default = "0.001" />
     <arg name = "y_vel_Kd" default = "0.001" />
 
-    <arg name = "z_vel_Kp" default = "1" />
+    <arg name = "z_vel_Kp" default = "100" />
     <arg name = "z_vel_Ki" default = "0.001" />
-    <arg name = "z_vel_Kd" default = "0.001" />
+    <arg name = "z_vel_Kd" default = "1" />
 
     <arg name = "roll_vel_Kp" default = "0.01" />
     <arg name = "roll_vel_Ki" default = "0.001" />

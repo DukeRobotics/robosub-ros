@@ -21,19 +21,20 @@ class TestStatePublisher:
 
         # These values correspond to the desired pose of the robot
         self.desired_pose = Pose()
-        self.desired_pose.position.x = 1
+        self.desired_pose.position.x = 0
         self.desired_pose.position.y = 0
-        self.desired_pose.position.z = 0
+        self.desired_pose.position.z = -1
         self.desired_pose.orientation.x = 0
         self.desired_pose.orientation.y = 0
         self.desired_pose.orientation.z = 0
         self.desired_pose.orientation.w = 1
 
         # These values correspond to the desired twist for the robot
+        # Max linear z speed is ~ -0.26
         self.desired_twist = Twist()
-        self.desired_twist.linear.x = 1
-        self.desired_twist.linear.y = 1
-        self.desired_twist.linear.z = 0
+        self.desired_twist.linear.x = 0
+        self.desired_twist.linear.y = 0
+        self.desired_twist.linear.z = -.1
         self.desired_twist.angular.x = 0
         self.desired_twist.angular.y = 0
         self.desired_twist.angular.z = 0
@@ -88,8 +89,8 @@ class TestStatePublisher:
 
 
 def main():
-    TestStatePublisher().publish_desired_pose()
-    # TestStatePublisher().publish_desired_twist()
+    # TestStatePublisher().publish_desired_pose()
+    TestStatePublisher().publish_desired_twist()
     # TestStatePublisher().publish_desired_power()
 
 
