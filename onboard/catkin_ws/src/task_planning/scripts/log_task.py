@@ -10,11 +10,11 @@ class LogTask(Task):
         self.message = message
 
         self.logDict = {
-            "DEBUG": rospy.logdebug,
-            "INFO": rospy.loginfo,
-            "WARN": rospy.logwarn,
-            "ERROR": rospy.logerr,
-            "FATAL": rospy.logfatal
+            "DEBUG" : rospy.logdebug,
+            "INFO" : rospy.loginfo,
+            "WARN" : rospy.logwarn,
+            "ERROR" : rospy.logerr,
+            "FATAL" : rospy.logfatal
         }
 
     def _on_task_run(self):

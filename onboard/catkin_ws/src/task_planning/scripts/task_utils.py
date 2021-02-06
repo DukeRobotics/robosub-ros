@@ -143,6 +143,7 @@ def transform(origin_frame, dest_frame, poseORodom):
     trans = tfBuffer.lookup_transform(dest_frame, origin_frame, rospy.Time(), rospy.Duration(0.5))
     trans_stamped = TransformStamped(transform=trans)
 
+
     if isinstance(poseORodom, PoseStamped):
         transformed = tf2_geometry_msgs.do_transform_pose(poseORodom, trans)
         return transformed
@@ -174,10 +175,8 @@ def transform(origin_frame, dest_frame, poseORodom):
         twist_point_angular_stamped = PointStamped(point=temp_twist_point_angular)
 
         # points transformed
-        transformed_twist_point_linear_stamped = tf2_geometry_msgs.do_transform_point(
-            twist_point_linear_stamped, trans)
-        transformed_twist_point_angular_stamped = tf2_geometry_msgs.do_transform_point(
-            twist_point_angular_stamped, trans)
+        transformed_twist_point_linear_stamped = tf2_geometry_msgs.do_transform_point(twist_point_linear_stamped, trans)
+        transformed_twist_point_angular_stamped = tf2_geometry_msgs.do_transform_point(twist_point_angular_stamped, trans)
 
         # points to twist
         transformed_twist = Twist()
@@ -197,7 +196,6 @@ def transform(origin_frame, dest_frame, poseORodom):
         # add invalid message type message here
         return poseORodom
 
-
 def add_poses(pose_list):
     """Adds a list of poses
 
@@ -216,7 +214,6 @@ def add_poses(pose_list):
         p_sum.y += pose.position.y
         p_sum.z += pose.position.z
 
-        q_sum = quaternion_multiply(
-            [pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w], q_sum)
+        q_sum = quaternion_multiply([pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w], q_sum)
     
     return Pose(p_sum, Quaternion(*q_sum))
