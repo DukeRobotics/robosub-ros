@@ -2,10 +2,12 @@
 
 ## Overview
 ### High Level Overview
-Task planning is the control center of the robot. It uses data from sensor fusion and computer vision and gives instructions to controls. It operates at the highest level of the software subsystems and controls the overall actions of the robot: what tasks the robot attempts and in what order, where the robot moves, when the robot moves to the next task, etc. See the [flow diagram](../../../../README.md#flow) in main README to see where it fits in the overall system.
+Task planning is the control center - the brains - of the robot. It operates at the highest level of the software subsystems and controls the overall actions of the robot: what tasks the robot attempts and in what order, where the robot moves, when the robot moves to the next task, etc. It uses data from sensor fusion and computer vision and gives instructions to controls. See the [flow diagram](../../../../README.md#flow) in main README to see where it fits in the overall system.
 
 ### Code Structure
-The task planning code is designed in a hierarchy built on the `task` object (i.e. higher level tasks inherit from the `task` object). The structure operates similarly to Arduino (which has `setup()` and `loop()` methods). The `task` object has an `_on_task_start` method: analogous to `setup()` in Arduino, this is run *once* the first time the task is run (i.e. when `task.run()` is called). This differs from the `init` method which runs once when the task is initialized. The `task` object also has an `_on_task_run` method: analogous to `loop()` in Arduino, this method is run over and over. For example, see the follwoing code:
+The robot is controlled through running a series of tasks. Every task inherits from the `Task` object. The `Task` object's  `_on_task_start()` function runs *once* when the task is run using `Task.run()`. Then `_on_task_run()` runs repeatedly until the task is finished using `Task.finish()`. If you have used [Arduino](https://www.arduino.cc/en/software) or [Processing](https://processing.org/) before, this is analagous to the `setup()` and `loop()` methods.
+
+Take a look at this example and its output below.
 ```python
 class ExampleTask(Task):
         
