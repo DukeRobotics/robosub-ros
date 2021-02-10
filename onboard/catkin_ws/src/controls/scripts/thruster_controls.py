@@ -10,8 +10,6 @@ import resource_retriever as rr
 
 
 class ThrusterController:
-
-    SIM_PUB_TOPIC = '/sim/move'
     ROBOT_PUB_TOPIC = '/offboard/thruster_speeds'
 
     enabled = False
@@ -19,11 +17,7 @@ class ThrusterController:
     def __init__(self):
         rospy.init_node('thruster_controls')
 
-        self.sim = rospy.get_param('~/thruster_controls/sim')
-        if not self.sim:
-            self.pub = rospy.Publisher(self.ROBOT_PUB_TOPIC, ThrusterSpeeds, queue_size=3)
-        else:
-            self.pub = rospy.Publisher(self.SIM_PUB_TOPIC, Float32MultiArray, queue_size=3)
+        self.pub = rospy.Publisher(self.ROBOT_PUB_TOPIC, ThrusterSpeeds, queue_size=3)
 
         self.enable_service = rospy.Service('enable_controls', SetBool, self.handle_enable_controls)
 
@@ -58,14 +52,9 @@ class ThrusterController:
         while not rospy.is_shutdown():
             if not self.enabled:
                 # If not enabled, publish all 0s.
-                if not self.sim:
-                    i8_t_allocs = ThrusterSpeeds()
-                    i8_t_allocs.speeds = np.zeros(8)
-                    self.pub.publish(i8_t_allocs)
-                else:
-                    f32_t_allocs = Float32MultiArray()
-                    f32_t_allocs.data = np.zeros(8)
-                    self.pub.publish(f32_t_allocs)
+                i8_t_allocs = ThrusterSpeeds()
+                i8_t_allocs.speeds = np.zeros(8)
+                self.pub.publish(i8_t_allocs)
 
             if self.enabled:
                 # Scale thruster alloc max to PID max
@@ -78,14 +67,9 @@ class ThrusterController:
                 # Clamp values of t_allocs to between -1 to 1
                 self.t_allocs = np.clip(self.t_allocs, -1, 1)
 
-                if not self.sim:
-                    i8_t_allocs = ThrusterSpeeds()
-                    i8_t_allocs.speeds = (self.t_allocs * 127).astype(int)
-                    self.pub.publish(i8_t_allocs)
-                else:
-                    f32_t_allocs = Float32MultiArray()
-                    f32_t_allocs.data = self.t_allocs
-                    self.pub.publish(f32_t_allocs)
+                i8_t_allocs = ThrusterSpeeds()
+                i8_t_allocs.speeds = (self.t_allocs * 127).astype(int)
+                self.pub.publish(i8_t_allocs)
 
             rate.sleep()
 

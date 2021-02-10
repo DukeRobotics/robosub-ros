@@ -1,11 +1,11 @@
 # Controls
 
 
-These are the instructions to initialize and test our controls algorithm. We take input from various topics and move the robot based on desired global position or desired power. By default, we publish thruster power outputs (thruster allocations) on a range [-128, 127] for the Arduino. We can also publish values on a range [-1, 1] for the simulation.
+These are the instructions to initialize and test our controls algorithm. We take input from various topics and move the robot based on desired global position or desired power. By default, we publish thruster power outputs (thruster allocations) on a range [-128, 127].
 
 Thruster information is read from `*.config` files, which are written in YAML. The ordering of the thruster allocations is determined by the order in which the thrusters appear the config file.
 
-`controls.launch` takes in a `sim` argument to indicate whether we are publishing for the simulation or the Arduino.
+`controls.launch` takes in a `sim` argument to indicate whether it is running in the simulation or on the robot.
 
 Only the most recently updated Desired State Topic will be used in movement. Therefore any updates will override the current movement of the robot. Controls will warn you if more than one Desired State Topic is being published to at any given time to prevent such issues. If Controls stops receiving Desired State messages at a high enough rate (at the moment, 10 Hz), it will warn you and will output zero power for safety purposes.
 
@@ -87,14 +87,11 @@ Current State Topics:
 
 ### Publishing
 
-We can choose to publish to either of these topics by changing the `sim` argument in the `controls.launch` file. It defaults to `false` for the Arduino, but can also be `true` for the simulation.
+Thruster speeds are published for the use of the simulation and Arduino.
 
   - ```/offboard/thruster_speeds```
     + An array of 8 8-bit integers [-128,127] describing the allocation of the thrusters sent to the Arduino
     + Type: controls.msg/ThrusterSpeeds
-  - ```/sim/move```
-    + An array of 8 floats [-1,1] describing the allocation of the thrusters sent to the simulation
-    + Type: std_msgs/Float32MultiArray
 
 
 ## How It Works
@@ -111,7 +108,7 @@ This package has the following launch files:
 
 * `controls.launch` is the entrypoint to the package. It takes in a `sim` argument to indicate whether we are publishing for the simulation or the Arduino. It includes the `pid.launch` file to launch the PID for position loops. It then starts the three nodes above.
 * `position_pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for position control on x, y, z, roll, pitch, and yaw. It defines the PID parameters at the top, depending on the `sim` argument passed in.
-* `velocity_pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for velocity control on x, y, z, roll, pitch, and yaw. It defines the PID parameters at the top, depending on the `sim` argument passed in.
+* `velocity_pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for velocity control on x, y, z, roll, pitch, and yaw. For ease of tuning via dynamic reconfiguration, this file accepts PID simulation constants as parameters which are used if the `sim` argument is asserted. 
 
 This package also defines a new custom message type, `ThrusterSpeeds`, which is the same type as in the package for controlling the Arduino.
 
