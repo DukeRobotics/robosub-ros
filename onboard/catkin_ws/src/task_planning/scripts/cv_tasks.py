@@ -2,6 +2,7 @@ from task import Task
 from geometry_msgs.msg import Pose, Quaternion, Twist, Point, Vector3
 from nav_msgs.msg import Odometry
 from tf.transformations import quaternion_from_euler
+from move_tasks import AllocateVelocityLocalTask
 import task_utils
 import rospy
 
@@ -22,27 +23,39 @@ class MoveOneCVPointToAnotherTask(Task):
         self.method = method
         self.camera = camera
         self.tolerance = tolerance
+        self.linear_constant = 0.5
+        self.rotation_constant = 0.2
 
     def _on_task_start(self):
         pass
 
-    def _on_task_run(self):
+    def _on_task_run(self):  # better to use pose once we have depth info
         o = self.cv_data[self.cv_obstacle]
         self.x_curr = o.xmin + (o.xmax - o.xmin) / 2
         self.y_curr = o.ymin + (o.ymax - o.ymin) / 2
         x_diff = self.x_target - self.x_curr
         y_diff = self.y_target - self.y_curr
 
-        if x_diff <= self.tolerance and y_diff <= self.tolerance:
+        if abs(x_diff) <= self.tolerance and abs(y_diff) <= self.tolerance:
             self.finish()
             return
 
+        x_linear_vel = self.constant * x_diff
+        y_linear_vel = self.constant * y_diff
+        x_angular_vel = self.rotation_constant * x_diff
+        y_angular_vel = self.rotation_constant * y_diff
+
+        if self.vel_task:
+            self.vel_task.finish()
+
         if self.method == "rotate" and self.camera == "front":
-            # allocate local velocity - need to update that task to actually publish stuff first
-            pass
+            self.vel_task = AllocateVelocityLocalTask(0, 0, 0, 0, y_angular_vel, x_angular_vel)
         elif self.method == "rotate" and self.camera == "down":
-            pass
+            self.vel_task = AllocateVelocityLocalTask(0, 0, 0, x_angular_vel, y_angular_vel, 0)
         elif self.method == "strafe" and self.camera == "front":
-            pass
+            self.vel_task = AllocateVelocityLocalTask(x_linear_vel, 0, y_linear_vel, 0, 0, 0)
         elif self.method == "strafe" and self.camera == "down":
-            pass
+            self.vel_task = AllocateVelocityLocalTask(x_linear_vel, y_linear_vel, 0, 0, 0, 0)
+
+        if self.vel_task:
+            self.vel_task.run()
