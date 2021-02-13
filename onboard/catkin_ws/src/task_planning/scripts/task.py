@@ -29,8 +29,8 @@ class Task:
         return self.task_state.state
 
     @property
-    def gate_data(self):
-        return self.task_state.gate_data
+    def cv_data(self):
+        return self.task_state.cv_data
     
 
     def _on_task_start_default(self):

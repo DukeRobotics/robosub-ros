@@ -61,6 +61,7 @@ class AllocatePowerTask(Task):
     def _on_task_run(self):
         self.publish_desired_twist_power(self.twist_power)
 
+
 class AllocateVelocityGlobalTask(Task):
     def __init__(self, x, y, z, roll, pitch, yaw):
         super(AllocateVelocityGlobalTask, self).__init__()
@@ -71,6 +72,7 @@ class AllocateVelocityGlobalTask(Task):
     def _on_task_run(self):
         rospy.loginfo("publishing desired twist...")
         self.publish_desired_twist(self.desired_twist)
+
 
 class AllocateVelocityLocalTask(AllocateVelocityGlobalTask):
     """Allocate specified velocity in a direction"""
@@ -92,7 +94,6 @@ class AllocateVelocityLocalTask(AllocateVelocityGlobalTask):
         self.odom_local.twist.twist = self.desired_twist
         self.odom_global = task_utils.transform('base_link', 'odom', self.odom_local)
         self.desired_twist = self.odom_global.twist.twist
-
 
 
 class HoldPositionTask(Task):

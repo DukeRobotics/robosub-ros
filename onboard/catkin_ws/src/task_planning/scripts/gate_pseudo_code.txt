@@ -11,7 +11,7 @@ break
 
 New algo:
 
-while (not close to gate (i.e. gate not at edge of frame) | cannot see gate (no data))
+while (not close to gate (i.e. gate (both sides) not near edge of frame) | cannot see gate (no data))
 	while (cannot see gate | gate not centered (small section not centered if visible))
 		rotate
 	while (gate centered (within a tolerance))
