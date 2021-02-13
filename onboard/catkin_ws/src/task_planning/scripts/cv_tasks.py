@@ -42,8 +42,8 @@ class MoveOneCVPointToAnotherTask(Task):
             self.finish()
             return
 
-        x_linear_vel = self.constant * x_diff
-        y_linear_vel = self.constant * y_diff
+        x_linear_vel = self.linear_constant * x_diff
+        y_linear_vel = self.linear_constant * y_diff
         x_angular_vel = self.rotation_constant * x_diff
         y_angular_vel = self.rotation_constant * y_diff
 
@@ -51,13 +51,13 @@ class MoveOneCVPointToAnotherTask(Task):
             self.vel_task.finish()
 
         if self.method == "rotate" and self.camera == "front":
-            self.vel_task = AllocateVelocityLocalTask(0, 0, 0, 0, y_angular_vel, x_angular_vel)
+            self.vel_task = AllocateVelocityLocalTask(0, 0, 0, 0, -y_angular_vel, x_angular_vel)
         elif self.method == "rotate" and self.camera == "down":
-            self.vel_task = AllocateVelocityLocalTask(0, 0, 0, x_angular_vel, y_angular_vel, 0)
+            self.vel_task = AllocateVelocityLocalTask(0, 0, 0, x_angular_vel, -y_angular_vel, 0)
         elif self.method == "strafe" and self.camera == "front":
-            self.vel_task = AllocateVelocityLocalTask(x_linear_vel, 0, y_linear_vel, 0, 0, 0)
+            self.vel_task = AllocateVelocityLocalTask(0, x_linear_vel, y_linear_vel, 0, 0, 0)
         elif self.method == "strafe" and self.camera == "down":
-            self.vel_task = AllocateVelocityLocalTask(x_linear_vel, y_linear_vel, 0, 0, 0, 0)
+            self.vel_task = AllocateVelocityLocalTask(y_linear_vel, x_linear_vel, 0, 0, 0, 0)
 
         if self.vel_task:
             self.vel_task.run()
