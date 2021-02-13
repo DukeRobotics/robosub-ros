@@ -37,6 +37,8 @@ class MoveOneCVPointToAnotherTask(Task):
         y_diff = self.y_target - self.y_curr
 
         if abs(x_diff) <= self.tolerance and abs(y_diff) <= self.tolerance:
+            if self.vel_task:
+                self.vel_task.finish()
             self.finish()
             return
 
