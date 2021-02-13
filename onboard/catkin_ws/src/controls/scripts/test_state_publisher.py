@@ -34,7 +34,7 @@ class TestStatePublisher:
         self.desired_twist = Twist()
         self.desired_twist.linear.x = 0
         self.desired_twist.linear.y = 0
-        self.desired_twist.linear.z = -.1
+        self.desired_twist.linear.z = -.3
         self.desired_twist.angular.x = 0
         self.desired_twist.angular.y = 0
         self.desired_twist.angular.z = 0

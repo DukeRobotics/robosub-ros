@@ -87,7 +87,7 @@ function extsysCall_init()
     thrusterforce = 5.25 --4.1 rev
     thrusterforceforward = 5.25
     thrusterforcebackward = 4.1
-    actualmass = 22
+    actualmass = 25.8
     fudgeforce = thrusterforce * m / actualmass
     dragcoef = 1.1 --original: 1.1
     globforce = { 0, 0, 0 }
