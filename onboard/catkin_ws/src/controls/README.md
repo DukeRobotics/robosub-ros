@@ -1,7 +1,7 @@
 # Controls
 
 
-These are the instructions to initialize and test our controls algorithm. We take input from various topics and move the robot based on desired global position or desired power. By default, we publish thruster power outputs (thruster allocations) on a range [-128, 127].
+These are the instructions to initialize and test our controls algorithm. We take input from various topics and move the robot based on desired global position, global velocity, or power. By default, we publish thruster power outputs (thruster allocations) on a range [-128, 127].
 
 Thruster information is read from `*.config` files, which are written in YAML. The ordering of the thruster allocations is determined by the order in which the thrusters appear the config file.
 
@@ -70,13 +70,13 @@ Desired State Topics:
   - ```controls/desired_pose```
     + A point and quaternion representing the robot's desired global xyz position and rpy orientation.
     + Type: geometry_msgs/Pose
-  - ```controls/desired_power```
-    +  A twist with values [-1,1] (TBD) corresponding to global linear and angular velocities.
+  - ```controls/desired_twist```
+    +  A twist with values [-1,1] corresponding to global linear and angular velocities.
     + Type: geometry_msgs/Twist
 
-  - ```controls/desired_twist```
-    + A twist with values [-1,1] corresponding to relative linear and angular velocities. 1 is full speed in a positive direction, -1 is full speed in the negative direction.
-    + This option completely ignores all PID loops, and offers no stabilization. It is mainly for use with joysticks.
+  - ```controls/desired_power```
+    + A twist with values [-1,1] corresponding to relative control efforts. 1 is full speed in a positive direction, -1 is full speed in the negative direction.
+    + This option offers velocity stabilization on all axes with 0 power input. It is mainly for use with joysticks.
     + Type: geometry_msgs/Twist
 
 Current State Topics:
@@ -137,7 +137,7 @@ This package also defines a new custom message type, `ThrusterSpeeds`, which is 
 
 ### PID Flow
 
-This package uses nested PID Loops. When using Position Control, the desired state input is used as the setpoint for the position loop and the output of the position loops is used as a setpoint for the velocity loops. When using Velocity Control, the position loop is bypassed and the desired state input is used as a setpoint for the velocity loops. When using Power Control both of the PID loops are bypassed and the input is directly published to thruster_controls.
+This package uses nested PID Loops. When using Position Control, the desired state input is used as the setpoint for the position loop and the output of the position loops is used as a setpoint for the velocity loops. When using Velocity Control, the position loop is bypassed and the desired state input is used as a setpoint for the velocity loops. When using Power Control both of the PID loops are bypassed and the input is directly published to thruster_controls. 
 ```
 
                       Velocity Control

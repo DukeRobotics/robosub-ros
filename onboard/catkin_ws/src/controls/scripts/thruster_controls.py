@@ -36,14 +36,13 @@ class ThrusterController:
         self.enabled = req.data
         return {'success': True, 'message': 'Successfully set enabled to ' + str(req.data)}
 
-
     def _on_pid_received(self, val, direction):
         self.pid_outputs[utils.get_axes().index(direction)] = val.data
         self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs)
 
     def _on_power_received(self, val, direction):
-        self.powers[utils.get_axes().index(direction)] = val.data
-        self.pid_outputs = self.powers
+        if val.data!=0:
+            self.pid_outputs[utils.get_axes().index(direction)] = val.data
         self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs)
 
     def run(self):
