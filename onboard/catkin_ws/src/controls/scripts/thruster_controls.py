@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from std_msgs.msg import Float64, Float32MultiArray
+from std_msgs.msg import Float64
 from geometry_msgs.msg import Vector3Stamped
 from custom_msgs.msg import ThrusterSpeeds
 import numpy as np
@@ -12,8 +12,6 @@ import resource_retriever as rr
 
 
 class ThrusterController:
-
-    SIM_PUB_TOPIC = '/sim/move'
     ROBOT_PUB_TOPIC = '/offboard/thruster_speeds'
 
     enabled = False
@@ -21,11 +19,7 @@ class ThrusterController:
     def __init__(self):
         rospy.init_node('thruster_controls')
 
-        self.sim = rospy.get_param('~/thruster_controls/sim')
-        if not self.sim:
-            self.pub = rospy.Publisher(self.ROBOT_PUB_TOPIC, ThrusterSpeeds, queue_size=3)
-        else:
-            self.pub = rospy.Publisher(self.SIM_PUB_TOPIC, Float32MultiArray, queue_size=3)
+        self.pub = rospy.Publisher(self.ROBOT_PUB_TOPIC, ThrusterSpeeds, queue_size=3)
 
         self.enable_service = rospy.Service('enable_controls', SetBool, self.handle_enable_controls)
 
@@ -33,14 +27,14 @@ class ThrusterController:
 
         self.listener = TransformListener()
 
+        for d in utils.get_axes():
+            rospy.Subscriber(utils.get_controls_move_topic(d), Float64, self._on_pid_received, d)
+            rospy.Subscriber(utils.get_power_topic(d), Float64, self._on_power_received, d)
+
         self.pid_outputs = np.zeros(6)
         self.pid_outputs_local = np.zeros(6)
         self.powers = np.zeros(6)
         self.t_allocs = np.zeros(8)
-
-        for d in utils.get_axes():
-            rospy.Subscriber(utils.get_controls_move_topic(d), Float64, self._on_pid_received, d)
-            rospy.Subscriber(utils.get_power_topic(d), Float64, self._on_power_received, d)
 
     def handle_enable_controls(self, req):
         self.enabled = req.data
@@ -70,19 +64,23 @@ class ThrusterController:
                          ang_local.vector.y,
                          ang_local.vector.z])
 
+    def update_thruster_allocs(self):
+        if self.enabled:
+            self.pid_outputs_local = self.transform_twist('odom', 'base_link', self.pid_outputs)
+
+        for i in range(len(self.powers)):
+            if self.powers[i] != 0:
+                self.pid_outputs_local[i] = self.powers[i]
+
+        self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs_local)
+
     def _on_pid_received(self, val, direction):
         self.pid_outputs[utils.get_axes().index(direction)] = val.data
-        # TODO: Better check for if the odom exists. 
-        # If the service is enabled before the simulation/robot is started, 
-        # controls spits out a bunch of errors. 
-        if self.enabled: 
-            self.pid_outputs_local = self.transform_twist('odom', 'base_link', self.pid_outputs)
-        self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs_local)
+        self.update_thruster_allocs()
 
     def _on_power_received(self, val, direction):
         self.powers[utils.get_axes().index(direction)] = val.data
-        self.pid_outputs_local = self.powers
-        self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs_local)
+        self.update_thruster_allocs()
 
     def run(self):
         rate = rospy.Rate(10)  # 10 Hz
@@ -90,14 +88,9 @@ class ThrusterController:
         while not rospy.is_shutdown():
             if not self.enabled:
                 # If not enabled, publish all 0s.
-                if not self.sim:
-                    i8_t_allocs = ThrusterSpeeds()
-                    i8_t_allocs.speeds = np.zeros(8)
-                    self.pub.publish(i8_t_allocs)
-                else:
-                    f32_t_allocs = Float32MultiArray()
-                    f32_t_allocs.data = np.zeros(8)
-                    self.pub.publish(f32_t_allocs)
+                i8_t_allocs = ThrusterSpeeds()
+                i8_t_allocs.speeds = np.zeros(8)
+                self.pub.publish(i8_t_allocs)
 
             if self.enabled:
                 # Scale thruster alloc max to PID max
@@ -110,14 +103,9 @@ class ThrusterController:
                 # Clamp values of t_allocs to between -1 to 1
                 self.t_allocs = np.clip(self.t_allocs, -1, 1)
 
-                if not self.sim:
-                    i8_t_allocs = ThrusterSpeeds()
-                    i8_t_allocs.speeds = (self.t_allocs * 127).astype(int)
-                    self.pub.publish(i8_t_allocs)
-                else:
-                    f32_t_allocs = Float32MultiArray()
-                    f32_t_allocs.data = self.t_allocs
-                    self.pub.publish(f32_t_allocs)
+                i8_t_allocs = ThrusterSpeeds()
+                i8_t_allocs.speeds = (self.t_allocs * 127).astype(int)
+                self.pub.publish(i8_t_allocs)
 
             rate.sleep()
 
