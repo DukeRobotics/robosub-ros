@@ -1,7 +1,7 @@
 # Goal
 
 # Csv file path
-string save_path
+string save_name
 
 # Which Hydrophone Set
 uint32 hydrophone_set
