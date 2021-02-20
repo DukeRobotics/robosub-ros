@@ -4,6 +4,7 @@ import rospy
 from geometry_msgs.msg import Pose, Twist
 from std_msgs.msg import Float64, Bool
 import controls_utils as utils
+from tf import TransformListener
 
 
 class bcolors:
@@ -33,9 +34,8 @@ class DesiredStateHandler:
     pub_control_effort = {}
     pub_power = {}
 
-
-
     def __init__(self):
+        rospy.init_node('desired_state')
         for d in utils.get_axes():
             self.pub_pos[d] = rospy.Publisher(utils.get_pid_topic(d), Float64, queue_size=3)
             self.pub_pos_enable[d] = rospy.Publisher(utils.get_pos_pid_enable(d), Bool, queue_size=3)
@@ -44,16 +44,17 @@ class DesiredStateHandler:
             self.pub_control_effort[d] = rospy.Publisher(utils.get_controls_move_topic(d), Float64, queue_size=3)
             self.pub_power[d] = rospy.Publisher(utils.get_power_topic(d), Float64, queue_size=3)
 
+        self.listener = TransformListener()
 
         rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self._on_pose_received)
         rospy.Subscriber(self.DESIRED_TWIST_TOPIC, Twist, self._on_twist_received)
         rospy.Subscriber(self.DESIRED_POWER_TOPIC, Twist, self._on_power_received)
 
     def _on_pose_received(self, pose):
-        self.pose = utils.parse_pose(pose)
+        self.pose = utils.parse_pose(utils.transform_pose(self.listener, 'odom', 'base_link', pose))
 
     def _on_twist_received(self, twist):
-        self.twist = utils.parse_twist(twist)
+        self.twist = utils.parse_twist(utils.transform_twist(self.listener, 'odom', 'base_link', twist))
 
     def _on_power_received(self, power):
         self.power = utils.parse_twist(power)
@@ -64,6 +65,7 @@ class DesiredStateHandler:
         utils.publish_data_constant(self.pub_control_effort, utils.get_axes(), 0)
         self.twist = None
         self.pose = None
+        self.power = None
 
     def disable_loops(self):
         utils.publish_data_constant(self.pub_pos_enable, utils.get_axes(), False)
@@ -90,21 +92,21 @@ class DesiredStateHandler:
 
             if (self.pose and self.twist) or (self.pose and self.power) or (self.twist and self.power):
                 # More than one seen in one update cycle, so warn and continue
-                rospy.logerr("===> Controls received both position and power! Halting robot. <===")
+                rospy.logerr("===> Controls received conflicting desired states! Halting robot. <===")
                 self.soft_estop()
                 continue
             elif not self.pose and not self.twist and not self.power:
                 self.soft_estop()
                 if not warned:
-                    rospy.logwarn(bcolors.WARN + ("===> Controls received neither position nor power! Halting robot. "
+                    rospy.logwarn(bcolors.WARN + ("===> Controls received no desired state! Halting robot. "
                                                   "(Event %d) <===" % event_id) + bcolors.RESET)
                     warned = True
                 continue
 
             # Now we have either pose XOR powers
             if warned:
-                rospy.loginfo(bcolors.OKGREEN + ("===> Controls now receiving %s (End event %d) <===" %
-                                                 ("position" if self.pose else "powers", event_id)) + bcolors.RESET)
+                rospy.loginfo(bcolors.OKGREEN + ("===> Controls now receiving desired state (End event %d) <===" %
+                                                 (event_id)) + bcolors.RESET)
                 event_id += 1
                 warned = False
 
@@ -121,6 +123,12 @@ class DesiredStateHandler:
 
             elif self.power:
                 self.disable_loops()
+                # Enable stabilization on all axes with 0 power input
+                for p in self.power.keys():
+                    if self.power[p]==0:
+                        utils.publish_data_constant(self.pub_vel_enable, [p], True)
+                # Publish velocity setpoints to all Velocity loops, even though some are not enabled
+                utils.publish_data_dictionary(self.pub_vel, utils.get_axes(), self.power)
                 utils.publish_data_dictionary(self.pub_power, utils.get_axes(), self.power)
                 self.power = None
 

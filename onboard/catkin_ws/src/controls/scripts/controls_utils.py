@@ -1,4 +1,5 @@
 from tf.transformations import euler_from_quaternion, quaternion_multiply, quaternion_conjugate
+from geometry_msgs.msg import Vector3Stamped, Twist, PoseStamped
 
 
 def get_axes():
@@ -67,6 +68,31 @@ def quat_vec_mult(q1, v1):
         quaternion_multiply(q1, q2),
         quaternion_conjugate(q1)
     )[:3]
+
+
+def transform_pose(listener, base_frame, target_frame, pose):
+    pose_stamped = PoseStamped()
+    pose_stamped.pose = pose
+    pose_stamped.header.frame_id = base_frame
+
+    return listener.transformPose(target_frame, pose_stamped).pose
+
+
+def transform_twist(listener, base_frame, target_frame, twist):
+    lin = Vector3Stamped()
+    ang = Vector3Stamped()
+
+    lin.vector = twist.linear
+    ang.vector = twist.angular
+
+    lin.header.frame_id = base_frame
+    ang.header.frame_id = base_frame
+
+    twist_tf = Twist()
+    twist_tf.linear = listener.transformVector3(target_frame, lin).vector
+    twist_tf.angular = listener.transformVector3(target_frame, ang).vector
+
+    return twist_tf
 
 
 def publish_data_dictionary(publishers, indexes, vals):

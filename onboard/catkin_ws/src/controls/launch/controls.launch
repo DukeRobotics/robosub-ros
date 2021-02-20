@@ -17,9 +17,7 @@
 	<node pkg="controls" name="state_republisher" type="state_republisher.py" />
 
 	<!-- Start controls node that listens to PID and outputs thruster allocations -->
-	<node pkg="controls" name="thruster_controls" type="thruster_controls.py" output="screen">
-		<param name="sim" value="$(arg sim)" />
-	</node>
+	<node pkg="controls" name="thruster_controls" type="thruster_controls.py" output="screen" />
 
 	<!-- Start desired_state node that processes inputs from motion planning
     and outputs setpoints to PID -->

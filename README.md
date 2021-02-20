@@ -158,7 +158,7 @@ The following needs to be done once at the beginning, and then later only when m
 #### Executing Build Script
 We use a custom build script that simplifies the process of building and overlaying catkin workspaces.
 
-To build our workspaces for ROS, in the `robosub-ros` directory, execute
+To build our workspaces for ROS, in the `~/dev/robosub-ros` directory, execute
 ```bash
 ./build.sh <workspace>
 ```
@@ -224,9 +224,13 @@ Here are some common launch configurations for both pool and local testing.
         ```
 
 ### Cleaning Build
-To clean the build outputs from a workspace (build, devel, and logs folders), in `robosub-ros/<workspace>/catkin_ws`, execute
+To clean the build outputs from a workspace (build, devel, and logs folders), in the `~/dev/robosub-ros` directory, execute
 ```bash
-catkin clean
+./build.sh clean <workspace>
+```
+where `<workspace>` is either onboard or landside. If you would like to clean all workspaces, then you may simply execute
+```bash
+./build.sh clean
 ```
 
 
