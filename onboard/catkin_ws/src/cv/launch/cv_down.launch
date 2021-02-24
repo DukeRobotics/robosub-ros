@@ -1,0 +1,5 @@
+<launch>
+    <include file="$(find cv)/launch/cv.launch">
+        <arg name="camera" value="down" />
+    </include>
+</launch>

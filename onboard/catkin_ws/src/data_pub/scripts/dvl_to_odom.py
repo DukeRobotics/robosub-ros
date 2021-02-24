@@ -1,13 +1,12 @@
 #!/usr/bin/env python
-import rospy
-import numpy as np
-import math
 
-from std_msgs.msg import String
+import math
+import numpy as np
+import rospy
 from data_pub.msg import DVLRaw
+from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
 from tf.transformations import quaternion_from_euler
-from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 
 NODE_NAME = 'dvl_odom_pub'
 DVL_RAW_TOPIC = 'sensors/dvl/raw'
@@ -17,8 +16,11 @@ DVL_BAD_STATUS_MSG = 'V'
 
 odom_pub = rospy.Publisher(DVL_ODOM_TOPIC, Odometry, queue_size=50)
 
+
 def callback(msg):
-    # check if the data is good (for now, only check bs and sa status as they are the only two data that we are currently using) (there is no status for sa)
+    # check if the data is good
+    # for now, only check bs and sa status as they are the only two data that we are currently using
+    # there is no status for sa
     # for status: A = good, V = bad
     if msg.bs_status == DVL_BAD_STATUS_MSG:
         return
@@ -51,8 +53,8 @@ def callback(msg):
     odom.twist.twist = Twist(Vector3(vx, vy, vz), Vector3(0, 0, 0))
     odom_pub.publish(odom)
 
-   
-def listener():   
+
+def listener():
     rospy.init_node(NODE_NAME)
     rospy.Subscriber(DVL_RAW_TOPIC, DVLRaw, callback)
     rospy.spin()
@@ -60,4 +62,3 @@ def listener():
 
 if __name__ == '__main__':
     listener()
-    

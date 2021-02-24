@@ -1,26 +1,22 @@
-import rospy
-from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Pose, Twist
 from task_state import TaskState
 import dependency_injector.providers as providers
 
 from abc import ABCMeta, abstractmethod
 
+
 class Task:
     """High level task that represents some function"""
-    
+
     __metaclass__ = ABCMeta
 
     task_state_provider = providers.Singleton(TaskState)
 
     def __init__(self, *args, **kwargs):
-        """ 
+        """
         Create a Task.
 
         """
-
         self.task_state = self.task_state_provider()
-
         self.start_time = None
         self.finished = False
         self.initial_state = None
@@ -31,7 +27,6 @@ class Task:
         """Wrap task_state.state with just the state property"""
         return self.task_state.state
 
-
     def _on_task_start_default(self):
         """Should be called when the task runs for the first time"""
         self.initial_state = self.state
@@ -41,7 +36,7 @@ class Task:
     def run(self):
         """Run the task. This should be called by the task planner, and
         will call _task_run, which is the task specific run method"""
-        if self.finished or not self.state:
+        if self.finished or not self.state:  # note: if state is not being published to this will continue returning
             return
 
         if not self.started:
@@ -49,7 +44,7 @@ class Task:
             self.started = True
 
         self._on_task_run()
-    
+
     @abstractmethod
     def _on_task_run(self):
         """Try to complete the task
@@ -66,7 +61,7 @@ class Task:
         Note: Not marked as abstract method because custom init is not always necessary
         for subclasses"""
         pass
-    
+
     def finish(self):
         """Mark the task as finished"""
         self.finished = True

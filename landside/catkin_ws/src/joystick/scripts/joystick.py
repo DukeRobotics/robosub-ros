@@ -2,15 +2,16 @@
 
 import rospy
 import yaml
-import sys
-import os
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
 from enum import Enum
+import resource_retriever as rr
+
 
 class Movement(Enum):
     TRANSLATION = 0
     ROTATION = 1
+
 
 class JoystickParser:
     NODE_NAME = 'joy_pub'
@@ -23,7 +24,7 @@ class JoystickParser:
         self._movement_type = Movement.TRANSLATION
 
         joystick_type = rospy.get_param("~/joy_pub/joystick_type")
-        with open(os.path.join(sys.path[0], '../config/joystick.yaml')) as f:
+        with open(rr.get_filename('package://joystick/config/joystick.yaml', use_protocol=False)) as f:
             data = yaml.load(f)
         self._button_indices = data[joystick_type]
 
@@ -77,6 +78,7 @@ class JoystickParser:
 
     def _publish_current_msg(self):
         self._pub.publish(self._current_joy_msg)
+
 
 if __name__ == '__main__':
     try:

@@ -2,6 +2,7 @@
 
 import rospy
 import actionlib
+
 from custom_msgs.msg import AcousticsGuessGoal, AcousticsGuessAction, \
     AcousticsProcessingGoal, AcousticsProcessingAction, \
     SaleaeGoal, SaleaeAction, \
@@ -26,10 +27,9 @@ class AcousticsWrapper:
 
     def __init__(self):
         rospy.init_node(self.NODE_NAME)
-        #
         self.client_sampling = actionlib.SimpleActionClient('call_saleae', SaleaeAction)
-        #
         self.client_guess = actionlib.SimpleActionClient('guess_acoustics', AcousticsGuessAction)
+
         self.client_processing = actionlib.SimpleActionClient('process_acoustics', AcousticsProcessingAction)
         self.server = actionlib.SimpleActionServer(self.ACTION_NAME, AcousticsWrapperAction, self.execute, False)
         self.server.start()
@@ -37,7 +37,7 @@ class AcousticsWrapper:
 
     def publish_feedback(self, stage):
         feedback = AcousticsWrapperFeedback()
-        feedback.curr_stage = stage;
+        feedback.curr_stage = stage
         feedback.total_stage = 4
         self.server.publish_feedback(feedback)
 
@@ -87,7 +87,7 @@ class AcousticsWrapper:
         time_now = datetime.now()
         guess_export_name = "Date:"+time_now.strftime("%m_%d_%Y;%H.%M.%S") + ";guess"
         processing_export_name = "Date:"+time_now.strftime("%m_%d_%Y;%H.%M.%S") + ";processing"
-        #
+
         self.client_sampling.wait_for_server()
         goal_client_sampling = SaleaeGoal()
         goal_client_sampling.hydrophone_set = 1
@@ -98,14 +98,12 @@ class AcousticsWrapper:
         guess_file_name = self.client_sampling.get_result().return_file_name
         rospy.loginfo(guess_file_name)
         self.publish_feedback(1)
-        #
 
         guess_file = guess_file_name + ".csv"
         self.format_csv(guess_file)
         guess = self.get_guess(this_goal, guess_file)
         self.publish_feedback(2)
 
-        #
         self.client_sampling.wait_for_server()
         goal_client_sampling = SaleaeGoal()
         goal_client_sampling.hydrophone_set = 2
@@ -116,7 +114,6 @@ class AcousticsWrapper:
         processing_file_name = self.client_sampling.get_result().return_file_name
         rospy.loginfo(processing_file_name)
         self.publish_feedback(3)
-        #
 
         processing_file = processing_file_name + ".csv"
         self.format_csv(processing_file)
@@ -124,7 +121,6 @@ class AcousticsWrapper:
         self.publish_feedback(4)
 
         self.publish_result(processing_result)
-
 
 
 if __name__ == '__main__':

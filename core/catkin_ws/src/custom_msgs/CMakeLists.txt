@@ -13,11 +13,14 @@ add_message_files(
   FILES
   DVLRaw.msg
   ThrusterSpeeds.msg
+  ServoAngle.msg
+  CVObject.msg
 )
 
 add_service_files(
   FILES
   SetServo.srv
+  EnableModel.srv
 )
 
 add_action_files(
@@ -26,6 +29,7 @@ add_action_files(
   AcousticsGuess.action
   AcousticsWrapper.action
   Saleae.action
+  AcousticsData.action
 )
 
 generate_messages(

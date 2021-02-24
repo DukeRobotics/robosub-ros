@@ -4,7 +4,8 @@ import yaml
 import numpy as np
 from thruster import Thruster
 
-class ThrusterManager():
+
+class ThrusterManager:
 
     def __init__(self, config_filename):
         # Load vehicle configuration file
@@ -27,8 +28,7 @@ class ThrusterManager():
             self.wrenchmat[4][i] = t.torque[1]
             self.wrenchmat[5][i] = t.torque[2]
 
-        self.wrenchmat_pinv = np.linalg.pinv(self.wrenchmat) # Calculate pseudoinverse of wrench matrix
-
+        self.wrenchmat_pinv = np.linalg.pinv(self.wrenchmat)  # Calculate pseudoinverse of wrench matrix
 
     def calc_t_allocs(self, pid_wrench):
         # pid_wrench = [x, y, z, roll, pitch, yaw] (PID control efforts)
@@ -44,7 +44,7 @@ class ThrusterManager():
         t_allocs[np.abs(t_allocs) < 0.001] = 0
 
         # Flip thrusters that are marked as such
-        
+
         for i in range(len(t_allocs)):
             if self.thrusters[i].flipped:
                 t_allocs[i] = -t_allocs[i]

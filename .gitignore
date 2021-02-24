@@ -18,6 +18,10 @@ catkin_ws/src/offboard_comms/ros_lib
 # Acoustics
 *.csv
 
+# Video and Bags
+*.avi
+*.bag
+
 # PyCharm/IntelliJ
 .idea
 
@@ -26,3 +30,6 @@ catkin_ws/src/offboard_comms/ros_lib
 
 # Mac
 *.DS_Store
+
+# Remember to load in the model files manaully
+*.pth

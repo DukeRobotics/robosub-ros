@@ -1,32 +1,17 @@
 #!/usr/bin/env python
-import sys
-import os
-
 import rospy
-from std_msgs.msg import Float64, Float32MultiArray, Int8MultiArray
+from std_msgs.msg import Float64, Float32MultiArray
 from geometry_msgs.msg import Vector3Stamped
 from custom_msgs.msg import ThrusterSpeeds
 import numpy as np
 from thruster_manager import ThrusterManager
 from std_srvs.srv import SetBool
 from tf import TransformListener
+import controls_utils as utils
+import resource_retriever as rr
 
-class ThrusterController():
 
-    CONTROLS_MOVE_TOPIC = '/control_effort'
-    CONTROLS_MOVE_X_TOPIC = CONTROLS_MOVE_TOPIC + '/x'
-    CONTROLS_MOVE_Y_TOPIC = CONTROLS_MOVE_TOPIC + '/y'
-    CONTROLS_MOVE_Z_TOPIC = CONTROLS_MOVE_TOPIC + '/z'
-    CONTROLS_MOVE_ROLL_TOPIC = CONTROLS_MOVE_TOPIC + '/roll'
-    CONTROLS_MOVE_PITCH_TOPIC = CONTROLS_MOVE_TOPIC + '/pitch'
-    CONTROLS_MOVE_YAW_TOPIC = CONTROLS_MOVE_TOPIC + '/yaw'
-
-    CONTROLS_POWER_X_TOPIC = '/controls/power/x'
-    CONTROLS_POWER_Y_TOPIC = '/controls/power/y'
-    CONTROLS_POWER_Z_TOPIC = '/controls/power/z'
-    CONTROLS_POWER_ROLL_TOPIC = '/controls/power/roll'
-    CONTROLS_POWER_PITCH_TOPIC = '/controls/power/pitch'
-    CONTROLS_POWER_YAW_TOPIC = '/controls/power/yaw'
+class ThrusterController:
 
     SIM_PUB_TOPIC = '/sim/move'
     ROBOT_PUB_TOPIC = '/offboard/thruster_speeds'
@@ -37,33 +22,20 @@ class ThrusterController():
         rospy.init_node('thruster_controls')
 
         self.sim = rospy.get_param('~/thruster_controls/sim')
-        if self.sim == False:
+        if not self.sim:
             self.pub = rospy.Publisher(self.ROBOT_PUB_TOPIC, ThrusterSpeeds, queue_size=3)
-        elif self.sim == True:
-            self.pub = rospy.Publisher(self.SIM_PUB_TOPIC, Float32MultiArray, queue_size=3)
         else:
-            # TODO: alert that unrecognized mode destination has been set
-            pass
+            self.pub = rospy.Publisher(self.SIM_PUB_TOPIC, Float32MultiArray, queue_size=3)
 
         self.enable_service = rospy.Service('enable_controls', SetBool, self.handle_enable_controls)
 
-        self.tm = ThrusterManager(os.path.join(sys.path[0], '../config/cthulhu.config'))
+        self.tm = ThrusterManager(rr.get_filename('package://controls/config/cthulhu.config', use_protocol=False))
 
         self.listener = TransformListener()
 
-        rospy.Subscriber(self.CONTROLS_MOVE_X_TOPIC, Float64, self._on_x)
-        rospy.Subscriber(self.CONTROLS_MOVE_Y_TOPIC, Float64, self._on_y)
-        rospy.Subscriber(self.CONTROLS_MOVE_Z_TOPIC, Float64, self._on_z)
-        rospy.Subscriber(self.CONTROLS_MOVE_ROLL_TOPIC, Float64, self._on_roll)
-        rospy.Subscriber(self.CONTROLS_MOVE_PITCH_TOPIC, Float64, self._on_pitch)
-        rospy.Subscriber(self.CONTROLS_MOVE_YAW_TOPIC, Float64, self._on_yaw)
-
-        rospy.Subscriber(self.CONTROLS_POWER_X_TOPIC, Float64, self._on_x_power)
-        rospy.Subscriber(self.CONTROLS_POWER_Y_TOPIC, Float64, self._on_y_power)
-        rospy.Subscriber(self.CONTROLS_POWER_Z_TOPIC, Float64, self._on_z_power)
-        rospy.Subscriber(self.CONTROLS_POWER_ROLL_TOPIC, Float64, self._on_roll_power)
-        rospy.Subscriber(self.CONTROLS_POWER_PITCH_TOPIC, Float64, self._on_pitch_power)
-        rospy.Subscriber(self.CONTROLS_POWER_YAW_TOPIC, Float64, self._on_yaw_power)
+        for d in utils.get_axes():
+            rospy.Subscriber(utils.get_controls_move_topic(d), Float64, self._on_pid_received, d)
+            rospy.Subscriber(utils.get_power_topic(d), Float64, self._on_power_received, d)
 
         self.pid_outputs = np.zeros(6)
         self.pid_outputs_local = np.zeros(6)
@@ -91,71 +63,29 @@ class ThrusterController():
         lin_local = self.listener.transformVector3(target_frame, lin)
         ang_local = self.listener.transformVector3(target_frame, ang)
 
-        return np.array([lin_local.vector.x, 
-                         lin_local.vector.y, 
+        return np.array([lin_local.vector.x,
+                         lin_local.vector.y,
                          lin_local.vector.z,
                          ang_local.vector.x,
                          ang_local.vector.y,
                          ang_local.vector.z])
 
     def update_thruster_allocs(self):
-        self.pid_outputs_local = self.transform_twist('odom', 'base_link', self.pid_outputs)
-        #rospy.loginfo(pid_outputs_local)
+        if self.enabled:
+            self.pid_outputs_local = self.transform_twist('odom', 'base_link', self.pid_outputs)
+
         for i in range(len(self.powers)):
-            if(self.powers[i]!=0):
-                self.pid_outputs_local[i]=self.powers[i]
+            if self.powers[i] != 0:
+                self.pid_outputs_local[i] = self.powers[i]
 
         self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs_local)
 
-
-    def _on_x(self, x):
-        self.pid_outputs[0] = x.data
+    def _on_pid_received(self, val, direction):
+        self.pid_outputs[utils.get_axes().index(direction)] = val.data
         self.update_thruster_allocs()
 
-    def _on_y(self, y):
-        self.pid_outputs[1] = y.data
-        self.update_thruster_allocs()
-
-    def _on_z(self, z):
-        self.pid_outputs[2] = z.data
-        self.update_thruster_allocs()
-
-    def _on_roll(self, roll):
-        self.pid_outputs[3] = roll.data
-        self.update_thruster_allocs()
-
-    def _on_pitch(self, pitch):
-        self.pid_outputs[4] = pitch.data
-        self.update_thruster_allocs()
-
-    def _on_yaw(self, yaw):
-        self.pid_outputs[5] = yaw.data
-        self.update_thruster_allocs()
-
-
-
-    def _on_x_power(self, x):
-        self.powers[0] = x.data
-        self.update_thruster_allocs()
-
-    def _on_y_power(self, y):
-        self.powers[1] = y.data
-        self.update_thruster_allocs()
-
-    def _on_z_power(self, z):
-        self.powers[2] = z.data
-        self.update_thruster_allocs()
-
-    def _on_roll_power(self, roll):
-        self.powers[3] = roll.data
-        self.update_thruster_allocs()
-
-    def _on_pitch_power(self, pitch):
-        self.powers[4] = pitch.data
-        self.update_thruster_allocs()
-
-    def _on_yaw_power(self, yaw):
-        self.powers[5] = yaw.data
+    def _on_power_received(self, val, direction):
+        self.powers[utils.get_axes().index(direction)] = val.data
         self.update_thruster_allocs()
 
     def run(self):
@@ -164,11 +94,11 @@ class ThrusterController():
         while not rospy.is_shutdown():
             if not self.enabled:
                 # If not enabled, publish all 0s.
-                if self.sim == False:
+                if not self.sim:
                     i8_t_allocs = ThrusterSpeeds()
                     i8_t_allocs.speeds = np.zeros(8)
                     self.pub.publish(i8_t_allocs)
-                elif self.sim == True:
+                else:
                     f32_t_allocs = Float32MultiArray()
                     f32_t_allocs.data = np.zeros(8)
                     self.pub.publish(f32_t_allocs)
@@ -178,15 +108,17 @@ class ThrusterController():
                 t_alloc_max = float(np.max(np.absolute(self.t_allocs)))
                 pid_max = float(np.max(np.absolute(self.pid_outputs_local)))
 
-                if(t_alloc_max != 0):
+                if t_alloc_max != 0:
                     # Multiply each thruster allocation by scaling ratio
                     self.t_allocs *= pid_max / t_alloc_max
+                # Clamp values of t_allocs to between -1 to 1
+                self.t_allocs = np.clip(self.t_allocs, -1, 1)
 
-                if self.sim == False:
+                if not self.sim:
                     i8_t_allocs = ThrusterSpeeds()
                     i8_t_allocs.speeds = (self.t_allocs * 127).astype(int)
                     self.pub.publish(i8_t_allocs)
-                elif self.sim == True:
+                else:
                     f32_t_allocs = Float32MultiArray()
                     f32_t_allocs.data = self.t_allocs
                     self.pub.publish(f32_t_allocs)
@@ -199,6 +131,7 @@ def main():
         ThrusterController().run()
     except rospy.ROSInterruptException:
         pass
+
 
 if __name__ == '__main__':
     main()
