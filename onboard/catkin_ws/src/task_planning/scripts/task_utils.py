@@ -13,8 +13,8 @@ def linear_distance(point1, point2):
     """Find linear distance between two points.
 
     Parameters:
-    point1 (geometry_msgs/Point): location 1
-    point2 (geometry_msgs/Point): location 2
+    point1 (Point): location 1
+    point2 (Point): location 2
 
     Returns:
     float: magnitude of the linear distance between the points
@@ -30,17 +30,14 @@ def angular_distance_quat(quat1, quat2):
     """Find the difference between two orientations (quaternions).
 
     Parameters:
-    quat1 (geometry_msgs/Quaternion): orientation 1
-    quat2 (geometry_msgs/Quaternion): orientation 2
+    quat1 (Quaternion): orientation 1
+    quat2 (Quaternion): orientation 2
 
     Returns:
-    geometry_msgs/Vector3: magnitude of the two orientations' differences in each axis (roll, pitch, yaw), in radians
+    Vector3: magnitude of the two orientations' differences in each axis (roll, pitch, yaw), in radians
     """
-    # convert quat1 and quat2 to lists
-    quat1 = [quat1.x, quat1.y, quat1.z, quat1.w]
-    quat2 = [quat2.x, quat2.y, quat2.z, quat2.w]
-    rpy1 = euler_from_quaternion(quat1)
-    rpy2 = euler_from_quaternion(quat2)
+    rpy1 = euler_from_quaternion([quat1.x, quat1.y, quat1.z, quat1.w])
+    rpy2 = euler_from_quaternion([quat2.x, quat2.y, quat2.z, quat2.w])
     return angular_distance_rpy(rpy1, rpy2)
 
 
@@ -52,7 +49,7 @@ def angular_distance_rpy(rpy1, rpy2):
     rpy2 (list): orientation 2 (roll, pitch, yaw), in radians
 
     Returns:
-    geometry_msgs/Vector3: magnitude of the two orientations' differences in each axis
+    Vector3: magnitude of the two orientations' differences in each axis
     """
     roll = np.fabs(rpy1[0] - rpy2[0])
     pitch = np.fabs(rpy1[1] - rpy2[1])
@@ -64,10 +61,8 @@ def at_pose(current_pose, desired_pose, linear_tol=0.1, angular_tol=3):
     """Check if within tolerance of a pose (position and orientation).
 
     Parameters:
-    current_pose (geometry_msgs/Pose): current pose
-    desired_pose (geometry_msgs/Pose): pose to check with
-
-    Keyword Arguments:
+    current_pose (Pose): current pose
+    desired_pose (Pose): pose to check with
     linear_tol (float): allowable linear distance for robot to be considered at pose
     angular_tol (float): allowable angular tolerance (radians) for robot to be considered at pose, applied to all axes
 
@@ -84,10 +79,8 @@ def at_vel(current_twist, desired_twist, linear_tol=0.1, angular_tol=0.3):
     """Check if within tolerance of a twist (linear and angular velocity)
 
     Parameters:
-    current_twist (geometry_msgs/Twist): current twist
-    desired_twist (geometry_msgs/Twist): twist to check with
-
-    Keyword Arguments:
+    current_twist (Twist): current twist
+    desired_twist (Twist): twist to check with
     linear_tol (float): allowable linear velocity for robot to be considered at twist
     angular_tol (float): allowable angular velocity for robot to be considered at twist, applied to all axes
 
@@ -110,18 +103,16 @@ def stopped_at_pose(current_pose, desired_pose, current_twist):
     """Check if within tolerance of a pose (position and orientation) and current_twist = 0
 
     Parameters:
-    current_pose (geometry_msgs/Pose): current pose
-    desired_pose (geometry_msgs/Pose): pose to check with
-    current_twist (geometry_msgs.Twist): current twist
+    current_pose (Pose): current pose
+    desired_pose (Pose): pose to check with
+    current_twist (Twist): current twist
 
     Returns:
     Boolean: true if stopped (current_twist = 0) at desired_pose
     """
-
-    twist_zero = Twist()
     
     at_desired_pose = at_pose(current_pose, desired_pose)
-    at_desired_vel = at_vel(current_twist, twist_zero)
+    at_desired_vel = at_vel(current_twist, Twist())
 
     return at_desired_pose and at_desired_vel    
     
@@ -193,8 +184,8 @@ def transform(origin_frame, dest_frame, poseORodom):
         return transformed_odometry
 
     else:
-        # add invalid message type message here
-        return poseORodom
+        rospy.logerr("Invalid message type passed to transform()")
+        return None
 
 def add_poses(pose_list):
     """Adds a list of poses

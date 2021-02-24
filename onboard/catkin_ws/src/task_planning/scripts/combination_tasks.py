@@ -39,13 +39,13 @@ class IndSimulTask(Task):
         self.tasks = tasks
 
     def _on_task_run(self):
-        self.all_finished = True
+        all_finished = True
         for task in self.tasks:
             task.run()
             if not task.finished:
-                self.all_finished = False
+                all_finished = False
 
-        if self.all_finished:
+        if all_finished:
             self.finish()
     
     def restart(self):
@@ -64,13 +64,13 @@ class DepSimulTask(Task):
         self.tasks = tasks
 
     def _on_task_run(self):
-        self.any_finished = False
+        any_finished = False
         for task in self.tasks:
             task.run()
             if task.finished:
-                self.any_finished = True
+                any_finished = True
 
-        if self.any_finished:
+        if any_finished:
             for task in self.tasks:
                 task.finish()
             self.finish()
