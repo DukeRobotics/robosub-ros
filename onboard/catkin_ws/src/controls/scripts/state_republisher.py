@@ -12,7 +12,6 @@ class StateRepublisher:
     LOCAL_STATE_TOPIC = '/state_local'
 
     def __init__(self):
-        rospy.init_node('state_republisher')
         self._pub_pose = {}
         self._pub_twist = {}
         self.listener = TransformListener()
