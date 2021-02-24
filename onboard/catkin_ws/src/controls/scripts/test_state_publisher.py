@@ -23,7 +23,7 @@ class TestStatePublisher:
         self.desired_pose = Pose()
         self.desired_pose.position.x = 0
         self.desired_pose.position.y = 0
-        self.desired_pose.position.z = -1
+        self.desired_pose.position.z = -0.5
         self.desired_pose.orientation.x = 0
         self.desired_pose.orientation.y = 0
         self.desired_pose.orientation.z = 0
@@ -32,9 +32,9 @@ class TestStatePublisher:
         # These values correspond to the desired global twist for the robot
         # Max linear z speed is ~ -0.26 -- ignore (for different mass)
         self.desired_twist = Twist()
-        self.desired_twist.linear.x = 0
+        self.desired_twist.linear.x = 1
         self.desired_twist.linear.y = 0
-        self.desired_twist.linear.z = -.3
+        self.desired_twist.linear.z = 0
         self.desired_twist.angular.x = 0
         self.desired_twist.angular.y = 0
         self.desired_twist.angular.z = 0
@@ -49,7 +49,7 @@ class TestStatePublisher:
         self.desired_power.angular.z = 0
 
         self.current_state = Odometry()
-        self.current_state.pose.pose.position.x = 0
+        self.current_state.pose.pose.position.x = -7
         self.current_state.pose.pose.position.y = 0
         self.current_state.pose.pose.position.z = 0
         self.current_state.pose.pose.orientation.x = 0
@@ -71,7 +71,7 @@ class TestStatePublisher:
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             self._pub_desired_pose.publish(self.desired_pose)
-            # self._pub_current_state.publish(self.current_state)
+            #self._pub_current_state.publish(self.current_state)
             rate.sleep()
 
     def publish_desired_twist(self):
@@ -87,7 +87,6 @@ class TestStatePublisher:
             self._pub_desired_power.publish(self.desired_power)
             # self._pub_current_state.publish(self.current_state)
             rate.sleep()
-
 
 def main():
     # TestStatePublisher().publish_desired_pose()

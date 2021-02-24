@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>task_planning</name>
+  <version>0.0.0</version>
+  <description>A package that handles the task planning algorithms for the robot.</description>
+
+  <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>
+
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+</package>

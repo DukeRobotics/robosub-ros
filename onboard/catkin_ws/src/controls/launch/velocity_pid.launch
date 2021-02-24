@@ -17,7 +17,7 @@
     <arg name = "z_vel_Kp" default = "10" />
     <arg name = "z_vel_Ki" default = "0" />
     <arg name = "z_vel_Kd" default = "0" />
-
+    
     <arg name = "roll_vel_Kp" default = "0.01" />
     <arg name = "roll_vel_Ki" default = "0.001" />
     <arg name = "roll_vel_Kd" default = "0.001" />
@@ -43,7 +43,7 @@
             <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/z_vel/controller">
-            <param name="Kp" value="1" />
+            <param name="Kp" value="5" />
             <param name="Ki" value="0.001" />
             <param name="Kd" value="0.001" />
         </group>
