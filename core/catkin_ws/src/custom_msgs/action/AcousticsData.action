@@ -1,0 +1,28 @@
+# Goal
+
+# Sampling frequency
+uint32 samp_f
+
+# Target frequency
+uint32 tar_f
+
+# Hydrophone array used
+string hydrophone
+
+# Location of the pinger
+geometry_msgs/Point plocation
+
+---
+# Result
+
+# Was data generated and saved successfully?
+bool success
+
+---
+# Feedback
+
+# Files Saved
+uint32 curr_file
+
+# Total number of files
+uint32 total_file
