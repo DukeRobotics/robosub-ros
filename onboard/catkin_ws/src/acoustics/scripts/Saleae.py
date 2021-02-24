@@ -12,7 +12,7 @@ import resource_retriever as rr
 
 
 
-class Saeleae:
+class Saleae:
 
     NODE_NAME = "saleae"
     ACTION_NAME = "call_saleae"
@@ -50,7 +50,7 @@ class Saeleae:
     def execute(self, goal):
         rospy.loginfo("a")
         s = saleae.Saleae(self.IP_ADDRESS, self.PORT)
-        goal_name = goal.save_path
+        goal_name = goal.save_name
         file_name = "/root/dev/robosub-ros/onboard/catkin_ws/src/acoustics/data/" + goal_name + "{0}.{1}"
         # "/root/dev/robosub-ros/onboard/catkin_ws/src/acoustics/data/{0}.{1}"
         s.set_capture_seconds(self.CAPTURE_DURATION)
@@ -64,7 +64,7 @@ class Saeleae:
                 s.export_data2(save_path, analog_channels=[0, 1, 2, 3])
         if goal.hydrophone_set == 2:
             for i in range(self.CAPTURE_COUNT):
-                s.capture_to_file(file_name.format(i, "logicdata"))
+               # s.capture_to_file(file_name.format(i, "logicdata"))
                 save_path = file_name.format(i, "csv")
                 print('exporting data to ' + save_path)
                 s.export_data2(save_path, analog_channels=[4, 5, 6, 7])

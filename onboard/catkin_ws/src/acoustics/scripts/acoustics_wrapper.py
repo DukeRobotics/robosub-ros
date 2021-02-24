@@ -8,6 +8,7 @@ from custom_msgs.msg import AcousticsGuessGoal, AcousticsGuessAction, \
     AcousticsWrapperAction, AcousticsWrapperFeedback, AcousticsWrapperResult
 from datetime import datetime
 import sys
+import pandas as pd
 import os
 
 
@@ -76,6 +77,12 @@ class AcousticsWrapper:
         self.client_processing.wait_for_result()
         return self.client_processing.get_result()
 
+    def format_csv(self, file):
+        df = pd.read_csv(file)
+        df.drop([0])
+        df.drop([0], axis=1)
+        df.to_csv(file, index=False)
+
     def execute(self, this_goal):
         time_now = datetime.now()
         guess_export_name = "Date:"+time_now.strftime("%m_%d_%Y;%H.%M.%S") + ";guess"
@@ -84,7 +91,7 @@ class AcousticsWrapper:
         self.client_sampling.wait_for_server()
         goal_client_sampling = SaleaeGoal()
         goal_client_sampling.hydrophone_set = 1
-        goal_client_sampling.save_path = guess_export_name
+        goal_client_sampling.save_name = guess_export_name
         goal_client_sampling.capture_directory = ''
         self.client_sampling.send_goal(goal_client_sampling)
         self.client_sampling.wait_for_result()
@@ -93,7 +100,8 @@ class AcousticsWrapper:
         self.publish_feedback(1)
         #
 
-        guess_file = guess_export_name + ".csv"
+        guess_file = guess_file_name + ".csv"
+        self.format_csv(guess_file)
         guess = self.get_guess(this_goal, guess_file)
         self.publish_feedback(2)
 
@@ -101,7 +109,7 @@ class AcousticsWrapper:
         self.client_sampling.wait_for_server()
         goal_client_sampling = SaleaeGoal()
         goal_client_sampling.hydrophone_set = 2
-        goal_client_sampling.save_path = processing_export_name
+        goal_client_sampling.save_name = processing_export_name
         goal_client_sampling.capture_directory = ''
         self.client_sampling.send_goal(goal_client_sampling)
         self.client_sampling.wait_for_result()
@@ -110,7 +118,8 @@ class AcousticsWrapper:
         self.publish_feedback(3)
         #
 
-        processing_file = 'matlab_custom_cheap_hydrophone_-2_7_4_(1).csv' #processing_export_name + ".csv"
+        processing_file = processing_file_name + ".csv"
+        self.format_csv(processing_file)
         processing_result = self.get_processing_angle(this_goal, processing_file, guess)
         self.publish_feedback(4)
 
