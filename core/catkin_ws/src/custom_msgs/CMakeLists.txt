@@ -28,6 +28,7 @@ add_action_files(
   AcousticsProcessing.action
   AcousticsGuess.action
   AcousticsWrapper.action
+  Saleae.action
   AcousticsData.action
 )
 

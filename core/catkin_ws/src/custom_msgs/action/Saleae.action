@@ -1,0 +1,25 @@
+# Goal
+
+# Csv file path
+string save_name
+
+# Which Hydrophone Set
+uint32 hydrophone_set
+
+# Capture file directory
+string capture_directory
+
+---
+# Result
+
+# File name of csv data
+string return_file_name
+
+---
+# Feedback
+
+# Current stage the program is on
+uint32 curr_stage
+
+# Total number of stages in program
+uint32 total_stage
