@@ -18,25 +18,10 @@ class MoveToPoseGlobalTask(Task):
 
     def _on_task_run(self):
         self.publish_desired_pose_global(self.desired_pose)
-        at_desired_pose_vel = task_utils.stopped_at_pose(self.state.pose.pose, self.desired_pose, self.state.twist.twist)
-        if at_desired_pose_vel:
+        at_desired_pose = task_utils.at_pose(self.state.pose.pose, self.desired_pose)
+        at_desired_vel = task_utils.at_vel(self.state.twist.twist, self.desired_twist)
+        if at_desired_pose and at_desired_vel:
             self.finish()
-
-class AllocatePowerTask(Task):
-    """Allocate specified power amount in a direction"""
-
-    def __init__(self, twist_power):
-        """
-        Parameters:
-            twist_power (Twist): values [-1,1] representing relative linear or angular velocity.
-                0 values represent axes to stabilize on.
-                [1,0,0,0,0,0] is full speed in +x-direction and stabilization on all other axes.
-        """
-        self.twist_power = twist_power
-
-    def _on_task_run(self):
-        self.publish_desired_twist_power(self.twist_power)
-
 
 
 class MoveToPoseLocalTask(MoveToPoseGlobalTask):
@@ -50,8 +35,9 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
 
     def _on_task_run(self):
         self.publish_desired_pose_global(self.transformed_pose)
-        at_desired_pose_vel = task_utils.stopped_at_pose(self.state.pose.pose, self.transformed_pose, self.state.twist.twist)
-        if at_desired_pose_vel:
+        at_desired_pose = task_utils.at_pose(self.state.pose.pose, self.transformed_pose)
+        at_desired_vel = task_utils.at_vel(self.state.twist.twist, self.desired_twist)
+        if at_desired_pose and at_desired_vel:
             self.finish()
 
 

@@ -12,6 +12,7 @@ class StateRepublisher:
     LOCAL_STATE_TOPIC = '/state_local'
 
     def __init__(self):
+        rospy.init_node('state_republisher')
         self._pub_pose = {}
         self._pub_twist = {}
         self.listener = TransformListener()
@@ -22,7 +23,6 @@ class StateRepublisher:
 
         self._pub_local_state = rospy.Publisher(self.LOCAL_STATE_TOPIC, Odometry, queue_size=3)
 
-        rospy.init_node('state_republisher')
         rospy.Subscriber(self.STATE_TOPIC, Odometry, self.receive_odometry)
         rospy.spin()
 

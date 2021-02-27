@@ -1,5 +1,0 @@
-<launch>
-	
-	<node pkg="task_planning" name="task_runner" type="task_runner.py" />
-
-</launch>
