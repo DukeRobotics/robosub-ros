@@ -4,6 +4,8 @@ import rospy
 from geometry_msgs.msg import Pose, Twist
 from std_msgs.msg import Float64, Bool
 import controls_utils as utils
+from tf import TransformListener
+from std_srvs.srv import SetBool
 
 
 class bcolors:
@@ -15,57 +17,85 @@ class bcolors:
 
 
 class DesiredStateHandler:
-    DESIRED_TWIST_POWER = 'controls/desired_twist_power'
+    DESIRED_TWIST_TOPIC = 'controls/desired_twist'
     DESIRED_POSE_TOPIC = 'controls/desired_pose'
+    DESIRED_POWER_TOPIC = 'controls/desired_power'
 
     REFRESH_HZ = 10  # for main loop
 
     # All variables are a dictionary with mappings between the strings in DIRECTIONS to its corresponding value
-    state = {}  # Current State of the Robot
-    hold = {}  # State that should be held at the start of power control
     pose = None  # Desired pose
-    powers = None  # Desired power
-    last_powers = None  # Power from previous loop
+    twist = None  # Desired twist
+    power = None  # Desired power
     # These dictionaries contain mappings between the strings in DIRECTIONS to the corresponding rospy publisher objects
     pub_pos = {}
     pub_pos_enable = {}
+    pub_vel = {}
+    pub_vel_enable = {}
+    pub_control_effort = {}
     pub_power = {}
 
+    local_control_enabled = False
+
     def __init__(self):
+        rospy.init_node('desired_state')
+        self.enable_service = rospy.Service('enable_local_control', SetBool, self._handle_enable_local_control)
+
         for d in utils.get_axes():
-            self.state[d] = 0
-            self.hold[d] = 0
-            rospy.Subscriber(utils.get_pose_topic(d), Float64, self._on_state_received, d)
             self.pub_pos[d] = rospy.Publisher(utils.get_pid_topic(d), Float64, queue_size=3)
-            self.pub_pos_enable[d] = rospy.Publisher(utils.get_pid_enable(d), Bool, queue_size=3)
+            self.pub_pos_enable[d] = rospy.Publisher(utils.get_pos_pid_enable(d), Bool, queue_size=3)
+            self.pub_vel_enable[d] = rospy.Publisher(utils.get_vel_pid_enable(d), Bool, queue_size=3)
+            self.pub_vel[d] = rospy.Publisher(utils.get_vel_topic(d), Float64, queue_size=3)
+            self.pub_control_effort[d] = rospy.Publisher(utils.get_controls_move_topic(d), Float64, queue_size=3)
             self.pub_power[d] = rospy.Publisher(utils.get_power_topic(d), Float64, queue_size=3)
 
-        rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self._on_pose_received)
-        rospy.Subscriber(self.DESIRED_TWIST_POWER, Twist, self.on_powers_received)
+        self.listener = TransformListener()
 
-    def _on_state_received(self, val, direction):
-        self.state[direction] = val.data
+        rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self._on_pose_received)
+        rospy.Subscriber(self.DESIRED_TWIST_TOPIC, Twist, self._on_twist_received)
+        rospy.Subscriber(self.DESIRED_POWER_TOPIC, Twist, self._on_power_received)
+
+    def _handle_enable_local_control(self, req):
+        self.local_control_enabled = req.data
+        return {'success': True, 'message': 'Successfully set local_control_enabled to ' + str(req.data)}
 
     def _on_pose_received(self, pose):
-        self.pose = utils.parse_pose(pose)
+        if self.local_control_enabled:
+            self.pose = utils.parse_pose(utils.transform_pose(self.listener, 'odom', 'base_link', pose))
+        else:
+            self.pose = utils.parse_pose(pose)
 
-    def on_powers_received(self, twist):
-        self.powers = utils.parse_twist(twist)
+    def _on_twist_received(self, twist):
+        if self.local_control_enabled:
+            self.twist = utils.parse_twist(utils.transform_twist(self.listener, 'odom', 'base_link', twist))
+        else:
+            self.twist = utils.parse_twist(twist)
+
+    def _on_power_received(self, power):
+        self.power = utils.parse_twist(power)
 
     def soft_estop(self):
         # Stop Moving
-        utils.publish_data_constant(self.pub_pos_enable, utils.get_axes(), False)
-        utils.publish_data_constant(self.pub_power, utils.get_axes(), 0)
-        self.powers = None
-        self.last_powers = None
+        self.disable_loops()
+        utils.publish_data_constant(self.pub_control_effort, utils.get_axes(), 0)
+        self.twist = None
         self.pose = None
+        self.power = None
+
+    def disable_loops(self):
+        utils.publish_data_constant(self.pub_pos_enable, utils.get_axes(), False)
+        utils.publish_data_constant(self.pub_vel_enable, utils.get_axes(), False)
 
     def enable_loops(self):
         # Enable all PID Loops
         utils.publish_data_constant(self.pub_pos_enable, utils.get_axes(), True)
+        utils.publish_data_constant(self.pub_vel_enable, utils.get_axes(), True)
+
+    def disable_pos_loop(self):
+        # Disable position loop
+        utils.publish_data_constant(self.pub_pos_enable, utils.get_axes(), False)
 
     def run(self):
-        rospy.init_node('desired_state')
         rate = rospy.Rate(self.REFRESH_HZ)
 
         warned = False
@@ -74,23 +104,23 @@ class DesiredStateHandler:
         while not rospy.is_shutdown():
             rate.sleep()
 
-            if self.pose and self.powers:
+            if (self.pose and self.twist) or (self.pose and self.power) or (self.twist and self.power):
                 # More than one seen in one update cycle, so warn and continue
-                rospy.logerr("===> Controls received both position and power! Halting robot. <===")
+                rospy.logerr("===> Controls received conflicting desired states! Halting robot. <===")
                 self.soft_estop()
                 continue
-            elif not self.pose and not self.powers:
+            elif not self.pose and not self.twist and not self.power:
                 self.soft_estop()
                 if not warned:
-                    rospy.logwarn(bcolors.WARN + ("===> Controls received neither position nor power! Halting robot. "
+                    rospy.logwarn(bcolors.WARN + ("===> Controls received no desired state! Halting robot. "
                                                   "(Event %d) <===" % event_id) + bcolors.RESET)
                     warned = True
                 continue
 
             # Now we have either pose XOR powers
             if warned:
-                rospy.loginfo(bcolors.OKGREEN + ("===> Controls now receiving %s (End event %d) <===" %
-                                                 ("position" if self.pose else "powers", event_id)) + bcolors.RESET)
+                rospy.loginfo(bcolors.OKGREEN + ("===> Controls now receiving desired state (End event %d) <===" %
+                                                 (event_id)) + bcolors.RESET)
                 event_id += 1
                 warned = False
 
@@ -99,34 +129,22 @@ class DesiredStateHandler:
                 utils.publish_data_dictionary(self.pub_pos, utils.get_axes(), self.pose)
                 self.pose = None
 
-            elif self.powers:
-                if self.last_powers is None or self.powers != self.last_powers:
-                    self.enable_loops()
-                    # Hold Position on the current state
-                    self.hold = dict(self.state)
-                    self.last_powers = dict(self.powers)
+            elif self.twist:
+                self.enable_loops()
+                self.disable_pos_loop()
+                utils.publish_data_dictionary(self.pub_vel, utils.get_axes(), self.twist)
+                self.twist = None
 
-                # Nonzero entries bypass PID
-                # If any nonzero xy power, disable those position pid loops
-                if self.powers['x'] != 0 or self.powers['y'] != 0:
-                    utils.publish_data_constant(self.pub_pos_enable, ['x', 'y'], False)
-
-                # If any nonzero roll or pitch power, disable those position pid loops
-                if self.powers['roll'] != 0 or self.powers['pitch'] != 0:
-                    utils.publish_data_constant(self.pub_pos_enable, ['roll', 'pitch'], False)
-
-                # If nonzero yaw power, disable those position pid loops
-                if self.powers['yaw'] != 0:
-                    utils.publish_data_constant(self.pub_pos_enable, ['yaw'], False)
-
-                # If any nonzero z power, disable those position pid loops
-                if self.powers['z'] != 0:
-                    utils.publish_data_constant(self.pub_pos_enable, ['z'], False)
-
-                utils.publish_data_dictionary(self.pub_power, utils.get_axes(), self.powers)
-                # Publish current state to the desired state for PID
-                utils.publish_data_dictionary(self.pub_pos, utils.get_axes(), self.hold)
-                self.powers = None
+            elif self.power:
+                self.disable_loops()
+                # Enable stabilization on all axes with 0 power input
+                for p in self.power.keys():
+                    if self.power[p] == 0:
+                        utils.publish_data_constant(self.pub_vel_enable, [p], True)
+                # Publish velocity setpoints to all Velocity loops, even though some are not enabled
+                utils.publish_data_dictionary(self.pub_vel, utils.get_axes(), self.power)
+                utils.publish_data_dictionary(self.pub_power, utils.get_axes(), self.power)
+                self.power = None
 
 
 def main():

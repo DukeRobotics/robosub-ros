@@ -16,7 +16,7 @@ class Movement(Enum):
 class JoystickParser:
     NODE_NAME = 'joy_pub'
     JOYSTICK_RAW_TOPIC = 'joystick/raw'
-    JOY_DEST_TOPIC = 'controls/desired_twist_power'
+    JOY_DEST_TOPIC = 'controls/desired_power'
 
     def __init__(self):
         self._pub = rospy.Publisher(self.JOY_DEST_TOPIC, Twist, queue_size=50)
