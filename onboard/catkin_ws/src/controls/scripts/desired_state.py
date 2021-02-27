@@ -25,8 +25,8 @@ class DesiredStateHandler:
 
     # All variables are a dictionary with mappings between the strings in DIRECTIONS to its corresponding value
     pose = None  # Desired pose
-    twist = None # Desired twist
-    power = None # Desired power
+    twist = None  # Desired twist
+    power = None  # Desired power
     # These dictionaries contain mappings between the strings in DIRECTIONS to the corresponding rospy publisher objects
     pub_pos = {}
     pub_pos_enable = {}
@@ -40,7 +40,7 @@ class DesiredStateHandler:
     def __init__(self):
         rospy.init_node('desired_state')
         self.enable_service = rospy.Service('enable_local_control', SetBool, self._handle_enable_local_control)
-        
+
         for d in utils.get_axes():
             self.pub_pos[d] = rospy.Publisher(utils.get_pid_topic(d), Float64, queue_size=3)
             self.pub_pos_enable[d] = rospy.Publisher(utils.get_pos_pid_enable(d), Bool, queue_size=3)
@@ -71,7 +71,6 @@ class DesiredStateHandler:
         else:
             self.twist = utils.parse_twist(twist)
 
-    
     def _on_power_received(self, power):
         self.power = utils.parse_twist(power)
 
@@ -97,7 +96,6 @@ class DesiredStateHandler:
         utils.publish_data_constant(self.pub_pos_enable, utils.get_axes(), False)
 
     def run(self):
-        rospy.init_node('desired_state')
         rate = rospy.Rate(self.REFRESH_HZ)
 
         warned = False
@@ -141,7 +139,7 @@ class DesiredStateHandler:
                 self.disable_loops()
                 # Enable stabilization on all axes with 0 power input
                 for p in self.power.keys():
-                    if self.power[p]==0:
+                    if self.power[p] == 0:
                         utils.publish_data_constant(self.pub_vel_enable, [p], True)
                 # Publish velocity setpoints to all Velocity loops, even though some are not enabled
                 utils.publish_data_dictionary(self.pub_vel, utils.get_axes(), self.power)

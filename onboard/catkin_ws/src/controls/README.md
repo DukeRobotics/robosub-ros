@@ -164,7 +164,7 @@ A thruster's starting orientation when aligned with robot frame is defined as th
 ### Scripts
 
 * `state_republisher.py` - listens to Current State Topics and republishes relevant components to their own `/controls/state/...` topics for use in all of the other parts of this controls package.
-* `desired_state.py` - listens to Desired State Topics, warns the user via the console if none or more than one are received, and outputs setpoints to PID loops if desiring position or velocirty, or outputs powers directly to `thruster_controls`.
+* `desired_state.py` - listens to Desired State Topics, warns the user via the console if none or more than one are received, and outputs setpoints to PID loops if desiring position or velocity, or outputs powers directly to `thruster_controls`.
 * `thruster_controls.py` - listens to control efforts from PID or `desired_state`, uses an instance of `ThrusterManager` to calculate thruster allocations from the them, scales outputs so that the maximum is 1 or -1 in any direction, and publishes to Arduino or simulation movement topics.
 * `thruster_manager.py` - Defines the `ThrusterManager` class, which reads in config file, creates `Thruster` array from it, and has math for calculating thruster allocations.
 * `thruster.py` - Defines the `Thruster` class, which takes in a position and orientation of a thruster relative to the center of the robot, and then calculates and stores the force and torque it exerts on the robot.

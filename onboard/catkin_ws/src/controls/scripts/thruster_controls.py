@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from std_msgs.msg import Float64, Float32MultiArray
+from std_msgs.msg import Float64
 from custom_msgs.msg import ThrusterSpeeds
 import numpy as np
 from thruster_manager import ThrusterManager
@@ -41,7 +41,7 @@ class ThrusterController:
         self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs)
 
     def _on_power_received(self, val, direction):
-        if val.data!=0:
+        if val.data != 0:
             self.pid_outputs[utils.get_axes().index(direction)] = val.data
         self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs)
 

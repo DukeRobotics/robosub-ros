@@ -21,9 +21,9 @@ class TestStatePublisher:
 
         # These values correspond to the desired global pose of the robot
         self.desired_pose = Pose()
-        self.desired_pose.position.x = 0
+        self.desired_pose.position.x = 1
         self.desired_pose.position.y = 0
-        self.desired_pose.position.z = -0.5
+        self.desired_pose.position.z = 0
         self.desired_pose.orientation.x = 0
         self.desired_pose.orientation.y = 0
         self.desired_pose.orientation.z = 0
@@ -66,12 +66,11 @@ class TestStatePublisher:
         self.current_state.header.frame_id = 'odom'
         self.current_state.header.stamp = rospy.Time()
 
-
     def publish_desired_pose(self):
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             self._pub_desired_pose.publish(self.desired_pose)
-            #self._pub_current_state.publish(self.current_state)
+            # self._pub_current_state.publish(self.current_state)
             rate.sleep()
 
     def publish_desired_twist(self):
@@ -88,10 +87,10 @@ class TestStatePublisher:
             # self._pub_current_state.publish(self.current_state)
             rate.sleep()
 
-def main():
-    # TestStatePublisher().publish_desired_pose()
 
-    TestStatePublisher().publish_desired_twist()
+def main():
+    TestStatePublisher().publish_desired_pose()
+    # TestStatePublisher().publish_desired_twist()
     # TestStatePublisher().publish_desired_power()
 
 
