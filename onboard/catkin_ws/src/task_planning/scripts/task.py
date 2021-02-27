@@ -78,7 +78,7 @@ class Task:
 
     def restart(self):
         self.unfinish()
-        self._on_task_start()
+        self.started = False
 
     def publish_desired_pose_global(self, pose):
         self.task_state.desired_pose_global_publisher.publish(pose)

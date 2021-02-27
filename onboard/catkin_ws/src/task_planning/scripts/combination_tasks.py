@@ -49,11 +49,10 @@ class IndSimulTask(Task):
             self.finish()
     
     def restart(self):
-        self.unfinish()
+        super(DepSimulTask, self).restart()
         for task in self.tasks:
             task.restart()
-        self._on_task_start()
-
+        
 
 class DepSimulTask(Task):
     """Run a list of tasks simulataneously, exits when any task finished"""
@@ -76,10 +75,9 @@ class DepSimulTask(Task):
             self.finish()
 
     def restart(self):
-        self.unfinish()
+        super(DepSimulTask, self).restart()
         for task in self.tasks:
             task.restart()
-        self._on_task_start()
 
 
 class LeaderFollowerTask(Task):
@@ -98,10 +96,9 @@ class LeaderFollowerTask(Task):
         self.follower.run()
 
     def restart(self):
-        self.unfinish()
+        super(LeaderFollowerTask, self).restart()
         self.leader.restart()
         self.follower.restart()
-        self._on_task_start()
 
 
 class IfElseTask(Task):
