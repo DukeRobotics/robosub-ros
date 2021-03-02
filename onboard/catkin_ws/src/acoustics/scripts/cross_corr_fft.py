@@ -14,10 +14,9 @@ class AcousticProcessor:
     LARGE_WINDOW_PORTION = 5
     SPAC = 0.0115
 
-    def __init__(self, filename, if_double, version, fs, freq, guess, publish_counts, if_plot=False):
-        self.filename = os.path.join(sys.path[0], '../data', filename)
+    def __init__(self, file_paths, if_double, fs, freq, guess, publish_counts, if_plot=False):
+        self.file_paths =  [rr.get_filename(fpath, use_protocol=False) for fpath in file_paths]
         self.if_double = if_double
-        self.version = version
         self.fs = fs
         self.pingc = self.fs * 0.004
         self.freq = freq
@@ -66,12 +65,7 @@ class AcousticProcessor:
 
     def run(self):
 
-        if self.version == 0:
-            filenames = [self.filename]
-        else:
-            filenames = [self.filename.replace(".csv", "("+str(i+1)+").csv") for i in range(self.version)]
-
-        for data_file in filenames:
+        for data_file in self.file_paths:
             self.process_data(ac.read_data(data_file))
 
         final_ccwh, valid_count = ac.final_hz_angle(self.ccwha)

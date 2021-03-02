@@ -1,13 +1,10 @@
 # Goal
 
 # The base filename of the data without the version
-string filename
+string[] file_paths
 
 # Whether the data in the file needs to be split in half
 bool if_double
-
-# Number of files with the same base filename
-uint32 version
 
 # Sampling frequency
 uint32 samp_f

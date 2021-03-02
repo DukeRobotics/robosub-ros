@@ -34,9 +34,9 @@ class ProcessingServer:
         self.server.set_succeeded(result)
 
     def execute(self, goal):
-        self.total_count = (1 if goal.version == 0 else goal.version) * (2 if goal.if_double else 1)
+        self.total_count = len(goal.file_paths) * (2 if goal.if_double else 1)
         guess = (goal.guess.x, goal.guess.y, goal.guess.z)
-        processor = AcousticProcessor(goal.filename, goal.if_double, goal.version,
+        processor = AcousticProcessor(goal.file_paths, goal.if_double,
                                       goal.samp_f, goal.tar_f, guess, self.publish_feedback)
         final_ccwh, valid_count, success_count = processor.run()
         self.publish_result(final_ccwh, valid_count, success_count)

@@ -1,13 +1,10 @@
 import pandas
 import math
 import numpy as np
-import rospy
+import numpy.linalg
+import resource_retriever as rr
 import os
 import sys
-
-
-def dis(x1, y1, z1, x, y, z):
-    return math.sqrt((x - x1) ** 2 + (y - y1) ** 2 + (z - z1) ** 2)
 
 class DataGenerator:
     VS = 1511.5  # velocity of sound
@@ -19,32 +16,30 @@ class DataGenerator:
         self.samples = int(math.floor(2.048 * 2 * self.sf))
         self.pinger_loc = pinger_loc
         self.hydrophone = hydrophone
-        if hydrophone == 'cheap':
+        if self.hydrophone == 'cheap':
             space = .3
-            self.hp1 = [0, 0, 0]
-            self.hp2 = [space, 0, 0]
-            self.hp3 = [0, space, 0]
-            self.hp4 = [0, 0, space]
-        elif hydrophone == 'expensive':
+            self.hp = [[0, 0, 0],
+                       [space, 0, 0],
+                       [0, space, 0],
+                       [0, 0, space]]
+        elif self.hydrophone == 'expensive':
             space = 0.0115
-            self.hp1 = [0, 0, 0]
-            self.hp2 = [0, -space, 0]
-            self.hp3 = [-space, 0, 0]
-            self.hp4 = [-space, -space, 0]
+            self.hp = [[0, 0, 0],
+                       [0, -space, 0],
+                       [-space, 0, 0],
+                       [-space, -space, 0]]
         else:
-            rospy.logerr('Invalid hydrophone type, set hydrophone to "cheap" or "expensive"')
+            self.hp = None
+            self.publish(curr_file=0, total_file=4, msg="Failure: incorrect hydrophone type on data generation")
 
     def run(self):
-        dis1 = dis(self.hp1[0], self.hp1[1], self.hp1[2], *self.pinger_loc)
-        dis2 = dis(self.hp2[0], self.hp2[1], self.hp2[2], *self.pinger_loc)
-        dis3 = dis(self.hp3[0], self.hp3[1], self.hp3[2], *self.pinger_loc)
-        dis4 = dis(self.hp4[0], self.hp4[1], self.hp4[2], *self.pinger_loc)
+        if self.hp is None:
+            return []
+
+        dis = [np.linalg.norm(np.array(h) - np.array(self.pinger_loc)) for h in self.hp]
 
         # hydrophone channel data
-        ping1 = np.zeros(self.samples)
-        ping2 = np.zeros(self.samples)
-        ping3 = np.zeros(self.samples)
-        ping4 = np.zeros(self.samples)
+        pings = [np.zeros(self.samples) for i in range(4)]
 
         # ping
         s = np.arange(0, math.floor(0.004 * self.sf))
@@ -53,38 +48,25 @@ class DataGenerator:
         # samples until ping occurs
         buffer = 40000
 
-        ping1[int(math.ceil(dis1 / self.VS * self.sf)) + buffer: int(math.ceil((dis1 / self.VS + 0.004) * self.sf)) + buffer] = ping
+        for i in range(4):
+            start_i = int(math.ceil(dis[i] / self.VS * self.sf)) + buffer
+            end_i = int(math.ceil((dis[i] / self.VS + 0.004) * self.sf)) + buffer
+            pings[i][start_i: end_i] = ping
 
-        ping2[int(math.ceil(dis2 / self.VS * self.sf)) + buffer: int(math.ceil((dis2 / self.VS + 0.004) * self.sf)) + buffer] = ping
+            start_i = int(math.ceil(dis[i] / self.VS * self.sf + 2.048 * self.sf)) + buffer
+            end_i =  int(math.ceil((dis[i] / self.VS + 0.004) * self.sf + 2.048 * self.sf)) + buffer
+            pings[i][start_i: end_i] = ping
 
-        ping3[int(math.ceil(dis3 / self.VS * self.sf)) + buffer: int(math.ceil((dis3 / self.VS + 0.004) * self.sf)) + buffer] = ping
-
-        ping4[int(math.ceil(dis4 / self.VS * self.sf)) + buffer: int(math.ceil((dis4 / self.VS + 0.004) * self.sf)) + buffer] = ping
-
-        ping1[int(math.ceil(dis1 / self.VS * self.sf + 2.048 * self.sf)) + buffer:
-              int(math.ceil((dis1 / self.VS + 0.004) * self.sf + 2.048 * self.sf)) + buffer] = ping
-
-        ping2[int(math.ceil(dis2 / self.VS * self.sf + 2.048 * self.sf)) + buffer:
-              int(math.ceil((dis2 / self.VS + 0.004) * self.sf + 2.048 * self.sf)) + buffer] = ping
-
-        ping3[int(math.ceil(dis3 / self.VS * self.sf + 2.048 * self.sf)) + buffer:
-              int(math.ceil((dis3 / self.VS + 0.004) * self.sf + 2.048 * self.sf)) + buffer] = ping
-
-        ping4[int(math.ceil(dis4 / self.VS * self.sf + 2.048 * self.sf)) + buffer:
-              int(math.ceil((dis4 / self.VS + 0.004) * self.sf + 2.048 * self.sf)) + buffer] = ping
-
+        file_paths = []
         for i in range(1, 5):
             mean = 0
             std = 0.01
+            hs = [p + np.random.normal(mean, std, self.samples) for p in pings]
 
-            h1 = ping1 + np.random.normal(mean, std, self.samples)
-            h2 = ping2 + np.random.normal(mean, std, self.samples)
-            h3 = ping3 + np.random.normal(mean, std, self.samples)
-            h4 = ping4 + np.random.normal(mean, std, self.samples)
+            df = pandas.DataFrame({'Channel 0': hs[0], 'Channel 1': hs[1], 'Channel 2': hs[2], 'Channel 3': hs[3]})
+            filepath = "package://acoustics/data/simulated_{}_{}_{}_{}_({}).csv".format(self.hydrophone, self.pinger_loc[0], self.pinger_loc[1], self.pinger_loc[2], i)
+            df.to_csv(rr.get_filename(filepath, use_protocol=False))
+            file_paths.append(filepath)
+            self.publish(curr_file=i, total_file=4, msg="File generation successful, moving onto next file")
 
-            df = pandas.DataFrame({'Channel 0': h1, 'Channel 1': h2, 'Channel 2': h3, 'Channel 3': h4})
-            filepath = os.path.join(sys.path[0], '../data', '../data/simulated-%s_%d_%d_%d_(%d).csv' % (self.hydrophone, self.pinger_loc[0], self.pinger_loc[1], self.pinger_loc[2], i))
-            df.to_csv(filepath)
-            self.publish(curr_file=i, total_file=4)
-
-        return True
+        return file_paths

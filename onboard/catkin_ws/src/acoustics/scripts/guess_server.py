@@ -19,10 +19,11 @@ class GuessServer:
         self.server.start()
         rospy.spin()
 
-    def publish_feedback(self, curr_stage, total_stage):
+    def publish_feedback(self, curr_stage, total_stages, msg):
         feedback = AcousticsGuessFeedback()
         feedback.curr_stage = curr_stage
-        feedback.total_stage = total_stage
+        feedback.total_stages = total_stage
+        feedback.message = msg
         self.server.publish_feedback(feedback)
 
     def publish_result(self, point):
@@ -33,9 +34,8 @@ class GuessServer:
         self.server.set_succeeded(result)
 
     def execute(self, goal):
-        filepath = os.path.join(sys.path[0], '../data', goal.filename)
-        processor = AcousticGuess(filepath, goal.samp_f, goal.tar_f, self.publish_feedback)
-        point = processor.run()
+        filepath = rr.get_filename(goal.filename, use_protocol=False)
+        point = AcousticGuess(filepath, goal.samp_f, goal.tar_f, self.publish_feedback).run()
         self.publish_result(point)
 
 

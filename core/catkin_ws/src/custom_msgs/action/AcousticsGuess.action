@@ -1,7 +1,7 @@
 # Goal
 
 # The base filename of the data without the version
-string filename
+string file_path
 
 # Sampling frequency
 uint32 samp_f
@@ -22,4 +22,7 @@ geometry_msgs/Point guess
 uint32 curr_stage
 
 # Total number of stages in program
-uint32 total_stage
+uint32 total_stages
+
+# Message
+string message

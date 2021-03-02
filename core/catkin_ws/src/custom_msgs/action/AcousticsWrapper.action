@@ -1,8 +1,5 @@
 # Goal
 
-# The base filename of the data without the version
-string filename
-
 # Target frequency
 uint32 tar_f
 
@@ -19,4 +16,7 @@ float64 hz_angle
 uint32 curr_stage
 
 # Total number of stages in program
-uint32 total_stage
+uint32 total_stages
+
+# Message to display
+string feedback

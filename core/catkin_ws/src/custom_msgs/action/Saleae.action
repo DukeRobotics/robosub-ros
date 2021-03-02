@@ -1,19 +1,22 @@
 # Goal
 
-# Csv file path
+# Name of base filename to save to
 string save_name
 
 # Which Hydrophone Set
 uint32 hydrophone_set
 
-# Capture file directory
-string capture_directory
+# Number of captures to take
+uint32 capture_count
+
+# Duration to perform capture for
+uint32 capture_duration
 
 ---
 # Result
 
-# File name of csv data
-string return_file_name
+# Result files where data has been saved. Should be a package URL.
+string[] file_paths
 
 ---
 # Feedback
@@ -22,4 +25,7 @@ string return_file_name
 uint32 curr_stage
 
 # Total number of stages in program
-uint32 total_stage
+uint32 total_stages
+
+# Message
+string message

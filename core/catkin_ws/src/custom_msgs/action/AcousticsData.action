@@ -10,19 +10,22 @@ uint32 tar_f
 string hydrophone
 
 # Location of the pinger
-geometry_msgs/Point plocation
+geometry_msgs/Point location
 
 ---
 # Result
 
-# Was data generated and saved successfully?
-bool success
+# Result files where data has been saved. Should be a package URL.
+string[] file_paths
 
 ---
 # Feedback
 
-# Files Saved
-uint32 curr_file
+# Current stage the program is on
+uint32 curr_stage
 
-# Total number of files
-uint32 total_file
+# Total number of stages in program
+uint32 total_stages
+
+# Message
+string message
