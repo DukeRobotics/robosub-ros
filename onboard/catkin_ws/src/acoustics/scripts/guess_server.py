@@ -34,8 +34,7 @@ class GuessServer:
         self.server.set_succeeded(result)
 
     def execute(self, goal):
-        filepath = rr.get_filename(goal.filename, use_protocol=False)
-        point = AcousticGuess(filepath, goal.samp_f, goal.tar_f, self.publish_feedback).run()
+        point = AcousticGuess(goal.file_paths, goal.samp_f, goal.tar_f, self.publish_feedback).run()
         self.publish_result(point)
 
 

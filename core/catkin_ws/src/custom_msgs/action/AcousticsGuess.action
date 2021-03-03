@@ -1,7 +1,7 @@
 # Goal
 
 # The base filename of the data without the version
-string file_path
+string[] file_paths
 
 # Sampling frequency
 uint32 samp_f

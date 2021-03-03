@@ -61,18 +61,18 @@ class AcousticsWrapper:
         self.client_sampling.wait_for_result()
         return self.client_processing.get_result()
 
-    def get_guess(self, wrapper_goal, guess_file):
+    def get_guess(self, wrapper_goal, guess_files):
         goal = AcousticsGuessGoal()
-        goal.file_path = guess_file
+        goal.file_paths = guess_files
         goal.samp_f = self.GUESS_SAMPLE_FREQ
         goal.tar_f = wrapper_goal.tar_f
         self.client_guess.send_goal(goal)
         self.client_guess.wait_for_result()
         return self.client_guess.get_result().guess
 
-    def get_processing_angle(self, wrapper_goal, processing_file, guess):
+    def get_processing_angle(self, wrapper_goal, processing_files, guess):
         goal = AcousticsProcessingGoal()
-        goal.file_path = processing_file
+        goal.file_paths = processing_files
         goal.samp_f = self.PROCESSING_SAMPLE_FREQ
         goal.tar_f = wrapper_goal.tar_f
         goal.guess = guess
