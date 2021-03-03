@@ -9,24 +9,24 @@ from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import PoseStamped
 import tf
 
-pub_gate = rospy.Publisher('gate_data',Float32MultiArray)
-pub_buoy = rospy.Publisher('buoy_data',Float32MultiArray)
+pub_gate = rospy.Publisher('gate_data',Float32MultiArray, queue_size=10)
+pub_buoy = rospy.Publisher('buoy_data',Float32MultiArray, queue_size=10)
 
 def node_code():
-	rospy.init_node('box_maker', anonymous=True)	
+	rospy.init_node('box_maker')
 	rospy.Subscriber("/sim/object_points", Float32MultiArray, callback)
 	rospy.Subscriber("/sim/pose", PoseStamped, pose_callback)	
 	rate = rospy.Rate(10)
 	while not rospy.is_shutdown():
 		hello_str = "hello world %s" % rospy.get_time()
-		rospy.loginfo(hello_str)
+		#rospy.loginfo(hello_str)
 		rate.sleep()
 
 def pose_callback(data):
 	global pos
 	global orientation
 
-	rospy.loginfo("pose received")
+	# rospy.loginfo("pose received")
 
 	position = data.pose.position
 	pos[0] = position.x
@@ -44,14 +44,12 @@ def pose_callback(data):
 def callback(data):
 	global pos, orientation, pub_gate, pub_buoy
 
-	rospy.loginfo("object points received")
+	# rospy.loginfo("object points received")
 
 	points, objects = parse_array(data.data)
 	boxes = bounding_boxes(points, pos, orientation, objects)
 
-	objstr = ""
-	objstr.join(objects)
-	rospy.loginfo(objstr)
+	# rospy.loginfo(objects)
 
 	for i in range(len(objects)):
 		if (objects[i] == 1):
@@ -95,7 +93,10 @@ def parse_array(array):
 def bounding_boxes(all_points, pos, orientation, ids):
 	boxes = []
 	for i in range(len(all_points)):
-		if (ids[i] != -1):
+		if ids[i] != -1:
+			if ids[i] == 1:
+				pass
+				#print(all_points[i])
 			boxes.append(BoundingBox.get_bounding_box(all_points[i], pos, orientation))
 		else:
 			boxes.append([-1,-1,-1,-1])

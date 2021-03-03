@@ -117,12 +117,13 @@ function getObjectPoints()
                 z = {}
                 blah, z[1] = sim.getObjectFloatParameter(i, 17)
                 blah, z[2] = sim.getObjectFloatParameter(i, 20)
+                objpos = sim.getObjectPosition(i, -1)
                 for j = 0, 7 do
                     xi = (j % 2) + 1
                     yi = (math.floor(j / 2) % 2) + 1
                     zi = (math.floor(j / 4) % 2) + 1
                     --print("" .. xi .. " " .. yi .. " " .. zi)
-                    new_point = { x[xi], y[yi], z[zi] }
+                    new_point = { x[xi] + objpos[1], y[yi] + objpos[2], z[zi] + objpos[3]}
                     --print(new_point)
                     objects[sim.getObjectName(allParents[k])] = tableConcat(objects[sim.getObjectName(allParents[k])], new_point)
                     --print(#objects[sim.getObjectName(allParents[k])])
@@ -140,7 +141,6 @@ function getObjectPoints()
         ret = tableConcat(ret, value)
         ret = tableConcat(ret, { -999999 })
     end
-    print(ret)
 
     return ret
 end

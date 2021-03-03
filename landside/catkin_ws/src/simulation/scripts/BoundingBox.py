@@ -25,15 +25,15 @@ def get_grid_point(point, pos, orientation):
 	xPix = (xFOV / 2 - rel_point[1]) / xFOV
 	yPix = (yFOV / 2 - rel_point[2]) / yFOV
 	grid_point = [xPix, yPix]
-	for i in range(2):
-		if (grid_point[i] < 0):
-			grid_point[i] = 0
-		if (grid_point[i] > 1):
-			grid_point[i] = 1
+	# for i in range(2):
+	# 	if (grid_point[i] < 0):
+	# 		grid_point[i] = 0
+	# 	if (grid_point[i] > 1):
+	# 		grid_point[i] = 1
 	return grid_point
 
 def point_rel_to_bot(point, pos, orientation):
-	r = R.from_euler('xyz', orientation, degrees=True)
+	r = R.from_euler('xyz', orientation, degrees=False)
 	rel_point = r.apply(point)
 
 	for i in range(len(rel_point)):
@@ -41,25 +41,25 @@ def point_rel_to_bot(point, pos, orientation):
 	return rel_point
 
 def get_box(xs, ys):
-	xmax = 0
-	xmin = 1
-	ymax = 0
-	ymin = 1
+	# xmax = 0
+	# xmin = 1
+	# ymax = 0
+	# ymin = 1
+	#
+	# for i in range(len(xs)):
+	# 	if (xs[i] > xmax):
+	# 		xmax = xs[i]
+	# 	if (xs[i] < xmin):
+	# 		xmin = xs[i]
+	# 	if (ys[i] > ymax):
+	# 		ymax = ys[i]
+	# 	if (ys[i] < ymin):
+	# 		ymin = ys[i]
 
-	for i in range(len(xs)):
-		if (xs[i] > xmax):
-			xmax = xs[i]
-		if (xs[i] < xmin):
-			xmin = xs[i]
-		if (ys[i] > ymax):
-			ymax = ys[i]
-		if (ys[i] < ymin):
-			ymin = ys[i]
-
-	box = [xmin, xmax, ymin, ymax]
-	if ((xmin == xmax) or (ymin == ymax)):
-		for x in box:
-			x = -1
+	box = [min(xs), max(xs), min(ys), max(ys)]
+	# if ((xmin == xmax) or (ymin == ymax)):
+	# 	for x in box:
+	# 		x = -1
 	return box
 
 	#if __name__ == "__main__":
