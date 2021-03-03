@@ -13,6 +13,8 @@ add_message_files(
   ThrusterSpeeds.msg
   ServoAngle.msg
   CVObject.msg
+  Memory.msg
+  SystemUsage.msg
 )
 
 add_service_files(
