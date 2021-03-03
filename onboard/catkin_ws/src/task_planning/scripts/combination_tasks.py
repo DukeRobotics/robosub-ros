@@ -1,33 +1,51 @@
 
 from task import Task
+import copy
 
 
 class ListTask(Task):
     """Run a list of tasks sequentially"""
 
-    def __init__(self, tasks, num_loops=1):
+    def __init__(self, tasks):
         super(ListTask, self).__init__()
 
-        self.num_loops = num_loops
         self.tasks = tasks
+
+    def _on_task_start(self):
         self.curr_index = 0
 
     def _on_task_run(self):
         if self.curr_index == len(self.tasks):
-            if self.num_loops > 0:
-                self.num_loops -= 1
-                if self.num_loops == 0:
-                    self.finish()
-
-            self.curr_index = 0
+            self.finish()
 
         elif self.tasks[self.curr_index].finished:
-            if self.num_loops != 1:
-                self.tasks[self.curr_index].restart()
             self.curr_index += 1
 
         else:
             self.tasks[self.curr_index].run()
+
+
+class RepeatTask(Task):
+    """Runs a task num_reps times, runs indefinitely if num_reps=-1"""
+
+    def __init__(self, task, num_reps):
+        super(RepeatTask, self).__init__()
+
+        self.task = task
+        self.num_reps = num_reps
+
+    def _on_task_start(self):
+        self.curr_rep = -1
+
+    def _on_task_run(self):
+        if self.curr_rep == -1 or self.copy.finished:
+            self.copy = copy.deepcopy(self.task)
+            self.curr_rep += 1  # curr_rep will be 0 on first rep
+
+        if self.num_reps == self.curr_rep:
+            self.finish()
+
+        self.copy.run()
 
 
 class IndSimulTask(Task):
@@ -47,12 +65,7 @@ class IndSimulTask(Task):
 
         if all_finished:
             self.finish()
-    
-    def restart(self):
-        super(DepSimulTask, self).restart()
-        for task in self.tasks:
-            task.restart()
-        
+
 
 class DepSimulTask(Task):
     """Run a list of tasks simulataneously, exits when any task finished"""
@@ -74,11 +87,6 @@ class DepSimulTask(Task):
                 task.finish()
             self.finish()
 
-    def restart(self):
-        super(DepSimulTask, self).restart()
-        for task in self.tasks:
-            task.restart()
-
 
 class LeaderFollowerTask(Task):
 
@@ -94,11 +102,6 @@ class LeaderFollowerTask(Task):
 
         self.leader.run()
         self.follower.run()
-
-    def restart(self):
-        super(LeaderFollowerTask, self).restart()
-        self.leader.restart()
-        self.follower.restart()
 
 
 class IfElseTask(Task):
@@ -119,4 +122,3 @@ class IfElseTask(Task):
     def _on_task_run(self):
         if self.task_running.finished:
             self.finish()
-

@@ -1,7 +1,7 @@
 import rospy
 
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Pose, Twist, Vector3
+from geometry_msgs.msg import Pose, Twist
 from custom_msgs.msg import CVObject
 
 
@@ -24,7 +24,8 @@ class TaskState:
             'gate': None,
             'gate_tick': None
         }
-        self.cv_gate_data_listener = rospy.Subscriber(self.CV_GATE_DATA_TOPIC, CVObject, self._on_receive_gate_data, 'gate')
+        self.cv_gate_data_listener = rospy.Subscriber(
+            self.CV_GATE_DATA_TOPIC, CVObject, self._on_receive_gate_data, 'gate')
         self.cv_gate_tick_data_listener = rospy.Subscriber(self.CV_GATE_TICK_DATA_TOPIC, CVObject,
                                                            self._on_receive_gate_data, 'gate_tick')
 

@@ -31,7 +31,6 @@ class Task:
     @property
     def cv_data(self):
         return self.task_state.cv_data
-    
 
     def _on_task_start_default(self):
         """Should be called when the task runs for the first time"""
@@ -72,13 +71,13 @@ class Task:
         """Mark the task as finished"""
         self.finished = True
 
-    def unfinish(self):
-        """Mark task as unfinished"""
-        self.finished = False
+    # def unfinish(self):
+    #     """Mark task as unfinished"""
+    #     self.finished = False
 
-    def restart(self):
-        self.unfinish()
-        self.started = False
+    # def restart(self):
+    #     self.unfinish()
+    #     self.started = False
 
     def publish_desired_pose_global(self, pose):
         self.task_state.desired_pose_global_publisher.publish(pose)

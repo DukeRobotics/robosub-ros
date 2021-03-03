@@ -18,7 +18,8 @@ class MoveToPoseGlobalTask(Task):
 
     def _on_task_run(self):
         self.publish_desired_pose_global(self.desired_pose)
-        at_desired_pose_vel = task_utils.stopped_at_pose(self.state.pose.pose, self.desired_pose, self.state.twist.twist)
+        at_desired_pose_vel = task_utils.stopped_at_pose(
+            self.state.pose.pose, self.desired_pose, self.state.twist.twist)
         if at_desired_pose_vel:
             self.finish()
 
