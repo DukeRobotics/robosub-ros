@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import rospy
 from std_msgs.msg import Float64
-from geometry_msgs.msg import Vector3Stamped
 from custom_msgs.msg import ThrusterSpeeds
 import numpy as np
 from thruster_manager import ThrusterManager
@@ -68,7 +67,7 @@ class ThrusterController:
                 self.t_allocs = np.clip(self.t_allocs, -1, 1)
 
                 i8_t_allocs = ThrusterSpeeds()
-                i8_t_allocs.speeds = (self.t_allocs * 127).astype(int)
+                i8_t_allocs.speeds = (self.t_allocs * 60).astype(int)
                 self.pub.publish(i8_t_allocs)
 
             rate.sleep()

@@ -1,8 +1,7 @@
 # Controls
 
 
-
-These are the instructions to initialize and test our controls algorithm. We take input from various topics and move the robot based on desired global position or desired power. By default, we publish thruster power outputs (thruster allocations) on a range [-128, 127].
+These are the instructions to initialize and test our controls algorithm. We take input from various topics and move the robot based on desired global position, global velocity, or power. By default, we publish thruster power outputs (thruster allocations) on a range [-128, 127].
 
 Thruster information is read from `*.config` files, which are written in YAML. The ordering of the thruster allocations is determined by the order in which the thrusters appear the config file.
 
@@ -94,7 +93,7 @@ Thruster speeds are published for the use of the simulation and Arduino.
 
   - ```/offboard/thruster_speeds```
     + An array of 8 8-bit integers [-128,127] describing the allocation of the thrusters sent to the Arduino
-    + Type: controls.msg/ThrusterSpeeds
+    + Type: custom_msgs.msg/ThrusterSpeeds
 
 
 ## How It Works
@@ -109,8 +108,8 @@ This package contains the following custom ROS nodes:
 
 This package has the following launch files:
 
-* `controls.launch` is the entrypoint to the package. It takes in a `sim` argument to indicate which set of pid constants to use. It includes the `pid.launch` file to launch the PID for position loops. It then starts the three nodes above.
-* `pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for position control on x, y, z, roll, pitch, and yaw. It defines the PID parameters at the top, depending on the `sim` argument passed in.
+* `controls.launch` is the entrypoint to the package. It takes in a `sim` argument to indicate whether we are publishing for the simulation or the Arduino. It includes the `pid.launch` file to launch the PID for position loops. It then starts the three nodes above.
+* `position_pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for position control on x, y, z, roll, pitch, and yaw. It defines the PID parameters at the top, depending on the `sim` argument passed in.
 
 * `velocity_pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for velocity control on x, y, z, roll, pitch, and yaw. For ease of tuning via dynamic reconfiguration, this file accepts PID simulation constants as parameters which are used if the `sim` argument is asserted. 
 
