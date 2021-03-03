@@ -22,6 +22,7 @@ jobs:
         filters: |
           docker:
             - 'docker/**'
+            - '.github/workflows/**'
 
   core-docker:
     runs-on: ubuntu-latest
@@ -87,12 +88,14 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           COMMIT_REF: ${{ github.event.pull_request.head.sha }}
+          COMMIT_BASE: ${{ github.event.pull_request.base.sha }}
         run: |
           ./.github/workflows/test.sh
       - name: Test build for push
         if: github.event_name == 'push'
         env:
           COMMIT_REF: ${{ github.sha }}
+          COMMIT_BASE: ${{ github.sha }}
         run: |
           ./.github/workflows/test.sh
       - name: Push image to dockerhub
@@ -144,12 +147,14 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           COMMIT_REF: ${{ github.event.pull_request.head.sha }}
+          COMMIT_BASE: ${{ github.event.pull_request.base.sha }}
         run: |
           ./.github/workflows/test.sh
       - name: Test build for push
         if: github.event_name == 'push'
         env:
           COMMIT_REF: ${{ github.sha }}
+          COMMIT_BASE: ${{ github.sha }}
         run: |
           ./.github/workflows/test.sh
       - name: Push image to dockerhub
