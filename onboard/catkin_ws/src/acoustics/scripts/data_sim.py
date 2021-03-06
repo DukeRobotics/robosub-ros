@@ -65,7 +65,7 @@ class DataGenerator:
             hs = [p + np.random.normal(mean, std, self.samples) for p in pings]
 
             df = pandas.DataFrame({'Channel 0': hs[0], 'Channel 1': hs[1], 'Channel 2': hs[2], 'Channel 3': hs[3]})
-            filepath = "package://acoustics/data/simulated_{}_{}_{}_{}_({}).csv".format(self.hydrophone, 
+            filepath = "package://acoustics/data/simulated_{}_{}_{}_{}_({}).csv".format(self.hydrophone,
                                                                                         self.pinger_loc[0],
                                                                                         self.pinger_loc[1],
                                                                                         self.pinger_loc[2], i)
