@@ -24,6 +24,7 @@ Our codebase is powered by the [Robot Operating System](https://www.ros.org) (RO
 The following components make up our software stack:
 
 - Onboard:
+    * [Acoustics](onboard/catkin_ws/src/acoustics) - Handles the task of locating an underwater hydrophone pinger.
     * [AVT Camera](onboard/catkin_ws/src/avt_camera) - Drives our ethernet cameras and publishes a live video feed.
     * [Controls](onboard/catkin_ws/src/controls) - Determines thruster outputs given a current and desired state.
     * [Computer Vision](onboard/catkin_ws/src/cv) - Locates objects (goals/obstacles) via camera input and machine learning.
@@ -51,12 +52,12 @@ The general flow of information between components is shown in the diagram below
               v                                 /     v
             Data Pub                           /   Camera View
                 \                             /
- Simulation ---> \                           /
-                  v                         v
-                Sensor Fusion          Computer Vision
-                    \                     /
-                     \                   /
-                      v                 v
+ Simulation ---> \          Acoustics        /
+                  v             |            v
+                Sensor Fusion   |      Computer Vision
+                    \           |         /
+                     \          |        /
+                      v         v       v
                          Task Planning
                                |
                                |

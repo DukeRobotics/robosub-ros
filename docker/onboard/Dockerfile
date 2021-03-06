@@ -12,7 +12,7 @@ RUN echo "Port 2200" >> /etc/ssh/sshd_config
 
 # Update and install tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libceres-dev \
+    libceres-dev unzip \
     python-numpy python-scipy python-future  \
     python-six python-dateutil python-skimage \
     python-pywt python-pandas \
@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # Get required python packages
-RUN pip install pyserial dependency-injector pillow==6 pymba==0.1
+RUN pip install pyserial dependency-injector pillow==6 pymba==0.1 saleae
 
 # Install PyTorch and Torchvision
 COPY $TARGETPLATFORM/TorchInstaller.sh TorchInstaller.sh
@@ -45,6 +45,12 @@ RUN git clone https://github.com/muthuArivoli/camera-driver.git && \
     ./Install.sh
 RUN rm -rf camera-driver && \
     rm Vimba.tgz
+
+# Install Saleae Logic application and add to path
+RUN wget -O "logic.zip" "http://downloads.saleae.com/logic/1.2.18/Logic+1.2.18+(64-bit).zip" && \
+    unzip logic.zip && \
+    mv "Logic 1.2.18 (64-bit)" "Logic" && \
+    export PATH="$PATH:$PWD/Logic"
 
 # Set computer type
 ENV COMPUTER_TYPE=onboard

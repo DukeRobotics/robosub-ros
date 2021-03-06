@@ -19,4 +19,4 @@ uint32 curr_stage
 uint32 total_stages
 
 # Message to display
-string feedback
+string message
