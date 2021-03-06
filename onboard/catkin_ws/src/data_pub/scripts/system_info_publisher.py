@@ -17,7 +17,7 @@ class SystemInfoPublisher:
 
     def get_gpu_memory_others(self):
         GPUs = GPUtil.getGPUs()
-        if (GPUs > 0):
+        if (len(GPUs) > 0):
             gpu = GPUs[0]
             self.gpu_memory.used = gpu.memoryUsed
             self.gpu_memory.total = gpu.memoryTotal
