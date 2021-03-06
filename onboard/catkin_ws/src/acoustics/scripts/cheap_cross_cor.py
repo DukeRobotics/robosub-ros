@@ -18,11 +18,11 @@ class AcousticGuess:
 
     def run(self):
         octants = {}
-        for i in range(len(self.file_paths))
+        for i in range(len(self.file_paths)):
             data = read_data(self.file_paths[i])
             lowcut = self.freq - self.BAND_WIDTH//2
             highcut = self.freq + self.BAND_WIDTH//2
-            #plot_filter(lowcut, highcut, fs, 4)
+            # plot_filter(lowcut, highcut, fs, 4)
 
             filtered = [butter_bandpass_filter(channel, lowcut, highcut, self.fs, order=4) for channel in data]
             filtered = [np.absolute(channel).tolist() for channel in filtered]

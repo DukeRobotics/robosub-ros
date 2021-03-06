@@ -1,11 +1,11 @@
 import pandas
 import numpy as np
 from scipy.optimize import fsolve
-from scipy.signal import butter, lfilter, freqz, correlate
+from scipy.signal import butter, lfilter, freqz
 import matplotlib
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt # noqa
+from mpl_toolkits.mplot3d import Axes3D # noqa
 
 
 def get_pdiff(parr1, parr2, start, end, large_window_portion):
@@ -138,6 +138,7 @@ def final_hz_angle(hz_arr):
     ave = np.array([q for q in quadrant if len(q) == max_len]).flatten()
     return np.mean(ave), len(ave)
 
+
 def butter_bandpass(lowcut, highcut, fs, order=5):
     nyq = 0.5 * fs
     low = lowcut / nyq
@@ -145,10 +146,12 @@ def butter_bandpass(lowcut, highcut, fs, order=5):
     b, a = butter(order, [low, high], btype='band')
     return b, a
 
+
 def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
     b, a = butter_bandpass(lowcut, highcut, fs, order=order)
     y = lfilter(b, a, data)
     return y
+
 
 def plot_filter(lowcut, highcut, fs, order):
     b, a = butter_bandpass(lowcut, highcut, fs, order=order)

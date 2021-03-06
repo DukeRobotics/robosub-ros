@@ -2,8 +2,7 @@
 # change fft_w_size, large_window_portion, and invalidation requirement in get_pdiff
 import numpy as np
 import acoustics_math as ac
-import sys
-import os
+import resource_retriever as rr
 
 
 class AcousticProcessor:
@@ -15,7 +14,7 @@ class AcousticProcessor:
     SPAC = 0.0115
 
     def __init__(self, file_paths, if_double, fs, freq, guess, publish_counts, if_plot=False):
-        self.file_paths =  [rr.get_filename(fpath, use_protocol=False) for fpath in file_paths]
+        self.file_paths = [rr.get_filename(fpath, use_protocol=False) for fpath in file_paths]
         self.if_double = if_double
         self.fs = fs
         self.pingc = self.fs * 0.004

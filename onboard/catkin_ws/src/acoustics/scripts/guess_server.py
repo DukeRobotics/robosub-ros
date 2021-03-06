@@ -4,8 +4,6 @@ import rospy
 import actionlib
 from custom_msgs.msg import AcousticsGuessFeedback, AcousticsGuessResult, AcousticsGuessAction
 from cheap_cross_cor import AcousticGuess
-import sys
-import os
 
 
 class GuessServer:
@@ -22,7 +20,7 @@ class GuessServer:
     def publish_feedback(self, curr_stage, total_stages, msg):
         feedback = AcousticsGuessFeedback()
         feedback.curr_stage = curr_stage
-        feedback.total_stages = total_stage
+        feedback.total_stages = total_stages
         feedback.message = msg
         self.server.publish_feedback(feedback)
 

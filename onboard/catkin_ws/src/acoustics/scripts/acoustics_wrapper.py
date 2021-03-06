@@ -7,10 +7,6 @@ from custom_msgs.msg import AcousticsGuessGoal, AcousticsGuessAction, \
     SaleaeGoal, SaleaeAction, \
     AcousticsWrapperAction, AcousticsWrapperFeedback, AcousticsWrapperResult
 from datetime import datetime
-import sys
-import pandas as pd
-import os
-import resource_retriever as rr
 
 
 class AcousticsWrapper:
@@ -22,7 +18,6 @@ class AcousticsWrapper:
     PROCESSING_SAMPLE_FREQ = 625000
     CAPTURE_COUNT = 4
     CAPTURE_DURATION = 2
-
 
     def __init__(self):
         rospy.init_node(self.NODE_NAME)

@@ -3,9 +3,8 @@
 import rospy
 import actionlib
 from custom_msgs.msg import SaleaeAction, SaleaeFeedback, SaleaeResult
+import pandas as pd
 import saleae
-import sys
-import os
 import resource_retriever as rr
 
 
@@ -37,10 +36,10 @@ class Saleae:
         self.server.set_succeeded(result)
 
     def format_csv(self, file):
-        df = pd.read_csv(abs_path)
+        df = pd.read_csv(file)
         df.drop([0])
         df.drop([0], axis=1)
-        df.to_csv(abs_path, index=False)
+        df.to_csv(file, index=False)
 
     def execute(self, goal):
         self.saleae.set_capture_seconds(goal.capture_duration)
@@ -56,6 +55,7 @@ class Saleae:
 
         self.publish_feedback(goal.capture_count + 1, goal.capture_count + 1, "Saleae capture complete")
         self.publish_result(save_paths)
+
 
 if __name__ == '__main__':
     Saleae()

@@ -3,8 +3,7 @@ import math
 import numpy as np
 import numpy.linalg
 import resource_retriever as rr
-import os
-import sys
+
 
 class DataGenerator:
     VS = 1511.5  # velocity of sound
@@ -43,7 +42,9 @@ class DataGenerator:
 
         # ping
         s = np.arange(0, math.floor(0.004 * self.sf))
-        ping = 0.1 * np.sin((s / self.sf * self.pinger_frequency * 2 * math.pi))  # complex conjugate transpose (np.matrix.H)
+
+        # complex conjugate transpose (np.matrix.H)
+        ping = 0.1 * np.sin((s / self.sf * self.pinger_frequency * 2 * math.pi))
 
         # samples until ping occurs
         buffer = 40000
@@ -54,7 +55,7 @@ class DataGenerator:
             pings[i][start_i: end_i] = ping
 
             start_i = int(math.ceil(dis[i] / self.VS * self.sf + 2.048 * self.sf)) + buffer
-            end_i =  int(math.ceil((dis[i] / self.VS + 0.004) * self.sf + 2.048 * self.sf)) + buffer
+            end_i = int(math.ceil((dis[i] / self.VS + 0.004) * self.sf + 2.048 * self.sf)) + buffer
             pings[i][start_i: end_i] = ping
 
         file_paths = []

@@ -4,8 +4,6 @@ import rospy
 import actionlib
 from custom_msgs.msg import AcousticsDataFeedback, AcousticsDataResult, AcousticsDataAction
 from data_sim import DataGenerator
-import sys
-import os
 
 
 class DataServer:
