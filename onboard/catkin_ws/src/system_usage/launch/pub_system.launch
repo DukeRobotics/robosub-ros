@@ -1,0 +1,3 @@
+<launch>
+    <node name="dvl_raw_publisher" pkg="system_usage" type="system_info_publisher.py" />
+<launch>
