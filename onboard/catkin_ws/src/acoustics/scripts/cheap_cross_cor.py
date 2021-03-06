@@ -1,9 +1,6 @@
 import numpy as np
-import pandas as pd
-from scipy.signal import butter, lfilter, freqz, correlate
-import sys
-import os
-from acoustics_math import read_data, butter_bandpass_filter, plot_filter
+from scipy.signal import correlate
+from acoustics_math import read_data, butter_bandpass_filter
 import resource_retriever as rr
 
 
