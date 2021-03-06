@@ -5,7 +5,6 @@ from geometry_msgs.msg import Pose, Twist
 from std_msgs.msg import Float64, Bool
 import controls_utils as utils
 from tf import TransformListener
-from std_srvs.srv import SetBool
 
 
 class bcolors:
@@ -37,7 +36,7 @@ class DesiredStateHandler:
 
     def __init__(self):
         rospy.init_node('desired_state')
-        
+
         for d in utils.get_axes():
             self.pub_pos[d] = rospy.Publisher(utils.get_pid_topic(d), Float64, queue_size=3)
             self.pub_pos_enable[d] = rospy.Publisher(utils.get_pos_pid_enable(d), Bool, queue_size=3)
