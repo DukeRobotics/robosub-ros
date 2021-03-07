@@ -8,4 +8,4 @@ pip install --no-cache-dir torch-1.4.0-cp27-cp27mu-linux_aarch64.whl
 rm torch-1.4.0-cp27-cp27mu-linux_aarch64.whl
 
 # Install torchvision
-pip install --no-cache-dir future torchvision
+pip install --no-cache-dir future torchvision==0.5.0
