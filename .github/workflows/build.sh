@@ -2,6 +2,7 @@
 
 set -ex
 
+sudo apt-get update
 sudo apt-get remove docker docker-engine docker.io containerd runc
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 sudo add-apt-repository \
