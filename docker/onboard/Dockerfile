@@ -33,7 +33,8 @@ RUN ./TorchInstaller.sh && \
     rm TorchInstaller.sh
 
 # Install Detecto
-RUN pip install --no-cache-dir --no-deps detecto
+RUN pip install --upgrade pip==8.1.1 && \
+    pip install --no-cache-dir --no-deps detecto
 
 ### ROS Plugins and Dependencies###
 
