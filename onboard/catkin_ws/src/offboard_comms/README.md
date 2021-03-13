@@ -27,7 +27,7 @@ rostopic pub -r 10 /offboard/thruster_speeds custom_msgs/ThrusterSpeeds '{speeds
 ```
 To set the first servo to a 90 degree angle, you can use:
 ```
-rosservice call /offboard/servo_angle '{num: 0, angle: 90}'
+rosservice call /set_servo_angle '{num: 0, angle: 90}'
 ```
 
 ## Topics and Services
