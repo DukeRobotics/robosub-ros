@@ -65,7 +65,7 @@ class SystemInfoPublisher:
 
             
 if __name__ == '__main__':
-	try:
-		SystemInfoPublisher().run()
-	except rospy.ROSInterruptException:
-		pass
+    try:
+        SystemInfoPublisher().run()
+    except rospy.ROSInterruptException:
+        pass
