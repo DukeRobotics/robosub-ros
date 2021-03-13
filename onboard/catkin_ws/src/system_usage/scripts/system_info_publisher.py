@@ -7,7 +7,7 @@ from custom_msgs.msg import Memory, SystemUsage
 
 class SystemInfoPublisher:
     TOPIC_NAME = 'system/usage'
-    NODE_NAME = 'dvl_raw_publisher'
+    NODE_NAME = 'system_usage_publisher'
     def __init__(self):
         self._pub = rospy.Publisher(self.TOPIC_NAME, SystemUsage, queue_size=10)
         self._current_msg = SystemUsage()
