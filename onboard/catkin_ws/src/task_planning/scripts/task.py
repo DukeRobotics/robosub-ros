@@ -11,7 +11,7 @@ class Task:
 
     task_state_provider = providers.Singleton(TaskState)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         """
         Create a Task.
 
@@ -21,11 +21,16 @@ class Task:
         self.finished = False
         self.initial_state = None
         self.started = False
+        self.output = {}
 
     @property
     def state(self):
         """Wrap task_state.state with just the state property"""
         return self.task_state.state
+
+    @property
+    def cv_data(self):
+        return self.task_state.cv_data
 
     def _on_task_start_default(self):
         """Should be called when the task runs for the first time"""
@@ -66,8 +71,19 @@ class Task:
         """Mark the task as finished"""
         self.finished = True
 
+    # def unfinish(self):
+    #     """Mark task as unfinished"""
+    #     self.finished = False
+
+    # def restart(self):
+    #     self.unfinish()
+    #     self.started = False
+
     def publish_desired_pose_global(self, pose):
         self.task_state.desired_pose_global_publisher.publish(pose)
 
-    def publish_desired_twist_power(self, twist_power):
+    def publish_desired_power(self, twist_power):
         self.task_state.desired_twist_power_publisher.publish(twist_power)
+
+    def publish_desired_twist(self, twist_velocity):
+        self.task_state.desired_twist_velocity_publisher.publish(twist_velocity)

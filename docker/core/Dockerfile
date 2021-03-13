@@ -56,17 +56,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
     usbutils \
     apt-utils \
     python-catkin-tools \
+    python-pip \
     ros-melodic-cv-bridge \
     ros-melodic-resource-retriever \
     locales && \
     apt-get clean && \
     # Clear apt caches to reduce image size
     rm -rf /var/lib/apt/lists/*
-
-# Install pip
-RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python get-pip.py && \
-    python -m pip install pip==8.1.1 
 
 # Set up locales
 RUN locale-gen en_GB.UTF-8 && locale-gen en_US.UTF-8
