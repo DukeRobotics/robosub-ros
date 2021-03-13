@@ -10,7 +10,7 @@ on:
 
 jobs:
   check-docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     outputs:
       docker: ${{ steps.filter.outputs.docker }}
     steps:
@@ -25,7 +25,7 @@ jobs:
             - '.github/workflows/**'
 
   core-docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     needs: check-docker
     if: needs.check-docker.outputs.docker == 'true'
     strategy:
@@ -58,7 +58,7 @@ jobs:
           path: ${{ env.FILE_NAME }}
 
   onboard-docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     needs: core-docker
     strategy:
       matrix:
@@ -105,7 +105,7 @@ jobs:
           docker push ${IMAGE_NAME}
 
   push-docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     needs: [onboard-docker, landside-docker]
     steps:
       - uses: actions/checkout@v2
@@ -122,7 +122,7 @@ jobs:
         run: ./.github/workflows/cleanup.sh
 
   landside-docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     needs: core-docker
     env:
       IMAGE_NAME: dukerobotics/robosub-ros:landside
@@ -164,7 +164,7 @@ jobs:
           docker push ${IMAGE_NAME}
 
   build-without-docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     needs: check-docker
     if: needs.check-docker.outputs.docker == 'false'
     strategy:
