@@ -5,9 +5,11 @@ import psutil
 import GPUtil
 from custom_msgs.msg import Memory, SystemUsage
 
+
 class SystemInfoPublisher:
     TOPIC_NAME = 'system/usage'
     NODE_NAME = 'system_usage_publisher'
+    
     def __init__(self):
         self._pub = rospy.Publisher(self.TOPIC_NAME, SystemUsage, queue_size=10)
         self._current_msg = SystemUsage()
@@ -29,7 +31,6 @@ class SystemInfoPublisher:
             self.gpu_memory.total = 0
             self.gpu_memory.percentage = 0
         return self.gpu_memory
-
 
     def get_ram_memory(self):
         self.ram_memory.used = psutil.virtual_memory().total - psutil.virtual_memory().available
@@ -62,6 +63,7 @@ class SystemInfoPublisher:
             self._current_msg.header.frame_id = "system_usage_link"
             self._pub.publish(self._current_msg)
 
+            
 if __name__ == '__main__':
 	try:
 		SystemInfoPublisher().run()
