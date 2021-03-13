@@ -17,11 +17,11 @@ class ServoWrapperPublisher:
         rospy.Service(self.angle_service_name, SetServo, self.set_servo_angle)
 
     def set_servo_angle(self, req):
-    	if 0 <= req.num <= 7 and 0 <= req.angle <= 180:
-    		self.angles[req.num] = req.angle
-    		return True
-    		
-    	return False
+        if 0 <= req.num <= 7 and 0 <= req.angle <= 180:
+            self.angles[req.num] = req.angle
+            return True
+
+        return False
 
     def run(self):
         rate = rospy.Rate(15)
