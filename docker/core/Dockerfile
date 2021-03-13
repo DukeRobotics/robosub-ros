@@ -70,8 +70,9 @@ RUN locale-gen en_GB.UTF-8 && locale-gen en_US.UTF-8
 # Set a password for root
 RUN echo root:robotics | chpasswd
 
-# Allow root to login over ssh
-RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
+# Allow root to login over ssh and forward graphics over ssh
+RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
+    echo "X11UseLocalhost no" >> /etc/ssh/sshd_config
 
 # Generate ssh keys
 RUN ssh-keygen -A

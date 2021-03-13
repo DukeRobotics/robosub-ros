@@ -1,0 +1,22 @@
+# Goal
+
+# Target frequency
+uint32 tar_f
+
+---
+# Result
+
+# Horizontal angle to the location of the pinger in radians
+float64 hz_angle
+
+---
+# Feedback
+
+# Current stage the program is on
+uint32 curr_stage
+
+# Total number of stages in program
+uint32 total_stages
+
+# Message to display
+string message
