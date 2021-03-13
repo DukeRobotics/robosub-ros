@@ -35,9 +35,10 @@ RUN ./TorchInstaller.sh && \
 # Install Detecto
 RUN pip install --no-cache-dir --no-deps detecto
 
-# Install PSUtils and GPUtil
-RUN pip install psutil
-RUN pip install gputil
+# Install psutils and GPUtil
+RUN pip install \
+    psutils \
+    gputil
 
 ### ROS Plugins and Dependencies###
 
