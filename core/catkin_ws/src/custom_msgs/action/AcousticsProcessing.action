@@ -1,0 +1,41 @@
+# Goal
+
+# The base filename of the data without the version
+string[] file_paths
+
+# Whether the data in the file needs to be split in half
+bool if_double
+
+# Sampling frequency
+uint32 samp_f
+
+# Target frequency
+uint32 tar_f
+
+# Guess of the location of the pinger
+geometry_msgs/Point guess
+---
+# Result
+
+# Horizontal angle to the location of the pinger in radians
+float64 hz_angle
+
+# Total number of datasets processed
+uint32 total_count
+
+# Total number of datasets that were successfully parsed
+uint32 success_count
+
+# Total number of datasets that contained numerically valid data
+uint32 valid_count
+---
+# Feedback
+
+# Total number of datasets that will be processed
+uint32 total_count
+
+# Number of datasets that have been processed
+uint32 process_count
+
+# Number of datasets that have been processed that were successfully parsed
+uint32 success_count

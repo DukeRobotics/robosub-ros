@@ -15,8 +15,8 @@ class PreQualGlobalTask(Task):
     POSE4 = [0, 0, 0, 0, 0, 0]
     POSE5 = [0, 0, 0, 0, 0, 0]
 
-    def __init__(self, *args, **kwargs):
-        super(PreQualGlobalTask, self).__init__(*args, **kwargs)
+    def __init__(self):
+        super(PreQualGlobalTask, self).__init__()
 
         self.list_task = ListTask([MoveToPoseGlobalTask(*self.POSE1),
                                    MoveToPoseGlobalTask(*self.POSE2),
@@ -42,8 +42,8 @@ class PreQualLocalTask(Task):
     POSE4 = [0, 0, 0, 0, 0, 0]
     POSE5 = [0, 0, 0, 0, 0, 0]
 
-    def __init__(self, *args, **kwargs):
-        super(PreQualLocalTask, self).__init__(*args, **kwargs)
+    def __init__(self):
+        super(PreQualLocalTask, self).__init__()
 
         self.list_task = ListTask([MoveToPoseLocalTask(*self.POSE1),
                                    MoveToPoseLocalTask(*self.POSE2),

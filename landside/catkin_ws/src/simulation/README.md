@@ -30,18 +30,17 @@ You'll be using files in this folder.
 Make sure you have some version of Python3 installed on your personal computer. You can download and install it at [this link](https://www.python.org/downloads/release/python-381/).
 
 ## Running the Simulation
-You must complete both the Docker and the personal computer simulation setup steps.
 
 ### Docker Simulation Setup
 1. In the onboard container, make sure `roscore` is running.
-2. Run `roslaunch simulation base_sim.launch &`. If you don't have any thruster speed publishing code and would just like to test the communication, instead run `roslaunch simulation test_sim_comm.launch &`. Wait until the terminal says `Initialization successful.` If it delays on the video compression library or meshcalc for an extended period of time, press enter a couple of times. This may be nothing more than confirmation-bias superstition.
+2. Run `roslaunch simulation base_sim.launch &` in the landside container. If you don't have any thruster speed publishing code and would just like to test the communication, instead run `roslaunch simulation test_sim_comm.launch &`. Wait until the terminal says `Initialization successful.` If it delays on the video compression library or meshcalc for an extended period of time, press enter a couple of times. This may be nothing more than confirmation-bias superstition.
 3. Run whatever ROS topic publishing code you have. If you ran the test_sim_comm launch file, `scripts/squareCommand.py` will be executed, which publishes thruster values to naively make the robot move in a square (in reality, the robot will spin in wide circles because the robot isn't balanced).
 
 ### Personal Computer Simulation Setup
 1. Open CoppeliaSim.
 2. Go to `File>Open Scene...` and open `empty_scene.ttt` in `personal/scenes`.
 3. Press the play button to start the simulation. The robot should start bobbing up and down.
-4. In the `scripts` folder on your local machine, run `python3 run_coppelia_comm.py`.
+4. In the `scripts` folder on your local machine, run `python3 ros_coppelia_comm.py`.
 5. If the robot starts moving laterally, it worked!
 
 

@@ -1,0 +1,31 @@
+# Goal
+
+# Sampling frequency
+uint32 samp_f
+
+# Target frequency
+uint32 tar_f
+
+# Hydrophone array used
+string hydrophone
+
+# Location of the pinger
+geometry_msgs/Point location
+
+---
+# Result
+
+# Result files where data has been saved. Should be a package URL.
+string[] file_paths
+
+---
+# Feedback
+
+# Current stage the program is on
+uint32 curr_stage
+
+# Total number of stages in program
+uint32 total_stages
+
+# Message
+string message
