@@ -35,6 +35,10 @@ RUN ./TorchInstaller.sh && \
 # Install Detecto
 RUN pip install --no-cache-dir --no-deps detecto
 
+# Install PSUtils and GPUtil
+RUN pip install psutil
+RUN pip install gputil
+
 ### ROS Plugins and Dependencies###
 
 # Install Vimba libraries for avt_vimba_camera
