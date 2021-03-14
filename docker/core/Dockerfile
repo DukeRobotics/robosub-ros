@@ -49,7 +49,7 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common && \
     add-apt-repository ppa:jgmath2000/et && \
     apt-get update && apt-get install -y --no-install-recommends \
-    openssh-server mosh et \
+    openssh-server mosh \
     vim \
     curl \
     wget \
