@@ -1,7 +1,5 @@
 # This service type contains data on changing servo angles
 
-std_msgs/Header header
-
 # The index of the servo to change (zero-indexed)
 uint8 num
 
