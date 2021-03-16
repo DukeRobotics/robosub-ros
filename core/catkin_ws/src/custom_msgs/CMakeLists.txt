@@ -11,7 +11,7 @@ add_message_files(
   FILES
   DVLRaw.msg
   ThrusterSpeeds.msg
-  ServoAngle.msg
+  ServoAngleArray.msg
   CVObject.msg
 )
 

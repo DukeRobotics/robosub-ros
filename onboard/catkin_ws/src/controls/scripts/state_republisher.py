@@ -33,7 +33,7 @@ class StateRepublisher:
             utils.publish_data_dictionary(
                 self._pub_pose,
                 utils.get_axes(),
-                utils.parse_pose(slocal_pose)
+                utils.parse_pose(local_pose)
             )
 
             local_twist = utils.transform_twist(self.listener, 'odom', 'base_link', odometry.twist.twist)

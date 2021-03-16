@@ -6,18 +6,20 @@ from custom_msgs.srv import SetServo
 
 
 class ServoWrapperPublisher:
-    PUBLISHING_TOPIC_SERVO_ANGLES = '/offboard/servo_angles'
-    angles = [0,0,0,0,0,0,0,0]
-    angle_service_name = 'set_servo_angle'
+    SERVO_SUB_TOPIC = '/offboard/servo_angles'
+    SERVO_SERVICE_TOPIC = '/offboard/set_servo_angle'
+    NUM_SERVOS = 8
 
     def __init__(self):
         rospy.init_node('test_state_publisher')
 
-        self._pub_servo_angles = rospy.Publisher(self.PUBLISHING_TOPIC_SERVO_ANGLES, ServoAngleArray, queue_size=3)
-        rospy.Service(self.angle_service_name, SetServo, self.set_servo_angle)
+        self.pub_servo_angles = rospy.Publisher(self.SERVO_SUB_TOPIC, ServoAngleArray, queue_size=3)
+        rospy.Service(self.SERVO_SERVICE_TOPIC, SetServo, self.set_servo_angle)
+
+        self.angles = [0 for i in range(self.NUM_SERVOS)]
 
     def set_servo_angle(self, req):
-        if 0 <= req.num <= 7 and 0 <= req.angle <= 180:
+        if 0 <= req.num < self.NUM_SERVOS and 0 <= req.angle <= 180:
             self.angles[req.num] = req.angle
             return True
 
@@ -26,7 +28,7 @@ class ServoWrapperPublisher:
     def run(self):
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
-            self._pub_servo_angles.publish(self.angles)
+            self.pub_servo_angles.publish(self.angles)
             rate.sleep()
 
 

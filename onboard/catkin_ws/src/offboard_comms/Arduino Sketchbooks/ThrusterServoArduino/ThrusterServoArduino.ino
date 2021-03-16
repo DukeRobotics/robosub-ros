@@ -61,6 +61,7 @@ void setup(){
         servos[i].initialize(&pwm_multiplexer);
         servos[i].attach(i + NUM_THRUSTERS);
     }
+    memset(servo_angles, 0, sizeof(servo_angles));
 
     Wire.begin();
     while(!pressure_sensor.init()){
