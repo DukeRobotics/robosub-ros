@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>system_usage</name>
+  <name>system_utils</name>
   <version>0.0.0</version>
   <description>
-    Package that publishes system usage information
+    Package that provides information about the system itself and provide utilities to help during runtime
   </description>
 
   <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>

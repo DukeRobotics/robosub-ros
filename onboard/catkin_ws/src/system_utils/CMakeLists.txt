@@ -1,11 +1,9 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(system_usage)
+project(system_utils)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
-  GPUtil
   custom_msgs
-  psutil
   rospy
 )
 

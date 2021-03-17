@@ -1,0 +1,3 @@
+<launch>
+    <node name="system_usage_publisher" pkg="system_utils" type="system_info_publisher.py" />
+</launch>
