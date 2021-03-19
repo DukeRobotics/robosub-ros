@@ -36,7 +36,7 @@ RUN ./TorchInstaller.sh && \
 RUN pip install --upgrade pip==8.1.1 && \
     pip install --no-cache-dir --no-deps detecto
 
-### ROS Plugins and Dependencies###
+### ROS Plugins and Dependencies ###
 
 # Install Vimba libraries for avt_vimba_camera
 RUN git clone https://github.com/muthuArivoli/camera-driver.git && \

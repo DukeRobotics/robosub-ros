@@ -3,7 +3,7 @@
 import rospy
 import psutil
 import GPUtil
-from custom_msgs.msg import Memory, SystemUsage
+from custom_msgs.msg import SystemUsage
 
 
 class SystemInfoPublisher:
@@ -15,51 +15,45 @@ class SystemInfoPublisher:
         self._current_msg = SystemUsage()
         rospy.init_node(self.NODE_NAME)
 
-    def get_gpu_memory_others(self):
-        gpu_memory = Memory()
+    def get_cpu(self):
+        self._current_msg.cpu_percent = psutil.cpu_percent(interval=0.5)
+        self._current_msg.cpu_speed = psutil.cpu_freq().current
+
+    def get_gpu(self):
         GPUs = GPUtil.getGPUs()
-        if (len(GPUs) > 0):
+        if len(GPUs) > 0:
             gpu = GPUs[0]
-            gpu_memory.used = gpu.memoryUsed
-            gpu_memory.total = gpu.memoryTotal
-            gpu_memory.percentage = gpu.memoryUsed/gpu.memoryTotal * 100
+            self._current_msg.gpu_memory.used = gpu.memoryUsed / 1000
+            self._current_msg.gpu_memory.total = gpu.memoryTotal / 1000
+            self._current_msg.gpu_memory.percentage = gpu.memoryUsed/gpu.memoryTotal * 100
             self._current_msg.gpu_percent = gpu.load * 100
             self._current_msg.gpu_speed = 0
         else:
-            gpu_memory.used = 0
-            gpu_memory.total = 0
-            gpu_memory.percentage = 0
-        return gpu_memory
+            self._current_msg.gpu_memory.used = 0
+            self._current_msg.gpu_memory.total = 0
+            self._current_msg.gpu_memory.percentage = 0
 
-    def get_ram_memory(self):
-        ram_memory = Memory()
-        ram_memory.used = psutil.virtual_memory().total - psutil.virtual_memory().available
-        ram_memory.total = psutil.virtual_memory().total
-        ram_memory.percentage = psutil.virtual_memory().percent
-        return ram_memory
+    def get_ram(self):
+        self._current_msg.ram.used = (psutil.virtual_memory().total - psutil.virtual_memory().available) / (10**9)
+        self._current_msg.ram.total = psutil.virtual_memory().total / (10**9)
+        self._current_msg.ram.percentage = psutil.virtual_memory().percent
 
-    def get_disk_memory(self):
-        disk_memory = Memory()
-        disk_memory.used = psutil.disk_usage('/').used
-        disk_memory.total = psutil.disk_usage('/').total * 0.95
-        disk_memory.percentage = psutil.disk_usage('/').percent
-        return disk_memory
+    def get_disk(self):
+        self._current_msg.disk.used = psutil.disk_usage('/').used / (10**9)
+        self._current_msg.disk.total = psutil.disk_usage('/').total * 0.95 / (10**9)
+        self._current_msg.disk.percentage = psutil.disk_usage('/').percent
 
     def run(self):
+        r = rospy.Rate(15)
         while not rospy.is_shutdown():
-            gpu = self.get_gpu_memory_others()
-            ram = self.get_ram_memory()
-            disk = self.get_disk_memory()
-
-            self._current_msg.ram = ram
-
-            self._current_msg.disk = disk
-            self._current_msg.cpu_percent = psutil.cpu_percent(interval=0.5)
-            self._current_msg.cpu_speed = psutil.cpu_freq().current
-
-            self._current_msg.gpu_memory = gpu
+            self._current_msg = SystemUsage()
+            self.get_cpu()
+            self.get_gpu()
+            self.get_ram()
+            self.get_disk()
 
             self._pub.publish(self._current_msg)
+            r.sleep()
 
 
 if __name__ == '__main__':

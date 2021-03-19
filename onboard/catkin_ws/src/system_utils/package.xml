@@ -3,16 +3,15 @@
   <name>system_utils</name>
   <version>0.0.0</version>
   <description>
-    Package that provides information about the system itself and provide utilities to help during runtime
+    Package that provides information about the system itself and provide utilities to help during runtime.
   </description>
 
   <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>
 
-  <license>TODO</license>
+  <license>MIT</license>
 
-  <depend>GPUtil</depend>
+
   <depend>custom_msgs</depend>
-  <depend>psutil</depend>
   <depend>rospy</depend>
 
   <buildtool_depend>catkin</buildtool_depend>
