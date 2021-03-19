@@ -1,0 +1,18 @@
+name: daily-build
+
+on:
+  # Run at 0900 UTC (4am EST) everyday
+  schedule:
+    - cron: "0 9 * * *"
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        workspace: [onboard, landside]
+    container: dukerobotics/robosub-ros:${{ matrix.workspace }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test build
+        run: ./build.sh '${{ matrix.workspace }}'

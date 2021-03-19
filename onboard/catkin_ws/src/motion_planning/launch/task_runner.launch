@@ -1,5 +1,0 @@
-<launch>
-	
-	<node pkg="motion_planning" name="task_runner" type="task_runner.py" />
-
-</launch>

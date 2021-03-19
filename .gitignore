@@ -13,7 +13,10 @@
 */catkin_ws/logs
 
 # ROS_Serial
-catkin_ws/src/offboard_comms/ros_lib
+ros_lib/
+
+# Acoustics
+*.csv
 
 # Video and Bags
 *.avi
@@ -30,3 +33,4 @@ catkin_ws/src/offboard_comms/ros_lib
 
 # Remember to load in the model files manaully
 *.pth
+robosub_ws.code-workspace

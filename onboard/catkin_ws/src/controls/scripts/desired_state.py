@@ -5,7 +5,6 @@ from geometry_msgs.msg import Pose, Twist
 from std_msgs.msg import Float64, Bool
 import controls_utils as utils
 from tf import TransformListener
-from std_srvs.srv import SetBool
 
 
 class bcolors:
@@ -35,11 +34,8 @@ class DesiredStateHandler:
     pub_control_effort = {}
     pub_power = {}
 
-    local_control_enabled = False
-
     def __init__(self):
         rospy.init_node('desired_state')
-        self.enable_service = rospy.Service('enable_local_control', SetBool, self._handle_enable_local_control)
 
         for d in utils.get_axes():
             self.pub_pos[d] = rospy.Publisher(utils.get_pid_topic(d), Float64, queue_size=3)
@@ -55,21 +51,11 @@ class DesiredStateHandler:
         rospy.Subscriber(self.DESIRED_TWIST_TOPIC, Twist, self._on_twist_received)
         rospy.Subscriber(self.DESIRED_POWER_TOPIC, Twist, self._on_power_received)
 
-    def _handle_enable_local_control(self, req):
-        self.local_control_enabled = req.data
-        return {'success': True, 'message': 'Successfully set local_control_enabled to ' + str(req.data)}
-
     def _on_pose_received(self, pose):
-        if self.local_control_enabled:
-            self.pose = utils.parse_pose(utils.transform_pose(self.listener, 'odom', 'base_link', pose))
-        else:
-            self.pose = utils.parse_pose(pose)
+        self.pose = utils.parse_pose(utils.transform_pose(self.listener, 'odom', 'base_link', pose))
 
     def _on_twist_received(self, twist):
-        if self.local_control_enabled:
-            self.twist = utils.parse_twist(utils.transform_twist(self.listener, 'odom', 'base_link', twist))
-        else:
-            self.twist = utils.parse_twist(twist)
+        self.twist = utils.parse_twist(twist)
 
     def _on_power_received(self, power):
         self.power = utils.parse_twist(power)
