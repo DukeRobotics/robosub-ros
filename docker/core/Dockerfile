@@ -79,6 +79,9 @@ RUN ssh-keygen -A
 
 ### Final Setup ###
 
+# Install code formatting packages
+RUN pip install autopep8
+
 # Add catkin ws
 RUN mkdir -p /root/dev/robosub-ros
 
