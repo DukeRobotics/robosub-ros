@@ -3,6 +3,12 @@
 # Target frequency
 uint32 tar_f
 
+# Use Saleae or Generated Data
+bool gen_data
+
+# Location of the pinger (only if using generated data)
+geometry_msgs/Point location
+
 ---
 # Result
 

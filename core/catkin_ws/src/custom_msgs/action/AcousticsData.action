@@ -6,8 +6,8 @@ uint32 samp_f
 # Target frequency
 uint32 tar_f
 
-# Hydrophone array used
-string hydrophone
+# Hydrophone set
+uint32 hydrophone_set
 
 # Location of the pinger
 geometry_msgs/Point location

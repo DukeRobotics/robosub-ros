@@ -30,7 +30,7 @@ class DataServer:
 
     def execute(self, goal):
         pinger_loc = (goal.location.x, goal.location.y, goal.location.z)
-        file_paths = DataGenerator(goal.samp_f, goal.tar_f, goal.hydrophone, pinger_loc, self.publish_feedback).run()
+        file_paths = DataGenerator(goal.samp_f, goal.tar_f, goal.hydrophone_set, pinger_loc, self.publish_feedback).run()
         self.publish_result(file_paths)
 
 
