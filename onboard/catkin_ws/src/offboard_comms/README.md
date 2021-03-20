@@ -17,9 +17,9 @@ To actually get the code onto the Arduino, you need to install the newly generat
 You can then use the ROS message types in Arduino code.
 
 ## Testing offboard communication
-First set up the node on the computer that will talk to the Arduino. To do this, use `lsusb` and `sudo dmesg | grep tty` to determine the serial port on which the Arduino is connected. Then run (replace `/dev/ttyUSB0` with the serial port you find):
+First set up the node on the computer that will talk to the Arduino.
 ```
-rosrun rosserial_python serial_node.py /dev/ttyUSB0
+roslaunch serial.launch
 ```
 Now to test, start sending messages to the offboard device. For instance, to run all the thrusters at speed 0, you can use:
 ```
