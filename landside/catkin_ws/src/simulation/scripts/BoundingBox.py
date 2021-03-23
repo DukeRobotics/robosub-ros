@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-from scipy.spatial.transform import Rotation as R
+from geometry_msgs.msg import Pose, Point, Quaternion, PoseStamped
 
-def get_bounding_box(points, pos, orientation):
+def get_bounding_box(listener, points, pos, orientation):
 	#for loop getting grid point for each point
 	cam_pos = [0.309,0.138,0.18]
 	for i in range(3):
@@ -10,15 +10,15 @@ def get_bounding_box(points, pos, orientation):
 	xs = []
 	ys = []
 	for i in range(len(points)):
-		grid_point = get_grid_point(points[i], pos, orientation)
+		grid_point = get_grid_point(listener, points[i], pos, orientation)
 		xs.append(grid_point[0])
 		ys.append(grid_point[1])
 
 	bounding_box = get_box(xs, ys)
 	return bounding_box
 
-def get_grid_point(point, pos, orientation):
-	rel_point = point_rel_to_bot(point, pos, orientation)
+def get_grid_point(listener, point, pos, orientation):
+	rel_point = point_rel_to_bot(listener, point, pos, orientation)
 	#FOV - field of view
 	xFOV = 0.933 * rel_point[0]
 	yFOV = 0.586 * rel_point[0]
@@ -32,12 +32,30 @@ def get_grid_point(point, pos, orientation):
 	# 		grid_point[i] = 1
 	return grid_point
 
-def point_rel_to_bot(point, pos, orientation):
-	r = R.from_euler('xyz', orientation, degrees=False)
-	rel_point = r.apply(point)
+def point_rel_to_bot(listener, point, pos, orientation):
 
-	for i in range(len(rel_point)):
-		rel_point[i] -= pos[i]
+	# r = R.from_euler('xyz', orientation, degrees=False)
+	# rel_point = r.apply(point)
+	#
+	# for i in range(len(rel_point)):
+	# 	rel_point[i] -= pos[i]
+	poses = PoseStamped()
+	pose = Pose()
+	q = Quaternion()
+	q.w = 1
+	posepoint = Point()
+	posepoint.x = point[0]
+	posepoint.y = point[1]
+	posepoint.z = point[2]
+	pose.position = posepoint
+	pose.orientation = q
+	poses.pose = pose
+	poses.header.frame_id = "world"
+	newpoint = listener.transformPose("base_link", poses).pose.position
+	rel_point = [0, 0, 0]
+	rel_point[0] = newpoint.x
+	rel_point[1] = newpoint.y
+	rel_point[2] = newpoint.z
 	return rel_point
 
 def get_box(xs, ys):
