@@ -77,8 +77,8 @@ class AcousticsWrapper:
 
     def execute(self, wrapper_goal):
         time_now = datetime.now()
-        guess_export_name = "date_"+time_now.strftime("%m_%d_%Y_%H_%M_%S") + "_guess"
-        processing_export_name = "date_"+time_now.strftime("%m_%d_%Y_%H_%M_%S") + "_processing"
+        guess_export_name = "date_" + time_now.strftime("%m_%d_%Y_%H_%M_%S") + "_guess"
+        processing_export_name = "date_" + time_now.strftime("%m_%d_%Y_%H_%M_%S") + "_processing"
 
         self.publish_feedback(0, "Starting sampling for guess")
         guess_sampling = self.saleae_sampling(1, guess_export_name)
