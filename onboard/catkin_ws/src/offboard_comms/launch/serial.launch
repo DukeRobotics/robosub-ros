@@ -5,4 +5,6 @@
             command = "$(find offboard_comms)/scripts/port_finder.sh"
         />
     </node>
+
+    <node pkg="offboard_comms" type="servo_wrapper.py" name="servo_wrapper" />
 </launch>
