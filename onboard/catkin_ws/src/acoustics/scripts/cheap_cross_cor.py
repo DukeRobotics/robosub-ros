@@ -17,8 +17,8 @@ class AcousticGuess:
         octants = {}
         for i in range(len(self.file_paths)):
             data = read_data(self.file_paths[i])
-            lowcut = self.freq - self.BAND_WIDTH//2
-            highcut = self.freq + self.BAND_WIDTH//2
+            lowcut = self.freq - self.BAND_WIDTH // 2
+            highcut = self.freq + self.BAND_WIDTH // 2
             # plot_filter(lowcut, highcut, fs, 4)
 
             filtered = [butter_bandpass_filter(channel, lowcut, highcut, self.fs, order=4) for channel in data]
@@ -33,6 +33,6 @@ class AcousticGuess:
                 octants[octant] = 0
             octants[octant] += 1
 
-            self.publish(curr_stage=i+1, total_stages=len(self.file_paths), msg="Finished file, moving onto next one")
+            self.publish(curr_stage=i + 1, total_stages=len(self.file_paths), msg="Finished file, moving onto next one")
 
         return max(octants, key=lambda k: octants[k])

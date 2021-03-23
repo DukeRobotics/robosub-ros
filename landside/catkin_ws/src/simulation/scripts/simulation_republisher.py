@@ -52,7 +52,7 @@ class SimulationRepublisher():
     def _on_receive_thruster_speeds(self, thruster_speeds_msg):
         f32_t_allocs = Float32MultiArray()
         thruster_speeds = np.array(thruster_speeds_msg.speeds)
-        f32_t_allocs.data = np.clip(thruster_speeds/127, -1, 1)
+        f32_t_allocs.data = np.clip(thruster_speeds / 127, -1, 1)
         self.move_pub.publish(f32_t_allocs)
 
 
