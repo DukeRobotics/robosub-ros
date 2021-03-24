@@ -19,7 +19,7 @@ You can then use the ROS message types in Arduino code.
 ## Testing offboard communication
 First set up the node on the computer that will talk to the Arduino.
 ```
-roslaunch offboard_coms serial.launch
+roslaunch offboard_comms serial.launch
 ```
 Now to test, start sending messages to the offboard device. For instance, to run all the thrusters at speed 0, you can use:
 ```
