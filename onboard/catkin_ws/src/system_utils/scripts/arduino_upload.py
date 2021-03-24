@@ -2,6 +2,7 @@
 
 import rospy
 import actionlib
+import subprocess
 from custom_msgs.msg import UploadArduinoAction, UploadArduinoFeedback, UploadArduinoResult
 import resource_retriever as rr
 
@@ -24,11 +25,19 @@ class Saleae:
         feedback.message = msg
         self.server.publish_feedback(feedback)
 
-    def publish_result(self, save_paths):
-        result = UploadArduinoResult(file_paths=save_paths)
+    def publish_result(self):
+        result = UploadArduinoResult(success=True)
         self.server.set_succeeded(result)
 
     def execute(self, goal):
+        subprocess.check_call("arduino-cli") #assuming arduino cli is part of path variables
+        subprocess.check_call("arduino-cli core install arduino:avd") #for the robot use arduino:samd to download the arduino nano core
+        subprocess.check_call(["arduino-cli compile -b arduino:avd:mega ..\data\\", goal.filename])
+        subprocess.check_call(["arduino-cli upload -b arduino:avd:mega -p ", goal.port, " ..\data\\", goal.filename])
+        self.publish_result()
+
+
+
         
 
 
