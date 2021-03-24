@@ -3,7 +3,7 @@
 import rospy
 import actionlib
 import subprocess
-from custom_msgs.msg import UploadArduinoAction, UploadArduinoFeedback, UploadArduinoResult
+from custom_msgs.action import UploadArduinoAction, UploadArduinoFeedback, UploadArduinoResult
 import resource_retriever as rr
 
 
