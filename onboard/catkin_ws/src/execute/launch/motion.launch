@@ -13,4 +13,9 @@
 	<include file="$(find controls)/launch/controls.launch">
 		<arg name="sim" value="$(arg sim)" />
 	</include>
+
+	<!-- Start Arduino I/O -->
+	<group unless="$(arg sim)">
+		<include file="$(find offboard_comms)/launch/serial.launch" />
+	</group>
 </launch>
