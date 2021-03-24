@@ -3,7 +3,7 @@
 import rospy
 import actionlib
 import subprocess
-from custom_msgs.action import UploadArduinoAction, UploadArduinoFeedback, UploadArduinoResult
+from custom_msgs.action import UploadArduino
 import resource_retriever as rr
 
 
@@ -13,19 +13,19 @@ class Saleae:
 
     def __init__(self):
         rospy.init_node(self.NODE_NAME)
-        self.server = actionlib.SimpleActionServer(self.ACTION_NAME, UploadArduinoAction, self.execute, False)
+        self.server = actionlib.SimpleActionServer(self.ACTION_NAME, UploadArduino, self.execute, False)
         self.server.start()
         rospy.spin()
 
     def publish_feedback(self, stage, total_stages, msg):
-        feedback = UploadArduinoFeedback()
+        feedback = UploadArduino()
         feedback.curr_stage = stage
         feedback.total_stages = total_stages
         feedback.message = msg
         self.server.publish_feedback(feedback)
 
     def publish_result(self):
-        result = UploadArduinoResult(success=True)
+        result = UploadArduino(success=True)
         self.server.set_succeeded(result)
 
     def execute(self, goal):
