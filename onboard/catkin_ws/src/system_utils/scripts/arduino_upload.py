@@ -8,7 +8,6 @@ import resource_retriever as rr
 
 
 class Saleae:
-
     NODE_NAME = "arduino_upload"
     ACTION_NAME = "upload_arduino"
 
@@ -35,11 +34,6 @@ class Saleae:
         subprocess.check_call(["arduino-cli compile -b arduino:avd:mega ..\data\\", goal.filename])
         subprocess.check_call(["arduino-cli upload -b arduino:avd:mega -p ", goal.port, " ..\data\\", goal.filename])
         self.publish_result()
-
-
-
-        
-
 
 
 if __name__ == '__main__':
