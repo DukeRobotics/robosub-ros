@@ -55,3 +55,4 @@ RUN wget -O "logic.zip" "http://downloads.saleae.com/logic/1.2.18/Logic+1.2.18+(
 
 # Set computer type
 ENV COMPUTER_TYPE=onboard
+RUN echo "COMPUTER_TYPE=onboard" >> /root/.ssh/environment
