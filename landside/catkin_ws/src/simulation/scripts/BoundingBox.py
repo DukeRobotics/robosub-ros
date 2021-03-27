@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from geometry_msgs.msg import Pose, Point, Quaternion, PoseStamped
+import rospy
 
 def get_bounding_box(listener, points, pos, orientation):
 	#for loop getting grid point for each point
@@ -50,12 +51,13 @@ def point_rel_to_bot(listener, point, pos, orientation):
 	pose.position = posepoint
 	pose.orientation = q
 	poses.pose = pose
-	poses.header.frame_id = "world"
-	newpoint = listener.transformPose("base_link", poses).pose.position
+	poses.header.frame_id = "odom"
+	newpoint = listener.transformPose("cameras_link", poses).pose.position
 	rel_point = [0, 0, 0]
 	rel_point[0] = newpoint.x
 	rel_point[1] = newpoint.y
 	rel_point[2] = newpoint.z
+	# rospy.loginfo("Before: "+ str(point)+" After: " + str(newpoint))
 	return rel_point
 
 def get_box(xs, ys):

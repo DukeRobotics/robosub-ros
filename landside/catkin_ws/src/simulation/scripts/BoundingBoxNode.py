@@ -12,10 +12,12 @@ from tf import TransformListener
 
 pub_gate = rospy.Publisher('gate_data',Float32MultiArray, queue_size=10)
 pub_buoy = rospy.Publisher('buoy_data',Float32MultiArray, queue_size=10)
-listener = TransformListener()
+listener = None
 
 def node_code():
+	global listener
 	rospy.init_node('box_maker')
+	listener = TransformListener()
 	rospy.Subscriber("/sim/object_points", Float32MultiArray, callback)
 	rospy.Subscriber("/sim/pose", PoseStamped, pose_callback)	
 	rate = rospy.Rate(10)
