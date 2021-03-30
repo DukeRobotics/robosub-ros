@@ -114,10 +114,6 @@ Use these instructions when running code on the robot itself.
     ```bash
     ssh -XY -p 2201 root@localhost
     ```
-1. Inside landside, complete the connection between the two containers.
-    ```bash
-    source /opt/ros/melodic/setup_network.bash
-    ```
 1. Now go to [Running Our Code](#running-our-code).
 
 ### Local Testing
@@ -138,10 +134,6 @@ Use these instructions to test code on your computer by simulating the robot's e
 1. In a new tab, SSH into the landside container. Password is `robotics`.
     ```bash
     ssh -XY -p 2201 root@localhost
-    ```
-1. Inside landside, complete the connection between the two containers.
-    ```bash
-    source /opt/ros/melodic/setup_network.bash
     ```
 1. Now go to [Running Our Code](#running-our-code). Also set up our [simulation](landside/catkin_ws/src/simulation).
 1. To stop and delete both containers and their network, in the `robosub-ros` directory, execute
