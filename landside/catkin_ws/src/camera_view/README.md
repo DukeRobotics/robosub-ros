@@ -10,9 +10,9 @@ rosrun image_view image_view image:=<image_topic>
 ```
 where `image_topic` is the topic of the published video stream. For example, to view the downward camera, you would use
 ```bash
-rosrun image_view image_view image:=/camera/down/raw_image
+rosrun image_view image_view image:=/camera/down/image_raw
 ```
-where the subscribed topic is `/camera/down/raw_image`.
+where the subscribed topic is `/camera/down/image_raw`.
 
 ### Stereo Video Stream
 You can view a stream from stereo cameras using the command
@@ -21,9 +21,9 @@ rosrun image_view stereo_view stereo:=<stereo_namespace> image:=<image_topic>
 ```
 where stereo namespace represents the overall namespace of the cameras and image topic is the specific image identifier. For example, to view our left/right stereo cams you would use
 ```bash
-rosrun image_view stereo_view stereo:=camera image:=raw_image
+rosrun image_view stereo_view stereo:=camera image:=image_raw
 ```
-where the subscribed topics are `/camera/left/raw_image` and `/camera/right/raw_image`.
+where the subscribed topics are `/camera/left/image_raw` and `/camera/right/image_raw`.
 
 ## Saving Videos
 ### ROS bags
@@ -33,7 +33,7 @@ rosbag record -O output_name <topic_names>
 ```
 where `output_name` is the name of the output file and `topic_names` are a list of topics to record. For example, to record the downward camera, use
 ```bash
-rosbag record -O down_cam.bag /camera/down/raw_image
+rosbag record -O down_cam.bag /camera/down/image_raw
 ```
 
 ### Video converter

@@ -1,41 +1,40 @@
 from tf.transformations import euler_from_quaternion, quaternion_multiply, quaternion_conjugate
 from geometry_msgs.msg import Vector3Stamped, Twist, PoseStamped
-
+from custom_msgs.msg import TopicNames
 
 def get_axes():
     return ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
 
 
 def get_pose_topic(axis):
-    return '/controls/state/pose/' + axis
-
+    return TopicNames.controls_state_pose.format(axis)
 
 def get_twist_topic(axis):
-    return '/controls/state/twist/' + axis
+    return TopicNames.controls_state_twist.format(axis)
 
 
 def get_vel_topic(axis):
-    return 'controls/' + axis + '_vel/setpoint'
+    return TopicNames.controls_vel_setpoint.format(axis)
 
 
 def get_pid_topic(axis):
-    return 'controls/' + axis + '_pos/setpoint'
+    return TopicNames.controls_pos_setpoint.format(axis)
 
 
 def get_pos_pid_enable(axis):
-    return 'controls/enable/' + axis + '_pos'
+    return TopicNames.controls_enable_pos.format(axis)
 
 
 def get_vel_pid_enable(axis):
-    return 'controls/enable/' + axis + '_vel'
+    return TopicNames.controls_enable_vel.format(axis)
 
 
 def get_power_topic(axis):
-    return '/controls/power/' + axis
+    return TopicNames.controls_power.format(axis)
 
 
 def get_controls_move_topic(axis):
-    return '/control_effort/' + axis
+    return TopicNames.control_effort.format(axis)
 
 
 def parse_pose(pose):

@@ -4,6 +4,7 @@ import serial
 import serial.tools.list_ports as list_ports
 import rospy
 
+from custom_msgs.msg import TopicNames
 from custom_msgs.msg import DVLRaw
 
 
@@ -11,7 +12,7 @@ class DvlRawPublisher:
 
     FTDI_STR = '7006fIP'
     BAUDRATE = 115200
-    TOPIC_NAME = 'sensors/dvl/raw'
+    TOPIC_NAME = TopicNames.sensors_dvl_raw
     NODE_NAME = 'dvl_raw_publisher'
     LINE_DELIM = ','
 

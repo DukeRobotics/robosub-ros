@@ -3,6 +3,7 @@
 from pymba import *  # noqa
 import rospy
 from sensor_msgs.msg import Image, CameraInfo
+from custom_msgs.msg import TopicNames
 from camera import Camera
 
 
@@ -15,8 +16,8 @@ class MonoCamera:
         camera_name = rospy.get_param('~camera', 'camera')
         camera_id = rospy.get_param('~camera_id', None)
 
-        image_topic = '/camera/{}/image_raw'.format(camera_name)
-        info_topic = '/camera/{}/camera_info'.format(camera_name)
+        image_topic = TopicNames.camera_image_raw.format(camera_name)
+        info_topic = TopicNames.camera_camera_info.format(camera_name)
 
         img_pub = rospy.Publisher(image_topic, Image, queue_size=10)
         info_pub = rospy.Publisher(info_topic, CameraInfo, queue_size=10)

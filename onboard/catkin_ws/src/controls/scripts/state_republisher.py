@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
+from custom_msgs.msg import TopicNames
 from std_msgs.msg import Float64
 from nav_msgs.msg import Odometry
 import controls_utils as utils
@@ -8,8 +9,8 @@ from tf import TransformListener
 
 
 class StateRepublisher:
-    STATE_TOPIC = '/state'
-    LOCAL_STATE_TOPIC = '/state_local'
+    STATE_TOPIC = TopicNames.state
+    LOCAL_STATE_TOPIC = TopicNames.state_local
 
     def __init__(self):
         rospy.init_node('state_republisher')

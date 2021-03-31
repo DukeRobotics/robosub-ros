@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from std_msgs.msg import Float64
+from custom_msgs.msg import TopicNames
 from custom_msgs.msg import ThrusterSpeeds
 import numpy as np
 from thruster_manager import ThrusterManager
@@ -10,7 +11,7 @@ import resource_retriever as rr
 
 
 class ThrusterController:
-    ROBOT_PUB_TOPIC = '/offboard/thruster_speeds'
+    ROBOT_PUB_TOPIC = TopicNames.offboard_thruster_speeds
 
     enabled = False
 

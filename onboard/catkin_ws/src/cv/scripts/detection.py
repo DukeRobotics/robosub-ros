@@ -4,6 +4,7 @@ import rospy
 import yaml
 from custom_msgs.msg import CVObject
 from custom_msgs.srv import EnableModel
+from custom_msgs.msg import TopicNames
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from detecto.core import Model
@@ -24,7 +25,7 @@ class Detector:
             self.models = yaml.load(f)
 
         # The topic that the camera publishes its feed to
-        self.camera_feed_topic = '/camera/{}/image_raw'.format(self.camera)
+        self.camera_feed_topic = TopicNames.camera_image_raw.format(self.camera)
 
         # Toggle model service name
         self.enable_service = 'enable_model_{}'.format(self.camera)

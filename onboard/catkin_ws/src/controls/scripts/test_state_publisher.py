@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 
 import rospy
+from custom_msgs.msg import TopicNames
 from geometry_msgs.msg import Pose, Twist
 from nav_msgs.msg import Odometry
 
 
 class TestStatePublisher:
-    PUBLISHING_TOPIC_DESIRED_POSE = 'controls/desired_pose'
-    PUBLISHING_TOPIC_DESIRED_TWIST = 'controls/desired_twist'
-    PUBLISHING_TOPIC_CURRENT_STATE = '/state'
-    PUBLISHING_TOPIC_DESIRED_POWER = 'controls/desired_power'
+    PUBLISHING_TOPIC_DESIRED_POSE = TopicNames.controls_desired_pose
+    PUBLISHING_TOPIC_DESIRED_TWIST = TopicNames.controls_desired_twist
+    PUBLISHING_TOPIC_CURRENT_STATE = TopicNames.state
+    PUBLISHING_TOPIC_DESIRED_POWER = TopicNames.controls_desired_power
 
     def __init__(self):
         rospy.init_node('test_state_publisher')

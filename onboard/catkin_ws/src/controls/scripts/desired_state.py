@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
+from custom_msgs.msg import TopicNames
 from geometry_msgs.msg import Pose, Twist
 from std_msgs.msg import Float64, Bool
 import controls_utils as utils
@@ -16,9 +17,9 @@ class bcolors:
 
 
 class DesiredStateHandler:
-    DESIRED_TWIST_TOPIC = 'controls/desired_twist'
-    DESIRED_POSE_TOPIC = 'controls/desired_pose'
-    DESIRED_POWER_TOPIC = 'controls/desired_power'
+    DESIRED_TWIST_TOPIC = TopicNames.controls_desired_twist
+    DESIRED_POSE_TOPIC = TopicNames.controls_desired_pose
+    DESIRED_POWER_TOPIC = TopicNames.controls_desired_power
 
     REFRESH_HZ = 10  # for main loop
 

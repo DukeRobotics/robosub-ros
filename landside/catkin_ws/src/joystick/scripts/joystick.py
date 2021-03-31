@@ -2,6 +2,7 @@
 
 import rospy
 import yaml
+from custom_msgs.msg import TopicNames
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
 from enum import Enum
@@ -15,8 +16,8 @@ class Movement(Enum):
 
 class JoystickParser:
     NODE_NAME = 'joy_pub'
-    JOYSTICK_RAW_TOPIC = 'joystick/raw'
-    JOY_DEST_TOPIC = 'controls/desired_power'
+    JOYSTICK_RAW_TOPIC = TopicNames.joystick_raw
+    JOY_DEST_TOPIC = TopicNames.controls_desired_power
 
     def __init__(self):
         self._pub = rospy.Publisher(self.JOY_DEST_TOPIC, Twist, queue_size=50)
