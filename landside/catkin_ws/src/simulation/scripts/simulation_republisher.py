@@ -5,19 +5,20 @@ import numpy as np
 from sensor_msgs.msg import Imu
 from std_msgs.msg import Float32MultiArray
 from nav_msgs.msg import Odometry
+from custom_msgs.msg import TopicNames
 from custom_msgs.msg import ThrusterSpeeds
 from geometry_msgs.msg import TwistStamped
 
 
 class SimulationRepublisher():
-    SIM_TWIST_TOPIC = 'sim/dvl'  # TwistStamped message
-    SIM_IMU_TOPIC = 'sim/imu'  # Imu message
-    SIM_POSE_TOPIC = 'sim/pose'  # PoseStamped message
-    SENSOR_FUSION_ODOM_TOPIC = 'sensors/dvl/odom'
-    SENSOR_FUSION_IMU_TOPIC = 'sensors/imu/imu'
+    SIM_TWIST_TOPIC = TopicNames.sim_dvl  # TwistStamped message
+    SIM_IMU_TOPIC = TopicNames.sim_imu  # Imu message
+    SIM_POSE_TOPIC = TopicNames.sim_pose  # PoseStamped message
+    SENSOR_FUSION_ODOM_TOPIC = TopicNames.sensors_dvl_odom
+    SENSOR_FUSION_IMU_TOPIC = TopicNames.sensors_imu_imu
 
-    SIM_MOVE_TOPIC = '/sim/move'
-    ROBOT_MOVE_TOPIC = '/offboard/thruster_speeds'
+    SIM_MOVE_TOPIC = TopicNames.sim_move
+    ROBOT_MOVE_TOPIC = TopicNames.offboard_thruster_speeds
 
     def __init__(self):
         rospy.init_node('simulation_republisher')

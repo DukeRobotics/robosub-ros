@@ -3,14 +3,15 @@
 import math
 import numpy as np
 import rospy
+from custom_msgs.msg import TopicNames
 from data_pub.msg import DVLRaw
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
 from tf.transformations import quaternion_from_euler
 
 NODE_NAME = 'dvl_odom_pub'
-DVL_RAW_TOPIC = 'sensors/dvl/raw'
-DVL_ODOM_TOPIC = 'sensors/dvl/odom'
+DVL_RAW_TOPIC = TopicNames.sensors_dvl_raw
+DVL_ODOM_TOPIC = TopicNames.sensors_dvl_odom
 
 DVL_BAD_STATUS_MSG = 'V'
 

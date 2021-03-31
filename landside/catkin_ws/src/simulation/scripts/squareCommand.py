@@ -2,9 +2,10 @@
 
 import rospy
 from std_msgs.msg import Float32MultiArray
+from custom_msgs.msg import TopicNames
 
 if __name__ == "__main__":
-    pub = rospy.Publisher("/sim/move", Float32MultiArray, queue_size=10)
+    pub = rospy.Publisher(TopicNames.sim_move, Float32MultiArray, queue_size=10)
     rospy.init_node("sim_move_square")
 
     # Initialize direction vectors

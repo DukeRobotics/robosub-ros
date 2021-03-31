@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
+from custom_msgs.msg import TopicNames
 from sensor_msgs.msg import FluidPressure
 from std_msgs.msg import Float64
 
@@ -8,8 +9,8 @@ from std_msgs.msg import Float64
 class PressureToDepthConverter:
 
     NODE_NAME = "depth_pub"
-    PRESSURE_SUB_TOPIC = "offboard/pressure"
-    DEPTH_DEST_TOPIC = "sensors/depth"
+    PRESSURE_SUB_TOPIC = TopicNames.offboard_pressure
+    DEPTH_DEST_TOPIC = TopicNames.sensors_depth
 
     DENSITY_WATER = 1000
     ACCEL_GRAVITY = 9.80665

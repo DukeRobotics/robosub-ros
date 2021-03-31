@@ -3,6 +3,7 @@
 #include "MultiplexedBasicESC.h"
 #include "MS5837.h"
 #include <ros.h>
+#include <custom_msgs/TopicNames.h>
 #include <custom_msgs/ThrusterSpeeds.h>
 #include <custom_msgs/ServoAngle.h>
 #include <sensor_msgs/FluidPressure.h>
@@ -43,9 +44,9 @@ sensor_msgs::FluidPressure pressure_msg;
 
 // Sets node handle to have 2 subscribers, 1 publishers, and 128 bytes for input and output buffer
 ros::NodeHandle_<ArduinoHardware,2,1,128,128> nh;
-ros::Subscriber<custom_msgs::ThrusterSpeeds> ts_sub("/offboard/thruster_speeds", &thruster_speeds_callback);
-ros::Subscriber<custom_msgs::ServoAngle> sa_sub("/offboard/servo_angles", &servo_control_callback);
-ros::Publisher pressure_pub("/offboard/pressure", &pressure_msg);
+ros::Subscriber<custom_msgs::ThrusterSpeeds> ts_sub(custom_msgs::TopicNames.offboard_thruster_speeds, &thruster_speeds_callback);
+ros::Subscriber<custom_msgs::ServoAngle> sa_sub(custom_msgs::TopicNames.offboard_servo_angles, &servo_control_callback);
+ros::Publisher pressure_pub(custom_msgs::TopicNames.offboard_pressure, &pressure_msg);
 
 void setup(){
     Serial.begin(BAUD_RATE);

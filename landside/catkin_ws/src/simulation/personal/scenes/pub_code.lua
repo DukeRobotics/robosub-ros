@@ -1,4 +1,5 @@
 require 'math'
+require 'roslua'
 
 function tableConcat(t1, t2)
     for i = 1, #t2 do
@@ -27,7 +28,8 @@ function ros_publishing(inInts, inFloats, inString, inBuffer)
     res = sim.invertMatrix(trans)
     linvel = sim.multiplyVector(trans, linvel)
 
-    outDvl = { '/sim/dvl', 'geometry_msgs/TwistStamped', 'header',
+    topicNamesSpec = roslua.get_msgspec("custom_msgs.msg/TopicNames")
+    outDvl = { topicNamesSpec.sim_dvl, 'geometry_msgs/TwistStamped', 'header',
                "twist.linear.x", "twist.linear.y", "twist.linear.z",
                "twist.angular.x", "twist.angular.y", "twist.angular.z" }
 
@@ -35,7 +37,7 @@ function ros_publishing(inInts, inFloats, inString, inBuffer)
     outDvlData = tableConcat(outDvlData, linvel)
     outDvlData = tableConcat(outDvlData, angvel)
 
-    outPose = { '/sim/pose', 'geometry_msgs/PoseStamped', 'header',
+    outPose = { topicNamesSpec.sim_pose, 'geometry_msgs/PoseStamped', 'header',
                 "pose.position.x", "pose.position.y", "pose.position.z",
                 "pose.orientation.x", "pose.orientation.y", "pose.orientation.z", "pose.orientation.w" }
 
@@ -43,10 +45,10 @@ function ros_publishing(inInts, inFloats, inString, inBuffer)
     outPoseData = tableConcat(outPoseData, pos)
     outPoseData = tableConcat(outPoseData, quat)
 
-    outArray = { '/sim/test_array', 'std_msgs/Float32MultiArray', 'data:14,13,151,12' }
+    outArray = { topicNamesSpec.sim_test_array, 'std_msgs/Float32MultiArray', 'data:14,13,151,12' }
     outArrayData = { -1, -1, ARRAY_FLAG }
 
-    outImu = { '/sim/imu', 'sensor_msgs/Imu', "header",
+    outImu = { topicNamesSpec.sim_imu, 'sensor_msgs/Imu', "header",
                "orientation.x", "orientation.y", "orientation.z", "orientation.w",
                "orientation_covariance:0,0,0,0,0,0,0,0,0",
                "angular_velocity.x", "angular_velocity.y", "angular_velocity.z",
@@ -62,7 +64,7 @@ function ros_publishing(inInts, inFloats, inString, inBuffer)
     outImuData = tableConcat(outImuData, accel)
     outImuData = tableConcat(outImuData, { ARRAY_FLAG })
 
-    outObj = { '/sim/object_points', 'std_msgs/Float32MultiArray' }
+    outObj = { topicNamesSpec.sim_object_points', 'std_msgs/Float32MultiArray' }
     outObj[3] = tableToCommString(getObjectPoints())
     outObjData = { -1, -1, ARRAY_FLAG }
 

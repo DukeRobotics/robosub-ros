@@ -5,6 +5,7 @@ import cv2
 import os
 from custom_msgs.srv import EnableModel
 from sensor_msgs.msg import Image
+from custom_msgs.msg import TopicNames
 from cv_bridge import CvBridge
 
 
@@ -13,7 +14,7 @@ class DummyImagePublisher:
 
     NODE_NAME = 'test_images'
     CAMERA = 'left'
-    IMAGE_TOPIC = '/camera/{}/image_raw'.format(CAMERA)
+    IMAGE_TOPIC = TopicNames.camera_image_raw.format(CAMERA)
 
     # Read in the dummy image and other misc. setup work
     def __init__(self):

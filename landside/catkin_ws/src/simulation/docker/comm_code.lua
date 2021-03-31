@@ -1,11 +1,13 @@
 require "math"
+require "roslua"
 
 function extsysCall_init()
     h=sim.getObjectAssociatedWithScript(sim.handle_self)
     m=sim.getShapeMassAndInertia(h)
     simRemoteApi.start(8080)
 
-    moveSub=simROS.subscribe('/sim/move', 'std_msgs/Float32MultiArray', 'move_callback')
+	topicNamesSpec = roslua.get_msgspec("custom_msgs.msg/TopicNames")
+    moveSub=simROS.subscribe(topicNamesSpec.sim_move, 'std_msgs/Float32MultiArray', 'move_callback')
     simROS.subscriberTreatUInt8ArrayAsString(moveSub)
 
     HEAD_FLAG = -525600

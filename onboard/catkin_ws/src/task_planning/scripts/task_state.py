@@ -1,17 +1,18 @@
 import rospy
 
+from custom_msgs.msg import TopicNames
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose, Twist
 from custom_msgs.msg import CVObject
 
 
 class TaskState:
-    STATE_TOPIC = 'state'
-    DESIRED_POSE_TOPIC = 'controls/desired_pose'
-    DESIRED_TWIST_POWER_TOPIC = 'controls/desired_power'
-    DESIRED_TWIST_VELOCITY_TOPIC = 'controls/desired_twist'
-    CV_GATE_DATA_TOPIC = '/cv/_start_gate/left'
-    CV_GATE_TICK_DATA_TOPIC = '/cv/_start_tick/left'
+    STATE_TOPIC = TopicNames.state
+    DESIRED_POSE_TOPIC = TopicNames.controls_desired_pose
+    DESIRED_TWIST_POWER_TOPIC = TopicNames.controls_desired_power
+    DESIRED_TWIST_VELOCITY_TOPIC = TopicNames.controls_desired_twist
+    CV_GATE_DATA_TOPIC = TopicNames.cv_start_gate_left
+    CV_GATE_TICK_DATA_TOPIC = TopicNames.cv_start_tick_left
 
     def __init__(self):
         self.state_listener = rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state)

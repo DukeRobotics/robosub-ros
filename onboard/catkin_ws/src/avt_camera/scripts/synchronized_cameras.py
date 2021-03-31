@@ -3,6 +3,7 @@
 from pymba import *  # noqa
 import rospy
 from sensor_msgs.msg import Image, CameraInfo
+from custom_msgs.msg import TopicNames
 from camera import Camera
 
 
@@ -16,8 +17,8 @@ class SynchronizedCameras:
         cam_ids = rospy.get_param('~camera_id', dict.fromkeys(cam_name))
         self._cameras = []
         for cam in cam_name:
-            image_topic = '/camera/{}/image_raw'.format(cam)
-            info_topic = '/camera/{}/camera_info'.format(cam)
+            image_topic = TopicNames.camera_image_raw.format(cam)
+            info_topic = TopicNames.camera_camera_info.format(cam)
             img_pub = rospy.Publisher(image_topic, Image, queue_size=10)
             info_pub = rospy.Publisher(info_topic, CameraInfo, queue_size=10)
             self._cameras.append(Camera(img_pub, info_pub, cam, cam_ids[cam]))

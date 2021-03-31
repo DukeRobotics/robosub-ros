@@ -4,14 +4,15 @@ import rospy
 import serial
 import serial.tools.list_ports as list_ports
 
+from custom_msgs.msg import TopicNames
 from sensor_msgs.msg import Imu, MagneticField
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 
 class IMURawPublisher:
 
-    IMU_DEST_TOPIC_QUAT = 'sensors/imu/imu'
-    IMU_DEST_TOPIC_MAG = 'sensors/imu/mag'
+    IMU_DEST_TOPIC_QUAT = TopicNames.sensors_imu_imu
+    IMU_DEST_TOPIC_MAG = TopicNames.sensors_imu_mag
 
     FTDI_STR = 'FT1WDFQ2'
     BAUDRATE = 115200
