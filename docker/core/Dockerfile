@@ -71,13 +71,22 @@ RUN locale-gen en_GB.UTF-8 && locale-gen en_US.UTF-8
 RUN echo root:robotics | chpasswd
 
 # Allow root to login over ssh and forward graphics over ssh
+# Allow for environment variables to be set in ssh
 RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
-    echo "X11UseLocalhost no" >> /etc/ssh/sshd_config
+    echo "X11UseLocalhost no" >> /etc/ssh/sshd_config && \
+    echo "PermitUserEnvironment yes" >> /etc/ssh/sshd_config && \
+    mkdir -p /root/.ssh && \
+    touch /root/.ssh/environment
+
+COPY ssh_entry.sh /root/.bash_profile
 
 # Generate ssh keys
 RUN ssh-keygen -A
 
 ### Final Setup ###
+
+# Install code formatting packages
+RUN pip install autopep8
 
 # Add catkin ws
 RUN mkdir -p /root/dev/robosub-ros

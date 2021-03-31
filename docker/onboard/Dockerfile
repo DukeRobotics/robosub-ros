@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # Get required python packages
-RUN pip install pyserial dependency-injector pillow==6 pymba==0.1 saleae
+RUN pip install pyserial dependency-injector pillow==6 pymba==0.1 saleae psutil gputil
 
 # Install PyTorch and Torchvision
 COPY $TARGETPLATFORM/TorchInstaller.sh TorchInstaller.sh
@@ -36,7 +36,7 @@ RUN ./TorchInstaller.sh && \
 RUN pip install --upgrade pip==8.1.1 && \
     pip install --no-cache-dir --no-deps detecto
 
-### ROS Plugins and Dependencies###
+### ROS Plugins and Dependencies ###
 
 # Install Vimba libraries for avt_vimba_camera
 RUN git clone https://github.com/muthuArivoli/camera-driver.git && \
@@ -55,3 +55,4 @@ RUN wget -O "logic.zip" "http://downloads.saleae.com/logic/1.2.18/Logic+1.2.18+(
 
 # Set computer type
 ENV COMPUTER_TYPE=onboard
+RUN echo "COMPUTER_TYPE=onboard" >> /root/.ssh/environment

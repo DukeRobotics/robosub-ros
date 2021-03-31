@@ -13,8 +13,10 @@ add_message_files(
   FILES
   DVLRaw.msg
   ThrusterSpeeds.msg
-  ServoAngle.msg
+  ServoAngleArray.msg
   CVObject.msg
+  Memory.msg
+  SystemUsage.msg
 )
 
 add_service_files(

@@ -18,8 +18,8 @@ class BagToVideo(BagVideoConverter):
             times[topic].append(msg.header.stamp.to_sec())
             sizes[topic] = (msg.width, msg.height)
         intervals = {topic: np.diff(time) for (topic, time) in times.items()}
-        nframes = {topic: np.int64(np.round(10*interval/min(interval))) for (topic, interval) in intervals.items()}
-        maxrates = {topic: np.max(1/interval) for (topic, interval) in intervals.items()}
+        nframes = {topic: np.int64(np.round(10 * interval / min(interval))) for (topic, interval) in intervals.items()}
+        maxrates = {topic: np.max(1 / interval) for (topic, interval) in intervals.items()}
         return maxrates, sizes, nframes
 
     def write_video(self, bag, maxrates, sizes, nframes):

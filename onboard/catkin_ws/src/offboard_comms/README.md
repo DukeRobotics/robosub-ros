@@ -17,23 +17,26 @@ To actually get the code onto the Arduino, you need to install the newly generat
 You can then use the ROS message types in Arduino code.
 
 ## Testing offboard communication
-First set up the node on the computer that will talk to the Arduino. To do this, use `lsusb` and `sudo dmesg | grep tty` to determine the serial port on which the Arduino is connected. Then run (replace `/dev/ttyUSB0` with the serial port you find):
+First set up the node on the computer that will talk to the Arduino.
 ```
-rosrun rosserial_python serial_node.py /dev/ttyUSB0
+roslaunch offboard_comms serial.launch
 ```
 Now to test, start sending messages to the offboard device. For instance, to run all the thrusters at speed 0, you can use:
 ```
 rostopic pub -r 10 /offboard/thruster_speeds custom_msgs/ThrusterSpeeds '{speeds: [0,0,0,0,0,0,0,0]}'
 ```
-To set the first servo to a 90 degree angle, you can use:
+To set the first servo to a 90 degree angle, you can execute these commands in separate terminals:
 ```
-rosservice call /offboard/servo_angle '{num: 0, angle: 90}'
+rosrun offboard_comms servo_wrapper.py
+rosservice call /offboard/set_servo_angle '{num: 0, angle: 90}'
 ```
 
 ## Topics and Services
 ### Thrusters
 The thrusters are subscribed to the `/offboard/thruster_speeds` topic that is of type `custom_msgs/ThrusterSpeeds.msg`. This is an array of 8 signed 8-bit integers, which have range of [-128,127]. Negative values correspond to reverse (<1500 microseconds PWM), and positive values correspond to forward (>1500 microseconds PWM). 
 ### Servos
-The servos utilize the  `/offboard/servo_angle` service that is of type `custom_msgs/SetServo.srv`. The request to this service consists of an unsigned 8-bit integer `num` that corresponds to the pin number of the servo, and an unsigned 16 bit integer `angle` that corresponds to the desired angle (0-180). The reply consists of a bool `success` that corresponds to whether the request successfully set the angle.
+The servos utilize the `/offboard/set_servo_angle` service that is of type `custom_msgs/SetServo.srv`. The request to this service consists of an unsigned 8-bit integer `num` that corresponds to the pin number of the servo, and an unsigned 8 bit integer `angle` that corresponds to the desired angle (0-180). The reply consists of a bool `success` that corresponds to whether the request successfully set the angle.
 
 Values for `num` are 0-indexed (meaning the first servo corresponds to pin number 0) and values that are greater than or equal to the number of servos will result in an unsuccessfull call. Values for `angle` that are >180 will also result in an unsuccessful call.
+
+This service lives in the script `servo_wrapper.py` which communicates with the Arduino by publishing a message of type `custom_msgs/ServoAngleArray.msg`. This is an array of 8 8-bit unsigned integers, and publishes them to topic `/offboard/servo_angles`.
