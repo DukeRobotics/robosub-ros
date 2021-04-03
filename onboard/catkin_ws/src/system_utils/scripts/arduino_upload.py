@@ -3,7 +3,7 @@
 import rospy
 import actionlib
 import subprocess
-from custom_msgs.action import UploadArduinoAction, UploadArduinoFeedback, UploadArduinoResult 
+from custom_msgs.msg import UploadArduinoAction, UploadArduinoFeedback, UploadArduinoResult
 
 class Saleae:
 
@@ -28,10 +28,17 @@ class Saleae:
         self.server.set_succeeded(result)
 
     def execute(self, goal):
+        subprocess.check_call("export PATH=\"~/dev/robosub-ros/test:$PATH\"")
+        subprocess.check_call("rosrun rosserial_arduino make_libraries.py .")
+        subprocess.check_call("zip ros_lib.zip ros_lib")
         subprocess.check_call("arduino-cli") #assuming arduino cli is part of path variables
-        subprocess.check_call("arduino-cli core install arduino:avd") #for the robot use arduino:samd to download the arduino nano core
-        subprocess.check_call(["arduino-cli compile -b arduino:avd:mega ../data/", goal.filename])
-        subprocess.check_call(["arduino-cli upload -b arduino:avd:mega -p ", goal.port, " ../data/", goal.filename])
+        subprocess.check_call("export ARDUINO_LIBRARY_ENABLE_UNSAFE_INSTALL=true")
+        subprocess.check_call("arduino-cli lib install --zip-path ros_lib.zip")
+        subprocess.check_call("rm -r ros_lib")
+        subprocess.check_call("rm ros_lib.zip")
+        subprocess.check_call("arduino-cli core install arduino:avr") #for the robot use arduino:samd to download the arduino nano core
+        subprocess.check_call("arduino-cli compile -b arduino:avr:mega ../data/" + goal.filename)
+        subprocess.check_call("arduino-cli upload -b arduino:avr:mega -p " + goal.port + " ../data/" + goal.filename)
         self.publish_result()
 
 
