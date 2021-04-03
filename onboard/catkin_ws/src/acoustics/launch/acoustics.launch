@@ -4,5 +4,6 @@
     <node pkg="acoustics" name="saleae" type="saleae.py" output="screen"/>
     <node pkg="acoustics" name="acoustics_guesser" type="guess_server.py" output="screen"/>
     <node pkg="acoustics" name="acoustics_processor" type="processing_server.py" output="screen"/>
+    <arg name="gen_data" default="false" />
 
 </launch>

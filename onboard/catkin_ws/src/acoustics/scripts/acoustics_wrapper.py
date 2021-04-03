@@ -6,7 +6,8 @@ from custom_msgs.msg import AcousticsGuessGoal, AcousticsGuessAction, \
     AcousticsProcessingGoal, AcousticsProcessingAction, \
     SaleaeGoal, SaleaeAction, \
     AcousticsDataGoal, AcousticsDataAction, \
-    AcousticsWrapperAction, AcousticsWrapperFeedback, AcousticsWrapperResult
+    AcousticsWrapperAction, AcousticsWrapperFeedback, AcousticsWrapperResult, \
+    AcousticsWrapperGenDataAction, AcousticsWrapperGenDataFeedback, AcousticsWrapperGenDataResult
 
 from datetime import datetime
 
@@ -18,22 +19,29 @@ class AcousticsWrapper:
 
     GUESS_SAMPLE_FREQ = 625000
     PROCESSING_SAMPLE_FREQ = 625000
+    SAMPLING_FREQ = {1: 625000, 2: 625000}
     CAPTURE_COUNT = 4
     CAPTURE_DURATION = 2
 
     def __init__(self):
         rospy.init_node(self.NODE_NAME)
-        self.client_sampling = actionlib.SimpleActionClient('call_saleae', SaleaeAction)
+        self.gen_data = rospy.get_param('gen_data')
+        if self.gen_data:
+            self.client_data = actionlib.SimpleActionClient('generate_data', AcousticsDataAction)
+        else:
+            self.client_sampling = actionlib.SimpleActionClient('call_saleae', SaleaeAction)
         self.client_guess = actionlib.SimpleActionClient('guess_acoustics', AcousticsGuessAction)
         self.client_processing = actionlib.SimpleActionClient('process_acoustics', AcousticsProcessingAction)
-        self.client_data = actionlib.SimpleActionClient('generate_data', AcousticsDataAction)
 
         self.client_sampling.wait_for_server()
         self.client_guess.wait_for_server()
         self.client_processing.wait_for_server()
         self.client_data.wait_for_server()
 
-        self.server = actionlib.SimpleActionServer(self.ACTION_NAME, AcousticsWrapperAction, self.execute, False)
+        if self.gen_data:
+            self.server = actionlib.SimpleActionServer(self.ACTION_NAME, AcousticsWrapperGenDataAction, self.execute, False)
+        else:
+            self.server = actionlib.SimpleActionServer(self.ACTION_NAME, AcousticsWrapperAction, self.execute, False)
         self.server.start()
 
         rospy.spin()
@@ -63,10 +71,7 @@ class AcousticsWrapper:
     def generate_data(self, hydrophone_set, wrapper_goal):
         goal = AcousticsDataGoal()
         goal.hydrophone_set = hydrophone_set
-        if hydrophone_set == 1:
-            goal.samp_f = self.GUESS_SAMPLE_FREQ
-        else:
-            goal.samp_f = self.PROCESSING_SAMPLE_FREQ
+        goal.samp_f = self.SAMPLING_FREQ[hydrophone_set]
         goal.tar_f = wrapper_goal.tar_f
         goal.location = wrapper_goal.location
         self.client_data.send_goal(goal)
