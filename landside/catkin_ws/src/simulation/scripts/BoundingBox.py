@@ -4,28 +4,40 @@ import rospy
 
 def get_bounding_box(listener, points, pos, orientation):
 	#for loop getting grid point for each point
-	cam_pos = [0.309,0.138,0.18]
-	for i in range(3):
-		pos[i] += cam_pos[i]
+	# cam_pos = [0.309,0.138,0.18]
+	# for i in range(3):
+	# 	pos[i] += cam_pos[i]
 		
 	xs = []
 	ys = []
 	for i in range(len(points)):
 		grid_point = get_grid_point(listener, points[i], pos, orientation)
-		xs.append(grid_point[0])
-		ys.append(grid_point[1])
+		if grid_point != [-1, -1]:
+			xs.append(grid_point[0])
+			ys.append(grid_point[1])
 
 	bounding_box = get_box(xs, ys)
+	print()
 	return bounding_box
 
 def get_grid_point(listener, point, pos, orientation):
 	rel_point = point_rel_to_bot(listener, point, pos, orientation)
+	mag = sum([i**2 for i in rel_point])**.5
+	truemag = sum([(point[i]-pos[i])**2 for i in range(3)])**.5
+	# rospy.loginfo("rel point magnitude is "+str(rel_point)+" and should be "+str(truemag))
 	#FOV - field of view
+	if rel_point[0] < 0:
+		print("removing negative point! "+str(point))
+		return [-1, -1]
 	xFOV = 0.933 * rel_point[0]
 	yFOV = 0.586 * rel_point[0]
 	xPix = (xFOV / 2 - rel_point[1]) / xFOV
 	yPix = (yFOV / 2 - rel_point[2]) / yFOV
 	grid_point = [xPix, yPix]
+	rospy.loginfo("orig point: "+str(point))
+	rospy.loginfo("point: "+str(rel_point))
+	rospy.loginfo(" grid point: "+str(grid_point))
+	rospy.loginfo("")
 	# for i in range(2):
 	# 	if (grid_point[i] < 0):
 	# 		grid_point[i] = 0
@@ -61,22 +73,12 @@ def point_rel_to_bot(listener, point, pos, orientation):
 	return rel_point
 
 def get_box(xs, ys):
-	# xmax = 0
-	# xmin = 1
-	# ymax = 0
-	# ymin = 1
-	#
-	# for i in range(len(xs)):
-	# 	if (xs[i] > xmax):
-	# 		xmax = xs[i]
-	# 	if (xs[i] < xmin):
-	# 		xmin = xs[i]
-	# 	if (ys[i] > ymax):
-	# 		ymax = ys[i]
-	# 	if (ys[i] < ymin):
-	# 		ymin = ys[i]
-
+	if len(xs) == 0:
+		xs = [-1]
+	if len(ys) == 0:
+		ys = [-1]
 	box = [min(xs), max(xs), min(ys), max(ys)]
+	rospy.loginfo("indices {:}, {:}, {:}, {:}".format(xs.index(box[0]), xs.index(box[1]), ys.index(box[2]), ys.index(box[3])))
 	# if ((xmin == xmax) or (ymin == ymax)):
 	# 	for x in box:
 	# 		x = -1

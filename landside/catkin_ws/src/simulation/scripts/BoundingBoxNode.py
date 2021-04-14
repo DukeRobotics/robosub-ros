@@ -7,6 +7,7 @@ orientation = [0,0,0]
 import rospy
 from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import PoseStamped
+from nav_msgs.msg import Odometry
 import tf
 from tf import TransformListener
 
@@ -16,15 +17,20 @@ listener = None
 
 def node_code():
 	global listener
+	rospy.loginfo("running!")
 	rospy.init_node('box_maker')
 	listener = TransformListener()
 	rospy.Subscriber("/sim/object_points", Float32MultiArray, callback)
-	rospy.Subscriber("/sim/pose", PoseStamped, pose_callback)	
+	rospy.Subscriber("/sim/pose", PoseStamped, pose_callback)
+	# rospy.Subscriber("/state", Odometry, debug_callback)
 	rate = rospy.Rate(10)
 	while not rospy.is_shutdown():
 		hello_str = "hello world %s" % rospy.get_time()
 		#rospy.loginfo(hello_str)
 		rate.sleep()
+
+def debug_callback(data):
+	rospy.loginfo(data.pose.pose)
 
 def pose_callback(data):
 	global pos
@@ -107,6 +113,7 @@ def bounding_boxes(all_points, pos, orientation, ids):
 	return boxes
 
 if __name__ == "__main__":
+	rospy.loginfo("am i alivE?")
 	node_code()
 	
 	
