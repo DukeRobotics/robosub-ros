@@ -33,6 +33,8 @@ def get_grid_point(listener, point, pos, orientation):
 	yFOV = 0.586 * rel_point[0]
 	xPix = (xFOV / 2 - rel_point[1]) / xFOV
 	yPix = (yFOV / 2 - rel_point[2]) / yFOV
+	xPix = max(min(1,xPix), 0)
+	yPix = max(min(1,yPix), 0)
 	grid_point = [xPix, yPix]
 	rospy.loginfo("orig point: "+str(point))
 	rospy.loginfo("point: "+str(rel_point))
@@ -78,6 +80,9 @@ def get_box(xs, ys):
 	if len(ys) == 0:
 		ys = [-1]
 	box = [min(xs), max(xs), min(ys), max(ys)]
+	# if box == [0,1,0,1]:
+	# 	box = [-1,-1,-1,-1]
+	
 	rospy.loginfo("indices {:}, {:}, {:}, {:}".format(xs.index(box[0]), xs.index(box[1]), ys.index(box[2]), ys.index(box[3])))
 	# if ((xmin == xmax) or (ymin == ymax)):
 	# 	for x in box:
