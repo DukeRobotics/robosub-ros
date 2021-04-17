@@ -2,6 +2,7 @@
 
 import rospy
 import yaml
+import StereoDetector
 from custom_msgs.msg import CVObject
 from custom_msgs.srv import EnableModel
 from sensor_msgs.msg import Image
@@ -23,6 +24,7 @@ class Detector:
         with open(rr.get_filename('package://cv/models/models.yaml', use_protocol=False)) as f:
             self.models = yaml.load(f)
 
+        self.stereo_detector = None
         if self.camera == 'stereo':
             self.camera_feed_topic_left = '/camera/left/image_raw'
             self.camera_feed_topic_right = '/camera/right/image_raw'
@@ -64,7 +66,8 @@ class Detector:
             self.stereo()
 
     def stereo(self):
-        pass
+        self.stereo_detector = StereoDetector(self.img_left, self.img_right)
+        self.detect(self.img_left)
 
     # Camera subscriber callback; publishes predictions for each frame
     def detect(self, img_msg):
@@ -104,6 +107,9 @@ class Detector:
 
                 object_msg.height = shape[0]
                 object_msg.width = shape[1]
+
+                if self.stereo_detector is not None:
+                    self.stereo_detector.populate_stereo_info(object_msg)
 
                 # Safety check that publisher is not None
                 if publisher:
