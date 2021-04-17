@@ -23,8 +23,14 @@ class Detector:
         with open(rr.get_filename('package://cv/models/models.yaml', use_protocol=False)) as f:
             self.models = yaml.load(f)
 
-        # The topic that the camera publishes its feed to
-        self.camera_feed_topic = '/camera/{}/image_raw'.format(self.camera)
+        if self.camera == 'stereo':
+            self.camera_feed_topic_left = '/camera/left/image_raw'
+            self.camera_feed_topic_right = '/camera/right/image_raw'
+            self.img_left = None
+            self.img_right = None
+        else:
+            # The topic that the camera publishes its feed to
+            self.camera_feed_topic = '/camera/{}/image_raw'.format(self.camera)
 
         # Toggle model service name
         self.enable_service = 'enable_model_{}'.format(self.camera)
@@ -46,6 +52,19 @@ class Detector:
 
         model['predictor'] = predictor
         model['publisher'] = publisher
+
+    def stereo_left(self, img_msg):
+        self.img_left = img_msg
+        if self.img_right is not None:
+            self.stereo()
+
+    def stereo_right(self, img_msg):
+        self.img_left = img_msg
+        if self.img_right is not None:
+            self.stereo()
+
+    def stereo(self):
+        pass
 
     # Camera subscriber callback; publishes predictions for each frame
     def detect(self, img_msg):
@@ -108,7 +127,11 @@ class Detector:
     # Initialize node and set up Subscriber to generate and
     # publish predictions at every camera frame
     def run(self):
-        rospy.Subscriber(self.camera_feed_topic, Image, self.detect)
+        if self.camera == 'stereo':
+            rospy.Subscriber(self.camera_feed_topic_left, Image, self.stereo_left)
+            rospy.Subscriber(self.camera_feed_topic_right, Image, self.stereo_left)
+        else:
+            rospy.Subscriber(self.camera_feed_topic, Image, self.detect)
 
         # Allow service for toggling of models
         rospy.Service(self.enable_service, EnableModel, self.enable_model)
