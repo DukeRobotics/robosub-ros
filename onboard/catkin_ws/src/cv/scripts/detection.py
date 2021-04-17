@@ -59,15 +59,22 @@ class Detector:
         self.img_left = img_msg
         if self.img_right is not None:
             self.stereo()
+            self.stereo_cleanup()
 
     def stereo_right(self, img_msg):
-        self.img_left = img_msg
-        if self.img_right is not None:
+        self.img_right = img_msg
+        if self.img_left is not None:
             self.stereo()
+            self.stereo_cleanup()
 
     def stereo(self):
         self.stereo_detector = StereoDetector(self.img_left, self.img_right)
         self.detect(self.img_left)
+
+    def stereo_cleanup(self):
+        self.img_left = None
+        self.img_right = None
+        self.stereo_detector = None
 
     # Camera subscriber callback; publishes predictions for each frame
     def detect(self, img_msg):
