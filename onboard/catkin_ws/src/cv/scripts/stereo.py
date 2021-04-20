@@ -15,9 +15,6 @@ class StereoDetector:
 
         self.disparity = None  # todo
 
-    def is_valid(self):
-        return self.disparity is not None
-
     def cleanup(self):
         self.disparity = None
 

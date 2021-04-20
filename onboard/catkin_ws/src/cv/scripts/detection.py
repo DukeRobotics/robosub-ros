@@ -104,6 +104,7 @@ class Detector:
         else:
             for label, box, score in zip(labels, boxes, scores):
                 object_msg = CVObject()
+                object_msg.stereo_enabled = False
 
                 object_msg.label = label
                 object_msg.score = score
@@ -116,7 +117,8 @@ class Detector:
                 object_msg.height = shape[0]
                 object_msg.width = shape[1]
 
-                if self.stereo_detector is not None and self.stereo_detector.is_valid():
+                if self.stereo_detector is not None:
+                    object_msg.stereo_enabled = True
                     self.stereo_detector.populate_stereo_info(object_msg)
 
                 # Safety check that publisher is not None
