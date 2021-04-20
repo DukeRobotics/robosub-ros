@@ -4,15 +4,22 @@ from cv_bridge import CvBridge
 
 class StereoDetector:
 
-    def __init__(self, raw_img_left, raw_img_right):
+    def __init__(self):
         self.bridge = CvBridge()
-        self.img_left = self.bridge.imgmsg_to_cv2(raw_img_left, 'rgb8')
-        self.img_right = self.bridge.imgmsg_to_cv2(raw_img_right, 'rgb8')
+        # todo initialize constants
+        self.disparity = None
 
-        self.disparity = self._calculate_disparity(self.img_left, self.img_right)
+    def compute_disparity(self, img_left_raw, img_right_raw):
+        img_left = self.bridge.imgmsg_to_cv2(img_left_raw, 'rgb8')
+        img_right = self.bridge.imgmsg_to_cv2(img_right_raw, 'rgb8')
 
-    def _calculate_disparity(self, img_left, img_right):
-        return 0
+        self.disparity = None  # todo
+
+    def is_valid(self):
+        return self.disparity is not None
+
+    def cleanup(self):
+        self.disparity = None
 
     # Takes in a CVObject and populates with depth, angle_horiz, and angle_vert
     def populate_stereo_info(self, cv_object):

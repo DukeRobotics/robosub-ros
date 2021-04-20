@@ -30,6 +30,7 @@ class Detector:
             self.camera_feed_topic_right = '/camera/right/image_raw'
             self.img_left = None
             self.img_right = None
+            self.stereo_detector = StereoDetector()
         else:
             # The topic that the camera publishes its feed to
             self.camera_feed_topic = '/camera/{}/image_raw'.format(self.camera)
@@ -68,13 +69,13 @@ class Detector:
             self.stereo_cleanup()
 
     def stereo(self):
-        self.stereo_detector = StereoDetector(self.img_left, self.img_right)
+        self.stereo_detector.compute_disparity(self.img_left, self.img_right)
         self.detect(self.img_left)
 
     def stereo_cleanup(self):
         self.img_left = None
         self.img_right = None
-        self.stereo_detector = None
+        self.stereo_detector.cleanup()
 
     # Camera subscriber callback; publishes predictions for each frame
     def detect(self, img_msg):
@@ -115,7 +116,7 @@ class Detector:
                 object_msg.height = shape[0]
                 object_msg.width = shape[1]
 
-                if self.stereo_detector is not None:
+                if self.stereo_detector is not None and self.stereo_detector.is_valid():
                     self.stereo_detector.populate_stereo_info(object_msg)
 
                 # Safety check that publisher is not None
@@ -142,7 +143,7 @@ class Detector:
     def run(self):
         if self.camera == 'stereo':
             rospy.Subscriber(self.camera_feed_topic_left, Image, self.stereo_left)
-            rospy.Subscriber(self.camera_feed_topic_right, Image, self.stereo_left)
+            rospy.Subscriber(self.camera_feed_topic_right, Image, self.stereo_right)
         else:
             rospy.Subscriber(self.camera_feed_topic, Image, self.detect)
 
