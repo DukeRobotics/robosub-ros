@@ -117,7 +117,7 @@ class Detector:
                 object_msg.width = shape[1]
 
                 if self.stereo_detector is not None and self.stereo_detector.is_valid():
-                    self.stereo_detector.populate_stereo_info(object_msg)
+                    self.stereo_detector.populate_stereo_info(object_msg, box)
 
                 # Safety check that publisher is not None
                 if publisher:
