@@ -31,9 +31,6 @@ class StereoDetector:
         self.disparity = disparity
         self.map_3d = cv2.reprojectImageTo3D(self.disparity, self.Q, True) / 1000
 
-    def is_valid(self):
-        return self.disparity is not None
-
     def cleanup(self):
         self.disparity = None
 
