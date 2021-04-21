@@ -7,6 +7,7 @@ orientation = [0,0,0]
 import rospy
 from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import PoseStamped
+from custom_msgs.msg import CVObject
 from nav_msgs.msg import Odometry
 import tf
 from tf import TransformListener
@@ -62,14 +63,27 @@ def callback(data):
 	# rospy.loginfo(objects)
 
 	for i in range(len(objects)):
-		if (objects[i] == 1):
-			box = Float32MultiArray()
-			box.data = boxes[i]
-			pub_gate.publish(box)
-		if (objects[i] == 2):
-			box = Float32MultiArray()
-			box.data = boxes[i]
-			pub_buoy.publish(box)
+		if (objects[i] == 1): #gate==1
+			box = CVObject()
+			box.label = 'gate'
+			box.score = 1
+
+			box.xmin = boxes[i][0]
+			box.xmax = boxes[i][0]
+			box.ymin = boxes[i][0]
+			box.ymax = boxes[i][0]
+			# box = Float32MultiArray()
+			# box.data = boxes[i]
+			# pub_gate.publish(box)
+		if (objects[i] == 2): #buoy==2
+			box = CVObject()
+			box.label = 'buoy'
+			box.score = 1
+
+			box.xmin = boxes[i][0]
+			box.xmax = boxes[i][0]
+			box.ymin = boxes[i][0]
+			box.ymax = boxes[i][0]
 
 #parse into arrays of arrays of points
 def parse_array(array):

@@ -74,12 +74,15 @@ def point_rel_to_bot(listener, point, pos, orientation):
 	# rospy.loginfo("Before: "+ str(point)+" After: " + str(newpoint))
 	return rel_point
 
+def clamp(num, min, max):
+	return min(max(min, num), max)
+
 def get_box(xs, ys):
 	if len(xs) == 0:
 		xs = [-1]
 	if len(ys) == 0:
 		ys = [-1]
-	box = [min(xs), max(xs), min(ys), max(ys)]
+	box = [clamp(min(xs), 0, 1), clamp(max(xs), 0, 1), clamp(min(ys), 0, 1), clamp(max(ys), 0, 1)]
 	# if box == [0,1,0,1]:
 	# 	box = [-1,-1,-1,-1]
 	
