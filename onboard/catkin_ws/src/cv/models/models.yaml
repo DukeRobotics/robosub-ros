@@ -2,3 +2,9 @@ buoy:
   classes: [alien, bat, witch, brick, _start_gate, _start_tick, _]
   topic: /cv/buoy
   weights: buoy.pth
+
+# Testing with stereo vision - default model to be used with chessboard images
+default:
+  classes: null
+  topic: /cv/default
+  weights: default.pth
