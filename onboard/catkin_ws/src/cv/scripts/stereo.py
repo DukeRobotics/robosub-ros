@@ -31,9 +31,6 @@ class StereoDetector:
         self.disparity = disparity
         self.map_3d = cv2.reprojectImageTo3D(self.disparity, self.Q, True) / 1000
 
-    def cleanup(self):
-        self.disparity = None
-
     # Takes in a CVObject and populates with depth, distance, angle_horiz, and angle_vert
     def populate_stereo_info(self, cv_object, box):
         horizontal_angle, vertical_angle = self._compute_angles(box)

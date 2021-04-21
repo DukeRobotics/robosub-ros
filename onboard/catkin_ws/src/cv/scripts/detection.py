@@ -75,7 +75,6 @@ class Detector:
     def stereo_cleanup(self):
         self.img_left = None
         self.img_right = None
-        self.stereo_detector.cleanup()
 
     # Camera subscriber callback; publishes predictions for each frame
     def detect(self, img_msg):
