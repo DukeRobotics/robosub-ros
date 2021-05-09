@@ -23,17 +23,21 @@ class AcousticsWrapper:
         rospy.init_node(self.NODE_NAME)
         if rospy.get_param('~sim'):
             self.client_sampling = actionlib.SimpleActionClient('generate_data', AcousticsDataAction)
-            self.server = actionlib.SimpleActionServer(self.ACTION_NAME, AcousticsWrapperAction, lambda goal: self.execute(goal, self.generate_data), False)
+            self.server = actionlib.SimpleActionServer(
+                self.ACTION_NAME, AcousticsWrapperAction, lambda goal: self.execute(
+                    goal, self.generate_data), False)
         else:
             self.client_sampling = actionlib.SimpleActionClient('call_saleae', SaleaeAction)
-            self.server = actionlib.SimpleActionServer(self.ACTION_NAME, AcousticsWrapperAction, lambda goal: self.execute(goal, self.saleae_sampling), False)
+            self.server = actionlib.SimpleActionServer(
+                self.ACTION_NAME, AcousticsWrapperAction, lambda goal: self.execute(
+                    goal, self.saleae_sampling), False)
         self.client_guess = actionlib.SimpleActionClient('guess_acoustics', AcousticsGuessAction)
         self.client_processing = actionlib.SimpleActionClient('process_acoustics', AcousticsProcessingAction)
 
         self.client_sampling.wait_for_server()
         self.client_guess.wait_for_server()
         self.client_processing.wait_for_server()
-           
+
         self.server.start()
 
         rospy.spin()

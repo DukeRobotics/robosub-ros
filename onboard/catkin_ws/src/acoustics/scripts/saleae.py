@@ -45,7 +45,7 @@ class Saleae:
 
     def execute(self, goal):
         self.saleae.set_capture_seconds(goal.capture_duration)
-        
+
         time_now = datetime.now()
         export_name = "date_" + time_now.strftime("%m_%d_%Y_%H_%M_%S") + self.FILE_EXTENSIONS[goal.hydrophone_set.type]
         package_path = 'package://acoustics/data/' + export_name + '_({1}).csv'

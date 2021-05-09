@@ -5,6 +5,7 @@ import numpy.linalg
 import resource_retriever as rr
 from custom_msgs.msg import HydrophoneSet
 
+
 class DataGenerator:
     VS = 1511.5  # velocity of sound
 
