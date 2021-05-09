@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   FILES
   DVLRaw.msg
+  HydrophoneSet.msg
   ThrusterSpeeds.msg
   ServoAngleArray.msg
   CVObject.msg
