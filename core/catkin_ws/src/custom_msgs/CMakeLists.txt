@@ -32,7 +32,6 @@ add_action_files(
   AcousticsWrapper.action
   Saleae.action
   AcousticsData.action
-  UploadArduino.action
 )
 
 generate_messages(
