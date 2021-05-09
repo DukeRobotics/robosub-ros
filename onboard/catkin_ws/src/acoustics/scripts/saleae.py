@@ -2,10 +2,11 @@
 
 import rospy
 import actionlib
-from custom_msgs.msg import SaleaeAction, SaleaeFeedback, SaleaeResult
+from custom_msgs.msg import SaleaeAction, SaleaeFeedback, SaleaeResult, HydrophoneSet
 import pandas as pd
 import saleae
 import resource_retriever as rr
+from datetime import datetime
 
 
 class Saleae:
@@ -15,7 +16,8 @@ class Saleae:
     IP_ADDRESS = "localhost"
     PORT = 10429
     CAPTURE_DURATION = 2
-    HYDROPHONE_SET = {1: [0, 1, 2, 3], 2: [4, 5, 6, 7]}
+    HYDROPHONE_SET = {HydrophoneSet.GUESS: [0, 1, 2, 3], HydrophoneSet.PROCESS: [4, 5, 6, 7]}
+    FILE_EXTENSIONS = {HydrophoneSet.GUESS: "_guess", HydrophoneSet.PROCESS: "_processing"}
 
     def __init__(self):
         rospy.init_node(self.NODE_NAME)
@@ -43,14 +45,17 @@ class Saleae:
 
     def execute(self, goal):
         self.saleae.set_capture_seconds(goal.capture_duration)
-        package_path = 'package://acoustics/data/' + goal.save_name + '_{1}.csv'
+        
+        time_now = datetime.now()
+        export_name = "date_" + time_now.strftime("%m_%d_%Y_%H_%M_%S") + self.FILE_EXTENSIONS[goal.hydrophone_set.type]
+        package_path = 'package://acoustics/data/' + export_name + '_({1}).csv'
         save_paths = []
 
         for i in range(goal.capture_count):
             self.publish_feedback(i + 1, goal.capture_count + 1, "Starting capture {}".format(i))
             save_paths.append(package_path.format(i))
             save_path = rr.get_filename(package_path.format(i), use_protocol=False)
-            self.saleae.export_data2(save_path, analog_channels=self.HYDROPHONE_SET[goal.hydrophone_set])
+            self.saleae.export_data2(save_path, analog_channels=self.HYDROPHONE_SET[goal.hydrophone_set.type])
             self.format_csv(save_path)
 
         self.publish_feedback(goal.capture_count + 1, goal.capture_count + 1, "Saleae capture complete")

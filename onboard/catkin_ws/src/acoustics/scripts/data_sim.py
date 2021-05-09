@@ -3,7 +3,7 @@ import math
 import numpy as np
 import numpy.linalg
 import resource_retriever as rr
-
+from custom_msgs.msg import HydrophoneSet
 
 class DataGenerator:
     VS = 1511.5  # velocity of sound
@@ -15,13 +15,13 @@ class DataGenerator:
         self.samples = int(math.floor(2.048 * 2 * self.sf))
         self.pinger_loc = pinger_loc
         self.hydrophone_set = hydrophone_set
-        if self.hydrophone_set == 1:
+        if self.hydrophone_set == HydrophoneSet.GUESS:
             space = .3
             self.hp = [[0, 0, 0],
                        [space, 0, 0],
                        [0, space, 0],
                        [0, 0, space]]
-        elif self.hydrophone_set == 2:
+        elif self.hydrophone_set == HydrophoneSet.PROCESS:
             space = 0.0115
             self.hp = [[0, 0, 0],
                        [0, -space, 0],
