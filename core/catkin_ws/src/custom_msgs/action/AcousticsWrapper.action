@@ -3,6 +3,8 @@
 # Target frequency
 uint32 tar_f
 
+# Location of the pinger (only if using simulated data)
+geometry_msgs/Point location
 ---
 # Result
 

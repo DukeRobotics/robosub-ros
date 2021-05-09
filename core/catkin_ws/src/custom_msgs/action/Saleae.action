@@ -1,10 +1,7 @@
 # Goal
 
-# Name of base filename to save to
-string save_name
-
-# Which Hydrophone Set
-uint32 hydrophone_set
+# Hydrophone Set
+custom_msgs/HydrophoneSet hydrophone_set
 
 # Number of captures to take
 uint32 capture_count

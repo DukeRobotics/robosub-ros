@@ -3,25 +3,26 @@ import math
 import numpy as np
 import numpy.linalg
 import resource_retriever as rr
+from custom_msgs.msg import HydrophoneSet
 
 
 class DataGenerator:
     VS = 1511.5  # velocity of sound
 
-    def __init__(self, sampling_freq, pinger_freq, hydrophone, pinger_loc, publish):
+    def __init__(self, sampling_freq, pinger_freq, hydrophone_set, pinger_loc, publish):
         self.sf = sampling_freq
         self.pinger_frequency = pinger_freq
         self.publish = publish
         self.samples = int(math.floor(2.048 * 2 * self.sf))
         self.pinger_loc = pinger_loc
-        self.hydrophone = hydrophone
-        if self.hydrophone == 'cheap':
+        self.hydrophone_set = hydrophone_set
+        if self.hydrophone_set == HydrophoneSet.GUESS:
             space = .3
             self.hp = [[0, 0, 0],
                        [space, 0, 0],
                        [0, space, 0],
                        [0, 0, space]]
-        elif self.hydrophone == 'expensive':
+        elif self.hydrophone_set == HydrophoneSet.PROCESS:
             space = 0.0115
             self.hp = [[0, 0, 0],
                        [0, -space, 0],
@@ -29,7 +30,7 @@ class DataGenerator:
                        [-space, -space, 0]]
         else:
             self.hp = None
-            self.publish(curr_file=0, total_file=4, msg="Failure: incorrect hydrophone type on data generation")
+            self.publish(curr_stage=0, total_stages=4, msg="Failure: incorrect hydrophone set on data generation")
 
     def run(self):
         if self.hp is None:
@@ -65,12 +66,12 @@ class DataGenerator:
             hs = [p + np.random.normal(mean, std, self.samples) for p in pings]
 
             df = pandas.DataFrame({'Channel 0': hs[0], 'Channel 1': hs[1], 'Channel 2': hs[2], 'Channel 3': hs[3]})
-            filepath = "package://acoustics/data/simulated_{}_{}_{}_{}_({}).csv".format(self.hydrophone,
+            filepath = "package://acoustics/data/simulated_{}_{}_{}_{}_({}).csv".format(self.hydrophone_set,
                                                                                         self.pinger_loc[0],
                                                                                         self.pinger_loc[1],
                                                                                         self.pinger_loc[2], i)
             df.to_csv(rr.get_filename(filepath, use_protocol=False))
             file_paths.append(filepath)
-            self.publish(curr_file=i, total_file=4, msg="File generation successful, moving onto next file")
+            self.publish(curr_stage=i, total_stages=4, msg="File generation successful, moving onto next file")
 
         return file_paths
