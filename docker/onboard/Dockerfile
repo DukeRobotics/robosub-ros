@@ -12,7 +12,7 @@ RUN echo "Port 2200" >> /etc/ssh/sshd_config
 
 # Update and install tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libceres-dev unzip \
+    libceres-dev unzip zip \
     python-numpy python-scipy python-future  \
     python-six python-dateutil python-skimage \
     python-pywt python-pandas \
@@ -52,6 +52,10 @@ RUN wget -O "logic.zip" "http://downloads.saleae.com/logic/1.2.18/Logic+1.2.18+(
     unzip logic.zip && \
     mv "Logic 1.2.18 (64-bit)" "Logic" && \
     export PATH="$PATH:$PWD/Logic"
+
+# Install Arduino CLI for Arduino upload script
+# v0.17.0 is required due to issues with adding libraries in the current version v0.18.0
+RUN curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=/usr/local/bin sh -s 0.17.0
 
 # Set computer type
 ENV COMPUTER_TYPE=onboard
