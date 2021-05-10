@@ -13,7 +13,7 @@ from custom_msgs.msg import AcousticsGuessGoal, AcousticsGuessAction, \
 class AcousticsWrapper:
 
     NODE_NAME = "acoustics_wrapper"
-    ACTION_NAME = "call_guess_processing"
+    ACTION_NAME = "acoustics_wrapper"
 
     SAMPLING_FREQ = {HydrophoneSet.GUESS: 625000, HydrophoneSet.PROCESS: 625000}
     CAPTURE_COUNT = 4
