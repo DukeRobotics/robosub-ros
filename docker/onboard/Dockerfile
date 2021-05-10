@@ -12,7 +12,7 @@ RUN echo "Port 2200" >> /etc/ssh/sshd_config
 
 # Update and install tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    xauth pciutils\
+    xauth pciutils \
     libceres-dev libusb-dev \
     unzip zip \
     python-numpy python-scipy python-future  \
