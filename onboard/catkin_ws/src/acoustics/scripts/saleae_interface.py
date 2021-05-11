@@ -29,7 +29,7 @@ class Saleae:
             os.remove(self.SALEAE_SETTINGS)
         self.saleae = saleae.Saleae(args='-disablepopups -socket')
         rospy.loginfo("Saleae started")
-        
+
         self.server.start()
         rospy.spin()
 
