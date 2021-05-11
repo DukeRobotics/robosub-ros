@@ -90,6 +90,7 @@ jobs:
       - name: Test build
         run: docker exec ${SERVICE_NAME} ./build.sh ${SERVICE_NAME}
       - name: Test Arduino build
+        if: matrix.arch == 'amd64'
         run: docker exec ${SERVICE_NAME} ./.github/workflows/test_arduino.sh
       - name: Push image to dockerhub
         if: github.event_name == 'push'
