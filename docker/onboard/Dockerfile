@@ -62,3 +62,6 @@ RUN curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/inst
 # Set computer type
 ENV COMPUTER_TYPE=onboard
 RUN echo "COMPUTER_TYPE=onboard" >> /root/.ssh/environment
+
+# Set working directory to codebase
+WORKDIR /root/dev/robosub-ros
