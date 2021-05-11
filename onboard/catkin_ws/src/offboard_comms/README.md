@@ -12,6 +12,12 @@ rosrun offboard_comms arduino_upload.sh
 ```
 
 Note that this requires the Arduino to be an Arduino Nano using the old bootloader.
+
+To only compile (and not upload) the Arduino code, useful for testing builds, you may use:
+```
+rosrun offboard_comms arduino_upload.sh -c
+```
+
 ### Manual Upload
 We recommend using the upload script mentioned in the previous section, but the instructions are below for manual upload if that is preferred or required.
 
