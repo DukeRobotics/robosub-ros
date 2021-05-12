@@ -110,6 +110,13 @@ jobs:
           echo "${{ secrets.DOCKER_BOT_TOKEN }}" | docker login -u dukeroboticsbot --password-stdin
           docker buildx imagetools create --tag dukerobotics/robosub-ros:core dukerobotics/robosub-ros:core-amd64 dukerobotics/robosub-ros:core-arm64
           docker buildx imagetools create --tag dukerobotics/robosub-ros:onboard dukerobotics/robosub-ros:onboard-amd64 dukerobotics/robosub-ros:onboard-arm64
+  
+  cleanup-docker:
+    runs-on: ubuntu-18.04
+    needs: [check-docker, push-docker]
+    if: always() && (needs.check-docker.outputs.docker == 'true')
+    steps:
+      - uses: actions/checkout@v2
       - name: Cleanup artifacts
         uses: geekyeggo/delete-artifact@v1
         with:
