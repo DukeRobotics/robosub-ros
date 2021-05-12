@@ -1,6 +1,31 @@
 #!/bin/bash
 
-set -eux
+set -eu
+
+ARD_UPLOAD=true
+while getopts ":hc" opt; do
+    case ${opt} in 
+        h )
+            echo "Usage:"
+            echo "    rosrun offboard_comms upload_arduino.sh                  Compile and upload code to the arduino"
+            echo "    rosrun offboard_comms upload_arduino.sh -c               Only compile arduino code (no upload)"
+            exit 0
+        ;;
+        c )
+            ARD_UPLOAD=false
+        ;;
+        \? )
+            echo "Invalid Option -$OPTARG" 1>&2
+            exit 1
+        ;;
+    esac
+done
+
+if [ "$ARD_UPLOAD" = true ]; then
+    echo "Options parsed: compiling and uploading to the Arduino"
+else
+    echo "Options parsed: only compiling"
+fi
 
 rm -rf ros_lib
 rosrun rosserial_arduino make_libraries.py .
@@ -15,4 +40,7 @@ arduino-cli lib install --zip-path ros_lib.zip
 rm -f ros_lib.zip
 arduino-cli core install arduino:avr
 arduino-cli compile -b arduino:avr:nano:cpu=atmega328old "${SRC_CODE}"
-arduino-cli upload -b arduino:avr:nano:cpu=atmega328old -p "${PORT}" "${SRC_CODE}"
+
+if [ "$ARD_UPLOAD" = true ]; then
+    arduino-cli upload -b arduino:avr:nano:cpu=atmega328old -p "${PORT}" "${SRC_CODE}"
+fi

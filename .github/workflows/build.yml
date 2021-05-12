@@ -76,28 +76,22 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: core
-          path: core
+          path: core_im
       - name: Load core image
         run: |
-          docker load < ./core/${FILE_NAME}
-          rm -rf core
-      - name: Setup environment and build
+          docker load < ./core_im/${FILE_NAME}
+          rm -rf core_im
+      - name: Setup environment and build docker image
+        run: ./.github/workflows/build.sh
+      - name: Start containers
         run: |
-          ./.github/workflows/build.sh
-      - name: Test build for pull request
-        if: github.event_name == 'pull_request'
-        env:
-          COMMIT_REF: ${{ github.event.pull_request.head.sha }}
-          COMMIT_BASE: ${{ github.event.pull_request.base.sha }}
-        run: |
-          ./.github/workflows/test.sh
-      - name: Test build for push
-        if: github.event_name == 'push'
-        env:
-          COMMIT_REF: ${{ github.sha }}
-          COMMIT_BASE: ${{ github.sha }}
-        run: |
-          ./.github/workflows/test.sh
+          docker tag ${IMAGE_NAME} dukerobotics/robosub-ros:onboard
+          docker-compose up -d
+      - name: Test build
+        run: docker exec ${SERVICE_NAME} ./build.sh ${SERVICE_NAME}
+      - name: Test Arduino build
+        if: matrix.arch == 'amd64'
+        run: docker exec ${SERVICE_NAME} ./.github/workflows/test_arduino.sh
       - name: Push image to dockerhub
         if: github.event_name == 'push'
         run: |
@@ -116,10 +110,17 @@ jobs:
           echo "${{ secrets.DOCKER_BOT_TOKEN }}" | docker login -u dukeroboticsbot --password-stdin
           docker buildx imagetools create --tag dukerobotics/robosub-ros:core dukerobotics/robosub-ros:core-amd64 dukerobotics/robosub-ros:core-arm64
           docker buildx imagetools create --tag dukerobotics/robosub-ros:onboard dukerobotics/robosub-ros:onboard-amd64 dukerobotics/robosub-ros:onboard-arm64
+  
+  cleanup-docker:
+    runs-on: ubuntu-18.04
+    needs: [check-docker, push-docker]
+    if: always() && (needs.check-docker.outputs.docker == 'true')
+    steps:
+      - uses: actions/checkout@v2
       - name: Cleanup artifacts
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./.github/workflows/cleanup.sh
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: core
 
   landside-docker:
     runs-on: ubuntu-18.04
@@ -134,29 +135,19 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: core
-          path: core
+          path: core_im
       - name: Load core image
         run: |
-          docker load < ./core/amd64-core.tar.gz
-          rm -rf core
-      - name: Setup environment and build
+          docker load < ./core_im/amd64-core.tar.gz
+          rm -rf core_im
+      - name: Setup environment and build docker image
         run: |
           cd docker/${SERVICE_NAME}
           docker build --build-arg BASE_IMAGE=${BASE_IMAGE} -t  ${IMAGE_NAME} .
-      - name: Test build for pull request
-        if: github.event_name == 'pull_request'
-        env:
-          COMMIT_REF: ${{ github.event.pull_request.head.sha }}
-          COMMIT_BASE: ${{ github.event.pull_request.base.sha }}
-        run: |
-          ./.github/workflows/test.sh
-      - name: Test build for push
-        if: github.event_name == 'push'
-        env:
-          COMMIT_REF: ${{ github.sha }}
-          COMMIT_BASE: ${{ github.sha }}
-        run: |
-          ./.github/workflows/test.sh
+      - name: Start containers
+        run: docker-compose up -d
+      - name: Test build
+        run: docker exec ${SERVICE_NAME} ./build.sh ${SERVICE_NAME}
       - name: Push image to dockerhub
         if: github.event_name == 'push'
         run: |
@@ -176,3 +167,6 @@ jobs:
       - uses: actions/checkout@v2
       - name: Test build
         run: ./build.sh '${{ matrix.workspace }}'
+      - name: Test Arduino build
+        if: matrix.workspace == 'onboard'
+        run: ./.github/workflows/test_arduino.sh

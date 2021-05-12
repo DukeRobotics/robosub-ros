@@ -14,7 +14,7 @@ RUN echo "Port 2200" >> /etc/ssh/sshd_config
 RUN apt-get update && apt-get install -y --no-install-recommends \
     xauth pciutils \
     libceres-dev libusb-dev \
-    unzip zip \
+    unzip zip util-linux \
     python-numpy python-scipy python-future  \
     python-six python-dateutil python-skimage \
     python-pywt python-pandas \
@@ -62,3 +62,6 @@ RUN curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/inst
 # Set computer type
 ENV COMPUTER_TYPE=onboard
 RUN echo "COMPUTER_TYPE=onboard" >> /root/.ssh/environment
+
+# Set working directory to codebase
+WORKDIR /root/dev/robosub-ros
