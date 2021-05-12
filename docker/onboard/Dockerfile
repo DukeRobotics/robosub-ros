@@ -12,7 +12,9 @@ RUN echo "Port 2200" >> /etc/ssh/sshd_config
 
 # Update and install tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libceres-dev unzip \
+    xauth pciutils \
+    libceres-dev libusb-dev \
+    unzip zip util-linux \
     python-numpy python-scipy python-future  \
     python-six python-dateutil python-skimage \
     python-pywt python-pandas \
@@ -51,7 +53,15 @@ RUN rm -rf camera-driver && \
 RUN wget -O "logic.zip" "http://downloads.saleae.com/logic/1.2.18/Logic+1.2.18+(64-bit).zip" && \
     unzip logic.zip && \
     mv "Logic 1.2.18 (64-bit)" "Logic" && \
-    export PATH="$PATH:$PWD/Logic"
+    ln -s /root/docker-build/Logic/Logic /usr/local/bin/Logic
+
+# Install Arduino CLI for Arduino upload script
+# v0.17.0 is required due to issues with adding libraries in the current version v0.18.0
+RUN curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=/usr/local/bin sh -s 0.17.0
 
 # Set computer type
 ENV COMPUTER_TYPE=onboard
+RUN echo "COMPUTER_TYPE=onboard" >> /root/.ssh/environment
+
+# Set working directory to codebase
+WORKDIR /root/dev/robosub-ros

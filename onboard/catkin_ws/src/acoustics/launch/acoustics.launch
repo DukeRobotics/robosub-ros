@@ -1,7 +1,11 @@
 <launch>
-	
-	<node pkg="acoustics" name="acoustics_wrapper" type="acoustics_wrapper.py" output="screen"/>
-    <node pkg="acoustics" name="saleae" type="saleae.py" output="screen"/>
+	<arg name="sim" default="false" />
+
+	<node pkg="acoustics" name="acoustics_wrapper" type="acoustics_wrapper.py" output="screen">
+        <param name="sim" value="$(arg sim)" />
+    </node>
+    <node pkg="acoustics" name="acoustics_data_generator" type="data_server.py" output="screen" if="$(arg sim)"/>
+    <node pkg="acoustics" name="saleae" type="saleae_interface.py" output="screen" unless="$(arg sim)"/>
     <node pkg="acoustics" name="acoustics_guesser" type="guess_server.py" output="screen"/>
     <node pkg="acoustics" name="acoustics_processor" type="processing_server.py" output="screen"/>
 

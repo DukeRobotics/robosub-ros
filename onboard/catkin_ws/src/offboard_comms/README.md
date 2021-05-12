@@ -2,7 +2,27 @@
 
 This package provides communications and functionality for an Arduino to be integrated with our main ROS system.
 
-## Generating Arduino libraries
+## Compile and Upload
+
+### Upload script
+
+On Linux hosts, with the container running in privileged mode, you may use the following command to compile and upload code to the Arduino.
+```
+rosrun offboard_comms arduino_upload.sh
+```
+
+Note that this requires the Arduino to be an Arduino Nano using the old bootloader.
+
+To only compile (and not upload) the Arduino code, useful for testing builds, you may use:
+```
+rosrun offboard_comms arduino_upload.sh -c
+```
+
+### Manual Upload
+We recommend using the upload script mentioned in the previous section, but the instructions are below for manual upload if that is preferred or required.
+
+#### Generating Arduino libraries
+
 In order to access some manner of ROS functionality inside the Arduino code, we first need to generate libraries that the Arduino can use. This includes both the ability to receive and publish messages and the format of those messages themselves. To do this run the command:
 ```
 rosrun rosserial_arduino make_libraries.py .
@@ -11,15 +31,15 @@ This command will create a new `ros_lib` directory in your current directory tha
 
 Whenever you make an update to the message types, you will need to re-run this command to regenerate the messages for Arduino.
 
-## Compiling and uploading the code
+#### Compiling and uploading the code
 To actually get the code onto the Arduino, you need to install the newly generated `ros_lib` folder in your Arduino Libraries. To do this, go to your Arduino "sketchbook" folder (you can find this in preferences) and add `ros_lib` to the subfolder "libraries". More details at https://www.arduino.cc/en/hacking/libraries.
 
 You can then use the ROS message types in Arduino code.
 
 ## Testing offboard communication
-First set up the node on the computer that will talk to the Arduino. To do this, use `lsusb` and `sudo dmesg | grep tty` to determine the serial port on which the Arduino is connected. Then run (replace `/dev/ttyUSB0` with the serial port you find):
+First set up the node on the computer that will talk to the Arduino.
 ```
-rosrun rosserial_python serial_node.py /dev/ttyUSB0
+roslaunch offboard_comms serial.launch
 ```
 Now to test, start sending messages to the offboard device. For instance, to run all the thrusters at speed 0, you can use:
 ```

@@ -33,3 +33,7 @@ RUN chmod +x /opt/ros/melodic/setup_network.bash
 
 # Set computer type
 ENV COMPUTER_TYPE=landside
+RUN echo "COMPUTER_TYPE=landside" >> /root/.ssh/environment
+
+# Set working directory to codebase
+WORKDIR /root/dev/robosub-ros

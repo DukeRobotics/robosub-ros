@@ -3,7 +3,7 @@
 import math
 import numpy as np
 import rospy
-from data_pub.msg import DVLRaw
+from custom_msgs.msg import DVLRaw
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
 from tf.transformations import quaternion_from_euler
