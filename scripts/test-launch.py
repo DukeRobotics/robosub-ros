@@ -4,51 +4,80 @@ import roslaunch
 import rospy
 import os
 import sys
+import psutil
 
-# http://wiki.ros.org/roslaunch/API%20Usage
-# https://stackoverflow.com/questions/2212643/python-recursive-folder-read
+IGNORE_LIST = [
+    'avt_camera/launch/cameras.launch',
+    'avt_camera/launch/stereo_cameras.launch',
+    'data_pub/launch/pub_all.launch',
+    'data_pub/launch/pub_dvl.launch',
+    'data_pub/launch/pub_imu.launch',
+]
+BLOCK_LIST = [
+    'cv/launch/cv.launch',
+    'joystick/launch/pub_joy.launch',
+]
 
-if len(sys.argv) < 2 or (sys.argv[1] != "onboard" and sys.argv[1] != "landside"):
-    exit("Invalid arguments. Usage: test-launch.py <onboard/landside> [timeout]")
-if len(sys.argv) > 2:
-    timeout = int(sys.argv[2])
-else:
-    timeout = 3
+class bcolors:
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
 
-# launch-test-deny-list.txt contains the relative filepath of any file that we
-# should skip for the launching test, with one filepath per line
-deny_list = []
-denylist_file = open("launch-test-deny-list.txt", "r")
-for denied in denylist_file:
-    deny_list.append(denied)
+def get_ws_file(abs_path):
+    return abs_path.split('catkin_ws/src/')[1]
 
-basedir = '../{0}/catkin_ws/src/'.format(sys.argv[1])
+def check_roslaunch_up():
+    for proc in psutil.process_iter(['pid', 'name']):
+        if proc.info['name'] == 'rosmaster':
+            return True
+    return False
 
-launchfiles = []
-for dirpath, dirnames, filenames in os.walk(basedir):
-    for filename in filenames:
-        if filename.endswith('.launch'):
-            launchfile_path = os.path.join(dirpath, filename)
-            launchfiles.append([launchfile_path])
+def get_launchfiles(basedir):
+    launchfiles = []
+    for dirpath, dirnames, filenames in os.walk(basedir):
+        for filename in filenames:
+            if not filename.endswith('.launch'):
+                continue
+            filepath = os.path.join(dirpath, filename)
+            if get_ws_file(filepath) not in BLOCK_LIST:
+                launchfiles.append([filepath, 'sim:=true'])
+    return launchfiles
 
-tested_launchfiles = [p for p in launchfiles if p[0] not in deny_list]
+def test_launch():
 
-print("About to test the following launchfiles in {0}:\n{1}".format(basedir, tested_launchfiles))
+    timeout = 10
 
-uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
-roslaunch.configure_logging(uuid)
+    ws = os.environ['COMPUTER_TYPE']
 
-for launchfile in tested_launchfiles:
-    try:
-        launch = roslaunch.parent.ROSLaunchParent(uuid, launchfile)
+    if ws == 'landside':
+        del os.environ['ROS_MASTER_URI']
+
+    launchfiles = get_launchfiles('{0}/catkin_ws/src/'.format(ws))
+    print(len(launchfiles))
+    uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+    roslaunch.configure_logging(uuid)
+
+    if check_roslaunch_up():
+        print("rosmaster is already running, please stop before running this test")
+        sys.exit(1)
+
+    for launchfile in launchfiles:
+        if check_roslaunch_up():
+            print("Failed to shut launch down")
+            sys.exit(1)
+        launch = roslaunch.parent.ROSLaunchParent(uuid, [(roslaunch.rlutil.resolve_launch_arguments(launchfile)[0], launchfile[1:])], force_required=True)
+        print("Launching launchfile: {0}.".format(launchfile[0]))
         launch.start()
-        msg = "Launching launchfile: {0}.".format(launchfile[0])
-        rospy.loginfo(msg)
-        print(msg)
-
-        rospy.sleep(timeout)  # wait 3 seconds to try and generate an error=
+        rospy.sleep(timeout)
+        if get_ws_file(launchfile[0]) in IGNORE_LIST and not check_roslaunch_up():
+            print(bcolors.WARNING + "IGNORE {}. Ignoring error due to IGNORE_LIST.".format(launchfile[0]) + bcolors.ENDC)
+        elif not check_roslaunch_up():
+            print(bcolors.FAIL + "FAIL {}. ROS crashed during launch.".format(launchfile[0]) + bcolors.ENDC)
+            sys.exit(1)
+        else:
+            print(bcolors.OKGREEN + "PASS {}.".format(launchfile[0]) + bcolors.ENDC)
         launch.shutdown()
-        print("Successfully launched {0}.".format(launchfile[0]))
-    except roslaunch.RLException as exception:
-        print("Failed launch for {0}.".format(launchfile[0]))
-        raise exception
+
+if __name__ == '__main__':
+    test_launch()

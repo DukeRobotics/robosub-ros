@@ -1,1 +1,0 @@
-../landside/catkin_ws/src/joystick/launch/pub_joy.launch
