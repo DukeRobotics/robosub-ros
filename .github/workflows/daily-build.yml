@@ -19,3 +19,5 @@ jobs:
       - name: Test Arduino build
         if: matrix.workspace == 'onboard'
         run: ./.github/workflows/test_arduino.sh
+      - name: Test ROS launchfiles
+        run: ./scripts/test-launch.py
