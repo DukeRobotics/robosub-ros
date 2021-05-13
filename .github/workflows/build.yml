@@ -149,9 +149,9 @@ jobs:
       - name: Start containers
         run: docker-compose up -d
       - name: Test build
-        run: docker exec -t ${SERVICE_NAME} ./build.sh ${SERVICE_NAME}
+        run: docker exec ${SERVICE_NAME} ./build.sh ${SERVICE_NAME}
       - name: Test ROS launchfiles
-        run: docker exec ${SERVICE_NAME} bash -lc "python ./scripts/test-launch.py"
+        run: docker exec -t ${SERVICE_NAME} bash -lc "python ./scripts/test-launch.py"
       - name: Push image to dockerhub
         if: github.event_name == 'push'
         run: |
