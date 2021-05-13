@@ -93,7 +93,7 @@ jobs:
         if: matrix.arch == 'amd64'
         run: docker exec ${SERVICE_NAME} ./.github/workflows/test_arduino.sh
       - name: Test ROS launchfiles
-        run: docker exec ${SERVICE_NAME} bash -lc "python ./scripts/test-launch.py"
+        run: docker exec -t ${SERVICE_NAME} bash -lc "python ./scripts/test-launch.py"
       - name: Push image to dockerhub
         if: github.event_name == 'push'
         run: |
@@ -149,7 +149,7 @@ jobs:
       - name: Start containers
         run: docker-compose up -d
       - name: Test build
-        run: docker exec ${SERVICE_NAME} ./build.sh ${SERVICE_NAME}
+        run: docker exec -t ${SERVICE_NAME} ./build.sh ${SERVICE_NAME}
       - name: Test ROS launchfiles
         run: docker exec ${SERVICE_NAME} bash -lc "python ./scripts/test-launch.py"
       - name: Push image to dockerhub
@@ -175,4 +175,7 @@ jobs:
         if: matrix.workspace == 'onboard'
         run: ./.github/workflows/test_arduino.sh
       - name: Test ROS launchfiles
-        run: ./scripts/test-launch.py
+        shell: bash
+        run: |
+          source ${{ matrix.workspace }}/catkin_ws/devel/setup.bash
+          ./scripts/test-launch.py

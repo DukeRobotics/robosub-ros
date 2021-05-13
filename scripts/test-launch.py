@@ -9,9 +9,6 @@ import psutil
 IGNORE_LIST = [
     'avt_camera/launch/cameras.launch',
     'avt_camera/launch/stereo_cameras.launch',
-    'data_pub/launch/pub_all.launch',
-    'data_pub/launch/pub_dvl.launch',
-    'data_pub/launch/pub_imu.launch',
 ]
 BLOCK_LIST = [
     'cv/launch/cv.launch',
@@ -88,6 +85,7 @@ def test_launch():
         else:
             print(bcolors.OKGREEN + "PASS {}.".format(launchfile[0]) + bcolors.ENDC)
         launch.shutdown()
+    print(bcolors.OKGREEN + "ALL PASSED." + bcolors.ENDC)
 
 
 if __name__ == '__main__':
