@@ -5,6 +5,7 @@ from task import Task
 # from prequal_tasks import PreQualGlobalTask
 from move_tasks import AllocateVelocityGlobalTask
 
+
 class CompetitionTask(Task):
     """
     High level competition level task, contains a list of tasks for each competition task.
