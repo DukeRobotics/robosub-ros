@@ -18,20 +18,24 @@ BLOCK_LIST = [
     'joystick/launch/pub_joy.launch',
 ]
 
+
 class bcolors:
     OKGREEN = '\033[92m'
     WARNING = '\033[93m'
     FAIL = '\033[91m'
     ENDC = '\033[0m'
 
+
 def get_ws_file(abs_path):
     return abs_path.split('catkin_ws/src/')[1]
+
 
 def check_roslaunch_up():
     for proc in psutil.process_iter(['pid', 'name']):
         if proc.info['name'] == 'rosmaster':
             return True
     return False
+
 
 def get_launchfiles(basedir):
     launchfiles = []
@@ -43,6 +47,7 @@ def get_launchfiles(basedir):
             if get_ws_file(filepath) not in BLOCK_LIST:
                 launchfiles.append([filepath, 'sim:=true'])
     return launchfiles
+
 
 def test_launch():
 
@@ -66,18 +71,24 @@ def test_launch():
         if check_roslaunch_up():
             print("Failed to shut launch down")
             sys.exit(1)
-        launch = roslaunch.parent.ROSLaunchParent(uuid, [(roslaunch.rlutil.resolve_launch_arguments(launchfile)[0], launchfile[1:])], force_required=True)
+        launch = roslaunch.parent.ROSLaunchParent(
+            uuid, [(roslaunch.rlutil.resolve_launch_arguments(launchfile)[0], launchfile[1:])], force_required=True)
         print("Launching launchfile: {0}.".format(launchfile[0]))
         launch.start()
         rospy.sleep(timeout)
         if get_ws_file(launchfile[0]) in IGNORE_LIST and not check_roslaunch_up():
-            print(bcolors.WARNING + "IGNORE {}. Ignoring error due to IGNORE_LIST.".format(launchfile[0]) + bcolors.ENDC)
+            print(
+                bcolors.WARNING +
+                "IGNORE {}. Ignoring error due to IGNORE_LIST.".format(
+                    launchfile[0]) +
+                bcolors.ENDC)
         elif not check_roslaunch_up():
             print(bcolors.FAIL + "FAIL {}. ROS crashed during launch.".format(launchfile[0]) + bcolors.ENDC)
             sys.exit(1)
         else:
             print(bcolors.OKGREEN + "PASS {}.".format(launchfile[0]) + bcolors.ENDC)
         launch.shutdown()
+
 
 if __name__ == '__main__':
     test_launch()

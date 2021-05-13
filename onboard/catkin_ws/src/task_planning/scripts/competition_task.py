@@ -3,7 +3,7 @@ from task import Task
 # from style_task import StyleTask
 # from gate_task import MoveToGateTask, GateTask
 # from prequal_tasks import PreQualGlobalTask
-
+from move_tasks import AllocateVelocityGlobalTask
 
 class CompetitionTask(Task):
     """
