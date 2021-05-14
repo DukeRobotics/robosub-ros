@@ -10,5 +10,5 @@ if [ -z "$SERVER_LOCATION" ]
 then
       echo "Server file not found"
 else
-      $COPPELIA_SIM_SCRIPT -h -s "$SERVER_LOCATION"
+      xvfb-run --auto-servernum --server-num=1 $COPPELIA_SIM_SCRIPT -h -s "$SERVER_LOCATION"
 fi

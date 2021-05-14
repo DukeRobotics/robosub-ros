@@ -27,12 +27,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # Get required python packages
-RUN pip install pyserial dependency-injector pillow==6 pymba==0.1 saleae psutil gputil
+RUN pip install \
+    pyserial dependency-injector \
+    pillow==6 tqdm pymba==0.1 \ 
+    gputil saleae
 
 # Install PyTorch and Torchvision
-COPY $TARGETPLATFORM/TorchInstaller.sh TorchInstaller.sh
-RUN ./TorchInstaller.sh && \
-    rm TorchInstaller.sh
+COPY $TARGETPLATFORM torch_deps/
+RUN cd torch_deps && \
+    ./TorchInstaller.sh && \
+    cd ../ && \
+    rm -rf torch_deps
 
 # Install Detecto
 RUN pip install --upgrade pip==8.1.1 && \

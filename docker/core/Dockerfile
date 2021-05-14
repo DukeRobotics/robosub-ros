@@ -49,7 +49,7 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common && \
     add-apt-repository ppa:jgmath2000/et && \
     apt-get update && apt-get install -y --no-install-recommends \
-    openssh-server mosh \
+    openssh-server mosh xvfb \
     vim \
     curl \
     wget \
@@ -85,8 +85,8 @@ RUN ssh-keygen -A
 
 ### Final Setup ###
 
-# Install code formatting packages
-RUN pip install autopep8
+# Install common pip packages
+RUN pip install autopep8 psutil
 
 # Add catkin ws
 RUN mkdir -p /root/dev/robosub-ros
