@@ -33,9 +33,11 @@ RUN pip install \
     gputil saleae
 
 # Install PyTorch and Torchvision
-COPY $TARGETPLATFORM/TorchInstaller.sh TorchInstaller.sh
-RUN ./TorchInstaller.sh && \
-    rm TorchInstaller.sh
+COPY $TARGETPLATFORM torch_deps/
+RUN cd torch_deps && \
+    ./TorchInstaller.sh && \
+    cd ../ && \
+    rm -rf torch_deps
 
 # Install Detecto
 RUN pip install --upgrade pip==8.1.1 && \
