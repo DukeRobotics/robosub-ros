@@ -93,6 +93,7 @@ jobs:
         if: matrix.arch == 'amd64'
         run: docker exec ${SERVICE_NAME} ./.github/workflows/test_arduino.sh
       - name: Test ROS launchfiles
+        if: matrix.arch == 'amd64'
         run: docker exec -t ${SERVICE_NAME} bash -lc "python ./scripts/test-launch.py"
       - name: Push image to dockerhub
         if: github.event_name == 'push'
