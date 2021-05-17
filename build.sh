@@ -37,7 +37,7 @@ if [[ "$1" != "onboard" ]] && [[ "$1" != "landside" ]]; then
 fi
 
 # shellcheck disable=SC1091
-source /opt/ros/melodic/setup.bash
+source /opt/ros/noetic/setup.bash
 
 cd core/catkin_ws
 catkin build

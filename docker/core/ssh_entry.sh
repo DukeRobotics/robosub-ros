@@ -1,11 +1,11 @@
 #!/bin/bash
 # shellcheck disable=SC1090,SC1091
 
-source /opt/ros/melodic/setup.bash
+source /opt/ros/noetic/setup.bash
 
-if [ -f /opt/ros/melodic/setup_network.bash ]
+if [ -f /opt/ros/noetic/setup_network.bash ]
 then
-    source /opt/ros/melodic/setup_network.bash
+    source /opt/ros/noetic/setup_network.bash
 fi
 
 # We know this directory exists, since it was created in the dockerfile

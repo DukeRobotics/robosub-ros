@@ -18,7 +18,7 @@ Left Stick (`Up/Down, Left/Right`), Right Stick (`Up/Down, Left/Right`)
 First, run roscore on the **onboard** computer. Then set up the network on the **landside** computer by executing
 
 `
-export /opt/ros/melodic/pool_setup.bash
+export /opt/ros/noetic/setup_network.bash
 `
 
 on the landside computer, if you are using the landside image. Otherwise you may execute

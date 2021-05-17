@@ -1,12 +1,28 @@
 ARG BASE_IMAGE=dukerobotics/robosub-ros:core
+
+# Multistage build, allows us to store the built pytorch wheel in an image
+# and retrieve it later, since compiling pytorch from source takes 6-12 hrs
+FROM dukerobotics/jetson-pytorch as jetson-pytorch
+
 FROM ${BASE_IMAGE}
 
 ARG TARGETPLATFORM
+ARG CUDA
 
 ### SSH Setup ###
 
 # Set ssh to use port 2200
 RUN echo "Port 2200" >> /etc/ssh/sshd_config
+
+### CUDA setup for Jetson ###
+
+COPY setup_jetson.sh setup_jetson.sh
+RUN ./setup_jetson.sh
+
+ENV TMP_PATH ${CUDA:+/usr/local/cuda/bin:}
+ENV PATH ${TMP_PATH}${PATH}
+ENV NVIDIA_VISIBLE_DEVICES ${CUDA:+all}
+ENV NVIDIA_DRIVER_CAPABILITIES ${CUDA:+all}
 
 ### Basic Setup ###
 
@@ -15,33 +31,30 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xauth pciutils \
     libceres-dev libusb-dev \
     unzip zip util-linux \
-    python-numpy python-scipy python-future  \
-    python-six python-dateutil python-skimage \
-    python-pywt python-pandas \
-    ros-melodic-tf \
-    ros-melodic-robot-localization  ros-melodic-libg2o \
-    ros-melodic-pid ros-melodic-camera-info-manager-py \
-    ros-melodic-rosserial ros-melodic-rosserial-arduino && \
+    ros-noetic-tf \ 
+    ros-noetic-robot-localization \
+    ros-noetic-pid \
+    ros-noetic-rosserial ros-noetic-rosserial-arduino && \
     apt-get clean && \
     # Clear apt caches to reduce image size
     rm -rf /var/lib/apt/lists/*
 
 # Get required python packages
-RUN pip install \
-    pyserial dependency-injector \
-    pillow==6 tqdm pymba==0.1 \ 
-    gputil saleae
+RUN pip3 install --no-cache-dir \
+    numpy scipy pymba python-dateutil \
+    pyserial dependency-injector \ 
+    gputil saleae pandas
 
 # Install PyTorch and Torchvision
-COPY $TARGETPLATFORM torch_deps/
+COPY torch_installer.sh torch_deps/torch_installer.sh
+COPY --from=jetson-pytorch /root/torch-1.8.0a0+5c1479f-cp38-cp38-linux_aarch64.whl torch_deps/torch-1.8.0a0+5c1479f-cp38-cp38-linux_aarch64.whl
 RUN cd torch_deps && \
-    ./TorchInstaller.sh && \
+    ./torch_installer.sh && \
     cd ../ && \
     rm -rf torch_deps
 
 # Install Detecto
-RUN pip install --upgrade pip==8.1.1 && \
-    pip install --no-cache-dir --no-deps detecto
+RUN pip3 install --no-cache-dir detecto
 
 ### ROS Plugins and Dependencies ###
 
