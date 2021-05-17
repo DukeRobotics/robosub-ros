@@ -32,7 +32,7 @@ class Camera:
         if self._camera_id is None:
             self._camera_id = camera_ids[0]
         elif self._camera_id not in camera_ids:
-            rospy.logerr("Requested camera ID {} not found".format(self._camera_id))
+            rospy.logerr(f"Requested camera ID {self._camera_id} not found")
             sys.exit(1)
         self._info_manager = CameraInfoManager(cname=self._camera_id, namespace=self._namespace,
                                                url="package://avt_camera/calibrations/${NAME}.yaml")

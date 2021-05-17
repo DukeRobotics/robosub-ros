@@ -15,8 +15,8 @@ class MonoCamera:
         camera_name = rospy.get_param('~camera', 'camera')
         camera_id = rospy.get_param('~camera_id', None)
 
-        image_topic = '/camera/{}/image_raw'.format(camera_name)
-        info_topic = '/camera/{}/camera_info'.format(camera_name)
+        image_topic = f'/camera/{camera_name}/image_raw'
+        info_topic = f'/camera/{camera_name}/camera_info'
 
         img_pub = rospy.Publisher(image_topic, Image, queue_size=10)
         info_pub = rospy.Publisher(info_topic, CameraInfo, queue_size=10)

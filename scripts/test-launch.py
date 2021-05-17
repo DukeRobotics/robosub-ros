@@ -55,7 +55,7 @@ def test_launch():
     if ws == 'landside':
         del os.environ['ROS_MASTER_URI']
 
-    launchfiles = get_launchfiles('{0}/catkin_ws/src/'.format(ws))
+    launchfiles = get_launchfiles(f'{ws}/catkin_ws/src/')
     print(len(launchfiles))
     uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
     roslaunch.configure_logging(uuid)
@@ -70,20 +70,16 @@ def test_launch():
             sys.exit(1)
         launch = roslaunch.parent.ROSLaunchParent(
             uuid, [(roslaunch.rlutil.resolve_launch_arguments(launchfile)[0], launchfile[1:])], force_required=True)
-        print("Launching launchfile: {0}.".format(launchfile[0]))
+        print(f"Launching launchfile: {launchfile[0]}.")
         launch.start()
         rospy.sleep(timeout)
         if get_ws_file(launchfile[0]) in IGNORE_LIST and not check_roslaunch_up():
-            print(
-                bcolors.WARNING +
-                "IGNORE {}. Ignoring error due to IGNORE_LIST.".format(
-                    launchfile[0]) +
-                bcolors.ENDC)
+            print(bcolors.WARNING + f"IGNORE {launchfile[0]}. Ignoring error due to IGNORE_LIST." + bcolors.ENDC)
         elif not check_roslaunch_up():
-            print(bcolors.FAIL + "FAIL {}. ROS crashed during launch.".format(launchfile[0]) + bcolors.ENDC)
+            print(bcolors.FAIL + f"FAIL {launchfile[0]}. ROS crashed during launch." + bcolors.ENDC)
             sys.exit(1)
         else:
-            print(bcolors.OKGREEN + "PASS {}.".format(launchfile[0]) + bcolors.ENDC)
+            print(bcolors.OKGREEN + f"PASS {launchfile[0]}." + bcolors.ENDC)
         launch.shutdown()
     print(bcolors.OKGREEN + "ALL PASSED." + bcolors.ENDC)
 

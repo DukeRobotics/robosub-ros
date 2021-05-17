@@ -13,7 +13,7 @@ class DummyImagePublisher:
 
     NODE_NAME = 'test_images'
     CAMERA = 'left'
-    IMAGE_TOPIC = '/camera/{}/image_raw'.format(CAMERA)
+    IMAGE_TOPIC = f'/camera/{CAMERA}/image_raw'
 
     # Read in the dummy image and other misc. setup work
     def __init__(self):
@@ -30,7 +30,7 @@ class DummyImagePublisher:
         rospy.init_node(self.NODE_NAME)
 
         # Testing enable_model service
-        service_name = 'enable_model_{}'.format(self.CAMERA)
+        service_name = f'enable_model_{self.CAMERA}'
         rospy.wait_for_service(service_name)
         enable_model = rospy.ServiceProxy(service_name, EnableModel)
 

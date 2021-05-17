@@ -59,7 +59,7 @@ class Saleae:
         save_paths = []
 
         for i in range(goal.capture_count):
-            self.publish_feedback(i + 1, goal.capture_count + 1, "Starting capture {}".format(i))
+            self.publish_feedback(i + 1, goal.capture_count + 1, f"Starting capture {i}")
             save_paths.append(package_path.format(i))
             save_path = rr.get_filename(package_path.format(i), use_protocol=False)
             rospy.loginfo("Path: " + save_path)
