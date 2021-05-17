@@ -21,7 +21,7 @@ class Detector:
 
         # Load in model configurations
         with open(rr.get_filename('package://cv/models/models.yaml', use_protocol=False)) as f:
-            self.models = yaml.load(f)
+            self.models = yaml.safe_load(f)
 
         # The topic that the camera publishes its feed to
         self.camera_feed_topic = '/camera/{}/image_raw'.format(self.camera)

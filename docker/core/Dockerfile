@@ -1,4 +1,4 @@
-FROM ros:noetic-ros-core
+FROM ros:noetic
 
 ### Arguments ###
 ARG BUILD_DIR_NAME=docker-build
@@ -11,20 +11,18 @@ WORKDIR $WORKDIR
 ### Basic Setup ###
 
 # Update and install tools
-RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common && \
-    add-apt-repository ppa:jgmath2000/et && \
-    apt-get update && apt-get install -y --no-install-recommends \
-    openssh-server mosh xvfb \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssh-server xvfb \
     vim \
     curl wget \
     usbutils apt-utils \
     ros-noetic-cv-bridge \
     ros-noetic-resource-retriever \
+    ros-noetic-actionlib-tools \
     python-dev-is-python3 \
     python3-pip \
     python3-catkin-tools python3-osrf-pycommon \
-    gcc git \
-    build-essential \
+    git \
     locales && \
     apt-get clean && \
     # Clear apt caches to reduce image size

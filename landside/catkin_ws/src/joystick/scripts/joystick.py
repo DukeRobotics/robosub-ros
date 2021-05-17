@@ -25,7 +25,7 @@ class JoystickParser:
 
         joystick_type = rospy.get_param("~/joy_pub/joystick_type")
         with open(rr.get_filename('package://joystick/config/joystick.yaml', use_protocol=False)) as f:
-            data = yaml.load(f)
+            data = yaml.safe_load(f)
         self._button_indices = data[joystick_type]
 
         rospy.init_node(self.NODE_NAME)
