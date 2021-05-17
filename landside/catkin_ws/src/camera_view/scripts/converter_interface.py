@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import rospy
 from cv_bridge import CvBridge
 import resource_retriever as rr

@@ -19,11 +19,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # Install the simulator
-RUN wget coppeliarobotics.com/files/CoppeliaSim_Edu_V4_0_0_Ubuntu20_04.tar.xz && \
-    tar -xf CoppeliaSim_Edu_V4_0_0_Ubuntu20_04.tar.xz && \
-    rm CoppeliaSim_Edu_V4_0_0_Ubuntu20_04.tar.xz && \
-    mv CoppeliaSim_Edu_V4_0_0_Ubuntu20_04 coppelia && \
-    cp coppelia/compiledRosPlugins/libsimExtROSInterface.so coppelia/libsimExtROSInterface.so
+RUN wget coppeliarobotics.com/files/CoppeliaSim_Edu_V4_2_0_Ubuntu20_04.tar.xz && \
+    tar -xf CoppeliaSim_Edu_V4_2_0_Ubuntu20_04.tar.xz && \
+    rm CoppeliaSim_Edu_V4_2_0_Ubuntu20_04.tar.xz && \
+    mv CoppeliaSim_Edu_V4_2_0_Ubuntu20_04 coppelia
 
 ### Final Setup ###
 
