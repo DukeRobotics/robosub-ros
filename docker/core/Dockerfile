@@ -46,9 +46,6 @@ RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
 
 COPY ssh_entry.sh /root/.bash_profile
 
-# Generate ssh keys
-# RUN ssh-keygen -A
-
 ### Final Setup ###
 
 # Install common pip packages

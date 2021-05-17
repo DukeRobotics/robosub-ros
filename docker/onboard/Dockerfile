@@ -49,6 +49,7 @@ RUN pip3 install --no-cache-dir \
 # Install PyTorch and Torchvision
 COPY torch_installer.sh torch_deps/torch_installer.sh
 COPY --from=jetson-pytorch /root/torch-1.8.0a0+5c1479f-cp38-cp38-linux_aarch64.whl torch_deps/torch-1.8.0a0+5c1479f-cp38-cp38-linux_aarch64.whl
+COPY --from=jetson-pytorch /root/torchvision-0.9.0a0+8fb5838-cp38-cp38-linux_aarch64.whl torch_deps/torchvision-0.9.0a0+8fb5838-cp38-cp38-linux_aarch64.whl
 RUN cd torch_deps && \
     ./torch_installer.sh && \
     cd ../ && \
