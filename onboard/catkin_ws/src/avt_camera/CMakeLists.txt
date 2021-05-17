@@ -6,7 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   cv_bridge
-  camera_info_manager_py
+#  camera_info_manager_py
 )
 
 ## The catkin_package macro generates cmake config files for your package

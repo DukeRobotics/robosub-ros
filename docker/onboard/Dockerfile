@@ -34,16 +34,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-noetic-tf \ 
     ros-noetic-robot-localization \
     ros-noetic-pid \
-    ros-noetic-rosserial ros-noetic-rosserial-arduino && \
+    ros-noetic-rosserial ros-noetic-rosserial-arduino \
+    python3-pandas && \
     apt-get clean && \
     # Clear apt caches to reduce image size
     rm -rf /var/lib/apt/lists/*
 
 # Get required python packages
 RUN pip3 install --no-cache-dir \
-    numpy scipy pymba python-dateutil \
+    numpy==1.20.3 scipy pymba python-dateutil \
     pyserial dependency-injector \ 
-    gputil saleae pandas
+    gputil saleae
 
 # Install PyTorch and Torchvision
 COPY torch_installer.sh torch_deps/torch_installer.sh

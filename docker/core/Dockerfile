@@ -21,6 +21,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
     ros-noetic-cv-bridge \
     ros-noetic-resource-retriever \
     python-dev-is-python3 \
+    python3-pip \
+    python3-catkin-tools python3-osrf-pycommon \
+    gcc git \
+    build-essential \
     locales && \
     apt-get clean && \
     # Clear apt caches to reduce image size

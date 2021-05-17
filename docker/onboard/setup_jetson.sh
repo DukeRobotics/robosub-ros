@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ ${TARGETPLATFORM} == 'linux/arm64' ] && [[ "${CUDA}" -eq 1 ]];
+if [ ${TARGETPLATFORM} == 'linux/arm64' ] && [[ "${CUDA}" -eq 1 ]]; then
 
     apt-get update && apt-get install -y --no-install-recommends \
         freeglut3-dev \
@@ -8,6 +8,7 @@ if [ ${TARGETPLATFORM} == 'linux/arm64' ] && [[ "${CUDA}" -eq 1 ]];
         libgles2 \
         libglu1-mesa-dev \
         libglvnd-dev \
+        libopenblas-dev libopenmpi-dev \
         libgtk-3-0 && \
         rm -rf /var/lib/apt/lists/* && apt-get clean
 
