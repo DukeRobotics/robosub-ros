@@ -37,7 +37,7 @@ class Detector:
         if model.get('predictor') is not None:
             return
 
-        weights_file = rr.get_filename(f"package://cv/models/{model['weights']}"), use_protocol=False)
+        weights_file = rr.get_filename(f"package://cv/models/{model['weights']}", use_protocol=False)
 
         predictor = Model.load(weights_file, model['classes'])
 
