@@ -29,7 +29,7 @@ ENV NVIDIA_DRIVER_CAPABILITIES ${CUDA:+all}
 # Update and install tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     xauth pciutils \
-    libusb-dev \
+    libusb-dev libqt5x11extras5 \
     unzip zip util-linux \
     ros-noetic-tf \ 
     ros-noetic-robot-localization \
