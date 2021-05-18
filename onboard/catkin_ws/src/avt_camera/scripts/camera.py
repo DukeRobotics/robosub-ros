@@ -14,14 +14,11 @@ class Camera:
         self._bridge = CvBridge()
         self._camera_id = camera_id
         self._namespace = namespace
-        self._info_manager = self._c0 = self._frame = self._frame_data = None
+        self._info_manager = None
+        self._c0 = None
 
-    def find_camera(self, vimba):
-        system = vimba.getSystem()
-        system.runFeatureCommand("GeVDiscoveryAllOnce")
-        rospy.sleep(0.1)
-
-        camera_ids = vimba.getCameraIds()
+    def find_camera(self):
+        camera_ids = Vimba.camera_ids()
         if not camera_ids:
             rospy.logerr("Cameras were not found.")
             sys.exit(1)
@@ -34,67 +31,42 @@ class Camera:
         elif self._camera_id not in camera_ids:
             rospy.logerr(f"Requested camera ID {self._camera_id} not found")
             sys.exit(1)
+
         self._info_manager = CameraInfoManager(cname=self._camera_id, namespace=self._namespace,
-                                               url="package://avt_camera/calibrations/${NAME}.yaml")
-        self._info_manager.loadCameraInfo()
+                                               url=f"package://avt_camera/calibrations/{self._camera_id}.yaml")
 
     def get_camera(self, vimba):
         if self._camera_id in vimba._cameras:
             rospy.logerr("Requested camera is already in use")
             sys.exit(1)
-        self._c0 = vimba.getCamera(self._camera_id)
-        self._c0.openCamera()
-
-    def gigE_camera(self):
-        rospy.loginfo("Packet Size: " + str(self._c0.GevSCPSPacketSize))
-        rospy.loginfo("Stream Bytes Per Second: " + str(self._c0.StreamBytesPerSecond))
-        self._c0.runFeatureCommand("GVSPAdjustPacketSize")
-        self._c0.StreamBytesPerSecond = 100000000
+        self._c0 = vimba.camera(self._camera_id)
+        self._c0.open(adjust_packet_size=True)
 
     def set_pixel_format(self):
+        self._c0.StreamBytesPerSecond = 100000000
         self._c0.PixelFormat = "RGB8Packed"
         self._c0.AcquisitionMode = "Continuous"
         self._c0.ExposureAuto = "Continuous"
         self._c0.Width = 1210
         self._c0.Height = 760
-        self._frame = self._c0.getFrame()
-        self._frame.announceFrame()
 
     def initialize_camera(self, vimba):
-        self.find_camera(vimba)
+        self.find_camera()
         self.get_camera(vimba)
-        try:
-            # gigE camera
-            self.gigE_camera()
-        except Exception:
-            # not a gigE camera
-            pass
         self.set_pixel_format()
 
     def start_capture(self):
-        self._c0.startCapture()
+        self._c0.arm('Continuous', self.publish_image)
+        self._c0.start_frame_acquisition()
 
-    def start_acquisition(self):
-        self._c0.runFeatureCommand("AcquisitionStart")
-
-    def queue_frame_capture(self):
-        self._frame.queueFrameCapture()
-        self._frame.waitFrameCapture()
-
-    def get_frame_data(self):
-        self._frame_data = self._frame.getBufferByteData()
-
-    def publish_image(self, time):
-        img = np.ndarray(buffer=self._frame_data,
-                         dtype=np.uint8,
-                         shape=(self._frame.height, self._frame.width, self._frame.pixel_bytes))
-        img_message = self._bridge.cv2_to_imgmsg(img, "rgb8")
-        img_message.header.stamp = time
+    def publish_image(self, frame):
+        rospy.loginfo("Received frame. Publishing to ROS")
+        img_message = self._bridge.cv2_to_imgmsg(frame.buffer_data_numpy(), "rgb8")
+        img_message.header.stamp = rospy.Time.now()
         self._img_pub.publish(img_message)
         self._info_pub.publish(self._info_manager.getCameraInfo())
 
-    def stop_acquisition(self):
-        self._c0.runFeatureCommand("AcquisitionStop")
-        self._c0.endCapture()
-        self._c0.revokeAllFrames()
-        self._c0.closeCamera()
+    def stop_capture(self):
+        self._c0.stop_frame_acquisition()
+        self._c0.disarm()
+        self._c0.close()

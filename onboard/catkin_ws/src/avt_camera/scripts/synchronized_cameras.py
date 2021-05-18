@@ -30,15 +30,8 @@ class SynchronizedCameras:
         with Vimba() as vimba:  # noqa
             self.for_each_camera(lambda camera: camera.initialize_camera(vimba))
             self.for_each_camera(lambda camera: camera.start_capture())
-            self.for_each_camera(lambda camera: camera.start_acquisition())
-
-            while not rospy.is_shutdown():
-                self.for_each_camera(lambda camera: camera.queue_frame_capture())
-                self.for_each_camera(lambda camera: camera.get_frame_data())
-                time = rospy.Time.now()
-                self.for_each_camera(lambda camera: camera.publish_image(time))
-
-            self.for_each_camera(lambda camera: camera.stop_acquisition())
+            rospy.spin()
+            self.for_each_camera(lambda camera: camera.stop_capture())
 
 
 if __name__ == '__main__':

@@ -26,15 +26,8 @@ class MonoCamera:
         with Vimba() as vimba:  # noqa
             self._camera.initialize_camera(vimba)
             self._camera.start_capture()
-            self._camera.start_acquisition()
-
-            while not rospy.is_shutdown():
-                self._camera.queue_frame_capture()
-                self._camera.get_frame_data()
-                time = rospy.Time.now()
-                self._camera.publish_image(time)
-
-            self._camera.stop_acquisition()
+            rospy.spin()
+            self._camera.stop_capture()
 
 
 if __name__ == '__main__':
