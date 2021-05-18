@@ -6,7 +6,7 @@ from sensor_msgs.msg import Image, CameraInfo
 from camera import Camera
 
 
-class SynchronizedCameras:
+class StereoCamera:
 
     NODE_NAME = 'stereo'
 
@@ -36,6 +36,6 @@ class SynchronizedCameras:
 
 if __name__ == '__main__':
     try:
-        SynchronizedCameras().run()
+        StereoCamera().run()
     except rospy.ROSInterruptException:
         pass
