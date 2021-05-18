@@ -8,7 +8,7 @@ import psutil
 
 IGNORE_LIST = [
     'avt_camera/launch/cameras.launch',
-    'avt_camera/launch/stereo_cameras.launch',
+    'avt_camera/launch/stereo_camera.launch',
 ]
 BLOCK_LIST = [
     'cv/launch/cv.launch',
