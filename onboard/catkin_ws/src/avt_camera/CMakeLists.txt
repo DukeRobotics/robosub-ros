@@ -10,4 +10,4 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
-catkin_package(CATKIN_DEPENDS rospy sensor_msgs cv_bridge camera_info_manager_py)
+catkin_package(CATKIN_DEPENDS rospy sensor_msgs cv_bridge)
