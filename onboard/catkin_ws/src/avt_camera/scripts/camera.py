@@ -1,7 +1,6 @@
 from pymba import *  # noqa
 import rospy
 from cv_bridge import CvBridge
-import numpy as np
 import sys
 from camera_info_manager import CameraInfoManager
 
@@ -18,7 +17,7 @@ class Camera:
         self._c0 = None
 
     def find_camera(self):
-        camera_ids = Vimba.camera_ids()
+        camera_ids = Vimba.camera_ids()     # noqa
         if not camera_ids:
             rospy.logerr("Cameras were not found.")
             sys.exit(1)
