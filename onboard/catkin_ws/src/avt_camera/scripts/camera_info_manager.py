@@ -13,7 +13,7 @@ class CameraInfoManager:
         self.file = rr.get_filename(url, use_protocol=False)
         self.camera_info = loadCalibrationFile(self.file, self.cname)
 
-        self.svc = rospy.Service(namespace+'set_camera_info', SetCameraInfo, self.setCameraInfo)
+        self.svc = rospy.Service(namespace + 'set_camera_info', SetCameraInfo, self.setCameraInfo)
 
     def getCameraInfo(self):
         return self.camera_info
@@ -48,6 +48,7 @@ def loadCalibrationFile(filename, cname):
         ci.P = calib['projection_matrix']['data']
 
     return ci
+
 
 def saveCalibrationFile(ci, filename, cname):
     calib = {'image_width': ci.width,
