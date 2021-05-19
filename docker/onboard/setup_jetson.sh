@@ -1,7 +1,7 @@
 #!/bin/bash
 # shellcheck disable=SC1004
 
-if [ "${TARGETPLATFORM}" == "linux/arm64" ] && [[ "${CUDA}" -eq 1 ]]; then
+if [[ "${TARGETPLATFORM}" == "linux/arm64" ]] && [[ "${CUDA}" == "true" ]]; then
 
     apt-get update && apt-get install -y --no-install-recommends \
         freeglut3-dev \
