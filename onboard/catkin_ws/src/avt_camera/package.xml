@@ -13,7 +13,6 @@
   <depend>rospy</depend>
   <depend>sensor_msgs</depend>
   <depend>cv_bridge</depend>
-  <depend>camera_info_manager_py</depend>
 
   <exec_depend>python-numpy</exec_depend>
 

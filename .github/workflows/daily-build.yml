@@ -16,3 +16,11 @@ jobs:
       - uses: actions/checkout@v2
       - name: Test build
         run: ./build.sh '${{ matrix.workspace }}'
+      - name: Test Arduino build
+        if: matrix.workspace == 'onboard'
+        run: ./.github/workflows/test_arduino.sh
+      - name: Test ROS launchfiles
+        shell: bash
+        run: |
+          source ${{ matrix.workspace }}/catkin_ws/devel/setup.bash
+          ./scripts/test-launch.py

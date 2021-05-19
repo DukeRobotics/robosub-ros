@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import serial
 import serial.tools.list_ports as list_ports
@@ -35,11 +35,16 @@ class DvlRawPublisher:
     def run(self):
         rospy.init_node(self.NODE_NAME)
 
-        self._serial_port = next(list_ports.grep(self.FTDI_STR)).device
-        self._serial = serial.Serial(self._serial_port, self.BAUDRATE,
-                                     timeout=0.1, write_timeout=1.0,
-                                     bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
-                                     stopbits=serial.STOPBITS_ONE)
+        while self._serial_port is None and not rospy.is_shutdown():
+            try:
+                self._serial_port = next(list_ports.grep(self.FTDI_STR)).device
+                self._serial = serial.Serial(self._serial_port, self.BAUDRATE,
+                                             timeout=0.1, write_timeout=1.0,
+                                             bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
+                                             stopbits=serial.STOPBITS_ONE)
+            except StopIteration:
+                rospy.logerr("DVL not found, trying again in 1 second.")
+                rospy.sleep(1)
 
         while not rospy.is_shutdown():
             line = self._serial.readline()
