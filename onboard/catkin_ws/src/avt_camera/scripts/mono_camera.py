@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from pymba import *  # noqa
 import rospy
@@ -15,8 +15,8 @@ class MonoCamera:
         camera_name = rospy.get_param('~camera', 'camera')
         camera_id = rospy.get_param('~camera_id', None)
 
-        image_topic = '/camera/{}/image_raw'.format(camera_name)
-        info_topic = '/camera/{}/camera_info'.format(camera_name)
+        image_topic = f'/camera/{camera_name}/image_raw'
+        info_topic = f'/camera/{camera_name}/camera_info'
 
         img_pub = rospy.Publisher(image_topic, Image, queue_size=10)
         info_pub = rospy.Publisher(info_topic, CameraInfo, queue_size=10)
@@ -26,15 +26,8 @@ class MonoCamera:
         with Vimba() as vimba:  # noqa
             self._camera.initialize_camera(vimba)
             self._camera.start_capture()
-            self._camera.start_acquisition()
-
-            while not rospy.is_shutdown():
-                self._camera.queue_frame_capture()
-                self._camera.get_frame_data()
-                time = rospy.Time.now()
-                self._camera.publish_image(time)
-
-            self._camera.stop_acquisition()
+            rospy.spin()
+            self._camera.stop_capture()
 
 
 if __name__ == '__main__':

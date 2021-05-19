@@ -4,10 +4,8 @@ import dependency_injector.providers as providers
 from abc import ABCMeta, abstractmethod
 
 
-class Task:
+class Task(metaclass=ABCMeta):
     """High level task that represents some function"""
-
-    __metaclass__ = ABCMeta
 
     task_state_provider = providers.Singleton(TaskState)
 

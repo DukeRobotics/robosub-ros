@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from pymba import *  # noqa
 import rospy
@@ -6,7 +6,7 @@ from sensor_msgs.msg import Image, CameraInfo
 from camera import Camera
 
 
-class SynchronizedCameras:
+class StereoCamera:
 
     NODE_NAME = 'stereo'
 
@@ -16,8 +16,8 @@ class SynchronizedCameras:
         cam_ids = rospy.get_param('~camera_id', dict.fromkeys(cam_name))
         self._cameras = []
         for cam in cam_name:
-            image_topic = '/camera/{}/image_raw'.format(cam)
-            info_topic = '/camera/{}/camera_info'.format(cam)
+            image_topic = f'/camera/{cam}/image_raw'
+            info_topic = f'/camera/{cam}/camera_info'
             img_pub = rospy.Publisher(image_topic, Image, queue_size=10)
             info_pub = rospy.Publisher(info_topic, CameraInfo, queue_size=10)
             self._cameras.append(Camera(img_pub, info_pub, cam, cam_ids[cam]))
@@ -30,19 +30,12 @@ class SynchronizedCameras:
         with Vimba() as vimba:  # noqa
             self.for_each_camera(lambda camera: camera.initialize_camera(vimba))
             self.for_each_camera(lambda camera: camera.start_capture())
-            self.for_each_camera(lambda camera: camera.start_acquisition())
-
-            while not rospy.is_shutdown():
-                self.for_each_camera(lambda camera: camera.queue_frame_capture())
-                self.for_each_camera(lambda camera: camera.get_frame_data())
-                time = rospy.Time.now()
-                self.for_each_camera(lambda camera: camera.publish_image(time))
-
-            self.for_each_camera(lambda camera: camera.stop_acquisition())
+            rospy.spin()
+            self.for_each_camera(lambda camera: camera.stop_capture())
 
 
 if __name__ == '__main__':
     try:
-        SynchronizedCameras().run()
+        StereoCamera().run()
     except rospy.ROSInterruptException:
         pass

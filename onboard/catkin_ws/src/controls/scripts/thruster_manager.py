@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import yaml
 import numpy as np
 from thruster import Thruster
@@ -10,7 +8,7 @@ class ThrusterManager:
     def __init__(self, config_filename):
         # Load vehicle configuration file
         with open(config_filename) as f:
-            self.vehicle = yaml.load(f)
+            self.vehicle = yaml.safe_load(f)
 
         # Initialize thrusters based off of configuration file
         self.thrusters = []

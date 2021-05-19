@@ -38,6 +38,7 @@ jobs:
       SERVICE_NAME: core
       BASE_IMAGE: dukerobotics/robosub-ros:base
       FILE_NAME: '${{ matrix.arch }}-core.tar.gz'
+      CUDA: ${{ matrix.arch == 'arm64'  }}
     steps:
       - uses: actions/checkout@v2
       - name: Setup environment and build
@@ -70,6 +71,7 @@ jobs:
       SERVICE_NAME: onboard
       BASE_IMAGE: 'dukerobotics/robosub-ros:core-${{ matrix.arch }}'
       FILE_NAME: '${{ matrix.arch }}-core.tar.gz'
+      CUDA: ${{ matrix.arch == 'arm64'  }}
     steps:
       - uses: actions/checkout@v2
       - name: Get core image

@@ -29,7 +29,7 @@ The node itself provides an action server of type `custom_msgs/AcousticsWrapper.
 
 To start a GUI for this action using the builtin GUI interface, you may use the command:
 ```
-rosrun actionlib axclient.py /acoustics_wrapper
+rosrun actionlib_tools axclient.py /acoustics_wrapper
 ```
 
 ### Saleae Node

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
 import psutil
@@ -25,7 +25,7 @@ class SystemInfoPublisher:
             gpu = GPUs[0]
             self._current_msg.gpu_memory.used = gpu.memoryUsed / 1000
             self._current_msg.gpu_memory.total = gpu.memoryTotal / 1000
-            self._current_msg.gpu_memory.percentage = gpu.memoryUsed/gpu.memoryTotal * 100
+            self._current_msg.gpu_memory.percentage = gpu.memoryUsed / gpu.memoryTotal * 100
             self._current_msg.gpu_percent = gpu.load * 100
             self._current_msg.gpu_speed = 0
         else:

@@ -4,7 +4,6 @@ Our images are automatically built and pushed to [our Docker Hub repo](https://h
 
 ## Our images
 
-- `base` - built from Docker's Ubuntu image or NVIDIA's base image to retag for our purposes
 - [`core`](core) - built on `base`, never run, contains common components for `onboard` and `landside`
 - [`onboard`](onboard) - built on `core`, run on the robot itself
 - [`landside`](landside) - built on `core`, run on the landside computer during a pool test
@@ -82,31 +81,6 @@ This command is therefore not recommended, since it can lead to the images falli
 ```bash
 docker buildx build --platform linux/amd64,linux/arm64 -t dukerobotics/robosub-ros:onboard --push .
 ```
-
-### Building `base`
-If you really need to update the base image, the procedure is as follows.
-
-#### `base-arm64`
-Because NVIDIA does not tag their images with the correct architecture, you need to create a new Dockerfile that just contains
-
-```dockerfile
-FROM nvcr.io/nvidia/l4t-base:r32.3.1
-```
-
-Then build it using the buildx commands outlined for the `onboard-arm64` image above.
-
-#### `base-amd64`
-This image is just the stock Ubuntu image. To update it, just run:
-
-```bash
-docker pull ubuntu:bionic
-docker tag ubuntu:bionic dukerobotics/robosub-ros:base-amd64
-docker push dukerobotics/robosub-ros:base-amd64
-```
-
-### Updating the manifest list for base image
-Then update the manifest list at `dukerobotics/robosub-ros:base` to point to the new arm64 and amd64 images.
-
 
 ## Contributing
 
