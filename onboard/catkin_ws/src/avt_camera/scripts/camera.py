@@ -17,7 +17,7 @@ class Camera:
         self._c0 = None
 
     def get_camera(self):
-        with Vimba.get_instance() as vimba:
+        with Vimba.get_instance() as vimba:     # noqa
 
             cameras = vimba.get_all_cameras()
             if not cameras:
@@ -44,7 +44,7 @@ class Camera:
                 pass
             rospy.loginfo(f"{self._c0.get_pixel_formats()}")
             self._c0.StreamBytesPerSecond.set(124000000)
-            self._c0.set_pixel_format(PixelFormat.BayerRG8)
+            self._c0.set_pixel_format(PixelFormat.BayerRG8)     # noqa
             self._c0.AcquisitionMode.set("Continuous")
             self._c0.ExposureAuto.set("Continuous")
             self._c0.Width.set(1210)
