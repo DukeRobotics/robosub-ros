@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-from pymba import *  # noqa
+from vimba import *  # noqa
 import rospy
 from sensor_msgs.msg import Image, CameraInfo
 from camera import Camera
+import threading
 
 
 class StereoCamera:
@@ -27,11 +28,19 @@ class StereoCamera:
             fn(camera)
 
     def run(self):
-        with Vimba() as vimba:  # noqa
-            self.for_each_camera(lambda camera: camera.initialize_camera(vimba))
-            self.for_each_camera(lambda camera: camera.start_capture())
+        with Vimba.get_instance():  # noqa
+            self.for_each_camera(lambda camera: camera.initialize_camera())
+            threads = []
+            event = threading.Event()
+            for camera in self._cameras:
+                threads.append(threading.Thread(target=camera.capture, args=(event,)))
+
+            for thread in threads:
+                thread.start()
             rospy.spin()
-            self.for_each_camera(lambda camera: camera.stop_capture())
+            event.set()
+            for thread in threads:
+                thread.join()
 
 
 if __name__ == '__main__':

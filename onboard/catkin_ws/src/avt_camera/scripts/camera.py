@@ -1,4 +1,4 @@
-from pymba import *  # noqa
+from vimba import *  # noqa
 import rospy
 from cv_bridge import CvBridge
 import sys
@@ -16,56 +16,54 @@ class Camera:
         self._info_manager = None
         self._c0 = None
 
-    def find_camera(self):
-        camera_ids = Vimba.camera_ids()     # noqa
-        if not camera_ids:
-            rospy.logerr("Cameras were not found.")
-            sys.exit(1)
+    def get_camera(self):
+        with Vimba.get_instance() as vimba:     # noqa
 
-        for cam_id in camera_ids:
-            rospy.loginfo("Camera found: " + cam_id)
+            cameras = vimba.get_all_cameras()
+            if not cameras:
+                rospy.logerr("Cameras were not found.")
+                sys.exit(1)
 
-        if self._camera_id is None:
-            self._camera_id = camera_ids[0]
-        elif self._camera_id not in camera_ids:
-            rospy.logerr(f"Requested camera ID {self._camera_id} not found")
-            sys.exit(1)
+            for cam in cameras:
+                rospy.loginfo("Camera found: " + cam.get_id())
 
+            if self._camera_id is None:
+                self._camera_id = cameras[0].get_id()
+            elif self._camera_id not in (cam.get_id() for cam in cameras):
+                rospy.logerr(f"Requested camera ID {self._camera_id} not found")
+                sys.exit(1)
+
+            self._c0 = vimba.get_camera_by_id(self._camera_id)
         self._info_manager = CameraInfoManager(cname=self._camera_id, namespace=self._namespace,
                                                url=f"package://avt_camera/calibrations/{self._camera_id}.yaml")
 
-    def get_camera(self, vimba):
-        if self._camera_id in vimba._cameras:
-            rospy.logerr("Requested camera is already in use")
-            sys.exit(1)
-        self._c0 = vimba.camera(self._camera_id)
-        self._c0.open(adjust_packet_size=True)
+    def set_camera_settings(self):
+        with self._c0:
+            self._c0.GVSPAdjustPacketSize.run()
+            while not self._c0.GVSPAdjustPacketSize.is_done():
+                pass
+            rospy.loginfo(f"{self._c0.get_pixel_formats()}")
+            self._c0.StreamBytesPerSecond.set(124000000)
+            self._c0.set_pixel_format(PixelFormat.BayerRG8)     # noqa
+            self._c0.AcquisitionMode.set("Continuous")
+            self._c0.ExposureAuto.set("Continuous")
+            self._c0.Width.set(1210)
+            self._c0.Height.set(760)
 
-    def set_pixel_format(self):
-        self._c0.StreamBytesPerSecond = 100000000
-        self._c0.PixelFormat = "RGB8Packed"
-        self._c0.AcquisitionMode = "Continuous"
-        self._c0.ExposureAuto = "Continuous"
-        self._c0.Width = 1210
-        self._c0.Height = 760
+    def initialize_camera(self):
+        self.get_camera()
+        self.set_camera_settings()
 
-    def initialize_camera(self, vimba):
-        self.find_camera()
-        self.get_camera(vimba)
-        self.set_pixel_format()
+    def capture(self, killswitch):
+        with self._c0:
+            self._c0.start_streaming(handler=self.publish_image)
+            killswitch.wait()
+            self._c0.stop_streaming()
 
-    def start_capture(self):
-        self._c0.arm('Continuous', self.publish_image)
-        self._c0.start_frame_acquisition()
-
-    def publish_image(self, frame):
-        rospy.loginfo("Received frame. Publishing to ROS")
-        img_message = self._bridge.cv2_to_imgmsg(frame.buffer_data_numpy(), "rgb8")
+    def publish_image(self, cam, frame):
+        rospy.loginfo(f"Received frame from camera {cam.get_id()}. Publishing to ROS")
+        img_message = self._bridge.cv2_to_imgmsg(frame.as_numpy_ndarray(), "bayer_rggb8")
         img_message.header.stamp = rospy.Time.now()
         self._img_pub.publish(img_message)
         self._info_pub.publish(self._info_manager.getCameraInfo())
-
-    def stop_capture(self):
-        self._c0.stop_frame_acquisition()
-        self._c0.disarm()
-        self._c0.close()
+        cam.queue_frame(frame)

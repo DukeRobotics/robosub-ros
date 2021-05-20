@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-from pymba import *  # noqa
+from vimba import *  # noqa
 import rospy
 from sensor_msgs.msg import Image, CameraInfo
 from camera import Camera
+import threading
 
 
 class MonoCamera:
@@ -23,11 +24,14 @@ class MonoCamera:
         self._camera = Camera(img_pub, info_pub, rospy.get_name(), camera_id)
 
     def run(self):
-        with Vimba() as vimba:  # noqa
-            self._camera.initialize_camera(vimba)
-            self._camera.start_capture()
+        with Vimba.get_instance():  # noqa
+            self._camera.initialize_camera()
+            event = threading.Event()
+            thread = threading.Thread(target=self._camera.capture, args=(event,))
+            thread.start()
             rospy.spin()
-            self._camera.stop_capture()
+            event.set()
+            thread.join()
 
 
 if __name__ == '__main__':
