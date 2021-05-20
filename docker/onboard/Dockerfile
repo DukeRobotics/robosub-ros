@@ -61,11 +61,13 @@ RUN pip3 install --no-cache-dir detecto
 ### ROS Plugins and Dependencies ###
 
 # Install Vimba libraries for avt_vimba_camera
-RUN git clone https://github.com/muthuArivoli/camera-driver.git && \
+RUN git clone https://github.com/DukeRobotics/camera-driver.git && \
     mv camera-driver/$TARGETPLATFORM/Vimba.tgz Vimba.tgz && \
     tar -xf Vimba.tgz && \
-    cd Vimba_3_0/VimbaGigETL && \
+    cd Vimba_4_2/VimbaGigETL && \
     ./Install.sh
+RUN cd Vimba_4_2/VimbaPython && \
+    pip3 install ./Source[numpy-export,opencv-export]
 RUN rm -rf camera-driver && \
     rm Vimba.tgz
 
