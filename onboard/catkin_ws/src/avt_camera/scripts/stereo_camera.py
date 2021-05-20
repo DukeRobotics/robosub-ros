@@ -34,7 +34,7 @@ class StereoCamera:
             event = threading.Event()
             for camera in self._cameras:
                 threads.append(threading.Thread(target=camera.capture, args=(event,)))
-            
+
             for thread in threads:
                 thread.start()
             rospy.spin()

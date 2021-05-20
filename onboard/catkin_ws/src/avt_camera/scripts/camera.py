@@ -67,4 +67,3 @@ class Camera:
         self._img_pub.publish(img_message)
         self._info_pub.publish(self._info_manager.getCameraInfo())
         cam.queue_frame(frame)
-            
