@@ -22,7 +22,6 @@ jobs:
         filters: |
           docker:
             - 'docker/**'
-            - '.github/workflows/**'
 
   core-docker:
     runs-on: ubuntu-18.04
@@ -178,7 +177,5 @@ jobs:
         if: matrix.workspace == 'onboard'
         run: ./.github/workflows/test_arduino.sh
       - name: Test ROS launchfiles
-        shell: bash
-        run: |
-          source ${{ matrix.workspace }}/catkin_ws/devel/setup.bash
-          ./scripts/test-launch.py
+        shell: bash -elo pipefail {0}
+        run: ./scripts/test-launch.py
