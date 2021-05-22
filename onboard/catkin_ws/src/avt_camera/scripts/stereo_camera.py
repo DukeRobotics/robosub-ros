@@ -23,7 +23,7 @@ class StereoCamera:
             img_pub = rospy.Publisher(image_topic, Image, queue_size=10)
             info_pub = rospy.Publisher(info_topic, CameraInfo, queue_size=10)
             self._cameras[cam_ids[cam]] = Camera(img_pub, info_pub, cam, cam_ids[cam])
-        
+
         self._thread_lock = threading.Lock()
 
     def connection_handler(self, cam, event):
@@ -33,9 +33,10 @@ class StereoCamera:
                 self._threads[cam.get_id()][1].set()
                 self._threads[cam.get_id()][0].join()
                 event = threading.Event()
-                self._threads[cam.get_id()] = (threading.Thread(target=self._cameras[cam.get_id()].capture, args=(event,)), event)
+                self._threads[cam.get_id()] = (threading.Thread(
+                    target=self._cameras[cam.get_id()].capture, args=(event,)), event)
                 self._threads[cam.get_id()][0].start()
-        
+
         elif event == CameraEvent.Missing and cam.get_id() in self._threads:
             with self._thread_lock:
                 rospy.logerr(f"Lost camera {cam.get_id()}.")

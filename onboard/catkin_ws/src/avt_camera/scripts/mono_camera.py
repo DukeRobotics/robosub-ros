@@ -14,7 +14,7 @@ class MonoCamera:
     def __init__(self):
         rospy.init_node(self.NODE_NAME, anonymous=True)
         camera_name = rospy.get_param('~camera', 'camera')
-        
+
         self._camera_id = rospy.get_param('~camera_id', None)
 
         image_topic = f'/camera/{camera_name}/image_raw'
@@ -28,14 +28,15 @@ class MonoCamera:
 
     def connection_handler(self, cam, event):
 
-        if event == CameraEvent.Detected and (cam.get_id() == self._camera.get_camera_id() or self._camera.get_camera_id() is None):
+        if event == CameraEvent.Detected and (
+                cam.get_id() == self._camera.get_camera_id() or self._camera.get_camera_id() is None):
             with self._thread_lock:
                 self._thread[1].set()
                 self._thread[0].join()
                 event = threading.Event()
                 self._thread = (threading.Thread(target=self._camera.capture, args=(event,)), event)
                 self._thread[0].start()
-        
+
         elif event == CameraEvent.Missing and cam.get_id() == self._camera.get_camera_id():
             with self._thread_lock:
                 rospy.logerr(f"Lost camera {cam.get_id()}.")
@@ -50,7 +51,7 @@ class MonoCamera:
                 event = threading.Event()
                 self._thread = (threading.Thread(target=self._camera.capture, args=(event,)), event)
                 self._thread[0].start()
-            
+
             vimba.register_camera_change_handler(self.connection_handler)
             rospy.spin()
             vimba.unregister_camera_change_handler(self.connection_handler)

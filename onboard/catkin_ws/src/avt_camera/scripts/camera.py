@@ -4,9 +4,11 @@ from cv_bridge import CvBridge
 import sys
 from camera_info_manager import CameraInfoManager
 
+
 class bcolors:
     OKGREEN = '\033[92m'
     RESET = '\033[0m'
+
 
 class Camera:
 
@@ -68,7 +70,7 @@ class Camera:
             killswitch.wait()
             try:
                 self._c0.stop_streaming()
-            except:
+            except Exception:
                 pass
 
     def publish_image(self, cam, frame):
