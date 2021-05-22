@@ -3,6 +3,7 @@
 import serial
 import serial.tools.list_ports as list_ports
 import rospy
+import traceback
 
 from custom_msgs.msg import DVLRaw
 
@@ -32,9 +33,7 @@ class DvlRawPublisher:
             'BD': self._parse_BD
         }
 
-    def run(self):
-        rospy.init_node(self.NODE_NAME)
-
+    def connect(self):
         while self._serial_port is None and not rospy.is_shutdown():
             try:
                 self._serial_port = next(list_ports.grep(self.FTDI_STR)).device
@@ -43,13 +42,25 @@ class DvlRawPublisher:
                                              bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
                                              stopbits=serial.STOPBITS_ONE)
             except StopIteration:
-                rospy.logerr("DVL not found, trying again in 1 second.")
-                rospy.sleep(1)
+                rospy.logerr("DVL not found, trying again in 0.1 seconds.")
+                rospy.sleep(0.1)
+
+    def run(self):
+        rospy.init_node(self.NODE_NAME)
+        self.connect()
 
         while not rospy.is_shutdown():
-            line = self._serial.readline()
-            if line.strip() and line[0] == ':':
-                self._parse_line(line)
+            try:
+                line = self._serial.readline().decode('utf-8')
+                if line.strip() and line[0] == ':':
+                    self._parse_line(line)
+            except Exception:
+                rospy.logerr("Error in reading and extracting information. Reconnecting.")
+                rospy.logerr(traceback.format_exc())
+                self._serial.close()
+                self._serial = None
+                self._serial_port = None
+                self.connect()
 
     def _parse_line(self, line):
         data_type = line[1:3]

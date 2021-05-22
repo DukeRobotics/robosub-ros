@@ -6,10 +6,7 @@ import os
 import sys
 import psutil
 
-IGNORE_LIST = [
-    'avt_camera/launch/cameras.launch',
-    'avt_camera/launch/stereo_camera.launch',
-]
+IGNORE_LIST = []
 BLOCK_LIST = [
     'cv/launch/cv.launch',
     'joystick/launch/pub_joy.launch',
