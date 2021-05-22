@@ -22,6 +22,7 @@ jobs:
         filters: |
           docker:
             - 'docker/**'
+            - '.github/workflows/**'
 
   core-docker:
     runs-on: ubuntu-18.04

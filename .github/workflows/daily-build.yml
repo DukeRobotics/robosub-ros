@@ -22,5 +22,5 @@ jobs:
       - name: Test ROS launchfiles
         shell: bash -elo pipefail {0}
         run: |
-          source ${{ matrix.workspace }}/catkin_ws/devel/setup.bash 
+          source ${{ matrix.workspace }}/catkin_ws/devel/setup.bash
           ./scripts/test-launch.py
