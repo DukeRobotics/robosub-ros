@@ -4,6 +4,9 @@ from cv_bridge import CvBridge
 import sys
 from camera_info_manager import CameraInfoManager
 
+class bcolors:
+    OKGREEN = '\033[92m'
+    RESET = '\033[0m'
 
 class Camera:
 
@@ -13,29 +16,35 @@ class Camera:
         self._bridge = CvBridge()
         self._camera_id = camera_id
         self._namespace = namespace
-        self._info_manager = None
+        if camera_id is not None:
+            self._info_manager = CameraInfoManager(cname=self._camera_id, namespace=self._namespace,
+                                                   url=f"package://avt_camera/calibrations/{self._camera_id}.yaml")
         self._c0 = None
+
+    def get_camera_id(self):
+        return self._camera_id
 
     def get_camera(self):
         with Vimba.get_instance() as vimba:     # noqa
-
             cameras = vimba.get_all_cameras()
             if not cameras:
                 rospy.logerr("Cameras were not found.")
-                sys.exit(1)
+                return False
 
             for cam in cameras:
                 rospy.loginfo("Camera found: " + cam.get_id())
 
             if self._camera_id is None:
                 self._camera_id = cameras[0].get_id()
+                self._info_manager = CameraInfoManager(cname=self._camera_id, namespace=self._namespace,
+                                                       url=f"package://avt_camera/calibrations/{self._camera_id}.yaml")
             elif self._camera_id not in (cam.get_id() for cam in cameras):
-                rospy.logerr(f"Requested camera ID {self._camera_id} not found")
-                sys.exit(1)
-
+                rospy.logerr(f"Requested camera ID {self._camera_id} not found.")
+                return False
             self._c0 = vimba.get_camera_by_id(self._camera_id)
-        self._info_manager = CameraInfoManager(cname=self._camera_id, namespace=self._namespace,
-                                               url=f"package://avt_camera/calibrations/{self._camera_id}.yaml")
+            rospy.loginfo(bcolors.OKGREEN + f"Connected camera {self._camera_id}." + bcolors.RESET)
+
+        return True
 
     def set_camera_settings(self):
         with self._c0:
@@ -50,15 +59,17 @@ class Camera:
             self._c0.Width.set(1210)
             self._c0.Height.set(760)
 
-    def initialize_camera(self):
-        self.get_camera()
-        self.set_camera_settings()
-
     def capture(self, killswitch):
+        if not self.get_camera():
+            return
+        self.set_camera_settings()
         with self._c0:
             self._c0.start_streaming(handler=self.publish_image)
             killswitch.wait()
-            self._c0.stop_streaming()
+            try:
+                self._c0.stop_streaming()
+            except:
+                pass
 
     def publish_image(self, cam, frame):
         rospy.loginfo(f"Received frame from camera {cam.get_id()}. Publishing to ROS")
