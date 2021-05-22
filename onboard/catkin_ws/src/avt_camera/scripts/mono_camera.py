@@ -28,7 +28,7 @@ class MonoCamera:
 
     def connection_handler(self, cam, event):
 
-        if event == CameraEvent.Detected and (
+        if event == CameraEvent.Detected and (                                                          # noqa: F405
                 cam.get_id() == self._camera.get_camera_id() or self._camera.get_camera_id() is None):
             with self._thread_lock:
                 self._thread[1].set()
@@ -37,7 +37,7 @@ class MonoCamera:
                 self._thread = (threading.Thread(target=self._camera.capture, args=(event,)), event)
                 self._thread[0].start()
 
-        elif event == CameraEvent.Missing and cam.get_id() == self._camera.get_camera_id():
+        elif event == CameraEvent.Missing and cam.get_id() == self._camera.get_camera_id():             # noqa: F405
             with self._thread_lock:
                 rospy.logerr(f"Lost camera {cam.get_id()}.")
                 self._thread[1].set()

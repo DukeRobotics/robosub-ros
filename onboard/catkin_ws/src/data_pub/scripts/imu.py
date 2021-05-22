@@ -54,7 +54,7 @@ class IMURawPublisher:
                     self._parse_angvel(items)
                     self._parse_mag(items)
                     self._publish_current_msg()
-            except Exception as e:
+            except Exception:
                 rospy.logerr("Error in reading and extracting information. Reconnecting.")
                 rospy.logerr(traceback.format_exc())
                 self._serial.close()

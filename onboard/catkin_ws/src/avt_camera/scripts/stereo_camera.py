@@ -28,7 +28,7 @@ class StereoCamera:
 
     def connection_handler(self, cam, event):
 
-        if event == CameraEvent.Detected and cam.get_id() in self._threads:
+        if event == CameraEvent.Detected and cam.get_id() in self._threads:                 # noqa: F405
             with self._thread_lock:
                 self._threads[cam.get_id()][1].set()
                 self._threads[cam.get_id()][0].join()
@@ -37,7 +37,7 @@ class StereoCamera:
                     target=self._cameras[cam.get_id()].capture, args=(event,)), event)
                 self._threads[cam.get_id()][0].start()
 
-        elif event == CameraEvent.Missing and cam.get_id() in self._threads:
+        elif event == CameraEvent.Missing and cam.get_id() in self._threads:                # noqa: F405
             with self._thread_lock:
                 rospy.logerr(f"Lost camera {cam.get_id()}.")
                 self._threads[cam.get_id()][1].set()

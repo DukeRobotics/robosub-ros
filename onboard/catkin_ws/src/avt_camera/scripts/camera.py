@@ -1,7 +1,6 @@
 from vimba import *  # noqa
 import rospy
 from cv_bridge import CvBridge
-import sys
 from camera_info_manager import CameraInfoManager
 
 

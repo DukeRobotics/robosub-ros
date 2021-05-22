@@ -54,7 +54,7 @@ class DvlRawPublisher:
                 line = self._serial.readline().decode('utf-8')
                 if line.strip() and line[0] == ':':
                     self._parse_line(line)
-            except Exception as e:
+            except Exception:
                 rospy.logerr("Error in reading and extracting information. Reconnecting.")
                 rospy.logerr(traceback.format_exc())
                 self._serial.close()
