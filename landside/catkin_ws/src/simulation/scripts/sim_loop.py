@@ -11,12 +11,11 @@ class SimLoop:
 
     ODOM_TOPIC = 'sensors/dvl/odom'
     IMU_TOPIC = 'sensors/imu/imu'
-    ROBOT_MOVE_TOPIC = '/offboard/thruster_speeds'
+    ROBOT_MOVE_TOPIC = 'offboard/thruster_speeds'
 
     def __init__(self):
         rospy.init_node("simulation")
 
-        self.thruster_command = ThrusterSpeeds().speeds
         self.sub = rospy.Subscriber(self.ROBOT_MOVE_TOPIC, ThrusterSpeeds, self.on_move_received)
 
         self.odom_pub = rospy.Publisher(self.ODOM_TOPIC, Odometry, queue_size=3)
@@ -24,9 +23,11 @@ class SimLoop:
 
         self.sim_handle = SimHandle()
         self.robot_model = Cthulhu(self.sim_handle.get_mass())
+        self.on_move_received(ThrusterSpeeds())
 
     def on_move_received(self, msg):
-        self.thruster_command = msg.speeds
+        self.tforces = self.robot_model.get_thruster_forces(msg.speeds)
+        print(self.tforces)
     
     def publish_imu(self, orient, ang_vel):
         msg = Imu()
@@ -46,27 +47,22 @@ class SimLoop:
         self.odom_pub.publish(msg)
 
     def run(self):
-        rate = rospy.Rate(10)  # 10 Hz
+        rate = rospy.Rate(100)  # 10 Hz
+        xsize, ysize, zsize = self.sim_handle.get_size()
+        grav = self.sim_handle.get_gravity()
         while not rospy.is_shutdown():
             pose = self.sim_handle.get_pose()
             twist = self.sim_handle.get_twist()
-            xsize, ysize, zsize = self.sim_handle.get_size()
-            grav = self.sim_handle.get_gravity()
 
             self.publish_imu(pose.orientation, twist.angular)
             self.publish_odom(pose.orientation, twist.linear)
 
             fbuoy, dragforce = self.robot_model.get_mechanical_forces(xsize, ysize, zsize, grav, pose.position, twist.linear, twist.angular)
-            tforces = self.robot_model.get_thruster_forces(self.thruster_command)
 
-            #while self.sim_handle.get_barrier == 1:
-            #    rospy.sleep(0.05)
             self.sim_handle.add_drag_force(dragforce)
             self.sim_handle.add_buoyancy_force(self.robot_model.CENTER_OF_BUOY, fbuoy)
-            for i in range(len(tforces)):
-                self.sim_handle.add_thruster_force(self.robot_model.THRUSTER_POINTS[i], tforces[i])
+            self.sim_handle.add_thruster_force(self.robot_model.THRUSTER_POINTS, self.tforces)
             
-            #self.sim_handle.set_barrier()
             rate.sleep()
 
 if __name__ == '__main__':

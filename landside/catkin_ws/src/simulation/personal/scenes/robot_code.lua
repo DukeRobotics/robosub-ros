@@ -24,17 +24,6 @@ function getMass(intParams,floatParams,stringParams,bufferParam)
   return {},{m},{},''
 end
 
-
-function setBarrier(intParams,floatParams,stringParams,bufferParam)
-  barrier = 1
-  start = 1
-  return {},{},{},''
-end
-
-function getBarrier(intParams,floatParams,stringParams,bufferParam)
-  return {barrier},{},{},''
-end
-
 function extsysCall_init()
     simRemoteApi.start(8080)
     objectHandleT = {}
@@ -43,16 +32,9 @@ function extsysCall_init()
     forceBuoyF = {}
     objectHandleThrusterF = {}
     forceThrusterF = {}
-    
-    barrier = 0
-    start = 0
 end
 
 function extsysCall_actuation()
-
-    while start == 1 and barrier == 0 do
-      socket.sleep(0.1)
-    end
 
     for i=1,table.getn(objectHandleT) do
         sim.addForceAndTorque(objectHandleT[i], 
@@ -83,7 +65,5 @@ function extsysCall_actuation()
                     forceThrusterF[(i-1)*6 + 5],
                     forceThrusterF[(i-1)*6 + 6] })
   end
-
-  barrier = 0
 
 end

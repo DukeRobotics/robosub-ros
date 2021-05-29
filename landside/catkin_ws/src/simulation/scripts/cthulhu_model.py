@@ -5,7 +5,7 @@ class Cthulhu:
 
     A = 0.0254  # conversion from inches to vrep units
     # MC note: pretty sure "vrep units" are meters. Could be wrong, but adjusted a to match
-    QUADRATIC = True    # Set drag force to quadratic
+    QUADRATIC = True   # Set drag force to quadratic
 
     DYTOP = 7.69 * A    # same front and back
     DYBOTTOM = 6.47 * A
@@ -52,8 +52,6 @@ class Cthulhu:
     
     def get_mechanical_forces(self, xsize, ysize, zsize, grav, pos, v, angv):
         fbuoy = xsize * ysize
-        print(f"zsize: {zsize}")
-        print(f"pos.z: {pos.z}")
         pos.z -= zsize / 2.0
         subdepth = zsize if (zsize <= -pos.z) else -pos.z
         fbuoy *= subdepth  * -1 * grav.z * self.P
@@ -71,11 +69,7 @@ class Cthulhu:
         ]
         if pos.z > 0:
             dragforce[2] = 0
-
-        print(f"dragforce {dragforce}")
-        print(f"after sub pos.z={pos.z}")
-        print(f"subdepth: {subdepth}")
-        print(f"fbuoy {fbuoy}")
+        print(dragforce)
         return [0, 0, fbuoy], dragforce
 
     def calc_dragforcelin(self, linvel, length, depth):
