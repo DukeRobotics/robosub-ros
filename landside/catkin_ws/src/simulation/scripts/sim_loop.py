@@ -27,7 +27,7 @@ class SimLoop:
 
     def on_move_received(self, msg):
         self.tforces = self.robot_model.get_thruster_forces(msg.speeds)
-        print(self.tforces)
+        #print(self.tforces)
     
     def publish_imu(self, orient, ang_vel):
         msg = Imu()
@@ -48,8 +48,8 @@ class SimLoop:
 
     def run(self):
         rate = rospy.Rate(100)  # 10 Hz
-        xsize, ysize, zsize = self.sim_handle.get_size()
-        grav = self.sim_handle.get_gravity()
+        #xsize, ysize, zsize = self.sim_handle.get_size()
+        #grav = self.sim_handle.get_gravity()
         while not rospy.is_shutdown():
             pose = self.sim_handle.get_pose()
             twist = self.sim_handle.get_twist()
@@ -57,10 +57,10 @@ class SimLoop:
             self.publish_imu(pose.orientation, twist.angular)
             self.publish_odom(pose.orientation, twist.linear)
 
-            fbuoy, dragforce = self.robot_model.get_mechanical_forces(xsize, ysize, zsize, grav, pose.position, twist.linear, twist.angular)
+            #fbuoy, dragforce = self.robot_model.get_mechanical_forces(xsize, ysize, zsize, grav, pose.position, twist.linear, twist.angular)
 
-            self.sim_handle.add_drag_force(dragforce)
-            self.sim_handle.add_buoyancy_force(self.robot_model.CENTER_OF_BUOY, fbuoy)
+            #self.sim_handle.add_drag_force(dragforce)
+            #self.sim_handle.add_buoyancy_force(self.robot_model.CENTER_OF_BUOY, fbuoy)
             self.sim_handle.add_thruster_force(self.robot_model.THRUSTER_POINTS, self.tforces)
             
             rate.sleep()

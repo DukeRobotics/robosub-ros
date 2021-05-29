@@ -32,8 +32,8 @@ class SimHandle:
     def init_streaming(self):
         self.get_pose(mode=sim.simx_opmode_streaming)
         self.get_twist(mode=sim.simx_opmode_streaming)
-        self.get_gravity(mode=sim.simx_opmode_streaming)
-        self.get_size(mode=sim.simx_opmode_streaming)
+        #self.get_gravity(mode=sim.simx_opmode_streaming)
+        #self.get_size(mode=sim.simx_opmode_streaming)
 
     def run_sim_function(self, func, args):
         res = func(*args)
@@ -64,10 +64,10 @@ class SimHandle:
                                                            [self.robot], list(loc) + list(force), [""], bytearray(),
                                                            sim.simx_opmode_blocking))
     def add_thruster_force(self, loc, force):
-        inp = itertools.chain.from_iterable([list(loc[i]) + list(force[i]) for i in range(len(loc))])
+        inp = itertools.chain.from_iterable(force)
         self.run_sim_function(sim.simxCallScriptFunction, (self.clientID, "Rob", sim.sim_scripttype_childscript,
-                                                           "addThrusterForce",
-                                                           [self.robot] * len(loc), list(inp), [""], bytearray(),
+                                                           "set_thruster_forces",
+                                                           [], list(inp), [""], bytearray(),
                                                            sim.simx_opmode_blocking))
 
     def get_mass(self):
