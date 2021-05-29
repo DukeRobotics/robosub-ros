@@ -52,7 +52,7 @@ class ThrusterController:
             if not self.enabled:
                 # If not enabled, publish all 0s.
                 i8_t_allocs = ThrusterSpeeds()
-                i8_t_allocs.speeds = np.zeros(8)
+                i8_t_allocs.speeds = np.zeros(8).astype(int)
                 self.pub.publish(i8_t_allocs)
 
             if self.enabled:
