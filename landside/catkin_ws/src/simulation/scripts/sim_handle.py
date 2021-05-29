@@ -32,8 +32,6 @@ class SimHandle:
     def init_streaming(self):
         self.get_pose(mode=sim.simx_opmode_streaming)
         self.get_twist(mode=sim.simx_opmode_streaming)
-        #self.get_gravity(mode=sim.simx_opmode_streaming)
-        #self.get_size(mode=sim.simx_opmode_streaming)
 
     def run_sim_function(self, func, args):
         res = func(*args)
@@ -52,21 +50,10 @@ class SimHandle:
     def set_position_to_zero(self):
         self.run_sim_function(sim.simxSetObjectPosition, (self.clientID, self.robot, -1, [0.0, 0.0, 0.0], sim.simx_opmode_blocking))
 
-    def add_drag_force(self, force):
-        self.run_sim_function(sim.simxCallScriptFunction, (self.clientID, "Rob", sim.sim_scripttype_childscript,
-                                                           "addDragForce",
-                                                           [self.robot], list(force), [""], bytearray(),
-                                                           sim.simx_opmode_blocking))
-
-    def add_buoyancy_force(self, loc, force):
-        self.run_sim_function(sim.simxCallScriptFunction, (self.clientID, "Rob", sim.sim_scripttype_childscript,
-                                                           "addBuoyancyForce",
-                                                           [self.robot], list(loc) + list(force), [""], bytearray(),
-                                                           sim.simx_opmode_blocking))
-    def add_thruster_force(self, loc, force):
+    def add_thruster_force(self, force):
         inp = itertools.chain.from_iterable(force)
         self.run_sim_function(sim.simxCallScriptFunction, (self.clientID, "Rob", sim.sim_scripttype_childscript,
-                                                           "set_thruster_forces",
+                                                           "setThrusterForces",
                                                            [], list(inp), [""], bytearray(),
                                                            sim.simx_opmode_blocking))
 
@@ -86,15 +73,3 @@ class SimHandle:
         lin, ang = self.run_sim_function(sim.simxGetObjectVelocity, (self.clientID, self.robot, mode))
         return Twist(linear=Vector3(*lin), angular=Vector3(*ang))
 
-    def get_gravity(self, mode=sim.simx_opmode_buffer):
-        arr = self.run_sim_function(sim.simxGetArrayParameter, (self.clientID, sim.sim_arrayparam_gravity, mode))
-        return Vector3(*arr)
-
-    def get_size(self, mode=sim.simx_opmode_buffer):
-        xsizemin = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, self.robot, 15, mode))
-        ysizemin = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, self.robot, 16, mode))
-        zsizemin = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, self.robot, 17, mode))
-        xsizemax = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, self.robot, 18, mode))
-        ysizemax = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, self.robot, 19, mode))
-        zsizemax = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, self.robot, 20, mode))
-        return (xsizemax - xsizemin, ysizemax - ysizemin, zsizemax - zsizemin)

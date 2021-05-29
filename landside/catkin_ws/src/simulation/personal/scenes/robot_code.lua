@@ -94,7 +94,7 @@ function extsysCall_actuation()
 
     transform = sim.getObjectMatrix(hr, -1)
     --transform1 = sim.buildMatrix({ 0, 0, 0 }, sim.getObjectOrientation(hr, -1))
-    --transtransform = sim.invertMatrix(transform)
+    transtransform = sim.invertMatrix(transform)
     --transtransform1 = sim.invertMatrix(transform)
     relbuoy = sim.multiplyVector(transform, { 0, 0, fbuoy })
     --relbuoy1 = sim.multiplyVector(transform1, { 0, 0, fbuoy })
@@ -136,11 +136,16 @@ function calc_dragforceang(angvel, length, depth)
 
 end
 
-function set_thruster_forces(inInts, inFloats, inString, inBuffer)
-  for i in 1,8 do
+function setThrusterForces(inInts, inFloats, inString, inBuffer)
+  for i = 1,8 do
     forces[i] = {inFloats[(i-1)*3 + 1], 
                  inFloats[(i-1)*3 + 2],
                  inFloats[(i-1)*3 + 3]}
   end
   return {},{},{},''
+end
+
+function getMass(intParams,floatParams,stringParams,bufferParam)
+  m = sim.getShapeMassAndInertia(intParams[1])
+  return {},{m},{},''
 end
