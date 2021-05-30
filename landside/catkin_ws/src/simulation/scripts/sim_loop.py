@@ -17,13 +17,14 @@ class SimLoop:
     def __init__(self):
         rospy.init_node("simulation")
 
+
+        self.sim_handle = SimHandle()
+        self.robot_model = Cthulhu(self.sim_handle.get_mass())
         self.sub = rospy.Subscriber(self.ROBOT_MOVE_TOPIC, ThrusterSpeeds, self.on_move_received)
 
         self.odom_pub = rospy.Publisher(self.ODOM_TOPIC, Odometry, queue_size=3)
         self.imu_pub = rospy.Publisher(self.IMU_TOPIC, Imu, queue_size=3)
 
-        self.sim_handle = SimHandle()
-        self.robot_model = Cthulhu(self.sim_handle.get_mass())
         self.on_move_received(ThrusterSpeeds())
 
     def on_move_received(self, msg):
