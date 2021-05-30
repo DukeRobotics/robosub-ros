@@ -18,12 +18,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # Clear apt caches to reduce image size
     rm -rf /var/lib/apt/lists/*
 
-# Install the simulator
-RUN wget coppeliarobotics.com/files/CoppeliaSim_Edu_V4_2_0_Ubuntu20_04.tar.xz && \
-    tar -xf CoppeliaSim_Edu_V4_2_0_Ubuntu20_04.tar.xz && \
-    rm CoppeliaSim_Edu_V4_2_0_Ubuntu20_04.tar.xz && \
-    mv CoppeliaSim_Edu_V4_2_0_Ubuntu20_04 coppelia
-
 ### Final Setup ###
 
 # Add script to setup multiple machines for pool testing
