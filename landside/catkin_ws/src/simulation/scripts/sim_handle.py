@@ -19,11 +19,9 @@ class SimHandle:
             sys.exit(1)
         rospy.loginfo('Connected to remote API server')
         rospy.loginfo('Testing connection')
-        objs = self.run_sim_function(
-            sim.simxGetObjects, (self.clientID, sim.sim_handle_all, sim.simx_opmode_blocking))
+        objs = self.run_sim_function(sim.simxGetObjects, (self.clientID, sim.sim_handle_all, sim.simx_opmode_blocking))
         rospy.loginfo(f'Number of objects in the scene: {len(objs)}')
-        self.robot = self.run_sim_function(
-            sim.simxGetObjectHandle, (self.clientID, "Rob", sim.simx_opmode_blocking))
+        self.robot = self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, "Rob", sim.simx_opmode_blocking))
         self.set_position_to_zero()
         rospy.sleep(0.1)
         self.init_streaming()
@@ -37,10 +35,9 @@ class SimHandle:
         res = func(*args)
         if type(res) != list and type(res) != tuple:
             res = (res,)
-        if res[0] != sim.simx_return_ok:
+        if res[0] != sim.simx_return_ok and args[-1] != sim.simx_opmode_streaming:
             print(res[0])
             rospy.logerr('Error calling simulation')
-            #raise Exception
         if len(res) == 1:
             return None
         if len(res) == 2:
@@ -50,7 +47,7 @@ class SimHandle:
     def set_position_to_zero(self):
         self.run_sim_function(sim.simxSetObjectPosition, (self.clientID, self.robot, -1, [0.0, 0.0, 0.0], sim.simx_opmode_blocking))
 
-    def add_thruster_force(self, force):
+    def set_thruster_force(self, force):
         inp = itertools.chain.from_iterable(force)
         self.run_sim_function(sim.simxCallScriptFunction, (self.clientID, "Rob", sim.sim_scripttype_childscript,
                                                            "setThrusterForces",

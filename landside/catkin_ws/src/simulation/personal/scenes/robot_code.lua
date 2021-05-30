@@ -64,43 +64,35 @@ function extsysCall_actuation()
     zsize = zsizemax - zsizemin
 
     grav = sim.getArrayParameter(sim.arrayparam_gravity)
-    fbuoy = xsize * ysize
     pos[3] = pos[3] - zsize / 2 --fudge due to inconsistency with relative measurements (?)
     if zsize <= (waterlevel - pos[3]) then
         subdepth = zsize
     else
         subdepth = (waterlevel - pos[3])
     end
-    fbuoy = fbuoy * subdepth * (-1) * grav[3] * p
+    fbuoy = xsize * ysize * subdepth * (-1) * grav[3] * p
     if pos[3] > waterlevel then
         fbuoy = 0
         subdepth = 0
     end
 
+    transform = sim.getObjectMatrix(hr, -1)
+    res = sim.invertMatrix(transform)
+    relbuoy = sim.multiplyVector(transform, { 0, 0, fbuoy })
+  
     v, angv = sim.getVelocity(hr)
-
     dragforcelin = {calc_dragforcelin(v[1], ysize, subdepth),
                     calc_dragforcelin(v[2], xsize, subdepth),
                     calc_dragforcelin(v[3], xsize, ysize)}
     if pos[3] > waterlevel then
         dragforcelin[3] = 0
     end
-
     dragforceang = {calc_dragforceang(angv[1], ysize, xsize),
                     calc_dragforceang(angv[2], ysize, xsize),
                     calc_dragforceang(angv[3], ysize, subdepth)}
 
     sim.addForceAndTorque(hr, dragforcelin, dragforceang)
-
-    transform = sim.getObjectMatrix(hr, -1)
-    --transform1 = sim.buildMatrix({ 0, 0, 0 }, sim.getObjectOrientation(hr, -1))
-    transtransform = sim.invertMatrix(transform)
-    --transtransform1 = sim.invertMatrix(transform)
-    relbuoy = sim.multiplyVector(transform, { 0, 0, fbuoy })
-    --relbuoy1 = sim.multiplyVector(transform1, { 0, 0, fbuoy })
-
     sim.addForce(hr, centerOfBuoy, relbuoy)
-
     for i = 1, table.getn(forces) do
         sim.addForce(hr, thrusterPoints[i], forces[i])
     end

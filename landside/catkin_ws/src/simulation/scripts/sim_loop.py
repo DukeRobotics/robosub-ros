@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import rospy
 from cthulhu_model import Cthulhu
 from custom_msgs.msg import ThrusterSpeeds
@@ -28,21 +29,21 @@ class SimLoop:
     def on_move_received(self, msg):
         self.tforces = self.robot_model.get_thruster_forces(msg.speeds)
     
-    def publish_imu(self, orient, ang_vel):
+    def publish_imu(self, pose, twist):
         msg = Imu()
         msg.header.stamp = rospy.Time.now()
         msg.header.frame_id = 'imu_link'
-        msg.orientation = orient
-        msg.angular_velocity = ang_vel
+        msg.orientation = pose.orientation
+        msg.angular_velocity = twist.angular
         self.imu_pub.publish(msg)
 
-    def publish_odom(self, orient, lin_vel):
+    def publish_odom(self, pose, twist):
         msg = Odometry()
         msg.header.stamp = rospy.Time.now()
         msg.header.frame_id = 'odom'
         msg.child_frame_id = 'dvl_link'
-        msg.pose.pose = Pose(Point(), orient)
-        msg.twist.twist = Twist(lin_vel, Vector3())
+        msg.pose.pose = pose
+        msg.twist.twist = twist
         self.odom_pub.publish(msg)
 
     def run(self):
@@ -51,9 +52,9 @@ class SimLoop:
             pose = self.sim_handle.get_pose()
             twist = self.sim_handle.get_twist()
 
-            self.publish_imu(pose.orientation, twist.angular)
-            self.publish_odom(pose.orientation, twist.linear)
-            self.sim_handle.add_thruster_force(self.tforces)
+            self.publish_imu(pose, twist)
+            self.publish_odom(pose, twist)
+            self.sim_handle.set_thruster_force(self.tforces)
             
             rate.sleep()
 

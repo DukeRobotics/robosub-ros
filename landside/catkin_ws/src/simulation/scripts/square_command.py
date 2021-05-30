@@ -8,10 +8,10 @@ if __name__ == "__main__":
     rospy.init_node("sim_move_square")
 
     # Initialize direction vectors
-    forwards = (1, 1, 1, 1, 0, 0, 0, 0)
-    backwards = (-1, -1, -1, -1, 0, 0, 0, 0)
-    right = (-1, 1, 1, -1, 0, 0, 0, 0)  # top view
-    left = (1, -1, -1, 1, 0, 0, 0, 0)
+    forwards = (127, 127, 127, 127, 0, 0, 0, 0)
+    backwards = (-127, -127, -127, -127, 0, 0, 0, 0)
+    right = (-127, 127, 127, -127, 0, 0, 0, 0)  # top view
+    left = (127, -127, -127, 127, 0, 0, 0, 0)
     dirs = (forwards, right, backwards, left)
     ct = 0
 

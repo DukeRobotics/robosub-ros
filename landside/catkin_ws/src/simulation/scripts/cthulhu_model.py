@@ -19,8 +19,7 @@ class Cthulhu:
         return forcesloc
 
     def get_thruster_forces(self, vals):
-        if vals is None:
-            return None
+        clipped = np.clip(np.array(vals) / 127, -1, 1)
         forces = [
             [ 1, 1, 0 ], #tfr
             [ 1, -1, 0 ], #tfl
@@ -36,8 +35,8 @@ class Cthulhu:
         for count in range(len(forces)):
             for num in range(3):
                 if count < 4:
-                    forces[count][num] = (vals[count]) * ((1 / math.sqrt(2)) * self.FUDGEFORCE * (forces[count][num]))
+                    forces[count][num] = (clipped[count]) * ((1 / math.sqrt(2)) * self.FUDGEFORCE * (forces[count][num]))
                 else:
-                    forces[count][num] = (vals[count]) * self.FUDGEFORCE * (forces[count][num])
+                    forces[count][num] = (clipped[count]) * self.FUDGEFORCE * (forces[count][num])
         return forces
     
