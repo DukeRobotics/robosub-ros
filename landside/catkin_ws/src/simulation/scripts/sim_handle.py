@@ -69,4 +69,3 @@ class SimHandle:
     def get_twist(self, mode=sim.simx_opmode_buffer):
         lin, ang = self.run_sim_function(sim.simxGetObjectVelocity, (self.clientID, self.robot, mode))
         return Twist(linear=Vector3(*lin), angular=Vector3(*ang))
-

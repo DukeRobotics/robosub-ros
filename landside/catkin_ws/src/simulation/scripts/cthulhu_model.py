@@ -39,4 +39,3 @@ class Cthulhu:
                 else:
                     forces[count][num] = (clipped[count]) * self.FUDGEFORCE * (forces[count][num])
         return forces
-    
