@@ -33,7 +33,7 @@ sudo xattr -r -d com.apple.quarantine *
 
 ### Docker Simulation Setup
 1. In the onboard container, make sure `roscore` is running.
-2. Run `roslaunch simulation base_sim.launch` in the landside container. If you don't have any thruster speed publishing code and would just like to test basic movement in a square, instead run `roslaunch simulation test_sim_comm.launch`. Once `Starting main loop` is displayed, the .
+2. Run `roslaunch simulation base_sim.launch` in the landside container. If you don't have any thruster speed publishing code and would just like to test basic movement in a square, instead run `roslaunch simulation test_sim_comm.launch`. Once `Starting main loop` is displayed, the simulation is ready to receive inputs.
 3. Run whatever ROS topic publishing code you have. If you ran the test_sim_comm launch file, `scripts/square_command.py` will be executed, which publishes thruster values to naively make the robot move in a square (in reality, the robot will spin in wide circles because the robot isn't balanced).
 4. The robot should start moving, if everything is successful.
 
