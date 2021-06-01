@@ -5,8 +5,8 @@ from cthulhu_model import Cthulhu
 from custom_msgs.msg import ThrusterSpeeds
 from sensor_msgs.msg import Imu
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from sim_handle import SimHandle
+
 
 class SimLoop:
 
@@ -16,7 +16,6 @@ class SimLoop:
 
     def __init__(self):
         rospy.init_node("simulation")
-
 
         self.sim_handle = SimHandle()
         self.robot_model = Cthulhu(self.sim_handle.get_mass())
@@ -29,7 +28,7 @@ class SimLoop:
 
     def on_move_received(self, msg):
         self.tforces = self.robot_model.get_thruster_forces(msg.speeds)
-    
+
     def publish_imu(self, pose, twist):
         msg = Imu()
         msg.header.stamp = rospy.Time.now()
@@ -56,8 +55,9 @@ class SimLoop:
             self.publish_imu(pose, twist)
             self.publish_odom(pose, twist)
             self.sim_handle.set_thruster_force(self.tforces)
-            
+
             rate.sleep()
+
 
 if __name__ == '__main__':
     SimLoop().run()

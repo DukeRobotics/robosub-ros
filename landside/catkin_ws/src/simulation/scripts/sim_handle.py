@@ -1,10 +1,9 @@
 import sim
 import rospy
 import sys
-import traceback
 from geometry_msgs.msg import Pose, Quaternion, Point, Twist, Vector3
-import numpy as np
 import itertools
+
 
 class SimHandle:
 
@@ -33,11 +32,10 @@ class SimHandle:
 
     def run_sim_function(self, func, args):
         res = func(*args)
-        if type(res) != list and type(res) != tuple:
+        if not isinstance(res, list) and not isinstance(res, tuple):
             res = (res,)
         if res[0] != sim.simx_return_ok and args[-1] != sim.simx_opmode_streaming:
-            print(res[0])
-            rospy.logerr('Error calling simulation')
+            rospy.logerr(f'Error calling simulation. Code: {res[0]}')
         if len(res) == 1:
             return None
         if len(res) == 2:
@@ -45,7 +43,8 @@ class SimHandle:
         return res[1:]
 
     def set_position_to_zero(self):
-        self.run_sim_function(sim.simxSetObjectPosition, (self.clientID, self.robot, -1, [0.0, 0.0, 0.0], sim.simx_opmode_blocking))
+        self.run_sim_function(sim.simxSetObjectPosition, (self.clientID, self.robot, -
+                              1, [0.0, 0.0, 0.0], sim.simx_opmode_blocking))
 
     def set_thruster_force(self, force):
         inp = itertools.chain.from_iterable(force)
