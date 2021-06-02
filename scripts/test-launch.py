@@ -10,6 +10,8 @@ IGNORE_LIST = []
 BLOCK_LIST = [
     'cv/launch/cv.launch',
     'joystick/launch/pub_joy.launch',
+    'simulation/launch/base_sim.launch',
+    'simulation/launch/test_sim_comm.launch',
 ]
 
 
