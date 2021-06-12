@@ -10,10 +10,6 @@
             <rosparam command="load" file="$(find sensor_fusion)/params/main.yaml" />
             <remap from="odometry/filtered" to="state" />
     </node>
-
-    <!-- If we are running simulation, republish simulation data to the correct topics for sensor fusion -->
-    <group if="$(arg sim)">
-    	<node pkg="sensor_fusion" name="simulation_republisher" type="simulation_republisher.py" />
-    </group>
+    
 </launch>
 

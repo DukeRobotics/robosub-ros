@@ -1,7 +1,32 @@
 #!/bin/bash
-# A convenience script used to build our code. Takes one argument that specifies the workspace to build.
+# A convenience script used to build our code.
+# Takes one argument that specifies the workspace to build when used to build.
+# When used to clean, argument 1 should be clean, and argument 2, if present is the workspace to clean.
+# If argument 2 is omitted when cleaning, then all workspaces will be cleaned.
 
 set -e
+
+# Handle cleaning
+if [[ "$1" == "clean" ]]; then
+  if [[ -z "$2" ]] || [[ "$2" == "onboard" ]]; then
+    cd onboard/catkin_ws
+    catkin clean -y
+    cd ../..
+  fi
+
+  if [[ -z "$2" ]] || [[ "$2" == "landside" ]]; then
+    cd landside/catkin_ws
+    catkin clean -y
+    cd ../..
+  fi
+
+  if [[ -z "$2" ]]; then
+    cd core/catkin_ws
+    catkin clean -y
+    cd ../..
+  fi
+  exit 0
+fi
 
 # Print help message on invalid argument
 if [[ "$1" != "onboard" ]] && [[ "$1" != "landside" ]]; then
@@ -12,7 +37,7 @@ if [[ "$1" != "onboard" ]] && [[ "$1" != "landside" ]]; then
 fi
 
 # shellcheck disable=SC1091
-source /opt/ros/melodic/setup.bash
+source /opt/ros/noetic/setup.bash
 
 cd core/catkin_ws
 catkin build

@@ -1,4 +1,4 @@
-FROM dukerobotics/robosub-ros:base
+FROM ros:noetic
 
 ### Arguments ###
 ARG BUILD_DIR_NAME=docker-build
@@ -8,65 +8,29 @@ ENV WORKDIR=/root/$BUILD_DIR_NAME
 # Set the workdir
 WORKDIR $WORKDIR
 
-### ROS Installation ###
-
-# install packages
-RUN apt-get update && apt-get install --no-install-recommends -q -y \
-    dirmngr \
-    gnupg2 \
-    && rm -rf /var/lib/apt/lists/*
-
-# setup keys
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-
-# setup sources.list
-RUN echo "deb http://packages.ros.org/ros/ubuntu bionic main" > /etc/apt/sources.list.d/ros1-latest.list
-
-# install bootstrap tools
-RUN apt-get update && apt-get install --no-install-recommends -y \
-    python-rosdep \
-    python-rosinstall \
-    python-vcstools \
-    && rm -rf /var/lib/apt/lists/*
-
-# setup environment
-ENV LANG C.UTF-8
-ENV LC_ALL C.UTF-8
-
-ENV ROS_DISTRO melodic
-# bootstrap rosdep
-RUN rosdep init && \
-    rosdep update --rosdistro $ROS_DISTRO
-
-# install ros packages
-RUN apt-get update && apt-get install -y \
-    ros-melodic-ros-core=1.4.1-0* \
-    && rm -rf /var/lib/apt/lists/*
-
 ### Basic Setup ###
 
+# Workaround for https://github.com/osrf/docker_images/issues/535
+# Remove this when that is fixed
+RUN apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+
 # Update and install tools
-RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common && \
-    add-apt-repository ppa:jgmath2000/et && \
-    apt-get update && apt-get install -y --no-install-recommends \
-    openssh-server mosh et \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssh-server xvfb \
     vim \
-    curl \
-    wget \
-    usbutils \
-    apt-utils \
-    python-catkin-tools \
-    ros-melodic-cv-bridge \
-    ros-melodic-resource-retriever \
+    curl wget \
+    usbutils apt-utils \
+    ros-noetic-cv-bridge \
+    ros-noetic-resource-retriever \
+    ros-noetic-actionlib-tools \
+    python-dev-is-python3 \
+    python3-pip \
+    python3-catkin-tools python3-osrf-pycommon \
+    git \
     locales && \
     apt-get clean && \
     # Clear apt caches to reduce image size
     rm -rf /var/lib/apt/lists/*
-
-# Install pip
-RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python get-pip.py && \
-    python -m pip install pip==8.1.1 
 
 # Set up locales
 RUN locale-gen en_GB.UTF-8 && locale-gen en_US.UTF-8
@@ -74,13 +38,20 @@ RUN locale-gen en_GB.UTF-8 && locale-gen en_US.UTF-8
 # Set a password for root
 RUN echo root:robotics | chpasswd
 
-# Allow root to login over ssh
-RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
+# Allow root to login over ssh and forward graphics over ssh
+# Allow for environment variables to be set in ssh
+RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
+    echo "X11UseLocalhost no" >> /etc/ssh/sshd_config && \
+    echo "PermitUserEnvironment yes" >> /etc/ssh/sshd_config && \
+    mkdir -p /root/.ssh && \
+    touch /root/.ssh/environment
 
-# Generate ssh keys
-RUN ssh-keygen -A
+COPY ssh_entry.sh /root/.bash_profile
 
 ### Final Setup ###
+
+# Install common pip packages
+RUN pip3 install autopep8 psutil
 
 # Add catkin ws
 RUN mkdir -p /root/dev/robosub-ros

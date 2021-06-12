@@ -1,0 +1,28 @@
+# Goal
+
+# Hydrophone Set
+custom_msgs/HydrophoneSet hydrophone_set
+
+# Number of captures to take
+uint32 capture_count
+
+# Duration to perform capture for
+uint32 capture_duration
+
+---
+# Result
+
+# Result files where data has been saved. Should be a package URL.
+string[] file_paths
+
+---
+# Feedback
+
+# Current stage the program is on
+uint32 curr_stage
+
+# Total number of stages in program
+uint32 total_stages
+
+# Message
+string message

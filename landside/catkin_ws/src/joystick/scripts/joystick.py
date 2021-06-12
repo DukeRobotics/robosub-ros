@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
 import yaml
@@ -16,7 +16,7 @@ class Movement(Enum):
 class JoystickParser:
     NODE_NAME = 'joy_pub'
     JOYSTICK_RAW_TOPIC = 'joystick/raw'
-    JOY_DEST_TOPIC = 'controls/desired_twist_power'
+    JOY_DEST_TOPIC = 'controls/desired_power'
 
     def __init__(self):
         self._pub = rospy.Publisher(self.JOY_DEST_TOPIC, Twist, queue_size=50)
@@ -25,7 +25,7 @@ class JoystickParser:
 
         joystick_type = rospy.get_param("~/joy_pub/joystick_type")
         with open(rr.get_filename('package://joystick/config/joystick.yaml', use_protocol=False)) as f:
-            data = yaml.load(f)
+            data = yaml.safe_load(f)
         self._button_indices = data[joystick_type]
 
         rospy.init_node(self.NODE_NAME)

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import numpy as np
 from tf.transformations import quaternion_from_euler
 from controls_utils import quat_vec_mult

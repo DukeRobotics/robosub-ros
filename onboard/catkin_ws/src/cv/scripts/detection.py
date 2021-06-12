@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
 import yaml
@@ -21,13 +21,13 @@ class Detector:
 
         # Load in model configurations
         with open(rr.get_filename('package://cv/models/models.yaml', use_protocol=False)) as f:
-            self.models = yaml.load(f)
+            self.models = yaml.safe_load(f)
 
         # The topic that the camera publishes its feed to
-        self.camera_feed_topic = '/camera/{}/image_raw'.format(self.camera)
+        self.camera_feed_topic = f'/camera/{self.camera}/image_raw'
 
         # Toggle model service name
-        self.enable_service = 'enable_model_{}'.format(self.camera)
+        self.enable_service = f'enable_model_{self.camera}'
 
     # Initialize model predictor and publisher if not already initialized
     def init_model(self, model_name):
@@ -37,11 +37,11 @@ class Detector:
         if model.get('predictor') is not None:
             return
 
-        weights_file = rr.get_filename('package://cv/models/{}'.format(model['weights']), use_protocol=False)
+        weights_file = rr.get_filename(f"package://cv/models/{model['weights']}", use_protocol=False)
 
         predictor = Model.load(weights_file, model['classes'])
 
-        publisher_name = '{}/{}'.format(model['topic'], self.camera)
+        publisher_name = f"{model['topic']}/{self.camera}"
         publisher = rospy.Publisher(publisher_name, CVObject, queue_size=10)
 
         model['predictor'] = predictor
@@ -82,6 +82,9 @@ class Detector:
                 object_msg.ymin = box[1].item() / shape[0]
                 object_msg.xmax = box[2].item() / shape[1]
                 object_msg.ymax = box[3].item() / shape[0]
+
+                object_msg.height = shape[0]
+                object_msg.width = shape[1]
 
                 # Safety check that publisher is not None
                 if publisher:

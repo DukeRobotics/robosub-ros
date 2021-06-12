@@ -1,6 +1,6 @@
 ## Joystick Documentation
 
-The joystick package publishes a `geometry_msg/Twist` message to the `controls/desired_twist_power` topics. Currently, the supported joysticks are the Logitech Gamepad F310 and the Thrustmaster, but other Linux joysticks may be supported.
+The joystick package publishes a `geometry_msg/Twist` message to the `controls/desired_power` topic. Currently, the supported joysticks are the Logitech Gamepad F310 and the Thrustmaster, but other Linux joysticks may be supported.
 
 The buttons `B`, `Y`, change the joystick output.
  
@@ -18,7 +18,7 @@ Left Stick (`Up/Down, Left/Right`), Right Stick (`Up/Down, Left/Right`)
 First, run roscore on the **onboard** computer. Then set up the network on the **landside** computer by executing
 
 `
-export /opt/ros/melodic/pool_setup.bash
+source /opt/ros/noetic/setup_network.bash
 `
 
 on the landside computer, if you are using the landside image. Otherwise you may execute
