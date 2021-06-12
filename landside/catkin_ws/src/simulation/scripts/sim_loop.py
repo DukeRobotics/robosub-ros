@@ -53,7 +53,7 @@ class SimLoop:
         msg = Float64()
         # Float64 doesn't have a header for timestamps or fields for
         # parent/child frame labels, so they aren't included.
-        msg.data = -pose.position.z  # Assume position is in meters
+        msg.data = pose.position.z  # Assume position is in meters
         self.depth_pub.publish(msg)
 
     def run(self):
