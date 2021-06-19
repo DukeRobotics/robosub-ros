@@ -2,7 +2,7 @@
 from geometry_msgs.msg import Pose, Point, Quaternion, PoseStamped
 import rospy
 
-def get_bounding_box(listener, points, pos, orientation):
+def get_bounding_box(listener, points):
 	#for loop getting grid point for each point
 	# cam_pos = [0.309,0.138,0.18]
 	# for i in range(3):
@@ -11,7 +11,7 @@ def get_bounding_box(listener, points, pos, orientation):
 	xs = []
 	ys = []
 	for i in range(len(points)):
-		grid_point = get_grid_point(listener, points[i], pos, orientation)
+		grid_point = get_grid_point(listener, points[i])
 		if grid_point != [-1, -1]:
 			xs.append(grid_point[0])
 			ys.append(grid_point[1])
@@ -20,11 +20,8 @@ def get_bounding_box(listener, points, pos, orientation):
 	print()
 	return bounding_box
 
-def get_grid_point(listener, point, pos, orientation):
-	rel_point = point_rel_to_bot(listener, point, pos, orientation)
-	mag = sum([i**2 for i in rel_point])**.5
-	truemag = sum([(point[i]-pos[i])**2 for i in range(3)])**.5
-	# rospy.loginfo("rel point magnitude is "+str(rel_point)+" and should be "+str(truemag))
+def get_grid_point(listener, point):
+	rel_point = point_rel_to_bot(listener, point)
 	#FOV - field of view
 	if rel_point[0] < 0:
 		print("removing negative point! "+str(point))
@@ -47,7 +44,7 @@ def get_grid_point(listener, point, pos, orientation):
 	# 		grid_point[i] = 1
 	return grid_point
 
-def point_rel_to_bot(listener, point, pos, orientation):
+def point_rel_to_bot(listener, point):
 
 	# r = R.from_euler('xyz', orientation, degrees=False)
 	# rel_point = r.apply(point)

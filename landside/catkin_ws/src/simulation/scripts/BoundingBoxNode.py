@@ -25,12 +25,14 @@ def node_code():
 
 
 def callback(data):
-	global pos, orientation, pub_gate, pub_buoy
+	global pub_gate, pub_buoy
 
 	# rospy.loginfo("object points received")
 
 	objPoints = parse_array(data.data)
-	boxes = bounding_boxes(objPoints, pos, orientation)
+	print(objPoints)
+	boxes = bounding_boxes(objPoints)
+	print(boxes)
 
 	# rospy.loginfo(objects)
 
@@ -60,19 +62,18 @@ def parse_array(array):
 			ret[obj] = []
 		numPoints = array[1]
 		array = array[2:]
-		for i in range(numPoints):
+		for i in range(int(numPoints)):
 			ret[obj].append(array[:3])
 			array = array[3:]
 	return ret
 
 
-def bounding_boxes(objPoints, pos, orientation):
+def bounding_boxes(objPoints):
 	boxes = {}
 	for i in objPoints:
-		boxes[i] = BoundingBox.get_bounding_box(listener, objPoints[i], pos, orientation)
+		boxes[i] = BoundingBox.get_bounding_box(listener, objPoints[i])
 	return boxes
 
 if __name__ == "__main__":
-	rospy.loginfo("am i alivE?")
-	print("did I win?")
+	rospy.loginfo("Bounding Box Node running")
 	node_code()

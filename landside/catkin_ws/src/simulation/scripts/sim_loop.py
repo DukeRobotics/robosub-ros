@@ -6,7 +6,7 @@ from custom_msgs.msg import ThrusterSpeeds
 from sensor_msgs.msg import Imu
 from nav_msgs.msg import Odometry
 from sim_handle import SimHandle
-from std_msgs import Float32MultiArray
+from std_msgs.msg import Float32MultiArray
 
 
 class SimLoop:
@@ -49,7 +49,10 @@ class SimLoop:
         msg.twist.twist = twist
         self.odom_pub.publish(msg)
 
-    # def publish_gate_pos(self, )
+    def publish_gate_pos(self, gate_data):
+        msg = Float32MultiArray()
+        msg.data = gate_data
+        self.gate_pos_pub.publish(msg)
 
     def run(self):
         rate = rospy.Rate(10)  # 10 Hz
@@ -59,6 +62,7 @@ class SimLoop:
 
             self.publish_imu(pose, twist)
             self.publish_odom(pose, twist)
+            self.publish_gate_pos(self.sim_handle.get_gate_corners())
             self.sim_handle.set_thruster_force(self.tforces)
 
             rate.sleep()
