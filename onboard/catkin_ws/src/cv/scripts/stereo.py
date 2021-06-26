@@ -2,6 +2,7 @@ import cv2
 from cv_bridge import CvBridge
 import numpy as np
 
+
 class StereoDetector:
 
     def __init__(self):
@@ -9,7 +10,7 @@ class StereoDetector:
         # todo initialize constants
         self.disparity = None
         self.map_3d = None
-        self.rmap = np.load('../data/stereocamera_calibration_remapping_matrices') 
+        self.rmap = np.load('../data/stereocamera_calibration_remapping_matrices')
         self.img_size = None
         self.fov = np.load('../data/fov_data')
         self.Q = np.load('../data/Q_matrix')
@@ -52,7 +53,7 @@ class StereoDetector:
         degrees_per_pixel_horizontal = self.fov[0] / self.img_size[1]
         degrees_per_pixel_vertical = self.fov[1] / self.img_size[0]
 
-        horizontal_angle = (x_center - (self.img_size[1]/2)) * degrees_per_pixel_horizontal 
+        horizontal_angle = (x_center - (self.img_size[1]/2)) * degrees_per_pixel_horizontal
         vertical_angle = -(y_center - (self.img_size[0]/2)) * degrees_per_pixel_vertical
 
         return horizontal_angle, vertical_angle
@@ -65,7 +66,7 @@ class StereoDetector:
         bbox_remapped = cv2.remap(bbox_img, self.rmap[0][0], self.rmap[0][1], cv2.INTER_LINEAR)
         mask = cv2.merge([bbox_remapped, bbox_remapped, bbox_remapped])
 
-        bbox_map_3d = self.map_3d * mask # Apply bounding box mask to 3d map
+        bbox_map_3d = self.map_3d * mask  # Apply bounding box mask to 3d map
 
         depth_map = bbox_map_3d[:, :, 2]
 
