@@ -1,27 +1,36 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
 import actionlib
-from custom_msgs.msg import SaleaeAction, SaleaeFeedback, SaleaeResult
+from custom_msgs.msg import SaleaeAction, SaleaeFeedback, SaleaeResult, HydrophoneSet
 import pandas as pd
 import saleae
 import resource_retriever as rr
+from datetime import datetime
+import os
 
 
 class Saleae:
 
     NODE_NAME = "saleae"
     ACTION_NAME = "call_saleae"
-    IP_ADDRESS = "localhost"
-    PORT = 10429
+    SALEAE_SETTINGS = '/root/docker-build/Logic/Settings/settings.xml'
     CAPTURE_DURATION = 2
-    HYDROPHONE_SET = {1: [0, 1, 2, 3], 2: [4, 5, 6, 7]}
+    HYDROPHONE_SET = {HydrophoneSet.GUESS: [0, 1, 2, 3], HydrophoneSet.PROCESS: [4, 5, 6, 7]}
+    FILE_EXTENSIONS = {HydrophoneSet.GUESS: "_guess", HydrophoneSet.PROCESS: "_processing"}
 
     def __init__(self):
         rospy.init_node(self.NODE_NAME)
         self.server = actionlib.SimpleActionServer(self.ACTION_NAME, SaleaeAction, self.execute, False)
+
+        # Delete the saleae settings file to get around this issue:
+        # https://github.com/saleae/SaleaeSocketApi/issues/14
+        if os.path.exists(self.SALEAE_SETTINGS):
+            os.remove(self.SALEAE_SETTINGS)
+        self.saleae = saleae.Saleae(args='-disablepopups -socket')
+        rospy.loginfo("Saleae started")
+
         self.server.start()
-        self.saleae = saleae.Saleae(self.IP_ADDRESS, self.PORT)
         rospy.spin()
 
     def publish_feedback(self, stage, total_stages, msg):
@@ -43,14 +52,18 @@ class Saleae:
 
     def execute(self, goal):
         self.saleae.set_capture_seconds(goal.capture_duration)
-        package_path = 'package://acoustics/data/' + goal.save_name + '_{1}.csv'
+
+        time_now = datetime.now()
+        export_name = "date_" + time_now.strftime("%m_%d_%Y_%H_%M_%S") + self.FILE_EXTENSIONS[goal.hydrophone_set.type]
+        package_path = 'package://acoustics/data/' + export_name + '_({0}).csv'
         save_paths = []
 
         for i in range(goal.capture_count):
-            self.publish_feedback(i + 1, goal.capture_count + 1, "Starting capture {}".format(i))
+            self.publish_feedback(i + 1, goal.capture_count + 1, f"Starting capture {i}")
             save_paths.append(package_path.format(i))
             save_path = rr.get_filename(package_path.format(i), use_protocol=False)
-            self.saleae.export_data2(save_path, analog_channels=self.HYDROPHONE_SET[goal.hydrophone_set])
+            rospy.loginfo("Path: " + save_path)
+            self.saleae.export_data2(save_path, analog_channels=self.HYDROPHONE_SET[goal.hydrophone_set.type])
             self.format_csv(save_path)
 
         self.publish_feedback(goal.capture_count + 1, goal.capture_count + 1, "Saleae capture complete")

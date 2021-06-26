@@ -1,8 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
 import serial
 import serial.tools.list_ports as list_ports
+import traceback
 
 from sensor_msgs.msg import Imu, MagneticField
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
@@ -16,7 +17,7 @@ class IMURawPublisher:
     FTDI_STR = 'FT1WDFQ2'
     BAUDRATE = 115200
     NODE_NAME = 'imu_pub'
-    LINE_DELIM = ','
+    LINE_DELIM = b','
 
     def __init__(self):
         self._pub_imu = rospy.Publisher(self.IMU_DEST_TOPIC_QUAT, Imu, queue_size=50)
@@ -28,24 +29,38 @@ class IMURawPublisher:
         self._serial_port = None
         self._serial = None
 
+    def connect(self):
+        while self._serial_port is None and not rospy.is_shutdown():
+            try:
+                self._serial_port = next(list_ports.grep(self.FTDI_STR)).device
+                self._serial = serial.Serial(self._serial_port, self.BAUDRATE,
+                                             timeout=None, write_timeout=None,
+                                             bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
+                                             stopbits=serial.STOPBITS_ONE)
+            except StopIteration:
+                rospy.logerr("IMU not found, trying again in 0.1 seconds.")
+                rospy.sleep(0.1)
+
     def run(self):
         rospy.init_node(self.NODE_NAME)
-        self._serial_port = next(list_ports.grep(self.FTDI_STR)).device
-        self._serial = serial.Serial(self._serial_port, self.BAUDRATE,
-                                     timeout=None, write_timeout=None,
-                                     bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
-                                     stopbits=serial.STOPBITS_ONE)
-
+        self.connect()
         while not rospy.is_shutdown():
-            line = self._serial.read_until()
-            items = self._extract_line(line)  # array of line
-            if items[0] == "$VNQMR":
-                rospy.loginfo(line)
-                self._parse_orient(items)
-                self._parse_accel(items)
-                self._parse_angvel(items)
-                self._parse_mag(items)
-                self._publish_current_msg()
+            try:
+                line = self._serial.read_until()
+                items = self._extract_line(line)
+                if items[0] == b"$VNQMR":
+                    self._parse_orient(items)
+                    self._parse_accel(items)
+                    self._parse_angvel(items)
+                    self._parse_mag(items)
+                    self._publish_current_msg()
+            except Exception:
+                rospy.logerr("Error in reading and extracting information. Reconnecting.")
+                rospy.logerr(traceback.format_exc())
+                self._serial.close()
+                self._serial = None
+                self._serial_port = None
+                self.connect()
 
     def _extract_line(self, line):
         return line.split(self.LINE_DELIM)

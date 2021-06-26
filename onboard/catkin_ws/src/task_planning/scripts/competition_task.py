@@ -1,8 +1,9 @@
 from task import Task
 # from gate_task import GateTask
-from style_task import StyleTask
+# from style_task import StyleTask
 # from gate_task import MoveToGateTask, GateTask
 # from prequal_tasks import PreQualGlobalTask
+from move_tasks import AllocateVelocityGlobalTask
 
 
 class CompetitionTask(Task):
@@ -18,12 +19,12 @@ class CompetitionTask(Task):
         # self.list_task = ListTask([MoveToPoseGlobalTask(-7, 0, 0, 0, 0, 0)])
         # self.test = GateTask()
         # self.test_vel_local = AllocateVelocityLocalTask(0.2, 0, 0, 0, 0, 0)
-        # self.test_vel_global = AllocateVelocityGlobalTask(0.2, 0, 0, 0, 0, 0)
-        self.test_style = StyleTask("z", .2)
+        self.test_vel_global = AllocateVelocityGlobalTask(0.2, 0, 0, 0, 0, 0)
+        # self.test_style = StyleTask("z", .2)
 
     def _on_task_run(self):
-        self.test_style.run()
-        if self.test_style.finished:
+        self.test_vel_global.run()
+        if self.test_vel_global.finished:
             self.finish()
 
 # this checking condition from parent task is likely not how we want to actually

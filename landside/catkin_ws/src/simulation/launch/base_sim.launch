@@ -1,4 +1,3 @@
 <launch>
-    <node name="coppeliaSim" pkg="simulation" type="runSim.sh" output="screen"/>
-    <node name="simulation_republisher" pkg="simulation" type="simulation_republisher.py"/>
+    <node name="simulation" pkg="simulation" type="sim_loop.py" output="screen"/>
 </launch>

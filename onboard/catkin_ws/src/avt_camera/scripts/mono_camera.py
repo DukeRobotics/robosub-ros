@@ -1,9 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-from pymba import *  # noqa
+from vimba import *  # noqa
 import rospy
 from sensor_msgs.msg import Image, CameraInfo
 from camera import Camera
+import threading
 
 
 class MonoCamera:
@@ -13,28 +14,51 @@ class MonoCamera:
     def __init__(self):
         rospy.init_node(self.NODE_NAME, anonymous=True)
         camera_name = rospy.get_param('~camera', 'camera')
-        camera_id = rospy.get_param('~camera_id', None)
 
-        image_topic = '/camera/{}/image_raw'.format(camera_name)
-        info_topic = '/camera/{}/camera_info'.format(camera_name)
+        self._camera_id = rospy.get_param('~camera_id', None)
+
+        image_topic = f'/camera/{camera_name}/image_raw'
+        info_topic = f'/camera/{camera_name}/camera_info'
 
         img_pub = rospy.Publisher(image_topic, Image, queue_size=10)
         info_pub = rospy.Publisher(info_topic, CameraInfo, queue_size=10)
-        self._camera = Camera(img_pub, info_pub, rospy.get_name(), camera_id)
+        self._camera = Camera(img_pub, info_pub, rospy.get_name(), self._camera_id)
+        self._thread = None
+        self._thread_lock = threading.Lock()
+
+    def connection_handler(self, cam, event):
+
+        if event == CameraEvent.Detected and (                                                          # noqa: F405
+                cam.get_id() == self._camera.get_camera_id() or self._camera.get_camera_id() is None):
+            with self._thread_lock:
+                self._thread[1].set()
+                self._thread[0].join()
+                event = threading.Event()
+                self._thread = (threading.Thread(target=self._camera.capture, args=(event,)), event)
+                self._thread[0].start()
+
+        elif event == CameraEvent.Missing and cam.get_id() == self._camera.get_camera_id():             # noqa: F405
+            with self._thread_lock:
+                rospy.logerr(f"Lost camera {cam.get_id()}.")
+                self._thread[1].set()
+                self._thread[0].join()
 
     def run(self):
-        with Vimba() as vimba:  # noqa
-            self._camera.initialize_camera(vimba)
-            self._camera.start_capture()
-            self._camera.start_acquisition()
+        with Vimba.get_instance() as vimba:  # noqa
+            vimba.GeVDiscoveryAllDuration.set(1000)
+            vimba.GeVDiscoveryAllAuto.run()
+            with self._thread_lock:
+                event = threading.Event()
+                self._thread = (threading.Thread(target=self._camera.capture, args=(event,)), event)
+                self._thread[0].start()
 
-            while not rospy.is_shutdown():
-                self._camera.queue_frame_capture()
-                self._camera.get_frame_data()
-                time = rospy.Time.now()
-                self._camera.publish_image(time)
+            vimba.register_camera_change_handler(self.connection_handler)
+            rospy.spin()
+            vimba.unregister_camera_change_handler(self.connection_handler)
 
-            self._camera.stop_acquisition()
+            with self._thread_lock:
+                self._thread[1].set()
+                self._thread[0].join()
 
 
 if __name__ == '__main__':

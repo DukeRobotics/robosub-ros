@@ -1,5 +1,5 @@
 <launch>
-    <node name="stereo" pkg="avt_camera" type="synchronized_cameras.py">
+    <node name="stereo" pkg="avt_camera" type="stereo_camera.py" output="screen">
         <rosparam>
           camera: [left, right]
           camera_id:

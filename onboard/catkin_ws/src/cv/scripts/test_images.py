@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
 import cv2
@@ -41,6 +41,7 @@ class DummyImagePublisher:
 
         # Testing enable_model service
         service_name = 'enable_model_{}'.format(self.CAMERA if not self.STEREO_ENABLED else 'stereo')
+
         rospy.wait_for_service(service_name)
         enable_model = rospy.ServiceProxy(service_name, EnableModel)
 

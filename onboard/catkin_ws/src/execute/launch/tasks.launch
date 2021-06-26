@@ -10,5 +10,5 @@
     </include>
 
     <!-- Run the task planner -->
-    <include file="$(find motion_planning)/launch/task_runner.launch" />
+    <include file="$(find task_planning)/launch/task_runner.launch" />
 </launch>

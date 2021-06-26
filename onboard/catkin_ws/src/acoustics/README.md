@@ -9,14 +9,14 @@ To launch the main sampling and processing nodes, you can use the launch file pr
 roslaunch acoustics acoustics.launch
 ```
 
+If you are using the saleae (the hardware used to sample the hydrophones), then you will need to have X forwarding enabled (pass in -XY to the ssh command). Note that the graphics process (the saleae Logic application) will persist even after you kill the ROS node.
+
 Refer to the section on the acoustics wrapper structure below for the specific information to send to start processing. To start an action via a GUI (without an action client) refer to this [tutorial](http://wiki.ros.org/actionlib_tutorials/Tutorials/Calling%20Action%20Server%20without%20Action%20Client).
 
-To run the data_sim server that will generate test data, you can use the command:
+To use the data_sim server that will generate test data, instead of hardware sampling with the saleae, you can use the command:
 ```
-rosrun acoustics data_server.py
+roslaunch acoustics acoustics.launch sim:=true
 ```
-
-Refer to the section on structure below for the specific information to send to start the data generation.
 
 ## Structure
 
@@ -26,6 +26,11 @@ This package contains 5 nodes to handle various acoustics tasks: the acoustics w
 The acoustics wrapper node provides an external interface (an action server) to allow client code to easily call all of the steps involved in acoustics processing without providing lower level information such as the sampling frequency or file paths for saved data.
 
 The node itself provides an action server of type `custom_msgs/AcousticsWrapper.action`, which client code will use to call the action. Client code is required to provide the target frequency of the pinger (Robosub provides this depending on what course we are using), and the wrapper server will return the horizontal angle to which the pinger is located at. It will also update the client as to which step is being done via its feedback messages.
+
+To start a GUI for this action using the builtin GUI interface, you may use the command:
+```
+rosrun actionlib_tools axclient.py /acoustics_wrapper
+```
 
 ### Saleae Node
 
