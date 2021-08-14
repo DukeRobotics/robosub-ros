@@ -28,15 +28,22 @@ if [[ "$1" == "clean" ]]; then
   exit 0
 fi
 
+if [[ -z "$COMPUTER_TYPE" ]]; then
+  echo "COMPUTER_TYPE variable not defined, please set to workspace and rerun this script."
+  exit 1
+fi
+
 # shellcheck disable=SC1091
 source /opt/ros/noetic/setup.bash
 
+echo "Building core workspace"
 cd core/catkin_ws
 catkin build
 # shellcheck disable=SC1091
 source devel/setup.bash
 cd ../..
 
+echo "Building ${COMPUTER_TYPE} workspace"
 cd "${COMPUTER_TYPE}"/catkin_ws
 catkin build
 # shellcheck disable=SC1091
@@ -44,4 +51,4 @@ source devel/setup.bash
 cd ../..
 
 echo "If you did not source this scipt, please run"
-echo "source "${COMPUTER_TYPE}"/catkin_ws/devel/setup.bash"
+echo "source ${COMPUTER_TYPE}/catkin_ws/devel/setup.bash"
