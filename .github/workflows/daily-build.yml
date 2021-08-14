@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Test build
-        run: ./build.sh '${{ matrix.workspace }}'
+        run: ./build.sh
       - name: Test Arduino build
         if: matrix.workspace == 'onboard'
         run: ./.github/workflows/test_arduino.sh
