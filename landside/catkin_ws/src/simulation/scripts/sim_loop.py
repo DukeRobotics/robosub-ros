@@ -8,6 +8,7 @@ from nav_msgs.msg import Odometry
 from sim_handle import SimHandle
 from std_msgs.msg import Float32MultiArray, Float64
 
+
 class SimLoop:
 
     ODOM_TOPIC = 'sensors/dvl/odom'

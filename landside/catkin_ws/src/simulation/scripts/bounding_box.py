@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import rospy
 from std_msgs.msg import Float32MultiArray
 from custom_msgs.msg import CVObject
 from tf import TransformListener
@@ -22,8 +21,6 @@ class BoundingBox:
         rospy.Subscriber("/sim/object_points", Float32MultiArray, self.callback)
         rate = rospy.Rate(10)
         while not rospy.is_shutdown():
-            hello_str = "hello world %s" % rospy.get_time()
-            # rospy.loginfo(hello_str)
             rate.sleep()
 
     def callback(self, data):
@@ -141,10 +138,6 @@ class BoundingBox:
         # if box == [0,1,0,1]:
         # 	box = [-1,-1,-1,-1]
 
-        # rospy.loginfo("indices {:}, {:}, {:}, {:}".format(xs.index(box[0]), xs.index(box[1]), ys.index(box[2]), ys.index(box[3])))
-        # if ((xmin == xmax) or (ymin == ymax)):
-        # 	for x in box:
-        # 		x = -1
         return box
 
 
