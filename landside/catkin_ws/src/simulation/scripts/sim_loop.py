@@ -6,8 +6,7 @@ from custom_msgs.msg import ThrusterSpeeds
 from sensor_msgs.msg import Imu
 from nav_msgs.msg import Odometry
 from sim_handle import SimHandle
-from std_msgs.msg import Float32MultiArray
-
+from std_msgs.msg import Float32MultiArray, Float64
 
 class SimLoop:
 
@@ -15,6 +14,7 @@ class SimLoop:
     IMU_TOPIC = 'sensors/imu/imu'
     ROBOT_MOVE_TOPIC = 'offboard/thruster_speeds'
     OBJ_POINTS_TOPIC = 'sim/object_points'
+    DEPTH_TOPIC = 'sensors/depth'
 
     def __init__(self):
         rospy.init_node("simulation")
@@ -26,6 +26,7 @@ class SimLoop:
         self.odom_pub = rospy.Publisher(self.ODOM_TOPIC, Odometry, queue_size=3)
         self.imu_pub = rospy.Publisher(self.IMU_TOPIC, Imu, queue_size=3)
         self.gate_pos_pub = rospy.Publisher(self.OBJ_POINTS_TOPIC, Float32MultiArray, queue_size=3)
+        self.depth_pub = rospy.Publisher(self.DEPTH_TOPIC, Float64, queue_size=3)
 
         self.on_move_received(ThrusterSpeeds())
 
@@ -54,6 +55,13 @@ class SimLoop:
         msg.data = gate_data
         self.gate_pos_pub.publish(msg)
 
+    def publish_depth(self, pose, twist):
+        msg = Float64()
+        # Float64 doesn't have a header for timestamps or fields for
+        # parent/child frame labels, so they aren't included.
+        msg.data = pose.position.z  # Assume position is in meters
+        self.depth_pub.publish(msg)
+
     def run(self):
         rate = rospy.Rate(10)  # 10 Hz
         while not rospy.is_shutdown():
@@ -63,6 +71,7 @@ class SimLoop:
             self.publish_imu(pose, twist)
             self.publish_odom(pose, twist)
             self.publish_gate_pos(self.sim_handle.get_gate_corners())
+            self.publish_depth(pose, twist)
             self.sim_handle.set_thruster_force(self.tforces)
 
             rate.sleep()

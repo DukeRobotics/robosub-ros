@@ -27,7 +27,7 @@ class PressureToDepthConverter:
         self._pub_depth.publish(depth)
 
     def pressure_to_depth(self, pressure):
-        return (pressure - self.ATMOSPHERIC_PRESSURE) / (self.DENSITY_WATER * self.ACCEL_GRAVITY)
+        return -(pressure - self.ATMOSPHERIC_PRESSURE) / (self.DENSITY_WATER * self.ACCEL_GRAVITY)
 
 
 if __name__ == '__main__':
