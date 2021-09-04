@@ -75,6 +75,8 @@ class SimHandle:
         # I don't know why this mode has to be blocking, but it gets very mad if it's buffer
         gate_points = [1, len(self.gate)*8]
         for gate_obj in self.gate:
+            base_x, base_y, base_z = self.run_sim_function(sim.simxGetObjectPosition, (self.clientID, gate_obj, -1, mode))
+
             min_x = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, gate_obj, 15, mode))
             min_y = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, gate_obj, 16, mode))
             min_z = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, gate_obj, 17, mode))
@@ -85,10 +87,10 @@ class SimHandle:
             for i in range(2):
                 for j in range(2):
                     for k in range(2):
-                        point_x = min_x if i==0 else max_x
-                        point_y = min_y if j==0 else max_y
-                        point_z = min_z if k==0 else max_z
+                        point_x = base_x + (min_x if i==0 else max_x)
+                        point_y = base_y + (min_y if j==0 else max_y)
+                        point_z = base_z + (min_z if k==0 else max_z)
                         gate_points.append(point_x)
                         gate_points.append(point_y)
                         gate_points.append(point_z)
-            return gate_points
+        return gate_points

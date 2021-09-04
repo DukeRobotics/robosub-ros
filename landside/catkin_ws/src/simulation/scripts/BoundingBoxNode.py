@@ -30,9 +30,9 @@ def callback(data):
 	# rospy.loginfo("object points received")
 
 	objPoints = parse_array(data.data)
-	print(objPoints)
+	print("objpoints:", objPoints)
 	boxes = bounding_boxes(objPoints)
-	print(boxes)
+	print("boxes:", boxes)
 
 	# rospy.loginfo(objects)
 
@@ -41,9 +41,9 @@ def callback(data):
 		box.score = 1
 
 		box.xmin = boxes[i][0]
-		box.xmax = boxes[i][0]
-		box.ymin = boxes[i][0]
-		box.ymax = boxes[i][0]
+		box.xmax = boxes[i][1]
+		box.ymin = boxes[i][2]
+		box.ymax = boxes[i][3]
 		if i == 1: #gate==1
 			box.label = 'gate'
 			pub_gate.publish(box)
@@ -54,6 +54,8 @@ def callback(data):
 #parse into arrays of arrays of points
 def parse_array(array):
 	ret = {}
+	print(array)
+	print(len(array))
 	while array:
 		if len(array) < 2:
 			break

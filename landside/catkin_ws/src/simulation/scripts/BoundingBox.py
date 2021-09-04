@@ -45,12 +45,6 @@ def get_grid_point(listener, point):
 	return grid_point
 
 def point_rel_to_bot(listener, point):
-
-	# r = R.from_euler('xyz', orientation, degrees=False)
-	# rel_point = r.apply(point)
-	#
-	# for i in range(len(rel_point)):
-	# 	rel_point[i] -= pos[i]
 	poses = PoseStamped()
 	pose = Pose()
 	q = Quaternion()
@@ -64,17 +58,19 @@ def point_rel_to_bot(listener, point):
 	poses.pose = pose
 	poses.header.frame_id = "odom"
 	newpoint = listener.transformPose("cameras_link", poses).pose.position
+	# the above *should* be cameras_link, probably, but that gives weird transforms
 	rel_point = [0, 0, 0]
 	rel_point[0] = newpoint.x
 	rel_point[1] = newpoint.y
 	rel_point[2] = newpoint.z
-	# rospy.loginfo("Before: "+ str(point)+" After: " + str(newpoint))
+	rospy.loginfo("Before: "+ str(point)+" After: " + str(newpoint))
 	return rel_point
 
-def clamp(num, min, max):
-	return min(max(min, num), max)
+def clamp(num, minn, maxx):
+	return min(max(minn, num), maxx)
 
 def get_box(xs, ys):
+	print(xs, ys)
 	if len(xs) == 0:
 		xs = [-1]
 	if len(ys) == 0:
@@ -83,11 +79,9 @@ def get_box(xs, ys):
 	# if box == [0,1,0,1]:
 	# 	box = [-1,-1,-1,-1]
 	
-	rospy.loginfo("indices {:}, {:}, {:}, {:}".format(xs.index(box[0]), xs.index(box[1]), ys.index(box[2]), ys.index(box[3])))
+	# rospy.loginfo("indices {:}, {:}, {:}, {:}".format(xs.index(box[0]), xs.index(box[1]), ys.index(box[2]), ys.index(box[3])))
 	# if ((xmin == xmax) or (ymin == ymax)):
 	# 	for x in box:
 	# 		x = -1
 	return box
 
-	#if __name__ == "__main__":
-		
