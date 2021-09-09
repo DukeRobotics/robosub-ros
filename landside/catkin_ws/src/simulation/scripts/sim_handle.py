@@ -6,7 +6,6 @@ import itertools
 
 
 class SimHandle:
-
     DOCKER_IP = '192.168.65.2'
 
     def __init__(self):
@@ -22,7 +21,8 @@ class SimHandle:
         rospy.loginfo(f'Number of objects in the scene: {len(objs)}')
         self.robot = self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, "Rob", sim.simx_opmode_blocking))
         gate_names = ["Gate", "GateLeftChild", "GateRightChild"]
-        self.gate = [self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, name, sim.simx_opmode_blocking)) for name in gate_names]
+        self.gate = [self.run_sim_function(sim.simxGetObjectHandle,
+                                           (self.clientID, name, sim.simx_opmode_blocking)) for name in gate_names]
         self.set_position_to_zero()
         rospy.sleep(0.1)
         self.init_streaming()
@@ -46,7 +46,7 @@ class SimHandle:
 
     def set_position_to_zero(self):
         self.run_sim_function(sim.simxSetObjectPosition, (self.clientID, self.robot, -
-                              1, [0.0, 0.0, 0.0], sim.simx_opmode_blocking))
+        1, [0.0, 0.0, 0.0], sim.simx_opmode_blocking))
 
     def set_thruster_force(self, force):
         inp = itertools.chain.from_iterable(force)
@@ -73,9 +73,10 @@ class SimHandle:
 
     def get_gate_corners(self, mode=sim.simx_opmode_blocking):
         # I don't know why this mode has to be blocking, but it gets very mad if it's buffer
-        gate_points = [1, len(self.gate)*8]
+        gate_points = [1, len(self.gate) * 8]
         for gate_obj in self.gate:
-            base_x, base_y, base_z = self.run_sim_function(sim.simxGetObjectPosition, (self.clientID, gate_obj, -1, mode))
+            base_x, base_y, base_z = self.run_sim_function(sim.simxGetObjectPosition,
+                                                           (self.clientID, gate_obj, -1, mode))
 
             min_x = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, gate_obj, 15, mode))
             min_y = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, gate_obj, 16, mode))
@@ -87,9 +88,9 @@ class SimHandle:
             for i in range(2):
                 for j in range(2):
                     for k in range(2):
-                        point_x = base_x + (min_x if i==0 else max_x)
-                        point_y = base_y + (min_y if j==0 else max_y)
-                        point_z = base_z + (min_z if k==0 else max_z)
+                        point_x = base_x + (min_x if i == 0 else max_x)
+                        point_y = base_y + (min_y if j == 0 else max_y)
+                        point_z = base_z + (min_z if k == 0 else max_z)
                         gate_points.append(point_x)
                         gate_points.append(point_y)
                         gate_points.append(point_z)
