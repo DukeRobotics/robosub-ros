@@ -45,8 +45,8 @@ class SimHandle:
         return res[1:]
 
     def set_position_to_zero(self):
-        self.run_sim_function(sim.simxSetObjectPosition, (self.clientID, self.robot, -
-        1, [0.0, 0.0, 0.0], sim.simx_opmode_blocking))
+        self.run_sim_function(sim.simxSetObjectPosition,
+                              (self.clientID, self.robot, - 1, [0.0, 0.0, 0.0], sim.simx_opmode_blocking))
 
     def set_thruster_force(self, force):
         inp = itertools.chain.from_iterable(force)
