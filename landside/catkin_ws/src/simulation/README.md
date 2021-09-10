@@ -48,15 +48,24 @@ CV data to send. The IDs are:
 - 2: Buoy
     - size: 48x24 in. piece of paper, oriented facing sideways
 - 3: Bin
-    - Size: 1/3 of the bin is covered by a 8x14x0.5 in. plate
+    - Size: 36x26x8 in.
+        - This is a GUESS!
+        - 1/3 of the bin is covered by a 8x14x0.5 in. plate
+        - 8 inches deep, 6 inch 'margins'
 - 4: Octagon
     - Size: 2.7m diameter
 - 5: Torpedo
     - Size: 2x2x6 in.
-- 6: Path marker
+- 6: Straight Path marker
     - Size: 1.2x0.15x0.075 m
-- 7: Gate side identifier (*Choose your side*)
-    - Size: 6x12 in.
+- 7: Left Path marker
+    - Size: 1.2x0.15x0.075 m
+- 8: Right Path marker
+    - Size: 1.2x0.15x0.075 m
+- 9: Gate side identifier, G-man (*Choose your side* abbreviated as CYS)
+    - Size: 6x12 in. piece of paper facing sidways
+- 10: Gate side identifier, Bootlegger (*Choose your side* abbreviated as CYS)
+    - Size: 6x12 in. piece of paper facing sidways
 
 ### How to add a new object type
 1. Define the ID that the object will use (for the "Object IDs" section), and 
