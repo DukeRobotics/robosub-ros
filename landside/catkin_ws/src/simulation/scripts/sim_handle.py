@@ -2,6 +2,7 @@ import sim
 import rospy
 import sys
 from geometry_msgs.msg import Pose, Quaternion, Point, Twist, Vector3
+from custom_msgs.msg import SimObject, SimObjectArray
 import itertools
 
 
@@ -72,8 +73,9 @@ class SimHandle:
         return Twist(linear=Vector3(*lin), angular=Vector3(*ang))
 
     def get_gate_corners(self, mode=sim.simx_opmode_blocking):
-        # I don't know why this mode has to be blocking, but it gets very mad if it's buffer
-        gate_points = [1, len(self.gate) * 8]
+        gate_sim_object = SimObject()        
+        gate_sim_object.label = 'gate'
+
         for gate_obj in self.gate:
             base_x, base_y, base_z = self.run_sim_function(sim.simxGetObjectPosition,
                                                            (self.clientID, gate_obj, -1, mode))
@@ -91,7 +93,5 @@ class SimHandle:
                         point_x = base_x + (min_x if i == 0 else max_x)
                         point_y = base_y + (min_y if j == 0 else max_y)
                         point_z = base_z + (min_z if k == 0 else max_z)
-                        gate_points.append(point_x)
-                        gate_points.append(point_y)
-                        gate_points.append(point_z)
-        return gate_points
+                        gate_sim_object.points.append(Point(x=point_x, y=point_y, z=point_z))
+        return gate_sim_object
