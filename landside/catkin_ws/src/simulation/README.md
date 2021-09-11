@@ -67,6 +67,12 @@ CV data to send. The IDs are:
 - 10: Gate side identifier, Bootlegger (*Choose your side* abbreviated as CYS)
     - Size: 6x12 in. piece of paper facing sidways
 
+### Objects not yet modelled:
+- Left path marker
+- Right path marker
+- Bottle (Cash or Smash)
+- Table (Cash or Smash)
+
 ### How to add a new object type
 1. Define the ID that the object will use (for the "Object IDs" section), and 
 ensure that no other object is already using this ID.
