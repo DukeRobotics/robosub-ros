@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
-from std_msgs.msg import Float32MultiArray
 from custom_msgs.msg import CVObject, SimObjectArray
 from tf import TransformListener
-from geometry_msgs.msg import Pose, Point, Quaternion, PoseStamped
+from geometry_msgs.msg import Pose, Quaternion, PoseStamped
 import rospy
 from numpy import clip
 
@@ -13,8 +12,8 @@ class BoundingBox:
     def __init__(self):
         rospy.init_node('sim_box_maker')
         self.listener = TransformListener()
-        self.publishers = {'gate' : rospy.Publisher('/gate/left', CVObject, queue_size=10),
-                           'buoy' : rospy.Publisher('/buoy/left', CVObject, queue_size=10)}
+        self.publishers = {'gate': rospy.Publisher('/gate/left', CVObject, queue_size=10),
+                           'buoy': rospy.Publisher('/buoy/left', CVObject, queue_size=10)}
         rospy.Subscriber("/sim/object_points", SimObjectArray, self.callback)
         rospy.spin()
 
@@ -24,7 +23,7 @@ class BoundingBox:
         for label in boxes:
             box = CVObject()
             box.score = 1
-            box.label = label 
+            box.label = label
             box.xmin, box.xmax, box.ymin, box.ymax = boxes[label]
             if label not in self.publishers:
                 rospy.logerr(f"Publisher for label {label} not found")

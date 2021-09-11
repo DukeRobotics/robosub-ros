@@ -2,7 +2,7 @@ import sim
 import rospy
 import sys
 from geometry_msgs.msg import Pose, Quaternion, Point, Twist, Vector3
-from custom_msgs.msg import SimObject, SimObjectArray
+from custom_msgs.msg import SimObject
 import itertools
 
 
@@ -46,8 +46,8 @@ class SimHandle:
         return res[1:]
 
     def set_position_to_zero(self):
-        self.run_sim_function(sim.simxSetObjectPosition, (self.clientID, self.robot, -
-        1, [0.0, 0.0, 0.0], sim.simx_opmode_blocking))
+        self.run_sim_function(sim.simxSetObjectPosition, (self.clientID, self.robot,
+                                                          -1, [0.0, 0.0, 0.0], sim.simx_opmode_blocking))
 
     def set_thruster_force(self, force):
         inp = itertools.chain.from_iterable(force)
@@ -73,7 +73,7 @@ class SimHandle:
         return Twist(linear=Vector3(*lin), angular=Vector3(*ang))
 
     def get_gate_corners(self, mode=sim.simx_opmode_blocking):
-        gate_sim_object = SimObject()        
+        gate_sim_object = SimObject()
         gate_sim_object.label = 'gate'
 
         for gate_obj in self.gate:
