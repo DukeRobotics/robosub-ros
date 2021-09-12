@@ -79,7 +79,7 @@ function extsysCall_actuation()
     transform = sim.getObjectMatrix(hr, -1)
     res = sim.invertMatrix(transform)
     relbuoy = sim.multiplyVector(transform, { 0, 0, fbuoy })
-  
+
     v, angv = sim.getVelocity(hr)
     dragforcelin = {calc_dragforcelin(v[1], ysize, subdepth),
                     calc_dragforcelin(v[2], xsize, subdepth),
@@ -130,7 +130,7 @@ end
 
 function setThrusterForces(inInts, inFloats, inString, inBuffer)
   for i = 1,8 do
-    forces[i] = {inFloats[(i-1)*3 + 1], 
+    forces[i] = {inFloats[(i-1)*3 + 1],
                  inFloats[(i-1)*3 + 2],
                  inFloats[(i-1)*3 + 3]}
   end

@@ -2,7 +2,7 @@
 
 import rospy
 from cthulhu_model import Cthulhu
-from custom_msgs.msg import ThrusterSpeeds
+from custom_msgs.msg import ThrusterSpeeds, SimObjectArray
 from sensor_msgs.msg import Imu
 from nav_msgs.msg import Odometry
 from sim_handle import SimHandle
@@ -14,6 +14,7 @@ class SimLoop:
     ODOM_TOPIC = 'sensors/dvl/odom'
     IMU_TOPIC = 'sensors/imu/imu'
     ROBOT_MOVE_TOPIC = 'offboard/thruster_speeds'
+    OBJ_POINTS_TOPIC = 'sim/object_points'
     DEPTH_TOPIC = 'sensors/depth'
 
     def __init__(self):
@@ -25,6 +26,7 @@ class SimLoop:
 
         self.odom_pub = rospy.Publisher(self.ODOM_TOPIC, Odometry, queue_size=3)
         self.imu_pub = rospy.Publisher(self.IMU_TOPIC, Imu, queue_size=3)
+        self.sim_object_pub = rospy.Publisher(self.OBJ_POINTS_TOPIC, SimObjectArray, queue_size=3)
         self.depth_pub = rospy.Publisher(self.DEPTH_TOPIC, Float64, queue_size=3)
 
         self.on_move_received(ThrusterSpeeds())
@@ -49,6 +51,11 @@ class SimLoop:
         msg.twist.twist = twist
         self.odom_pub.publish(msg)
 
+    def publish_sim_objects(self):
+        msg = SimObjectArray()
+        msg.objects.append(self.sim_handle.get_gate_corners())
+        self.sim_object_pub.publish(msg)
+
     def publish_depth(self, pose, twist):
         msg = Float64()
         # Float64 doesn't have a header for timestamps or fields for
@@ -64,6 +71,7 @@ class SimLoop:
 
             self.publish_imu(pose, twist)
             self.publish_odom(pose, twist)
+            self.publish_sim_objects()
             self.publish_depth(pose, twist)
             self.sim_handle.set_thruster_force(self.tforces)
 

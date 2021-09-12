@@ -1,3 +1,4 @@
 <launch>
     <node name="simulation" pkg="simulation" type="sim_loop.py" output="screen"/>
+    <node name="sim_box_maker" pkg="simulation" type="bounding_box.py" output="screen"/>
 </launch>

@@ -18,6 +18,8 @@ add_message_files(
   CVObject.msg
   Memory.msg
   SystemUsage.msg
+  SimObject.msg
+  SimObjectArray.msg
 )
 
 add_service_files(

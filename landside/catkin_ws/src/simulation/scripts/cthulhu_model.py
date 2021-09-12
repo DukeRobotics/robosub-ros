@@ -5,7 +5,7 @@ import math
 class Cthulhu:
 
     THRUSTERFORCE = 5.25  # 4.1 rev
-    ACTUALMASS = 22
+    ACTUALMASS = 25.8
 
     def __init__(self, m):
         self.M = m
