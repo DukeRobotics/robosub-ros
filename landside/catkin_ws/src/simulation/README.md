@@ -37,5 +37,14 @@ sudo xattr -r -d com.apple.quarantine *
 3. Run whatever ROS topic publishing code you have. If you ran the test_sim_comm launch file, `scripts/square_command.py` will be executed, which publishes thruster values to naively make the robot move in a square (in reality, the robot will spin in wide circles because the robot isn't balanced).
 4. The robot should start moving, if everything is successful.
 
+Other notes:
+- Make sure that you're running `roslaunch execute motion.launch sim:=true` so
+that the simulation has data about the camera's position in order to transform
+data for publishing.
+- If you want to test data where the robot is facing a specific direction without
+the robot rotating, select Rob, then go to Tools->Scene object properties...,
+and in the resulting dialog, go to the Common tab and select 'Edit model properties'.
+In the new dialog popup, check the box for 'Model is not dynamic'.
+
 #### A Note for Windows
 On Windows machines with high res displays, some apps will not scale the font correctly. This happens because some applications essentially “tell” Windows that it will handle the scaling, but then don’t. To fix this, right click on the application icon, go to properties, compatibility, change high DPI settings, check override, and select system.

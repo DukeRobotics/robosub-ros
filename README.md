@@ -169,6 +169,7 @@ You should now be ready to use our packages and ROS.
 
 ### Running Launch Files
 Here are some common launch configurations for both pool and local testing.
+Run within the onboard container.
 
 * Test controls using `test_state_publisher.py`
     ```bash
