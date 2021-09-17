@@ -100,3 +100,10 @@ it the appropriate name.
 to save the model as a .ttm model in the personal/models/ folder.
 
 You can now import the model to any scene using File->Load model...!
+
+### What bounding boxes are we delivering to CV?
+- Example: The CYS gate
+    1. Large 'gate' bounding box
+    2. Small 'gate tick' bounding box
+    3. CYS G-man card bounding box
+    4. CYS Bottlegger card bounding box
