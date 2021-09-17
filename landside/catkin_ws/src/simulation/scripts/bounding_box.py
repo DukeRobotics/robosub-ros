@@ -35,7 +35,7 @@ class BoundingBox:
         filtered_grid_points = [point for point in grid_points if point != (-1, -1)]
         xs, ys = zip(*(filtered_grid_points if filtered_grid_points else [(-1, -1)]))
         rospy.loginfo(f"{xs}, {ys}")
-        return (clip(min(xs), 0, 1), clip(max(xs), 0, 1), clip(min(ys), 0, 1), clip(max(ys), 0, 1))
+        return clip(min(xs), 0, 1), clip(max(xs), 0, 1), clip(min(ys), 0, 1), clip(max(ys), 0, 1)
 
     def get_grid_point(self, point):
         rel_point = self.point_rel_to_bot(point)
@@ -46,9 +46,7 @@ class BoundingBox:
         yFOV = 0.586 * rel_point.x
         xPix = (xFOV / 2 - rel_point.y) / xFOV
         yPix = (yFOV / 2 - rel_point.z) / yFOV
-        xPix = max(min(1, xPix), 0)
-        yPix = max(min(1, yPix), 0)
-        return (xPix, yPix)
+        return clip(xPix, 0, 1), clip(yPix, 0, 1)
 
     def point_rel_to_bot(self, point):
         poses = PoseStamped()
