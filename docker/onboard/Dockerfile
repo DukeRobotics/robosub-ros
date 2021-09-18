@@ -81,6 +81,10 @@ RUN wget -O "logic.zip" "http://downloads.saleae.com/logic/1.2.18/Logic+1.2.18+(
 # v0.17.0 is required due to issues with adding libraries in the current version v0.18.0
 RUN curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=/usr/local/bin sh -s 0.17.0
 
+# Set ROS_IP to avoid unresolvable hostnames
+COPY setup_network.bash /opt/ros/noetic/setup_network.bash
+RUN chmod +x /opt/ros/noetic/setup_network.bash
+
 # Set computer type
 ENV COMPUTER_TYPE=onboard
 RUN echo "COMPUTER_TYPE=onboard" >> /root/.ssh/environment
