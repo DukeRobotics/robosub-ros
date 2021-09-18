@@ -109,26 +109,27 @@ class SimHandle:
         object_array = SimObjectArray()
 
         for obj_name in self.OBJ_NAMES:
-            while True:
-                obj_index = 0
-                instance_name = '{obj_name}{obj_index}'
+            obj_index = -1
+            while True: # gets all objects of type obj_name in simulation
+                instance_name = '{obj_name}{obj_index}' if obj_index >= 0 else obj_name
+                obj_index += 1
                 instance_handle = self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, instance_name, mode))
+                print(obj_name, instance_handle)
                 if instance_handle == 0:
                     break
                 instance_sim_object = SimObject()
-                instance_sim_object.label = obj_name
+                instance_sim_object.label = obj_name.lower()
 
                 child_index = 0
                 instance_sim_object.points += self.get_corners(instance_handle)
                 while True:
                     # TODO: Recursively get children so that we can have
                     # trees of objects bundled together
-                    child_handle = self.run_sim_function(sim.simxGetObjectChild, 
+                    child_handle = self.run_sim_function(sim.simxGetObjectChild,
                         (self.clientID, instance_handle, child_index, mode))
                     instance_sim_object.points += self.get_corners(child_handle)
                     if child_handle == -1:
                         break
                     child_index += 1
-                obj_index += 1
-            object_array.objects += instance_sim_object
+                object_array.objects.append(instance_sim_object)
         return object_array
