@@ -52,9 +52,7 @@ class SimLoop:
         self.odom_pub.publish(msg)
 
     def publish_sim_objects(self):
-        msg = SimObjectArray()
-        msg.objects.append(self.sim_handle.get_gate_corners())
-        self.sim_object_pub.publish(msg)
+        self.sim_object_pub.publish(self.sim_handle.get_sim_objects())
 
     def publish_depth(self, pose, twist):
         msg = Float64()

@@ -2,13 +2,13 @@ import sim
 import rospy
 import sys
 from geometry_msgs.msg import Pose, Quaternion, Point, Twist, Vector3
-from custom_msgs.msg import SimObject
+from custom_msgs.msg import SimObject, SimObjectArray
 import itertools
 
 
 class SimHandle:
     DOCKER_IP = '192.168.65.2'
-    OBJ_NAMES = ["Gate"]
+    OBJ_NAMES = ['Gate', 'BootleggerBuoy']
 
     def __init__(self):
         sim.simxFinish(-1)
@@ -101,3 +101,34 @@ class SimHandle:
         for gate_obj in self.gate:
             gate_sim_object.points += self.get_corners(gate_obj)
         return gate_sim_object
+
+    # Returns a SimObjArray message consisting of
+    # SimObj messages representing the bounding boxes of all 
+    # objects in the scene which are relevant to CV.
+    def get_sim_objects(self, mode=sim.simx_opmode_blocking):
+        object_array = SimObjectArray()
+
+        for obj_name in self.OBJ_NAMES:
+            while True:
+                obj_index = 0
+                instance_name = '{obj_name}{obj_index}'
+                instance_handle = self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, instance_name, mode))
+                if instance_handle == 0:
+                    break
+                instance_sim_object = SimObject()
+                instance_sim_object.label = obj_name
+
+                child_index = 0
+                instance_sim_object.points += self.get_corners(instance_handle)
+                while True:
+                    # TODO: Recursively get children so that we can have
+                    # trees of objects bundled together
+                    child_handle = self.run_sim_function(sim.simxGetObjectChild, 
+                        (self.clientID, instance_handle, child_index, mode))
+                    instance_sim_object.points += self.get_corners(child_handle)
+                    if child_handle == -1:
+                        break
+                    child_index += 1
+                obj_index += 1
+            object_array.objects += instance_sim_object
+        return object_array
