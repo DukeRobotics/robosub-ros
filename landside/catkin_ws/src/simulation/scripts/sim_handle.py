@@ -74,6 +74,7 @@ class SimHandle:
         return Twist(linear=Vector3(*lin), angular=Vector3(*ang))
 
     def get_corners(self, obj, mode=sim.simx_opmode_blocking):
+        ret = []
         base_x, base_y, base_z = self.run_sim_function(sim.simxGetObjectPosition,
                                                        (self.clientID, obj, -1, mode))
 
@@ -90,12 +91,13 @@ class SimHandle:
                     point_x = base_x + (min_x if i == 0 else max_x)
                     point_y = base_y + (min_y if j == 0 else max_y)
                     point_z = base_z + (min_z if k == 0 else max_z)
-        return Point(x=point_x, y=point_y, z=point_z)
+                    ret.append(Point(x=point_x, y=point_y, z=point_z))
+        return ret
 
     def get_gate_corners(self, mode=sim.simx_opmode_blocking):
         gate_sim_object = SimObject()
         gate_sim_object.label = 'gate'
 
         for gate_obj in self.gate:
-            gate_sim_object.points.append(self.get_corners(gate_obj))
+            gate_sim_object.points += self.get_corners(gate_obj)
         return gate_sim_object
