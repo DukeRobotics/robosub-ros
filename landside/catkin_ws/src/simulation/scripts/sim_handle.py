@@ -73,26 +73,29 @@ class SimHandle:
         lin, ang = self.run_sim_function(sim.simxGetObjectVelocity, (self.clientID, self.robot, mode))
         return Twist(linear=Vector3(*lin), angular=Vector3(*ang))
 
+    def get_corners(self, obj, mode=sim.simx_opmode_blocking):
+        base_x, base_y, base_z = self.run_sim_function(sim.simxGetObjectPosition,
+                                                       (self.clientID, obj, -1, mode))
+
+        min_x = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, obj, 15, mode))
+        min_y = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, obj, 16, mode))
+        min_z = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, obj, 17, mode))
+
+        max_x = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, obj, 18, mode))
+        max_y = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, obj, 19, mode))
+        max_z = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, obj, 20, mode))
+        for i in range(2):
+            for j in range(2):
+                for k in range(2):
+                    point_x = base_x + (min_x if i == 0 else max_x)
+                    point_y = base_y + (min_y if j == 0 else max_y)
+                    point_z = base_z + (min_z if k == 0 else max_z)
+        return Point(x=point_x, y=point_y, z=point_z)
+
     def get_gate_corners(self, mode=sim.simx_opmode_blocking):
         gate_sim_object = SimObject()
         gate_sim_object.label = 'gate'
 
         for gate_obj in self.gate:
-            base_x, base_y, base_z = self.run_sim_function(sim.simxGetObjectPosition,
-                                                           (self.clientID, gate_obj, -1, mode))
-
-            min_x = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, gate_obj, 15, mode))
-            min_y = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, gate_obj, 16, mode))
-            min_z = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, gate_obj, 17, mode))
-
-            max_x = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, gate_obj, 18, mode))
-            max_y = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, gate_obj, 19, mode))
-            max_z = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, gate_obj, 20, mode))
-            for i in range(2):
-                for j in range(2):
-                    for k in range(2):
-                        point_x = base_x + (min_x if i == 0 else max_x)
-                        point_y = base_y + (min_y if j == 0 else max_y)
-                        point_z = base_z + (min_z if k == 0 else max_z)
-                        gate_sim_object.points.append(Point(x=point_x, y=point_y, z=point_z))
+            gate_sim_object.points.append(self.get_corners(gate_obj))
         return gate_sim_object
