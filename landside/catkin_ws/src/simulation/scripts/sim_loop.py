@@ -69,8 +69,8 @@ class SimLoop:
 
             self.publish_imu(pose, twist)
             self.publish_odom(pose, twist)
-            self.publish_sim_objects()
             self.publish_depth(pose, twist)
+            self.publish_sim_objects()
             self.sim_handle.set_thruster_force(self.tforces)
 
             rate.sleep()

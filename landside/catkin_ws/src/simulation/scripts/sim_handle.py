@@ -4,11 +4,12 @@ import sys
 from geometry_msgs.msg import Pose, Quaternion, Point, Twist, Vector3
 from custom_msgs.msg import SimObject, SimObjectArray
 import itertools
+import re
 
 
 class SimHandle:
     DOCKER_IP = '192.168.65.2'
-    OBJ_NAMES = ['Gate', 'BootleggerBuoy']
+    OBJ_NAMES = '(Gate)|(BootleggerBuoy)'
 
     def __init__(self):
         sim.simxFinish(-1)
@@ -22,12 +23,10 @@ class SimHandle:
         objs = self.run_sim_function(sim.simxGetObjects, (self.clientID, sim.sim_handle_all, sim.simx_opmode_blocking))
         rospy.loginfo(f'Number of objects in the scene: {len(objs)}')
         self.robot = self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, "Rob", sim.simx_opmode_blocking))
-        gate_names = ["Gate", "GateLeftChild", "GateRightChild"]
-        self.gate = [self.run_sim_function(sim.simxGetObjectHandle,
-                                           (self.clientID, name, sim.simx_opmode_blocking)) for name in gate_names]
         self.set_position_to_zero()
         rospy.sleep(0.1)
         self.init_streaming()
+        self.pattern = re.compile(self.OBJ_NAMES)
         rospy.loginfo("Starting main loop")
 
     def init_streaming(self):
@@ -94,42 +93,17 @@ class SimHandle:
                     ret.append(Point(x=point_x, y=point_y, z=point_z))
         return ret
 
-    def get_gate_corners(self, mode=sim.simx_opmode_blocking):
-        gate_sim_object = SimObject()
-        gate_sim_object.label = 'gate'
-
-        for gate_obj in self.gate:
-            gate_sim_object.points += self.get_corners(gate_obj)
-        return gate_sim_object
-
     # Returns a SimObjArray message consisting of
     # SimObj messages representing the bounding boxes of all 
     # objects in the scene which are relevant to CV.
     def get_sim_objects(self, mode=sim.simx_opmode_blocking):
         object_array = SimObjectArray()
-
-        for obj_name in self.OBJ_NAMES:
-            obj_index = -1
-            while True: # gets all objects of type obj_name in simulation
-                instance_name = '{obj_name}{obj_index}' if obj_index >= 0 else obj_name
-                obj_index += 1
-                instance_handle = self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, instance_name, mode))
-                print(obj_name, instance_handle)
-                if instance_handle == 0:
-                    break
-                instance_sim_object = SimObject()
-                instance_sim_object.label = obj_name.lower()
-
-                child_index = 0
-                instance_sim_object.points += self.get_corners(instance_handle)
-                while True:
-                    # TODO: Recursively get children so that we can have
-                    # trees of objects bundled together
-                    child_handle = self.run_sim_function(sim.simxGetObjectChild,
-                        (self.clientID, instance_handle, child_index, mode))
-                    instance_sim_object.points += self.get_corners(child_handle)
-                    if child_handle == -1:
-                        break
-                    child_index += 1
-                object_array.objects.append(instance_sim_object)
+        _, _, _, names = self.run_sim_function(sim.simxGetObjectGroupData,(self.clientID, sim.sim_object_shape_type, 0, mode))
+        filtered_names = [name for name in names if self.pattern.fullmatch(name)]
+        for name in filtered_names:
+            obj_handle = self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, name, mode))
+            instance_sim_object = SimObject()
+            instance_sim_object.label = name
+            instance_sim_object.points = self.get_corners(obj_handle)
+            object_array.objects.append(instance_sim_object)
         return object_array

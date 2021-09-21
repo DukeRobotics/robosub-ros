@@ -12,8 +12,8 @@ class BoundingBox:
     def __init__(self):
         rospy.init_node('sim_box_maker')
         self.listener = TransformListener()
-        self.publishers = {'gate': rospy.Publisher('/gate/left', CVObject, queue_size=10),
-                           'bootleggerbuoy': rospy.Publisher('/bootleggerbuoy/left', CVObject, queue_size=10)}
+        self.publishers = {'Gate': rospy.Publisher('/gate/left', CVObject, queue_size=10),
+                           'BootleggerBuoy': rospy.Publisher('/bootleggerbuoy/left', CVObject, queue_size=10)}
         rospy.Subscriber("/sim/object_points", SimObjectArray, self.callback)
         rospy.spin()
 
