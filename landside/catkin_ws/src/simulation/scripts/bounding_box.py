@@ -5,6 +5,7 @@ from tf import TransformListener
 from geometry_msgs.msg import Pose, Quaternion, PoseStamped
 import rospy
 from numpy import clip
+from os import path
 
 
 class BoundingBox:
@@ -12,8 +13,8 @@ class BoundingBox:
     def __init__(self):
         rospy.init_node('sim_box_maker')
         self.listener = TransformListener()
-        self.publishers = {'Gate': rospy.Publisher('/gate/left', CVObject, queue_size=10),
-                           'BootleggerBuoy': rospy.Publisher('/bootleggerbuoy/left', CVObject, queue_size=10)}
+        self.publishers = {i.strip(): rospy.Publisher(f'/{i.strip().lower()}/left', CVObject, queue_size=10)
+                           for i in open(f"{path.dirname(__file__)}/obj_names.txt")}
         rospy.Subscriber("/sim/object_points", SimObjectArray, self.callback)
         rospy.spin()
 
@@ -47,7 +48,6 @@ class BoundingBox:
         xPix = (xFOV / 2 - rel_point.y) / xFOV
         yPix = (yFOV / 2 - rel_point.z) / yFOV
         return clip(xPix, 0, 1), clip(yPix, 0, 1)
-
 
     def point_rel_to_bot(self, point):
         poses = PoseStamped()

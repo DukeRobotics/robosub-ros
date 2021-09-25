@@ -1,0 +1,7 @@
+Gate
+BootleggerBuoy
+GmanBuoy
+Bin
+Octagon
+StraightPathMarker
+Pole
