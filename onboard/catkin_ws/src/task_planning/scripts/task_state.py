@@ -6,7 +6,7 @@ from custom_msgs.msg import CVObject
 
 
 class TaskState:
-    STATE_TOPIC = 'state'
+    STATE_TOPIC = '/state'
     DESIRED_POSE_TOPIC = 'controls/desired_pose'
     DESIRED_TWIST_POWER_TOPIC = 'controls/desired_power'
     DESIRED_TWIST_VELOCITY_TOPIC = 'controls/desired_twist'

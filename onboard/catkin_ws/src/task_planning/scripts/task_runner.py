@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import rospy
-
-from competition_task import CompetitionTask
+import smach.StateMachine
+from gate_task import create_gate_task_sm
 
 
 class TaskRunner:
@@ -10,14 +10,24 @@ class TaskRunner:
 
     def __init__(self):
         rospy.init_node("task_planning")
-        self.competition_task = CompetitionTask()
 
     def start(self):
-        rate = rospy.Rate(self.RATE)
+        sm_top = smach.StateMachine(outcomes=['task_runner_succeeded', 'task_runner_failed'])
 
-        while not self.competition_task.finished:
-            self.competition_task.run()
-            rate.sleep()
+        with sm_top:
+            sm_gate = create_gate_task_sm()
+            smach.StateMachine.add('GATE_STATE', sm_gate,
+                                   transitions={
+                                       'gate_task_succeeded': 'task_runner_succeeded',
+                                       'gate_task_failed': 'task_runner_failed'})
 
 
-TaskRunner().start()
+def main():
+    try:
+        TaskRunner().start()
+    except rospy.ROSInterruptException:
+        pass
+
+
+if __name__ == '__main__':
+    main()
