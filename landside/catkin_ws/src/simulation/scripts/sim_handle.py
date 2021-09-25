@@ -5,11 +5,11 @@ from geometry_msgs.msg import Pose, Quaternion, Point, Twist, Vector3
 from custom_msgs.msg import SimObject, SimObjectArray
 import itertools
 import re
+from os import path
 
 
 class SimHandle:
     DOCKER_IP = '192.168.65.2'
-    OBJ_NAMES = '(Gate)|(BootleggerBuoy)'
 
     def __init__(self):
         sim.simxFinish(-1)
@@ -26,7 +26,8 @@ class SimHandle:
         self.set_position_to_zero()
         rospy.sleep(0.1)
         self.init_streaming()
-        self.pattern = re.compile(self.OBJ_NAMES)
+        self.obj_names = '|'.join(f'({i.strip()})' for i in open(f"{path.dirname(__file__)}/obj_names.txt"))
+        self.pattern = re.compile(self.obj_names)
         rospy.loginfo("Starting main loop")
 
     def init_streaming(self):
