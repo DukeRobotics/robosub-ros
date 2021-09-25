@@ -28,7 +28,8 @@ sudo xattr -r -d com.apple.quarantine *
 
 ### Personal Computer Simulation Setup
 1. Open CoppeliaSim.
-2. Go to `File>Open Scene...` and open `empty_scene.ttt` in `personal/scenes`.
+2. Go to `File>Open Scene...` and open `empty_scene.ttt` in `/personal/scenes` in
+this folder (`/landside/catkin_ws/src/simulation/`).
 3. Press the play button to start the simulation. The robot should start bobbing up and down.
 
 ### Docker Simulation Setup
