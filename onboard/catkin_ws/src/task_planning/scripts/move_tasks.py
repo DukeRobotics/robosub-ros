@@ -4,27 +4,25 @@ from nav_msgs.msg import Odometry
 from tf.transformations import quaternion_from_euler
 import task_utils
 import rospy
+from time import sleep
 
 
 class MoveToPoseGlobalTask(Task):
     """Move to pose given in global coordinates."""
 
     def __init__(self, x, y, z, roll, pitch, yaw):
-        super(MoveToPoseGlobalTask, self).__init__(outcomes=['spin','done'])
+        super(MoveToPoseGlobalTask, self).__init__(outcomes=['done'])
 
         self.desired_pose = Pose()
         self.desired_pose.position = Point(x=x, y=y, z=z)
         self.desired_pose.orientation = Quaternion(*quaternion_from_euler(roll, pitch, yaw))
 
     def run(self, userdata):
-        self.publish_desired_pose_global(self.desired_pose)
-        if not self.state:
-            return "spin"
-        at_desired_pose_vel = task_utils.stopped_at_pose(
-            self.state.pose.pose, self.desired_pose, self.state.twist.twist)
-        if at_desired_pose_vel:
-            return "done"
-        return "spin"
+        rate = rospy.Rate(10)
+        while not(self.state and task_utils.stopped_at_pose(self.state.pose.pose, self.desired_pose, self.state.twist.twist)):
+            self.publish_desired_pose_global(self.desired_pose)
+            rate.sleep()
+        return "done"
 
 
 class MoveToPoseLocalTask(MoveToPoseGlobalTask):
@@ -59,7 +57,7 @@ class AllocatePowerTask(Task):
 
 class AllocateVelocityGlobalTask(Task):
     def __init__(self, x, y, z, roll, pitch, yaw):
-        super(AllocateVelocityGlobalTask, self).__init__()
+        super(AllocateVelocityGlobalTask, self).__init__(outcomes=["done"])
         linear = Vector3(x=x, y=y, z=z)
         angular = Vector3(x=roll, y=pitch, z=yaw)
         self.desired_twist = Twist(linear=linear, angular=angular)
