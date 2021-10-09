@@ -1,14 +1,26 @@
-import smach.StateMachine
+#!/usr/bin/env python
+
+import smach
+import rospy
 from task import Task
 from move_tasks import MoveToPoseLocalTask, AllocateVelocityLocalTask
+from tf import TransformListener
+
 
 SIDE_THRESHOLD = 0.1  # means gate post is within 1 tenth of the side of the frame
 CENTERED_THRESHOLD = 0.1  # means gate will be considered centered if within 1 tenth of the center of the frame
 
+def main():
+    rospy.init_node('gate_task')
+    
+    sm = create_gate_task_sm()
+
+    # Execute SMACH plan
+    outcome = sm.execute()
 
 def create_gate_task_sm(velocity=0.2):
     sm = smach.StateMachine(outcomes=['gate_task_succeeded', 'gate_task_failed'])
-
+    listener = TransformListener()
     with sm:
         smach.StateMachine.add('NEAR_GATE', NearGateTask(SIDE_THRESHOLD),
                                transitions={
@@ -16,46 +28,45 @@ def create_gate_task_sm(velocity=0.2):
                                    'false': 'HORIZONTAL_ALIGNMENT',
                                    'spin': 'NEAR_GATE'})
 
-        smach.StateMachine.add('MOVE_THROUGH_GATE', MoveToPoseLocalTask(3, 0, 0, 0, 0, 0),
+        smach.StateMachine.add('MOVE_THROUGH_GATE', MoveToPoseLocalTask(3, 0, 0, 0, 0, 0, listener),
                                transitions={
-                                   'done': 'succeeded',
-                                   'spin': 'MOVE_THROUGH_GATE'})
+                                   'done': 'gate_task_succeeded'})
 
         smach.StateMachine.add('HORIZONTAL_ALIGNMENT', GateHorizontalAlignmentTask(CENTERED_THRESHOLD),
                                transitions={
-                                   'left': 'ROTATE_LEFT',
-                                   'right': 'ROTATE_RIGHT',
-                                   'center': 'VERTICAL_ALIGNMENT',
-                                   'spin': 'HORIZONTAL_ALIGNMENT'})
+                                   'left': 'gate_task_succeeded',
+                                   'right': 'gate_task_succeeded',
+                                   'center': 'gate_task_succeeded',
+                                   'spin': 'gate_task_succeeded'})
 
-        smach.StateMachine.add('ROTATE_LEFT', AllocateVelocityLocalTask(0, 0, 0, 0, 0, velocity),
-                               transitions={'done': 'HORIZONTAL_ALIGNMENT'})
+        # smach.StateMachine.add('ROTATE_LEFT', AllocateVelocityLocalTask(0, 0, 0, 0, 0, velocity),
+        #                        transitions={'done': 'HORIZONTAL_ALIGNMENT'})
 
-        smach.StateMachine.add('ROTATE_RIGHT', AllocateVelocityLocalTask(0, 0, 0, 0, 0, -velocity),
-                               transitions={'done': 'HORIZONTAL_ALIGNMENT'})
+        # smach.StateMachine.add('ROTATE_RIGHT', AllocateVelocityLocalTask(0, 0, 0, 0, 0, -velocity),
+        #                        transitions={'done': 'HORIZONTAL_ALIGNMENT'})
 
-        smach.StateMachine.add('VERTICAL_ALIGNMENT', GateVerticalAlignmentTask(CENTERED_THRESHOLD),
-                               transitions={
-                                   'top': 'ASCEND',
-                                   'bottom': 'DESCEND',
-                                   'center': 'ADVANCE',
-                                   'spin': 'VERTICAL_ALIGNMENT'})
+        # smach.StateMachine.add('VERTICAL_ALIGNMENT', GateVerticalAlignmentTask(CENTERED_THRESHOLD),
+        #                        transitions={
+        #                            'top': 'ASCEND',
+        #                            'bottom': 'DESCEND',
+        #                            'center': 'ADVANCE',
+        #                            'spin': 'VERTICAL_ALIGNMENT'})
 
-        smach.StateMachine.add('ASCEND', AllocateVelocityLocalTask(0, 0, velocity, 0, 0, 0),
-                               transitions={'done': 'VERTICAL_ALIGNMENT'})
+        # smach.StateMachine.add('ASCEND', AllocateVelocityLocalTask(0, 0, velocity, 0, 0, 0),
+        #                        transitions={'done': 'VERTICAL_ALIGNMENT'})
 
-        smach.StateMachine.add('DESCEND', AllocateVelocityLocalTask(0, 0, -velocity, 0, 0, 0),
-                               transitions={'done': 'VERTICAL_ALIGNMENT'})
+        # smach.StateMachine.add('DESCEND', AllocateVelocityLocalTask(0, 0, -velocity, 0, 0, 0),
+        #                        transitions={'done': 'VERTICAL_ALIGNMENT'})
 
-        smach.StateMachine.add('ADVANCE', AllocateVelocityLocalTask(velocity, 0, 0, 0, 0, 0),
-                               transitions={'done': 'NEAR_GATE'})
+        # smach.StateMachine.add('ADVANCE', AllocateVelocityLocalTask(velocity, 0, 0, 0, 0, 0),
+        #                        transitions={'done': 'NEAR_GATE'})
 
     return sm
 
 
 class GateHorizontalAlignmentTask(Task):
     def __init__(self, threshold):
-        super(GateHorizontalAlignmentTask, self).__init__()
+        super(GateHorizontalAlignmentTask, self).__init__(["center","right","left","spin"])
         self.threshold = threshold
 
     def run(self):
@@ -71,7 +82,7 @@ class GateHorizontalAlignmentTask(Task):
 
 class GateVerticalAlignmentTask(Task):
     def __init__(self, threshold):
-        super(GateVerticalAlignmentTask, self).__init__()
+        super(GateVerticalAlignmentTask, self).__init__(["center","top","bottom","spin"])
         self.threshold = threshold
 
     def run(self):
@@ -87,7 +98,7 @@ class GateVerticalAlignmentTask(Task):
 
 class NearGateTask(Task):
     def __init__(self, threshold):
-        super(NearGateTask, self).__init__()
+        super(NearGateTask, self).__init__(["true","false","spin"])
         self.threshold = threshold
 
     def run(self):
@@ -137,3 +148,6 @@ def _scrutinize_gate(gate_data, gate_tick_data):
     res["offset_v"] = res["bottom"] - res["top"]
 
     return res
+
+if __name__ == '__main__':
+    main()

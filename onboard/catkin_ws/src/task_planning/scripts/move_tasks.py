@@ -5,6 +5,7 @@ from tf.transformations import quaternion_from_euler
 import task_utils
 import rospy
 from time import sleep
+from geometry_msgs.msg import PoseStamped
 
 
 class MoveToPoseGlobalTask(Task):
@@ -28,10 +29,18 @@ class MoveToPoseGlobalTask(Task):
 class MoveToPoseLocalTask(MoveToPoseGlobalTask):
     """Move to pose given in local coordinates."""
 
-    def __init__(self, x, y, z, roll, pitch, yaw):
+    def __init__(self, x, y, z, roll, pitch, yaw, listener):
         super(MoveToPoseLocalTask, self).__init__(x, y, z, roll, pitch, yaw)
-        self.desired_pose = task_utils.transform('base_link', 'odom', self.desired_pose)
+        print("in move")
+        self.desired_pose = transform_pose(listener, 'odom', 'base_link', self.desired_pose)
+        print("after pose")
 
+def transform_pose(listener, base_frame, target_frame, pose):
+    pose_stamped = PoseStamped()
+    pose_stamped.pose = pose
+    pose_stamped.header.frame_id = base_frame
+
+    return listener.transformPose(target_frame, pose_stamped).pose
 
 class AllocatePowerTask(Task):
     """Allocate specified power amount in a direction"""
@@ -62,7 +71,7 @@ class AllocateVelocityGlobalTask(Task):
         angular = Vector3(x=roll, y=pitch, z=yaw)
         self.desired_twist = Twist(linear=linear, angular=angular)
 
-    def run(self):
+    def run(self, userdata):
         rospy.loginfo("publishing desired twist...")
         self.publish_desired_twist(self.desired_twist)
         return "done"

@@ -4,13 +4,23 @@ import rospy
 import smach
 import random
 from task import Task
-from move_tasks import MoveToPoseGlobalTask
+from move_tasks import MoveToPoseGlobalTask, MoveToPoseLocalTask
+from time import sleep
+from tf import TransformListener
 
 # define state Foo
 
 # main
 def main():
     rospy.init_node('smach_test')
+    listener = TransformListener()
+    print("before sleep")
+    sleep(2)
+    print("before ctor")
+    move = MoveToPoseLocalTask(3, 0, 0, 0, 0, 0, listener)
+    move.run(None)
+    print("AAAAAAAAAAAAAAAAAA")
+    
 
     # t = AllocateVelocityGlobalTask(0.2, 0, 0, 0, 0, 0)
     # while(True):
