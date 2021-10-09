@@ -24,6 +24,7 @@ MultiplexedBasicESC thrusters[NUM_THRUSTERS];
 MultiplexedServo servos[NUM_SERVOS];
 
 MS5837 pressure_sensor;
+ros::NodeHandle_<ArduinoHardware,2,1,128,128> nh;
 
 // Reusing ESC library code
 void thruster_speeds_callback(const custom_msgs::ThrusterSpeeds &ts_msg){
@@ -40,7 +41,6 @@ void servo_control_callback(const custom_msgs::ServoAngleArray &sa_msg){
 sensor_msgs::FluidPressure pressure_msg;
 
 // Sets node handle to have 2 subscribers, 1 publishers, and 128 bytes for input and output buffer
-ros::NodeHandle_<ArduinoHardware,2,1,128,128> nh;
 ros::Subscriber<custom_msgs::ThrusterSpeeds> ts_sub("/offboard/thruster_speeds", &thruster_speeds_callback);
 ros::Subscriber<custom_msgs::ServoAngleArray> sa_sub("/offboard/servo_angles", &servo_control_callback);
 ros::Publisher pressure_pub("/offboard/pressure", &pressure_msg);
@@ -86,7 +86,7 @@ void loop(){
         servos[i].write(servo_angles[i]);
     }
     pressure_sensor.read();
-    pressure_msg.fluid_pressure = pressure_sensor.pressure(100.0f);
+    pressure_msg.fluid_pressure = pressure_sensor.pressure();
     pressure_pub.publish(&pressure_msg);
     nh.spinOnce();
 }
