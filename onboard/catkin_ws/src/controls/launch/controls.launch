@@ -11,7 +11,7 @@
         <arg name="sim" value="$(arg sim)" />
     </include>
 
-    <!--node pkg="tf2_ros" type="static_transform_publisher" name="base_link_publisher" args="0 0 0 0 0 0 1 odom base_link" /-->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_publisher" args="0 0 0 0 0 0 1 odom base_link" />
 
 	<!-- Start controls node that republishes state to seperate topics -->
 	<node pkg="controls" name="state_republisher" type="state_republisher.py" />

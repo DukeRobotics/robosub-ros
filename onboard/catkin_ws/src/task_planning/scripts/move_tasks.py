@@ -32,7 +32,7 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
     def __init__(self, x, y, z, roll, pitch, yaw, listener):
         super(MoveToPoseLocalTask, self).__init__(x, y, z, roll, pitch, yaw)
         print("in move")
-        self.desired_pose = transform_pose(listener, 'odom', 'base_link', self.desired_pose)
+        self.desired_pose = transform_pose(listener, 'base_link', 'odom', self.desired_pose)
         print("after pose")
 
 def transform_pose(listener, base_frame, target_frame, pose):

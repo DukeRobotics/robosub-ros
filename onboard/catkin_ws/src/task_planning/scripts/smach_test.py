@@ -17,9 +17,14 @@ def main():
     print("before sleep")
     sleep(2)
     print("before ctor")
-    move = MoveToPoseLocalTask(3, 0, 0, 0, 0, 0, listener)
+    move = MoveToPoseLocalTask(2, 0, 0, 0, 0, 0, listener)
+    
+    move.run(None)
+    print("first move")
+    move = MoveToPoseGlobalTask(2, 4, 0, 0, 0, 0)
     move.run(None)
     print("AAAAAAAAAAAAAAAAAA")
+    return
     
 
     # t = AllocateVelocityGlobalTask(0.2, 0, 0, 0, 0, 0)

@@ -111,8 +111,8 @@ def stopped_at_pose(current_pose, desired_pose, current_twist):
     Boolean: true if stopped (current_twist = 0) at desired_pose
     """
 
-    at_desired_pose = at_pose(current_pose, desired_pose, .3)
-    at_desired_vel = at_vel(current_twist, Twist(), .3)
+    at_desired_pose = at_pose(current_pose, desired_pose)
+    at_desired_vel = at_vel(current_twist, Twist())
 
     return at_desired_pose and at_desired_vel
 
