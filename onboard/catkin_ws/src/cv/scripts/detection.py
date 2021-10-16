@@ -2,13 +2,15 @@
 
 import rospy
 import yaml
+import resource_retriever as rr
+import utils
+import torch
+
 from custom_msgs.msg import CVObject
 from custom_msgs.srv import EnableModel
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from detecto.core import Model
-import resource_retriever as rr
-
 
 class Detector:
 
@@ -59,8 +61,21 @@ class Detector:
                 # Initialize predictor if not already
                 self.init_model(model_name)
 
-                preds = model['predictor'].predict_top(image)
-                self.publish_predictions(preds, model['publisher'], image.shape)
+                # Generate model predictions
+                labels, boxes, scores = model['predictor'].predict(image)
+                indices = utils.soft_nms_pytorch(boxes, scores)
+                
+                # Create new predictions tuple with nms approved boxes
+                nms_labels = []
+                nms_boxes = []
+                nms_scores = []
+
+                for index in indices:
+                    nms_labels.append(labels[index])
+                    nms_boxes.append(boxes[index])
+                    nms_scores.append(scores[index])
+
+                self.publish_predictions((nms_labels, torch.stack(nms_boxes), torch.stack(nms_scores)), model['publisher'], image.shape)
 
     # Publish predictions with the given publisher
     def publish_predictions(self, preds, publisher, shape):
@@ -115,7 +130,6 @@ class Detector:
 
         # Keep node running until shut down
         rospy.spin()
-
 
 if __name__ == '__main__':
     Detector().run()

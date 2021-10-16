@@ -1,4 +1,4 @@
 buoy:
-  classes: [alien, bat, witch, brick, _start_gate, _start_tick, _]
+  classes: [start_gate, start_tick]
   topic: /cv/buoy
-  weights: buoy.pth
+  weights: gate-tick-15-epochs.pth
