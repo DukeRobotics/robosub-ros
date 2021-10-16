@@ -44,13 +44,13 @@
     <group if="$(arg sim)">
        <group ns="controls/x_pos/controller">
             <param name="Kp" value="1" />
-            <param name="Ki" value="0.0001" />
-            <param name="Kd" value="4" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="3" />
         </group>
         <group ns="controls/y_pos/controller">
             <param name="Kp" value="1" />
-            <param name="Ki" value="0.0001" />
-            <param name="Kd" value="4" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="3" />
         </group>
         <group ns="controls/z_pos/controller">
             <param name="Kp" value="10" />

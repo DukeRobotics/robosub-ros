@@ -1,0 +1,13 @@
+digraph G {
+"corner_link" -> "dvl_link"[label="Broadcaster: /dvl_link_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1633650819.952 sec old)\nBuffer length: 0.000 sec\n"];
+"base_link" -> "corner_link"[label="Broadcaster: /corner_link_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1633650819.952 sec old)\nBuffer length: 0.000 sec\n"];
+"odom" -> "base_link"[label="Broadcaster: /ekf_main\nAverage rate: 20.000 Hz\nMost recent transform: 1633650819.903 ( 0.049 sec old)\nBuffer length: 4.900 sec\n"];
+"corner_link" -> "cameras_link"[label="Broadcaster: /cameras_link_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1633650819.952 sec old)\nBuffer length: 0.000 sec\n"];
+"cameras_link" -> "right_cameras_link"[label="Broadcaster: /right_cameras_link_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1633650819.952 sec old)\nBuffer length: 0.000 sec\n"];
+"cameras_link" -> "left_cameras_link"[label="Broadcaster: /left_cameras_link_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1633650819.952 sec old)\nBuffer length: 0.000 sec\n"];
+"corner_link" -> "imu_link"[label="Broadcaster: /imu_link_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1633650819.952 sec old)\nBuffer length: 0.000 sec\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1633650819.952"[ shape=plaintext ] ;
+ }->"odom";
+}
