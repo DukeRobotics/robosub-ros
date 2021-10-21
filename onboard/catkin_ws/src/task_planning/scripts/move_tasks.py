@@ -19,7 +19,7 @@ class MoveToPoseGlobalTask(Task):
         self.desired_pose.orientation = Quaternion(*quaternion_from_euler(roll, pitch, yaw))
 
     def run(self, userdata):
-        rate = rospy.Rate(10)
+        rate = rospy.Rate(15)
         while not(self.state and task_utils.stopped_at_pose(self.state.pose.pose, self.desired_pose, self.state.twist.twist)):
             self.publish_desired_pose_global(self.desired_pose)
             rate.sleep()

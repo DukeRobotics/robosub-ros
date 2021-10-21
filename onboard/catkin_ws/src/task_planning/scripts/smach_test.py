@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import schedule
+
 import rospy
 import smach
 import random
@@ -9,9 +11,15 @@ from time import sleep
 from tf import TransformListener
 
 # define state Foo
-
-# main
 def main():
+    schedule.every().day.at("20:00").do(do_thingy)
+    schedule.every().day.at("20:05").do(do_thingy)
+    schedule.every().day.at("20:10").do(do_thingy)
+    while True:
+        schedule.run_pending()
+        sleep(1)
+
+def do_thingy():
     rospy.init_node('smach_test')
     listener = TransformListener()
     print("before sleep")
