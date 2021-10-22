@@ -2,7 +2,7 @@
 import numpy as np
 import torch
 
-def soft_nms_pytorch(dets, box_scores, sigma=0.5, thresh=0.001, cuda=0):
+def soft_nms_pytorch(dets, box_scores, sigma=0.5, thresh=0.5, cuda=0):
     
     """
     Build a pytorch implement of Soft NMS algorithm.
