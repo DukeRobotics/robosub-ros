@@ -40,7 +40,7 @@ def nms_pytorch(dets, scores, thresh=0.5):
 
     return keep
 
-def soft_nms_pytorch(dets, box_scores, sigma=0.5, thresh=0.5, cuda=0):
+def soft_nms_pytorch(dets, box_scores, sigma=0.1, thresh=0.1, cuda=0):
     
     """
     Soft NMS algorithm
