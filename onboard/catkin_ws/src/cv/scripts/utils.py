@@ -2,10 +2,48 @@
 import numpy as np
 import torch
 
+def nms_pytorch(dets, scores, thresh=0.5):
+
+    """
+    NMS Algorithm
+    # Augments
+        dets:        boxes coordinate tensor (format:[y1, x1, y2, x2])
+        scores:      box score tensors
+    # Return
+        the index of the selected boxes
+    """
+
+    x1 = dets[:, 0].detach().numpy()
+    y1 = dets[:, 1].detach().numpy()
+    x2 = dets[:, 2].detach().numpy()
+    y2 = dets[:, 3].detach().numpy()
+
+    areas = (x2 - x1 + 1) * (y2 - y1 + 1)
+    order = scores.argsort()[::-1]
+
+    keep = []
+    while order.size > 0:
+        i = order[0]
+        keep.append(i)
+        xx1 = np.maximum(x1[i], x1[order[1:]])
+        yy1 = np.maximum(y1[i], y1[order[1:]])
+        xx2 = np.minimum(x2[i], x2[order[1:]])
+        yy2 = np.minimum(y2[i], y2[order[1:]])
+
+        w = np.maximum(0.0, xx2 - xx1 + 1)
+        h = np.maximum(0.0, yy2 - yy1 + 1)
+        inter = w * h
+        ovr = inter / (areas[i] + areas[order[1:]] - inter)
+
+        inds = np.where(ovr <= thresh)[0]
+        order = order[inds + 1]
+
+    return keep
+
 def soft_nms_pytorch(dets, box_scores, sigma=0.5, thresh=0.5, cuda=0):
     
     """
-    Build a pytorch implement of Soft NMS algorithm.
+    Soft NMS algorithm
     # Augments
         dets:        boxes coordinate tensor (format:[y1, x1, y2, x2])
         box_scores:  box score tensors
