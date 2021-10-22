@@ -13,7 +13,6 @@ from tf import TransformListener
 # define state Foo
 
 def main():
-    input("press something at the same time pls")
     rospy.init_node('smach_test')
     listener = TransformListener()
     print("before sleep")
