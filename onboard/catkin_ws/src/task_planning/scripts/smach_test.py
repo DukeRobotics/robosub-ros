@@ -11,15 +11,9 @@ from time import sleep
 from tf import TransformListener
 
 # define state Foo
-def main():
-    schedule.every().day.at("20:00").do(do_thingy)
-    schedule.every().day.at("20:05").do(do_thingy)
-    schedule.every().day.at("20:10").do(do_thingy)
-    while True:
-        schedule.run_pending()
-        sleep(1)
 
-def do_thingy():
+def main():
+    input("press something at the same time pls")
     rospy.init_node('smach_test')
     listener = TransformListener()
     print("before sleep")
