@@ -6,7 +6,7 @@ import rospy
 import smach
 import random
 from task import Task
-from move_tasks import MoveToPoseGlobalTask, MoveToPoseLocalTask
+from move_tasks import MoveToPoseGlobalTask, MoveToPoseLocalTask, AllocateVelocityLocalTask
 from time import sleep
 from tf import TransformListener
 
@@ -18,12 +18,17 @@ def main():
     print("before sleep")
     sleep(2)
     print("before ctor")
-    move = MoveToPoseLocalTask(2, 0, 0, 0, 0, 0, listener)
+    move = AllocateVelocityLocalTask(0, 0, 0, 0, 0, 0)
+    rate = rospy.Rate(15)
+    while True:
+        move.run(None)
+        rate.sleep()
+    # move = MoveToPoseLocalTask(2, 0, 0, 0, 0, 0, listener)
     
-    move.run(None)
-    print("first move")
-    move = MoveToPoseGlobalTask(2, 4, 0, 0, 0, 0)
-    move.run(None)
+    # move.run(None)
+    # print("first move")
+    # move = MoveToPoseGlobalTask(2, 4, 0, 0, 0, 0)
+    # move.run(None)
     print("AAAAAAAAAAAAAAAAAA")
     return
     
