@@ -18,7 +18,7 @@ def main():
     print("before sleep")
     sleep(2)
     print("before ctor")
-    move = AllocateVelocityLocalTask(0, 0, 0, 0, 0, 0)
+    move = AllocateVelocityLocalTask(-.5, 0, 0, 0, 0, 0)
     rate = rospy.Rate(15)
     while True:
         move.run(None)
