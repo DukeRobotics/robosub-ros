@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import schedule
-
 import rospy
 import smach
 import random
