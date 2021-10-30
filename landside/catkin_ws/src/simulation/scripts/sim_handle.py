@@ -20,8 +20,6 @@ class SimHandle:
         rospy.loginfo('Testing connection')
         objs = self.run_sim_function(sim.simxGetObjects, (self.clientID, sim.sim_handle_all, sim.simx_opmode_blocking))
         rospy.loginfo(f'Number of objects in the scene: {len(objs)}')
-        if (len(objs) == 0):
-            sys.exit(1)
         self.robot = self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, "Rob", sim.simx_opmode_blocking))
         gate_names = ["Gate", "GateLeftChild", "GateRightChild"]
         self.gate = [self.run_sim_function(sim.simxGetObjectHandle,
