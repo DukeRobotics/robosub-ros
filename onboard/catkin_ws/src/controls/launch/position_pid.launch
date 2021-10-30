@@ -34,7 +34,7 @@
             <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/yaw_pos/controller">
-            <param name="Kp" value="10" />
+            <param name="Kp" value="1" />
             <param name="Ki" value="0.001" />
             <param name="Kd" value="0.001" />
         </group>
