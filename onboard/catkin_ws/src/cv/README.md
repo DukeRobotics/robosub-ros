@@ -98,7 +98,7 @@ The following are the folders and files in the CV package:
 
 `models`: Contains our pre-trained models and a `.yaml` file that specifies the details of each model (classes predicted, topic name, and the path to the model weights)
 
-`scripts`: This is the "meat" of our package. We have a detection script `detection.py` that will read in images and publish predictions onto a node. We also have a `test_images.py` script that is used for testing our package on a dummy video feed (basically one image repeated over and over). We can simulate different video feeds coming in on the different cameras on our `test_images.py` script.
+`scripts`: This is the "meat" of our package. We have a detection script `detection.py` that will read in images and publish predictions onto a node. We also have a `test_images.py` script that is used for testing our package on a dummy video feed (basically one image repeated over and over). We can simulate different video feeds coming in on the different cameras on our `test_images.py` script. The `utils.py ` script has a set of utility functions implementing the NMS and Soft NMS algorithms; this goes through all raw predictions made by a model to select the best bounding boxes.
 
 `CMakeLists.txt`: A text file stating the necessary package dependencies and the files in our package.
 
