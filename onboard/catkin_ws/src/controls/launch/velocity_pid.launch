@@ -26,7 +26,7 @@
     <arg name = "pitch_vel_Ki" default = "0.001" />
     <arg name = "pitch_vel_Kd" default = "0.001" />
 
-    <arg name = "yaw_vel_Kp" default = "1" />
+    <arg name = "yaw_vel_Kp" default = ".5" />
     <arg name = "yaw_vel_Ki" default = "1" />
     <arg name = "yaw_vel_Kd" default = "0.2" />
 
