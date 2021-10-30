@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import schedule
-
 import rospy
 import smach
 import random
@@ -14,33 +12,61 @@ from tf import TransformListener
 
 def main():
     rospy.init_node('smach_test')
-    listener = TransformListener()
+    # listener = TransformListener()
     print("before sleep")
     sleep(2)
-    print("before ctor")
-    move = AllocateVelocityLocalTask(-.5, 0, 0, 0, 0, 0)
-    rate = rospy.Rate(15)
-    while True:
-        move.run(None)
-        rate.sleep()
+    # print("before ctor")
+    # move = AllocateVelocityLocalTask(0, 0, 0, 0, 1, 0)
+    # move.run(None)
+    # return
+    # rate = rospy.Rate(15)
+    # while True:
+    #     move.run(None)
+    #     rate.sleep()
     # move = MoveToPoseLocalTask(2, 0, 0, 0, 0, 0, listener)
     
     # move.run(None)
     # print("first move")
     # move = MoveToPoseGlobalTask(2, 4, 0, 0, 0, 0)
     # move.run(None)
-    print("AAAAAAAAAAAAAAAAAA")
-    return
+    # print("AAAAAAAAAAAAAAAAAA")
+    # return
     
 
     # t = AllocateVelocityGlobalTask(0.2, 0, 0, 0, 0, 0)
     # while(True):
     #     t.run()
     
-    sm = concurrency()
+    sm = controls_testing()
 
     # Execute SMACH plan
     outcome = sm.execute()
+
+def controls_testing():
+    # Create a SMACH state machine
+    sm = smach.StateMachine(outcomes=['finish'])
+
+    # Open the container
+    with sm:
+        # Add states to the container
+        smach.StateMachine.add('Move1', MoveToPoseGlobalTask(0, 2, 0, 0, 0, 0), 
+                               transitions={'done':'Move1'})
+        # left square
+        smach.StateMachine.add('MoveLeft2', MoveToPoseGlobalTask(2, 2, 0, 0, 0, 0), 
+                               transitions={'done':'MoveLeft3'})
+        smach.StateMachine.add('MoveLeft3', MoveToPoseGlobalTask(0, 2, 0, 0, 0, 0), 
+                               transitions={'done':'MoveLeft4'})
+        smach.StateMachine.add('MoveLeft4', MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0), 
+                               transitions={'done':'finish'})
+        # right square
+        smach.StateMachine.add('MoveRight2', MoveToPoseGlobalTask(2, -2, 0, 0, 0, 0), 
+                               transitions={'done':'MoveRight3'})
+        smach.StateMachine.add('MoveRight3', MoveToPoseGlobalTask(0, -2, 0, 0, 0, 0), 
+                               transitions={'done':'MoveRight4'})
+        smach.StateMachine.add('MoveRight4', MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0), 
+                               transitions={'done':'finish'})
+
+    return sm
 
 def concurrency():
     # Create a SMACH state machine
