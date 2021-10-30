@@ -4,15 +4,13 @@ import torch
 
 def nms_pytorch(dets, scores, thresh=0.5):
 
-    """
-    NMS Algorithm
-    # Augments
-        dets:        boxes coordinate tensor (format:[y1, x1, y2, x2])
-        scores:      box score tensors
+    # NMS Algorithm
+    # Arguments
+    #     dets:        boxes coordinate tensor (format:[y1, x1, y2, x2])
+    #     scores:      box score tensors
     # Return
-        the index of the selected boxes
-    """
-
+    #     the index of the selected boxes
+        
     x1 = dets[:, 0].detach().numpy()
     y1 = dets[:, 1].detach().numpy()
     x2 = dets[:, 2].detach().numpy()
@@ -41,18 +39,16 @@ def nms_pytorch(dets, scores, thresh=0.5):
     return keep
 
 def soft_nms_pytorch(dets, box_scores, sigma=0.1, thresh=0.1, cuda=0):
-    
-    """
-    Soft NMS algorithm
-    # Augments
-        dets:        boxes coordinate tensor (format:[y1, x1, y2, x2])
-        box_scores:  box score tensors
-        sigma:       variance of Gaussian function
-        thresh:      score thresh
-        cuda:        CUDA flag
+
+    # Soft NMS algorithm
+    # Arguments
+    #     dets:        boxes coordinate tensor (format:[y1, x1, y2, x2])
+    #     box_scores:  box score tensors
+    #     sigma:       variance of Gaussian function
+    #     thresh:      score thresh
+    #     cuda:        CUDA flag
     # Return
-        the index of the selected boxes
-    """
+    #     the index of the selected boxes
 
     # Indexes concatenate boxes with the last column
     N = dets.shape[0]
