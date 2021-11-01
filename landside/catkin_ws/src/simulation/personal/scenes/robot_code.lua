@@ -1,7 +1,7 @@
 require "math"
 
 function extsysCall_init()
-  simRemoteApi.start(8080)
+  simRemoteApi.start(5555, 1300, true, false)
     --check to see relationship between inches and vrep units
     -- =~ 0.03
     a = 0.0254 --conversion from inches to vrep units

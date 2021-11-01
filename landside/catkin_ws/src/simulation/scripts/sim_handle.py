@@ -11,7 +11,7 @@ class SimHandle:
 
     def __init__(self):
         sim.simxFinish(-1)
-        self.clientID = sim.simxStart(self.DOCKER_IP, 8080, True, True, 5000, 5)
+        self.clientID = sim.simxStart(self.DOCKER_IP, 5555, True, True, 5000, 5)
         if self.clientID == -1:
             rospy.logerr('Failed connecting to remote API server')
             sim.simxFinish(-1)
