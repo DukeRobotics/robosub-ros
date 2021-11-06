@@ -1,3 +1,0 @@
-<launch>
-	<node name="bar30_pub" pkg="data_pub" type="pressure.py" />
-</launch>
