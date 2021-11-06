@@ -11,8 +11,6 @@ services:
       local_net:
         ipv4_address: 192.168.3.1
     tty: true
-    devices:
-      - "/dev/ttyUSB0:/dev/ttyUSB0"
     dns:
       - 8.8.8.8
       - 8.8.4.4
