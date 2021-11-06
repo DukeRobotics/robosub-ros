@@ -7,6 +7,10 @@
 #include <custom_msgs/ServoAngleArray.h>
 #include <sensor_msgs/FluidPressure.h>
 #include <Arduino.h>
+#include <stdlib.h>
+
+// Set to true to print debug messages or false to disable debug messages
+//#define ENABLE_DEBUG_OUTPUT
 
 Adafruit_PWMServoDriver pwm_multiplexer(0x40);
 
@@ -24,12 +28,21 @@ MultiplexedBasicESC thrusters[NUM_THRUSTERS];
 MultiplexedServo servos[NUM_SERVOS];
 
 MS5837 pressure_sensor;
-ros::NodeHandle_<ArduinoHardware,2,1,128,128> nh;
+
+#ifdef ENABLE_DEBUG_OUTPUT
+char buffer[10];
+#endif
 
 // Reusing ESC library code
 void thruster_speeds_callback(const custom_msgs::ThrusterSpeeds &ts_msg){
     // Copy the contents of the speed message to the local array
     memcpy(thruster_speeds, ts_msg.speeds, sizeof(thruster_speeds));
+    #ifdef ENABLE_DEBUG_OUTPUT
+        for(uint8_t i = 0; i < NUM_THRUSTERS; ++i){
+            itoa(thruster_speeds[i], &buffer[0], 10);
+            nh.logerror(buffer);
+        }
+    #endif
     last_cmd_ms_ts = millis();
 }
 
@@ -41,6 +54,7 @@ void servo_control_callback(const custom_msgs::ServoAngleArray &sa_msg){
 sensor_msgs::FluidPressure pressure_msg;
 
 // Sets node handle to have 2 subscribers, 1 publishers, and 128 bytes for input and output buffer
+ros::NodeHandle_<ArduinoHardware,2,1,128,128> nh;
 ros::Subscriber<custom_msgs::ThrusterSpeeds> ts_sub("/offboard/thruster_speeds", &thruster_speeds_callback);
 ros::Subscriber<custom_msgs::ServoAngleArray> sa_sub("/offboard/servo_angles", &servo_control_callback);
 ros::Publisher pressure_pub("/offboard/pressure", &pressure_msg);
