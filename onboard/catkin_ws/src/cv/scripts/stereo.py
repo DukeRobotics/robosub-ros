@@ -11,10 +11,11 @@ class StereoDetector:
         # todo initialize constants
         self.disparity = None
         self.map_3d = None
-        self.rmap = np.load(rr.get_filename(f"package://cv/data/stereocamera_calibration_remapping_matrices", use_protocol=False))
+        self.rmap = np.load(rr.get_filename("package://cv/data/stereocamera_calibration_remapping_matrices", 
+                                            use_protocol=False))
         self.img_size = None
-        self.fov = np.load(rr.get_filename(f"package://cv/data/fov_data", use_protocol=False))
-        self.Q = np.load(rr.get_filename(f"package://cv/data/Q_matrix", use_protocol=False))
+        self.fov = np.load(rr.get_filename("package://cv/data/fov_data", use_protocol=False))
+        self.Q = np.load(rr.get_filename("package://cv/data/Q_matrix", use_protocol=False))
 
     # Compute disparity map for given two images
     def compute_disparity(self, img_left_raw, img_right_raw):
@@ -61,7 +62,10 @@ class StereoDetector:
 
     def _compute_depth_and_distance(self, box):
         bbox_img = np.zeros(self.img_size, np.uint8)
-        bbox_img = cv2.rectangle(bbox_img, (int(box[0].item()), int(box[1].item())), (int(box[2].item()), int(box[3].item())), 1, -1)
+        bbox_img = cv2.rectangle(bbox_img, 
+                                (int(box[0].item()), int(box[1].item())), 
+                                (int(box[2].item()), int(box[3].item())), 
+                                1, -1)
 
         # Assuming the bounding box is predicted on the left image
         bbox_remapped = cv2.remap(bbox_img, self.rmap[0][0], self.rmap[0][1], cv2.INTER_LINEAR)
