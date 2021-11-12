@@ -10,6 +10,7 @@ from os import path
 
 class SimHandle:
     DOCKER_IP = '192.168.65.2'
+    BUOYANCY_ENABLED = ["gate", "buoy", "octagon", "torpedo"]
 
     def __init__(self):
         sim.simxFinish(-1)
@@ -28,6 +29,49 @@ class SimHandle:
         self.init_streaming()
         self.obj_names = '|'.join(f'({i.strip()})' for i in open(f"{path.dirname(__file__)}/obj_names.txt"))
         self.pattern = re.compile(self.obj_names)
+        print("pausing comm")
+        self.run_sim_function(sim.simxPauseCommunication, (self.clientID, True))
+        print("getting objs")
+        handles, a, b, names = self.run_sim_function(sim.simxGetObjectGroupData,
+                                                     (self.clientID, sim.sim_object_shape_type,
+                                                      0, sim.simx_opmode_streaming))
+        print(handles)
+        print(a)
+        print(b)
+        print(names)
+        self.handle_dict = dict(zip(handles, names))
+        print(self.handle_dict)
+        for hr in self.handle_dict: ## FIXME need name in next line
+            nm = self.handle_dict[hr]
+            if nm != "Rob":
+                self.run_sim_function(sim.simxCallScriptFunction, (self.clientID, nm, sim.sim_scripttype_childscript,
+                                                                   "reset",
+                                                                   [], [], [""], bytearray(),
+                                                                   sim.simx_opmode_blocking))
+                if any(i in nm.lower() for i in self.BUOYANCY_ENABLED):
+                    self.run_sim_function(sim.simxCallScriptFunction,
+                                          (self.clientID, nm, sim.sim_scripttype_childscript,
+                                           "enableBuoyancyDrag",
+                                           [1], [], [""], bytearray(),
+                                           sim.simx_opmode_blocking))
+                    self.run_sim_function(sim.simxCallScriptFunction,
+                                          (self.clientID, nm, sim.sim_scripttype_childscript,
+                                           "setDragCoefficient",
+                                           [1], [], [""], bytearray(),
+                                           sim.simx_opmode_blocking))
+                    self.run_sim_function(sim.simxCallScriptFunction,
+                                          (self.clientID, nm, sim.sim_scripttype_childscript,
+                                           "setDragType",
+                                           [1], [], [""], bytearray(),
+                                           sim.simx_opmode_blocking))
+                    self.run_sim_function(sim.simxCallScriptFunction,
+                                          (self.clientID, nm, sim.sim_scripttype_childscript,
+                                           "setMass",
+                                           [1], [], [""], bytearray(),  # FIXME add mass
+                                           sim.simx_opmode_blocking))
+        print("unpausing comm")
+        self.run_sim_function(sim.simxPauseCommunication, (self.clientID, False))
+
         rospy.loginfo("Starting main loop")
 
     def init_streaming(self):

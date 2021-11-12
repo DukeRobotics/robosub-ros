@@ -2,14 +2,29 @@ require "math"
 
 function extsysCall_init()
     hr = sim.getObjectAssociatedWithScript(sim.handle_self)
-    buoyancyEnabled = 0
+    buoyancyEnabled = 1
     dragType = 1 -- 0 for linear, 1 for quadratic
     dragCoef = 1
     anchorPoints = {}
+    initPos = sim.getObjectPosition(hr, -1)
+    initQuat = sim.getObjectQuaternion(hr, -1)
+
+    waterlevel = 0
+    p = 1000
+end
+
+function reset(inInts, inFloats, inString, inBuffer)
+    sim.setObjectPosition(hr, -1, initPos)
+    sim.setObjectQuaternion(hr, -1, initPos)
+    return {}, {}, {}, ''
+end
+
+function getName(inInts, inFloats, inString, inBuffer)
+    return {}, {}, {sim.getObjectName(hr)}, ''
 end
 
 function extsysCall_actuation()
-    if buoyancyEnabled then
+    if buoyancyEnabled ~= 0 then
         applyBuoyancy()
     end
 end
@@ -70,7 +85,7 @@ function get_sign(x)
 end
 
 function calc_dragforcelin(linvel, length, depth)
-    if dragType then
+    if dragType ~= 0 then
         return -p * math.abs(linvel ^ 2) * get_sign(linvel) * dragCoef * length * depth
     end
     return -p * math.abs(linvel) * get_sign(linvel) * dragCoef * length * depth
@@ -82,7 +97,7 @@ function calc_dragforceang(angvel, length, depth)
     -- if linear
     -- -p * angvelocity * x * y * y * dragCoef / 4
     angdragfudgecoef = 1 -- 0.05
-    if dragType then
+    if dragType ~= 0 then
         return -p * math.abs(angvel ^ 2) * get_sign(angvel) * dragCoef * length ^ 3 * depth / 12 * angdragfudgecoef
     end
     return -p * math.abs(angvel ^ 1) * get_sign(angvel) * dragCoef * length ^ 2 * depth / 4 * angdragfudgecoef
@@ -105,7 +120,7 @@ end
 --   inFloats: Array whose first value is the new drag coefficient.
 -- Outputs:
 --   None
-function setdragCoefficient(inInts, inFloats, inString, inBuffer)
+function setDragCoefficient(inInts, inFloats, inString, inBuffer)
     dragCoef = inFloats[1]
     return {},{},{},''
 end
@@ -129,6 +144,10 @@ end
 function setMass(inInts, inFloats, inString, inBuffer)
     sim.setShapeMass(handle, inFloats[1])
     return {},{},{},''
+end
+
+function getHandle(inInts, inFloats, inString, inBuffer)
+    return {hr},{},{},''
 end
 
 -- Adds an anchor point to this object. An anchor point represents a rope
