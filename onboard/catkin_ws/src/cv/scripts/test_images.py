@@ -28,8 +28,8 @@ class DummyImagePublisher:
         self.image_publisher_2 = rospy.Publisher(self.IMAGE_TOPIC_2, Image, queue_size=10)
 
         path = os.path.dirname(__file__)
-        image = cv2.imread(os.path.join(path, self.IMAGE, cv2.IMREAD_COLOR))
-        image_2 = cv2.imread(os.path.join(path, self.IMAGE_2, cv2.IMREAD_COLOR))
+        image = cv2.imread(os.path.join(path, self.IMAGE), cv2.IMREAD_COLOR)
+        image_2 = cv2.imread(os.path.join(path, self.IMAGE_2), cv2.IMREAD_COLOR)
         bridge = CvBridge()
 
         self.image_msg = bridge.cv2_to_imgmsg(image, 'bgr8')

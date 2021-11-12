@@ -3,8 +3,14 @@ buoy:
   topic: /cv/buoy
   weights: buoy.pth
 
-# Testing with stereo vision - default model to be used with chessboard images
 default:
   classes: null
   topic: /cv/default
   weights: default.pth
+
+# Testing with stereo vision - model to be used with chessboard images
+# Available on Google Drive at RoboSub 2022/CS/CV/Object Detection/Weights/11-6-2021/
+checkerboard:
+  classes: [checker_board]
+  topic: /cv/checkerboard
+  weights: checkerboard-10-epochs.pth

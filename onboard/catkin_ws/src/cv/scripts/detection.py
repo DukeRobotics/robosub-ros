@@ -2,7 +2,7 @@
 
 import rospy
 import yaml
-import StereoDetector
+from stereo import StereoDetector
 from custom_msgs.msg import CVObject
 from custom_msgs.srv import EnableModel
 from sensor_msgs.msg import Image

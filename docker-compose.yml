@@ -9,7 +9,7 @@ services:
       - 2200:2200
     networks:
       local_net:
-        ipv4_address: 192.168.3.1
+        ipv4_address: 192.168.1.1
     tty: true
     dns:
       - 8.8.8.8
@@ -22,13 +22,11 @@ services:
   landside:
     image: dukerobotics/robosub-ros:landside
     container_name: landside
-    privileged: true
     ports:
       - 2201:2201
-      - 8080:8080
     networks:
       local_net:
-        ipv4_address: 192.168.3.2
+        ipv4_address: 192.168.1.2
     tty: true
     dns:
       - 8.8.8.8
@@ -44,4 +42,4 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 192.168.2.0/23
+        - subnet: 192.168.1.0/23
