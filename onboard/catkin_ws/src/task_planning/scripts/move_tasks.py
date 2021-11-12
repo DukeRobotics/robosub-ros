@@ -20,7 +20,7 @@ class MoveToPoseGlobalTask(Task):
 
     def run(self, userdata):
         rate = rospy.Rate(15)
-        while not(self.state and task_utils.stopped_at_pose(self.state.pose.pose, self.desired_pose, self.state.twist.twist)):
+        while True:#not(self.state and task_utils.stopped_at_pose(self.state.pose.pose, self.desired_pose, self.state.twist.twist)):
             self.publish_desired_pose_global(self.desired_pose)
             rate.sleep()
         return "done"

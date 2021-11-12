@@ -67,7 +67,7 @@ class ThrusterController:
                 self.t_allocs = np.clip(self.t_allocs, -1, 1)
 
                 i8_t_allocs = ThrusterSpeeds()
-                i8_t_allocs.speeds = (self.t_allocs * 80).astype(int)
+                i8_t_allocs.speeds = (self.t_allocs * 127).astype(int)
                 self.pub.publish(i8_t_allocs)
 
             rate.sleep()
