@@ -1,10 +1,9 @@
 #!/bin/sh
 
-#sudo dmesg | \
-#grep tty | \
-#sed -n -e 's/^.* ch341-uart converter now attached to \([^ ]*\).*/\1/p' | \
-#tail -n 1 | \
-#sed -n -e 's/^/\/dev\//p' | \
-#tr -d '\n' | \
-#cat
-echo -n '/dev/ttyACM0'
+sudo dmesg | \
+grep "USB ACM device" | \
+awk '{print $5;}' | \
+sed 's/.$//' | \
+sed -n -e 's/^/\/dev\//p' | \
+tr -d '\n' | \
+cat
