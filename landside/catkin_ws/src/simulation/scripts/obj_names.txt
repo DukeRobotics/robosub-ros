@@ -1,4 +1,6 @@
 Gate
+GateRightChild
+GateLeftChild
 BootleggerBuoy
 GmanBuoy
 Bin
