@@ -9,9 +9,6 @@
 #include <Arduino.h>
 #include <stdlib.h>
 
-// Set to true to print debug messages or false to disable debug messages
-//#define ENABLE_DEBUG_OUTPUT
-
 Adafruit_PWMServoDriver pwm_multiplexer(0x40);
 
 #define BAUD_RATE 57600
@@ -29,20 +26,10 @@ MultiplexedServo servos[NUM_SERVOS];
 
 MS5837 pressure_sensor;
 
-#ifdef ENABLE_DEBUG_OUTPUT
-char buffer[10];
-#endif
-
 // Reusing ESC library code
 void thruster_speeds_callback(const custom_msgs::ThrusterSpeeds &ts_msg){
     // Copy the contents of the speed message to the local array
     memcpy(thruster_speeds, ts_msg.speeds, sizeof(thruster_speeds));
-    #ifdef ENABLE_DEBUG_OUTPUT
-        for(uint8_t i = 0; i < NUM_THRUSTERS; ++i){
-            itoa(thruster_speeds[i], &buffer[0], 10);
-            nh.logerror(buffer);
-        }
-    #endif
     last_cmd_ms_ts = millis();
 }
 
@@ -100,7 +87,7 @@ void loop(){
         servos[i].write(servo_angles[i]);
     }
     pressure_sensor.read();
-    pressure_msg.fluid_pressure = pressure_sensor.pressure();
+    pressure_msg.fluid_pressure = pressure_sensor.pressure(100.0f);
     pressure_pub.publish(&pressure_msg);
     nh.spinOnce();
 }

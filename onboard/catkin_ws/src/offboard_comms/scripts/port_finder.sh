@@ -1,9 +1,9 @@
 #!/bin/sh
 
 sudo dmesg | \
-grep "USB ACM device" | \
-awk '{print $5;}' | \
-sed 's/.$//' | \
+grep tty | \
+sed -n -e 's/^.* \([^ ]*\): USB ACM device/\1/p' | \
+tail -n 1 | \
 sed -n -e 's/^/\/dev\//p' | \
 tr -d '\n' | \
 cat
