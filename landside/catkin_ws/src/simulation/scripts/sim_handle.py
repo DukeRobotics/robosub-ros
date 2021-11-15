@@ -5,12 +5,12 @@ from geometry_msgs.msg import Pose, Quaternion, Point, Twist, Vector3
 from custom_msgs.msg import SimObject, SimObjectArray
 import itertools
 import re
-from os import path
+import resource_retriever as rr
+import yaml
 
 
 class SimHandle:
     DOCKER_IP = '192.168.65.2'
-    BUOYANCY_ENABLED = ["gate", "buoy", "octagon", "torpedo"]
 
     def __init__(self):
         sim.simxFinish(-1)
@@ -24,52 +24,26 @@ class SimHandle:
         objs = self.run_sim_function(sim.simxGetObjects, (self.clientID, sim.sim_handle_all, sim.simx_opmode_blocking))
         rospy.loginfo(f'Number of objects in the scene: {len(objs)}')
         self.robot = self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, "Rob", sim.simx_opmode_blocking))
-        self.set_position_to_zero()
         rospy.sleep(0.1)
         self.init_streaming()
-        self.obj_names = '|'.join(f'({i.strip()})' for i in open(f"{path.dirname(__file__)}/obj_names.txt"))
+
+        with open(rr.get_filename('package://simulation/data/config.yaml', use_protocol=False)) as f:
+            data = yaml.safe_load(f)
+
+        self.obj_names = '|'.join(data['cv_object'])
         self.pattern = re.compile(self.obj_names)
-        print("pausing comm")
         self.run_sim_function(sim.simxPauseCommunication, (self.clientID, True))
-        print("getting objs")
-        handles, a, b, names = self.run_sim_function(sim.simxGetObjectGroupData,
+        _, _, _, names = self.run_sim_function(sim.simxGetObjectGroupData,
                                                      (self.clientID, sim.sim_object_shape_type,
-                                                      0, sim.simx_opmode_streaming))
-        print(handles)
-        print(a)
-        print(b)
+                                                      0, sim.simx_opmode_blocking))
         print(names)
-        self.handle_dict = dict(zip(handles, names))
-        print(self.handle_dict)
-        for hr in self.handle_dict: ## FIXME need name in next line
-            nm = self.handle_dict[hr]
-            if nm != "Rob":
-                self.run_sim_function(sim.simxCallScriptFunction, (self.clientID, nm, sim.sim_scripttype_childscript,
-                                                                   "reset",
-                                                                   [], [], [""], bytearray(),
-                                                                   sim.simx_opmode_blocking))
-                if any(i in nm.lower() for i in self.BUOYANCY_ENABLED):
-                    self.run_sim_function(sim.simxCallScriptFunction,
-                                          (self.clientID, nm, sim.sim_scripttype_childscript,
-                                           "enableBuoyancyDrag",
-                                           [1], [], [""], bytearray(),
-                                           sim.simx_opmode_blocking))
-                    self.run_sim_function(sim.simxCallScriptFunction,
-                                          (self.clientID, nm, sim.sim_scripttype_childscript,
-                                           "setDragCoefficient",
-                                           [1], [], [""], bytearray(),
-                                           sim.simx_opmode_blocking))
-                    self.run_sim_function(sim.simxCallScriptFunction,
-                                          (self.clientID, nm, sim.sim_scripttype_childscript,
-                                           "setDragType",
-                                           [1], [], [""], bytearray(),
-                                           sim.simx_opmode_blocking))
-                    self.run_sim_function(sim.simxCallScriptFunction,
-                                          (self.clientID, nm, sim.sim_scripttype_childscript,
-                                           "setMass",
-                                           [1], [], [""], bytearray(),  # FIXME add mass
-                                           sim.simx_opmode_blocking))
-        print("unpausing comm")
+        for name in names: ## FIXME need name in next line
+            self.run_custom_sim_function(name, "reset")
+            if name in [val['name'] for val in data['buoyancy']]:
+                self.run_custom_sim_function(name, "enableBuoyancyDrag", ints=[1])
+                self.run_custom_sim_function(name, "setDragCoefficient", ints=[1])
+                self.run_custom_sim_function(name, "setDragType", ints=[1])
+                self.run_custom_sim_function(name, "setMass", ints=[1]) ##FIXME: change to actual mass
         self.run_sim_function(sim.simxPauseCommunication, (self.clientID, False))
 
         rospy.loginfo("Starting main loop")
@@ -90,23 +64,19 @@ class SimHandle:
             return res[1]
         return res[1:]
 
-    def set_position_to_zero(self):
-        self.run_sim_function(sim.simxSetObjectPosition, (self.clientID, self.robot,
-                                                          -1, [0.0, 0.0, 0.0], sim.simx_opmode_blocking))
+    def run_custom_sim_function(self, obj_name, func_name, ints=[], floats=[], strs=[""], bytes=bytearray(), mode=sim.simx_opmode_blocking):
+        return self.run_sim_function(sim.simxCallScriptFunction,
+                                          (self.clientID, obj_name, sim.sim_scripttype_childscript,
+                                           func_name,
+                                           ints, floats, strs, bytes,
+                                           mode))
 
     def set_thruster_force(self, force):
         inp = itertools.chain.from_iterable(force)
-        self.run_sim_function(sim.simxCallScriptFunction, (self.clientID, "Rob", sim.sim_scripttype_childscript,
-                                                           "setThrusterForces",
-                                                           [], list(inp), [""], bytearray(),
-                                                           sim.simx_opmode_blocking))
+        self.run_custom_sim_function("Rob", "setThrusterForces", floats=list(inp))
 
     def get_mass(self):
-        out = self.run_sim_function(sim.simxCallScriptFunction, (self.clientID, "Rob", sim.sim_scripttype_childscript,
-                                                                 "getMass",
-                                                                 [self.robot], [], [""], bytearray(),
-                                                                 sim.simx_opmode_blocking))
-        return out[1][0]
+        return self.run_sim_function(sim.simxGetObjectIntParameter, (self.robot, sim.sim_shapefloatparam_mass, sim.simx_opmode_blocking))
 
     def get_pose(self, mode=sim.simx_opmode_buffer):
         pos = self.run_sim_function(sim.simxGetObjectPosition, (self.clientID, self.robot, -1, mode))

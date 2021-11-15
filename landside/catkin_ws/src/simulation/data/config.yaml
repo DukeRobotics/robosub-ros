@@ -1,0 +1,17 @@
+
+cv_objects:
+  - Gate
+  - GateRightChild
+  - GateLeftChild
+  - BootleggerBuoy
+  - GmanBuoy
+  - Bin
+  - Octagon
+  - StraightPathMarker
+  - Pole
+
+buoyancy:
+  - name: gate     
+  - name: buoy
+  - name: octagon
+  - name: torpedo

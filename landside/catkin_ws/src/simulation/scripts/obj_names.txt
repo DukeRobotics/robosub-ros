@@ -1,9 +1,0 @@
-Gate
-GateRightChild
-GateLeftChild
-BootleggerBuoy
-GmanBuoy
-Bin
-Octagon
-StraightPathMarker
-Pole
