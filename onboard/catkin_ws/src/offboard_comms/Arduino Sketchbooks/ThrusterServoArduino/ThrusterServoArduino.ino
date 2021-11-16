@@ -7,7 +7,6 @@
 #include <custom_msgs/ServoAngleArray.h>
 #include <sensor_msgs/FluidPressure.h>
 #include <Arduino.h>
-#include <stdlib.h>
 
 Adafruit_PWMServoDriver pwm_multiplexer(0x40);
 
