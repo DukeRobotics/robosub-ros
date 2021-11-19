@@ -7,6 +7,8 @@ import rospy
 from time import sleep
 from geometry_msgs.msg import PoseStamped
 
+from smach import State
+
 
 class MoveToPoseGlobalTask(Task):
     """Move to pose given in global coordinates."""
@@ -20,7 +22,7 @@ class MoveToPoseGlobalTask(Task):
 
     def run(self, userdata):
         rate = rospy.Rate(15)
-        while True:#not(self.state and task_utils.stopped_at_pose(self.state.pose.pose, self.desired_pose, self.state.twist.twist)):
+        while not(self.state and task_utils.stopped_at_pose(self.state.pose.pose, self.desired_pose, self.state.twist.twist)):
             self.publish_desired_pose_global(self.desired_pose)
             rate.sleep()
         return "done"
@@ -70,10 +72,26 @@ class AllocateVelocityLocalTask(Task):
         self.desired_twist = Twist(linear=linear, angular=angular)
 
     def run(self, userdata):
-        rospy.loginfo("publishing desired twist...")
+        #rospy.loginfo("publishing desired twist...")
         self.publish_desired_twist(self.desired_twist)
         return "done"
 
+class AllocateVelocityLocalForeverTask(Task):
+    def __init__(self, x, y, z, roll, pitch, yaw):
+        super(AllocateVelocityLocalForeverTask, self).__init__(outcomes=["preempted"])
+        linear = Vector3(x=x, y=y, z=z)
+        angular = Vector3(x=roll, y=pitch, z=yaw)
+        self.desired_twist = Twist(linear=linear, angular=angular)
+
+    def run(self, userdata):
+        #rospy.loginfo("publishing desired twist...")
+        rate = rospy.Rate(15)
+        while True:
+            if self.preempt_requested():
+                self.service_preempt()
+                return 'preempted'
+            self.publish_desired_twist(self.desired_twist)
+            rate.sleep()
 
 class AllocateVelocityGlobalTask(AllocateVelocityLocalTask):
     """Allocate specified velocity in a direction"""

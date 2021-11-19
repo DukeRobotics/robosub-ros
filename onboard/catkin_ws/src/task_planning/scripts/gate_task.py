@@ -3,7 +3,7 @@
 import smach
 import rospy
 from task import Task
-from move_tasks import MoveToPoseLocalTask, AllocateVelocityLocalTask
+from move_tasks import MoveToPoseLocalTask, AllocateVelocityLocalTask, AllocateVelocityLocalForeverTask
 from tf import TransformListener
 from time import sleep
 
@@ -24,28 +24,49 @@ def create_gate_task_sm(velocity=0.2):
     sleep(2)
     listener = TransformListener()
     with sm:
+        # TODO add "dive and move away from dock task"
         smach.StateMachine.add('NEAR_GATE', NearGateTask(SIDE_THRESHOLD),
                                transitions={
                                    'true': 'MOVE_THROUGH_GATE',
-                                   'false': 'HORIZONTAL_ALIGNMENT',
+                                   'false': 'CHOOSE_ROTATE_DIR',
                                    'spin': 'NEAR_GATE'})
 
         smach.StateMachine.add('MOVE_THROUGH_GATE', MoveToPoseLocalTask(3, 0, 0, 0, 0, 0, listener),
                                transitions={
                                    'done': 'gate_task_succeeded'})
 
-        smach.StateMachine.add('HORIZONTAL_ALIGNMENT', GateHorizontalAlignmentTask(CENTERED_THRESHOLD),
+        smach.StateMachine.add('CHOOSE_ROTATE_DIR', GateSpinDirectionTask(CENTERED_THRESHOLD),
                                transitions={
-                                   'left': 'ROTATE_LEFT',
-                                   'right': 'ROTATE_RIGHT',
-                                   'center': 'VERTICAL_ALIGNMENT',
-                                   'spin': 'HORIZONTAL_ALIGNMENT'})
+                                   'left': 'ROTATE_TO_GATE_LEFT',
+                                   'right': 'ROTATE_TO_GATE_RIGHT',
+                                   'center': 'gate_task_succeeded'})
 
-        smach.StateMachine.add('ROTATE_LEFT', AllocateVelocityLocalTask(0, 0, 0, 0, 0, velocity),
-                               transitions={'done': 'HORIZONTAL_ALIGNMENT'})
+        def concurrence_term_cb(outcome_map):
+            return outcome_map['ROTATION_DONE'] == 'done'
 
-        smach.StateMachine.add('ROTATE_RIGHT', AllocateVelocityLocalTask(0, 0, 0, 0, 0, -velocity),
-                               transitions={'done': 'HORIZONTAL_ALIGNMENT'})
+        rotate_gate_left_cc = smach.Concurrence(outcomes = ['done'],
+                 default_outcome = 'done',
+                 child_termination_cb = concurrence_term_cb,
+                 outcome_map = {'done':{'ROTATION_DONE':'done'}})
+        with rotate_gate_left_cc:
+            smach.Concurrence.add('ROTATION_DONE', GateRotationDoneTask(CENTERED_THRESHOLD))
+            smach.Concurrence.add('ROTATE', AllocateVelocityLocalForeverTask(0, 0, 0, 0, 0, velocity))
+
+        rotate_gate_right_cc = smach.Concurrence(outcomes = ['done'],
+                 default_outcome = 'done',
+                 child_termination_cb = concurrence_term_cb,
+                 outcome_map = {'done':{'ROTATION_DONE':'done'}})
+        with rotate_gate_right_cc:
+            smach.Concurrence.add('ROTATION_DONE', GateRotationDoneTask(CENTERED_THRESHOLD))
+            smach.Concurrence.add('ROTATE', AllocateVelocityLocalForeverTask(0, 0, 0, 0, 0, -velocity))
+
+        smach.StateMachine.add('ROTATE_TO_GATE_LEFT', rotate_gate_left_cc,
+                                transitions={
+                                   'done': 'gate_task_succeeded'})
+
+        smach.StateMachine.add('ROTATE_TO_GATE_RIGHT', rotate_gate_right_cc,
+                                transitions={
+                                   'done': 'gate_task_succeeded'})
 
         smach.StateMachine.add('VERTICAL_ALIGNMENT', GateVerticalAlignmentTask(CENTERED_THRESHOLD),
                                transitions={
@@ -66,9 +87,9 @@ def create_gate_task_sm(velocity=0.2):
     return sm
 
 
-class GateHorizontalAlignmentTask(Task):
+class GateSpinDirectionTask(Task):
     def __init__(self, threshold):
-        super(GateHorizontalAlignmentTask, self).__init__(["center","right","left","spin"])
+        super(GateSpinDirectionTask, self).__init__(["center","right","left"])
         self.threshold = threshold
 
     def run(self, userdata):
@@ -79,7 +100,19 @@ class GateHorizontalAlignmentTask(Task):
             if gate_info["offset_h"] < 0:
                 return "right"
             return "left"
-        return "spin"
+        # default to right if we can't find the gate
+        return "right"
+
+class GateRotationDoneTask(Task):
+    def __init__(self, threshold):
+        super(GateRotationDoneTask, self).__init__(["done"])
+        self.threshold = threshold
+
+    def run(self, userdata):
+        while True:
+            gate_info = _scrutinize_gate(self.cv_data['gate'], self.cv_data['gate_tick'])
+            if gate_info and abs(gate_info["offset_h"]) < self.threshold:
+                return "done"
 
 
 class GateVerticalAlignmentTask(Task):
@@ -104,7 +137,6 @@ class NearGateTask(Task):
         self.threshold = threshold
 
     def run(self, userdata):
-        print(self.cv_data)
         gate_info = _scrutinize_gate(self.cv_data['gate'], self.cv_data['gate_tick'])
         if gate_info:
             if (gate_info["left"] > self.threshold) and (gate_info["right"] > self.threshold):
@@ -127,18 +159,18 @@ def _scrutinize_gate(gate_data, gate_tick_data):
             offset_h - difference between distances on the right and left sides (from 0 to 1)
             offset_v - difference between distances on the top and bottom sides (from 0 to 1)
     """
-    if not(gate_data) or not(gate_tick_data) or gate_data.label == 'none':
+    if not(gate_data) or gate_data.label == 'none':
         return None
 
     res = {
         "left": gate_data.xmin,
-        "right": 1 - gate_data.xmaxg,
+        "right": 1 - gate_data.xmax,
         "top": gate_data.ymin,
         "bottom": 1 - gate_data.ymax
     }
 
     # Adjust the target area if the gate tick is detected
-    if gate_tick_data.label != 'none' and gate_tick_data.score > 0.5:
+    if gate_tick_data and gate_tick_data.label != 'none' and gate_tick_data.score > 0.5:
         # If the tick is closer to the left side
         if abs(gate_tick_data.xmin - gate_data.xmin) < abs(gate_tick_data.xmax - gate_data.xmax):
             res["right"] = 1 - gate_tick_data.xmax

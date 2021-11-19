@@ -10,7 +10,8 @@ class TaskState:
     DESIRED_POSE_TOPIC = 'controls/desired_pose'
     DESIRED_TWIST_POWER_TOPIC = 'controls/desired_power'
     DESIRED_TWIST_VELOCITY_TOPIC = 'controls/desired_twist'
-    CV_GATE_DATA_TOPIC = '/cv/_start_gate/left'
+    #CV_GATE_DATA_TOPIC = '/cv/_start_gate/left'
+    CV_GATE_DATA_TOPIC = '/gate/left'
     CV_GATE_TICK_DATA_TOPIC = '/cv/_start_tick/left'
 
     def __init__(self):

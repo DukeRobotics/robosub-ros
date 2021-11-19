@@ -12,25 +12,29 @@ from tf import TransformListener
 
 def main():
     rospy.init_node('smach_test')
-    # listener = TransformListener()
+    listener = TransformListener()
     print("before sleep")
     sleep(2)
     # print("before ctor")
-    move = AllocateVelocityLocalTask(0, 0, -1, 0, 0, 0)
-    #move.run(None)
+    # move = MoveToPoseGlobalTask(0, 2, 0, 0, 0, 0)
+    # move.run(None)
     #return
-    rate = rospy.Rate(15)
-    while True:
-        move.run(None)
-        rate.sleep()
+    # rate = rospy.Rate(15)
+    # while True:
+    #     move.run(None)
+    #     rate.sleep()
     # move = MoveToPoseLocalTask(2, 0, 0, 0, 0, 0, listener)
     
     # move.run(None)
     # print("first move")
-    # move = MoveToPoseGlobalTask(2, 4, 0, 0, 0, 0)
-    # move.run(None)
-    # print("AAAAAAAAAAAAAAAAAA")
-    # return
+    move = MoveToPoseGlobalTask(2, 0, 0, 0, 0, 0)
+    move.run(None)
+    move = MoveToPoseGlobalTask(2, 2, 0, 0, 0, 0)
+    move.run(None)
+    move = MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0)
+    move.run(None)
+    print("AAAAAAAAAAAAAAAAAA")
+    return
     
 
     # t = AllocateVelocityGlobalTask(0.2, 0, 0, 0, 0, 0)
