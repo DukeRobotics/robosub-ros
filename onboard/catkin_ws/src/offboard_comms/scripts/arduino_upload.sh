@@ -38,9 +38,9 @@ PORT=$("${PKG_DIR}"/scripts/port_finder.sh)
 export ARDUINO_LIBRARY_ENABLE_UNSAFE_INSTALL=true
 arduino-cli lib install --zip-path ros_lib.zip
 rm -f ros_lib.zip
-arduino-cli core install arduino:avr
-arduino-cli compile -b arduino:avr:nano:cpu=atmega328old "${SRC_CODE}"
+arduino-cli core install arduino:megaavr
+arduino-cli compile -b arduino:megaavr:nona4809 "${SRC_CODE}"
 
 if [ "$ARD_UPLOAD" = true ]; then
-    arduino-cli upload -b arduino:avr:nano:cpu=atmega328old -p "${PORT}" "${SRC_CODE}"
+    arduino-cli upload -b arduino:megaavr:nona4809 -p "${PORT}" "${SRC_CODE}"
 fi
