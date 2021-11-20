@@ -4,13 +4,13 @@ import rospy
 import yaml
 import resource_retriever as rr
 import utils
-import torch
 
 from custom_msgs.msg import CVObject
 from custom_msgs.srv import EnableModel
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from detecto.core import Model
+
 
 class Detector:
 
@@ -22,7 +22,8 @@ class Detector:
         self.camera = rospy.get_param('~camera')
 
         # Load in model configurations
-        with open(rr.get_filename('package://cv/models/models.yaml', use_protocol=False)) as f:
+        with open(rr.get_filename('package://cv/models/models.yaml',
+                                  use_protocol=False)) as f:
             self.models = yaml.safe_load(f)
 
         # The topic that the camera publishes its feed to
@@ -39,7 +40,9 @@ class Detector:
         if model.get('predictor') is not None:
             return
 
-        weights_file = rr.get_filename(f"package://cv/models/{model['weights']}", use_protocol=False)
+        weights_file = rr.get_filename(
+                f"package://cv/models/{model['weights']}",
+                use_protocol=False)
 
         predictor = Model.load(weights_file, model['classes'])
 
@@ -64,10 +67,13 @@ class Detector:
                 # Generate model predictions
                 labels, boxes, scores = model['predictor'].predict(image)
                 # Pass raw model predictions into nms algorithm for filtering
-                nms_labels, nms_boxes, nms_scores = utils.nms(labels, boxes, scores.detach().numpy())
+                nms_labels, nms_boxes, nms_scores = utils.nms(labels, boxes,
+                                                              scores.detach().
+                                                              numpy())
 
                 # Publish post-nms predictions
-                self.publish_predictions((nms_labels, nms_boxes, nms_scores), model['publisher'], image.shape)
+                self.publish_predictions((nms_labels, nms_boxes, nms_scores),
+                                         model['publisher'], image.shape)
 
     # Publish predictions with the given publisher
     def publish_predictions(self, preds, publisher, shape):
@@ -122,6 +128,7 @@ class Detector:
 
         # Keep node running until shut down
         rospy.spin()
+
 
 if __name__ == '__main__':
     Detector().run()

@@ -3,19 +3,20 @@
 import numpy as np
 import torch
 
+
 def nms(labels, dets, scores, thresh=0.01, conf_thresh=0.7):
 
     # NMS Algorithm
-    # Code taken from: https://github.com/rbgirshick/fast-rcnn/blob/master/lib/utils/nms.py
+    # https://github.com/rbgirshick/fast-rcnn/blob/master/lib/utils/nms.py
     # Arguments
-    #     dets:        boxes coordinates (format:[y1, x1, y2, x2]) as a Nx4 tensor
+    #     dets:        boxes coordinates (format:[y1, x1, y2, x2]) as tensor
     #     scores:      box score tensors (N * 4)
     #     thresh:      IoU threshold (the lower the more restrictive)
     #     conf_thresh: confidence value to cut all post-nms predictions
     # Return
-    #     nms_labels:  list of strings of the labels of all predictions that pass nms
-    #     nms_boxes:   2D torch tensor of all the bounding box coords of the predictions
-    #     nms_scores:  1D torch tensor of all bouding box prediction confidence values
+    #     nms_labels:  list of strings of the labels of all predictions
+    #     nms_boxes:   2D torch tensor of all the bounding box coords
+    #     nms_scores:  1D torch tensor of all bouding box prediction confidence
 
     if not labels:
         return labels, dets, torch.tensor(scores)
@@ -46,7 +47,7 @@ def nms(labels, dets, scores, thresh=0.01, conf_thresh=0.7):
         areas = (x2 - x1 + 1) * (y2 - y1 + 1)
         order = c_score_tensor.argsort()[::-1]
 
-        # Keep is a list that stores the indices of c_dets_tensor and c_score_tensor to keep after nms
+        # Keep stores the indices of c_dets_tensor and c_score_tensor to keep
         keep = []
         while order.size > 0:
 
@@ -63,7 +64,7 @@ def nms(labels, dets, scores, thresh=0.01, conf_thresh=0.7):
             w = np.maximum(0.0, xx2 - xx1 + 1)
             h = np.maximum(0.0, yy2 - yy1 + 1)
             inter = w * h
-            
+
             # IoU = i / (area(a) + area(b) - i)
             iou = inter / (areas[j] + areas[order[1:]] - inter)
 
@@ -75,7 +76,7 @@ def nms(labels, dets, scores, thresh=0.01, conf_thresh=0.7):
             nms_boxes.append(torch.tensor(c_dets_tensor[index]))
             nms_scores.append(torch.tensor(c_score_tensor[index]))
 
-    # Check if nms_boxes is empty; if so, return the labels as None so the publisher publishes empty results
+    # Check if nms_boxes is empty; if so, return the labels as None
     if len(nms_boxes) == 0:
         return None, dets, torch.tensor(scores)
 
