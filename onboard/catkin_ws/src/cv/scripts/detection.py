@@ -63,19 +63,9 @@ class Detector:
 
                 # Generate model predictions
                 labels, boxes, scores = model['predictor'].predict(image)
-                indices = utils.soft_nms_pytorch(boxes, scores)
-                
-                # Create new predictions tuple with nms approved boxes
-                nms_labels = []
-                nms_boxes = []
-                nms_scores = []
+                nms_labels, nms_boxes, nms_scores = utils.nms(labels, boxes, scores.detach().numpy())
 
-                for index in indices:
-                    nms_labels.append(labels[index])
-                    nms_boxes.append(boxes[index])
-                    nms_scores.append(scores[index])
-
-                self.publish_predictions((nms_labels, torch.stack(nms_boxes), torch.stack(nms_scores)), model['publisher'], image.shape)
+                self.publish_predictions((nms_labels, nms_boxes, nms_scores), model['publisher'], image.shape)
 
     # Publish predictions with the given publisher
     def publish_predictions(self, preds, publisher, shape):

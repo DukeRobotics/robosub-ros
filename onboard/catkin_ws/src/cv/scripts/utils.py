@@ -1,99 +1,70 @@
+#!/usr/bin/env python3
 
 import numpy as np
 import torch
 
-def nms_pytorch(dets, scores, thresh=0.5):
+def nms(labels, dets, scores, thresh=0.01, conf_thresh=0.7):
 
     # NMS Algorithm
+    # Code taken from: https://github.com/rbgirshick/fast-rcnn/blob/master/lib/utils/nms.py
     # Arguments
-    #     dets:        boxes coordinate tensor (format:[y1, x1, y2, x2])
+    #     dets:        boxes coordinates (format:[y1, x1, y2, x2]) as a Nx4 tensor
     #     scores:      box score tensors
     # Return
     #     the index of the selected boxes
-        
-    x1 = dets[:, 0].detach().numpy()
-    y1 = dets[:, 1].detach().numpy()
-    x2 = dets[:, 2].detach().numpy()
-    y2 = dets[:, 3].detach().numpy()
 
-    areas = (x2 - x1 + 1) * (y2 - y1 + 1)
-    order = scores.argsort()[::-1]
+    if not labels:
+        return labels, dets, torch.tensor(scores)
 
-    keep = []
-    while order.size > 0:
-        i = order[0]
-        keep.append(i)
-        xx1 = np.maximum(x1[i], x1[order[1:]])
-        yy1 = np.maximum(y1[i], y1[order[1:]])
-        xx2 = np.minimum(x2[i], x2[order[1:]])
-        yy2 = np.minimum(y2[i], y2[order[1:]])
+    label_set = list(set(labels))
 
-        w = np.maximum(0.0, xx2 - xx1 + 1)
-        h = np.maximum(0.0, yy2 - yy1 + 1)
-        inter = w * h
-        ovr = inter / (areas[i] + areas[order[1:]] - inter)
+    # Create new predictions tuple with nms approved boxes
+    nms_labels = []
+    nms_boxes = []
+    nms_scores = []
 
-        inds = np.where(ovr <= thresh)[0]
-        order = order[inds + 1]
+    for i in range(len(label_set)):
 
-    return keep
+        label_mask = np.array(labels) == label_set[i]
+        c_label_tensor = dets[label_mask]
+        print(label_set[i], c_label_tensor)
+        c_score_tensor = scores[label_mask]
 
-def soft_nms_pytorch(dets, box_scores, sigma=0.1, thresh=0.1, cuda=0):
+        x1 = c_label_tensor[:, 0].detach().numpy()
+        y1 = c_label_tensor[:, 1].detach().numpy()
+        x2 = c_label_tensor[:, 2].detach().numpy()
+        y2 = c_label_tensor[:, 3].detach().numpy()
 
-    # Soft NMS algorithm
-    # Arguments
-    #     dets:        boxes coordinate tensor (format:[y1, x1, y2, x2])
-    #     box_scores:  box score tensors
-    #     sigma:       variance of Gaussian function
-    #     thresh:      score thresh
-    #     cuda:        CUDA flag
-    # Return
-    #     the index of the selected boxes
+        areas = (x2 - x1 + 1) * (y2 - y1 + 1)
+        order = c_score_tensor.argsort()[::-1]
 
-    # Indexes concatenate boxes with the last column
-    N = dets.shape[0]
-    if cuda:
-        indexes = torch.arange(0, N, dtype=torch.float).cuda().view(N, 1)
-    else:
-        indexes = torch.arange(0, N, dtype=torch.float).view(N, 1)
-    dets = torch.cat((dets, indexes), dim=1)
+        keep = []
+        while order.size > 0:
 
-    # The order of boxes coordinate is [y1,x1,y2,x2]
-    y1 = dets[:, 0]
-    x1 = dets[:, 1]
-    y2 = dets[:, 2]
-    x2 = dets[:, 3]
-    scores = box_scores
-    areas = (x2 - x1 + 1) * (y2 - y1 + 1)
+            j = order[0]
 
-    for i in range(N):
-        # Intermediate parameters for later parameters exchange
-        tscore = scores[i].clone()
-        pos = i + 1
+            if (scores[j] > conf_thresh):
+                keep.append(j)
 
-        if i != N - 1:
-            maxscore, maxpos = torch.max(scores[pos:], dim=0)
-            if tscore < maxscore:
-                dets[i], dets[maxpos.item() + i + 1] = dets[maxpos.item() + i + 1].clone(), dets[i].clone()
-                scores[i], scores[maxpos.item() + i + 1] = scores[maxpos.item() + i + 1].clone(), scores[i].clone()
-                areas[i], areas[maxpos + i + 1] = areas[maxpos + i + 1].clone(), areas[i].clone()
+            xx1 = np.maximum(x1[j], x1[order[1:]])
+            yy1 = np.maximum(y1[j], y1[order[1:]])
+            xx2 = np.minimum(x2[j], x2[order[1:]])
+            yy2 = np.minimum(y2[j], y2[order[1:]])
 
-        # IoU calculate
-        yy1 = np.maximum(dets[i, 0].to("cpu").numpy(), dets[pos:, 0].to("cpu").numpy())
-        xx1 = np.maximum(dets[i, 1].to("cpu").numpy(), dets[pos:, 1].to("cpu").numpy())
-        yy2 = np.minimum(dets[i, 2].to("cpu").numpy(), dets[pos:, 2].to("cpu").numpy())
-        xx2 = np.minimum(dets[i, 3].to("cpu").numpy(), dets[pos:, 3].to("cpu").numpy())
-        
-        w = np.maximum(0.0, xx2 - xx1 + 1)
-        h = np.maximum(0.0, yy2 - yy1 + 1)
-        inter = torch.tensor(w * h).cuda() if cuda else torch.tensor(w * h)
-        ovr = torch.div(inter, (areas[i] + areas[pos:] - inter))
+            w = np.maximum(0.0, xx2 - xx1 + 1)
+            h = np.maximum(0.0, yy2 - yy1 + 1)
+            inter = w * h
+            ovr = inter / (areas[j] + areas[order[1:]] - inter)
 
-        # Gaussian decay
-        weight = torch.exp(-(ovr * ovr) / sigma)
-        scores[pos:] = weight * scores[pos:]
+            inds = np.where(ovr <= thresh)[0]
+            order = order[inds + 1]
 
-    # Select the boxes and keep the corresponding indexes
-    keep = dets[:, 4][scores > thresh].int()
+        for index in keep:
+            nms_labels.append(label_set[i])
+            nms_boxes.append(torch.tensor(c_label_tensor[index]))
+            nms_scores.append(torch.tensor(c_score_tensor[index]))
 
-    return keep
+    if len(nms_boxes) == 0:
+        return None, dets, torch.tensor(scores) 
+
+    return nms_labels, torch.stack(nms_boxes), torch.stack(nms_scores)
