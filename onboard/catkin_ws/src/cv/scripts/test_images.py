@@ -7,6 +7,7 @@ from custom_msgs.srv import EnableModel
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
+
 # Mock the camera by publishing the same image to a topic
 class DummyImagePublisher:
 
@@ -16,10 +17,12 @@ class DummyImagePublisher:
 
     # Read in the dummy image and other misc. setup work
     def __init__(self):
-        self.image_publisher = rospy.Publisher(self.IMAGE_TOPIC, Image, queue_size=10)
+        self.image_publisher = rospy.Publisher(self.IMAGE_TOPIC, Image,
+                                               queue_size=10)
 
         path = os.path.dirname(__file__)
-        image = cv2.imread(os.path.join(path, '../assets/left384.jpg'), cv2.IMREAD_COLOR)
+        image = cv2.imread(os.path.join(path, '../assets/left384.jpg'),
+                           cv2.IMREAD_COLOR)
         bridge = CvBridge()
 
         self.image_msg = bridge.cv2_to_imgmsg(image, 'bgr8')
