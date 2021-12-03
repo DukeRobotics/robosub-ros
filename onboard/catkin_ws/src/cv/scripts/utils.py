@@ -53,7 +53,7 @@ def nms(labels, dets, scores, thresh=0.01, conf_thresh=0.7):
 
             j = order[0]
 
-            if (scores[j] > conf_thresh):
+            if (c_score_tensor[j] > conf_thresh):
                 keep.append(j)
 
             xx1 = np.maximum(x1[j], x1[order[1:]])

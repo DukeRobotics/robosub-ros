@@ -83,7 +83,8 @@ class Detector:
         if not labels:
             object_msg = CVObject()
             object_msg.label = 'none'
-            publisher.publish(object_msg)
+            if publisher:
+                publisher.publish(object_msg)
         else:
             for label, box, score in zip(labels, boxes, scores):
                 object_msg = CVObject()
