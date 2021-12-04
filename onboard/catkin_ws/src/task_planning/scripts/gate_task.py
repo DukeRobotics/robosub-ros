@@ -68,6 +68,10 @@ def create_gate_task_sm(velocity=0.2):
                                 transitions={
                                    'done': 'gate_task_succeeded'})
 
+
+
+
+
         smach.StateMachine.add('VERTICAL_ALIGNMENT', GateVerticalAlignmentTask(CENTERED_THRESHOLD),
                                transitions={
                                    'top': 'ASCEND',
@@ -83,6 +87,7 @@ def create_gate_task_sm(velocity=0.2):
 
         smach.StateMachine.add('ADVANCE', AllocateVelocityLocalTask(velocity, 0, 0, 0, 0, 0),
                                transitions={'done': 'NEAR_GATE'})
+
 
     return sm
 
@@ -123,6 +128,7 @@ class GateVerticalAlignmentTask(Task):
     def run(self, userdata):
         gate_info = _scrutinize_gate(self.cv_data['gate'], self.cv_data['gate_tick'])
         if gate_info:
+
             if abs(gate_info["offset_v"]) < self.threshold:
                 return "center"
             if gate_info["offset_v"] < 0:
@@ -139,11 +145,29 @@ class NearGateTask(Task):
     def run(self, userdata):
         gate_info = _scrutinize_gate(self.cv_data['gate'], self.cv_data['gate_tick'])
         if gate_info:
-            if (gate_info["left"] > self.threshold) and (gate_info["right"] > self.threshold):
+            if (gate_info["left"] < self.threshold) and (gate_info["right"] < self.threshold):
                 return "true"
             else:
                 return "false"
         return "spin"
+
+"""
+Algorithm plan for finding gate pos from cv data:
+
+Get angle of gate point from center of camera using cam_yaw = (x_from_center / width (which is just 1)) * horizontal_fov
+For left this would be cam_yaw = (left - 0.5) * horizontal_fov
+cam_pitch = (y_from_center / height (once again 1)) * vert_fov
+We now have global spherical coordinates for our point
+phi = 90 + cam_pitch
+theta = -cam_yaw
+This has robot oriented facing +x as is usual
+Then add result to camera offset
+Then convert robot local coord result to global coords
+
+Use our 4 corners to get 2 vectors, then cross product to get normal
+Then position robot along that normal and whatever distance we want
+"""
+
 
 
 def _scrutinize_gate(gate_data, gate_tick_data):
