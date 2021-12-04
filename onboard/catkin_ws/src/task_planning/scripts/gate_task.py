@@ -2,10 +2,13 @@
 
 import smach
 import rospy
+import task_utils
 from task import Task
 from move_tasks import MoveToPoseLocalTask, AllocateVelocityLocalTask, AllocateVelocityLocalForeverTask
-from tf import TransformListener
+from tf import TransformListener, Vector3
 from time import sleep
+from geometry_msgs.msg import Point, Pose, Quaternion
+from math import *
 
 
 SIDE_THRESHOLD = 0.1  # means gate post is within 1 tenth of the side of the frame
@@ -168,6 +171,46 @@ Use our 4 corners to get 2 vectors, then cross product to get normal
 Then position robot along that normal and whatever distance we want
 """
 
+def _find_gate_normal_and_center(gate_data_l, gate_data_r):
+    top_left = _real_pos_from_cv((gate_data_l.xmin + gate_data_l.xmax)/2, gate_data_l.ymin, gate_data_l.depth)
+    top_right = _real_pos_from_cv((gate_data_r.xmin + gate_data_r.xmax)/2, gate_data_r.ymin, gate_data_r.depth)
+    bottom_left = _real_pos_from_cv((gate_data_l.xmin + gate_data_l.xmax)/2, gate_data_l.ymax, gate_data_l.depth)
+    bottom_right = _real_pos_from_cv((gate_data_r.xmin + gate_data_r.xmax)/2, gate_data_r.ymax, gate_data_r.depth)
+
+    # Midpoint between top_left and bottom_right
+    center_pt = Point(x=(top_left.position.x + bottom_right.position.x) / 2, y=(top_left.position.y + bottom_right.position.y) / 2, z=(top_left.position.z + bottom_right.position.z) / 2)
+
+    diag_1 = Vector3(top_left.position.x - bottom_right.position.x, top_left.position.y - bottom_right.position.y, top_left.position.z - bottom_right.position.z)
+    diag_2 = Vector3(bottom_left.position.x - top_right.position.x, bottom_left.position.y - top_right.position.y, bottom_left.position.z - top_right.position.z)
+
+    return (diag_1.cross(diag_2), center_pt)
+
+
+"""Get the position of a point in global coordinates from its position from the camera
+Parameters:
+x: x position of the point relative to the left of the frame (0 to 1)
+y: y position of the point relative to the top of the frame (0 to 1)
+d: distance from the camera to the point
+"""
+def _real_pos_from_cv(x, y, d):
+    # Fill in camera parameters later
+    # Use radians
+    cam_yaw = (x - 0.5) * horizontal_fov
+    cam_pitch = (y - 0.5) * vertical_fov
+
+    phi = pi/2 + cam_pitch
+    theta = -cam_yaw
+
+    x_cam = d * sin(phi) * cos(theta)
+    y_cam = d * sin(phi) * sin(theta)
+    z_cam = d * cos(phi)
+
+    # Fill in camera position relative to robot
+    local_pt = Point(x=x_cam + cam_pos_x, y=y_cam + cam_pos_y, z=z_cam + cam_pos_z)
+
+    local_pose = Pose(position=local_pt, orientation=Quaternion(0, 0, 0, 1))
+
+    return task_utils.transform_pose(listener, 'base_link', 'odom', local_pose)
 
 
 def _scrutinize_gate(gate_data, gate_tick_data):

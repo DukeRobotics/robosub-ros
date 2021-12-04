@@ -118,6 +118,12 @@ def stopped_at_pose(current_pose, desired_pose, current_twist):
 
     return at_desired_pose and at_desired_vel
 
+def transform_pose(listener, base_frame, target_frame, pose):
+    pose_stamped = PoseStamped()
+    pose_stamped.pose = pose
+    pose_stamped.header.frame_id = base_frame
+
+    return listener.transformPose(target_frame, pose_stamped).pose
 
 def transform(origin_frame, dest_frame, poseORodom):
     """Transforms poseORodom from origin_frame to dest_frame frame
