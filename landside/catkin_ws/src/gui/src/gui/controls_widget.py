@@ -19,50 +19,22 @@ from python_qt_binding.QtWidgets import QWidget
 
 #TODO make checkbox for sim mode
 
-class ControlsPlugin(Plugin):
-    """
-    Widget for use with Bag class to display and replay bag files
-    Handles all widget callbacks and contains the instance of BagTimeline for storing visualizing bag data
-    """
-    def __init__(self, context):
-        """
-        :param context: plugin context hook to enable adding widgets as a ROS_GUI pane, ''PluginContext''
-        """
-        super(ControlsPlugin, self).__init__(context)
-        self.setObjectName('ControlsPlugin')
+class ControlsWidget(QWidget):
 
-        # Process standalone plugin command-line arguments
-        from argparse import ArgumentParser
-        parser = ArgumentParser()
-        # Add argument(s) to the parser.
-        parser.add_argument("-q", "--quiet", action="store_true",
-                      dest="quiet",
-                      help="Put plugin in silent mode")
-        args, unknowns = parser.parse_known_args(context.argv())
-        if not args.quiet:
-            print ('arguments: ', args)
-            print ('unknowns: ', unknowns)
+    def __init__(self):
 
-        # Create QWidget
-        self._widget = QWidget()
+        super(ControlsWidget, self).__init__()
 
         ui_file = os.path.join(rospkg.RosPack().get_path('gui'), 'resource', 'ControlsInterface.ui')
-        loadUi(ui_file, self._widget)
+        loadUi(ui_file, self)
 
-        self._widget.setObjectName('ControlsWidget')
-
-        # define buttons
-        # self.pose_enable = QIcon.fromTheme() # fill in with icon
-        # self.twist_enable = QIcon.fromTheme()
-        # self.launch_enable = QIcon.fromTheme()
-        # self.controls_enable = QIcon.fromTheme()
+        self.setObjectName('ControlsWidget')
 
         # Ties buttons to handler functions
-        self._widget.pose_enable.clicked[bool].connect(self._handle_pose_button_clicked)
-        self._widget.twist_enable.clicked[bool].connect(self._handle_twist_button_clicked)
-        self._widget.launch_enable.clicked[bool].connect(self._handle_launch_file_button_clicked)
-        self._widget.controls_enable.clicked[bool].connect(self._handle_controls_state_button_clicked)
-        #TODO: self._widget.sim_checkbox.clicked[bool].connect(self._handle_sim_clicked)
+        self.pose_enable.clicked.connect(self._handle_pose_button_clicked)
+        self.twist_enable.clicked.connect(self._handle_twist_button_clicked)
+        self.launch_enable.clicked.connect(self._handle_launch_file_button_clicked)
+        self.controls_enable.clicked.connect(self._handle_controls_state_button_clicked)
         
         # All possible values for background color and text stored here
         self.background_colors = {
@@ -80,12 +52,10 @@ class ControlsPlugin(Plugin):
             "controls_enabled"  : "Disable Controls",
         }
 
-        self._widget.pose_enable.setStyleSheet(self.background_colors["default"])
-        self._widget.twist_enable.setStyleSheet(self.background_colors["default"])
-        self._widget.launch_enable.setStyleSheet(self.background_colors["green"])
-        self._widget.controls_enable.setStyleSheet(self.background_colors["green"])
-
-        #TODO: self.sim_mode = False
+        self.pose_enable.setStyleSheet(self.background_colors["default"])
+        self.twist_enable.setStyleSheet(self.background_colors["default"])
+        self.launch_enable.setStyleSheet(self.background_colors["green"])
+        self.controls_enable.setStyleSheet(self.background_colors["green"])
 
 
         # Holds state of whether actively running desired pose/twist
@@ -94,48 +64,19 @@ class ControlsPlugin(Plugin):
         self.launch_enable_state = False
         self.controls_enable_state = False
 
-        # example: self.play_icon = QIcon.fromTheme('media-playback-start')
+        self.x_pose.setSingleStep(0.1)
+        self.y_pose.setSingleStep(0.1)
+        self.z_pose.setSingleStep(0.1)
+        self.roll_pose.setSingleStep(0.1)
+        self.pitch_pose.setSingleStep(0.1)
+        self.yaw_pose.setSingleStep(0.1)
+        self.x_twist.setSingleStep(0.1)
+        self.y_twist.setSingleStep(0.1)
+        self.z_twist.setSingleStep(0.1)
+        self.roll_twist.setSingleStep(0.1)
+        self.pitch_twist.setSingleStep(0.1)
+        self.yaw_twist.setSingleStep(0.1)
 
-        self._widget.x_pose.setSingleStep(0.1)
-        self._widget.y_pose.setSingleStep(0.1)
-        self._widget.z_pose.setSingleStep(0.1)
-        self._widget.roll_pose.setSingleStep(0.1)
-        self._widget.pitch_pose.setSingleStep(0.1)
-        self._widget.yaw_pose.setSingleStep(0.1)
-        self._widget.x_twist.setSingleStep(0.1)
-        self._widget.y_twist.setSingleStep(0.1)
-        self._widget.z_twist.setSingleStep(0.1)
-        self._widget.roll_twist.setSingleStep(0.1)
-        self._widget.pitch_twist.setSingleStep(0.1)
-        self._widget.yaw_twist.setSingleStep(0.1)
-
-        # TODO make the handle_destroy function that closes SSH
-
-        # Initializing SSH clients for all available commands
-        # TODO refactor into more specific ssh class
-        # self.launch_file_client = SSHClient()
-        # self.launch_file_client.load_system_host_keys()
-
-        # self.publish_pose_client = SSHClient()
-        # self.publish_pose_client.load_system_host_keys()
-
-        # self.publish_twist_client = SSHClient()
-        # self.publish_twist_client.load_system_host_keys()
-
-        if context.serial_number() > 1:
-            self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
-        
-        # Add widget to the user interface
-        context.add_widget(self._widget)
-
-        # Initializing SSH clients for all available commands
-        self.launch_file_client = GUISSHClient()
-        self.publish_pose_client = GUISSHClient()
-        self.publish_twist_client = GUISSHClient()
-
-    def shutdown_plugin(self):
-        # TODO unregister all publishers here
-        pass
 
     def save_settings(self, plugin_settings, instance_settings):
         # TODO save intrinsic configuration, usually using:
@@ -153,8 +94,8 @@ class ControlsPlugin(Plugin):
         self.pose_enable_state = False
         
         # Set the button color and text
-        self._widget.pose_enable.setStyleSheet(self.background_colors["default"])
-        self._widget.pose_enable.setText(self.button_text["publish_disabled"])
+        self.pose_enable.setStyleSheet(self.background_colors["default"])
+        self.pose_enable.setText(self.button_text["publish_disabled"])
     
     def disable_twist(self):
         self.publish_twist_client.stop()
