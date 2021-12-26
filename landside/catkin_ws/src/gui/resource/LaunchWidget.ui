@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>Form</class>
- <widget class="QWidget" name="Form">
+ <widget class="QDialog" name="Form">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -58,14 +58,14 @@
   <widget class="QLabel" name="label_4">
    <property name="geometry">
     <rect>
-     <x>50</x>
-     <y>0</y>
-     <width>121</width>
+     <x>45</x>
+     <y>5</y>
+     <width>131</width>
      <height>20</height>
     </rect>
    </property>
    <property name="text">
-    <string>Enter Launch file info</string>
+    <string>Enter Launch File Info</string>
    </property>
   </widget>
   <widget class="QPushButton" name="accept_button">

@@ -1,7 +1,7 @@
 <library path="src">
-  <class name="My Plugin" type="gui.controls_module.ControlsPlugin" base_class_type="rqt_gui_py::Plugin">
+  <class name="My Plugin" type="gui.system_plugin.SystemPlugin" base_class_type="rqt_gui_py::Plugin">
     <description>
-      Controls interface for testing
+      Systems interface for launching and monitoring nodes.
     </description>
     <qtgui>
       <!-- optional grouping...
@@ -12,7 +12,7 @@
         <label>Subgroup</label>
       </group>
       -->
-      <label>RoboSub Controls</label>
+      <label>RoboSub Systems</label>
       <icon type="theme">system-help</icon>
       <statustip>Great user interface to provide real value.</statustip>
     </qtgui>

@@ -1,10 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 
-from gui.controls_module import ControlsPlugin
 from rqt_gui.main import Main
 
-plugin = 'gui'
+plugin='gui.system_plugin.SystemPlugin'
 main = Main(filename=plugin)
 sys.exit(main.main(standalone=plugin))
