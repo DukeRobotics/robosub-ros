@@ -9,7 +9,7 @@ import python_qt_binding.QtCore as QtCore
 import rospy
 import resource_retriever as rr
 
-from gui.launch_widget import LaunchWidget
+from gui.launch_dialog import LaunchDialog
 from custom_msgs.msg import SystemUsage
 from custom_msgs.srv import StartLaunch, StopLaunch
 
@@ -54,8 +54,8 @@ class SystemWidget(QWidget):
 
         self.table_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
 
-        self.launch_dialog = LaunchWidget()
-        self.launch_dialog.setObjectName('LaunchWidget')
+        self.launch_dialog = LaunchDialog()
+        self.launch_dialog.setObjectName('LaunchDialog')
         self.launch_dialog.reset()
         self.launch_dialog.node_launched.connect(self.append_to_table)
 

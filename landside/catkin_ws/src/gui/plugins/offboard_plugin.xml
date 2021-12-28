@@ -1,0 +1,20 @@
+<library path="src">
+  <class name="Offboard Plugin" type="gui.offboard_plugin.OffboardPlugin" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      GUI interface monitoring and testing Arduino components.
+    </description>
+    <qtgui>
+      <!-- optional grouping...
+      <group>
+        <label>Group</label>
+      </group>
+      <group>
+        <label>Subgroup</label>
+      </group>
+      -->
+      <label>RoboSub Offboard Comms</label>
+      <icon type="theme">system-help</icon>
+      <statustip>Great user interface to provide real value.</statustip>
+    </qtgui>
+  </class>
+</library>

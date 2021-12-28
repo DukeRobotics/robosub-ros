@@ -1,5 +1,5 @@
 <library path="src">
-  <class name="My Plugin" type="gui.system_plugin.SystemPlugin" base_class_type="rqt_gui_py::Plugin">
+  <class name="System Plugin" type="gui.system_plugin.SystemPlugin" base_class_type="rqt_gui_py::Plugin">
     <description>
       Systems interface for launching and monitoring nodes.
     </description>

@@ -11,16 +11,16 @@ import resource_retriever as rr
 from custom_msgs.srv import StartLaunch
 
 
-class LaunchWidget(QDialog):
+class LaunchDialog(QDialog):
 
     ROOT_PATH = '/root/dev/robosub-ros/onboard/catkin_ws/src'
 
     node_launched = pyqtSignal(int, str, str, str, name='nodeLaunched')
 
     def __init__(self):
-        super(LaunchWidget, self).__init__()
+        super(LaunchDialog, self).__init__()
 
-        ui_file = rr.get_filename('package://gui/resource/LaunchWidget.ui', use_protocol=False)
+        ui_file = rr.get_filename('package://gui/resource/LaunchDialog.ui', use_protocol=False)
         loadUi(ui_file, self)
 
         self.reset()

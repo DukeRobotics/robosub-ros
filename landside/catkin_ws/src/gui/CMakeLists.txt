@@ -167,7 +167,8 @@ install(DIRECTORY
 )
 
 install(FILES
-  plugin.xml
+  plugins/system_plugin.xml
+  plugins/offboard_plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
