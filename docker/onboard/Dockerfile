@@ -32,7 +32,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libusb-dev libqt5x11extras5 \
     unzip zip util-linux \
     ros-noetic-tf \ 
-    ros-noetic-robot-localization \
     ros-noetic-pid \
     ros-noetic-rosserial ros-noetic-rosserial-arduino \
     python3-pandas && \

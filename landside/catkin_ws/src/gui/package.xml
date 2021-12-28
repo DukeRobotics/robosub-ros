@@ -67,5 +67,6 @@
     <!-- Other tools can request additional information be placed here -->
     <rqt_gui plugin="${prefix}/plugins/system_plugin.xml"/>
     <rqt_gui plugin="${prefix}/plugins/offboard_plugin.xml"/>
+    <rqt_gui plugin="${prefix}/plugins/sensor_plugin.xml"/>
   </export>
 </package>

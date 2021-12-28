@@ -1,13 +1,12 @@
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtWidgets import QDialog
-from python_qt_binding.QtCore import QThread
+from python_qt_binding.QtCore import QThread, QTimer
 
 import rospy
 import resource_retriever as rr
 
 from custom_msgs.msg import ThrusterSpeeds
-from gui.publisher_object import PublisherObject
 
 class ThrusterDialog(QDialog):
 
@@ -19,7 +18,7 @@ class ThrusterDialog(QDialog):
 
         self.pub = rospy.Publisher('/offboard/thruster_speeds', ThrusterSpeeds, queue_size=3)
         self.msg = ThrusterSpeeds(speeds=[0, 0, 0, 0, 0, 0, 0, 0])
-        self.pub_obj = PublisherObject(self.pub, self.msg)
+        self.timer = QTimer(self)
 
         self.sliders = [
             self.tfr_slider,
@@ -53,29 +52,24 @@ class ThrusterDialog(QDialog):
             self.editors[i].setValue(0)
             self.sliders[i].setValue(0)
         self.msg = ThrusterSpeeds(speeds=[0, 0, 0, 0, 0, 0, 0, 0])
-        self.pub_obj = PublisherObject(self.pub, self.msg)
-        self.thread = QThread()
-        self.pub_obj.moveToThread(self.thread)
-        self.thread.started.connect(self.pub_obj.run)
-        self.thread.start()
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.publish_msg)
+        self.timer.start(20)
 
     def slider_changed(self, index, val):
         rospy.loginfo(f"Slider Index: {index} value {val}")
         self.editors[index].setValue(val)
-        self.update_msg(index, val)
+        self.msg.speeds[index] = val
 
     def editor_changed(self, index, val):
         rospy.loginfo(f"Editor Index: {index} value {val}")
         self.sliders[index].setValue(val)
-        self.update_msg(index, val)
-
-    def update_msg(self, index, new_val):
-        self.msg.speeds[index] = new_val
-        self.pub_obj.update_msg(self.msg)
+        self.msg.speeds[index] = val
+    
+    def publish_msg(self):
+        self.pub.publish(self.msg)
 
     def reject(self):
-        self.pub_obj.stop()
-        self.thread.quit()
-        self.thread.wait()
+        self.timer.stop()
         super(ThrusterDialog, self).reject()
 

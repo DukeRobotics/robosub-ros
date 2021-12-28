@@ -169,6 +169,7 @@ install(DIRECTORY
 install(FILES
   plugins/system_plugin.xml
   plugins/offboard_plugin.xml
+  plugins/sensor_plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 

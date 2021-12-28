@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-noetic-cv-bridge \
     ros-noetic-resource-retriever \
     ros-noetic-actionlib-tools \
+    ros-noetic-robot-localization \
     python-dev-is-python3 \
     python3-pip \
     python3-catkin-tools python3-osrf-pycommon \

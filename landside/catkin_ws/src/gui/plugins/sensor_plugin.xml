@@ -1,0 +1,20 @@
+<library path="src">
+  <class name="Sensor Plugin" type="gui.sensor_plugin.SensorPlugin" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      GUI interface monitoring sensors.
+    </description>
+    <qtgui>
+      <!-- optional grouping...
+      <group>
+        <label>Group</label>
+      </group>
+      <group>
+        <label>Subgroup</label>
+      </group>
+      -->
+      <label>RoboSub Sensors</label>
+      <icon type="theme">system-help</icon>
+      <statustip>Great user interface to provide real value.</statustip>
+    </qtgui>
+  </class>
+</library>
