@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>410</y>
+     <y>390</y>
      <width>271</width>
      <height>28</height>
     </rect>
@@ -32,7 +32,7 @@
      <x>10</x>
      <y>150</y>
      <width>271</width>
-     <height>251</height>
+     <height>231</height>
     </rect>
    </property>
    <property name="title">
@@ -44,13 +44,13 @@
       <x>10</x>
       <y>20</y>
       <width>251</width>
-      <height>110</height>
+      <height>101</height>
      </rect>
     </property>
     <property name="title">
      <string>Pose</string>
     </property>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -67,6 +67,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
@@ -94,11 +97,11 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>70</y>
+       <y>60</y>
        <width>67</width>
        <height>31</height>
       </rect>
@@ -111,6 +114,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
@@ -156,6 +162,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
         </property>
@@ -200,6 +209,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
         </property>
@@ -230,7 +242,7 @@
      <property name="geometry">
       <rect>
        <x>90</x>
-       <y>70</y>
+       <y>60</y>
        <width>67</width>
        <height>31</height>
       </rect>
@@ -243,6 +255,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
@@ -274,7 +289,7 @@
      <property name="geometry">
       <rect>
        <x>170</x>
-       <y>70</y>
+       <y>60</y>
        <width>67</width>
        <height>31</height>
       </rect>
@@ -287,6 +302,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
@@ -319,9 +337,9 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>130</y>
+      <y>120</y>
       <width>251</width>
-      <height>110</height>
+      <height>101</height>
      </rect>
     </property>
     <property name="title">
@@ -344,6 +362,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
@@ -375,7 +396,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>70</y>
+       <y>60</y>
        <width>67</width>
        <height>31</height>
       </rect>
@@ -388,6 +409,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
@@ -433,6 +457,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
         </property>
@@ -477,6 +504,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
         </property>
@@ -507,7 +537,7 @@
      <property name="geometry">
       <rect>
        <x>90</x>
-       <y>70</y>
+       <y>60</y>
        <width>67</width>
        <height>31</height>
       </rect>
@@ -520,6 +550,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
@@ -551,7 +584,7 @@
      <property name="geometry">
       <rect>
        <x>170</x>
-       <y>70</y>
+       <y>60</y>
        <width>67</width>
        <height>31</height>
       </rect>
@@ -564,6 +597,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>

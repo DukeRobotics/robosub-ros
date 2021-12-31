@@ -64,6 +64,8 @@ class DesiredStateHandler:
         # Stop Moving
         self.disable_loops()
         utils.publish_data_constant(self.pub_control_effort, utils.get_axes(), 0)
+        utils.publish_data_dictionary(self.pub_pos, utils.get_axes(), utils.parse_pose(Pose()))
+        utils.publish_data_dictionary(self.pub_vel, utils.get_axes(), utils.parse_twist(Twist()))
         self.twist = None
         self.pose = None
         self.power = None
