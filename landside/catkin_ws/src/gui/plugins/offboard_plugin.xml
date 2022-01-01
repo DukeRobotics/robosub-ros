@@ -4,17 +4,9 @@
       GUI interface monitoring and testing Arduino components.
     </description>
     <qtgui>
-      <!-- optional grouping...
-      <group>
-        <label>Group</label>
-      </group>
-      <group>
-        <label>Subgroup</label>
-      </group>
-      -->
       <label>RoboSub Offboard Comms</label>
       <icon type="theme">system-help</icon>
-      <statustip>Great user interface to provide real value.</statustip>
+      <statustip>GUI interface monitoring and testing Arduino components.</statustip>
     </qtgui>
   </class>
 </library>

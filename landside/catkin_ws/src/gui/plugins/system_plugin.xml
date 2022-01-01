@@ -1,20 +1,12 @@
 <library path="src">
   <class name="System Plugin" type="gui.system_plugin.SystemPlugin" base_class_type="rqt_gui_py::Plugin">
     <description>
-      Systems interface for launching and monitoring nodes.
+      GUI interface for launching and monitoring nodes.
     </description>
     <qtgui>
-      <!-- optional grouping...
-      <group>
-        <label>Group</label>
-      </group>
-      <group>
-        <label>Subgroup</label>
-      </group>
-      -->
       <label>RoboSub Systems</label>
       <icon type="theme">system-help</icon>
-      <statustip>Great user interface to provide real value.</statustip>
+      <statustip>GUI interface for launching and monitoring nodes.</statustip>
     </qtgui>
   </class>
 </library>

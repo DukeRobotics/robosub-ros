@@ -4,17 +4,9 @@
       GUI interface monitoring sensors.
     </description>
     <qtgui>
-      <!-- optional grouping...
-      <group>
-        <label>Group</label>
-      </group>
-      <group>
-        <label>Subgroup</label>
-      </group>
-      -->
       <label>RoboSub Sensors</label>
       <icon type="theme">system-help</icon>
-      <statustip>Great user interface to provide real value.</statustip>
+      <statustip>GUI interface monitoring sensors.</statustip>
     </qtgui>
   </class>
 </library>

@@ -1,0 +1,128 @@
+{
+  "keys": {},
+  "groups": {
+    "mainwindow": {
+      "keys": {
+        "geometry": {
+          "repr(QByteArray.hex)": "QtCore.QByteArray(b'01d9d0cb00030000000000080000001f0000060700000337000000080000001f000006070000033700000000000000000600000000080000001f0000060700000337')",
+          "type": "repr(QByteArray.hex)",
+          "pretty-print": "           7       7            7"
+        },
+        "state": {
+          "repr(QByteArray.hex)": "QtCore.QByteArray(b'000000ff00000000fd000000010000000300000600000002effc0100000002fc00000000000006000000035900fffffffc0100000003fb00000046006700750069005f005f00530079007300740065006d00200050006c007500670069006e005f005f0031005f005f00530079007300740065006d005700690064006700650074010000000000000110000000d400fffffffb0000004e006700750069005f005f0043006f006e00740072006f006c007300200050006c007500670069006e005f005f0031005f005f0043006f006e00740072006f006c007300570069006400670065007401000001160000010c000000d300fffffffc00000228000003d8000001a600fffffffc0100000002fb00000046006700750069005f005f00530065006e0073006f007200200050006c007500670069006e005f005f0031005f005f00530065006e0073006f007200570069006400670065007401000002280000011a000000ca00fffffffb0000004e006700750069005f005f004f006600660062006f00610072006400200050006c007500670069006e005f005f0031005f005f004f006600660062006f0061007200640057006900640067006500740100000348000002b8000000d600fffffffb00000046006700750069005f005f00530065006e0073006f007200200050006c007500670069006e005f005f0032005f005f00530065006e0073006f00720057006900640067006500740100000000000002f80000000000000000000006000000000000000004000000040000000800000008fc00000001000000030000000100000036004d0069006e0069006d0069007a006500640044006f0063006b00570069006400670065007400730054006f006f006c0062006100720000000000ffffffff0000000000000000')",
+          "type": "repr(QByteArray.hex)",
+          "pretty-print": "                     Y                                                                                                                  Fgui__Sensor Plugin__1__SensorWidget          Ngui__Offboard Plugin__1__OffboardWidget          Fgui__Sensor Plugin__2__SensorWidget                            6MinimizedDockWidgetsToolbar        "
+        }
+      },
+      "groups": {
+        "toolbar_areas": {
+          "keys": {
+            "MinimizedDockWidgetsToolbar": {
+              "repr": "8",
+              "type": "repr"
+            }
+          },
+          "groups": {}
+        }
+      }
+    },
+    "pluginmanager": {
+      "keys": {
+        "running-plugins": {
+          "repr": "{'gui/Controls Plugin': [1], 'gui/Offboard Plugin': [1], 'gui/Sensor Plugin': [1], 'gui/System Plugin': [1]}",
+          "type": "repr"
+        }
+      },
+      "groups": {
+        "plugin__gui__Controls Plugin__1": {
+          "keys": {},
+          "groups": {
+            "dock_widget__ControlsWidget": {
+              "keys": {
+                "dock_widget_title": {
+                  "repr": "'Controls Plugin'",
+                  "type": "repr"
+                },
+                "dockable": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "parent": {
+                  "repr": "None",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            }
+          }
+        },
+        "plugin__gui__Offboard Plugin__1": {
+          "keys": {},
+          "groups": {
+            "dock_widget__OffboardWidget": {
+              "keys": {
+                "dock_widget_title": {
+                  "repr": "'Offboard Plugin'",
+                  "type": "repr"
+                },
+                "dockable": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "parent": {
+                  "repr": "None",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            }
+          }
+        },
+        "plugin__gui__Sensor Plugin__1": {
+          "keys": {},
+          "groups": {
+            "dock_widget__SensorWidget": {
+              "keys": {
+                "dock_widget_title": {
+                  "repr": "'Sensor Plugin'",
+                  "type": "repr"
+                },
+                "dockable": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "parent": {
+                  "repr": "None",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            }
+          }
+        },
+        "plugin__gui__System Plugin__1": {
+          "keys": {},
+          "groups": {
+            "dock_widget__SystemWidget": {
+              "keys": {
+                "dock_widget_title": {
+                  "repr": "'Systems Plugin'",
+                  "type": "repr"
+                },
+                "dockable": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "parent": {
+                  "repr": "None",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            }
+          }
+        }
+      }
+    }
+  }
+}

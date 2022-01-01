@@ -98,6 +98,10 @@ class ControlsWidget(QWidget):
 
         self.update_pid_button.clicked.connect(self.show_pid_dialog)
 
+        self.tab_widget.setTabText(0, 'Position')
+        self.tab_widget.setTabText(1, 'Velocity')
+        self.tab_widget.setCurrentIndex(0)
+
 
     def enable_state_clicked(self):
         rospy.wait_for_service('enable_controls')

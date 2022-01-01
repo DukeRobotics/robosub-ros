@@ -391,7 +391,7 @@
     <rect>
      <x>95</x>
      <y>240</y>
-     <width>81</width>
+     <width>91</width>
      <height>16</height>
     </rect>
    </property>
@@ -399,17 +399,17 @@
     <string>PID Constants</string>
    </property>
   </widget>
-  <widget class="QTabWidget" name="tabWidget">
+  <widget class="QTabWidget" name="tab_widget">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>270</y>
      <width>251</width>
      <height>341</height>
     </rect>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="pos_tab">
     <attribute name="title">
