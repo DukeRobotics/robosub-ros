@@ -1,6 +1,7 @@
 from python_qt_binding import loadUi
 from python_qt_binding.QtWidgets import QWidget
 from python_qt_binding.QtCore import QTimer
+import python_qt_binding.QtCore as QtCore
 
 import rospy
 import resource_retriever as rr
@@ -10,7 +11,7 @@ import numpy as np
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Imu, Joy
 from std_msgs.msg import Float64
-from geometry_msgs.msg import Point, Quaternion, PoseWithCovarianceStamped
+from geometry_msgs.msg import Point, Quaternion, PoseWithCovarianceStamped, Twist
 from robot_localization.srv import SetPose
 
 from gui.xyzrpy_dialog import XyzRpyDialog
@@ -60,6 +61,21 @@ class SensorWidget(QWidget):
         self.state_dialog.xyzrpy.connect(self.set_state)
         self.set_state_button.clicked.connect(self.state_dialog.show)
 
+        self.background_colors = {
+            "green"   : "background-color: #8aff92",
+            "red"     : "background-color: #ff7878"
+        }
+
+        self.keyboard_timer = QTimer(self)
+        self.keyboard_timer.setInterval(100)
+        self.keyboard_timer.timeout.connect(self.publish_power)
+        self.enable_keyboard_button.clicked.connect(self.enable_keyboard)
+        self.enable_keyboard_button.setStyleSheet(self.background_colors['green'])
+        self.keyboard_enabled = False
+        self.power_publisher = rospy.Publisher('/controls/desired_power', Twist, queue_size=3)
+        self.power_msg = Twist()
+
+
     def update_subs(self, key):
         self.times[key] = rospy.Time.now()
 
@@ -101,3 +117,50 @@ class SensorWidget(QWidget):
             set_pose(pose)
         except rospy.ServiceException as exc:
             print("Service did not process request: " + str(exc))
+
+    def publish_power(self):
+        self.power_publisher.publish(self.power_msg)
+        self.power_msg = Twist()
+
+    def keyPressEvent(self, event):
+        if self.keyboard_enabled:
+            if event.key() == QtCore.Qt.Key_W:
+                self.power_msg.linear.x = 1.0
+            if event.key() == QtCore.Qt.Key_S:
+                self.power_msg.linear.x = -1.0
+            if event.key() == QtCore.Qt.Key_A:
+                self.power_msg.linear.y = 1.0
+            if event.key() == QtCore.Qt.Key_D:
+                self.power_msg.linear.y = -1.0
+            if event.key() == QtCore.Qt.Key_I:
+                self.power_msg.linear.z = 1.0
+            if event.key() == QtCore.Qt.Key_K:
+                self.power_msg.linear.z = -1.0
+            if event.key() == QtCore.Qt.Key_Right:
+                self.power_msg.angular.x = -1.0
+            if event.key() == QtCore.Qt.Key_Left:
+                self.power_msg.angular.x = 1.0
+            if event.key() == QtCore.Qt.Key_Up:
+                self.power_msg.angular.y = 1.0
+            if event.key() == QtCore.Qt.Key_Down:
+                self.power_msg.angular.y = -1.0
+            if event.key() == QtCore.Qt.Key_J:
+                self.power_msg.angular.z = 1.0
+            if event.key() == QtCore.Qt.Key_L:
+                self.power_msg.angular.z = -1.0
+        super(SensorWidget, self).keyPressEvent(event)
+
+    def enable_keyboard(self):
+        if self.keyboard_enabled:
+            self.keyboard_timer.stop()
+            self.releaseKeyboard()
+            self.keyboard_enabled = False
+            self.enable_keyboard_button.setStyleSheet(self.background_colors['green'])
+            self.enable_keyboard_button.setText('Enable Keyboard Control')
+        else:
+            self.power_msg = Twist()
+            self.grabKeyboard()
+            self.keyboard_timer.start()
+            self.keyboard_enabled = True
+            self.enable_keyboard_button.setStyleSheet(self.background_colors['red'])
+            self.enable_keyboard_button.setText('Disable Keyboard Control')

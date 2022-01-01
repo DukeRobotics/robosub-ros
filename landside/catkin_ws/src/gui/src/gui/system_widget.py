@@ -69,7 +69,7 @@ class SystemWidget(QWidget):
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Delete:
             items = self.table_widget.selectedItems()
-            if items:
+            if items and items[0].row() != 0:
                 self.delete_launch(items[0].row())
         super(SystemWidget, self).keyPressEvent(event)
 

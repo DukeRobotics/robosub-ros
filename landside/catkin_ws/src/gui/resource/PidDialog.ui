@@ -31,18 +31,21 @@
       <property name="title">
        <string>X</string>
       </property>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
          <x>10</x>
          <y>20</y>
          <width>102</width>
-         <height>81</height>
+         <height>82</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout">
         <item row="0" column="1">
          <widget class="QDoubleSpinBox" name="x_pos_p">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -60,6 +63,9 @@
         </item>
         <item row="2" column="1">
          <widget class="QDoubleSpinBox" name="x_pos_d">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -84,6 +90,9 @@
         </item>
         <item row="1" column="1">
          <widget class="QDoubleSpinBox" name="x_pos_i">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -113,6 +122,9 @@
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="0" column="1">
          <widget class="QDoubleSpinBox" name="y_pos_p">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -130,6 +142,9 @@
         </item>
         <item row="2" column="1">
          <widget class="QDoubleSpinBox" name="y_pos_d">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -154,6 +169,9 @@
         </item>
         <item row="1" column="1">
          <widget class="QDoubleSpinBox" name="y_pos_i">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -183,6 +201,9 @@
        <layout class="QGridLayout" name="gridLayout_13">
         <item row="0" column="1">
          <widget class="QDoubleSpinBox" name="z_pos_p">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -200,6 +221,9 @@
         </item>
         <item row="2" column="1">
          <widget class="QDoubleSpinBox" name="z_pos_d">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -224,6 +248,9 @@
         </item>
         <item row="1" column="1">
          <widget class="QDoubleSpinBox" name="z_pos_i">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -253,6 +280,9 @@
        <layout class="QGridLayout" name="gridLayout_14">
         <item row="0" column="1">
          <widget class="QDoubleSpinBox" name="roll_pos_p">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -270,6 +300,9 @@
         </item>
         <item row="2" column="1">
          <widget class="QDoubleSpinBox" name="roll_pos_d">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -294,6 +327,9 @@
         </item>
         <item row="1" column="1">
          <widget class="QDoubleSpinBox" name="roll_pos_i">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -323,6 +359,9 @@
        <layout class="QGridLayout" name="gridLayout_15">
         <item row="0" column="1">
          <widget class="QDoubleSpinBox" name="pitch_pos_p">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -340,6 +379,9 @@
         </item>
         <item row="2" column="1">
          <widget class="QDoubleSpinBox" name="pitch_pos_d">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -364,6 +406,9 @@
         </item>
         <item row="1" column="1">
          <widget class="QDoubleSpinBox" name="pitch_pos_i">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -393,6 +438,9 @@
        <layout class="QGridLayout" name="gridLayout_16">
         <item row="0" column="1">
          <widget class="QDoubleSpinBox" name="yaw_pos_p">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -410,6 +458,9 @@
         </item>
         <item row="2" column="1">
          <widget class="QDoubleSpinBox" name="yaw_pos_d">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -434,6 +485,9 @@
         </item>
         <item row="1" column="1">
          <widget class="QDoubleSpinBox" name="yaw_pos_i">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -517,6 +571,9 @@
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="1">
          <widget class="QDoubleSpinBox" name="x_twist_p">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -534,6 +591,9 @@
         </item>
         <item row="2" column="1">
          <widget class="QDoubleSpinBox" name="x_twist_d">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -558,6 +618,9 @@
         </item>
         <item row="1" column="1">
          <widget class="QDoubleSpinBox" name="x_twist_i">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -587,6 +650,9 @@
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="0" column="1">
          <widget class="QDoubleSpinBox" name="y_twist_p">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -604,6 +670,9 @@
         </item>
         <item row="2" column="1">
          <widget class="QDoubleSpinBox" name="y_twist_d">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -628,6 +697,9 @@
         </item>
         <item row="1" column="1">
          <widget class="QDoubleSpinBox" name="y_twist_i">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -657,6 +729,9 @@
        <layout class="QGridLayout" name="gridLayout_17">
         <item row="0" column="1">
          <widget class="QDoubleSpinBox" name="z_twist_p">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -674,6 +749,9 @@
         </item>
         <item row="2" column="1">
          <widget class="QDoubleSpinBox" name="z_twist_d">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -698,6 +776,9 @@
         </item>
         <item row="1" column="1">
          <widget class="QDoubleSpinBox" name="z_twist_i">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -727,6 +808,9 @@
        <layout class="QGridLayout" name="gridLayout_18">
         <item row="0" column="1">
          <widget class="QDoubleSpinBox" name="roll_twist_p">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -744,6 +828,9 @@
         </item>
         <item row="2" column="1">
          <widget class="QDoubleSpinBox" name="roll_twist_d">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -768,6 +855,9 @@
         </item>
         <item row="1" column="1">
          <widget class="QDoubleSpinBox" name="roll_twist_i">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -797,6 +887,9 @@
        <layout class="QGridLayout" name="gridLayout_19">
         <item row="0" column="1">
          <widget class="QDoubleSpinBox" name="pitch_twist_p">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -814,6 +907,9 @@
         </item>
         <item row="2" column="1">
          <widget class="QDoubleSpinBox" name="pitch_twist_d">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -838,6 +934,9 @@
         </item>
         <item row="1" column="1">
          <widget class="QDoubleSpinBox" name="pitch_twist_i">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -867,6 +966,9 @@
        <layout class="QGridLayout" name="gridLayout_20">
         <item row="0" column="1">
          <widget class="QDoubleSpinBox" name="yaw_twist_p">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -884,6 +986,9 @@
         </item>
         <item row="2" column="1">
          <widget class="QDoubleSpinBox" name="yaw_twist_d">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -908,6 +1013,9 @@
         </item>
         <item row="1" column="1">
          <widget class="QDoubleSpinBox" name="yaw_twist_i">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>

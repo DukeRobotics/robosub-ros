@@ -36,6 +36,11 @@ class PidDialog(QDialog):
         self.dialog_button.accepted.connect(self.accept_clicked)
         self.dialog_button.rejected.connect(self.reject)
 
+        for i in range(6):
+            for k in range(3):
+                self.ppid[i][k].setSingleStep(0.001)
+                self.vpid[i][k].setSingleStep(0.001)
+
     def show(self, pos_pid, vel_pid):
         for i in range(6):
             for k in range(3):

@@ -420,7 +420,7 @@
       <rect>
        <x>10</x>
        <y>120</y>
-       <width>98</width>
+       <width>111</width>
        <height>84</height>
       </rect>
      </property>
@@ -440,6 +440,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -496,6 +499,9 @@
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
           </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -517,6 +523,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -572,7 +581,7 @@
       <rect>
        <x>10</x>
        <y>220</y>
-       <width>98</width>
+       <width>111</width>
        <height>84</height>
       </rect>
      </property>
@@ -592,6 +601,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -648,6 +660,9 @@
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
           </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -669,6 +684,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -722,9 +740,9 @@
     <widget class="QWidget" name="formLayoutWidget_26">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>130</x>
        <y>20</y>
-       <width>98</width>
+       <width>111</width>
        <height>84</height>
       </rect>
      </property>
@@ -744,6 +762,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -800,6 +821,9 @@
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
           </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -821,6 +845,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -874,9 +901,9 @@
     <widget class="QWidget" name="formLayoutWidget_27">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>130</x>
        <y>120</y>
-       <width>98</width>
+       <width>111</width>
        <height>84</height>
       </rect>
      </property>
@@ -896,6 +923,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -952,6 +982,9 @@
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
           </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -973,6 +1006,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -1026,9 +1062,9 @@
     <widget class="QWidget" name="formLayoutWidget_29">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>130</x>
        <y>220</y>
-       <width>98</width>
+       <width>111</width>
        <height>84</height>
       </rect>
      </property>
@@ -1048,6 +1084,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -1104,6 +1143,9 @@
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
           </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -1125,6 +1167,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -1180,7 +1225,7 @@
       <rect>
        <x>10</x>
        <y>20</y>
-       <width>98</width>
+       <width>111</width>
        <height>84</height>
       </rect>
      </property>
@@ -1200,6 +1245,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -1256,6 +1304,9 @@
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
           </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -1277,6 +1328,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -1337,7 +1391,7 @@
       <rect>
        <x>10</x>
        <y>20</y>
-       <width>98</width>
+       <width>111</width>
        <height>84</height>
       </rect>
      </property>
@@ -1357,6 +1411,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -1413,6 +1470,9 @@
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
           </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -1434,6 +1494,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -1489,7 +1552,7 @@
       <rect>
        <x>10</x>
        <y>120</y>
-       <width>98</width>
+       <width>111</width>
        <height>84</height>
       </rect>
      </property>
@@ -1509,6 +1572,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -1565,6 +1631,9 @@
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
           </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -1586,6 +1655,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -1639,9 +1711,9 @@
     <widget class="QWidget" name="formLayoutWidget_35">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>130</x>
        <y>220</y>
-       <width>98</width>
+       <width>111</width>
        <height>84</height>
       </rect>
      </property>
@@ -1661,6 +1733,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -1717,6 +1792,9 @@
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
           </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -1738,6 +1816,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -1791,9 +1872,9 @@
     <widget class="QWidget" name="formLayoutWidget_33">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>130</x>
        <y>20</y>
-       <width>98</width>
+       <width>111</width>
        <height>84</height>
       </rect>
      </property>
@@ -1813,6 +1894,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -1869,6 +1953,9 @@
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
           </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -1890,6 +1977,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -1943,9 +2033,9 @@
     <widget class="QWidget" name="formLayoutWidget_34">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>130</x>
        <y>120</y>
-       <width>98</width>
+       <width>111</width>
        <height>84</height>
       </rect>
      </property>
@@ -1965,6 +2055,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -2021,6 +2114,9 @@
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
           </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -2042,6 +2138,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -2097,7 +2196,7 @@
       <rect>
        <x>10</x>
        <y>220</y>
-       <width>98</width>
+       <width>111</width>
        <height>84</height>
       </rect>
      </property>
@@ -2117,6 +2216,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -2173,6 +2275,9 @@
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
           </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
           </property>
@@ -2194,6 +2299,9 @@
           </property>
           <property name="buttonSymbols">
            <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="decimals">
+           <number>3</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>

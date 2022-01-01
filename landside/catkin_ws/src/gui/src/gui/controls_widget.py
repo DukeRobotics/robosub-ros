@@ -198,13 +198,19 @@ class ControlsWidget(QWidget):
         self.controls_msg = Twist(linear=Vector3(x=x, y=y, z=z), angular=Vector3(x=roll, y=pitch, z=yaw))
         self.pose_twist_entered()
 
+    def get_pid_param(self, pid_type, i, k):
+        param_name = f'controls/{self.DIRS[i]}_{pid_type}/controller/K{self.PID[k]}'
+        if not rospy.has_param(param_name) or not rospy.has_param(param_name + '_scale'):
+            return None
+        return rospy.get_param(param_name) * rospy.get_param(param_name + '_scale') 
+
     def update_pid_display(self, pid_list, pid_type):
         for i in range(len(self.DIRS)):
             for k in range(len(self.PID)):
-                param_name = f'controls/{self.DIRS[i]}_{pid_type}/controller/K{self.PID[k]}'
-                if rospy.has_param(param_name):
+                param_value = self.get_pid_param(pid_type, i, k)
+                if param_value is not None:
                     pid_list[i][k].setEnabled(True)
-                    pid_list[i][k].setValue(rospy.get_param(param_name))
+                    pid_list[i][k].setValue(param_value)
                 else:
                     pid_list[i][k].setEnabled(False)
                     rospy.logerr('PID Parameters not set')
@@ -214,14 +220,16 @@ class ControlsWidget(QWidget):
         vpid = [[0 for i in range(len(self.PID))] for k in range(len(self.DIRS))]
         for i in range(len(self.DIRS)):
             for k in range(len(self.PID)):
-                ppid[i][k] = rospy.get_param(f'controls/{self.DIRS[i]}_pos/controller/K{self.PID[k]}')
-                vpid[i][k] = rospy.get_param(f'controls/{self.DIRS[i]}_vel/controller/K{self.PID[k]}')
+                pos_param = self.get_pid_param('pos', i, k)
+                ppid[i][k] = pos_param if pos_param is not None else 0
+                vel_param = self.get_pid_param('vel', i, k)
+                vpid[i][k] = vel_param if vel_param is not None else 0
         self.pid_dialog.show(ppid, vpid)
         
  
     def update_pid_constants(self, ppid, vpid):
         for i in range(len(self.DIRS)):
             pos_client = dynamic_reconfigure.client.Client(f'/controls/{self.DIRS[i]}_pos/controller')
-            pos_client.update_configuration({'Kp': ppid[i][0], 'Ki' : ppid[i][1], 'Kd':ppid[i][2]})
+            pos_client.update_configuration({'Kp': ppid[i][0], 'Ki' : ppid[i][1], 'Kd':ppid[i][2], 'Kp_scale' : 1.0, 'Ki_scale' : 1.0, 'Kd_scale' : 1.0})
             vel_client = dynamic_reconfigure.client.Client(f'/controls/{self.DIRS[i]}_vel/controller')
-            vel_client.update_configuration({'Kp': vpid[i][0], 'Ki' : vpid[i][1], 'Kd':vpid[i][2]})
+            vel_client.update_configuration({'Kp': vpid[i][0], 'Ki' : vpid[i][1], 'Kd':vpid[i][2], 'Kp_scale' : 1.0, 'Ki_scale' : 1.0, 'Kd_scale' : 1.0})
