@@ -26,7 +26,7 @@
     <string>Set Current State</string>
    </property>
   </widget>
-  <widget class="QGroupBox" name="groupBox">
+  <widget class="QGroupBox" name="state_box">
    <property name="geometry">
     <rect>
      <x>10</x>

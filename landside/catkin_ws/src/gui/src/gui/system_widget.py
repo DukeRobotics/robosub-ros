@@ -3,11 +3,12 @@ import glob
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtWidgets import QWidget, QDialogButtonBox, QDialog, QAbstractItemView, QTableWidgetItem
-from python_qt_binding.QtCore import QEvent
+from python_qt_binding.QtCore import QEvent, QTimer
 import python_qt_binding.QtCore as QtCore
 
 import rospy
 import resource_retriever as rr
+import rosservice
 
 from gui.launch_dialog import LaunchDialog
 from custom_msgs.msg import SystemUsage
@@ -36,6 +37,12 @@ class SystemWidget(QWidget):
         self.ram_value.display(0)
         self.system_sub = rospy.Subscriber('/system/usage', SystemUsage, self.update_cpu_ram)
 
+        self.last_system_time = rospy.Time.now() - rospy.Duration(5)
+        self.system_sub_timer = QTimer(self)
+        self.system_sub_timer.timeout.connect(self.check_system_sub)
+        self.system_sub_timer.start(100)
+
+        self.current_launch = None
         self.execute_buttons = {"motion" : self.motion_button,
                                 "state": self.state_button,
                                 "tasks": self.tasks_button}
@@ -61,8 +68,9 @@ class SystemWidget(QWidget):
 
         self.launch_dialog_button.clicked.connect(self.launch_node_dialog)
 
-        rospy.wait_for_service('start_node')
-        rospy.wait_for_service('stop_node')
+        self.remote_launch_timer = QTimer(self)
+        self.remote_launch_timer.timeout.connect(self.check_remote_launch)
+        self.remote_launch_timer.start(100)
 
         rospy.loginfo('System Widget successfully initialized')
     
@@ -73,10 +81,28 @@ class SystemWidget(QWidget):
                 self.delete_launch(items[0].row())
         super(SystemWidget, self).keyPressEvent(event)
 
+    def check_remote_launch(self):
+        enabled = '/start_node' in rosservice.get_service_list()
+        self.launch_dialog_button.setEnabled(enabled)
+        self.table_widget.setEnabled(enabled)
+        if enabled and self.current_launch is None:
+            for key in self.execute_buttons:
+                self.execute_buttons[key].setEnabled(True)
+        elif enabled and self.current_launch is not None:
+            for key in self.execute_buttons:
+                self.execute_buttons[key].setEnabled(key == self.current_launch)
+        else:
+            for key in self.execute_buttons:
+                self.execute_buttons[key].setEnabled(False)
+
+    def check_system_sub(self):
+        self.system_usage_box.setEnabled(rospy.Time.now() - self.last_system_time < rospy.Duration(2))
+
     def simulation_changed(self, val):
         self.simulation = self.simulation_check_box.isChecked()
 
     def update_cpu_ram(self, system_usage):
+        self.last_system_time = rospy.Time.now()
         self.cpu_value.display(system_usage.cpu_percent)
         self.ram_value.display(system_usage.ram.used)
     
@@ -106,13 +132,12 @@ class SystemWidget(QWidget):
 
     def execute_button_clicked(self, button):
         start_launch = self.execute_buttons[button].text() == f'Start {self.LAUNCHFILES[button]}'
-        for key in self.execute_buttons:
-            if key != button:
-                self.execute_buttons[key].setEnabled(not start_launch)
         new_button_text = 'Stop ' if start_launch else 'Start '
         self.execute_buttons[button].setText(new_button_text + self.LAUNCHFILES[button])
         if start_launch:
+            self.current_launch = button
             self.execute_rows[button] = self.launch_file(self.LAUNCHFILES[button])
         else:
+            self.current_launch = None
             self.delete_launch(self.execute_rows[button])
             self.execute_rows[button] = 0

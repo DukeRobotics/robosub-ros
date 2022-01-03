@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>OffboardWidget</string>
   </property>
-  <widget class="QGroupBox" name="groupBox">
+  <widget class="QGroupBox" name="thruster_output_box">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -291,7 +291,7 @@
     <string>Open Thruster Tester</string>
    </property>
   </widget>
-  <widget class="QGroupBox" name="groupBox_2">
+  <widget class="QGroupBox" name="servo_control_box">
    <property name="geometry">
     <rect>
      <x>10</x>

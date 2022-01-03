@@ -7,6 +7,7 @@ import rospy
 import resource_retriever as rr
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 import numpy as np
+import rosservice
 
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Imu, Joy
@@ -55,11 +56,17 @@ class SensorWidget(QWidget):
             self.timers[key].start(100)
 
         self.state_sub = rospy.Subscriber('/state', Odometry, self.update_state)
+        self.state_time = rospy.Time.now() - rospy.Duration(5)
+        self.state_sub_timer = QTimer(self)
+        self.state_sub_timer.timeout.connect(self.update_state_display)
+        self.state_sub_timer.start(100)
 
-        rospy.wait_for_service('/set_pose')
         self.state_dialog = XyzRpyDialog('Enter Pose')
         self.state_dialog.xyzrpy.connect(self.set_state)
         self.set_state_button.clicked.connect(self.state_dialog.show)
+        self.set_state_timer = QTimer(self)
+        self.set_state_timer.timeout.connect(self.check_set_state)
+        self.set_state_timer.start(100)
 
         self.background_colors = {
             "green"   : "background-color: #8aff92",
@@ -87,7 +94,11 @@ class SensorWidget(QWidget):
             self.labels[key].setText('DISCONNECTED')
             self.labels[key].setStyleSheet("QLabel {color : red; }")
 
+    def update_state_display(self):
+        self.state_box.setEnabled(rospy.Time.now() - self.state_time < rospy.Duration(2))
+
     def update_state(self, state):
+        self.state_time = rospy.Time.now()
         pose = state.pose.pose
         roll, pitch, yaw = euler_from_quaternion((pose.orientation.x, pose.orientation.y, 
                                                   pose.orientation.z, pose.orientation.w))
@@ -105,6 +116,9 @@ class SensorWidget(QWidget):
         self.roll_twist.setValue(np.degrees(twist.angular.x))
         self.pitch_twist.setValue(np.degrees(twist.angular.y))
         self.yaw_twist.setValue(np.degrees(twist.angular.z))
+
+    def check_set_state(self):
+        self.set_state_button.setEnabled('/set_pose' in rosservice.get_service_list())
 
     def set_state(self, x, y, z, roll, pitch, yaw):
         quat = quaternion_from_euler(np.radians(roll), np.radians(pitch), np.radians(yaw))

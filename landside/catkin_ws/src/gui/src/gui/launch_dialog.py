@@ -33,7 +33,6 @@ class LaunchDialog(QDialog):
     def reset(self):
         package_list = glob.glob(os.path.join(self.ROOT_PATH, '*/'))
         package_names = [''] + [str(os.path.split(f[:-1])[1]) for f in package_list]
-        rospy.loginfo(package_names)
         self.package_name_box.clear()
         self.package_name_box.addItems(package_names)
         self.package_name_box.setEnabled(True)

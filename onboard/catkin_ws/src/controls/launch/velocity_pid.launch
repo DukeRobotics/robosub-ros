@@ -87,14 +87,14 @@
             <param name="Kd" value="$(arg roll_vel_Kd)" />
         </group>
         <group ns="controls/pitch_vel/controller">
-            <param name="Kp" value="(arg pitch_vel_Kp)" />
-            <param name="Ki" value="(arg pitch_vel_Ki)" />
-            <param name="Kd" value="(arg pitch_vel_Kd)" />
+            <param name="Kp" value="$(arg pitch_vel_Kp)" />
+            <param name="Ki" value="$(arg pitch_vel_Ki)" />
+            <param name="Kd" value="$(arg pitch_vel_Kd)" />
         </group>
         <group ns="controls/yaw_vel/controller">
-            <param name="Kp" value="(arg yaw_vel_Kp)" />
-            <param name="Ki" value="(arg yaw_vel_Ki)" />
-            <param name="Kd" value="(arg yaw_vel_Kd)" />
+            <param name="Kp" value="$(arg yaw_vel_Kp)" />
+            <param name="Ki" value="$(arg yaw_vel_Ki)" />
+            <param name="Kd" value="$(arg yaw_vel_Kd)" />
         </group>
     </group>
 

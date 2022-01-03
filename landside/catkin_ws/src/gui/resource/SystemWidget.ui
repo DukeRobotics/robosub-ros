@@ -103,7 +103,7 @@
     <enum>Qt::Horizontal</enum>
    </property>
   </widget>
-  <widget class="QGroupBox" name="groupBox">
+  <widget class="QGroupBox" name="system_usage_box">
    <property name="geometry">
     <rect>
      <x>10</x>

@@ -7,6 +7,7 @@ import resource_retriever as rr
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 import dynamic_reconfigure.client
 import numpy as np
+import rosservice
 
 from std_srvs.srv import SetBool
 from geometry_msgs.msg import Pose, Twist, Point, Quaternion, Vector3
@@ -40,6 +41,10 @@ class ControlsWidget(QWidget):
         self.enable_controls_button.setText(self.controls_button_text["enable"])
         self.enable_controls_button.setStyleSheet(self.background_colors["green"])
 
+        self.enable_controls_timer = QTimer(self)
+        self.enable_controls_timer.timeout.connect(self.check_enable_controls)
+        self.enable_controls_timer.start(100)
+
         self.state_times = {
             'pose' : rospy.Time.now(),
             'twist' : rospy.Time.now(),
@@ -58,7 +63,6 @@ class ControlsWidget(QWidget):
         self.publishing_timer = QTimer(self)
         self.publishing_timer.timeout.connect(self.publish_controls)
         self.publishing_timer.setInterval(100)
-
 
         self.pose_twist_dialog = PoseTwistDialog()
         self.pose_twist_dialog.pose.connect(self.pose_entered)
@@ -95,13 +99,16 @@ class ControlsWidget(QWidget):
 
         self.pid_dialog = PidDialog()
         self.pid_dialog.pid.connect(self.update_pid_constants)
+    
+        self.pid_service_timer = QTimer(self)
+        self.pid_service_timer.timeout.connect(self.check_pid_service)
+        self.pid_service_timer.start(100)
 
         self.update_pid_button.clicked.connect(self.show_pid_dialog)
 
         self.tab_widget.setTabText(0, 'Position')
         self.tab_widget.setTabText(1, 'Velocity')
         self.tab_widget.setCurrentIndex(0)
-
 
     def enable_state_clicked(self):
         rospy.wait_for_service('enable_controls')
@@ -119,6 +126,9 @@ class ControlsWidget(QWidget):
             res = enable_controls(enable_state)
         except rospy.ServiceException as e:
             print(f"Service call failed: {e}") 
+
+    def check_enable_controls(self):
+        self.enable_controls_button.setEnabled('/enable_controls' in rosservice.get_service_list())
 
     def pose_received(self, pose):
         self.state_times['pose'] = rospy.Time.now()
@@ -141,18 +151,13 @@ class ControlsWidget(QWidget):
                                   power.angular.x, power.angular.y, power.angular.z))
     
     def update_desired_state(self, vals):
+        self.desired_control_box.setEnabled(True)
         self.x_value.setValue(vals[0])
-        self.x_value.setEnabled(True)
         self.y_value.setValue(vals[1])
-        self.y_value.setEnabled(True)
         self.z_value.setValue(vals[2])
-        self.z_value.setEnabled(True)
         self.roll_value.setValue(np.degrees(vals[3]))
-        self.roll_value.setEnabled(True)
         self.pitch_value.setValue(np.degrees(vals[4]))
-        self.pitch_value.setEnabled(True)
         self.yaw_value.setValue(np.degrees(vals[5]))
-        self.yaw_value.setEnabled(True)
 
     def publish_controls(self):
         self.pub.publish(self.controls_msg)
@@ -163,12 +168,7 @@ class ControlsWidget(QWidget):
                 self.update_controls_button.setEnabled(False)
                 return
         self.controls_type_label.setText('None')
-        self.x_value.setEnabled(False)
-        self.y_value.setEnabled(False)
-        self.z_value.setEnabled(False)
-        self.roll_value.setEnabled(False)
-        self.pitch_value.setEnabled(False)
-        self.yaw_value.setEnabled(False)
+        self.desired_control_box.setEnabled(False)
         self.update_controls_button.setEnabled(True)
     
     def update_controls_clicked(self):
@@ -214,7 +214,7 @@ class ControlsWidget(QWidget):
                 else:
                     pid_list[i][k].setEnabled(False)
                     rospy.logerr('PID Parameters not set')
-    
+
     def show_pid_dialog(self):
         ppid = [[0 for i in range(len(self.PID))] for k in range(len(self.DIRS))]
         vpid = [[0 for i in range(len(self.PID))] for k in range(len(self.DIRS))]
@@ -226,7 +226,16 @@ class ControlsWidget(QWidget):
                 vpid[i][k] = vel_param if vel_param is not None else 0
         self.pid_dialog.show(ppid, vpid)
         
- 
+    def check_pid_service(self):
+        service_list = rosservice.get_service_list()
+        for i in range(len(self.DIRS)):
+            if f'/controls/{self.DIRS[i]}_pos/controller/set_parameters' not in service_list:
+                self.pid_box.setEnabled(False)
+                self.update_pid_button.setEnabled(False)
+                return
+        self.pid_box.setEnabled(True)
+        self.update_pid_button.setEnabled(True)
+
     def update_pid_constants(self, ppid, vpid):
         for i in range(len(self.DIRS)):
             pos_client = dynamic_reconfigure.client.Client(f'/controls/{self.DIRS[i]}_pos/controller')

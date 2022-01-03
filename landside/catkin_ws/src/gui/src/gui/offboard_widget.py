@@ -1,8 +1,10 @@
 from python_qt_binding import loadUi
 from python_qt_binding.QtWidgets import QWidget, QDialogButtonBox
+from python_qt_binding.QtCore import QTimer
 
 import rospy
 import resource_retriever as rr
+import rosservice
 
 from gui.thruster_dialog import ThrusterDialog
 from custom_msgs.msg import ThrusterSpeeds
@@ -17,7 +19,6 @@ class OffboardWidget(QWidget):
         ui_file = rr.get_filename('package://gui/resource/OffboardWidget.ui', use_protocol=False)
         loadUi(ui_file, self)
 
-        self.sub = rospy.Subscriber('/offboard/thruster_speeds', ThrusterSpeeds, self.update_thruster)
         self.spin_boxes = [
             self.tfr_value,
             self.tfl_value,
@@ -28,11 +29,16 @@ class OffboardWidget(QWidget):
             self.bbr_value,
             self.bbl_value
         ]
+        self.sub = rospy.Subscriber('/offboard/thruster_speeds', ThrusterSpeeds, self.update_thruster)
+
+        self.thruster_time = rospy.Time.now() - rospy.Duration(5)
+        self.thruster_timer = QTimer(self)
+        self.thruster_timer.timeout.connect(self.check_thrusters)
+        self.thruster_timer.start(100)
 
         self.thruster_dialog = ThrusterDialog() 
         self.thruster_tester_button.clicked.connect(self.thruster_dialog.show)
 
-        rospy.wait_for_service('/offboard/set_servo_angle')
         self.servo_buttons = [
             self.servo_button_1,
             self.servo_button_2,
@@ -48,14 +54,26 @@ class OffboardWidget(QWidget):
             self.servo_buttons[i].setText(f'Activate Servo {i + 1}')
             self.servo_buttons[i].clicked.connect(lambda _, index=i: self.servo_clicked(index))
 
-        rospy.wait_for_service('/start_node')
-        rospy.wait_for_service('/stop_node')
+        self.servo_timer = QTimer(self)
+        self.servo_timer.timeout.connect(self.check_servo_service)
+        self.servo_timer.start(100)
+
+        self.remote_launch_timer = QTimer(self)
+        self.remote_launch_timer.timeout.connect(self.check_remote_launch)
+        self.remote_launch_timer.start(100)
         self.upload_arduino_button.clicked.connect(self.upload_arduino_code)
-    
 
     def update_thruster(self, speeds):
+        self.thruster_time = rospy.Time.now()
         for i in range(8):
+            self.spin_boxes[i].setEnabled(True)
             self.spin_boxes[i].setValue(speeds.speeds[i])
+
+    def check_thrusters(self):
+        self.thruster_output_box.setEnabled(rospy.Time.now() - self.thruster_time < rospy.Duration(2))
+
+    def check_servo_service(self):
+        self.servo_control_box.setEnabled('/offboard/set_servo_angle' in rosservice.get_service_list())
 
     def servo_clicked(self, index):
         if self.servo_buttons[index].text() == f'Activate Servo {index + 1}':
@@ -69,6 +87,9 @@ class OffboardWidget(QWidget):
         if not resp.success:
             rospy.logerr(f'Servo {index + 1} failed')
     
+    def check_remote_launch(self):
+        self.upload_arduino_button.setEnabled('/start_node' in rosservice.get_service_list())
+
     def upload_arduino_code(self):
         self.upload_arduino_button.setEnabled(False)
         upload_client = rospy.ServiceProxy('/start_node', StartLaunch)
