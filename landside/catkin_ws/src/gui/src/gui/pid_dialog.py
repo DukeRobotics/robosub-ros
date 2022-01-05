@@ -2,8 +2,8 @@ from python_qt_binding import loadUi
 from python_qt_binding.QtWidgets import QDialog
 from python_qt_binding.QtCore import pyqtSignal
 
-import rospy
 import resource_retriever as rr
+
 
 class PidDialog(QDialog):
 
@@ -11,7 +11,7 @@ class PidDialog(QDialog):
 
     def __init__(self):
         super(PidDialog, self).__init__()
-        
+
         ui_file = rr.get_filename('package://gui/resource/PidDialog.ui', use_protocol=False)
         loadUi(ui_file, self)
 
@@ -49,7 +49,7 @@ class PidDialog(QDialog):
         super(PidDialog, self).show()
 
     def accept_clicked(self):
-        pos_pid = [[self.ppid[i][k].value() for k in range(3)]  for i in range(6)]
+        pos_pid = [[self.ppid[i][k].value() for k in range(3)] for i in range(6)]
         vel_pid = [[self.vpid[i][k].value() for k in range(3)] for i in range(6)]
         self.pid.emit(pos_pid, vel_pid)
         self.accept()

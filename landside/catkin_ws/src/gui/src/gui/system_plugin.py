@@ -2,6 +2,7 @@ from rqt_gui_py.plugin import Plugin
 
 from gui.system_widget import SystemWidget
 
+
 class SystemPlugin(Plugin):
 
     def __init__(self, context):
@@ -11,7 +12,7 @@ class SystemPlugin(Plugin):
         self.widget.setWindowTitle('Systems Plugin')
         if context.serial_number() > 1:
             self.widget.setWindowTitle(self.widget.windowTitle() +
-                                        (' (%d)' % context.serial_number()))
+                                       (' (%d)' % context.serial_number()))
         context.add_widget(self.widget)
 
     def shutdown_plugin(self):

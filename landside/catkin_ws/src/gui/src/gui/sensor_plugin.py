@@ -2,6 +2,7 @@ from rqt_gui_py.plugin import Plugin
 
 from gui.sensor_widget import SensorWidget
 
+
 class SensorPlugin(Plugin):
 
     def __init__(self, context):
@@ -11,7 +12,7 @@ class SensorPlugin(Plugin):
         self.widget.setWindowTitle('Sensor Plugin')
         if context.serial_number() > 1:
             self.widget.setWindowTitle(self.widget.windowTitle() +
-                                        (' (%d)' % context.serial_number()))
+                                       (' (%d)' % context.serial_number()))
         context.add_widget(self.widget)
 
     def shutdown_plugin(self):

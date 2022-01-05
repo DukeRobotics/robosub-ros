@@ -1,18 +1,19 @@
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtWidgets import QDialog
-from python_qt_binding.QtCore import QThread, QTimer
+from python_qt_binding.QtCore import QTimer
 
 import rospy
 import resource_retriever as rr
 
 from custom_msgs.msg import ThrusterSpeeds
 
+
 class ThrusterDialog(QDialog):
 
     def __init__(self):
         super(ThrusterDialog, self).__init__()
-        
+
         ui_file = rr.get_filename('package://gui/resource/ThrusterDialog.ui', use_protocol=False)
         loadUi(ui_file, self)
 
@@ -63,11 +64,10 @@ class ThrusterDialog(QDialog):
     def editor_changed(self, index, val):
         self.sliders[index].setValue(val)
         self.msg.speeds[index] = val
-    
+
     def publish_msg(self):
         self.pub.publish(self.msg)
 
     def reject(self):
         self.timer.stop()
         super(ThrusterDialog, self).reject()
-

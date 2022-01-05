@@ -2,7 +2,7 @@ import os
 import glob
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtWidgets import QWidget, QDialogButtonBox, QDialog
+from python_qt_binding.QtWidgets import QDialog
 from python_qt_binding.QtCore import pyqtSignal
 
 import rospy
@@ -29,7 +29,7 @@ class LaunchDialog(QDialog):
         self.node_name_box.activated.connect(self.node_name_selected)
         self.accept_button.clicked.connect(self.click_ok)
         self.cancel_button.clicked.connect(self.reject)
-    
+
     def reset(self):
         package_list = glob.glob(os.path.join(self.ROOT_PATH, '*/'))
         package_names = [''] + [str(os.path.split(f[:-1])[1]) for f in package_list]

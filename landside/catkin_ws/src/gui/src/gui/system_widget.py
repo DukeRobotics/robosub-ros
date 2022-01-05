@@ -1,9 +1,6 @@
-import os
-import glob
-
 from python_qt_binding import loadUi
-from python_qt_binding.QtWidgets import QWidget, QDialogButtonBox, QDialog, QAbstractItemView, QTableWidgetItem
-from python_qt_binding.QtCore import QEvent, QTimer
+from python_qt_binding.QtWidgets import QWidget, QAbstractItemView, QTableWidgetItem
+from python_qt_binding.QtCore import QTimer
 import python_qt_binding.QtCore as QtCore
 
 import rospy
@@ -17,9 +14,9 @@ from custom_msgs.srv import StartLaunch, StopLaunch
 
 class SystemWidget(QWidget):
 
-    LAUNCHFILES = {'motion' : 'motion.launch',
-                   'state' : 'state.launch', 
-                   'tasks' : 'tasks.launch'}
+    LAUNCHFILES = {'motion': 'motion.launch',
+                   'state': 'state.launch',
+                   'tasks': 'tasks.launch'}
 
     def __init__(self):
         super(SystemWidget, self).__init__()
@@ -43,11 +40,11 @@ class SystemWidget(QWidget):
         self.system_sub_timer.start(100)
 
         self.current_launch = None
-        self.execute_buttons = {"motion" : self.motion_button,
+        self.execute_buttons = {"motion": self.motion_button,
                                 "state": self.state_button,
                                 "tasks": self.tasks_button}
-        self.execute_rows = {"motion" : -1,
-                             "state" : -1,
+        self.execute_rows = {"motion": -1,
+                             "state": -1,
                              "tasks": -1}
 
         self.motion_button.setText(f'Start {self.LAUNCHFILES["motion"]}')
@@ -73,7 +70,7 @@ class SystemWidget(QWidget):
         self.remote_launch_timer.start(100)
 
         rospy.loginfo('System Widget successfully initialized')
-    
+
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Delete:
             items = self.table_widget.selectedItems()
@@ -109,11 +106,11 @@ class SystemWidget(QWidget):
         self.last_system_time = rospy.Time.now()
         self.cpu_value.display(system_usage.cpu_percent)
         self.ram_value.display(system_usage.ram.used)
-    
+
     def launch_node_dialog(self):
         self.launch_dialog.reset()
         self.launch_dialog.open()
-    
+
     def launch_file(self, launchfile):
         args = ['sim:=true'] if self.simulation else ['sim:=false']
         start_launch = rospy.ServiceProxy('start_node', StartLaunch)
@@ -125,13 +122,13 @@ class SystemWidget(QWidget):
         resp = stop_launch(int(self.table_widget.item(row_value, 0).text()))
         self.table_widget.removeRow(row_value)
         return resp.success
-    
+
     def append_to_table(self, pid, package, name, args):
         self.table_widget.insertRow(self.table_widget.rowCount())
-        self.table_widget.setItem(self.table_widget.rowCount()-1, 0, QTableWidgetItem(str(pid)))
-        self.table_widget.setItem(self.table_widget.rowCount()-1, 1, QTableWidgetItem(package))
-        self.table_widget.setItem(self.table_widget.rowCount()-1, 2, QTableWidgetItem(name))
-        self.table_widget.setItem(self.table_widget.rowCount()-1, 3, QTableWidgetItem(args))
+        self.table_widget.setItem(self.table_widget.rowCount() - 1, 0, QTableWidgetItem(str(pid)))
+        self.table_widget.setItem(self.table_widget.rowCount() - 1, 1, QTableWidgetItem(package))
+        self.table_widget.setItem(self.table_widget.rowCount() - 1, 2, QTableWidgetItem(name))
+        self.table_widget.setItem(self.table_widget.rowCount() - 1, 3, QTableWidgetItem(args))
         return self.table_widget.rowCount() - 1
 
     def execute_button_clicked(self, button):

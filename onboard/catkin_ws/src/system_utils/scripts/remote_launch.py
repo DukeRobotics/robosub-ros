@@ -4,6 +4,7 @@ import rospy
 from custom_msgs.srv import StartLaunch, StopLaunch
 import subprocess
 
+
 class RemoteLaunchNode:
 
     def __init__(self):
@@ -15,13 +16,13 @@ class RemoteLaunchNode:
         rospy.Service('stop_node', StopLaunch, self.stop_launch)
         rospy.loginfo('Remote Launch ready')
         rospy.spin()
-    
+
     def start_launch(self, req):
         exe = 'roslaunch' if req.is_launch_file else 'rosrun'
         rospy.loginfo(f'Executing {exe} {req.package} {req.file} {req.args}')
         proc = subprocess.Popen([exe, req.package, req.file] + req.args)
         self.processes[int(proc.pid)] = proc
-        return {'pid' : int(proc.pid)}
+        return {'pid': int(proc.pid)}
 
     def stop_launch(self, req):
         if req.pid not in self.processes:
@@ -33,6 +34,7 @@ class RemoteLaunchNode:
             self.processes.pop(req.pid)
             return {'success': True}
         return {'success': False}
+
 
 if __name__ == '__main__':
     RemoteLaunchNode()

@@ -1,5 +1,5 @@
 from python_qt_binding import loadUi
-from python_qt_binding.QtWidgets import QWidget, QDialogButtonBox
+from python_qt_binding.QtWidgets import QWidget
 from python_qt_binding.QtCore import QTimer
 
 import rospy
@@ -36,7 +36,7 @@ class OffboardWidget(QWidget):
         self.thruster_timer.timeout.connect(self.check_thrusters)
         self.thruster_timer.start(100)
 
-        self.thruster_dialog = ThrusterDialog() 
+        self.thruster_dialog = ThrusterDialog()
         self.thruster_tester_button.clicked.connect(self.thruster_dialog.show)
 
         self.servo_buttons = [
@@ -88,7 +88,7 @@ class OffboardWidget(QWidget):
         resp = set_servo(index, new_angle)
         if not resp.success:
             rospy.logerr(f'Servo {index + 1} failed')
-    
+
     def check_remote_launch(self):
         self.upload_arduino_button.setEnabled('/start_node' in rosservice.get_service_list())
 

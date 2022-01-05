@@ -15,6 +15,7 @@ from geometry_msgs.msg import Pose, Twist, Point, Quaternion, Vector3
 from gui.pose_twist_dialog import PoseTwistDialog
 from gui.pid_dialog import PidDialog
 
+
 class ControlsWidget(QWidget):
 
     DIRS = ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
@@ -30,12 +31,12 @@ class ControlsWidget(QWidget):
         self.setObjectName('ControlsWidget')
 
         self.background_colors = {
-            "green"   : "background-color: #8aff92",
-            "red"     : "background-color: #ff7878"
+            "green": "background-color: #8aff92",
+            "red": "background-color: #ff7878"
         }
         self.controls_button_text = {
-            "enable" : "Enable Controls",
-            "disable" : "Disable Controls"
+            "enable": "Enable Controls",
+            "disable": "Disable Controls"
         }
         self.enable_controls_button.clicked.connect(self.enable_state_clicked)
         self.enable_controls_button.setText(self.controls_button_text["enable"])
@@ -46,9 +47,9 @@ class ControlsWidget(QWidget):
         self.enable_controls_timer.start(100)
 
         self.state_times = {
-            'pose' : rospy.Time.now(),
-            'twist' : rospy.Time.now(),
-            'power' : rospy.Time.now()
+            'pose': rospy.Time.now(),
+            'twist': rospy.Time.now(),
+            'power': rospy.Time.now()
         }
 
         self.desired_pose_sub = rospy.Subscriber('controls/desired_pose', Pose, self.pose_received)
@@ -99,7 +100,7 @@ class ControlsWidget(QWidget):
 
         self.pid_dialog = PidDialog()
         self.pid_dialog.pid.connect(self.update_pid_constants)
-    
+
         self.pid_service_timer = QTimer(self)
         self.pid_service_timer.timeout.connect(self.check_pid_service)
         self.pid_service_timer.start(100)
@@ -125,9 +126,9 @@ class ControlsWidget(QWidget):
 
         try:
             enable_controls = rospy.ServiceProxy('enable_controls', SetBool)
-            res = enable_controls(enable_state)
+            _ = enable_controls(enable_state)
         except rospy.ServiceException as e:
-            print(f"Service call failed: {e}") 
+            print(f"Service call failed: {e}")
 
     def check_enable_controls(self):
         self.enable_controls_button.setEnabled('/enable_controls' in rosservice.get_service_list())
@@ -135,7 +136,7 @@ class ControlsWidget(QWidget):
     def pose_received(self, pose):
         self.state_times['pose'] = rospy.Time.now()
         self.controls_type_label.setText('Pose')
-        roll, pitch, yaw = euler_from_quaternion((pose.orientation.x, pose.orientation.y, 
+        roll, pitch, yaw = euler_from_quaternion((pose.orientation.x, pose.orientation.y,
                                                   pose.orientation.z, pose.orientation.w))
         self.update_desired_state((pose.position.x, pose.position.y, pose.position.z,
                                    roll, pitch, yaw))
@@ -151,7 +152,7 @@ class ControlsWidget(QWidget):
         self.controls_type_label.setText('Power')
         self.update_desired_state((power.linear.x, power.linear.y, power.linear.z,
                                   power.angular.x, power.angular.y, power.angular.z))
-    
+
     def update_desired_state(self, vals):
         self.desired_control_box.setEnabled(True)
         self.x_value.setValue(vals[0])
@@ -172,7 +173,7 @@ class ControlsWidget(QWidget):
         self.controls_type_label.setText('None')
         self.desired_control_box.setEnabled(False)
         self.update_controls_button.setEnabled(True)
-    
+
     def update_controls_clicked(self):
         if self.gui_publishing:
             self.update_controls_button.setText('Set Desired Pose/Twist')
@@ -181,7 +182,7 @@ class ControlsWidget(QWidget):
             self.gui_publishing = False
         else:
             self.pose_twist_dialog.show()
-    
+
     def pose_twist_entered(self):
         self.state_timer.stop()
         self.update_controls_button.setText('Stop Publishing')
@@ -204,7 +205,7 @@ class ControlsWidget(QWidget):
         param_name = f'controls/{self.DIRS[i]}_{pid_type}/controller/K{self.PID[k]}'
         if not rospy.has_param(param_name) or not rospy.has_param(param_name + '_scale'):
             return None
-        return rospy.get_param(param_name) * rospy.get_param(param_name + '_scale') 
+        return rospy.get_param(param_name) * rospy.get_param(param_name + '_scale')
 
     def update_pid_display(self, pid_list, pid_type):
         for i in range(len(self.DIRS)):
@@ -226,7 +227,7 @@ class ControlsWidget(QWidget):
                 vel_param = self.get_pid_param('vel', i, k)
                 vpid[i][k] = vel_param if vel_param is not None else 0
         self.pid_dialog.show(ppid, vpid)
-        
+
     def check_pid_service(self):
         service_list = rosservice.get_service_list()
         for i in range(len(self.DIRS)):
@@ -240,6 +241,16 @@ class ControlsWidget(QWidget):
     def update_pid_constants(self, ppid, vpid):
         for i in range(len(self.DIRS)):
             pos_client = dynamic_reconfigure.client.Client(f'/controls/{self.DIRS[i]}_pos/controller')
-            pos_client.update_configuration({'Kp': ppid[i][0], 'Ki' : ppid[i][1], 'Kd':ppid[i][2], 'Kp_scale' : 1.0, 'Ki_scale' : 1.0, 'Kd_scale' : 1.0})
+            pos_client.update_configuration({'Kp': ppid[i][0],
+                                             'Ki': ppid[i][1],
+                                             'Kd': ppid[i][2],
+                                             'Kp_scale': 1.0,
+                                             'Ki_scale': 1.0,
+                                             'Kd_scale': 1.0})
             vel_client = dynamic_reconfigure.client.Client(f'/controls/{self.DIRS[i]}_vel/controller')
-            vel_client.update_configuration({'Kp': vpid[i][0], 'Ki' : vpid[i][1], 'Kd':vpid[i][2], 'Kp_scale' : 1.0, 'Ki_scale' : 1.0, 'Kd_scale' : 1.0})
+            vel_client.update_configuration({'Kp': vpid[i][0],
+                                             'Ki': vpid[i][1],
+                                             'Kd': vpid[i][2],
+                                             'Kp_scale': 1.0,
+                                             'Ki_scale': 1.0,
+                                             'Kd_scale': 1.0})

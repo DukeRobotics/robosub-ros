@@ -27,17 +27,17 @@ class SensorWidget(QWidget):
         loadUi(ui_file, self)
 
         self.labels = {
-            'imu' : self.imu_status,
-            'dvl' : self.dvl_status,
-            'pressure' : self.pressure_status,
-            'joystick' : self.joystick_status
+            'imu': self.imu_status,
+            'dvl': self.dvl_status,
+            'pressure': self.pressure_status,
+            'joystick': self.joystick_status
         }
 
         self.times = {
-            'imu' : rospy.Time.now() - rospy.Duration(2),
-            'dvl' : rospy.Time.now() - rospy.Duration(2),
-            'pressure' : rospy.Time.now() - rospy.Duration(2),
-            'joystick' : rospy.Time.now() - rospy.Duration(2)
+            'imu': rospy.Time.now() - rospy.Duration(2),
+            'dvl': rospy.Time.now() - rospy.Duration(2),
+            'pressure': rospy.Time.now() - rospy.Duration(2),
+            'joystick': rospy.Time.now() - rospy.Duration(2)
         }
 
         self.imu_sub = rospy.Subscriber('/sensors/imu/imu', Imu, lambda _: self.update_subs('imu'))
@@ -46,10 +46,10 @@ class SensorWidget(QWidget):
         self.joystick_sub = rospy.Subscriber('/joystick/raw', Joy, lambda _: self.update_subs('joystick'))
 
         self.timers = {
-            'imu' : QTimer(self),
-            'dvl' : QTimer(self),
-            'pressure' : QTimer(self),
-            'joystick' : QTimer(self)   
+            'imu': QTimer(self),
+            'dvl': QTimer(self),
+            'pressure': QTimer(self),
+            'joystick': QTimer(self)
         }
         for key in self.timers:
             self.timers[key].timeout.connect(lambda k=key: self.update_status(k))
@@ -69,8 +69,8 @@ class SensorWidget(QWidget):
         self.set_state_timer.start(100)
 
         self.background_colors = {
-            "green"   : "background-color: #8aff92",
-            "red"     : "background-color: #ff7878"
+            "green": "background-color: #8aff92",
+            "red": "background-color: #ff7878"
         }
 
         self.keyboard_timer = QTimer(self)
@@ -83,7 +83,6 @@ class SensorWidget(QWidget):
         self.power_msg = Twist()
 
         rospy.loginfo("Sensor Widget successfully initialized")
-
 
     def update_subs(self, key):
         self.times[key] = rospy.Time.now()
@@ -102,7 +101,7 @@ class SensorWidget(QWidget):
     def update_state(self, state):
         self.state_time = rospy.Time.now()
         pose = state.pose.pose
-        roll, pitch, yaw = euler_from_quaternion((pose.orientation.x, pose.orientation.y, 
+        roll, pitch, yaw = euler_from_quaternion((pose.orientation.x, pose.orientation.y,
                                                   pose.orientation.z, pose.orientation.w))
         self.x_pose.setValue(pose.position.x)
         self.y_pose.setValue(pose.position.y)
