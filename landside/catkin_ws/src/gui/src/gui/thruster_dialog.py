@@ -57,12 +57,10 @@ class ThrusterDialog(QDialog):
         self.timer.start(20)
 
     def slider_changed(self, index, val):
-        rospy.loginfo(f"Slider Index: {index} value {val}")
         self.editors[index].setValue(val)
         self.msg.speeds[index] = val
 
     def editor_changed(self, index, val):
-        rospy.loginfo(f"Editor Index: {index} value {val}")
         self.sliders[index].setValue(val)
         self.msg.speeds[index] = val
     

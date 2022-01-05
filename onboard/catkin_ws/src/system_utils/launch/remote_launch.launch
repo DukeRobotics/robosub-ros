@@ -1,0 +1,3 @@
+<launch>
+    <node name="remote_launch" pkg="system_utils" type="remote_launch.py" output="screen"/>
+</launch>

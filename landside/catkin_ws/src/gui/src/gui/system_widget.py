@@ -46,9 +46,9 @@ class SystemWidget(QWidget):
         self.execute_buttons = {"motion" : self.motion_button,
                                 "state": self.state_button,
                                 "tasks": self.tasks_button}
-        self.execute_rows = {"motion" : 0,
-                             "state" : 0,
-                             "tasks": 0}
+        self.execute_rows = {"motion" : -1,
+                             "state" : -1,
+                             "tasks": -1}
 
         self.motion_button.setText(f'Start {self.LAUNCHFILES["motion"]}')
         self.motion_button.clicked.connect(lambda: self.execute_button_clicked('motion'))
@@ -77,6 +77,10 @@ class SystemWidget(QWidget):
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Delete:
             items = self.table_widget.selectedItems()
+            for key in self.execute_rows:
+                if items and self.execute_rows[key] == items[0].row():
+                    self.execute_button_clicked(key)
+                    items = None
             if items and items[0].row() != 0:
                 self.delete_launch(items[0].row())
         super(SystemWidget, self).keyPressEvent(event)
@@ -140,4 +144,4 @@ class SystemWidget(QWidget):
         else:
             self.current_launch = None
             self.delete_launch(self.execute_rows[button])
-            self.execute_rows[button] = 0
+            self.execute_rows[button] = -1
