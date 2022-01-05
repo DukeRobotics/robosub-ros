@@ -110,6 +110,8 @@ class ControlsWidget(QWidget):
         self.tab_widget.setTabText(1, 'Velocity')
         self.tab_widget.setCurrentIndex(0)
 
+        rospy.loginfo("Controls Widget successfully initialized")
+
     def enable_state_clicked(self):
         rospy.wait_for_service('enable_controls')
         enable_state = self.enable_controls_button.text() == self.controls_button_text['enable']
@@ -213,7 +215,6 @@ class ControlsWidget(QWidget):
                     pid_list[i][k].setValue(param_value)
                 else:
                     pid_list[i][k].setEnabled(False)
-                    rospy.logerr('PID Parameters not set')
 
     def show_pid_dialog(self):
         ppid = [[0 for i in range(len(self.PID))] for k in range(len(self.DIRS))]

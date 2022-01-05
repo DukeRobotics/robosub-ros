@@ -63,6 +63,8 @@ class OffboardWidget(QWidget):
         self.remote_launch_timer.start(100)
         self.upload_arduino_button.clicked.connect(self.upload_arduino_code)
 
+        rospy.loginfo("Offboard Widget successfully initialized")
+
     def update_thruster(self, speeds):
         self.thruster_time = rospy.Time.now()
         for i in range(8):

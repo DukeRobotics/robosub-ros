@@ -82,6 +82,8 @@ class SensorWidget(QWidget):
         self.power_publisher = rospy.Publisher('/controls/desired_power', Twist, queue_size=3)
         self.power_msg = Twist()
 
+        rospy.loginfo("Sensor Widget successfully initialized")
+
 
     def update_subs(self, key):
         self.times[key] = rospy.Time.now()
