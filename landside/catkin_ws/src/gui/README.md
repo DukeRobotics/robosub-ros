@@ -76,5 +76,5 @@ The `Open Thruster Tester` button will open a dialog where you may test the thru
 
 The Servo Control box contains buttons to actuate each servo (setting it to angle 180). To deactivate the servo (setting it to angle 0) then press the button again.
 
-The `Upload Arduino Code` will upload arduino code to the arduino when pressed
+The `Upload Arduino Code` will upload arduino code to the arduino when pressed.
 
