@@ -54,8 +54,8 @@ def test_launch():
 
     if ws == 'landside':
         del os.environ['ROS_MASTER_URI']
-        xvfb = subprocess.Popen(['Xvfb', ':99'])
-        os.environ["DISPLAY"]=":99"
+        _ = subprocess.Popen(['Xvfb', ':99'])
+        os.environ["DISPLAY"] = ":99"
 
     launchfiles = get_launchfiles(f'{ws}/catkin_ws/src/')
     print(len(launchfiles))
