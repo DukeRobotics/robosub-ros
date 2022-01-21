@@ -27,17 +27,22 @@ class SimHandle:
         rospy.sleep(0.1)
         self.init_streaming()
 
-        with open(rr.get_filename('package://simulation/data/config.yaml', use_protocol=False)) as f:
+        config_filepath = rr.get_filename(
+            'package://simulation/data/config.yaml', 
+            use_protocol=False
+        )
+        with open(config_filepath) as f:
             data = yaml.safe_load(f)
 
-        self.obj_names = '|'.join(data['cv_object'])
+        self.obj_names = '|'.join(data['cv_objects'])
         self.pattern = re.compile(self.obj_names)
-        self.run_sim_function(sim.simxPauseCommunication, (self.clientID, True))
         _, _, _, names = self.run_sim_function(sim.simxGetObjectGroupData,
                                                      (self.clientID, sim.sim_object_shape_type,
                                                       0, sim.simx_opmode_blocking))
-        print(names)
-        for name in names: ## FIXME need name in next line
+        filtered_names = [name for name in names if self.pattern.fullmatch(name)]
+        print(f"Names of relevant simulation objects: {filtered_names}")
+        self.run_sim_function(sim.simxPauseCommunication, (self.clientID, True))
+        for name in filtered_names: ## FIXME need name in next line
             self.run_custom_sim_function(name, "reset")
             if name in [val['name'] for val in data['buoyancy']]:
                 self.run_custom_sim_function(name, "enableBuoyancyDrag", ints=[1])

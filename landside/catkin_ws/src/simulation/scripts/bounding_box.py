@@ -6,15 +6,22 @@ from geometry_msgs.msg import Pose, Quaternion, PoseStamped
 import rospy
 from numpy import clip
 from os import path
-
+import resource_retriever as rr
+import yaml
 
 class BoundingBox:
 
     def __init__(self):
         rospy.init_node('sim_box_maker')
         self.listener = TransformListener()
+        config_filepath = rr.get_filename(
+            'package://simulation/data/config.yaml', 
+            use_protocol=False
+        )
+        with open(config_filepath) as f:
+            data = yaml.safe_load(f)
         self.publishers = {i.strip(): rospy.Publisher(f'/{i.strip().lower()}/left', CVObject, queue_size=10)
-                           for i in open(f"{path.dirname(__file__)}/obj_names.txt")}
+                           for i in data['cv_objects']}
         rospy.Subscriber("/sim/object_points", SimObjectArray, self.callback)
         rospy.spin()
 
