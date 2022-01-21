@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from onboard.catkin_ws.src.task_planning.scripts.move_tasks import MoveToPoseGlobalTask
 import smach
 import rospy
 import task_utils
@@ -71,6 +72,13 @@ def create_gate_task_sm(velocity=0.2):
                                 transitions={
                                    'done': 'gate_task_succeeded'})
 
+        # Move to 2 meters in front of the gate
+        smach.StateMachine.add('CALC_GATE_POSE', CalcGatePoseTask(),
+                                output_keys=['centerX','centerY','centerZ','normX','normY','normZ'],
+                                transitions={
+                                    'done': 'MOVE_IN_FRONT_OF_GATE'})
+
+        smach.StateMachine.add('MOVE_IN_FRONT_OF_GATE', MoveToPoseGlobalTask())
 
 
 
