@@ -81,7 +81,7 @@ class SimHandle:
         self.run_custom_sim_function("Rob", "setThrusterForces", floats=list(inp))
 
     def get_mass(self):
-        return self.run_sim_function(sim.simxGetObjectIntParameter, (self.robot, sim.sim_shapefloatparam_mass, sim.simx_opmode_blocking))
+        return self.run_sim_function(sim.simxGetObjectIntParameter, (self.clientID, self.robot, sim.sim_shapefloatparam_mass, sim.simx_opmode_blocking))
 
     def get_pose(self, mode=sim.simx_opmode_buffer):
         pos = self.run_sim_function(sim.simxGetObjectPosition, (self.clientID, self.robot, -1, mode))
