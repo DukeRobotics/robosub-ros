@@ -95,8 +95,7 @@ class Detector:
 
                 # Safety check that publisher is not None
                 if publisher:
-                    for publisher_key in publisher:
-                        publisher[publisher_key].publish(object_msg)
+                    publisher[label].publish(object_msg)
 
     # Service for toggling specific models on and off
     def enable_model(self, req):
