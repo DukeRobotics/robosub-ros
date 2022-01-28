@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from numpy import arccos
 from onboard.catkin_ws.src.task_planning.scripts.move_tasks import MoveToPoseGlobalTask
 import smach
 import rospy
@@ -27,6 +28,9 @@ def create_gate_task_sm(velocity=0.2):
     sm = smach.StateMachine(outcomes=['gate_task_succeeded', 'gate_task_failed'])
     sleep(2)
     listener = TransformListener()
+    STANDARD_MOVE_SPEED = 3
+    METERS_FROM_GATE = 2
+    MOVE_THROUGH_GATE_SPEED = 0.1
     with sm:
         # TODO add "dive and move away from dock task"
         smach.StateMachine.add('NEAR_GATE', NearGateTask(SIDE_THRESHOLD),
@@ -35,7 +39,7 @@ def create_gate_task_sm(velocity=0.2):
                                    'false': 'CHOOSE_ROTATE_DIR',
                                    'spin': 'NEAR_GATE'})
 
-        smach.StateMachine.add('MOVE_THROUGH_GATE', MoveToPoseLocalTask(3, 0, 0, 0, 0, 0, listener),
+        smach.StateMachine.add('MOVE_THROUGH_GATE', MoveToPoseLocalTask(STANDARD_MOVE_SPEED, 0, 0, 0, 0, 0, listener),
                                transitions={
                                    'done': 'gate_task_succeeded'})
 
@@ -73,35 +77,62 @@ def create_gate_task_sm(velocity=0.2):
                                    'done': 'gate_task_succeeded'})
 
         # Move to 2 meters in front of the gate
+        # TODO recalculate position in a loop
         smach.StateMachine.add('CALC_GATE_POSE', CalcGatePoseTask(),
-                                output_keys=['centerX','centerY','centerZ','normX','normY','normZ'],
+                                output_keys=['vector1','vector2'],
                                 transitions={
-                                    'done': 'MOVE_IN_FRONT_OF_GATE'})
+                                    'done': 'CALC_DESIRED_ROBOT_GATE_POSE'
+                                })
 
-        smach.StateMachine.add('MOVE_IN_FRONT_OF_GATE', MoveToPoseGlobalTask())
+        smach.StateMachine.add('CALC_DESIRED_ROBOT_GATE_POSE', PoseFromVectorsTask(1, METERS_FROM_GATE, 1),
+                                input_keys=['vector1', 'vector2'],
+                                output_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'],
+                                transitions={
+                                    'done': 'MOVE_IN_FRONT_OF_GATE'
+                                })
+
+        smach.StateMachine.add('MOVE_IN_FRONT_OF_GATE', MoveToPoseGlobalTask(),
+                                input_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'],
+                                transitions={
+                                    'done':'gate_task_succeeded'
+                                })
+
+        spin_through_gate_cc = smach.Concurrence(outcomes = ['done'],
+                 default_outcome = 'done',
+                 child_termination_cb = concurrence_term_cb,
+                 outcome_map = {'done':{'ROTATION_DONE':'done'}})
+        with spin_through_gate_cc:
+            smach.Concurrence.add('ROTATION_DONE', RollDoneTask(4*pi))
+            # Spin and move through the gate
+            smach.Concurrence.add('MOVE_AND_ROTATE', AllocateVelocityLocalForeverTask(MOVE_THROUGH_GATE_SPEED * METERS_FROM_GATE, 0, 0, velocity, 0, 0))
 
 
-
-
-        smach.StateMachine.add('VERTICAL_ALIGNMENT', GateVerticalAlignmentTask(CENTERED_THRESHOLD),
-                               transitions={
-                                   'top': 'ASCEND',
-                                   'bottom': 'DESCEND',
-                                   'center': 'ADVANCE',
-                                   'spin': 'VERTICAL_ALIGNMENT'})
-
-        smach.StateMachine.add('ASCEND', AllocateVelocityLocalTask(0, 0, velocity, 0, 0, 0),
-                               transitions={'done': 'VERTICAL_ALIGNMENT'})
-
-        smach.StateMachine.add('DESCEND', AllocateVelocityLocalTask(0, 0, -velocity, 0, 0, 0),
-                               transitions={'done': 'VERTICAL_ALIGNMENT'})
-
-        smach.StateMachine.add('ADVANCE', AllocateVelocityLocalTask(velocity, 0, 0, 0, 0, 0),
-                               transitions={'done': 'NEAR_GATE'})
 
 
     return sm
 
+class PoseFromVectorsTask(Task):
+    def __init__(self, direction_arg, *coefficients):
+        super(PoseFromVectorsTask, self).__init__(["done"])
+        self.direction_arg = direction_arg
+        self.coefficients = coefficients
+
+    def run(self, userdata):
+        pos = Vector3()
+        for i in range(1, len(self.coefficients) + 1):
+            pos += userdata["vector" + i] * self.coefficients[i-1]
+
+        dir_vec = userdata["vector" + self.direction_arg]
+
+        userdata.x = pos.x
+        userdata.y = pos.y
+        userdata.z = pos.z
+
+        userdata.roll = 0
+        userdata.pitch = pi / 2 - arccos(-dir_vec.z)
+        userdata.yaw = atan2(-dir_vec.y, -dir_vec.x)
+
+        return "done"
 
 class GateSpinDirectionTask(Task):
     def __init__(self, threshold):
@@ -125,10 +156,26 @@ class GateRotationDoneTask(Task):
         self.threshold = threshold
 
     def run(self, userdata):
+        rate = rospy.Rate(15)
         while True:
             gate_info = _scrutinize_gate(self.cv_data['gate'], self.cv_data['gate_tick'])
             if gate_info and abs(gate_info["offset_h"]) < self.threshold:
                 return "done"
+            rate.sleep()
+
+class RollDoneTask(Task):
+    def __init__(self, roll_amount):
+        super(RollDoneTask, self).__init__(["done"])
+        self.roll_amount = roll_amount
+
+    def run(self, userdata):
+        startAngle = self.state.pose.pose.roll
+        
+        rate = rospy.Rate(15)
+        while abs(self.state.pose.pose.roll - startAngle) < 4 * pi:
+            rate.sleep()
+
+        return "done"
 
 
 class GateVerticalAlignmentTask(Task):
@@ -186,12 +233,12 @@ def _find_gate_normal_and_center(gate_data_l, gate_data_r):
     bottom_right = _real_pos_from_cv((gate_data_r.xmin + gate_data_r.xmax)/2, gate_data_r.ymax, gate_data_r.depth)
 
     # Midpoint between top_left and bottom_right
-    center_pt = Point(x=(top_left.position.x + bottom_right.position.x) / 2, y=(top_left.position.y + bottom_right.position.y) / 2, z=(top_left.position.z + bottom_right.position.z) / 2)
+    center_pt = Vector3(x=(top_left.position.x + bottom_right.position.x) / 2, y=(top_left.position.y + bottom_right.position.y) / 2, z=(top_left.position.z + bottom_right.position.z) / 2)
 
     diag_1 = Vector3(top_left.position.x - bottom_right.position.x, top_left.position.y - bottom_right.position.y, top_left.position.z - bottom_right.position.z)
     diag_2 = Vector3(bottom_left.position.x - top_right.position.x, bottom_left.position.y - top_right.position.y, bottom_left.position.z - top_right.position.z)
 
-    return (diag_1.cross(diag_2), center_pt)
+    return (diag_1.cross(diag_2).normalize(), center_pt)
 
 
 """Get the position of a point in global coordinates from its position from the camera

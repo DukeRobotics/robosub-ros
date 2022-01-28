@@ -15,10 +15,23 @@ class MoveToPoseGlobalTask(Task):
 
     def __init__(self, x, y, z, roll, pitch, yaw):
         super(MoveToPoseGlobalTask, self).__init__(outcomes=['done'])
+        
+        self.coords = [x, y, z, roll, pitch, yaw]
+
+    def execute(self, userdata):
+        self.initial_state = self.state
+
+        # Get pose from userdata if supplied
+        arg_names = ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
+        for i in range(len(arg_names)):
+            if userdata[arg_names[i]]:
+                self.coords[i] = userdata[arg_names[i]]
 
         self.desired_pose = Pose()
-        self.desired_pose.position = Point(x=x, y=y, z=z)
-        self.desired_pose.orientation = Quaternion(*quaternion_from_euler(roll, pitch, yaw))
+        self.desired_pose.position = Point(x=self.coords[0], y=self.coords[1], z=self.coords[2])
+        self.desired_pose.orientation = Quaternion(*quaternion_from_euler(self.coords[3], self.coords[4], self.coords[5]))
+
+        return super(MoveToPoseGlobalTask, self).execute(self, userdata)
 
     def run(self, userdata):
         rate = rospy.Rate(15)
@@ -33,7 +46,11 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
 
     def __init__(self, x, y, z, roll, pitch, yaw, listener):
         super(MoveToPoseLocalTask, self).__init__(x, y, z, roll, pitch, yaw)
-        self.desired_pose = task_utils.transform_pose(listener, 'base_link', 'odom', self.desired_pose)
+        self.listener = listener
+
+    def run(self, userdata):
+        self.desired_pose = task_utils.transform_pose(self.listener, 'base_link', 'odom', self.desired_pose)
+        return super(MoveToPoseLocalTask, self).run(self, userdata)
 
 class AllocatePowerTask(Task):
     """Allocate specified power amount in a direction"""
