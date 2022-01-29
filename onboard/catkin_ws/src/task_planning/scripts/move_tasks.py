@@ -1,3 +1,5 @@
+from attr import mutable
+from onboard.catkin_ws.src.task_planning.scripts.task_utils import MutablePose
 from task import Task
 from geometry_msgs.msg import Pose, Quaternion, Twist, Point, Vector3
 from nav_msgs.msg import Odometry
@@ -35,10 +37,36 @@ class MoveToPoseGlobalTask(Task):
 
     def run(self, userdata):
         rate = rospy.Rate(15)
-        while not(self.state and task_utils.stopped_at_pose(self.state.pose.pose, self.desired_pose, self.state.twist.twist)):
-            self.publish_desired_pose_global(self.desired_pose)
+        while not(self.state and task_utils.stopped_at_pose(self.state.pose.pose, self.getPose(), self.state.twist.twist)):
+            self.publish_desired_pose_global(self.getPose())
             rate.sleep()
         return "done"
+
+    def getPose(self):
+        return self.desired_pose
+
+
+class MoveToMutablePoseGlobalTask(MoveToPoseGlobalTask):
+    """Move to MutablePose given in local coordinates."""
+
+    def __init__(self, mutable_pose: task_utils.MutablePose):
+        self.mutable_pose = mutable_pose
+        pose_dict = mutable_pose.getPoseEuler()
+        super(self).__init__(pose_dict["x"], 
+                             pose_dict["y"], 
+                             pose_dict["z"], 
+                             pose_dict["roll"], 
+                             pose_dict["pitch"], 
+                             pose_dict["yaw"])
+
+    def run(self, userdata):
+        rate = rospy.Rate(15)
+        while self.mutable_pose.getPose() is None:
+            rate.sleep()
+        return super(self).run(self, userdata)
+
+    def getPose(self):
+        return self.mutable_pose.getPose()
 
 
 class MoveToPoseLocalTask(MoveToPoseGlobalTask):
@@ -140,3 +168,5 @@ class HoldPositionTask(Task):
         self.publish_desired_pose_global(self.initial_state.pose.pose)
         if self.hold_time and (rospy.get_rostime() - self.start_time) > self.hold_time:
             self.finish()
+
+            

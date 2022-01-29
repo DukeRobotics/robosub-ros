@@ -7,6 +7,10 @@ from geometry_msgs.msg import Vector3, Pose, PoseStamped, PoseWithCovariance, \
 from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_quaternion, quaternion_multiply
 from std_msgs.msg import Header
+from tf.transformations import quaternion_from_euler
+from copy import deepcopy
+from task import Task
+from onboard.catkin_ws.src.controls.scripts.controls_utils import parse_pose
 
 
 def linear_distance(point1, point2):
@@ -194,7 +198,6 @@ def transform(origin_frame, dest_frame, poseORodom):
         rospy.logerr("Invalid message type passed to transform()")
         return None
 
-
 def add_poses(pose_list):
     """Adds a list of poses
 
@@ -217,3 +220,32 @@ def add_poses(pose_list):
             [pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w], q_sum)
 
     return Pose(p_sum, Quaternion(*q_sum))
+
+
+class MutatePoseTask(Task):
+    def __init__(self, mutablePose):
+        super().__init__(['done'])
+        self.mutablePose = mutablePose
+
+    def run(self, userdata):
+        self.mutablePose.setPose(userdata.x, userdata.y, userdata.z, userdata.roll, userdata.pitch, userdata.yaw)
+        return "done"
+
+
+class MutablePose:
+    def __init__(self):
+        self.pose = None
+
+    def setPose(self, x, y, z, roll, pitch, yaw):
+        quaternion = quaternion_from_euler(roll, pitch, yaw)
+        point = Point(x,y,z)
+        self.pose = Pose(point, quaternion)
+    
+    def setPose(self, newPose):
+        self.pose = deepcopy(newPose)
+    
+    def getPose(self):
+        return self.pose
+
+    def getPoseEuler(self):
+        return parse_pose(self.pose)
