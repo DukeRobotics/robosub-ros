@@ -44,6 +44,8 @@ class Detector:
         predictor = Model.load(weights_file, model['classes'])
         publisher_dict = {}
 
+        # Iterate over all classes predicted by a given model,
+        # creating new publisher topics for each class
         for model_class in model['classes']:
             publisher_name = f"{model['topic']}/{self.camera}/{model_class}"
             publisher_dict[model_class] = rospy.Publisher(publisher_name,
@@ -73,7 +75,7 @@ class Detector:
     def publish_predictions(self, preds, publisher, shape):
         labels, boxes, scores = preds
 
-        # If there are no predictions, publish 'none' as the object label
+        # If there are no predictions, publish nothing
         if not labels:
             object_msg = CVObject()
             object_msg.label = 'none'
@@ -95,6 +97,8 @@ class Detector:
 
                 # Safety check that publisher is not None
                 if publisher:
+                    # Publish to the publisher topic corresponding to
+                    # the given returned label
                     publisher[label].publish(object_msg)
 
     # Service for toggling specific models on and off
