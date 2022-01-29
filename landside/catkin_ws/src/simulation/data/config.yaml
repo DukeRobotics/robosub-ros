@@ -15,3 +15,11 @@ buoyancy:
   - name: buoy
   - name: octagon
   - name: torpedo
+
+sim_objects:
+  - name: Gate
+    mass: 4
+    buoyant: false
+  - name: Buoy
+    mass: 1
+    buoyant: true
