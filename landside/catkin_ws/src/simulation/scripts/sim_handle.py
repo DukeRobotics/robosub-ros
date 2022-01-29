@@ -2,8 +2,11 @@ import sim
 import rospy
 import sys
 from geometry_msgs.msg import Pose, Quaternion, Point, Twist, Vector3
-from custom_msgs.msg import SimObject
+from custom_msgs.msg import SimObject, SimObjectArray
 import itertools
+import re
+import resource_retriever as rr
+import yaml
 
 
 class SimHandle:
@@ -13,21 +16,62 @@ class SimHandle:
         sim.simxFinish(-1)
         self.clientID = sim.simxStart(self.DOCKER_IP, 5555, True, True, 5000, 5)
         if self.clientID == -1:
-            rospy.logerr('Failed connecting to remote API server')
+            rospy.logerr('sim_handle.__init__: Failed connecting to remote API server.')
+            rospy.logerr('sim_handle.__init__: Make sure the simulation is running.')
             sim.simxFinish(-1)
             sys.exit(1)
-        rospy.loginfo('Connected to remote API server')
-        rospy.loginfo('Testing connection')
+        rospy.loginfo('sim_handle.__init__: Connected to remote API server')
+        rospy.loginfo('sim_handle.__init__: Testing connection')
         objs = self.run_sim_function(sim.simxGetObjects, (self.clientID, sim.sim_handle_all, sim.simx_opmode_blocking))
-        rospy.loginfo(f'Number of objects in the scene: {len(objs)}')
+        rospy.loginfo(f'sim_handle.__init__: Number of objects in the scene: {len(objs)}')
         self.robot = self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, "Rob", sim.simx_opmode_blocking))
-        gate_names = ["Gate", "GateLeftChild", "GateRightChild"]
-        self.gate = [self.run_sim_function(sim.simxGetObjectHandle,
-                                           (self.clientID, name, sim.simx_opmode_blocking)) for name in gate_names]
-        self.set_position_to_zero()
         rospy.sleep(0.1)
         self.init_streaming()
-        rospy.loginfo("Starting main loop")
+
+        config_filepath = rr.get_filename(
+            'package://simulation/data/config.yaml', 
+            use_protocol=False
+        )
+        with open(config_filepath) as f:
+            data = yaml.safe_load(f)
+
+        self.obj_names = '|'.join(data['cv_objects'])
+        self.pattern = re.compile(self.obj_names)
+        _, _, _, names = self.run_sim_function(sim.simxGetObjectGroupData,
+                                                     (self.clientID, sim.sim_object_shape_type,
+                                                      0, sim.simx_opmode_blocking))
+        filtered_names = [name for name in names if self.pattern.fullmatch(name)]
+        print(f"sim_handle.__init__: Names of relevant simulation objects: {filtered_names}")
+        # self.run_sim_function(sim.simxPauseCommunication, (self.clientID, True))
+        # for name in filtered_names: ## FIXME need name in next line
+        #     print(f"About to run function <reset> on {name}...")
+        #     self.run_custom_sim_function(name, "reset")
+        #     if name in [val['name'] for val in data['buoyancy']]:
+        #         print(f"About to run function enableBuoyancyDrag on {name}...")
+        #         self.run_custom_sim_function(name, "enableBuoyancyDrag", ints=[1])
+        #         self.run_custom_sim_function(name, "setDragCoefficient", ints=[1])
+        #         self.run_custom_sim_function(name, "setDragType", ints=[1])
+        #         self.run_custom_sim_function(name, "setMass", ints=[1]) ##FIXME: change to actual mass
+        # self.run_sim_function(sim.simxPauseCommunication, (self.clientID, False))
+
+        rospy.loginfo("sim_handle.__init__: Starting main loop")
+
+    def init_sim_objects(self):
+        # self.run_sim_function(sim.simxPauseCommunication, (self.clientID, True))
+        for name in filtered_names: ## FIXME need name in next line
+            print(f"About to run function <reset> on {name}...")
+            self.run_custom_sim_function(name, "reset")
+            if name in [val['name'] for val in data['buoyancy']]:
+                # The opmode should not be blocking, since we don't expect
+                # to get a response from the simulation until we turn communications
+                # back on.
+                paused_comms_opmode = simx_opmode_oneshot
+                paused_comms_opmode = simx_opmode_blocking
+                self.run_custom_sim_function(name, "enableBuoyancyDrag", ints=[1], mode=paused_comms_opmode)
+                self.run_custom_sim_function(name, "setDragCoefficient", ints=[1], mode=paused_comms_opmode)
+                self.run_custom_sim_function(name, "setDragType", ints=[1], mode=paused_comms_opmode)
+                self.run_custom_sim_function(name, "setMass", ints=[1], mode=paused_comms_opmode) ##FIXME: change to actual mass
+        # self.run_sim_function(sim.simxPauseCommunication, (self.clientID, False))
 
     def init_streaming(self):
         self.get_pose(mode=sim.simx_opmode_streaming)
@@ -39,29 +83,33 @@ class SimHandle:
             res = (res,)
         if res[0] != sim.simx_return_ok and args[-1] != sim.simx_opmode_streaming:
             rospy.logerr(f'Error calling simulation. Code: {res[0]}')
+            if res[0] == 3: # FIXME: Replace this with sim.simx_??? const
+                rospy.logerr(f'Command timed out. If running a custom ' + \
+                'function, make sure the function exists on the target object.')
+            elif res[0] == sim.simx_return_remote_error_flag:
+                rospy.logerr(f'Return remote error flag. This occurs when ' + \
+                'the client uses the wrong opmode.')
+                raise Exception('Failed to run sim function!')
         if len(res) == 1:
             return None
         if len(res) == 2:
             return res[1]
         return res[1:]
 
-    def set_position_to_zero(self):
-        self.run_sim_function(sim.simxSetObjectPosition, (self.clientID, self.robot,
-                                                          -1, [0.0, 0.0, 0.0], sim.simx_opmode_blocking))
+    def run_custom_sim_function(self, obj_name, func_name, ints=[], floats=[], strs=[""], bytes=bytearray(), mode=sim.simx_opmode_blocking):
+        return self.run_sim_function(sim.simxCallScriptFunction,
+                                          (self.clientID, obj_name, sim.sim_scripttype_childscript,
+                                           func_name,
+                                           ints, floats, strs, bytes,
+                                           mode))
 
     def set_thruster_force(self, force):
         inp = itertools.chain.from_iterable(force)
-        self.run_sim_function(sim.simxCallScriptFunction, (self.clientID, "Rob", sim.sim_scripttype_childscript,
-                                                           "setThrusterForces",
-                                                           [], list(inp), [""], bytearray(),
-                                                           sim.simx_opmode_blocking))
+        self.run_custom_sim_function("Rob", "setThrusterForces", floats=list(inp))
 
     def get_mass(self):
-        out = self.run_sim_function(sim.simxCallScriptFunction, (self.clientID, "Rob", sim.sim_scripttype_childscript,
-                                                                 "getMass",
-                                                                 [self.robot], [], [""], bytearray(),
-                                                                 sim.simx_opmode_blocking))
-        return out[1][0]
+        print(f"Robot sim handle: {self.robot}")
+        return self.run_sim_function(sim.simxGetObjectIntParameter, (self.clientID, self.robot, sim.sim_shapefloatparam_mass, sim.simx_opmode_blocking))
 
     def get_pose(self, mode=sim.simx_opmode_buffer):
         pos = self.run_sim_function(sim.simxGetObjectPosition, (self.clientID, self.robot, -1, mode))
@@ -72,26 +120,38 @@ class SimHandle:
         lin, ang = self.run_sim_function(sim.simxGetObjectVelocity, (self.clientID, self.robot, mode))
         return Twist(linear=Vector3(*lin), angular=Vector3(*ang))
 
-    def get_gate_corners(self, mode=sim.simx_opmode_blocking):
-        gate_sim_object = SimObject()
-        gate_sim_object.label = 'gate'
+    def get_corners(self, obj, mode=sim.simx_opmode_blocking):
+        ret = []
+        base_x, base_y, base_z = self.run_sim_function(sim.simxGetObjectPosition,
+                                                       (self.clientID, obj, -1, mode))
 
-        for gate_obj in self.gate:
-            base_x, base_y, base_z = self.run_sim_function(sim.simxGetObjectPosition,
-                                                           (self.clientID, gate_obj, -1, mode))
+        min_x = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, obj, 15, mode))
+        min_y = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, obj, 16, mode))
+        min_z = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, obj, 17, mode))
 
-            min_x = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, gate_obj, 15, mode))
-            min_y = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, gate_obj, 16, mode))
-            min_z = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, gate_obj, 17, mode))
+        max_x = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, obj, 18, mode))
+        max_y = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, obj, 19, mode))
+        max_z = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, obj, 20, mode))
+        for i in range(2):
+            for j in range(2):
+                for k in range(2):
+                    point_x = base_x + (min_x if i == 0 else max_x)
+                    point_y = base_y + (min_y if j == 0 else max_y)
+                    point_z = base_z + (min_z if k == 0 else max_z)
+                    ret.append(Point(x=point_x, y=point_y, z=point_z))
+        return ret
 
-            max_x = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, gate_obj, 18, mode))
-            max_y = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, gate_obj, 19, mode))
-            max_z = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, gate_obj, 20, mode))
-            for i in range(2):
-                for j in range(2):
-                    for k in range(2):
-                        point_x = base_x + (min_x if i == 0 else max_x)
-                        point_y = base_y + (min_y if j == 0 else max_y)
-                        point_z = base_z + (min_z if k == 0 else max_z)
-                        gate_sim_object.points.append(Point(x=point_x, y=point_y, z=point_z))
-        return gate_sim_object
+    # Returns a SimObjArray message consisting of
+    # SimObj messages representing the bounding boxes of all 
+    # objects in the scene which are relevant to CV.
+    def get_sim_objects(self, mode=sim.simx_opmode_blocking):
+        object_array = SimObjectArray()
+        _, _, _, names = self.run_sim_function(sim.simxGetObjectGroupData,(self.clientID, sim.sim_object_shape_type, 0, mode))
+        filtered_names = [name for name in names if self.pattern.fullmatch(name)]
+        for name in filtered_names:
+            obj_handle = self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, name, mode))
+            instance_sim_object = SimObject()
+            instance_sim_object.label = name
+            instance_sim_object.points = self.get_corners(obj_handle)
+            object_array.objects.append(instance_sim_object)
+        return object_array

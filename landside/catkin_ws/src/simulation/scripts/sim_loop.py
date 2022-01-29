@@ -33,6 +33,7 @@ class SimLoop:
 
     def on_move_received(self, msg):
         self.tforces = self.robot_model.get_thruster_forces(msg.speeds)
+        pass
 
     def publish_imu(self, pose, twist):
         msg = Imu()
@@ -52,9 +53,7 @@ class SimLoop:
         self.odom_pub.publish(msg)
 
     def publish_sim_objects(self):
-        msg = SimObjectArray()
-        msg.objects.append(self.sim_handle.get_gate_corners())
-        self.sim_object_pub.publish(msg)
+        self.sim_object_pub.publish(self.sim_handle.get_sim_objects())
 
     def publish_depth(self, pose, twist):
         msg = Float64()
@@ -71,8 +70,8 @@ class SimLoop:
 
             self.publish_imu(pose, twist)
             self.publish_odom(pose, twist)
-            self.publish_sim_objects()
             self.publish_depth(pose, twist)
+            self.publish_sim_objects()
             self.sim_handle.set_thruster_force(self.tforces)
 
             rate.sleep()
