@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 from numpy import arccos
-from onboard.catkin_ws.src.task_planning.scripts.move_tasks import MoveToPoseGlobalTask
+from onboard.catkin_ws.src.controls.scripts.controls_utils import parse_pose
 import smach
 import rospy
 import task_utils
 from task import Task
-from move_tasks import MoveToPoseLocalTask, AllocateVelocityLocalTask, AllocateVelocityLocalForeverTask
-from tf import TransformListener
+from move_tasks import MoveToPoseLocalTask, AllocateVelocityLocalTask, AllocateVelocityLocalForeverTask, MoveToPoseGlobalTask, MoveToMutablePoseGlobalTask
+from tf import TransformListener, Vector3
 from time import sleep
 from geometry_msgs.msg import Pose, Quaternion, Twist, Point, Vector3
 from math import *
@@ -49,12 +49,12 @@ def create_gate_task_sm(velocity=0.2):
                                    'right': 'ROTATE_TO_GATE_RIGHT',
                                    'center': 'gate_task_succeeded'})
 
-        def concurrence_term_cb(outcome_map):
+        def concurrence_term_rotate_loop_cb(outcome_map):
             return outcome_map['ROTATION_DONE'] == 'done'
 
         rotate_gate_left_cc = smach.Concurrence(outcomes = ['done'],
                  default_outcome = 'done',
-                 child_termination_cb = concurrence_term_cb,
+                 child_termination_cb = concurrence_term_rotate_loop_cb,
                  outcome_map = {'done':{'ROTATION_DONE':'done'}})
         with rotate_gate_left_cc:
             smach.Concurrence.add('ROTATION_DONE', GateRotationDoneTask(CENTERED_THRESHOLD))
@@ -62,7 +62,7 @@ def create_gate_task_sm(velocity=0.2):
 
         rotate_gate_right_cc = smach.Concurrence(outcomes = ['done'],
                  default_outcome = 'done',
-                 child_termination_cb = concurrence_term_cb,
+                 child_termination_cb = concurrence_term_rotate_loop_cb,
                  outcome_map = {'done':{'ROTATION_DONE':'done'}})
         with rotate_gate_right_cc:
             smach.Concurrence.add('ROTATION_DONE', GateRotationDoneTask(CENTERED_THRESHOLD))
@@ -77,35 +77,63 @@ def create_gate_task_sm(velocity=0.2):
                                    'done': 'gate_task_succeeded'})
 
         # Move to 2 meters in front of the gate
-        # TODO recalculate position in a loop
-        smach.StateMachine.add('CALC_GATE_POSE', CalcGatePoseTask(),
-                                output_keys=['vector1','vector2'],
+
+
+        def concurrence_term_calc_loop_cb(outcome_map):
+            return outcome_map['MOVE_IN_FRONT_OF_GATE'] == 'done'
+
+        gate_calc_sm = smach.StateMachine(outcomes=['done'])
+        gate_start_mutable_pose = task_utils.MutablePose()
+        with gate_calc_sm:
+            smach.StateMachine.add('CALC_GATE_POSE', CalcGatePoseTask(),
+                                output_keys=['vector1','vector2'], 
                                 transitions={
                                     'done': 'CALC_DESIRED_ROBOT_GATE_POSE'
                                 })
 
-        smach.StateMachine.add('CALC_DESIRED_ROBOT_GATE_POSE', PoseFromVectorsTask(1, METERS_FROM_GATE, 1),
+            smach.StateMachine.add('CALC_DESIRED_ROBOT_GATE_POSE', PoseFromVectorsTask(1, METERS_FROM_GATE, 1),
                                 input_keys=['vector1', 'vector2'],
                                 output_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'],
                                 transitions={
-                                    'done': 'MOVE_IN_FRONT_OF_GATE'
+                                    'done': 'SET_MUTABLE_POSE'
                                 })
 
-        smach.StateMachine.add('MOVE_IN_FRONT_OF_GATE', MoveToPoseGlobalTask(),
+            smach.StateMachine.add('SET_MUTABLE_POSE', task_utils.MutatePoseTask(gate_start_mutable_pose),
                                 input_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'],
                                 transitions={
-                                    'done':'gate_task_succeeded'
+                                    'done': 'CALC_GATE_POSE'
                                 })
+
+
+        move_to_gate_cc = smach.Concurrence(outcomes = ['done'],
+                 default_outcome = 'done',
+                 child_termination_cb = concurrence_term_calc_loop_cb,
+                 outcome_map = {'done':{'MOVE_IN_FRONT_OF_GATE':'done'}})
+        with move_to_gate_cc:
+            smach.Concurrence.add('MOVE_IN_FRONT_OF_GATE', MoveToMutablePoseGlobalTask(gate_start_mutable_pose))
+            smach.Concurrence.add('CALC_FRONT_OF_GATE', gate_calc_sm)
+            
+
+        smach.StateMachine.add('MOVE_TO_GATE_FRONT', move_to_gate_cc,
+                                transitions={
+                                    'done':'SPIN_THROUGH_GATE'
+                                })
+
 
         spin_through_gate_cc = smach.Concurrence(outcomes = ['done'],
                  default_outcome = 'done',
-                 child_termination_cb = concurrence_term_cb,
+                 child_termination_cb = concurrence_term_rotate_loop_cb,
                  outcome_map = {'done':{'ROTATION_DONE':'done'}})
         with spin_through_gate_cc:
             smach.Concurrence.add('ROTATION_DONE', RollDoneTask(4*pi))
             # Spin and move through the gate
             smach.Concurrence.add('MOVE_AND_ROTATE', AllocateVelocityLocalForeverTask(MOVE_THROUGH_GATE_SPEED * METERS_FROM_GATE, 0, 0, velocity, 0, 0))
 
+
+        smach.StateMachine.add('SPIN_THROUGH_GATE', spin_through_gate_cc,
+                                transitions={
+                                    'done':'gate_task_succeeded'
+                                })
 
 
 
@@ -208,6 +236,10 @@ class NearGateTask(Task):
             else:
                 return "false"
         return "spin"
+
+
+
+    
 
 """
 Algorithm plan for finding gate pos from cv data:
