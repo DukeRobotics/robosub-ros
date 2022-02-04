@@ -17,7 +17,7 @@ class SimHandle:
         self.clientID = sim.simxStart(self.DOCKER_IP, 5555, True, True, 5000, 5)
         if self.clientID == -1:
             rospy.logerr('sim_handle.__init__: Failed connecting to remote API server.')
-            rospy.logerr('sim_handle.__init__: Make sure the simulation is running.')
+            rospy.logerr('sim_handle.__init__: Make sure the simulation is playing.')
             sim.simxFinish(-1)
             sys.exit(1)
         rospy.loginfo('sim_handle.__init__: Connected to remote API server')
@@ -82,7 +82,8 @@ class SimHandle:
         if not isinstance(res, list) and not isinstance(res, tuple):
             res = (res,)
         if res[0] != sim.simx_return_ok and args[-1] != sim.simx_opmode_streaming:
-            rospy.logerr(f'Error calling simulation. Code: {res[0]}')
+            rospy.logerr(f'sim_handle.run_sim_function: Error calling simulation. Code: {res[0]}')
+            rospy.logerr(f'sim_handle.run_sim_function: Function: {func}')
             if res[0] == 3: # FIXME: Replace this with sim.simx_??? const
                 rospy.logerr(f'Command timed out. If running a custom ' + \
                 'function, make sure the function exists on the target object.')
@@ -108,8 +109,12 @@ class SimHandle:
         self.run_custom_sim_function("Rob", "setThrusterForces", floats=list(inp))
 
     def get_mass(self):
-        print(f"Robot sim handle: {self.robot}")
-        return self.run_sim_function(sim.simxGetObjectIntParameter, (self.clientID, self.robot, sim.sim_shapefloatparam_mass, sim.simx_opmode_blocking))
+        print(f"sim_handle.get_mass: robot sim handle: {self.robot}")
+        # FIXME: Make this return the actual mass. Right now we get an error
+        # return code of 8 from the simulation API when we ask for the
+        # robot's mass with the following line:
+        # return self.run_sim_function(sim.simxGetObjectIntParameter, (self.clientID, self.robot, sim.sim_shapefloatparam_mass, sim.simx_opmode_blocking))
+        return 1.398e2
 
     def get_pose(self, mode=sim.simx_opmode_buffer):
         pos = self.run_sim_function(sim.simxGetObjectPosition, (self.clientID, self.robot, -1, mode))
