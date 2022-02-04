@@ -7,6 +7,7 @@ import itertools
 import re
 import resource_retriever as rr
 import yaml
+import numpy as np
 
 
 class SimHandle:
@@ -153,10 +154,23 @@ class SimHandle:
         object_array = SimObjectArray()
         _, _, _, names = self.run_sim_function(sim.simxGetObjectGroupData,(self.clientID, sim.sim_object_shape_type, 0, mode))
         filtered_names = [name for name in names if self.pattern.fullmatch(name)]
+        robot_handle = self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, "Rob", sim.simx_opmode_blocking))
+        print(f'robot_handle: {robot_handle}')
+        robot_x, robot_y, robot_z = self.run_sim_function(sim.simxGetObjectPosition,
+                                            (self.clientID, robot_handle, -1, mode))
         for name in filtered_names:
             obj_handle = self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, name, mode))
             instance_sim_object = SimObject()
             instance_sim_object.label = name
+            instance_sim_object.distance = self.get_distance(obj_handle, robot_x, robot_y, robot_z)
             instance_sim_object.points = self.get_corners(obj_handle)
             object_array.objects.append(instance_sim_object)
         return object_array
+
+    def get_distance(self, obj_handle, robot_x, robot_y, robot_z, mode=sim.simx_opmode_blocking):
+        base_x, base_y, base_z = self.run_sim_function(sim.simxGetObjectPosition,
+                                                       (self.clientID, obj_handle, -1, mode))
+        distance_x = robot_x - base_x
+        distance_y = robot_y - base_y
+        distance_z = robot_z - base_z
+        return np.sqrt(distance_x**2 + distance_y**2 + distance_z**2)
