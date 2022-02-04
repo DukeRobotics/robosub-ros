@@ -6,6 +6,7 @@ import random
 from task import Task
 from move_tasks import MoveToPoseGlobalTask, MoveToPoseLocalTask, AllocateVelocityLocalTask
 from time import sleep
+from geometry_msgs.msg import Pose, Quaternion, Twist, Point, Vector3
 from tf import TransformListener
 
 # define state Foo
@@ -27,24 +28,36 @@ def main():
     
     # move.run(None)
     # print("first move")
-    move = MoveToPoseGlobalTask(2, 0, 0, 0, 0, 0)
-    move.run(None)
-    move = MoveToPoseGlobalTask(2, 2, 0, 0, 0, 0)
-    move.run(None)
-    move = MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0)
-    move.run(None)
-    print("AAAAAAAAAAAAAAAAAA")
-    return
+    # move = MoveToPoseGlobalTask(2, 0, 0, 0, 0, 0)
+    # move.run(None)
+    # move = MoveToPoseGlobalTask(2, 2, 0, 0, 0, 0)
+    # move.run(None)
+    # move = MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0)
+    # move.run(None)
+    # print("AAAAAAAAAAAAAAAAAA")
+    # return
     
 
     # t = AllocateVelocityGlobalTask(0.2, 0, 0, 0, 0, 0)
     # while(True):
     #     t.run()
     
-    sm = controls_testing()
+    sm = object_passing()
 
     # Execute SMACH plan
     outcome = sm.execute()
+
+def object_passing():
+    sm = smach.StateMachine(outcomes=['done'])
+
+    with sm:
+        smach.StateMachine.add('calc', OutputVector3Task(Vector3(3,5,3)),
+                                transitions={'done':'print'})
+        
+        smach.StateMachine.add('print', PrintVector3Task(),
+                                transitions={'done':'done'})
+
+    return sm
 
 def controls_testing():
     # Create a SMACH state machine
@@ -125,6 +138,25 @@ def decision_making():
                                transitions={'done':'finish'})
 
     return sm
+
+class OutputVector3Task(Task):
+    def __init__(self, vec):
+        super().__init__(["done"], output_keys=['vec'])
+        self.vec = vec
+
+    def run(self, userdata):
+        userdata.vec = self.vec
+        return "done"
+
+class PrintVector3Task(Task):
+    def __init__(self):
+        super().__init__(["done"], input_keys=['vec'])
+
+    def run(self, userdata):
+        print(userdata.vec)
+        userdata.vec.z = 2
+        print(userdata.vec)
+        return "done"
 
 class RandomChoice(Task):
     """Randomly chooses a number"""

@@ -7,9 +7,9 @@ import rospy
 import task_utils
 from task import Task
 from move_tasks import MoveToPoseLocalTask, AllocateVelocityLocalTask, AllocateVelocityLocalForeverTask
-from tf import TransformListener, Vector3
+from tf import TransformListener
 from time import sleep
-from geometry_msgs.msg import Point, Pose, Quaternion
+from geometry_msgs.msg import Pose, Quaternion, Twist, Point, Vector3
 from math import *
 
 
