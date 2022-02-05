@@ -14,7 +14,7 @@ VERBOSE_BOUNDING_BOX = False
 class BoundingBox:
 
     def __init__(self):
-        rospy.init_node('sim_box_maker')
+        rospy.init_node('sim_fake_cv_maker')
         self.listener = TransformListener()
         config_filepath = rr.get_filename(
             'package://simulation/data/config.yaml', 

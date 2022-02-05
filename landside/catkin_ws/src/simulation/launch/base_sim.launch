@@ -4,9 +4,9 @@
 
     <node name="simulation" pkg="simulation" type="sim_loop.py" output="screen"/>
     <node 
-        name="sim_box_maker" 
+        name="sim_fake_cv_maker" 
         pkg="simulation" 
-        type="bounding_box.py"
+        type="fake_cv_maker.py"
         output="screen"
     />
 </launch>
