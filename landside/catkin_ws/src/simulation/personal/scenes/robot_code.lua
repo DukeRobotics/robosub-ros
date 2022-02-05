@@ -102,10 +102,11 @@ function extsysCall_actuation()
     end
 
     print(
-        "Drag:", dragforcelin[3],"\n",
-        "Buoyancy", relbuoy, "\n", --could try just fbuoy, relbuoy is fbuoy after transform
-        "Gravity", grav, "\n",
-        "Thruster force", forces[5], forces[6], forces[7], forces[8], "\n"
+        "Drag: ", dragforcelin[3],"\n",
+        "Buoyancy: ", relbuoy[3], "\n", --could try just fbuoy, relbuoy is fbuoy after transform
+        "Gravity: ", grav[3] * m, "\n",
+        "Thruster force: ", forces[5][3], forces[6][3], forces[7][3], forces[8][3], "\n",
+        "Total Force: ", dragforcelin[3] + relbuoy[3] + grav[3] + forces[5][3] + forces[6][3] + forces[7][3], forces[8][3], "\n"
     )
 end
 
