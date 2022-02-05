@@ -1,5 +1,3 @@
-from attr import mutable
-from onboard.catkin_ws.src.task_planning.scripts.task_utils import MutablePose
 from task import Task
 from geometry_msgs.msg import Pose, Quaternion, Twist, Point, Vector3
 from nav_msgs.msg import Odometry
