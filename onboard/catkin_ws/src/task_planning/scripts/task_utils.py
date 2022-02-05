@@ -10,7 +10,6 @@ from std_msgs.msg import Header
 from tf.transformations import quaternion_from_euler
 from copy import deepcopy
 from task import Task
-from onboard.catkin_ws.src.controls.scripts.controls_utils import parse_pose
 
 
 def linear_distance(point1, point2):
@@ -221,6 +220,14 @@ def add_poses(pose_list):
 
     return Pose(p_sum, Quaternion(*q_sum))
 
+def parse_pose(pose):
+    pose_dict = {'x': pose.position.x, 'y': pose.position.y, 'z': pose.position.z}
+    pose_dict['roll'], pose_dict['pitch'], pose_dict['yaw'] = euler_from_quaternion(
+        [pose.orientation.x,
+         pose.orientation.y,
+         pose.orientation.z,
+         pose.orientation.w])
+    return pose_dict
 
 class MutatePoseTask(Task):
     def __init__(self, mutablePose):
