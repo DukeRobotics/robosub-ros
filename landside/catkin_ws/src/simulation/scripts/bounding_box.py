@@ -28,13 +28,19 @@ class BoundingBox:
         rospy.spin()
 
     def callback(self, data):
-        boxes = {obj.label: self.get_bounding_box(obj.points) for obj in data.objects}
+        object_data = {
+            obj.label: {
+                'bounding_box': self.get_bounding_box(obj.points),
+                'distance': obj.distance
+            } for obj in data.objects
+        }
 
-        for label in boxes:
+        for label, info in object_data.items():
             box = CVObject()
             box.score = 1
             box.label = label
-            box.xmin, box.xmax, box.ymin, box.ymax = boxes[label]
+            box.xmin, box.xmax, box.ymin, box.ymax = info['bounding_box']
+            box.distance = info['distance']
             if label not in self.publishers:
                 rospy.logerr(f"bounding_box.callback: Publisher for label {label} not found")
                 continue
