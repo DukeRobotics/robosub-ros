@@ -170,6 +170,15 @@ class SimHandle:
         return object_array
 
     def get_distance(self, obj_handle, robot_x, robot_y, robot_z, mode=sim.simx_opmode_blocking):
+        """
+        Given the robot's position and the handle of a simulation object,
+        returns the distance from the robot's center to the object's
+        center. This is probably the center of the minimal bounding box
+        around the object.
+
+        DISCLAIMER: You will need to adjust for the fact that this isn't
+        the distance from the object to the CAMERA.
+        """
         base_x, base_y, base_z = self.run_sim_function(sim.simxGetObjectPosition,
                                                        (self.clientID, obj_handle, -1, mode))
         distance_x = robot_x - base_x
