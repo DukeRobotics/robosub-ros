@@ -7,8 +7,8 @@ import itertools
 import re
 import resource_retriever as rr
 import yaml
+import traceback
 import numpy as np
-
 
 class SimHandle:
     DOCKER_IP = '192.168.65.2'
@@ -85,6 +85,9 @@ class SimHandle:
         if res[0] != sim.simx_return_ok and args[-1] != sim.simx_opmode_streaming:
             rospy.logerr(f'sim_handle.run_sim_function: Error calling simulation. Code: {res[0]}')
             rospy.logerr(f'sim_handle.run_sim_function: Function: {func}')
+            rospy.logerr(f'sim_handle.run_sim_function: Args: {args}')
+            traceback.print_stack()
+
             if res[0] == 3: # FIXME: Replace this with sim.simx_??? const
                 rospy.logerr(f'Command timed out. If running a custom ' + \
                 'function, make sure the function exists on the target object.')
@@ -155,7 +158,6 @@ class SimHandle:
         _, _, _, names = self.run_sim_function(sim.simxGetObjectGroupData,(self.clientID, sim.sim_object_shape_type, 0, mode))
         filtered_names = [name for name in names if self.pattern.fullmatch(name)]
         robot_handle = self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, "Rob", sim.simx_opmode_blocking))
-        print(f'robot_handle: {robot_handle}')
         robot_x, robot_y, robot_z = self.run_sim_function(sim.simxGetObjectPosition,
                                             (self.clientID, robot_handle, -1, mode))
         for name in filtered_names:

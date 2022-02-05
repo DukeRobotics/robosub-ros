@@ -7,5 +7,12 @@
         name="sim_box_maker" 
         pkg="simulation" 
         type="bounding_box.py"
-        output="screen"/>
+        output="screen"
+    />
+    <node 
+        name="sim_object_distance_tracker" 
+        pkg="simulation" 
+        type="object_distance.py"
+        output="screen"
+    />
 </launch>

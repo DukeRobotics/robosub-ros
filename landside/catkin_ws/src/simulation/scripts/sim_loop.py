@@ -7,6 +7,7 @@ from sensor_msgs.msg import Imu
 from nav_msgs.msg import Odometry
 from sim_handle import SimHandle
 from std_msgs.msg import Float64
+import sim
 
 
 class SimLoop:
@@ -65,7 +66,7 @@ class SimLoop:
     def run(self):
         rate = rospy.Rate(10)  # 10 Hz
         while not rospy.is_shutdown():
-            pose = self.sim_handle.get_pose()
+            pose = self.sim_handle.get_pose(mode=sim.simx_opmode_blocking)
             twist = self.sim_handle.get_twist()
 
             self.publish_imu(pose, twist)
