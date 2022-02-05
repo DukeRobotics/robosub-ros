@@ -9,7 +9,7 @@ from task import Task
 from move_tasks import MoveToPoseLocalTask, AllocateVelocityLocalTask, AllocateVelocityLocalForeverTask, MoveToPoseGlobalTask, MoveToMutablePoseGlobalTask
 from tf import TransformListener, Vector3
 from time import sleep
-from geometry_msgs.msg import Point, Pose, Quaternion
+from geometry_msgs.msg import Pose, Quaternion, Twist, Point, Vector3
 from math import *
 
 

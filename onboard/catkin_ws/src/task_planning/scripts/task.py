@@ -10,12 +10,12 @@ class Task(smach.State):
 
     task_state_provider = providers.Singleton(TaskState)
 
-    def __init__(self, outcomes):
+    def __init__(self, outcomes, input_keys=[], output_keys=[], io_keys=[]):
         """
         Create a Task.
 
         """
-        smach.State.__init__(self, outcomes)
+        smach.State.__init__(self, outcomes, input_keys, output_keys, io_keys)
 
         self.task_state = self.task_state_provider()
         self.start_time = None
