@@ -67,7 +67,7 @@ function extsysCall_actuation()
     ysize = ysizemax - ysizemin
     zsize = zsizemax - zsizemin
 
-    grav = sim.getArrayParameter(sim.arrayparam_gravity) -- force
+    grav = sim.getArrayParameter(sim.arrayparam_gravity) -- gravitational acceleration
     pos[3] = pos[3] - zsize / 2 --fudge due to inconsistency with relative measurements (?)
     if zsize <= (waterlevel - pos[3]) then
         subdepth = zsize
@@ -83,31 +83,35 @@ function extsysCall_actuation()
     transform = sim.getObjectMatrix(hr, -1)
     res = sim.invertMatrix(transform)
     relbuoy = sim.multiplyVector(transform, { 0, 0, fbuoy })
+    relbuoy_mag = math.sqrt(relbuoy[1]^2 + relbuoy[2]^2 + relbuoy[3]^2)
+    relbuoy_normalized = {relbuoy[1]/relbuoy_mag*fbuoy, relbuoy[2]/relbuoy_mag*fbuoy, relbuoy[3]/relbuoy_mag*fbuoy}
 
     v, angv = sim.getVelocity(hr)
-    dragforcelin = {calc_dragforcelin(v[1], ysize, subdepth), -- force
+    dragforcelin = {calc_dragforcelin(v[1], ysize, subdepth), -- linear drag force
                     calc_dragforcelin(v[2], xsize, subdepth),
                     calc_dragforcelin(v[3], xsize, ysize)}
     if pos[3] > waterlevel then
         dragforcelin[3] = 0
     end
-    dragforceang = {calc_dragforceang(angv[1], ysize, xsize), -- force
+    dragforceang = {calc_dragforceang(angv[1], ysize, xsize), -- angular force
                     calc_dragforceang(angv[2], ysize, xsize),
                     calc_dragforceang(angv[3], ysize, subdepth)}
 
     sim.addForceAndTorque(hr, dragforcelin, dragforceang)
-    sim.addForce(hr, centerOfBuoy, relbuoy) -- force
+    sim.addForce(hr, centerOfBuoy, relbuoy_normalized) -- buoyancy force
     for i = 1, table.getn(forces) do
-        sim.addForce(hr, thrusterPoints[i], forces[i]) -- force
+        sim.addForce(hr, thrusterPoints[i], forces[i]) -- thruster force
     end
     
-    if m == nil then
+    if m ~= nil and forces[5] ~= nil then
     print(
         "Drag: ", dragforcelin[3],"\n",
-        "Buoyancy: ", relbuoy[3], "\n", --could try just fbuoy, relbuoy is fbuoy after transform
+        "Rel Buoyancy Normalized: ", relbuoy_normalized, "\n", --could try just fbuoy, relbuoy is fbuoy after transform
+        "Rel Buoyancy Norm: ", math.sqrt(relbuoy_normalized[1]^2 + relbuoy_normalized[2]^2 + relbuoy_normalized[3]^2), "\n",
+        "Buoyancy: ", fbuoy, "\n",
         "Gravity: ", grav[3] * m, "\n",
         "Thruster force: ", forces[5][3], forces[6][3], forces[7][3], forces[8][3], "\n",
-        "Total Force: ", dragforcelin[3] + relbuoy[3] + grav[3] + forces[5][3] + forces[6][3] + forces[7][3], forces[8][3], "\n"
+        "Total Force: ", dragforcelin[3] + relbuoy[3] + grav[3] * m + forces[5][3] + forces[6][3] + forces[7][3]+ forces[8][3], "\n"
     ) end
 end
 
