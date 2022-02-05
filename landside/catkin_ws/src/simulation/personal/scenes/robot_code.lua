@@ -41,7 +41,11 @@ function extsysCall_init()
     forces = {}
     waterlevel = 0
     p = 1000
-    dragcoef = 1.1 --original: 1.1
+    dragcoef = 0.9 --original: 1.1 , try 0.9 next
+    --too low makes it not move down bc robot is busy fixing angular position
+    --too high makes it not move down bc robot can't overcome drag
+    --0.7-1.1 seems to be sweet spot, but even that's not good enough -- robot does not continue moving down
+    --seems drag constant might be dependent on velocity (bc it's dependent on Reynold's number)
 
     -- -4, 1, 3 from vincent
     --these numbers calc'd for a 15 deg pitch, and arbitrary roll (it looks about right)
@@ -63,7 +67,7 @@ function extsysCall_actuation()
     ysize = ysizemax - ysizemin
     zsize = zsizemax - zsizemin
 
-    grav = sim.getArrayParameter(sim.arrayparam_gravity)
+    grav = sim.getArrayParameter(sim.arrayparam_gravity) -- force
     pos[3] = pos[3] - zsize / 2 --fudge due to inconsistency with relative measurements (?)
     if zsize <= (waterlevel - pos[3]) then
         subdepth = zsize
@@ -81,21 +85,28 @@ function extsysCall_actuation()
     relbuoy = sim.multiplyVector(transform, { 0, 0, fbuoy })
 
     v, angv = sim.getVelocity(hr)
-    dragforcelin = {calc_dragforcelin(v[1], ysize, subdepth),
+    dragforcelin = {calc_dragforcelin(v[1], ysize, subdepth), -- force
                     calc_dragforcelin(v[2], xsize, subdepth),
                     calc_dragforcelin(v[3], xsize, ysize)}
     if pos[3] > waterlevel then
         dragforcelin[3] = 0
     end
-    dragforceang = {calc_dragforceang(angv[1], ysize, xsize),
+    dragforceang = {calc_dragforceang(angv[1], ysize, xsize), -- force
                     calc_dragforceang(angv[2], ysize, xsize),
                     calc_dragforceang(angv[3], ysize, subdepth)}
 
     sim.addForceAndTorque(hr, dragforcelin, dragforceang)
-    sim.addForce(hr, centerOfBuoy, relbuoy)
+    sim.addForce(hr, centerOfBuoy, relbuoy) -- force
     for i = 1, table.getn(forces) do
-        sim.addForce(hr, thrusterPoints[i], forces[i])
+        sim.addForce(hr, thrusterPoints[i], forces[i]) -- force
     end
+
+    print(
+        "Drag:", dragforcelin[3],"\n",
+        "Buoyancy", relbuoy, "\n", --could try just fbuoy, relbuoy is fbuoy after transform
+        "Gravity", grav, "\n",
+        "Thruster force", forces[5], forces[6], forces[7], forces[8], "\n"
+    )
 end
 
 function get_sign(x)
@@ -108,11 +119,15 @@ function get_sign(x)
     end
 end
 
+
+
 function calc_dragforcelin(linvel, length, depth)
     if quadratic then
         return -p * math.abs(linvel ^ 2) * get_sign(linvel) * dragcoef * length * depth
+        
     end
     return -p * math.abs(linvel) * get_sign(linvel) * dragcoef * length * depth
+    --return -6 * math.pi * 0.00105 * (length/2) * math.abs(linvel ^ 2) * get_sign(linvel)
 end
 
 function calc_dragforceang(angvel, length, depth)
@@ -120,11 +135,13 @@ function calc_dragforceang(angvel, length, depth)
     -- -p * angvelocity * angvelocity * x * y * y * y * dragcoef / 12
     -- if linear
     -- -p * angvelocity * x * y * y * dragcoef / 4
+    
     angdragfudgecoef = 1 -- 0.05
     if quadratic then
         return -p * math.abs(angvel ^ 2) * get_sign(angvel) * dragcoef * length ^ 3 * depth / 12 * angdragfudgecoef
     end
     return -p * math.abs(angvel ^ 1) * get_sign(angvel) * dragcoef * length ^ 2 * depth / 4 * angdragfudgecoef
+    --return -6 * math.pi * 0.00105 * (length/2)^3 * math.abs(angvel ^ 2) * get_sign(angvel)
 
 end
 
