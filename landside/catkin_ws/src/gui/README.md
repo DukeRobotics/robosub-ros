@@ -17,7 +17,15 @@ If part of a plugin is greyed out, ensure that the appropriate service is runnin
 
 #### Dependencies
 - `remote_launch.py` in system_utils
-- `system_info_publisher.py` in system_utils 
+- `system_info_publisher.py` in system_utils
+
+Run 
+```
+roslaunch system_utils remote_launch.launch
+```
+
+in the onboard container.
+
 
 #### Description
 To launch any node in the onboard container, you may use the Node Launch Dialog, which opens a new dialog into which you may enter your info. 

@@ -14,6 +14,7 @@ from geometry_msgs.msg import Pose, Twist, Point, Quaternion, Vector3
 
 from gui.pose_twist_dialog import PoseTwistDialog
 from gui.pid_dialog import PidDialog
+import math
 
 
 class ControlsWidget(QWidget):
@@ -241,16 +242,26 @@ class ControlsWidget(QWidget):
     def update_pid_constants(self, ppid, vpid):
         for i in range(len(self.DIRS)):
             pos_client = dynamic_reconfigure.client.Client(f'/controls/{self.DIRS[i]}_pos/controller')
+            ppid_scal = [1.0, 1.0, 1.0]
+            vpid_scal = [1.0, 1.0, 1.0]
+            for k in range(3):
+                if ppid[i][k] > 1:
+                    ppid_scal[k] = 10**(math.floor(math.log10(ppid[i][k])) + 1)
+                    ppid[i][k] = ppid[i][k]/ppid_scal[k]
+                if vpid[i][k] > 1:
+                    vpid_scal[k] = 10**(math.floor(math.log10(vpid[i][k])) + 1)
+                    vpid[i][k] = vpid[i][k]/vpid_scal[k]
+
             pos_client.update_configuration({'Kp': ppid[i][0],
                                              'Ki': ppid[i][1],
                                              'Kd': ppid[i][2],
-                                             'Kp_scale': 1.0,
-                                             'Ki_scale': 1.0,
-                                             'Kd_scale': 1.0})
+                                             'Kp_scale': ppid_scal[0],
+                                             'Ki_scale': ppid_scal[1],
+                                             'Kd_scale': ppid_scal[2]})
             vel_client = dynamic_reconfigure.client.Client(f'/controls/{self.DIRS[i]}_vel/controller')
             vel_client.update_configuration({'Kp': vpid[i][0],
                                              'Ki': vpid[i][1],
                                              'Kd': vpid[i][2],
-                                             'Kp_scale': 1.0,
-                                             'Ki_scale': 1.0,
-                                             'Kd_scale': 1.0})
+                                             'Kp_scale': vpid_scal[0],
+                                             'Ki_scale': vpid_scal[1],
+                                             'Kd_scale': vpid_scal[2]})
