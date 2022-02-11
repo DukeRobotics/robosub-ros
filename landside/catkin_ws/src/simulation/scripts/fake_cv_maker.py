@@ -5,10 +5,8 @@ from tf import TransformListener
 from geometry_msgs.msg import Pose, Quaternion, PoseStamped
 import rospy
 from numpy import clip
-from os import path
 import resource_retriever as rr
 import yaml
-import re
 
 VERBOSE_BOUNDING_BOX = False
 
@@ -18,8 +16,10 @@ def get_item_class(item_label):
     Example: get_item_class("GateLeftChild#0") = GateLeftChild
     """
     hash_index = item_label.find('#')
-    if hash_index < 0: return item_label
+    if hash_index < 0: 
+        return item_label
     return item_label[:hash_index]
+
 
 class BoundingBox:
 
