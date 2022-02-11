@@ -1,5 +1,9 @@
 require "math"
 
+--Robot cylinder in meters
+cylinder_diameter = 21.5 / 100
+cylinder_length = 65 / 100
+
 function extsysCall_init()
   simRemoteApi.start(5555, 1300, true, false)
     --check to see relationship between inches and vrep units

@@ -24,14 +24,14 @@ class MoveToPoseGlobalTask(Task):
         # Get pose from userdata if supplied
         arg_names = ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
         for i in range(len(arg_names)):
-            if userdata[arg_names[i]]:
+            if arg_names[i] in userdata:
                 self.coords[i] = userdata[arg_names[i]]
 
         self.desired_pose = Pose()
         self.desired_pose.position = Point(x=self.coords[0], y=self.coords[1], z=self.coords[2])
         self.desired_pose.orientation = Quaternion(*quaternion_from_euler(self.coords[3], self.coords[4], self.coords[5]))
 
-        return super(MoveToPoseGlobalTask, self).execute(self, userdata)
+        return super(MoveToPoseGlobalTask, self).execute(userdata)
 
     def run(self, userdata):
         rate = rospy.Rate(15)
