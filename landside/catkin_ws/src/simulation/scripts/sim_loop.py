@@ -34,7 +34,6 @@ class SimLoop:
 
     def on_move_received(self, msg):
         self.tforces = self.robot_model.get_thruster_forces(msg.speeds)
-        pass
 
     def publish_imu(self, pose, twist):
         msg = Imu()

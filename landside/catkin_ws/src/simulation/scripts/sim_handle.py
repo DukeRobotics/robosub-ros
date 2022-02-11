@@ -43,36 +43,8 @@ class SimHandle:
                                                       0, sim.simx_opmode_blocking))
         filtered_names = [name for name in names if self.pattern.fullmatch(name)]
         print(f"sim_handle.__init__: Names of relevant simulation objects: {filtered_names}")
-        # self.run_sim_function(sim.simxPauseCommunication, (self.clientID, True))
-        # for name in filtered_names: ## FIXME need name in next line
-        #     print(f"About to run function <reset> on {name}...")
-        #     self.run_custom_sim_function(name, "reset")
-        #     if name in [val['name'] for val in data['buoyancy']]:
-        #         print(f"About to run function enableBuoyancyDrag on {name}...")
-        #         self.run_custom_sim_function(name, "enableBuoyancyDrag", ints=[1])
-        #         self.run_custom_sim_function(name, "setDragCoefficient", ints=[1])
-        #         self.run_custom_sim_function(name, "setDragType", ints=[1])
-        #         self.run_custom_sim_function(name, "setMass", ints=[1]) ##FIXME: change to actual mass
-        # self.run_sim_function(sim.simxPauseCommunication, (self.clientID, False))
 
         rospy.loginfo("sim_handle.__init__: Starting main loop")
-
-    def init_sim_objects(self):
-        # self.run_sim_function(sim.simxPauseCommunication, (self.clientID, True))
-        for name in filtered_names: ## FIXME need name in next line
-            print(f"About to run function <reset> on {name}...")
-            self.run_custom_sim_function(name, "reset")
-            if name in [val['name'] for val in data['buoyancy']]:
-                # The opmode should not be blocking, since we don't expect
-                # to get a response from the simulation until we turn communications
-                # back on.
-                paused_comms_opmode = simx_opmode_oneshot
-                paused_comms_opmode = simx_opmode_blocking
-                self.run_custom_sim_function(name, "enableBuoyancyDrag", ints=[1], mode=paused_comms_opmode)
-                self.run_custom_sim_function(name, "setDragCoefficient", ints=[1], mode=paused_comms_opmode)
-                self.run_custom_sim_function(name, "setDragType", ints=[1], mode=paused_comms_opmode)
-                self.run_custom_sim_function(name, "setMass", ints=[1], mode=paused_comms_opmode) ##FIXME: change to actual mass
-        # self.run_sim_function(sim.simxPauseCommunication, (self.clientID, False))
 
     def init_streaming(self):
         self.get_pose(mode=sim.simx_opmode_streaming)
