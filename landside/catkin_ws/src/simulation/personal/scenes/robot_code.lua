@@ -41,7 +41,7 @@ function extsysCall_init()
     forces = {}
     waterlevel = 0
     p = 1000
-    dragcoef = 0.9 --original: 1.1 , try 0.9 next
+    dragcoef = 1.1 --original: 1.1 , try 0.9 next
     --too low makes it not move down bc robot is busy fixing angular position
     --too high makes it not move down bc robot can't overcome drag
     --0.7-1.1 seems to be sweet spot, but even that's not good enough -- robot does not continue moving down
@@ -93,7 +93,7 @@ function extsysCall_actuation()
     if pos[3] > waterlevel then
         dragforcelin[3] = 0
     end
-    dragforceang = {calc_dragforceang(angv[1], ysize, xsize), -- angular force
+    dragforceang = {calc_dragforceang(angv[1], ysize, xsize), -- angular drag force
                     calc_dragforceang(angv[2], ysize, xsize),
                     calc_dragforceang(angv[3], ysize, subdepth)}
 
