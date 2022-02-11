@@ -113,12 +113,9 @@ class SimHandle:
         self.run_custom_sim_function("Rob", "setThrusterForces", floats=list(inp))
 
     def get_mass(self):
-        print(f"sim_handle.get_mass: robot sim handle: {self.robot}")
-        # FIXME: Make this return the actual mass. Right now we get an error
-        # return code of 8 from the simulation API when we ask for the
-        # robot's mass with the following line:
-        # return self.run_sim_function(sim.simxGetObjectIntParameter, (self.clientID, self.robot, sim.sim_shapefloatparam_mass, sim.simx_opmode_blocking))
-        return 1.398e2
+        mass = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, self.robot, sim.sim_shapefloatparam_mass, sim.simx_opmode_blocking))
+        print(f"sim_handle.get_mass: robot mass: {mass}")
+        return mass
 
     def get_pose(self, mode=sim.simx_opmode_buffer):
         pos = self.run_sim_function(sim.simxGetObjectPosition, (self.clientID, self.robot, -1, mode))
