@@ -36,7 +36,7 @@ class SimHandle:
         with open(config_filepath) as f:
             data = yaml.safe_load(f)
 
-        self.obj_names = '|'.join(data['cv_objects'])
+        self.obj_names = f"({'|'.join(data['cv_objects'])})(#\d+)?"
         self.pattern = re.compile(self.obj_names)
         _, _, _, names = self.run_sim_function(sim.simxGetObjectGroupData,
                                                      (self.clientID, sim.sim_object_shape_type,

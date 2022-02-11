@@ -65,6 +65,7 @@ class SimLoop:
 
     def run(self):
         rate = rospy.Rate(10)  # 10 Hz
+        num_cycles = 0
         while not rospy.is_shutdown():
             pose = self.sim_handle.get_pose(mode=sim.simx_opmode_blocking)
             twist = self.sim_handle.get_twist()
@@ -74,6 +75,8 @@ class SimLoop:
             self.publish_depth(pose, twist)
             self.publish_sim_objects()
             self.sim_handle.set_thruster_force(self.tforces)
+            print(f"sim_loop.run: Running sim loop{num_cycles * '.'}   ", end='\r')
+            num_cycles = (num_cycles + 1) % 4
 
             rate.sleep()
 

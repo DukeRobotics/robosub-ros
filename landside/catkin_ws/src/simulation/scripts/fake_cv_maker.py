@@ -8,8 +8,18 @@ from numpy import clip
 from os import path
 import resource_retriever as rr
 import yaml
+import re
 
 VERBOSE_BOUNDING_BOX = False
+
+def get_item_class(item_label):
+    """
+    Returns the type of a sim object given its label in the simulation.
+    Example: get_item_class("GateLeftChild#0") = GateLeftChild
+    """
+    hash_index = item_label.find('#')
+    if hash_index < 0: return item_label
+    return item_label[:hash_index]
 
 class BoundingBox:
 
@@ -38,15 +48,16 @@ class BoundingBox:
         for label, info in object_data.items():
             box = CVObject()
             box.score = 1
+            class_label = get_item_class(label)
             box.label = label
             box.xmin, box.xmax, box.ymin, box.ymax = info['bounding_box']
             box.distance = info['distance']
-            if label not in self.publishers:
-                rospy.logerr(f"bounding_box.callback: Publisher for label {label} not found")
+            if class_label not in self.publishers:
+                rospy.logerr(f"bounding_box.callback: Publisher for label {class_label} not found")
                 continue
             if VERBOSE_BOUNDING_BOX:
                 rospy.loginfo(f"bounding_box.callback: publishing bounding box {box}")
-            self.publishers[label].publish(box)
+            self.publishers[class_label].publish(box)
 
     def get_bounding_box(self, points):
         grid_points = [self.get_grid_point(point) for point in points]
