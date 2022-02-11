@@ -17,12 +17,13 @@ def main():
     print("before sleep")
     sleep(2)
     # print("before ctor")
-    move = AllocateVelocityLocalTask(0, 0, -100, 0, 0, 0)
+    #move = AllocateVelocityLocalTask(0, 0, -10, 0, 0, 0)
+    move = MoveToPoseGlobalTask(5, 0, 0, 0, 0, 0)
     #move.run(None)
     #return
     rate = rospy.Rate(15)
     while True:
-        move.run(None)
+        move.execute({})
         rate.sleep()
     # move = MoveToPoseLocalTask(2, 0, 0, 0, 0, 0, listener)
     
