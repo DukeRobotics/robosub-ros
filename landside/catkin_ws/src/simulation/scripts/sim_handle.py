@@ -126,9 +126,8 @@ class SimHandle:
         object_array = SimObjectArray()
         _, _, _, names = self.run_sim_function(sim.simxGetObjectGroupData,(self.clientID, sim.sim_object_shape_type, 0, mode))
         filtered_names = [name for name in names if self.pattern.fullmatch(name)]
-        robot_handle = self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, "Rob", sim.simx_opmode_blocking))
         robot_x, robot_y, robot_z = self.run_sim_function(sim.simxGetObjectPosition,
-                                            (self.clientID, robot_handle, -1, mode))
+                                            (self.clientID, self.robot, -1, mode))
         for name in filtered_names:
             obj_handle = self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, name, mode))
             instance_sim_object = SimObject()
