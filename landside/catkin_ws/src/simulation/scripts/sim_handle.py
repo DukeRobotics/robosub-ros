@@ -68,11 +68,11 @@ class SimHandle:
             traceback.print_stack()
 
             if res[0] == 3:  # FIXME: Replace this with sim.simx_??? const
-                rospy.logerr('Command timed out. If running a custom ' +
-                    'function, make sure the function exists on the target object.')
+                rospy.logerr('Command timed out. If running a custom '
+                             + 'function, make sure the function exists on the target object.')
             elif res[0] == sim.simx_return_remote_error_flag:
-                rospy.logerr('Return remote error flag. This occurs when ' +
-                    'the client uses the wrong opmode.')
+                rospy.logerr('Return remote error flag. This occurs when '
+                             + 'the client uses the wrong opmode.')
                 raise Exception('Failed to run sim function!')
         if len(res) == 1:
             return None
@@ -153,8 +153,12 @@ class SimHandle:
             mode
         ))
         filtered_names = [name for name in names if self.pattern.fullmatch(name)]
-        robot_x, robot_y, robot_z = self.run_sim_function(sim.simxGetObjectPosition,
-                                                        (self.clientID, self.robot, -1, mode))
+        robot_x, robot_y, robot_z = self.run_sim_function(sim.simxGetObjectPosition, (
+            self.clientID,
+            self.robot,
+            -1,
+            mode
+        ))
         for name in filtered_names:
             obj_handle = self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, name, mode))
             instance_sim_object = SimObject()
