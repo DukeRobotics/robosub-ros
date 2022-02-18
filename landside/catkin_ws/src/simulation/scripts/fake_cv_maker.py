@@ -10,15 +10,17 @@ import yaml
 
 VERBOSE_BOUNDING_BOX = False
 
+
 def get_item_class(item_label):
     """
     Returns the type of a sim object given its label in the simulation.
     Example: get_item_class("GateLeftChild#0") = GateLeftChild
     """
     hash_index = item_label.find('#')
-    if hash_index < 0: 
+    if hash_index < 0:
         return item_label
     return item_label[:hash_index]
+
 
 def initialize_publishers(cv_object_labels):
     publishers = {}
@@ -30,13 +32,14 @@ def initialize_publishers(cv_object_labels):
         )
     return publishers
 
+
 class BoundingBox:
 
     def __init__(self):
         rospy.init_node('sim_fake_cv_maker')
         self.listener = TransformListener()
         config_filepath = rr.get_filename(
-            'package://simulation/data/config.yaml', 
+            'package://simulation/data/config.yaml',
             use_protocol=False
         )
         with open(config_filepath) as f:

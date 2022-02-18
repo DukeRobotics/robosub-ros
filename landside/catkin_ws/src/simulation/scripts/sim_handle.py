@@ -10,6 +10,7 @@ import yaml
 import traceback
 import numpy as np
 
+
 class SimHandle:
     DOCKER_IP = '192.168.65.2'
 
@@ -30,17 +31,23 @@ class SimHandle:
         self.init_streaming()
 
         config_filepath = rr.get_filename(
-            'package://simulation/data/config.yaml', 
+            'package://simulation/data/config.yaml',
             use_protocol=False
         )
         with open(config_filepath) as f:
             data = yaml.safe_load(f)
 
-        self.obj_names = f"({'|'.join(data['cv_objects'])})(#\d+)?"
+        # Used to identify objects when there are multiple with the same type;
+        # e.g., one named Gate and another named Gate#0
+        object_index_expression = r"(#\d+)?"
+        self.obj_names = f"({'|'.join(data['cv_objects'])}){object_index_expression}"
         self.pattern = re.compile(self.obj_names)
-        _, _, _, names = self.run_sim_function(sim.simxGetObjectGroupData,
-                                                     (self.clientID, sim.sim_object_shape_type,
-                                                      0, sim.simx_opmode_blocking))
+        _, _, _, names = self.run_sim_function(sim.simxGetObjectGroupData, (
+            self.clientID,
+            sim.sim_object_shape_type,
+            0,
+            sim.simx_opmode_blocking
+        ))
         filtered_names = [name for name in names if self.pattern.fullmatch(name)]
         rospy.loginfo(f"sim_handle.__init__: Names of relevant simulation objects: {filtered_names}")
 
@@ -60,12 +67,12 @@ class SimHandle:
             rospy.logerr(f'sim_handle.run_sim_function: Args: {args}')
             traceback.print_stack()
 
-            if res[0] == 3: # FIXME: Replace this with sim.simx_??? const
-                rospy.logerr(f'Command timed out. If running a custom ' + \
-                'function, make sure the function exists on the target object.')
+            if res[0] == 3:  # FIXME: Replace this with sim.simx_??? const
+                rospy.logerr('Command timed out. If running a custom ' +
+                    'function, make sure the function exists on the target object.')
             elif res[0] == sim.simx_return_remote_error_flag:
-                rospy.logerr(f'Return remote error flag. This occurs when ' + \
-                'the client uses the wrong opmode.')
+                rospy.logerr('Return remote error flag. This occurs when ' +
+                    'the client uses the wrong opmode.')
                 raise Exception('Failed to run sim function!')
         if len(res) == 1:
             return None
@@ -73,19 +80,34 @@ class SimHandle:
             return res[1]
         return res[1:]
 
-    def run_custom_sim_function(self, obj_name, func_name, ints=[], floats=[], strs=[""], bytes=bytearray(), mode=sim.simx_opmode_blocking):
-        return self.run_sim_function(sim.simxCallScriptFunction,
-                                          (self.clientID, obj_name, sim.sim_scripttype_childscript,
-                                           func_name,
-                                           ints, floats, strs, bytes,
-                                           mode))
+    def run_custom_sim_function(
+        self,
+        obj_name,
+        func_name,
+        ints=[],
+        floats=[],
+        strs=[""],
+        bytes=bytearray(),
+        mode=sim.simx_opmode_blocking
+    ):
+        return self.run_sim_function(sim.simxCallScriptFunction, (
+            self.clientID, obj_name, sim.sim_scripttype_childscript,
+            func_name,
+            ints, floats, strs, bytes,
+            mode
+        ))
 
     def set_thruster_force(self, force):
         inp = itertools.chain.from_iterable(force)
         self.run_custom_sim_function("Rob", "setThrusterForces", floats=list(inp))
 
     def get_mass(self):
-        mass = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, self.robot, sim.sim_shapefloatparam_mass, sim.simx_opmode_blocking))
+        mass = self.run_sim_function(sim.simxGetObjectFloatParameter, (
+            self.clientID,
+            self.robot,
+            sim.sim_shapefloatparam_mass,
+            sim.simx_opmode_blocking
+        ))
         rospy.loginfo(f"sim_handle.get_mass: robot mass: {mass}")
         return mass
 
@@ -120,14 +142,19 @@ class SimHandle:
         return ret
 
     # Returns a SimObjArray message consisting of
-    # SimObj messages representing the bounding boxes of all 
+    # SimObj messages representing the bounding boxes of all
     # objects in the scene which are relevant to CV.
     def get_sim_objects(self, mode=sim.simx_opmode_blocking):
         object_array = SimObjectArray()
-        _, _, _, names = self.run_sim_function(sim.simxGetObjectGroupData,(self.clientID, sim.sim_object_shape_type, 0, mode))
+        _, _, _, names = self.run_sim_function(sim.simxGetObjectGroupData, (
+            self.clientID,
+            sim.sim_object_shape_type,
+            0,
+            mode
+        ))
         filtered_names = [name for name in names if self.pattern.fullmatch(name)]
         robot_x, robot_y, robot_z = self.run_sim_function(sim.simxGetObjectPosition,
-                                            (self.clientID, self.robot, -1, mode))
+                                                        (self.clientID, self.robot, -1, mode))
         for name in filtered_names:
             obj_handle = self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, name, mode))
             instance_sim_object = SimObject()
