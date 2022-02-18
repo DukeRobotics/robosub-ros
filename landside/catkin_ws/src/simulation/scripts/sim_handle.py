@@ -42,7 +42,7 @@ class SimHandle:
                                                      (self.clientID, sim.sim_object_shape_type,
                                                       0, sim.simx_opmode_blocking))
         filtered_names = [name for name in names if self.pattern.fullmatch(name)]
-        print(f"sim_handle.__init__: Names of relevant simulation objects: {filtered_names}")
+        rospy.loginfo(f"sim_handle.__init__: Names of relevant simulation objects: {filtered_names}")
 
         rospy.loginfo("sim_handle.__init__: Starting main loop")
 
@@ -86,7 +86,7 @@ class SimHandle:
 
     def get_mass(self):
         mass = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, self.robot, sim.sim_shapefloatparam_mass, sim.simx_opmode_blocking))
-        print(f"sim_handle.get_mass: robot mass: {mass}")
+        rospy.loginfo(f"sim_handle.get_mass: robot mass: {mass}")
         return mass
 
     def get_pose(self, mode=sim.simx_opmode_buffer):
