@@ -20,6 +20,15 @@ def get_item_class(item_label):
         return item_label
     return item_label[:hash_index]
 
+def initialize_publishers(cv_object_labels):
+    publishers = {}
+    for label in cv_object_labels:
+        publishers[label] = rospy.Publisher(
+            f'{label.strip().lower()}/left',
+            CVObject,
+            queue_size=10
+        )
+    return publishers
 
 class BoundingBox:
 
@@ -32,18 +41,17 @@ class BoundingBox:
         )
         with open(config_filepath) as f:
             data = yaml.safe_load(f)
-        self.publishers = {i.strip(): rospy.Publisher(f'/{i.strip().lower()}/left', CVObject, queue_size=10)
-                           for i in data['cv_objects']}
+        self.publishers = initialize_publishers(data['cv_objects'])
         rospy.Subscriber("/sim/object_points", SimObjectArray, self.callback)
         rospy.spin()
 
     def callback(self, data):
-        object_data = {
-            obj.label: {
+        object_data = {}
+        for obj in data.objects:
+            object_data[obj.label] = {
                 'bounding_box': self.get_bounding_box(obj.points),
                 'distance': obj.distance
-            } for obj in data.objects
-        }
+            }
 
         for label, info in object_data.items():
             box = CVObject()
