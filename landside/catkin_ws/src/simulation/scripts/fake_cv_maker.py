@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from custom_msgs.msg import CVObject, SimObjectArray
 from tf import TransformListener

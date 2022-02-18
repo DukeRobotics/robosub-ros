@@ -1,7 +1,4 @@
 <launch>
-    <!-- Include all launch files required to move the robot, i.e. state tracking and controls -->
-	<!-- <arg name="verbose_bounding_box" default="true" /> -->
-
     <node name="simulation" pkg="simulation" type="sim_loop.py" output="screen"/>
     <node 
         name="sim_fake_cv_maker" 
