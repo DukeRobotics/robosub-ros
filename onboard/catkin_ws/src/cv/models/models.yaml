@@ -1,4 +1,4 @@
-buoy:
+gate:
   classes: [start_gate, start_tick]
-  topic: /cv/buoy
+  topic: /cv
   weights: gate-tick-15-epochs.pth

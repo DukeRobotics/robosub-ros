@@ -3,7 +3,7 @@
 The computer vision package listens for images/frames coming from 3 different cameras: left, right, and down. The package 
 will then run pre-trained machine learning models on each frame and output bounding boxes for the various objects 
 in the frame. These objects could be the gate, buoys, etc. The package will publish to different topics depending 
-on which models are enabled and which cameras are being used.
+on which classes are being detected and which cameras are being used.
 
 ## Setup
 
@@ -16,7 +16,7 @@ Generally, you would train a separate object detection model for each task you n
 ```yaml
 <model_name>:  # A name/identifier for your model
   classes: [<class1>, <class2>, ...]  # The classes the model is trained to predict
-  topic: <topic_name>  # the base topic name your predictions will be published to
+  topic: <topic_name>  # set to /cv by default; change if you want to specify model in publisher topics .etc
   weights: <file_name>  # the name of your model file
 ...
 ```
@@ -26,7 +26,7 @@ Example entry for a buoy model:
 ```yaml
 buoy:
   classes: [alien, bat, witch]
-  topic: /cv/buoy
+  topic: /cv
   weights: buoy_model.pth
 ```
 
@@ -72,16 +72,16 @@ Once 1+ models are enabled for a specific node, they listen and publish to topic
 
 #### Publishing:
 
-* `<topic_name>/<camera>`
+* `cv/<camera>/<class_name>`
   * For each camera frame feed that a model processes, it will publish predictions to this topic  
-  * `<topic_name>` is what was specified under `topic` in the `models.yaml` file for each enabled model
-    (e.g. the example `buoy` model above might publish to `/cv/buoy/left`)
+  * `<class_name>` corresponds to one specific `class` under the `models.yaml` file for the enabled model
+    (e.g. the example `bat` class above will publish to `/cv/left/bat`)
   * For each detected object in a frame, the model will publish the `xmin`, `ymin`, `xmax`, and `ymax` 
     coordinates (normalized to \[0, 1\], with (0, 0) being the top-left corner), `label` of the object, `score` (a confidence value in the range
     of \[0, 1\]), and the `width` and `height` of the frame. 
-    * We apply nms to the model predictions before publishing. This removes predictions below a confidence threshold 
+        * We apply nms to the model predictions before publishing. This removes predictions below a confidence threshold 
       and will remove overlapping predictions for the same class
-  * If a model is enabled but detects no objects in a frame, it will publish a message with the label field set to 'none'
+  * If a model is enabled but detects no objects in a frame, it will not publish any messages to any topic
   * Type: custom_msgs/CVObject
 
 Note that the camera feed frame rate will likely be greater than the rate at which predictions can 

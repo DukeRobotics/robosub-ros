@@ -45,7 +45,7 @@ class DummyImagePublisher:
 
             # Testing enable
             if count % 30 == 0:
-                enable_model('buoy', model_enabled)
+                enable_model('gate', model_enabled)
                 model_enabled = not model_enabled
 
             count += 1
