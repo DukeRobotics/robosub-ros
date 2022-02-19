@@ -49,19 +49,13 @@ class MoveToMutablePoseGlobalTask(MoveToPoseGlobalTask):
 
     def __init__(self, mutable_pose: task_utils.MutablePose):
         self.mutable_pose = mutable_pose
-        pose_dict = mutable_pose.getPoseEuler()
-        super(self).__init__(pose_dict["x"], 
-                             pose_dict["y"], 
-                             pose_dict["z"], 
-                             pose_dict["roll"], 
-                             pose_dict["pitch"], 
-                             pose_dict["yaw"])
+        super(MoveToMutablePoseGlobalTask, self).__init__(0,0,0,0,0,0)
 
     def run(self, userdata):
         rate = rospy.Rate(15)
         while self.mutable_pose.getPose() is None:
             rate.sleep()
-        return super(self).run(self, userdata)
+        return super(MoveToMutablePoseGlobalTask, self).run(userdata)
 
     def getPose(self):
         return self.mutable_pose.getPose()

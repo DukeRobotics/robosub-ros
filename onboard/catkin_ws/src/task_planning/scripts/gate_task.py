@@ -127,7 +127,7 @@ def create_gate_task_sm(velocity=0.2):
         with spin_through_gate_cc:
             smach.Concurrence.add('ROTATION_DONE', RollDoneTask(4*pi))
             # Spin and move through the gate
-            smach.Concurrence.add('MOVE_AND_ROTATE', AllocateVelocityLocalForeverTask(MOVE_THROUGH_GATE_SPEED * METERS_FROM_GATE, 0, 0, velocity, 0, 0))
+            smach.Concurrence.add('MOVE_AND_ROTATE', AllocateVelocityLocalForeverTask(MOVE_THROUGH_GATE_SPEED * METERS_FROM_GATE, 0, -.001, velocity, 0, 0))
 
 
         smach.StateMachine.add('SPIN_THROUGH_GATE', spin_through_gate_cc,

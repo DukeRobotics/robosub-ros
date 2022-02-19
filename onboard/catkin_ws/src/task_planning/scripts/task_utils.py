@@ -231,11 +231,11 @@ def parse_pose(pose):
 
 class MutatePoseTask(Task):
     def __init__(self, mutablePose):
-        super().__init__(['done'])
+        super().__init__(['done'], input_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'])
         self.mutablePose = mutablePose
 
     def run(self, userdata):
-        self.mutablePose.setPose(userdata.x, userdata.y, userdata.z, userdata.roll, userdata.pitch, userdata.yaw)
+        self.mutablePose.setPoseCoords(userdata.x, userdata.y, userdata.z, userdata.roll, userdata.pitch, userdata.yaw)
         return "done"
 
 
@@ -243,8 +243,8 @@ class MutablePose:
     def __init__(self):
         self.pose = None
 
-    def setPose(self, x, y, z, roll, pitch, yaw):
-        quaternion = quaternion_from_euler(roll, pitch, yaw)
+    def setPoseCoords(self, x, y, z, roll, pitch, yaw):
+        quaternion = Quaternion(*quaternion_from_euler(roll, pitch, yaw))
         point = Point(x,y,z)
         self.pose = Pose(point, quaternion)
     

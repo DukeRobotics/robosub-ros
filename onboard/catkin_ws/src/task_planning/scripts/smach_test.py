@@ -4,10 +4,11 @@ import rospy
 import smach
 import random
 from task import Task
-from move_tasks import MoveToPoseGlobalTask, MoveToPoseLocalTask, AllocateVelocityLocalTask
+from move_tasks import MoveToPoseGlobalTask, MoveToPoseLocalTask, AllocateVelocityLocalTask, MoveToMutablePoseGlobalTask
 from time import sleep
 from geometry_msgs.msg import Pose, Quaternion, Twist, Point, Vector3
 from tf import TransformListener
+import task_utils
 
 # define state Foo
 
@@ -21,10 +22,10 @@ def main():
     move = MoveToPoseGlobalTask(5, 0, 0, 0, 0, 0)
     #move.run(None)
     #return
-    rate = rospy.Rate(15)
-    while True:
-        move.execute({})
-        rate.sleep()
+    #rate = rospy.Rate(15)
+    #while True:
+    #    move.execute({})
+    #    rate.sleep()
     # move = MoveToPoseLocalTask(2, 0, 0, 0, 0, 0, listener)
     
     # move.run(None)
@@ -43,10 +44,57 @@ def main():
     # while(True):
     #     t.run()
     
-    sm = object_passing()
+    sm = mutable_pose_test()
 
     # Execute SMACH plan
     outcome = sm.execute()
+
+def mutable_pose_test():
+    def concurrence_term_calc_loop_cb(outcome_map):
+            return outcome_map['MOVE_IN_FRONT_OF_GATE'] == 'done'
+
+    gate_calc_sm = smach.StateMachine(outcomes=['done'])
+    gate_start_mutable_pose = task_utils.MutablePose()
+    with gate_calc_sm:
+        smach.StateMachine.add('RANDOM_OUTPUT_POSE', RandomizeOutputPose(), 
+                            transitions={
+                                'done': 'SET_MUTABLE_POSE'
+                            })
+
+        smach.StateMachine.add('SET_MUTABLE_POSE', task_utils.MutatePoseTask(gate_start_mutable_pose),
+                            transitions={
+                                'done': 'RANDOM_OUTPUT_POSE'
+                            })
+
+
+    move_to_gate_cc = smach.Concurrence(outcomes = ['done'],
+                default_outcome = 'done',
+                child_termination_cb = concurrence_term_calc_loop_cb,
+                outcome_map = {'done':{'MOVE_IN_FRONT_OF_GATE':'done'}})
+    with move_to_gate_cc:
+        smach.Concurrence.add('MOVE_IN_FRONT_OF_GATE', MoveToMutablePoseGlobalTask(gate_start_mutable_pose))
+        smach.Concurrence.add('CALC_FRONT_OF_GATE', gate_calc_sm)
+
+    return move_to_gate_cc
+
+class RandomizeOutputPose(Task):
+    def __init__(self):
+        super(RandomizeOutputPose, self).__init__(["done"], output_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'])
+
+    def run(self, userdata):
+        sleep(1);
+        if self.preempt_requested():
+            self.service_preempt()
+            return 'done'
+        userdata.x = random.random() * 10
+        userdata.y = random.random() * 10
+        userdata.z = random.random() * 10
+
+        userdata.roll = 0
+        userdata.pitch = 0
+        userdata.yaw = 0
+
+        return "done"
 
 def object_passing():
     sm = smach.StateMachine(outcomes=['done'])
