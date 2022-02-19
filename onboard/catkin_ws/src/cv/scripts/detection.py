@@ -2,12 +2,14 @@
 
 import rospy
 import yaml
+import resource_retriever as rr
+import utils
+
 from custom_msgs.msg import CVObject
 from custom_msgs.srv import EnableModel
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from detecto.core import Model
-import resource_retriever as rr
 
 
 class Detector:
@@ -20,7 +22,8 @@ class Detector:
         self.camera = rospy.get_param('~camera')
 
         # Load in model configurations
-        with open(rr.get_filename('package://cv/models/models.yaml', use_protocol=False)) as f:
+        with open(rr.get_filename('package://cv/models/models.yaml',
+                                  use_protocol=False)) as f:
             self.models = yaml.safe_load(f)
 
         # The topic that the camera publishes its feed to
@@ -37,7 +40,9 @@ class Detector:
         if model.get('predictor') is not None:
             return
 
-        weights_file = rr.get_filename(f"package://cv/models/{model['weights']}", use_protocol=False)
+        weights_file = rr.get_filename(
+                f"package://cv/models/{model['weights']}",
+                use_protocol=False)
 
         predictor = Model.load(weights_file, model['classes'])
 
@@ -59,8 +64,15 @@ class Detector:
                 # Initialize predictor if not already
                 self.init_model(model_name)
 
-                preds = model['predictor'].predict_top(image)
-                self.publish_predictions(preds, model['publisher'], image.shape)
+                # Generate model predictions
+                labels, boxes, scores = model['predictor'].predict(image)
+                # Pass raw model predictions into nms algorithm for filtering
+                nms_labels, nms_boxes, nms_scores = utils.nms(labels, boxes,
+                                                              scores.detach())
+
+                # Publish post-nms predictions
+                self.publish_predictions((nms_labels, nms_boxes, nms_scores),
+                                         model['publisher'], image.shape)
 
     # Publish predictions with the given publisher
     def publish_predictions(self, preds, publisher, shape):
@@ -70,7 +82,8 @@ class Detector:
         if not labels:
             object_msg = CVObject()
             object_msg.label = 'none'
-            publisher.publish(object_msg)
+            if publisher:
+                publisher.publish(object_msg)
         else:
             for label, box, score in zip(labels, boxes, scores):
                 object_msg = CVObject()
