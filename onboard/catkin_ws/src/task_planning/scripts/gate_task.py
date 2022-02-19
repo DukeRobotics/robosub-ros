@@ -35,19 +35,15 @@ def create_gate_task_sm(velocity=0.2):
         # TODO add "dive and move away from dock task"
         smach.StateMachine.add('NEAR_GATE', NearGateTask(SIDE_THRESHOLD),
                                transitions={
-                                   'true': 'MOVE_THROUGH_GATE',
+                                   'true': 'MOVE_TO_GATE_FRONT',
                                    'false': 'CHOOSE_ROTATE_DIR',
                                    'spin': 'NEAR_GATE'})
-
-        smach.StateMachine.add('MOVE_THROUGH_GATE', MoveToPoseLocalTask(STANDARD_MOVE_SPEED, 0, 0, 0, 0, 0, listener),
-                               transitions={
-                                   'done': 'gate_task_succeeded'})
 
         smach.StateMachine.add('CHOOSE_ROTATE_DIR', GateSpinDirectionTask(CENTERED_THRESHOLD),
                                transitions={
                                    'left': 'ROTATE_TO_GATE_LEFT',
                                    'right': 'ROTATE_TO_GATE_RIGHT',
-                                   'center': 'gate_task_succeeded'})
+                                   'center': 'MOVE_TO_GATE_FRONT'})
 
         def concurrence_term_rotate_loop_cb(outcome_map):
             return outcome_map['ROTATION_DONE'] == 'done'
@@ -70,11 +66,11 @@ def create_gate_task_sm(velocity=0.2):
 
         smach.StateMachine.add('ROTATE_TO_GATE_LEFT', rotate_gate_left_cc,
                                 transitions={
-                                   'done': 'gate_task_succeeded'})
+                                   'done': 'MOVE_TO_GATE_FRONT'})
 
         smach.StateMachine.add('ROTATE_TO_GATE_RIGHT', rotate_gate_right_cc,
                                 transitions={
-                                   'done': 'gate_task_succeeded'})
+                                   'done': 'MOVE_TO_GATE_FRONT'})
 
         # Move to 2 meters in front of the gate
 
@@ -92,14 +88,11 @@ def create_gate_task_sm(velocity=0.2):
                                 })
 
             smach.StateMachine.add('CALC_DESIRED_ROBOT_GATE_POSE', PoseFromVectorsTask(1, METERS_FROM_GATE, 1),
-                                input_keys=['vector1', 'vector2'],
-                                output_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'],
                                 transitions={
                                     'done': 'SET_MUTABLE_POSE'
                                 })
 
             smach.StateMachine.add('SET_MUTABLE_POSE', task_utils.MutatePoseTask(gate_start_mutable_pose),
-                                input_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'],
                                 transitions={
                                     'done': 'CALC_GATE_POSE'
                                 })
@@ -141,7 +134,9 @@ def create_gate_task_sm(velocity=0.2):
 
 class PoseFromVectorsTask(Task):
     def __init__(self, direction_arg, *coefficients):
-        super(PoseFromVectorsTask, self).__init__(["done"])
+        super(PoseFromVectorsTask, self).__init__(["done"],
+                                input_keys=['vector1', 'vector2'],
+                                output_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'])
         self.direction_arg = direction_arg
         self.coefficients = coefficients
 
