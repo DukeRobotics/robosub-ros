@@ -17,10 +17,12 @@ class DummyImagePublisher:
 
     # Read in the dummy image and other misc. setup work
     def __init__(self):
-        self.image_publisher = rospy.Publisher(self.IMAGE_TOPIC, Image, queue_size=10)
+        self.image_publisher = rospy.Publisher(self.IMAGE_TOPIC, Image,
+                                               queue_size=10)
 
         path = os.path.dirname(__file__)
-        image = cv2.imread(os.path.join(path, '../assets/buoy.jpg'), cv2.IMREAD_COLOR)
+        image = cv2.imread(os.path.join(path, '../assets/left384.jpg'),
+                           cv2.IMREAD_COLOR)
         bridge = CvBridge()
 
         self.image_msg = bridge.cv2_to_imgmsg(image, 'bgr8')
@@ -43,7 +45,7 @@ class DummyImagePublisher:
 
             # Testing enable
             if count % 30 == 0:
-                enable_model('buoy', model_enabled)
+                enable_model('gate', model_enabled)
                 model_enabled = not model_enabled
 
             count += 1

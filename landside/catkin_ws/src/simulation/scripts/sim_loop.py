@@ -7,6 +7,7 @@ from sensor_msgs.msg import Imu
 from nav_msgs.msg import Odometry
 from sim_handle import SimHandle
 from std_msgs.msg import Float64
+import sim
 
 
 class SimLoop:
@@ -52,9 +53,7 @@ class SimLoop:
         self.odom_pub.publish(msg)
 
     def publish_sim_objects(self):
-        msg = SimObjectArray()
-        msg.objects.append(self.sim_handle.get_gate_corners())
-        self.sim_object_pub.publish(msg)
+        self.sim_object_pub.publish(self.sim_handle.get_sim_objects())
 
     def publish_depth(self, pose, twist):
         msg = Float64()
@@ -65,15 +64,18 @@ class SimLoop:
 
     def run(self):
         rate = rospy.Rate(10)  # 10 Hz
+        num_cycles = 0
         while not rospy.is_shutdown():
-            pose = self.sim_handle.get_pose()
+            pose = self.sim_handle.get_pose(mode=sim.simx_opmode_blocking)
             twist = self.sim_handle.get_twist()
 
             self.publish_imu(pose, twist)
             self.publish_odom(pose, twist)
-            self.publish_sim_objects()
             self.publish_depth(pose, twist)
+            self.publish_sim_objects()
             self.sim_handle.set_thruster_force(self.tforces)
+            print(f"sim_loop.run: Running sim loop{num_cycles * '.'}   ", end='\r')
+            num_cycles = (num_cycles + 1) % 4
 
             rate.sleep()
 

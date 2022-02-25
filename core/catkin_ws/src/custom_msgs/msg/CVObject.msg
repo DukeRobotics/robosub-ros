@@ -9,5 +9,7 @@ float64 ymax
 int32 height
 int32 width
 
+float64 distance
+
 string label
 float64 score
