@@ -44,13 +44,23 @@ class TestStatePublisher:
 
         # These values correspond to the desired global twist for the robot
         # Max linear z speed is ~ -0.26 -- ignore (for different mass)
-        self.desired_twist = Twist()
-        self.desired_twist.linear.x = 1
-        self.desired_twist.linear.y = 0
-        self.desired_twist.linear.z = 0
-        self.desired_twist.angular.x = 0
-        self.desired_twist.angular.y = 0
-        self.desired_twist.angular.z = 0
+        self.desired_twist_global = Twist()
+        self.desired_twist_global.linear.x = 1
+        self.desired_twist_global.linear.y = 0
+        self.desired_twist_global.linear.z = 0
+        self.desired_twist_global.angular.x = 0
+        self.desired_twist_global.angular.y = 0
+        self.desired_twist_global.angular.z = 0
+        self.desired_twist_transformed = controls_utils.transform_twist(self.listener, "odom", "base_link", self.desired_twist_global)
+
+        # These values correspond to the desired local twist for the robot
+        self.desired_twist_local = Twist()
+        self.desired_twist_local.linear.x = 1
+        self.desired_twist_local.linear.y = 0
+        self.desired_twist_local.linear.z = 0
+        self.desired_twist_local.angular.x = 0
+        self.desired_twist_local.angular.y = 0
+        self.desired_twist_local.angular.z = 0
 
         # These values correspond to the desired twist for the robot
         self.desired_power = Twist()
@@ -93,10 +103,17 @@ class TestStatePublisher:
             # self._pub_current_state.publish(self.current_state)
             rate.sleep()
 
-    def publish_desired_twist(self):
+    def publish_desired_twist_local(self):
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
-            self._pub_desired_twist.publish(self.desired_twist)
+            self._pub_desired_twist.publish(self.desired_twist_local)
+            # self._pub_current_state.publish(self.current_state)
+            rate.sleep()
+
+    def publish_desired_twist_global(self):
+        rate = rospy.Rate(15)
+        while not rospy.is_shutdown():
+            self._pub_desired_twist.publish(self.desired_twist_transformed)
             # self._pub_current_state.publish(self.current_state)
             rate.sleep()
 
@@ -111,7 +128,8 @@ class TestStatePublisher:
 def main():
     # TestStatePublisher().publish_desired_pose_global()
     TestStatePublisher().publish_desired_pose_local()
-    # TestStatePublisher().publish_desired_twist()
+    # TestStatePublisher().publish_desired_twist_local()
+    # TestStatePublisher().publish_desired_twist_global()
     # TestStatePublisher().publish_desired_power()
 
 
