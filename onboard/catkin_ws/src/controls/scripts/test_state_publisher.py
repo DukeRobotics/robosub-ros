@@ -4,6 +4,7 @@ import rospy
 from geometry_msgs.msg import Pose, Twist
 from nav_msgs.msg import Odometry
 import controls_utils
+import tf.transformations
 from tf import TransformListener
 
 class TestStatePublisher:
@@ -26,20 +27,30 @@ class TestStatePublisher:
         self.desired_pose_global.position.x = 1
         self.desired_pose_global.position.y = 0
         self.desired_pose_global.position.z = 0
-        self.desired_pose_global.orientation.x = 0
-        self.desired_pose_global.orientation.y = 0
-        self.desired_pose_global.orientation.z = 0
-        self.desired_pose_global.orientation.w = 1
+        roll = 0
+        pitch = 0
+        yaw = 0
+
+        q = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
+        self.desired_pose_global.orientation.x = q[0]
+        self.desired_pose_global.orientation.y = q[1]
+        self.desired_pose_global.orientation.z = q[2]
+        self.desired_pose_global.orientation.w = q[3]
 
         # These values correspond to the desired local pose of the robot
         self.desired_pose_local = Pose()
         self.desired_pose_local.position.x = 1
         self.desired_pose_local.position.y = 0
         self.desired_pose_local.position.z = 0
-        self.desired_pose_local.orientation.x = 0
-        self.desired_pose_local.orientation.y = 0
-        self.desired_pose_local.orientation.z = 0
-        self.desired_pose_local.orientation.w = 1
+        roll = 0
+        pitch = 0
+        yaw = 0
+
+        q = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
+        self.desired_pose_local.orientation.x = q[0]
+        self.desired_pose_local.orientation.y = q[1]
+        self.desired_pose_local.orientation.z = q[2]
+        self.desired_pose_local.orientation.w = q[3]
         self.desired_pose_transformed = controls_utils.transform_pose(self.listener, "base_link", "odom", self.desired_pose_local)
 
         # These values correspond to the desired global twist for the robot
