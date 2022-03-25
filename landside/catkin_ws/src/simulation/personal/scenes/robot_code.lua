@@ -97,9 +97,13 @@ function extsysCall_actuation()
     if pos[3] > waterlevel then
         dragforcelin[3] = 0
     end
-    dragforceang = {calc_dragforceang(angv[1], ysize, xsize), -- angular drag force
-                    calc_dragforceang(angv[2], ysize, xsize),
-                    calc_dragforceang(angv[3], ysize, subdepth)}
+    --dragforceang = {calc_dragforceang(angv[1], ysize, xsize), -- angular drag force
+    --                calc_dragforceang(angv[2], ysize, xsize),
+    --                calc_dragforceang(angv[3], ysize, subdepth)}
+    
+    dragforceang = {calc_dragforceang_roll(angv[1]), -- angular drag force
+                    calc_dragforceang_pitch(angv[2]),
+                    calc_dragforceang_yaw(angv[3])}
 
     sim.addForceAndTorque(hr, dragforcelin, dragforceang)
     sim.addForce(hr, centerOfBuoy, relbuoy_normalized) -- buoyancy force
@@ -140,18 +144,33 @@ function calc_dragforcelin(linvel, length, depth)
     --return -6 * math.pi * 0.00105 * (length/2) * math.abs(linvel ^ 2) * get_sign(linvel)
 end
 
-function calc_dragforceang(angvel, length, depth)
+--function calc_dragforceang_roll(angvel, length, depth)
+function calc_dragforceang_roll(angvel)
     --if quadratic:
     -- -p * angvelocity * angvelocity * x * y * y * y * dragcoef / 12
     -- if linear
     -- -p * angvelocity * x * y * y * dragcoef / 4
     
-    angdragfudgecoef = 1 -- 0.05
-    if quadratic then
-        return -p * math.abs(angvel ^ 2) * get_sign(angvel) * dragcoef * length ^ 3 * depth / 12 * angdragfudgecoef
-    end
-    return -p * math.abs(angvel ^ 1) * get_sign(angvel) * dragcoef * length ^ 2 * depth / 4 * angdragfudgecoef
+    --angdragfudgecoef = 1 -- 0.05
+    --if quadratic then
+    --    return -p * math.abs(angvel ^ 2) * get_sign(angvel) * dragcoef * length ^ 3 * depth / 12 * angdragfudgecoef
+    --end
+    --return -p * math.abs(angvel ^ 1) * get_sign(angvel) * dragcoef * length ^ 2 * depth / 4 * angdragfudgecoef
+    r0 = ysize/2
+    return -p * math.abs(angvel^2) * get_sign(angvel) * dragcoef * math.pi * r0^4 * (0.4r0 + xsize)
+
     --return -6 * math.pi * 0.00105 * (length/2)^3 * math.abs(angvel ^ 2) * get_sign(angvel)
+end
+
+function calc_dragforceang_pitch(angvel)
+    r0 = ysize/2
+    return -p * math.abs(angvel^2) * get_sign(angvel) * dragcoef * math.pi * r0^4 * (0.4r0 + xsize)
+
+end
+
+function calc_dragforceang_yaw(angvel)
+    r0 = ysize/2
+    return -p * math.abs(angvel^2) * get_sign(angvel) * dragcoef * math.pi * r0^4 * (0.4r0 + xsize)
 
 end
 

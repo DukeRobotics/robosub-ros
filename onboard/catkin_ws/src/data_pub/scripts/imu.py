@@ -6,8 +6,11 @@ import serial.tools.list_ports as list_ports
 import traceback
 
 from sensor_msgs.msg import Imu, MagneticField
-from tf.transformations import euler_from_quaternion, quaternion_from_euler
+from tf.transformations import euler_from_quaternion, quaternion_from_euler, quaternion_multiply 
+#from tf import Quaternion
 
+transformation_quat = (0.7315563328, 0.6817809566, 0.000243224431, 0)
+transformation_quat_conj = (0.7315563328, -0.6817809566, -0.000243224431, 0)
 
 class IMURawPublisher:
 
@@ -71,26 +74,44 @@ class IMURawPublisher:
         y = -y
         updated_quat = quaternion_from_euler(r, p, y)
 
-        self._current_imu_msg.orientation.x = updated_quat[0]
-        self._current_imu_msg.orientation.y = updated_quat[1]
-        self._current_imu_msg.orientation.z = updated_quat[2]
-        self._current_imu_msg.orientation.w = updated_quat[3]
+        updated_quat_transformed = quaternion_multiply(transformation_quat, updated_quat)
+
+        self._current_imu_msg.orientation.x = updated_quat_transformed[0]
+        self._current_imu_msg.orientation.y = updated_quat_transformed[1]
+        self._current_imu_msg.orientation.z = updated_quat_transformed[2]
+        self._current_imu_msg.orientation.w = updated_quat_transformed[3]
 
     def _parse_accel(self, items):
-        self._current_imu_msg.linear_acceleration.x = float(items[8])
-        self._current_imu_msg.linear_acceleration.y = float(items[9])
-        self._current_imu_msg.linear_acceleration.z = float(items[10])
+        original_accel_vector = (0, float(items[8]), float(items[9]), float(items[10]))
+
+        q_1 = quaternion_multiply(transformation_quat, original_accel_vector)
+        accel_vector_transformed = quaternion_multiply(q_1, transformation_quat_conj)
+
+        self._current_imu_msg.linear_acceleration.x = float(accel_vector_transformed[1]) 
+        self._current_imu_msg.linear_acceleration.y = float(accel_vector_transformed[2])
+        self._current_imu_msg.linear_acceleration.z = float(accel_vector_transformed[3])
 
     def _parse_angvel(self, items):
-        self._current_imu_msg.angular_velocity.x = float(items[11])
-        self._current_imu_msg.angular_velocity.y = float(items[12])
         items[13] = items[13][0:10]
-        self._current_imu_msg.angular_velocity.z = float(items[13])
+
+        original_angvel_vector = (0, float(items[11]), float(items[12]), float(items[13]))
+
+        q_1 = quaternion_multiply(transformation_quat, original_angvel_vector)
+        angvel_vector_transformed = quaternion_multiply(q_1, transformation_quat_conj)
+
+        self._current_imu_msg.angular_velocity.x = float(angvel_vector_transformed[1])
+        self._current_imu_msg.angular_velocity.y = float(angvel_vector_transformed[2])
+        self._current_imu_msg.angular_velocity.z = float(angvel_vector_transformed[3])
 
     def _parse_mag(self, items):
-        self._current_mag_msg.magnetic_field.x = float(items[5])
-        self._current_mag_msg.magnetic_field.y = float(items[6])
-        self._current_mag_msg.magnetic_field.z = float(items[7])
+        original_mag_vector = (0, float(items[5]), float(items[6]), float(items[7]))
+
+        q_1 = quaternion_multiply(transformation_quat, original_mag_vector)
+        mag_vector_transformed = quaternion_multiply(q_1, transformation_quat_conj)
+
+        self._current_mag_msg.magnetic_field.x = float(mag_vector_transformed[1])
+        self._current_mag_msg.magnetic_field.y = float(mag_vector_transformed[2])
+        self._current_mag_msg.magnetic_field.z = float(mag_vector_transformed[3])
 
     def _publish_current_msg(self):
         self._current_imu_msg.header.stamp = rospy.Time.now()
