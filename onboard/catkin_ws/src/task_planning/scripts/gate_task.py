@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from urllib.parse import uses_relative
 from numpy import arccos
 from task_utils import parse_pose
 import smach
@@ -15,6 +16,7 @@ from math import *
 
 SIDE_THRESHOLD = 0.1  # means gate post is within 1 tenth of the side of the frame
 CENTERED_THRESHOLD = 0.1  # means gate will be considered centered if within 1 tenth of the center of the frame
+GATE_TICK_CV_NAME = "bin" # change back to gate_tick
 
 def main():
     rospy.init_node('gate_task')
@@ -32,11 +34,11 @@ def create_gate_task_sm(velocity=0.2):
     MOVE_THROUGH_GATE_SPEED = 0.1
     with sm:
         # TODO add "dive and move away from dock task"
-        smach.StateMachine.add('NEAR_GATE', NearGateTask(SIDE_THRESHOLD),
-                               transitions={
-                                   'true': 'MOVE_TO_GATE_FRONT',
-                                   'false': 'CHOOSE_ROTATE_DIR',
-                                   'spin': 'NEAR_GATE'})
+        # smach.StateMachine.add('NEAR_GATE', NearGateTask(SIDE_THRESHOLD),
+        #                        transitions={
+        #                            'true': 'MOVE_TO_GATE_FRONT',
+        #                            'false': 'CHOOSE_ROTATE_DIR',
+        #                            'spin': 'NEAR_GATE'})
 
         smach.StateMachine.add('CHOOSE_ROTATE_DIR', GateSpinDirectionTask(CENTERED_THRESHOLD),
                                transitions={
@@ -80,8 +82,7 @@ def create_gate_task_sm(velocity=0.2):
         gate_calc_sm = smach.StateMachine(outcomes=['done'])
         gate_start_mutable_pose = task_utils.MutablePose()
         with gate_calc_sm:
-            smach.StateMachine.add('CALC_GATE_POSE', CalcGatePoseTask(),
-                                output_keys=['vector1','vector2'], 
+            smach.StateMachine.add('CALC_GATE_POSE', CalcGatePoseTask(listener), 
                                 transitions={
                                     'done': 'CALC_DESIRED_ROBOT_GATE_POSE'
                                 })
@@ -142,9 +143,12 @@ class PoseFromVectorsTask(Task):
     def run(self, userdata):
         pos = Vector3()
         for i in range(1, len(self.coefficients) + 1):
-            pos += userdata["vector" + i] * self.coefficients[i-1]
+            print(userdata["vector" + str(i)])
+            pos.x += userdata["vector" + str(i)].x * self.coefficients[i-1]
+            pos.y += userdata["vector" + str(i)].y * self.coefficients[i-1]
+            pos.z += userdata["vector" + str(i)].z * self.coefficients[i-1]
 
-        dir_vec = userdata["vector" + self.direction_arg]
+        dir_vec = userdata["vector" + str(self.direction_arg)]
 
         userdata.x = pos.x
         userdata.y = pos.y
@@ -154,6 +158,8 @@ class PoseFromVectorsTask(Task):
         userdata.pitch = pi / 2 - arccos(-dir_vec.z)
         userdata.yaw = atan2(-dir_vec.y, -dir_vec.x)
 
+        print(pos.x, pos.y, pos.z)
+
         return "done"
 
 class GateSpinDirectionTask(Task):
@@ -162,7 +168,7 @@ class GateSpinDirectionTask(Task):
         self.threshold = threshold
 
     def run(self, userdata):
-        gate_info = _scrutinize_gate(self.cv_data['gate'], self.cv_data['gate_tick'])
+        gate_info = _scrutinize_gate(self.cv_data['gate'], self.cv_data[GATE_TICK_CV_NAME])
         if gate_info:
             if abs(gate_info["offset_h"]) < self.threshold:
                 return "center"
@@ -180,7 +186,7 @@ class GateRotationDoneTask(Task):
     def run(self, userdata):
         rate = rospy.Rate(15)
         while True:
-            gate_info = _scrutinize_gate(self.cv_data['gate'], self.cv_data['gate_tick'])
+            gate_info = _scrutinize_gate(self.cv_data['gate'], self.cv_data[GATE_TICK_CV_NAME])
             if gate_info and abs(gate_info["offset_h"]) < self.threshold:
                 return "done"
             rate.sleep()
@@ -206,7 +212,7 @@ class GateVerticalAlignmentTask(Task):
         self.threshold = threshold
 
     def run(self, userdata):
-        gate_info = _scrutinize_gate(self.cv_data['gate'], self.cv_data['gate_tick'])
+        gate_info = _scrutinize_gate(self.cv_data['gate'], self.cv_data[GATE_TICK_CV_NAME])
         if gate_info:
 
             if abs(gate_info["offset_v"]) < self.threshold:
@@ -223,7 +229,7 @@ class NearGateTask(Task):
         self.threshold = threshold
 
     def run(self, userdata):
-        gate_info = _scrutinize_gate(self.cv_data['gate'], self.cv_data['gate_tick'])
+        gate_info = _scrutinize_gate(self.cv_data['gate'], self.cv_data[GATE_TICK_CV_NAME])
         if gate_info:
             if (gate_info["left"] < self.threshold) and (gate_info["right"] < self.threshold):
                 return "true"
@@ -231,9 +237,18 @@ class NearGateTask(Task):
                 return "false"
         return "spin"
 
+class CalcGatePoseTask(Task):
+    def __init__(self, listener):
+        super(CalcGatePoseTask, self).__init__(["done"], output_keys=['vector1','vector2'])
+        self.listener = listener
 
+    def run(self, userdata):
+        v1, v2 = _find_gate_normal_and_center(self.cv_data['gateleftchild'], self.cv_data['gaterightchild'], self.listener)
+        
+        userdata['vector1'] = v1
+        userdata['vector2'] = v2
 
-    
+        return "done"
 
 """
 Algorithm plan for finding gate pos from cv data:
@@ -252,11 +267,11 @@ Use our 4 corners to get 2 vectors, then cross product to get normal
 Then position robot along that normal and whatever distance we want
 """
 
-def _find_gate_normal_and_center(gate_data_l, gate_data_r):
-    top_left = _real_pos_from_cv((gate_data_l.xmin + gate_data_l.xmax)/2, gate_data_l.ymin, gate_data_l.depth)
-    top_right = _real_pos_from_cv((gate_data_r.xmin + gate_data_r.xmax)/2, gate_data_r.ymin, gate_data_r.depth)
-    bottom_left = _real_pos_from_cv((gate_data_l.xmin + gate_data_l.xmax)/2, gate_data_l.ymax, gate_data_l.depth)
-    bottom_right = _real_pos_from_cv((gate_data_r.xmin + gate_data_r.xmax)/2, gate_data_r.ymax, gate_data_r.depth)
+def _find_gate_normal_and_center(gate_data_l, gate_data_r, listener):
+    top_left = _real_pos_from_cv((gate_data_l.xmin + gate_data_l.xmax)/2, gate_data_l.ymin, gate_data_l.distance, listener)
+    top_right = _real_pos_from_cv((gate_data_r.xmin + gate_data_r.xmax)/2, gate_data_r.ymin, gate_data_r.distance, listener)
+    bottom_left = _real_pos_from_cv((gate_data_l.xmin + gate_data_l.xmax)/2, gate_data_l.ymax, gate_data_l.distance, listener)
+    bottom_right = _real_pos_from_cv((gate_data_r.xmin + gate_data_r.xmax)/2, gate_data_r.ymax, gate_data_r.distance, listener)
 
     # Midpoint between top_left and bottom_right
     center_pt = Vector3(x=(top_left.position.x + bottom_right.position.x) / 2, y=(top_left.position.y + bottom_right.position.y) / 2, z=(top_left.position.z + bottom_right.position.z) / 2)
@@ -264,8 +279,16 @@ def _find_gate_normal_and_center(gate_data_l, gate_data_r):
     diag_1 = Vector3(top_left.position.x - bottom_right.position.x, top_left.position.y - bottom_right.position.y, top_left.position.z - bottom_right.position.z)
     diag_2 = Vector3(bottom_left.position.x - top_right.position.x, bottom_left.position.y - top_right.position.y, bottom_left.position.z - top_right.position.z)
 
-    return (diag_1.cross(diag_2).normalize(), center_pt)
+    return (normalize(cross(diag_1,diag_2)), center_pt)
 
+# calculate cross product of two vectors
+def cross(v1, v2):
+    return Vector3(x=v1.y*v2.z - v1.z*v2.y, y=v1.z*v2.x - v1.x*v2.z, z=v1.x*v2.y - v1.y*v2.x)
+
+# normalize vector
+def normalize(v):
+    mag = sqrt(v.x*v.x + v.y*v.y + v.z*v.z)
+    return Vector3(x=v.x/mag, y=v.y/mag, z=v.z/mag)
 
 """Get the position of a point in global coordinates from its position from the camera
 Parameters:
@@ -273,7 +296,13 @@ x: x position of the point relative to the left of the frame (0 to 1)
 y: y position of the point relative to the top of the frame (0 to 1)
 d: distance from the camera to the point
 """
-def _real_pos_from_cv(x, y, d):
+def _real_pos_from_cv(x, y, d, listener):
+    # TODO make sure these values are correct
+    horizontal_fov = 0.933
+    vertical_fov = 0.586
+    cam_pos_x = 0
+    cam_pos_y = 0
+    cam_pos_z = 0
     # Fill in camera parameters later
     # Use radians
     cam_yaw = (x - 0.5) * horizontal_fov
