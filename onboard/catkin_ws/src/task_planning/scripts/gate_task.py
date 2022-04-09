@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 from numpy import arccos
-from onboard.catkin_ws.src.controls.scripts.controls_utils import parse_pose
+from task_utils import parse_pose
 import smach
 import rospy
 import task_utils
 from task import Task
 from move_tasks import MoveToPoseLocalTask, AllocateVelocityLocalTask, AllocateVelocityLocalForeverTask, MoveToPoseGlobalTask, MoveToMutablePoseGlobalTask
-from tf import TransformListener, Vector3
+from tf import TransformListener
 from time import sleep
 from geometry_msgs.msg import Pose, Quaternion, Twist, Point, Vector3
 from math import *
@@ -20,13 +20,12 @@ def main():
     rospy.init_node('gate_task')
     
     sm = create_gate_task_sm()
-
+    sleep(2)
     # Execute SMACH plan
     outcome = sm.execute()
 
 def create_gate_task_sm(velocity=0.2):
     sm = smach.StateMachine(outcomes=['gate_task_succeeded', 'gate_task_failed'])
-    sleep(2)
     listener = TransformListener()
     STANDARD_MOVE_SPEED = 3
     METERS_FROM_GATE = 2
