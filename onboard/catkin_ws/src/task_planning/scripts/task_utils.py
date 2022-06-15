@@ -1,3 +1,4 @@
+from cmath import nan
 import numpy as np
 import rospy
 import tf2_geometry_msgs
@@ -235,7 +236,8 @@ class MutatePoseTask(Task):
         self.mutablePose = mutablePose
 
     def run(self, userdata):
-        self.mutablePose.setPoseCoords(userdata.x, userdata.y, userdata.z, userdata.roll, userdata.pitch, userdata.yaw)
+        if userdata.x != nan and userdata.y != nan and userdata.z != nan:
+            self.mutablePose.setPoseCoords(userdata.x, userdata.y, userdata.z, userdata.roll, userdata.pitch, userdata.yaw)
         return "done"
 
 

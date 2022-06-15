@@ -30,7 +30,7 @@ def create_gate_task_sm(velocity=0.2):
     sm = smach.StateMachine(outcomes=['gate_task_succeeded', 'gate_task_failed'])
     listener = TransformListener()
     STANDARD_MOVE_SPEED = 3
-    METERS_FROM_GATE = 2
+    METERS_FROM_GATE = 3
     MOVE_THROUGH_GATE_SPEED = 0.1
     with sm:
         # TODO add "dive and move away from dock task"
@@ -243,6 +243,9 @@ class CalcGatePoseTask(Task):
         self.listener = listener
 
     def run(self, userdata):
+        rate = rospy.Rate(10)
+        while self.cv_data['gateleftchild'] == None or self.cv_data['gaterightchild'] == None:
+            rate.sleep()
         v1, v2 = _find_gate_normal_and_center(self.cv_data['gateleftchild'], self.cv_data['gaterightchild'], self.listener)
         
         userdata['vector1'] = v1
@@ -287,7 +290,7 @@ def cross(v1, v2):
 
 # normalize vector
 def normalize(v):
-    mag = sqrt(v.x*v.x + v.y*v.y + v.z*v.z)
+    mag = sqrt(v.x**2 + v.y**2 + v.z**2)
     return Vector3(x=v.x/mag, y=v.y/mag, z=v.z/mag)
 
 """Get the position of a point in global coordinates from its position from the camera
@@ -336,6 +339,7 @@ def _scrutinize_gate(gate_data, gate_tick_data):
             offset_h - difference between distances on the right and left sides (from 0 to 1)
             offset_v - difference between distances on the top and bottom sides (from 0 to 1)
     """
+    print(gate_data)
     if not(gate_data) or gate_data.label == 'none':
         return None
 

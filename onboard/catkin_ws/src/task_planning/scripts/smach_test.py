@@ -9,6 +9,7 @@ from time import sleep
 from geometry_msgs.msg import Pose, Quaternion, Twist, Point, Vector3
 from tf import TransformListener
 import task_utils
+import gate_task
 
 # define state Foo
 
@@ -20,7 +21,7 @@ def main():
     # print("before ctor")
     #move = AllocateVelocityLocalTask(0, 0, -10, 0, 0, 0)
     move = MoveToPoseGlobalTask(5, 0, 0, 0, 0, 0)
-    #move.run(None)
+    #move.execute({})
     #return
     #rate = rospy.Rate(15)
     #while True:
@@ -44,10 +45,31 @@ def main():
     # while(True):
     #     t.run()
     
-    sm = mutable_pose_test()
+    sm = gate_task_is_broken_test(listener)
 
     # Execute SMACH plan
     outcome = sm.execute()
+
+def gate_task_is_broken_test(listener):
+    gate_calc_sm = smach.StateMachine(outcomes=['done'])
+    gate_start_mutable_pose = task_utils.MutablePose()
+    with gate_calc_sm:
+            smach.StateMachine.add('CALC_GATE_POSE', gate_task.CalcGatePoseTask(listener), 
+                                transitions={
+                                    'done': 'CALC_DESIRED_ROBOT_GATE_POSE'
+                                })
+
+            smach.StateMachine.add('CALC_DESIRED_ROBOT_GATE_POSE', gate_task.PoseFromVectorsTask(1, 3, 1),
+                                transitions={
+                                    'done': 'SET_MUTABLE_POSE'
+                                })
+
+            smach.StateMachine.add('SET_MUTABLE_POSE', task_utils.MutatePoseTask(gate_start_mutable_pose),
+                                transitions={
+                                    'done': 'CALC_GATE_POSE'
+                                })
+
+    return gate_calc_sm
 
 def mutable_pose_test():
     def concurrence_term_calc_loop_cb(outcome_map):
