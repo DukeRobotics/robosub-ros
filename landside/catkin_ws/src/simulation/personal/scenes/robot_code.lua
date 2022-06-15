@@ -1,8 +1,5 @@
 require "math"
-
---Robot cylinder in meters
-cylinder_diameter = 21.5 / 100
-cylinder_length = 65 / 100
+require "common_code"
 
 function extsysCall_init()
   simRemoteApi.start(5555, 1300, true, false)
@@ -10,8 +7,6 @@ function extsysCall_init()
     -- =~ 0.03
     a = 0.0254 --conversion from inches to vrep units
     --MC note: pretty sure "vrep units" are meters. Could be wrong, but adjusted a to match
-
-    quadratic = true -- make true to set drag to quadratic
 
     -- change this for new robot
     dytop = 7.69 * a--same front and back
@@ -43,16 +38,19 @@ function extsysCall_init()
                        bottom_front_right, bottom_front_left, bottom_back_right, bottom_back_left }
 
     forces = {}
-    waterlevel = 0
-    p = 1000
-    dragcoef = 1.1 --original: 1.1 , try 0.9 next
+    buoyancyEnabled = 1
+    dragType = 1 -- 0 for linear, 1 for quadratic
+    dragCoef = 1.1
     angdragcoefroll = 0.1
     angdragcoefpitch = 1.1
     angdragcoefyaw = 1.1
-    --too low makes it not move down bc robot is busy fixing angular position
-    --too high makes it not move down bc robot can't overcome drag
-    --0.7-1.1 seems to be sweet spot, but even that's not good enough -- robot does not continue moving down
-    --seems drag constant might be dependent on velocity (bc it's dependent on Reynold's number)
+
+    anchorPoints = {}
+    initPos = sim.getObjectPosition(hr, -1)
+    initQuat = sim.getObjectQuaternion(hr, -1)
+
+    waterlevel = 0
+    p = 1000
 
     -- -4, 1, 3 from vincent
     --these numbers calc'd for a 15 deg pitch, and arbitrary roll (it looks about right)
@@ -62,120 +60,12 @@ function extsysCall_init()
 end
 
 function extsysCall_actuation()
-    pos = sim.getObjectPosition(hr, -1)
-
-    res, xsizemin = sim.getObjectFloatParameter(hr, 15)
-    res, ysizemin = sim.getObjectFloatParameter(hr, 16)
-    res, zsizemin = sim.getObjectFloatParameter(hr, 17)
-    res, xsizemax = sim.getObjectFloatParameter(hr, 18)
-    res, ysizemax = sim.getObjectFloatParameter(hr, 19)
-    res, zsizemax = sim.getObjectFloatParameter(hr, 20)
-    xsize = xsizemax - xsizemin
-    ysize = ysizemax - ysizemin
-    zsize = zsizemax - zsizemin
-
-    grav = sim.getArrayParameter(sim.arrayparam_gravity) -- gravitational acceleration
-    pos[3] = pos[3] - zsize / 2 --fudge due to inconsistency with relative measurements (?)
-    if zsize <= (waterlevel - pos[3]) then
-        subdepth = zsize
-    else
-        subdepth = (waterlevel - pos[3])
+    if buoyancyEnabled ~= 0 then
+        applyBuoyancy()
     end
-    fbuoy = xsize * ysize * subdepth * (-1) * grav[3] * p
-    if pos[3] > waterlevel then
-        fbuoy = 0
-        subdepth = 0
-    end
-
-    transform = sim.getObjectMatrix(hr, -1)
-    res = sim.invertMatrix(transform)
-    relbuoy = sim.multiplyVector(transform, { 0, 0, fbuoy })
-    relbuoy_mag = math.sqrt(relbuoy[1]^2 + relbuoy[2]^2 + relbuoy[3]^2)
-    relbuoy_normalized = {relbuoy[1]/relbuoy_mag*fbuoy, relbuoy[2]/relbuoy_mag*fbuoy, relbuoy[3]/relbuoy_mag*fbuoy}
-
-    v, angv = sim.getVelocity(hr)
-    dragforcelin = {calc_dragforcelin(v[1], ysize, subdepth), -- linear drag force
-                    calc_dragforcelin(v[2], xsize, subdepth),
-                    calc_dragforcelin(v[3], xsize, ysize)}
-    if pos[3] > waterlevel then
-        dragforcelin[3] = 0
-    end
-    --dragforceang = {calc_dragforceang(angv[1], ysize, xsize), -- angular drag force
-    --                calc_dragforceang(angv[2], ysize, xsize),
-    --                calc_dragforceang(angv[3], ysize, subdepth)}
-
-    dragforceang = {calc_dragforceang_roll(angv[1],xsize,ysize,subdepth), -- angular drag force
-                    calc_dragforceang_pitch(angv[2],xsize,ysize,subdepth),
-                    calc_dragforceang_yaw(angv[3],xsize,ysize,subdepth)}
-
-    sim.addForceAndTorque(hr, dragforcelin, dragforceang)
-    sim.addForce(hr, centerOfBuoy, relbuoy_normalized) -- buoyancy force
     for i = 1, table.getn(forces) do
-        sim.addForce(hr, thrusterPoints[i], forces[i]) -- thruster force
+        sim.addForce(hr, thrusterPoints[i], forces[i])
     end
-    
-    if m ~= nil and forces[5] ~= nil then
-    print(
-        "Drag: ", dragforcelin[3],"\n",
-        "Rel Buoyancy Normalized: ", relbuoy_normalized, "\n", --could try just fbuoy, relbuoy is fbuoy after transform
-        "Rel Buoyancy Norm: ", math.sqrt(relbuoy_normalized[1]^2 + relbuoy_normalized[2]^2 + relbuoy_normalized[3]^2), "\n",
-        "Buoyancy: ", fbuoy, "\n",
-        "Gravity: ", grav[3] * m, "\n",
-        "Thruster force: ", forces[5][3], forces[6][3], forces[7][3], forces[8][3], "\n",
-        "Total Force: ", dragforcelin[3] + relbuoy[3] + grav[3] * m + forces[5][3] + forces[6][3] + forces[7][3]+ forces[8][3], "\n"
-    ) end
-end
-
-function get_sign(x)
-    if (x > 0) then
-        return 1
-    elseif (x < 0) then
-        return -1
-    else
-        return 0
-    end
-end
-
-
-
-function calc_dragforcelin(linvel, length, depth)
-    if quadratic then
-        return -p * math.abs(linvel ^ 2) * get_sign(linvel) * dragcoef * length * depth
-        
-    end
-    return -p * math.abs(linvel) * get_sign(linvel) * dragcoef * length * depth
-end
-
-function calc_dragforceang_roll(angvel, xsize, ysize, zsize)
---function calc_dragforceang(angvel, length, depth)
-    --if quadratic:
-    -- -p * angvelocity * angvelocity * x * y * y * y * dragcoef / 12
-    -- if linear
-    -- -p * angvelocity * x * y * y * dragcoef / 4
-    
-    --angdragfudgecoef = 1 -- 0.05
-    --if quadratic then
-    --    return -p * math.abs(angvel ^ 2) * get_sign(angvel) * dragcoef * length ^ 3 * depth / 12 * angdragfudgecoef
-    --end
-    --return -p * math.abs(angvel ^ 1) * get_sign(angvel) * dragcoef * length ^ 2 * depth / 4 * angdragfudgecoef
-    r0 = (ysize + zsize)/4
-    return -p * math.abs(angvel^2) * get_sign(angvel) * angdragcoefroll * math.pi * r0^4 * (0.4*r0 + xsize)
-
-end
-
-function calc_dragforceang_pitch(angvel, xsize, ysize, zsize)
-    tau1 = -(1/32) * p * math.abs(angvel^2) * get_sign(angvel) * angdragcoefpitch * (xsize)^4 * zsize
-    tau2 = -(1/16) * p * math.abs(angvel^2) * get_sign(angvel) * angdragcoefpitch * (zsize)^3 * xsize * ysize
-    tau3 = -(1/16) * p * math.abs(angvel^2) * get_sign(angvel) * angdragcoefpitch * (xsize)^3 * zsize * ysize
-    return (2 * tau1) + (2 * tau2) + (2 * tau3)
-
-end
-
-function calc_dragforceang_yaw(angvel, xsize, ysize, zsize)
-    tau1 = -(1/32) * p * math.abs(angvel^2) * get_sign(angvel) * angdragcoefyaw * (xsize)^4 * ysize
-    tau2 = -(1/16) * p * math.abs(angvel^2) * get_sign(angvel) * angdragcoefyaw * (xsize)^3 * ysize * zsize
-    tau3 = -(1/16) * p * math.abs(angvel^2) * get_sign(angvel) * angdragcoefyaw * (ysize)^3 * xsize * zsize
-    return (2 * tau1) + (2 * tau2) + (2 * tau3)
 end
 
 function setThrusterForces(inInts, inFloats, inString, inBuffer)
@@ -185,9 +75,4 @@ function setThrusterForces(inInts, inFloats, inString, inBuffer)
                  inFloats[(i-1)*3 + 3]}
   end
   return {},{},{},''
-end
-
-function getMass(intParams,floatParams,stringParams,bufferParam)
-  m = sim.getShapeMassAndInertia(intParams[1])
-  return {},{m},{},''
 end
