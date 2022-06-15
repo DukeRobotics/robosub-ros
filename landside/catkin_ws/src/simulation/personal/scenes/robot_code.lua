@@ -46,6 +46,9 @@ function extsysCall_init()
     waterlevel = 0
     p = 1000
     dragcoef = 1.1 --original: 1.1 , try 0.9 next
+    angdragcoefroll = 0.1
+    angdragcoefpitch = 1.1
+    angdragcoefyaw = 1.1
     --too low makes it not move down bc robot is busy fixing angular position
     --too high makes it not move down bc robot can't overcome drag
     --0.7-1.1 seems to be sweet spot, but even that's not good enough -- robot does not continue moving down
@@ -97,9 +100,13 @@ function extsysCall_actuation()
     if pos[3] > waterlevel then
         dragforcelin[3] = 0
     end
-    dragforceang = {calc_dragforceang(angv[1], ysize, xsize), -- angular drag force
-                    calc_dragforceang(angv[2], ysize, xsize),
-                    calc_dragforceang(angv[3], ysize, subdepth)}
+    --dragforceang = {calc_dragforceang(angv[1], ysize, xsize), -- angular drag force
+    --                calc_dragforceang(angv[2], ysize, xsize),
+    --                calc_dragforceang(angv[3], ysize, subdepth)}
+
+    dragforceang = {calc_dragforceang_roll(angv[1],xsize,ysize,subdepth), -- angular drag force
+                    calc_dragforceang_pitch(angv[2],xsize,ysize,subdepth),
+                    calc_dragforceang_yaw(angv[3],xsize,ysize,subdepth)}
 
     sim.addForceAndTorque(hr, dragforcelin, dragforceang)
     sim.addForce(hr, centerOfBuoy, relbuoy_normalized) -- buoyancy force
@@ -137,22 +144,38 @@ function calc_dragforcelin(linvel, length, depth)
         
     end
     return -p * math.abs(linvel) * get_sign(linvel) * dragcoef * length * depth
-    --return -6 * math.pi * 0.00105 * (length/2) * math.abs(linvel ^ 2) * get_sign(linvel)
 end
 
-function calc_dragforceang(angvel, length, depth)
+function calc_dragforceang_roll(angvel, xsize, ysize, zsize)
+--function calc_dragforceang(angvel, length, depth)
     --if quadratic:
     -- -p * angvelocity * angvelocity * x * y * y * y * dragcoef / 12
     -- if linear
     -- -p * angvelocity * x * y * y * dragcoef / 4
     
-    angdragfudgecoef = 1 -- 0.05
-    if quadratic then
-        return -p * math.abs(angvel ^ 2) * get_sign(angvel) * dragcoef * length ^ 3 * depth / 12 * angdragfudgecoef
-    end
-    return -p * math.abs(angvel ^ 1) * get_sign(angvel) * dragcoef * length ^ 2 * depth / 4 * angdragfudgecoef
-    --return -6 * math.pi * 0.00105 * (length/2)^3 * math.abs(angvel ^ 2) * get_sign(angvel)
+    --angdragfudgecoef = 1 -- 0.05
+    --if quadratic then
+    --    return -p * math.abs(angvel ^ 2) * get_sign(angvel) * dragcoef * length ^ 3 * depth / 12 * angdragfudgecoef
+    --end
+    --return -p * math.abs(angvel ^ 1) * get_sign(angvel) * dragcoef * length ^ 2 * depth / 4 * angdragfudgecoef
+    r0 = (ysize + zsize)/4
+    return -p * math.abs(angvel^2) * get_sign(angvel) * angdragcoefroll * math.pi * r0^4 * (0.4*r0 + xsize)
 
+end
+
+function calc_dragforceang_pitch(angvel, xsize, ysize, zsize)
+    tau1 = -(1/32) * p * math.abs(angvel^2) * get_sign(angvel) * angdragcoefpitch * (xsize)^4 * zsize
+    tau2 = -(1/16) * p * math.abs(angvel^2) * get_sign(angvel) * angdragcoefpitch * (zsize)^3 * xsize * ysize
+    tau3 = -(1/16) * p * math.abs(angvel^2) * get_sign(angvel) * angdragcoefpitch * (xsize)^3 * zsize * ysize
+    return (2 * tau1) + (2 * tau2) + (2 * tau3)
+
+end
+
+function calc_dragforceang_yaw(angvel, xsize, ysize, zsize)
+    tau1 = -(1/32) * p * math.abs(angvel^2) * get_sign(angvel) * angdragcoefyaw * (xsize)^4 * ysize
+    tau2 = -(1/16) * p * math.abs(angvel^2) * get_sign(angvel) * angdragcoefyaw * (xsize)^3 * ysize * zsize
+    tau3 = -(1/16) * p * math.abs(angvel^2) * get_sign(angvel) * angdragcoefyaw * (ysize)^3 * xsize * zsize
+    return (2 * tau1) + (2 * tau2) + (2 * tau3)
 end
 
 function setThrusterForces(inInts, inFloats, inString, inBuffer)
