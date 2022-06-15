@@ -53,6 +53,7 @@ function applyBuoyancy()
 
     sim.addForceAndTorque(hr, dragforcelin, dragforceang)
     sim.addForce(hr, {0,0,0}, relbuoy_normalized) -- 0,0,0 is center of buoyancy, here
+    print(dragforceang[1], dragforceang[2], dragforceang[3])
 end
 
 function get_sign(x)

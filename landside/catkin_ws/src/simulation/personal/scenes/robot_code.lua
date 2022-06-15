@@ -42,8 +42,8 @@ function extsysCall_init()
     dragType = 1 -- 0 for linear, 1 for quadratic
     dragCoef = 1.1
     angdragcoefroll = 0.1
-    angdragcoefpitch = 1.1
-    angdragcoefyaw = 1.1
+    angdragcoefpitch = 0.1
+    angdragcoefyaw = 0.1
 
     anchorPoints = {}
     initPos = sim.getObjectPosition(hr, -1)
