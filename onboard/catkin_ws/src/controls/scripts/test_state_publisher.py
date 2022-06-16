@@ -5,6 +5,7 @@ from geometry_msgs.msg import Pose, Twist
 from nav_msgs.msg import Odometry
 import controls_utils
 from tf import TransformListener
+from time import sleep
 
 class TestStatePublisher:
     PUBLISHING_TOPIC_DESIRED_POSE = 'controls/desired_pose'
@@ -16,6 +17,8 @@ class TestStatePublisher:
         rospy.init_node('test_state_publisher')
         self.listener = TransformListener()
 
+        sleep(1)
+
         self._pub_desired_pose = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_POSE, Pose, queue_size=3)
         self._pub_desired_twist = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_TWIST, Twist, queue_size=3)
         self._pub_desired_power = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_POWER, Twist, queue_size=3)
@@ -23,9 +26,9 @@ class TestStatePublisher:
 
         # These values correspond to the desired global pose of the robot
         self.desired_pose_global = Pose()
-        self.desired_pose_global.position.x = 1
+        self.desired_pose_global.position.x = 0
         self.desired_pose_global.position.y = 0
-        self.desired_pose_global.position.z = 0
+        self.desired_pose_global.position.z = -6
         self.desired_pose_global.orientation.x = 0
         self.desired_pose_global.orientation.y = 0
         self.desired_pose_global.orientation.z = 0
@@ -45,11 +48,11 @@ class TestStatePublisher:
         # These values correspond to the desired global twist for the robot
         # Max linear z speed is ~ -0.26 -- ignore (for different mass)
         self.desired_twist = Twist()
-        self.desired_twist.linear.x = 1
+        self.desired_twist.linear.x = 0
         self.desired_twist.linear.y = 0
         self.desired_twist.linear.z = 0
         self.desired_twist.angular.x = 0
-        self.desired_twist.angular.y = 0
+        self.desired_twist.angular.y = -1
         self.desired_twist.angular.z = 0
 
         # These values correspond to the desired twist for the robot
@@ -109,8 +112,8 @@ class TestStatePublisher:
 
 
 def main():
-    # TestStatePublisher().publish_desired_pose_global()
-    TestStatePublisher().publish_desired_pose_local()
+    TestStatePublisher().publish_desired_pose_global()
+    # TestStatePublisher().publish_desired_pose_local()
     # TestStatePublisher().publish_desired_twist()
     # TestStatePublisher().publish_desired_power()
 

@@ -43,14 +43,14 @@
     <!-- SIMULATION PID Constants -->
     <group if="$(arg sim)">
        <group ns="controls/x_pos/controller">
-            <param name="Kp" value="1" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.1" />
+            <param name="Kp" value="0.7" />
+            <param name="Ki" value="0.005" />
+            <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/y_pos/controller">
-            <param name="Kp" value="1" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.1" />
+            <param name="Kp" value="0.7" />
+            <param name="Ki" value="0.005" />
+            <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/z_pos/controller">
             <param name="Kp" value="10" />
@@ -58,6 +58,21 @@
             <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/roll_pos/controller">
+            <param name="Kp" value="0.1" />
+            <param name="Ki" value="0.01" />
+            <param name="Kd" value="0.01" />
+        </group>
+        <group ns="controls/pitch_pos/controller">
+            <param name="Kp" value="0.1" />
+            <param name="Ki" value="0.01" />
+            <param name="Kd" value="0.01" />
+        </group>
+        <group ns="controls/yaw_pos/controller">
+            <param name="Kp" value="0.1" />
+            <param name="Ki" value="0.01" />
+            <param name="Kd" value="0.01" />
+        </group>
+        <!--<group ns="controls/roll_pos/controller">
             <param name="Kp" value="0.01" />
             <param name="Ki" value="0.001" />
             <param name="Kd" value="0.001" />
@@ -71,7 +86,7 @@
             <param name="Kp" value="0.1" />
             <param name="Ki" value="0.1" />
             <param name="Kd" value="0.05" />
-        </group>
+        </group>-->
     </group>
 
     <node name="controller" pkg="pid" type="controller" ns="controls/x_pos" output="log" >

@@ -17,8 +17,35 @@
     <arg name = "z_vel_Kp" default = "1" />
     <arg name = "z_vel_Ki" default = "1" />
     <arg name = "z_vel_Kd" default = "0.01" />
+
+    <!-- If I only set one rotational axis nonzero, problems mostly manifest on that axis (robot oscillates on that axis a lot) besides yaw where problems manifest on yaw and pitch axes -->
+
+    <arg name = "roll_vel_Kp" default = "0.01" />
+    <arg name = "roll_vel_Ki" default = "0.001" />
+    <arg name = "roll_vel_Kd" default = "0.001" />
+
+    <arg name = "pitch_vel_Kp" default = "0.01" />
+    <arg name = "pitch_vel_Ki" default = "0.001" />
+    <arg name = "pitch_vel_Kd" default = "0.001" />
+
+    <arg name = "yaw_vel_Kp" default = "0.01" />
+    <arg name = "yaw_vel_Ki" default = "0.001" />
+    <arg name = "yaw_vel_Kd" default = "0.001" />
+
+    <!-- <arg name = "roll_vel_Kp" default = "0.05" />
+    <arg name = "roll_vel_Ki" default = "0.005" />
+    <arg name = "roll_vel_Kd" default = "0.005" />
     
-    <arg name = "roll_vel_Kp" default = "1" />
+    <arg name = "pitch_vel_Kp" default = "0.05" />
+    <arg name = "pitch_vel_Ki" default = "0.005" />
+    <arg name = "pitch_vel_Kd" default = "0.005" />
+
+    <arg name = "yaw_vel_Kp" default = "0.05" />
+    <arg name = "yaw_vel_Ki" default = "0.005" />
+    <arg name = "yaw_vel_Kd" default = "0.005" /> -->
+
+
+    <!-- <arg name = "roll_vel_Kp" default = "1" />
     <arg name = "roll_vel_Ki" default = "0.001" />
     <arg name = "roll_vel_Kd" default = "0.001" />
 
@@ -28,7 +55,7 @@
 
     <arg name = "yaw_vel_Kp" default = "0.2" />
     <arg name = "yaw_vel_Ki" default = "0.001" />
-    <arg name = "yaw_vel_Kd" default = "0.002" />
+    <arg name = "yaw_vel_Kd" default = "0.002" /> -->
 
     <!-- ROBOT PID Constants -->
     <group unless="$(arg sim)">
