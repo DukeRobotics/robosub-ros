@@ -41,8 +41,8 @@ function extsysCall_init()
     buoyancyEnabled = 1
     dragType = 1 -- 0 for linear, 1 for quadratic
     dragCoef = 1.1
-    angdragcoefroll = 1 --0.1 to do barrel roll
-    angdragcoefpitch = 6 --0.1 to do flips
+    angdragcoefroll = 4 --0.1 to do barrel roll
+    angdragcoefpitch = 4 --0.1 to do flips
     angdragcoefyaw = 1 --0.1 to do rotations about z axis
 
     anchorPoints = {}
