@@ -270,7 +270,10 @@ Use our 4 corners to get 2 vectors, then cross product to get normal
 Then position robot along that normal and whatever distance we want
 """
 
+past_gate_info = []
+
 def _find_gate_normal_and_center(gate_data_l, gate_data_r, listener):
+    global past_gate_info
     top_left = _real_pos_from_cv((gate_data_l.xmin + gate_data_l.xmax)/2, gate_data_l.ymin, gate_data_l.distance, listener)
     top_right = _real_pos_from_cv((gate_data_r.xmin + gate_data_r.xmax)/2, gate_data_r.ymin, gate_data_r.distance, listener)
     bottom_left = _real_pos_from_cv((gate_data_l.xmin + gate_data_l.xmax)/2, gate_data_l.ymax, gate_data_l.distance, listener)
@@ -284,8 +287,35 @@ def _find_gate_normal_and_center(gate_data_l, gate_data_r, listener):
 
     # FIXME temporarily setting z to 0
     center_pt.z = 0
+    normal = normalize(cross(diag_1,diag_2))
 
-    return (normalize(cross(diag_1,diag_2)), center_pt)
+    if len(past_gate_info) >= 5:
+        sum = [Vector3(), Vector3()]
+        for info in past_gate_info:
+            sum[0] = add_vectors(sum[0], info[0])
+            sum[1] = add_vectors(sum[1], info[1])
+        sum[0] = divide_vector(sum[0], len(past_gate_info))
+        sum[1] = divide_vector(sum[1], len(past_gate_info))
+        if vect_dist(normal, sum[0]) + vect_dist(center_pt, sum[1]) > 0.5:
+            return (sum[0], sum[1])
+    
+    past_gate_info.append((normal, center_pt))
+    if len(past_gate_info) > 5:
+        past_gate_info.pop(0)
+
+    return (normal, center_pt)
+
+# add two vectors
+def add_vectors(v1, v2):
+    return Vector3(x=v1.x + v2.x, y=v1.y + v2.y, z=v1.z + v2.z)
+
+# divide a vector by a scalar
+def divide_vector(v, s):
+    return Vector3(x=v.x / s, y=v.y / s, z=v.z / s)
+
+# calculate distance between two vectors
+def vect_dist(v1, v2):
+    return sqrt(pow(v1.x - v2.x, 2) + pow(v1.y - v2.y, 2) + pow(v1.z - v2.z, 2))
 
 # calculate cross product of two vectors
 def cross(v1, v2):
