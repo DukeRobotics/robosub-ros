@@ -282,6 +282,9 @@ def _find_gate_normal_and_center(gate_data_l, gate_data_r, listener):
     diag_1 = Vector3(top_left.position.x - bottom_right.position.x, top_left.position.y - bottom_right.position.y, top_left.position.z - bottom_right.position.z)
     diag_2 = Vector3(bottom_left.position.x - top_right.position.x, bottom_left.position.y - top_right.position.y, bottom_left.position.z - top_right.position.z)
 
+    # FIXME temporarily setting z to 0
+    center_pt.z = 0
+
     return (normalize(cross(diag_1,diag_2)), center_pt)
 
 # calculate cross product of two vectors
@@ -291,6 +294,8 @@ def cross(v1, v2):
 # normalize vector
 def normalize(v):
     mag = sqrt(v.x**2 + v.y**2 + v.z**2)
+    if mag == 0:
+        return Vector3(0, 0, 0)
     return Vector3(x=v.x/mag, y=v.y/mag, z=v.z/mag)
 
 """Get the position of a point in global coordinates from its position from the camera

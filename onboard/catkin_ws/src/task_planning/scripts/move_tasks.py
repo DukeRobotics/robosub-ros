@@ -34,6 +34,7 @@ class MoveToPoseGlobalTask(Task):
         return super(MoveToPoseGlobalTask, self).execute(userdata)
 
     def run(self, userdata):
+        print("moving to ", self.desired_pose)
         rate = rospy.Rate(15)
         while not(self.state and task_utils.stopped_at_pose(self.state.pose.pose, self.getPose(), self.state.twist.twist)):
             self.publish_desired_pose_global(self.getPose())
@@ -70,7 +71,7 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
 
     def run(self, userdata):
         self.desired_pose = task_utils.transform_pose(self.listener, 'base_link', 'odom', self.desired_pose)
-        return super(MoveToPoseLocalTask, self).run(self, userdata)
+        return super(MoveToPoseLocalTask, self).run(userdata)
 
 class AllocatePowerTask(Task):
     """Allocate specified power amount in a direction"""

@@ -24,30 +24,40 @@ def create_prequal_task_sm():
     listener = TransformListener()
     gate_sm = gate_task.create_gate_task_sm()
 
+    DEPTH = -3
+    STRETCH_LENGTH = 4
+    LOOP_SIZE = 2
+
     with sm:
-        smach.StateMachine.add('GO_THROUGH_GATE', gate_sm,
-                               transitions={
-                                   'gate_task_succeeded': 'APPROACH_MARKER',
-                                   'gate_task_failed': 'prequal_task_failed'})
-        smach.StateMachine.add('APPROACH_MARKER', MoveToPoseLocalTask(2, 0, 0, 0, 0, 0, listener),
+        # smach.StateMachine.add('GO_THROUGH_GATE', gate_sm,
+        #                        transitions={
+        #                            'gate_task_succeeded': 'APPROACH_MARKER',
+        #                            'gate_task_failed': 'prequal_task_failed'})
+        smach.StateMachine.add('SUBMERGE', MoveToPoseLocalTask(0, 0, DEPTH, 0, 0, 0, listener),
                                transitions={
                                    'done': 'LEFT_OF_MARKER'})
-        smach.StateMachine.add('LEFT_OF_MARKER', MoveToPoseLocalTask(1, 1, 0, 0, 0, 0, listener), # TODO fill in args
+        smach.StateMachine.add('APPROACH_MARKER', MoveToPoseLocalTask(STRETCH_LENGTH, 0, 0, 0, 0, 0, listener),
+                               transitions={
+                                   'done': 'LEFT_OF_MARKER'})
+        smach.StateMachine.add('LEFT_OF_MARKER', MoveToPoseLocalTask(LOOP_SIZE, LOOP_SIZE, 0, 0, 0, 0, listener),
                                transitions={
                                    'done': 'BEHIND_MARKER'})
-        smach.StateMachine.add('BEHIND_MARKER', MoveToPoseLocalTask(1, -1, 0, 0, 0, 0, listener),
+        smach.StateMachine.add('BEHIND_MARKER', MoveToPoseLocalTask(LOOP_SIZE, -LOOP_SIZE, 0, 0, 0, 0, listener),
                                transitions={
                                    'done': 'RIGHT_OF_MARKER'})
-        smach.StateMachine.add('RIGHT_OF_MARKER', MoveToPoseLocalTask(-1, -1, 0, 0, 0, 0, listener),
+        smach.StateMachine.add('RIGHT_OF_MARKER', MoveToPoseLocalTask(-LOOP_SIZE, -LOOP_SIZE, 0, 0, 0, 0, listener),
+                               transitions={
+                                   'done': 'BACK_TO_FRONT_OF_MARKER'})
+        smach.StateMachine.add('BACK_TO_FRONT_OF_MARKER', MoveToPoseLocalTask(-LOOP_SIZE, LOOP_SIZE, 0, 0, 0, math.pi, listener),
                                transitions={
                                    'done': 'BACK_THROUGH_GATE'})
-        smach.StateMachine.add('BACK_TO_FRONT_OF_MARKER', MoveToPoseLocalTask(-1, 1, 0, 0, 0, math.PI, listener),
+        smach.StateMachine.add('BACK_THROUGH_GATE', MoveToPoseLocalTask(-STRETCH_LENGTH, 0, 0, 0, 0, 0, listener),
                                transitions={
-                                   'done': 'BACK_THROUGH_GATE'})
-        smach.StateMachine.add('BACK_THROUGH_GATE', gate_sm,
-                               transitions={
-                                   'gate_task_succeeded': 'prequal_task_succeeded',
-                                   'gate_task_failed': 'prequal_task_failed'})
+                                   'done': 'prequal_task_succeeded'})
+        # smach.StateMachine.add('BACK_THROUGH_GATE', gate_sm,
+        #                        transitions={
+        #                            'gate_task_succeeded': 'prequal_task_succeeded',
+        #                            'gate_task_failed': 'prequal_task_failed'})
 
     return sm
 

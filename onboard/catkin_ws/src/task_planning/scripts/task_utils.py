@@ -114,9 +114,11 @@ def stopped_at_pose(current_pose, desired_pose, current_twist):
     Returns:
     Boolean: true if stopped (current_twist = 0) at desired_pose
     """
-
-    at_desired_pose = at_pose(current_pose, desired_pose, 0.2, 6)
-    at_desired_vel = at_vel(current_twist, Twist(), 0.3, 6)
+    # FIXME revert hackfix
+    current_pose.position.z = 0
+    desired_pose.position.z = 0
+    at_desired_pose = at_pose(current_pose, desired_pose, 0.2, 12)
+    at_desired_vel = at_vel(current_twist, Twist(), 0.6, 6)
 
     #print("At Pose:", at_desired_pose, " At Vel:", at_desired_vel)
 
@@ -238,6 +240,8 @@ class MutatePoseTask(Task):
     def run(self, userdata):
         if userdata.x != nan and userdata.y != nan and userdata.z != nan:
             self.mutablePose.setPoseCoords(userdata.x, userdata.y, userdata.z, userdata.roll, userdata.pitch, userdata.yaw)
+        if self.preempt_requested():
+            self.service_preempt()
         return "done"
 
 
