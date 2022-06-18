@@ -6,7 +6,7 @@ import serial.tools.list_ports as list_ports
 import traceback
 
 from sensor_msgs.msg import Imu, MagneticField
-from tf.transformations import euler_from_quaternion, quaternion_from_euler
+from tf.transformations import euler_from_quaternion, quaternion_from_euler, quaternion_multiply
 
 
 class IMURawPublisher:
@@ -66,7 +66,9 @@ class IMURawPublisher:
         return line.split(self.LINE_DELIM)
 
     def _parse_orient(self, items):
-        r, p, y = euler_from_quaternion([float(items[1]), float(items[2]), float(items[3]), float(items[4])])
+        untransformed_orient = [float(items[1]), float(items[2]), float(items[3]), float(items[4])]
+        transformed_orient = quaternion_multiply([0.6897,-0.0030,0,0.7241], untransformed_orient)
+        r, p, y = euler_from_quaternion(transformed_orient)
         p = -p
         y = -y
         updated_quat = quaternion_from_euler(r, p, y)
@@ -82,10 +84,10 @@ class IMURawPublisher:
         self._current_imu_msg.linear_acceleration.z = float(items[10])
 
     def _parse_angvel(self, items):
-        self._current_imu_msg.angular_velocity.x = -float(items[11])
-        self._current_imu_msg.angular_velocity.y = -float(items[12])
+        self._current_imu_msg.angular_velocity.x = float(items[11])
+        self._current_imu_msg.angular_velocity.y = float(items[12])
         items[13] = items[13][0:10]
-        self._current_imu_msg.angular_velocity.z = -float(items[13])
+        self._current_imu_msg.angular_velocity.z = float(items[13])
 
     def _parse_mag(self, items):
         self._current_mag_msg.magnetic_field.x = float(items[5])
