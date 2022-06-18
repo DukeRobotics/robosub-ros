@@ -82,10 +82,10 @@ class IMURawPublisher:
         self._current_imu_msg.linear_acceleration.z = float(items[10])
 
     def _parse_angvel(self, items):
-        self._current_imu_msg.angular_velocity.x = float(items[11])
-        self._current_imu_msg.angular_velocity.y = float(items[12])
+        self._current_imu_msg.angular_velocity.x = -float(items[11])
+        self._current_imu_msg.angular_velocity.y = -float(items[12])
         items[13] = items[13][0:10]
-        self._current_imu_msg.angular_velocity.z = float(items[13])
+        self._current_imu_msg.angular_velocity.z = -float(items[13])
 
     def _parse_mag(self, items):
         self._current_mag_msg.magnetic_field.x = float(items[5])
