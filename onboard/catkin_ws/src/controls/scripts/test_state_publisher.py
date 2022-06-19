@@ -28,7 +28,7 @@ class TestStatePublisher:
         self.desired_pose_global = Pose()
         self.desired_pose_global.position.x = 0
         self.desired_pose_global.position.y = 0
-        self.desired_pose_global.position.z = -6
+        self.desired_pose_global.position.z = 0
         self.desired_pose_global.orientation.x = 0
         self.desired_pose_global.orientation.y = 0
         self.desired_pose_global.orientation.z = 0
@@ -36,7 +36,7 @@ class TestStatePublisher:
 
         # These values correspond to the desired local pose of the robot
         self.desired_pose_local = Pose()
-        self.desired_pose_local.position.x = 1
+        self.desired_pose_local.position.x = 2
         self.desired_pose_local.position.y = 0
         self.desired_pose_local.position.z = 0
         self.desired_pose_local.orientation.x = 0
@@ -112,8 +112,8 @@ class TestStatePublisher:
 
 
 def main():
-    TestStatePublisher().publish_desired_pose_global()
-    # TestStatePublisher().publish_desired_pose_local()
+    # TestStatePublisher().publish_desired_pose_global()
+    TestStatePublisher().publish_desired_pose_local()
     # TestStatePublisher().publish_desired_twist()
     # TestStatePublisher().publish_desired_power()
 

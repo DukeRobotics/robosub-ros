@@ -10,14 +10,107 @@ import gate_task
 from tf import TransformListener
 import math
 import time
+from custom_msgs.msg import ThrusterSpeeds
 
 def main():
     rospy.init_node('gate_task')
     
-    sm = create_prequal_task_sm()
-    time.sleep(2)
-    # Execute SMACH plan
-    outcome = sm.execute()
+    jank_prequal_with_turn()
+
+    # sm = create_prequal_task_sm()
+    # time.sleep(2)
+    # # Execute SMACH plan
+    # outcome = sm.execute()
+
+SPEED = 80
+DIVE_SPEED = 0
+DEPTH_HOLD_SPEED = 0
+TURN_TIME = 6
+DIAMOND_TIME = 4
+LONG_TIME = 5
+
+# NOTE: The third sign is not what I expected, looking at the robot
+# We need to figure out what "flipped" means
+# It seems to mean counterclockwise
+FORWARD_THRUST = [-SPEED, -SPEED, -SPEED, SPEED, DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
+BACKWARD_THRUST = [SPEED, SPEED, SPEED, -SPEED, DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
+DOWNWARD_THRUST = [0, 0, 0, 0, DIVE_SPEED, -DIVE_SPEED, -DIVE_SPEED, DIVE_SPEED]
+FORWARD_LEFT_THRUST = [-SPEED, 0, 0, SPEED, DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
+FORWARD_RIGHT_THRUST = [0, -SPEED, -SPEED, 0, DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
+BACKWARD_RIGHT_THRUST = [SPEED, 0, 0, -SPEED, DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
+BACKWARD_LEFT_THRUST = [0, SPEED, SPEED, 0, DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
+SPIN_LEFT_THRUST = [-SPEED, SPEED, SPEED, -SPEED, DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
+SPIN_RIGHT_THRUST = [SPEED, -SPEED, -SPEED, SPEED, DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
+
+def move_with_thrust_for_seconds(pub, rate, thrust, seconds):
+    for i in range(seconds * 10):
+        t = ThrusterSpeeds()
+        t.speeds = thrust
+        pub.publish(t)
+        rate.sleep()
+
+def jank_prequal_with_turn():
+    pub = rospy.Publisher('/offboard/thruster_speeds', ThrusterSpeeds, queue_size=3)
+    rate = rospy.Rate(10)
+    #time.sleep(10)
+    # Down for 1 second
+    move_with_thrust_for_seconds(pub, rate, DOWNWARD_THRUST, 1)
+    # Forward for 3 seconds
+    move_with_thrust_for_seconds(pub, rate, FORWARD_THRUST, LONG_TIME)
+    # Spin left for 1 second
+    move_with_thrust_for_seconds(pub, rate, SPIN_LEFT_THRUST, 1)
+    # Forward for 2 seconds
+    move_with_thrust_for_seconds(pub, rate, FORWARD_THRUST, DIAMOND_TIME)
+    # Spin right for 1 second
+    move_with_thrust_for_seconds(pub, rate, SPIN_RIGHT_THRUST, TURN_TIME)
+    # Forward for 2 seconds
+    move_with_thrust_for_seconds(pub, rate, FORWARD_THRUST, DIAMOND_TIME)
+    # Spin right for 1 second
+    move_with_thrust_for_seconds(pub, rate, SPIN_RIGHT_THRUST, TURN_TIME)
+    # Forward for 2 seconds
+    move_with_thrust_for_seconds(pub, rate, FORWARD_THRUST, DIAMOND_TIME)
+    # Spin right for 1 second
+    move_with_thrust_for_seconds(pub, rate, SPIN_RIGHT_THRUST, TURN_TIME)
+    # Forward for 2 seconds
+    move_with_thrust_for_seconds(pub, rate, FORWARD_THRUST, DIAMOND_TIME)
+    # Spin left for 1 second
+    move_with_thrust_for_seconds(pub, rate, SPIN_LEFT_THRUST, 1)
+    # Forward for 3 seconds
+    move_with_thrust_for_seconds(pub, rate, FORWARD_THRUST, LONG_TIME)
+
+def jank_prequal():
+    pub = rospy.Publisher('/offboard/thruster_speeds', ThrusterSpeeds, queue_size=3)
+    rate = rospy.Rate(10)
+    time.sleep(10)
+    # Down for 1 second
+    for i in range(10):
+        pub.publish(ThrusterSpeeds(DOWNWARD_THRUST))
+        rate.sleep()
+    # Forward for 3 seconds
+    for i in range(30):
+        pub.publish(ThrusterSpeeds(FORWARD_THRUST))
+        rate.sleep()
+    # Forward-left for 2 seconds
+    for i in range(20):
+        pub.publish(ThrusterSpeeds(FORWARD_LEFT_THRUST))
+        rate.sleep()
+    # Forward-right for 2 seconds
+    for i in range(20):
+        pub.publish(ThrusterSpeeds(FORWARD_RIGHT_THRUST))
+        rate.sleep()
+    # Backward-right for 2 seconds
+    for i in range(20):
+        pub.publish(ThrusterSpeeds(BACKWARD_RIGHT_THRUST))
+        rate.sleep()
+    # Backward-left for 2 seconds
+    for i in range(20):
+        pub.publish(ThrusterSpeeds(BACKWARD_LEFT_THRUST))
+        rate.sleep()
+    # Backward for 3 seconds
+    for i in range(30):
+        pub.publish(ThrusterSpeeds(BACKWARD_THRUST))
+        rate.sleep()
+
 
 def create_prequal_task_sm():
     sm = smach.StateMachine(outcomes=['prequal_task_succeeded', 'prequal_task_failed'])
