@@ -67,8 +67,8 @@ class IMURawPublisher:
 
     def _parse_orient(self, items):
         untransformed_orient = [float(items[1]), float(items[2]), float(items[3]), float(items[4])]
-        transformed_orient = quaternion_multiply([0.6897,-0.0030,0,0.7241], untransformed_orient)
-        r, p, y = euler_from_quaternion(transformed_orient)
+        #transformed_orient = quaternion_multiply([0.6897,-0.0030,0,0.7241], untransformed_orient)
+        r, p, y = euler_from_quaternion(untransformed_orient)
         p = -p
         y = -y
         updated_quat = quaternion_from_euler(r, p, y)
