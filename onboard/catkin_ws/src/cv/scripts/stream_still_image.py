@@ -13,11 +13,11 @@ from cv_bridge import CvBridge
 class DummyStreamPublisher:
 
     CAMERA = 'front'
-    STREAM_TOPIC = f'/camera/{CAMERA}/stream_raw'
+    STREAM_TOPIC = f'/camera/{CAMERA}/stream_still_image'
 
     # Read in the dummy image and other misc. setup work
     def __init__(self):
-        rospy.init_node("stream_images")
+        rospy.init_node("stream_still_image")
         self.stream_publisher = rospy.Publisher(self.STREAM_TOPIC, Image,
                                                queue_size=10)
 

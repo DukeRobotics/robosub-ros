@@ -1,0 +1,3 @@
+<launch>
+	<node name="stream_still_image" pkg="cv" type="stream_still_image.py" />
+</launch>
