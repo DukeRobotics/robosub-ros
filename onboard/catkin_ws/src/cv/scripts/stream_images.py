@@ -23,14 +23,6 @@ class DummyStreamPublisher:
 
         self.bridge = CvBridge()
         self.pipeline = dai.Pipeline()
-        
-        # Upload the pipeline to the device
-        with dai.Device(self.pipeline) as device:
-
-            # Input queue, to send message from the host to the device (you can receive the message on the device with XLinkIn)
-            self.input_q = device.getInputQueue("input_name", maxSize=4, blocking=False)
-            # Output queue, to receive message on the host from the device (you can send the message on the device with XLinkOut)
-            self.output_q = device.getOutputQueue("output_name", maxSize=4, blocking=False)
 
 
     # Publish dummy image to topic every few seconds
@@ -47,26 +39,28 @@ class DummyStreamPublisher:
         model_enabled = True
 
         count = 0
-        while not rospy.is_shutdown():
+        # Upload the pipeline to the device
+        with dai.Device(self.pipeline) as device:
 
-            # Get a message that came from the queue
-            raw_img = self.output_q.tryGet()
-            img = raw_img.getCvFrame()
+            # Output queue, to receive message on the host from the device (you can send the message on the device with XLinkOut)
+            output_q = device.getOutputQueue("output_name", maxSize=4, blocking=False)
+            
+            while not rospy.is_shutdown():
 
-            # Publish the image
-            image_msg = self.bridge.cv2_to_imgmsg(img, 'bgr8')
-            self.stream_publisher.publish(image_msg)
+                # Get a message that came from the queue
+                raw_img = output_q.tryGet()
+                img = raw_img.getCvFrame()
 
-            # Send a message to the device
-            cfg = dai.ImageManipConfig()
-            self.input_q.send(cfg)
+                # Publish the image
+                image_msg = self.bridge.cv2_to_imgmsg(img, 'bgr8')
+                self.stream_publisher.publish(image_msg)
 
-            # Testing enable
-            if count % 30 == 0:
-                enable_model('gate', model_enabled)
-                model_enabled = not model_enabled
+            # # Testing enable
+            # if count % 30 == 0:
+            #     enable_model('gate', model_enabled)
+            #     model_enabled = not model_enabled
 
-            count += 1
+            # count += 1
             loop_rate.sleep()
 
 if __name__ == '__main__':
