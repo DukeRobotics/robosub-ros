@@ -31,11 +31,25 @@ class StreamPublisher:
         rospy.init_node(self.NODE_NAME)
         loop_rate = rospy.Rate(1)
 
+        # Define source and output
+        camRgb = self.pipeline.create(dai.node.ColorCamera)
+        xoutRgb = self.pipeline.create(dai.node.XLinkOut)
+
+        xoutRgb.setStreamName("rgb")
+
+        # Properties
+        camRgb.setPreviewSize(300, 300)
+        camRgb.setInterleaved(False)
+        camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)
+
+        # Linking
+        camRgb.preview.link(xoutRgb.input)
+
         # Upload the pipeline to the device
         with dai.Device(self.pipeline) as device:
 
             # Output queue, to receive message on the host from the device (you can send the message on the device with XLinkOut)
-            output_q = device.getOutputQueue("output_name", maxSize=4, blocking=False)
+            output_q = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
             
             while not rospy.is_shutdown():
 
