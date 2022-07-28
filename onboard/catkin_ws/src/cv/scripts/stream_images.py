@@ -31,7 +31,6 @@ class StreamPublisher:
         rospy.init_node(self.NODE_NAME)
         loop_rate = rospy.Rate(1)
 
-        count = 0
         # Upload the pipeline to the device
         with dai.Device(self.pipeline) as device:
 
@@ -48,7 +47,6 @@ class StreamPublisher:
                 image_msg = self.bridge.cv2_to_imgmsg(img, 'bgr8')
                 self.stream_publisher.publish(image_msg)
 
-            # count += 1
             loop_rate.sleep()
 
 if __name__ == '__main__':
