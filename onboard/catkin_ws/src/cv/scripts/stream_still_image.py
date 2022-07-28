@@ -35,14 +35,6 @@ class DummyStreamPublisher:
 
         loop_rate = rospy.Rate(1)
 
-        # Define source and output
-        camRgb = self.pipeline.create(dai.node.ColorCamera)
-        
-        # Properties
-        camRgb.setPreviewSize(300, 300)
-        camRgb.setInterleaved(False)
-        camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)
-
         # Point xIn to still image
         xIn = self.pipeline.create(dai.node.XLinkIn)
         xOut = self.pipeline.create(dai.node.XLinkOut)
@@ -50,7 +42,7 @@ class DummyStreamPublisher:
         xOut.setStreamName("camOut")
 
         manip = self.pipeline.createImageManip()
-        manip.initialConfig.setResize(300, 300)
+        manip.initialConfig.setResize(416, 416)
         manip.initialConfig.setFrameType(dai.ImgFrame.Type.BGR888p)
         
         xIn.out.link(manip.inputImage)
@@ -67,7 +59,7 @@ class DummyStreamPublisher:
 
             # Send a message to the ColorCamera to capture a still image
             img = dai.ImgFrame()
-            img.setData(to_planar(self.image, (300, 300)))
+            img.setData(to_planar(self.image, (416, 416)))
             qIn.send(img)
 
             loop_rate.sleep()
