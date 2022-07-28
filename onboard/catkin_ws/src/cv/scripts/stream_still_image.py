@@ -45,7 +45,7 @@ class DummyStreamPublisher:
         xOut.setStreamName("camOut")
 
         # Define neural net architecture
-        nn = self.pipeline.create(dai.node.YOLO)
+        nn = self.pipeline.create(dai.node.YoloDetectionNetwork)
 
         # Neural net properties
         nn.setConfidenceThreshold(0.5)
