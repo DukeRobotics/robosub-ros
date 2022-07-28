@@ -49,12 +49,12 @@ class StreamPublisher:
         with dai.Device(self.pipeline) as device:
 
             # Output queue, to receive message on the host from the device (you can send the message on the device with XLinkOut)
-            output_q = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
+            rgbQueue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
             
             while not rospy.is_shutdown():
 
                 # Get a message that came from the queue
-                raw_img = output_q.tryGet()
+                raw_img = rgbQueue.tryGet()
                 img = raw_img.getCvFrame()
 
                 # Publish the image
