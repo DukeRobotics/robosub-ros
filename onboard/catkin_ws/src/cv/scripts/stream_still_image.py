@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+
+import rospy
+import depthai as dai
+import cv2
+import os
+from custom_msgs.srv import EnableModel
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
+
+# Mock the camera by publishing the same image to a topic
+class DummyStreamPublisher:
+
+    CAMERA = 'front'
+    STREAM_TOPIC = f'/camera/{CAMERA}/stream_raw'
+
+    # Read in the dummy image and other misc. setup work
+    def __init__(self):
+        rospy.init_node("stream_images")
+        self.stream_publisher = rospy.Publisher(self.STREAM_TOPIC, Image,
+                                               queue_size=10)
+
+        self.bridge = CvBridge()
+        self.pipeline = dai.Pipeline()
+
+        # Dummy still image
+        path = os.path.dirname(__file__)
+        self.image = cv2.imread(os.path.join(path, '../assets/left384.jpg'),
+                           cv2.IMREAD_COLOR)
+
+
+    # Publish dummy image to topic every few seconds
+    def run(self):
+
+        loop_rate = rospy.Rate(1)
+
+        # Define source and output
+        camRgb = self.pipeline.create(dai.node.ColorCamera)
+        
+        # Properties
+        camRgb.setPreviewSize(300, 300)
+        camRgb.setInterleaved(False)
+        camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)
+
+        # Point xIn to still image
+        xIn = self.pipeline.create(dai.node.XLinkIn)
+        xIn.setStreamName("camControl")
+
+        manip = self.pipeline.createImageManip()
+        manip.initialConfig.setResize(300, 300)
+        manip.initialConfig.setFrameType(dai.ImgFrame.Type.BGR888p)
+        
+        xIn.out.link(manip.inputImage)
+
+        # Upload the pipeline to the device
+        with dai.Device(self.pipeline) as device:
+
+            qCamControl = device.getInputQueue("camControl")
+
+            # Send a message to the ColorCamera to capture a still image
+            img = dai.ImgFrame()
+            is_success, im_buf_arr = cv2.imencode(".jpg", self.image)
+            byte_im = im_buf_arr.tobytes()
+            img.setFrame(byte_im)
+            qCamControl.send(img)
+
+            loop_rate.sleep()
