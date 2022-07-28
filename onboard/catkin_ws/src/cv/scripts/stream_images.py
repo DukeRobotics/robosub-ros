@@ -111,8 +111,6 @@ class DummyStreamPublisher:
         # Upload the pipeline to the device
         with dai.Device(self.pipeline) as device:
 
-            device.startPipeline()
-            # xIn
             qCamControl = device.getInputQueue("camControl")
 
             # Send a message to the ColorCamera to capture a still image
