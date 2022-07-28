@@ -12,13 +12,13 @@ from cv_bridge import CvBridge
 # Mock the camera by publishing the same image to a topic
 class DummyStreamPublisher:
 
-    NODE_NAME = 'test_images'
+    NODE_NAME = 'test_stream'
     CAMERA = 'left'
-    IMAGE_TOPIC = f'/camera/{CAMERA}/image_raw'
+    STREAM_TOPIC = f'/camera/{CAMERA}/stream_raw'
 
     # Read in the dummy image and other misc. setup work
     def __init__(self):
-        self.image_publisher = rospy.Publisher(self.IMAGE_TOPIC, Image,
+        self.stream_publisher = rospy.Publisher(self.STREAM_TOPIC, Image,
                                                queue_size=10)
 
         self.bridge = CvBridge()
@@ -50,15 +50,16 @@ class DummyStreamPublisher:
         while not rospy.is_shutdown():
 
             # Get a message that came from the queue
-            self.output_q.get() # Or output_q.tryGet() for non-blocking
+            raw_img = self.output_q.tryGet()
+            img = raw_img.getCvFrame()
+
+            # Publish the image
+            image_msg = self.bridge.cv2_to_imgmsg(img, 'bgr8')
+            self.stream_publisher.publish(image_msg)
 
             # Send a message to the device
             cfg = dai.ImageManipConfig()
             self.input_q.send(cfg)
-
-            # Publish the image
-            image_msg = self.bridge.cv2_to_imgmsg(cfg, 'bgr8')
-            self.image_publisher.publish(image_msg)
 
             # Testing enable
             if count % 30 == 0:
