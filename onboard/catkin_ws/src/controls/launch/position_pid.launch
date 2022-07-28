@@ -19,9 +19,9 @@
             <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/z_pos/controller">
-            <param name="Kp" value=".1" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+            <param name="Kp" value="15" />
+            <param name="Ki" value="0.3" /> <!-- 0.2 -->
+            <param name="Kd" value="0.12" /> <!-- 0.075 -->
         </group>
         <group ns="controls/roll_pos/controller">
             <param name="Kp" value="0.01" />
@@ -33,10 +33,11 @@
             <param name="Ki" value="0.001" />
             <param name="Kd" value="0.001" />
         </group>
-        <group ns="controls/yaw_pos/controller">
-            <param name="Kp" value="1" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+       	# previously set to 1, 0.001, 0.01
+	<group ns="controls/yaw_pos/controller">
+            <param name="Kp" value="0.5" />
+            <param name="Ki" value="0.5" />
+            <param name="Kd" value="0.25" />
         </group>
     </group>
 

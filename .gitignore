@@ -34,3 +34,6 @@ ros_lib/
 # Remember to load in the model files manaully
 *.pth
 robosub_ws.code-workspace
+
+# Test scripts
+test_thrusters.sh

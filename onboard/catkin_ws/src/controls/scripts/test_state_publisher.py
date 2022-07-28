@@ -13,6 +13,9 @@ class TestStatePublisher:
     PUBLISHING_TOPIC_CURRENT_STATE = '/state'
     PUBLISHING_TOPIC_DESIRED_POWER = 'controls/desired_power'
 
+    def recalculate_local_pose(self):
+        self.desired_pose_transformed = controls_utils.transform_pose(self.listener, "base_link", "odom", self.desired_pose_local)
+
     def __init__(self):
         rospy.init_node('test_state_publisher')
         self.listener = TransformListener()
@@ -36,14 +39,14 @@ class TestStatePublisher:
 
         # These values correspond to the desired local pose of the robot
         self.desired_pose_local = Pose()
-        self.desired_pose_local.position.x = 2
+        self.desired_pose_local.position.x = 1
         self.desired_pose_local.position.y = 0
         self.desired_pose_local.position.z = 0
         self.desired_pose_local.orientation.x = 0
         self.desired_pose_local.orientation.y = 0
         self.desired_pose_local.orientation.z = 0
         self.desired_pose_local.orientation.w = 1
-        self.desired_pose_transformed = controls_utils.transform_pose(self.listener, "base_link", "odom", self.desired_pose_local)
+        self.recalculate_local_pose()
 
         # These values correspond to the desired global twist for the robot
         # Max linear z speed is ~ -0.26 -- ignore (for different mass)
@@ -88,12 +91,47 @@ class TestStatePublisher:
             self._pub_desired_pose.publish(self.desired_pose_global)
             # self._pub_current_state.publish(self.current_state)
             rate.sleep()
-
+    
     def publish_desired_pose_local(self):
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             self._pub_desired_pose.publish(self.desired_pose_transformed)
+            rate.sleep()
+
+    def gate_move(self):
+        delay = 30
+        rate = rospy.Rate(15)
+        while not rospy.is_shutdown():
+            delay -= 1
+            if delay == 0:
+                self.desired_pose_local.position.z = -0.7
+                self.recalculate_local_pose()
+                print("Diving")
+            if delay == -38:
+                self.desired_pose_local.position.z = 0
+                self.desired_pose_local.position.x = 5
+                self.recalculate_local_pose()
+                print("Moving forward")
+            self._pub_desired_pose.publish(self.desired_pose_transformed)
             # self._pub_current_state.publish(self.current_state)
+            rate.sleep()
+
+    def circle_pole(self):
+        delay = 0
+        rate = rospy.Rate(15)
+        #self.desired_pose_local.position.x = 0
+        while not rospy.is_shutdown():
+            delay += 1
+            if delay == 30:
+                self.desired_pose_local.position.x = 0
+                self.desired_pose_local.position.y = -2
+                self.recalculate_local_pose()
+            if delay == 210:
+                print("Back")
+                self.desired_pose_local.position.y = 0
+                self.desired_pose_local.position.x = -5
+                self.recalculate_local_pose()
+            self._pub_desired_pose.publish(self.desired_pose_transformed)
             rate.sleep()
 
     def publish_desired_twist(self):
@@ -110,8 +148,8 @@ class TestStatePublisher:
             # self._pub_current_state.publish(self.current_state)
             rate.sleep()
 
-
 def main():
+    # TestStatePublisher().circle_pole()
     # TestStatePublisher().publish_desired_pose_global()
     TestStatePublisher().publish_desired_pose_local()
     # TestStatePublisher().publish_desired_twist()
