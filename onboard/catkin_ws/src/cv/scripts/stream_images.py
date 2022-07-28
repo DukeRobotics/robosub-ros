@@ -10,10 +10,10 @@ from cv_bridge import CvBridge
 
 
 # Mock the camera by publishing the same image to a topic
-class DummyStreamPublisher:
+class StreamPublisher:
 
     NODE_NAME = 'test_stream'
-    CAMERA = 'left'
+    CAMERA = 'front'
     STREAM_TOPIC = f'/camera/{CAMERA}/stream_raw'
 
     # Read in the dummy image and other misc. setup work
@@ -29,14 +29,7 @@ class DummyStreamPublisher:
     def run(self):
 
         rospy.init_node(self.NODE_NAME)
-
-        # Testing enable_model service
-        service_name = f'enable_model_{self.CAMERA}'
-        rospy.wait_for_service(service_name)
-        enable_model = rospy.ServiceProxy(service_name, EnableModel)
-
         loop_rate = rospy.Rate(1)
-        model_enabled = True
 
         count = 0
         # Upload the pipeline to the device
@@ -55,13 +48,8 @@ class DummyStreamPublisher:
                 image_msg = self.bridge.cv2_to_imgmsg(img, 'bgr8')
                 self.stream_publisher.publish(image_msg)
 
-            # # Testing enable
-            # if count % 30 == 0:
-            #     enable_model('gate', model_enabled)
-            #     model_enabled = not model_enabled
-
             # count += 1
             loop_rate.sleep()
 
 if __name__ == '__main__':
-    DummyStreamPublisher().run()
+    StreamPublisher().run()
