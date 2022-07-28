@@ -12,12 +12,12 @@ from cv_bridge import CvBridge
 # Stream images from camera to host
 class StreamPublisher:
 
-    NODE_NAME = 'test_stream'
     CAMERA = 'front'
     STREAM_TOPIC = f'/camera/{CAMERA}/stream_raw'
 
     # Set up publisher and camera node pipeline
     def __init__(self):
+        rospy.init_node('stream_images')
         self.stream_publisher = rospy.Publisher(self.STREAM_TOPIC, Image,
                                                queue_size=10)
 
@@ -27,8 +27,6 @@ class StreamPublisher:
 
     # Publish newest image off queue to topic every few seconds
     def run(self):
-
-        rospy.init_node(self.NODE_NAME)
         loop_rate = rospy.Rate(1)
 
         # Define source and output
@@ -136,4 +134,7 @@ class DummyStreamPublisher:
             loop_rate.sleep()
 
 if __name__ == '__main__':
-    StreamPublisher().run()
+    try:
+        StreamPublisher().run()
+    except rospy.ROSInterruptException:
+        pass
