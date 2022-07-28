@@ -54,7 +54,7 @@ class StreamPublisher:
             while not rospy.is_shutdown():
 
                 # Get a message that came from the queue
-                raw_img = rgbQueue.tryGet()
+                raw_img = rgbQueue.get()
                 img = raw_img.getCvFrame()
 
                 # Publish the image
