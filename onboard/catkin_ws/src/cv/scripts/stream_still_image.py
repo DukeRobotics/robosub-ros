@@ -17,9 +17,9 @@ class DummyStreamPublisher:
 
     # Read in the dummy image and other misc. setup work
     def __init__(self):
-        rospy.init_node("stream_still_image")
-        self.stream_publisher = rospy.Publisher(self.STREAM_TOPIC, Image,
-                                               queue_size=10)
+        # rospy.init_node("stream_still_image")
+        # self.stream_publisher = rospy.Publisher(self.STREAM_TOPIC, Image,
+        #                                        queue_size=10)
 
         self.bridge = CvBridge()
         self.pipeline = dai.Pipeline()
