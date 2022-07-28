@@ -29,6 +29,9 @@ class DummyStreamPublisher:
         self.image = cv2.imread(os.path.join(path, '../assets/left384.jpg'),
                            cv2.IMREAD_COLOR)
 
+        # Get path to nn blob file
+        self.nnPath = ""
+
 
     # Publish dummy image to topic every few seconds
     def run(self):
@@ -41,12 +44,17 @@ class DummyStreamPublisher:
         xIn.setStreamName("camIn")
         xOut.setStreamName("camOut")
 
-        manip = self.pipeline.createImageManip()
-        manip.initialConfig.setResize(416, 416)
-        manip.initialConfig.setFrameType(dai.ImgFrame.Type.BGR888p)
+        # Define neural net architecture
+        nn = self.pipeline.create(dai.node.YOLO)
+
+        # Neural net properties
+        nn.setConfidenceThreshold(0.5)
+        nn.setBlobPath(self.nnPath)
+        nn.setNumInferenceThreads(2)
+        nn.input.setBlocking(False)
         
-        xIn.out.link(manip.inputImage)
-        manip.out.link(xOut.input)
+        xIn.out.link(nn.input)
+        nn.out.link(xOut.input)
 
         # Upload the pipeline to the device
         with dai.Device(self.pipeline) as device:
@@ -56,10 +64,13 @@ class DummyStreamPublisher:
 
             # Input queue will be used to send video frames to the device.
             qIn = device.getInputQueue("camIn")
+            # Output queue will be used to get nn data from the video frames.
+            qOut = device.getOutputQueue(name="nn", maxSize=4, blocking=False)
 
             # Send a message to the ColorCamera to capture a still image
             img = dai.ImgFrame()
             img.setData(to_planar(self.image, (416, 416)))
             qIn.send(img)
 
+            inDet = qOut.get()
             loop_rate.sleep()
