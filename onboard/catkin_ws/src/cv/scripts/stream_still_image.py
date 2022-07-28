@@ -2,6 +2,7 @@
 
 import rospy
 import depthai as dai
+import numpy as np
 import cv2
 import os
 from custom_msgs.srv import EnableModel
@@ -44,24 +45,29 @@ class DummyStreamPublisher:
 
         # Point xIn to still image
         xIn = self.pipeline.create(dai.node.XLinkIn)
-        xIn.setStreamName("camControl")
+        xOut = self.pipeline.create(dai.node.XLinkOut)
+        xIn.setStreamName("camIn")
+        xOut.setStreamName("camOut")
 
         manip = self.pipeline.createImageManip()
         manip.initialConfig.setResize(300, 300)
         manip.initialConfig.setFrameType(dai.ImgFrame.Type.BGR888p)
         
         xIn.out.link(manip.inputImage)
+        manip.out.link(xOut.input)
 
         # Upload the pipeline to the device
         with dai.Device(self.pipeline) as device:
 
-            qCamControl = device.getInputQueue("camControl")
+            def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
+                return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
+
+            # Input queue will be used to send video frames to the device.
+            qIn = device.getInputQueue("camIn")
 
             # Send a message to the ColorCamera to capture a still image
             img = dai.ImgFrame()
-            is_success, im_buf_arr = cv2.imencode(".jpg", self.image)
-            byte_im = im_buf_arr.tobytes()
-            img.setFrame(byte_im)
-            qCamControl.send(img)
+            img.setData(to_planar(self.image, (300, 300)))
+            qIn.send(img)
 
             loop_rate.sleep()
