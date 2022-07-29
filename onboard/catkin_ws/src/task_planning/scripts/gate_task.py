@@ -3,6 +3,8 @@
 from functools import total_ordering
 from statistics import mean
 from tkinter import image_names
+
+from numpy import object_
 from task_utils import object_vector, ObjectVisibleTask
 import smach
 import rospy
@@ -11,6 +13,7 @@ from move_tasks import MoveToPoseLocalTask, AllocateVelocityLocalTask, AllocateV
 from tf import TransformListener
 from time import sleep
 from math import *
+from custom_msgs.msg import CVObject
 
 
 SIDE_THRESHOLD = 0.1  # means gate post is within 1 tenth of the side of the frame
@@ -34,6 +37,7 @@ INPUT FROM CMD copper or bootlegger, direction to rotate, time to wait and movin
 def main():
     rospy.init_node('gate_task')
     
+    #needs direction to work
     sm = create_gate_task_sm()
     sleep(2)
     # Execute SMACH plan
@@ -66,8 +70,54 @@ def create_gate_task_sm(rotate_direction):
                                 transitions={
                                     'done': 'gate_task_succeeded'
                                 })
+    return sm
+
+def cv_object_position(cv_obj_data):
+    return [cv_obj_data.x, cv_obj_data.y, cv_obj_data.z]
+
+def create_simple_gate_task_sm(rotate_direction):
+    sm = smach.StateMachine(outcomes=['gate_task_succeeded', 'gate_task_failed'])
+    listener = TransformListener()
+    global_object_position = [0, 0, 0, 0, 0, 0]
+    image_name = "bootleggerbouy"
+    with sm:
+        smach.StateMachine.add('SURVEY_GATE_IMAGE_LOCATION', ObjectVisibleTask(image_name, 3),
+                                transitions={
+                                    'undetected': 'ROTATE_TO_GATE',
+                                    'detected': 'MOVE_TO_GATE'
+                                })
+        
+        smach.StateMachine.add('ROTATE_TO_GATE', MoveToPoseLocalTask(0, 0, 0, 0, 0, 0.25 * rotate_direction, listener),
+                                transitions={
+                                    'done': 'CHECK_IMAGE_VISIBLE'
+                                })
+
+        smach.StateMachine.add('MOVE_TO_GATE', MoveToPoseLocalTask(*global_object_position, listener),
+                                transitions={
+                                    'done': 'gate_task_succeeded'
+                                })
 
     return sm
+
+class SurveyGateImage(Task):
+    def __init__(self, object_name, time, global_object_position):
+        super(SurveyGateTask, self).__init__(["undetected", "detected"])
+        self.object_name = object_name
+        self.time = time
+        self.global_object_position = global_object_position
+        self.output_global_object_position = [0, 0, 0, 0, 0, 0]
+
+    def run(self):
+        millis = 10
+        rate = rospy.Rate(millis)
+        total = 0
+
+        while total < self.time * 1000:
+            if cv_object_position(self.cv_data[self.image_name]) is not None:
+                return "detected"
+            total += millis
+            rate.sleep()
+        return "undetected"
 
 
 class SurveyGateTask(Task):
