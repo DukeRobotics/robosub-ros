@@ -3,17 +3,13 @@
 from functools import total_ordering
 from statistics import mean
 from tkinter import image_names
-from urllib.parse import uses_relative
-from numpy import arccos
 from task_utils import object_vector, ObjectVisibleTask
 import smach
 import rospy
-import task_utils
 from task import Task
 from move_tasks import MoveToPoseLocalTask, AllocateVelocityLocalTask, AllocateVelocityLocalForeverTask, MoveToPoseGlobalTask, MoveToMutablePoseGlobalTask
 from tf import TransformListener
 from time import sleep
-from geometry_msgs.msg import Pose, Quaternion, Twist, Point, Vector3
 from math import *
 
 
@@ -44,12 +40,9 @@ def main():
     outcome = sm.execute()
 
 # Rotate direction is +1 or -1 depending on how we should rotate
-def create_gate_task_sm(rotate_direction, velocity=0.2):
+def create_gate_task_sm(rotate_direction):
     sm = smach.StateMachine(outcomes=['gate_task_succeeded', 'gate_task_failed'])
     listener = TransformListener()
-    STANDARD_MOVE_SPEED = 3
-    METERS_FROM_GATE = 3
-    MOVE_THROUGH_GATE_SPEED = 0.1
     gate_euler_position = [0, 0, 0, 0, 0, 0]
     image_name = "bootlegger"
     with sm:
@@ -59,7 +52,7 @@ def create_gate_task_sm(rotate_direction, velocity=0.2):
                                     'detected': 'SURVEY_GATE'
                                 })
         
-        smach.StateMachine.add('ROTATE_TO_GATE', MoveToPoseLocalTask(0, 0, 0, 0, 0, 0.25 * rotate_direction, UNKNOWNLISTENER),
+        smach.StateMachine.add('ROTATE_TO_GATE', MoveToPoseLocalTask(0, 0, 0, 0, 0, 0.25 * rotate_direction, listener),
                                 transitions={
                                     'done': 'CHECK_IMAGE_VISIBLE'
                                 })
@@ -69,7 +62,7 @@ def create_gate_task_sm(rotate_direction, velocity=0.2):
                                     'done': 'MOVE_THROUGH_GATE'
                                 })
 
-        smach.StateMachine.add('MOVE_THROUGH_GATE', MoveToPoseLocalTask(*gate_euler_position, UNKNOWNLISTENER),
+        smach.StateMachine.add('MOVE_THROUGH_GATE', MoveToPoseLocalTask(*gate_euler_position, listener),
                                 transitions={
                                     'done': 'gate_task_succeeded'
                                 })
