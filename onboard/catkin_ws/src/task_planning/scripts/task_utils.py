@@ -232,6 +232,13 @@ def parse_pose(pose):
          pose.orientation.w])
     return pose_dict
 
+def object_vector(cv_obj_data):
+    print(cv_obj_data)
+    if not(cv_obj_data) or cv_obj_data.label == 'none':
+        return None
+
+    return [cv_obj_data.x, cv_obj_data.y, cv_obj_data.z]
+
 class MutatePoseTask(Task):
     def __init__(self, mutablePose):
         super().__init__(['done'], input_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'])
