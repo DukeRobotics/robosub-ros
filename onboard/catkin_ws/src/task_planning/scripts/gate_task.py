@@ -5,7 +5,7 @@ from statistics import mean
 from tkinter import image_names
 from urllib.parse import uses_relative
 from numpy import arccos
-from task_utils import object_vector
+from task_utils import object_vector, ObjectVisibleTask
 import smach
 import rospy
 import task_utils
@@ -53,7 +53,7 @@ def create_gate_task_sm(rotate_direction, velocity=0.2):
     gate_euler_position = [0, 0, 0, 0, 0, 0]
     image_name = "bootlegger"
     with sm:
-        smach.StateMachine.add('CHECK_IMAGE_VISIBLE', ImageVisibleTask(image_name, 3),
+        smach.StateMachine.add('CHECK_IMAGE_VISIBLE', ObjectVisibleTask(image_name, 3),
                                 transitions={
                                     'undetected': 'ROTATE_TO_GATE',
                                     'detected': 'SURVEY_GATE'
@@ -77,25 +77,6 @@ def create_gate_task_sm(rotate_direction, velocity=0.2):
     return sm
 
 
-class ImageVisibleTask(Task):
-    def __init__(self, image_name, timeout):
-        super(ImageVisibleTask, self).__init__(["undetected", "detected"],
-                                input_keys=['image_name'],
-                                output_keys=['image_name'])
-        self.image_name = image_name
-        self.timeout = timeout
-
-    def run(self, userdata):
-        millis = 10
-        rate = rospy.Rate(millis)
-        total = 0
-        while total < self.time * 1000:
-            if object_vector(self.cv_data[self.image_name]) is not None:
-                return "detected"
-            total += millis
-            rate.sleep()
-        return "undetected"
-
 class SurveyGateTask(Task):
     def __init__(self, object_name, time, output_euler_position):
         super(SurveyGateTask, self).__init__(["done"])
@@ -116,9 +97,9 @@ class SurveyGateTask(Task):
             total += millis
             rate.sleep()
         
-        avg_x = mean([v[0] for v in captured_vectors])
+        avg_x = mean([v[0] for v in captured_vectors]) + 1
         avg_y = mean([v[1] for v in captured_vectors])
-        avg_z = mean([v[2] for v in captured_vectors])
+        avg_z = mean([v[2] for v in captured_vectors]) - 0.5
         self.output_euler_position = [avg_x, avg_y, avg_z, 0, 0, 0]
         return "done"
 
