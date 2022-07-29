@@ -4,7 +4,8 @@ from functools import total_ordering
 from statistics import mean
 from tkinter import image_names
 
-from numpy import object_
+from numpy import object_, array_equal
+from zmq import curve_public
 from task_utils import object_vector, ObjectVisibleTask
 import smach
 import rospy
@@ -14,6 +15,7 @@ from tf import TransformListener
 from time import sleep
 from math import *
 from custom_msgs.msg import CVObject
+from geometry_msgs.msg import Pose
 
 
 SIDE_THRESHOLD = 0.1  # means gate post is within 1 tenth of the side of the frame
@@ -72,16 +74,20 @@ def create_gate_task_sm(rotate_direction):
                                 })
     return sm
 
+# SIMPLE version below
+
 def cv_object_position(cv_obj_data):
+    if not(cv_obj_data) or cv_obj_data.label == 'none':
+        return None
     return [cv_obj_data.x, cv_obj_data.y, cv_obj_data.z]
 
 def create_simple_gate_task_sm(rotate_direction):
-    sm = smach.StateMachine(outcomes=['gate_task_succeeded', 'gate_task_failed'])
+    sm = smach.StateMachine(outcomes=['gate_task_succeeded'])
     listener = TransformListener()
     global_object_position = [0, 0, 0, 0, 0, 0]
     image_name = "bootleggerbouy"
     with sm:
-        smach.StateMachine.add('SURVEY_GATE_IMAGE_LOCATION', ObjectVisibleTask(image_name, 3),
+        smach.StateMachine.add('SURVEY_GATE_IMAGE_LOCATION', SurveyGateImage(image_name, 1, 3),
                                 transitions={
                                     'undetected': 'ROTATE_TO_GATE',
                                     'detected': 'MOVE_TO_GATE'
@@ -105,16 +111,26 @@ class SurveyGateImage(Task):
         self.object_name = object_name
         self.time = time
         self.global_object_position = global_object_position
-        self.output_global_object_position = [0, 0, 0, 0, 0, 0]
 
     def run(self):
-        millis = 10
+        millis = 200 # for 5 times per second
         rate = rospy.Rate(millis)
         total = 0
 
+        z_offset = -1
+
+        last_cv_object_position = cv_object_position(self.cv_data[self.image_name])
         while total < self.time * 1000:
-            if cv_object_position(self.cv_data[self.image_name]) is not None:
+            cur_cv_object_position = cv_object_position(self.cv_data[self.image_name])
+            if cur_cv_object_position is not None and not array_equal(cur_cv_object_position, last_cv_object_position):
+                self.global_object_position = [ cur_cv_object_position[0],
+                                                cur_cv_object_position[1],
+                                                cur_cv_object_position[2] + z_offset,
+                                                0,
+                                                0,
+                                                0, ]
                 return "detected"
+            last_cv_object_position = cur_cv_object_position
             total += millis
             rate.sleep()
         return "undetected"
