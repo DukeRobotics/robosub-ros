@@ -4,7 +4,7 @@ import cv2
 import image_tools
 import os
 
-FILE_NAME = "test_depthai_camera_stream-7-28-2022"
+FILE_NAME = "gate_and_buoy_footage_3"
 FILE_EXTENSION = ".bag"
 FOLDER_PATH = '/root/dev/robosub-ros/footage_extraction/footage/' # with / at end
 FOOTAGE_PATH = FOLDER_PATH + FILE_NAME + FILE_EXTENSION
@@ -25,18 +25,27 @@ extract_rosbag_frames = input()
 if extract_rosbag_frames == "y":
     bag = rosbag.Bag(FOOTAGE_PATH)
     bridge = CvBridge()
-    count = 0
+    frame_count = 0
+    num_frames_saved = 0
     image_tools = image_tools.ImageTools()
+
+    save_dir = os.path.join(FOLDER_PATH, FILE_NAME)
+    if not os.path.exists(save_dir):
+        os.mkdir(save_dir)
+
     for topic, msg, t in bag.read_messages(topics=[TOPIC_NAME]):
         if topic == TOPIC_NAME:
-            if count % STEP_SIZE == 0:
-                print(msg)
-                cv_img = image_tools.convert_ros_compressed_to_cv2(msg)
-                print(cv_img)
-                # cv2.imwrite(FRAMES_PATH + FILE_NAME + "%d.jpg" % count, cv_img)
-            count += 1
+            if frame_count % STEP_SIZE == 0:
+                cv_img = image_tools.convert_ros_msg_to_cv2(msg)
+                file_save_path = os.path.join(save_dir, f"{FILE_NAME}_{frame_count}.jpg")
+                success = cv2.imwrite(file_save_path, cv_img)
+                print(f"File path: {file_save_path}, success: {success}")
+                if success:
+                    num_frames_saved += 1
+            frame_count += 1
 
-    print("Read " + str(count) + " frames")
+    print(f"Read {frame_count} frames")
+    print(f"Saved {num_frames_saved} frames to {FRAMES_PATH + FILE_NAME}")
 
     # Close the bagfile
     bag.close()
