@@ -84,6 +84,11 @@ def create_buoy_task_sm(rotate_direction):
 
         smach.StateMachine.add('MOVE_TO_BUOY_3', MoveToPoseLocalTask(*buoy_euler_position, listener),
                                 transitions={
+                                    'done': 'MOVE_AWAY_FROM_BUOY'
+                                })
+        
+        smach.StateMachine.add('MOVE_AWAY_FROM_BUOY', MoveToPoseLocalTask(0, 5, 0, 0, 0, 0, listener),
+                                transitions={
                                     'done': 'buoy_task_succeeded'
                                 })
 
