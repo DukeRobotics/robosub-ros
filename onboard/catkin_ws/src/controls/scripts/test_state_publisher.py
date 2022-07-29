@@ -99,19 +99,14 @@ class TestStatePublisher:
             rate.sleep()
 
     def gate_move(self):
-        delay = 30
+        delay = 500
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             delay -= 1
             if delay == 0:
-                self.desired_pose_local.position.z = -0.7
+                self.desired_pose_local.position.z = -1.2
+                self.desired_pose_local.position.x = 8
                 self.recalculate_local_pose()
-                print("Diving")
-            if delay == -38:
-                self.desired_pose_local.position.z = 0
-                self.desired_pose_local.position.x = 5
-                self.recalculate_local_pose()
-                print("Moving forward")
             self._pub_desired_pose.publish(self.desired_pose_transformed)
             # self._pub_current_state.publish(self.current_state)
             rate.sleep()
@@ -149,9 +144,9 @@ class TestStatePublisher:
             rate.sleep()
 
 def main():
-    # TestStatePublisher().circle_pole()
+    TestStatePublisher().gate_move()
     # TestStatePublisher().publish_desired_pose_global()
-    TestStatePublisher().publish_desired_pose_local()
+    # TestStatePublisher().publish_desired_pose_local()
     # TestStatePublisher().publish_desired_twist()
     # TestStatePublisher().publish_desired_power()
 
