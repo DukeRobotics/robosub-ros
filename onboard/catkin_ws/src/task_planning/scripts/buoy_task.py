@@ -3,7 +3,8 @@
 from functools import total_ordering
 from statistics import mean
 from tkinter import image_names
-from task_utils import object_vector, ObjectVisibleTask
+from task_utils import cv_object_position, object_vector, ObjectVisibleTask
+from numpy import object_, array_equal
 import smach
 import rospy
 from task import Task
@@ -40,26 +41,20 @@ def main():
     outcome = sm.execute()
 
 # Rotate direction is +1 or -1 depending on how we should rotate
-def create_buoy_task_sm(rotate_direction):
+def create_buoy_task_sm(rotate_direction, image_name):
     sm = smach.StateMachine(outcomes=['buoy_task_succeeded', 'buoy_task_failed'])
     listener = TransformListener()
     buoy_euler_position = [0, 0, 0, 0, 0, 0]
-    image_name = "gun"
     with sm:
-        smach.StateMachine.add('CHECK_IMAGE_VISIBLE', ObjectVisibleTask(image_name, 3),
+        smach.StateMachine.add('SURVEY_BUOY_1', SurveyBuoyImage(image_name, 1, 0.5, buoy_euler_position),
                                 transitions={
-                                    'undetected': 'ROTATE_TO_buoy',
-                                    'detected': 'SURVEY_BUOY_1'
-                                })
-        
-        smach.StateMachine.add('ROTATE_TO_buoy', MoveToPoseLocalTask(0, 0, 0, 0, 0, 0.25 * rotate_direction, listener),
-                                transitions={
-                                    'done': 'CHECK_IMAGE_VISIBLE'
+                                    'detected': 'MOVE_TO_BUOY_1',
+                                    'undetected': 'ROTATE_TO_BUOY'
                                 })
 
-        smach.StateMachine.add('SURVEY_BUOY_1', SurveyBuoyTask(image_name, 20, 0.5, buoy_euler_position),
+        smach.StateMachine.add('ROTATE_TO_BUOY', MoveToPoseLocalTask(0, 0, 0, 0, 0, 0.25 * rotate_direction, listener),
                                 transitions={
-                                    'done': 'MOVE_TO_BUOY_1'
+                                    'done': 'SURVEY_BUOY_1'
                                 })
 
         smach.StateMachine.add('MOVE_TO_BUOY_1', MoveToPoseLocalTask(*buoy_euler_position, listener),
@@ -67,9 +62,10 @@ def create_buoy_task_sm(rotate_direction):
                                     'done': 'SURVEY_BUOY_2'
                                 })
 
-        smach.StateMachine.add('SURVEY_BUOY_2', SurveyBuoyTask(image_name, 20, 0.5, buoy_euler_position),
+        smach.StateMachine.add('SURVEY_BUOY_2', SurveyBuoyImage(image_name, 1, 0.5, buoy_euler_position),
                                 transitions={
-                                    'done': 'MOVE_TO_BUOY_2'
+                                    'detected': 'MOVE_TO_BUOY_2',
+                                    'undetected': 'buoy_task_failed'
                                 })
 
         smach.StateMachine.add('MOVE_TO_BUOY_2', MoveToPoseLocalTask(*buoy_euler_position, listener),
@@ -77,9 +73,10 @@ def create_buoy_task_sm(rotate_direction):
                                     'done': 'SURVEY_BUOY_3'
                                 })
 
-        smach.StateMachine.add('SURVEY_BUOY_3', SurveyBuoyTask(image_name, 20, 1, buoy_euler_position),
+        smach.StateMachine.add('SURVEY_BUOY_3', SurveyBuoyImage(image_name, 1, 1, buoy_euler_position),
                                 transitions={
-                                    'done': 'MOVE_TO_BUOY_3'
+                                    'detected': 'MOVE_TO_BUOY_3',
+                                    'undetected': 'buoy_task_failed'
                                 })
 
         smach.StateMachine.add('MOVE_TO_BUOY_3', MoveToPoseLocalTask(*buoy_euler_position, listener),
@@ -94,6 +91,38 @@ def create_buoy_task_sm(rotate_direction):
 
     return sm
 
+
+class SurveyBuoyImage(Task):
+    def __init__(self, object_name, time, ratio, global_object_position):
+        super(SurveyBuoyTask, self).__init__(["undetected", "detected"])
+        self.object_name = object_name
+        self.time = time
+        self.ratio = ratio
+        self.global_object_position = global_object_position
+
+    def run(self):
+        millis = 200 # for 5 times per second
+        rate = rospy.Rate(millis)
+        total = 0
+
+        x_offset = 0
+        z_offset = 0
+
+        last_cv_object_position = cv_object_position(self.cv_data[self.image_name])
+        while total < self.time * 1000:
+            cur_cv_object_position = cv_object_position(self.cv_data[self.image_name])
+            if cur_cv_object_position is not None and not array_equal(cur_cv_object_position, last_cv_object_position):
+                self.global_object_position = [ (cur_cv_object_position[0] + x_offset) * self.ratio,
+                                                (cur_cv_object_position[1]) * self.ratio,
+                                                (cur_cv_object_position[2] + z_offset) * self.ratio,
+                                                0,
+                                                0,
+                                                0, ]
+                return "detected"
+            last_cv_object_position = cur_cv_object_position
+            total += millis
+            rate.sleep()
+        return "undetected"
 
 class SurveyBuoyTask(Task):
     def __init__(self, object_name, time, ratio, output_euler_position):
