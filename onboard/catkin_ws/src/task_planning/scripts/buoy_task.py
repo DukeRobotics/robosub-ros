@@ -42,7 +42,7 @@ def main():
 
 # Rotate direction is +1 or -1 depending on how we should rotate
 def create_buoy_task_sm(rotate_direction, image_name):
-    sm = smach.StateMachine(outcomes=['buoy_task_succeeded', 'buoy_task_failed'])
+    sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
     listener = TransformListener()
     buoy_euler_position = [0, 0, 0, 0, 0, 0]
     with sm:
@@ -65,7 +65,7 @@ def create_buoy_task_sm(rotate_direction, image_name):
         smach.StateMachine.add('SURVEY_BUOY_2', SurveyBuoyImage(image_name, 1, 0.5, buoy_euler_position),
                                 transitions={
                                     'detected': 'MOVE_TO_BUOY_2',
-                                    'undetected': 'buoy_task_failed'
+                                    'undetected': 'failed'
                                 })
 
         smach.StateMachine.add('MOVE_TO_BUOY_2', MoveToPoseLocalTask(*buoy_euler_position, listener),
@@ -76,7 +76,7 @@ def create_buoy_task_sm(rotate_direction, image_name):
         smach.StateMachine.add('SURVEY_BUOY_3', SurveyBuoyImage(image_name, 1, 1, buoy_euler_position),
                                 transitions={
                                     'detected': 'MOVE_TO_BUOY_3',
-                                    'undetected': 'buoy_task_failed'
+                                    'undetected': 'failed'
                                 })
 
         smach.StateMachine.add('MOVE_TO_BUOY_3', MoveToPoseLocalTask(*buoy_euler_position, listener),
@@ -86,7 +86,7 @@ def create_buoy_task_sm(rotate_direction, image_name):
         
         smach.StateMachine.add('MOVE_AWAY_FROM_BUOY', MoveToPoseLocalTask(0, 5, 0, 0, 0, 0, listener),
                                 transitions={
-                                    'done': 'buoy_task_succeeded'
+                                    'done': 'succeeded'
                                 })
 
     return sm
