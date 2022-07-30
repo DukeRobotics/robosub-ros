@@ -25,7 +25,7 @@ class TestStatePublisher:
         self.state_listener = rospy.Subscriber("/controls/y_pos/setpoint", Float64, self._on_receive_data_y)
         self.state_listener = rospy.Subscriber("/controls/z_pos/setpoint", Float64, self._on_receive_data_z)
 
-        self.current_setpoint = [0.0, 0.0, 0.0] # x,y,z
+        self.current_setpoint = [0.0, 0.0, 10.0] # x,y,z
         self.MOVE_OFFSET_CONSTANT = 0.2
 
         sleep(1)
@@ -207,10 +207,11 @@ class TestStatePublisher:
         self.desired_pose_local.position.z = z
 
         self.recalculate_local_pose()
-    
+
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             self._pub_desired_pose.publish(self.desired_pose_transformed)
+            print(self.current_setpoint)
             if self.current_setpoint[0] <= self.MOVE_OFFSET_CONSTANT and self.current_setpoint[1] <= self.MOVE_OFFSET_CONSTANT and self.current_setpoint[2] <= self.MOVE_OFFSET_CONSTANT:
                 print("Done with loop")
                 break
@@ -233,7 +234,7 @@ def main():
     # TestStatePublisher().publish_desired_twist()
     # TestStatePublisher().publish_desired_power()
     # TestStatePublisher().test_yaw()
-    TestStatePublisher().move_to_pos_and_stop(1,0,0)
+    TestStatePublisher().move_to_pos_and_stop(2,0,0)
 
 
 if __name__ == '__main__':
