@@ -24,7 +24,7 @@ class TestStatePublisher:
         self.state_listener = rospy.Subscriber("/controls/y_pos/setpoint", Float64, self._on_receive_data_y)
         self.state_listener = rospy.Subscriber("/controls/z_pos/setpoint", Float64, self._on_receive_data_z)
 
-        self.current_setpoint = [0,0,0] #x,y,z
+        self.current_setpoint = [Float64(0), Float64(0), Float64(0)]  #x,y,z
 
         sleep(1)
 
@@ -186,17 +186,16 @@ class TestStatePublisher:
     def test_receive_data(self):
         self.desired_pose_local.position.x = 2
         self.desired_pose_local.position.y = 0
-        self.desired_pose_local.position.z = 0
+        self.desired_pose_local.position.z = -1
 
         self.recalculate_local_pose()
     
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             self._pub_desired_pose.publish(self.desired_pose_transformed)
-            print(self.current_setpoint)
-            print(type(self.current_setpoint[0].data))
-            #if self.current_setpoint[0] <= 0.2 and self.current_setpoint[1] <= 0.2 and self.current_setpoint[2] <= 0.2:
-            #    print("Here!")
+            print(self.current_setpoint[0].data)
+            if self.current_setpoint[0].data <= 0.2 and self.current_setpoint[1].data <= 0.2 and self.current_setpoint[2].data <= 0.2:
+                print("Here!")
             rate.sleep()
     
     def _on_receive_data_x(self, data):
