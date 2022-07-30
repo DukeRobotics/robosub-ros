@@ -239,6 +239,12 @@ def object_vector(cv_obj_data):
 
     return [cv_obj_data.x, cv_obj_data.y, cv_obj_data.z]
 
+def cv_object_position(cv_obj_data):
+    if not(cv_obj_data) or cv_obj_data.label == 'none':
+        return None
+    return [cv_obj_data.x, cv_obj_data.y, cv_obj_data.z]
+
+
 class ObjectVisibleTask(Task):
     def __init__(self, image_name, timeout):
         super(ObjectVisibleTask, self).__init__(["undetected", "detected"],

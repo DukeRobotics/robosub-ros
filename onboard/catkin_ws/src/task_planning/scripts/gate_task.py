@@ -6,7 +6,7 @@ from tkinter import image_names
 
 from numpy import object_, array_equal
 from zmq import curve_public
-from task_utils import object_vector, ObjectVisibleTask
+from task_utils import cv_object_position, object_vector, ObjectVisibleTask
 import smach
 import rospy
 from task import Task
@@ -76,10 +76,6 @@ def create_gate_task_sm_DEFUNCT(rotate_direction):
 
 # SIMPLE version below
 
-def cv_object_position(cv_obj_data):
-    if not(cv_obj_data) or cv_obj_data.label == 'none':
-        return None
-    return [cv_obj_data.x, cv_obj_data.y, cv_obj_data.z]
 
 def create_simple_gate_task_sm(rotate_direction):
     sm = smach.StateMachine(outcomes=['gate_task_succeeded'])
