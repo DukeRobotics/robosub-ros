@@ -180,8 +180,8 @@ class TestStatePublisher:
             rate.sleep()
 
     def test_receive_data(self):
-        self.desired_pose_local.position.x = 0
-        self.desired_pose_local.position.y = -2
+        self.desired_pose_local.position.x = 2
+        self.desired_pose_local.position.y = 0
         self.recalculate_local_pose()
         
         rate = rospy.Rate(15)
