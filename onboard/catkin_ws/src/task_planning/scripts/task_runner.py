@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
-import smach.StateMachine
+import smach
 from gate_task import create_simple_gate_task_sm, create_simplest_gate_task_sm
 from buoy_task import create_buoy_task_sm
 from octagon_task import create_acoustics_task_sm, create_eyeball_octagon_task_sm
