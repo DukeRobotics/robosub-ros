@@ -233,7 +233,7 @@ def main():
     # TestStatePublisher().publish_desired_twist()
     # TestStatePublisher().publish_desired_power()
     # TestStatePublisher().test_yaw()
-    TestStatePublisher().move_to_pos_and_stop(0,0,0)
+    TestStatePublisher().move_to_pos_and_stop(1,0,0)
 
 
 if __name__ == '__main__':
