@@ -2,93 +2,87 @@
 
 import rospy
 import smach
-from gate_task import create_simple_gate_task_sm, create_simplest_gate_task_sm
-from buoy_task import create_buoy_task_sm
-from octagon_task import create_acoustics_task_sm, create_eyeball_octagon_task_sm
+from geometry_msgs.msg import Pose, PoseStamped
+from move_tasks import MoveToPoseLocalTask
+from tf import TransformListener
 
-
-class TaskRunner:
-    RATE = 30  # Hz
-
-    def __init__(self):
-        rospy.init_node("task_planning")
-        # SET THESE TO CURRENT WORKING STATE OF ROBOT
-        self.YAW_WORKING = True
-        self.CV_GATE_WORKING = False
-        self.CV_BUOY_WORKING = False
-        self.ACOUSTICS_WORKING = False
-        self.GATE_ROTATION_DIRECTION = 1
-        self.GATE_IMAGE = "robber"
-        self.BUOY_ROTATION_DIRECTION = -1
-        self.BUOY_IMAGE = "gun"
-        self.OCTAGON_X_ESTIMATE = 20
-        self.OCTAGON_Y_ESTIMATE = -3
-
-    def start(self):
-        sm_top = smach.StateMachine(outcomes=['task_runner_succeeded', 'task_runner_failed'])
-
-        with sm_top:
-            # Determine gate task to run based on state of CV
-            if self.CV_GATE_WORKING:
-                sm_gate = create_simple_gate_task_sm(self.GATE_ROTATION_DIRECTION, self.GATE_IMAGE)
-            else:
-                sm_gate = create_simplest_gate_task_sm()
-            
-            # Determine the next task to run based on state of CV and acoustics
-            if self.CV_BUOY_WORKING:
-                # If the bouy is working, move to buoy task
-                next_step = 'BUOY_TASK'
-            elif self.ACOUSTICS_WORKING:
-                # If the acoustics are working, do octagon with acoustics
-                next_step = 'ACOUSTICS_TASK'
-            else:
-                # If neither is working, do octagon without acoustics
-                next_step = 'EYEBALL_OCTAGON_TASK'
-            
-            # Add the gate task selected earlier to the top state machine
-            smach.StateMachine.add('GATE_TASK', sm_gate,
-                                    transitions={
-                                        'succeeded': next_step,
-                                        'failed': 'task_runner_failed'
-                                    })
-            
-            # If the buoy is working, add the buoy task
-            if self.CV_BUOY_WORKING:
-                sm_buoy = create_buoy_task_sm(self.BUOY_ROTATION_DIRECTION, self.BUOY_IMAGE)
-                if self.ACOUSTICS_WORKING:
-                    next_step = 'ACOUSTICS_TASK'
-                else:
-                    next_step = 'task_runner_succeeded'
-                smach.StateMachine.add('BUOY_TASK', sm_buoy,
-                                        transitions={
-                                            'succeeded': next_step,
-                                            'failed': 'task_runner_failed'
-                                        })
-            
-            # If the acoustics are working, add the acoustics task
-            if self.ACOUSTICS_WORKING:
-                sm_acoustics = create_acoustics_task_sm()
-                smach.StateMachine.add('ACOUSTICS_TASK', sm_acoustics,
-                                        transitions={
-                                            'succeeded': 'task_runner_succeeded',
-                                            'failed': 'task_runner_failed'
-                                        })
-            
-            # If neither are working, just eyeball to octagon and then end
-            elif self.CV_BUOY_WORKING == False:
-                smach.StateMachine.add('EYEBALL_OCTAGON_TASK', create_eyeball_octagon_task_sm(self.OCTAGON_X_ESTIMATE, self.OCTAGON_Y_ESTIMATE),
-                                        transitions={
-                                            'succeeded': 'task_runner_succeeded',
-                                            'failed': 'task_runner_failed'
-                                        })
-
+"""smach.StateMachine.add('MoveLeft2', MoveToPoseLocalTask(2, 0, -1, 0, 0, 0), 
+                            transitions={'done':'MoveLeft3'})
+        smach.StateMachine.add('MoveLeft3', MoveToPoseLocalTask(2, 0, 0, 0, 0, 0), 
+                            transitions={'done':'MoveLeft4'})
+        smach.StateMachine.add('MoveLeft4', MoveToPoseLocalTask(2, 0, 1, 0, 0, 0), 
+                            transitions={'done':'finish'})"""
 
 def main():
+    rospy.init_node("task_planning")
+    MoveLocaly(2, 0, -1, 0, 0, 0).publish_desired_pose_local
+
+def main2():
+    rospy.init_node("task_planning")
+
+    sm_top = smach.StateMachine(outcomes=['finish'])
+    with sm_top:
+        smach.StateMachine.add('MoveLeft2', MoveToPoseLocalTask(2, 0, -1, 0, 0, 0), 
+                            transitions={'done':'MoveLeft3'})
+        smach.StateMachine.add('MoveLeft3', MoveToPoseLocalTask(2, 0, 0, 0, 0, 0), 
+                            transitions={'done':'MoveLeft4'})
+        smach.StateMachine.add('MoveLeft4', MoveToPoseLocalTask(2, 0, 1, 0, 0, 0), 
+                            transitions={'done':'finish'})
+
     try:
-        TaskRunner().start()
+        sm_top.execute()
     except rospy.ROSInterruptException:
         pass
 
-
 if __name__ == '__main__':
     main()
+
+# define state Bas
+class MoveLocaly(smach.State):
+    def __init__(self, px, py, pz, ox, oy, oz, ow):
+        self.px = px
+        self.py = py
+        self.pz = pz
+
+        self.ox = ox
+        self.oy = oy
+        self.oz = oz
+        self.ow = ow
+        self.PUBLISHING_TOPIC_DESIRED_POSE = 'controls/desired_pose'
+        self.listener = TransformListener()
+        smach.State.__init__(self, outcomes=['done'])
+
+    def execute(self, userdata):
+        rospy.loginfo('Executing state BAS')
+        rate = rospy.Rate(15)
+
+        self.publish_desired_pose_local()
+
+        while not rospy.is_shutdown():
+            self._pub_desired_pose.publish(self.desired_pose_transformed)
+            rate.sleep()
+        
+        return 'done'
+
+    def publish_desired_pose_local(self):
+        self._pub_desired_pose = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_POSE, Pose, queue_size=3)
+
+        self.desired_pose_local = Pose()
+        self.desired_pose_local.position.x = self.px
+        self.desired_pose_local.position.y = self.py
+        self.desired_pose_local.position.z = self.pz
+        self.desired_pose_local.orientation.x = self.ox
+        self.desired_pose_local.orientation.y = self.oy
+        self.desired_pose_local.orientation.z = self.oz
+        self.desired_pose_local.orientation.w = self.ow
+
+        pose_stamped = PoseStamped()
+        pose_stamped.pose = self.desired_pose_local
+        pose_stamped.header.frame_id = "base_link"
+        self.desired_pose_transformed = self.listener.transformPose("odom", pose_stamped).pose
+
+        rate = rospy.Rate(15)
+
+        while not rospy.is_shutdown():
+            self._pub_desired_pose.publish(self.desired_pose_transformed)
+            rate.sleep()
