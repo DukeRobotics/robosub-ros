@@ -34,7 +34,7 @@ INPUT FROM CMD copper or bootlegger, direction to rotate, time to wait and movin
 def main():
     rospy.init_node('octagon_task')
     
-    sm = create_eyeball_octagon_sm()
+    sm = create_eyeball_octagon_task_sm()
     sleep(2)
     # Execute SMACH plan
     outcome = sm.execute()
@@ -84,7 +84,7 @@ def create_acoustics_task_sm(rotate_direction):
 
     return sm
 
-def create_eyeball_octagon_sm(x_estimate, y_estimate):
+def create_eyeball_octagon_task_sm(x_estimate, y_estimate):
     sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
     listener = TransformListener()
     with sm:
