@@ -20,7 +20,11 @@ class TestStatePublisher:
     def __init__(self):
         rospy.init_node('test_state_publisher')
         self.listener = TransformListener()
-        self.state_listener = rospy.Subscriber("/controls/x_pos/setpoint", Float64, self._on_receive_data)
+        self.state_listener = rospy.Subscriber("/controls/x_pos/setpoint", Float64, self._on_receive_data_x)
+        self.state_listener = rospy.Subscriber("/controls/y_pos/setpoint", Float64, self._on_receive_data_y)
+        self.state_listener = rospy.Subscriber("/controls/z_pos/setpoint", Float64, self._on_receive_data_z)
+
+        self.current_setpoint = [0,0,0] #x,y,z
 
         sleep(1)
 
@@ -182,17 +186,24 @@ class TestStatePublisher:
     def test_receive_data(self):
         self.desired_pose_local.position.x = 2
         self.desired_pose_local.position.y = 0
+        self.desired_pose_local.position.z = 0
+
         self.recalculate_local_pose()
-        
+    
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             self._pub_desired_pose.publish(self.desired_pose_transformed)
+            print(self.current_setpoint)
             rate.sleep()
     
-    def _on_receive_data(self, data):
-        """Receive the state, update initial_state if it is empty
-        and the task is running"""
-        print(data)
+    def _on_receive_data_x(self, data):
+        self.current_setpoint[0] = data
+
+    def _on_receive_data_y(self, data):
+        self.current_setpoint[1] = data
+
+    def _on_receive_data_z(self, data):
+        self.current_setpoint[2] = data
 
 def main():
     #TestStatePublisher().gate_move()
