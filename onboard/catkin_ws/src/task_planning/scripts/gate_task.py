@@ -138,13 +138,14 @@ class SurveyGateImage(Task):
         rate = rospy.Rate(millis)
         total = 0
 
+        x_offset = 5
         z_offset = -1
 
         last_cv_object_position = cv_object_position(self.cv_data[self.image_name])
         while total < self.time * 1000:
             cur_cv_object_position = cv_object_position(self.cv_data[self.image_name])
             if cur_cv_object_position is not None and not array_equal(cur_cv_object_position, last_cv_object_position):
-                self.global_object_position = [ cur_cv_object_position[0],
+                self.global_object_position = [ cur_cv_object_position[0] + x_offset,
                                                 cur_cv_object_position[1],
                                                 cur_cv_object_position[2] + z_offset,
                                                 0,
