@@ -15,7 +15,7 @@ from tf import TransformListener
 
 def main():
     rospy.init_node("task_planning")
-    MoveLocaly(2, 0, -1, 0, 0, 0, 0).publish_desired_pose_local()
+    MoveLocally(2, 0, -1, 0, 0, 0, 0).publish_desired_pose_local()
 
 def main2():
     rospy.init_node("task_planning")
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     main()
 
 # define state Bas
-class MoveLocaly(smach.State):
+class MoveLocally():
     def __init__(self, px, py, pz, ox, oy, oz, ow):
         self.px = px
         self.py = py

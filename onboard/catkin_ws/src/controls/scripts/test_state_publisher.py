@@ -2,6 +2,7 @@
 
 import rospy
 from geometry_msgs.msg import Pose, Twist
+from std_msgs.msg import Float64
 from nav_msgs.msg import Odometry
 import controls_utils
 from tf import TransformListener
@@ -19,6 +20,7 @@ class TestStatePublisher:
     def __init__(self):
         rospy.init_node('test_state_publisher')
         self.listener = TransformListener()
+        self.state_listener = rospy.Subscriber("/controls/x_pos/setpoint", Float64, self._on_receive_data)
 
         sleep(1)
 
@@ -139,7 +141,7 @@ class TestStatePublisher:
                 self.recalculate_local_pose()
             if delay == 60:
                 print("Going forward")
-                self.desired_pose_local.position.z = -1.2
+                self.desired_pose_local.position.z = 0
                 self.desired_pose_local.position.x = 15
                 self.recalculate_local_pose()
             self._pub_desired_pose.publish(self.desired_pose_transformed)
@@ -177,6 +179,21 @@ class TestStatePublisher:
             # self._pub_current_state.publish(self.current_state)
             rate.sleep()
 
+    def test_receive_data(self):
+        self.desired_pose_local.position.x = 0
+        self.desired_pose_local.position.y = -2
+        self.recalculate_local_pose()
+        
+        rate = rospy.Rate(15)
+        while not rospy.is_shutdown():
+            self._pub_desired_pose.publish(self.desired_pose_transformed)
+            rate.sleep()
+    
+    def _on_receive_data(self, data):
+        """Receive the state, update initial_state if it is empty
+        and the task is running"""
+        print(data)
+
 def main():
     #TestStatePublisher().gate_move()
     # TestStatePublisher().publish_desired_pose_global()
@@ -184,7 +201,7 @@ def main():
     # TestStatePublisher().publish_desired_twist()
     # TestStatePublisher().publish_desired_power()
     # TestStatePublisher().test_yaw()
-    TestStatePublisher().semifinal_sunday_no_camera()
+    TestStatePublisher().test_receive_data()
 
 
 if __name__ == '__main__':
