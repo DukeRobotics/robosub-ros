@@ -139,7 +139,7 @@ class TestStatePublisher:
                 self.recalculate_local_pose()
             if delay == 60:
                 print("Going forward")
-                self.desired_pose_local.position.z = 0
+                self.desired_pose_local.position.z = -1.2
                 self.desired_pose_local.position.x = 15
                 self.recalculate_local_pose()
             self._pub_desired_pose.publish(self.desired_pose_transformed)
@@ -180,10 +180,11 @@ class TestStatePublisher:
 def main():
     #TestStatePublisher().gate_move()
     # TestStatePublisher().publish_desired_pose_global()
-    TestStatePublisher().publish_desired_pose_local()
+    # TestStatePublisher().publish_desired_pose_local()
     # TestStatePublisher().publish_desired_twist()
     # TestStatePublisher().publish_desired_power()
     # TestStatePublisher().test_yaw()
+    TestStatePublisher().semifinal_sunday_no_camera()
 
 
 if __name__ == '__main__':
