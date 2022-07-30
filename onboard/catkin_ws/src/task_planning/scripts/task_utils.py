@@ -232,6 +232,38 @@ def parse_pose(pose):
          pose.orientation.w])
     return pose_dict
 
+def object_vector(cv_obj_data):
+    print(cv_obj_data)
+    if not(cv_obj_data) or cv_obj_data.label == 'none':
+        return None
+
+    return [cv_obj_data.x, cv_obj_data.y, cv_obj_data.z]
+
+def cv_object_position(cv_obj_data):
+    if not(cv_obj_data) or cv_obj_data.label == 'none':
+        return None
+    return [cv_obj_data.x, cv_obj_data.y, cv_obj_data.z]
+
+
+class ObjectVisibleTask(Task):
+    def __init__(self, image_name, timeout):
+        super(ObjectVisibleTask, self).__init__(["undetected", "detected"],
+                                input_keys=['image_name'],
+                                output_keys=['image_name'])
+        self.image_name = image_name
+        self.timeout = timeout
+
+    def run(self, userdata):
+        millis = 10
+        rate = rospy.Rate(millis)
+        total = 0
+        while total < self.time * 1000:
+            if object_vector(self.cv_data[self.image_name]) is not None:
+                return "detected"
+            total += millis
+            rate.sleep()
+        return "undetected"
+
 class MutatePoseTask(Task):
     def __init__(self, mutablePose):
         super().__init__(['done'], input_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'])
