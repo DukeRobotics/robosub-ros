@@ -17,6 +17,12 @@ class TaskRunner:
         self.CV_GATE_WORKING = True
         self.CV_BUOY_WORKING = True
         self.ACOUSTICS_WORKING = False
+        self.GATE_ROTATION_DIRECTION = 1
+        self.GATE_IMAGE = "robber"
+        self.BUOY_ROTATION_DIRECTION = -1
+        self.BUOY_IMAGE = "gun"
+        self.OCTAGON_X_ESTIMATE = 20
+        self.OCTAGON_Y_ESTIMATE = -3
 
     def start(self):
         sm_top = smach.StateMachine(outcomes=['task_runner_succeeded', 'task_runner_failed'])
@@ -24,9 +30,9 @@ class TaskRunner:
         with sm_top:
             # Determine gate task to run based on state of CV
             if self.CV_GATE_WORKING:
-                sm_gate = create_simple_gate_task_sm(1)
+                sm_gate = create_simple_gate_task_sm(self.GATE_ROTATION_DIRECTION, self.GATE_IMAGE)
             else:
-                sm_gate = create_simplest_gate_task_sm(1)
+                sm_gate = create_simplest_gate_task_sm()
             
             # Determine the next task to run based on state of CV and acoustics
             if self.CV_BUOY_WORKING:
@@ -48,7 +54,7 @@ class TaskRunner:
             
             # If the buoy is working, add the buoy task
             if self.CV_BUOY_WORKING:
-                sm_buoy = create_buoy_task_sm()
+                sm_buoy = create_buoy_task_sm(self.BUOY_ROTATION_DIRECTION, self.BUOY_IMAGE)
                 if self.ACOUSTICS_WORKING:
                     next_step = 'ACOUSTICS_TASK'
                 else:
@@ -70,7 +76,7 @@ class TaskRunner:
             
             # If neither are working, just eyeball to octagon and then end
             elif self.CV_BUOY_WORKING == False:
-                smach.StateMachine.add('EYEBALL_OCTAGON_TASK', create_eyeball_octagon_task_sm(),
+                smach.StateMachine.add('EYEBALL_OCTAGON_TASK', create_eyeball_octagon_task_sm(self.OCTAGON_X_ESTIMATE, self.OCTAGON_Y_ESTIMATE),
                                         transitions={
                                             'succeeded': 'task_runner_succeeded',
                                             'failed': 'task_runner_failed'

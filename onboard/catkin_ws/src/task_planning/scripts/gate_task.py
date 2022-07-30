@@ -77,11 +77,10 @@ def create_gate_task_sm_DEFUNCT(rotate_direction):
 # SIMPLE version below
 
 
-def create_simple_gate_task_sm(rotate_direction):
+def create_simple_gate_task_sm(rotate_direction, image_name):
     sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
     listener = TransformListener()
     global_object_position = [0, 0, 0, 0, 0, 0]
-    image_name = "bootleggerbouy"
     with sm:
         smach.StateMachine.add('DIVE_TO_GATE', MoveToPoseGlobalTask(0, 0, -2, 0, 0, 0, listener),
                                 transitions={
