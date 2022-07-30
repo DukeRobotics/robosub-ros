@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 
-from functools import total_ordering
 from statistics import mean
-from tkinter import image_names
 
 from numpy import object_, array_equal
-from zmq import curve_public
 from task_utils import cv_object_position, object_vector, ObjectVisibleTask
 import smach
 import rospy

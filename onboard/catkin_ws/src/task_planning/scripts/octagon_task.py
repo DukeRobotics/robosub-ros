@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-from functools import total_ordering
+
 from statistics import mean
-from tkinter import image_names
+
 from task_utils import object_vector, ObjectVisibleTask
 import smach
 import rospy

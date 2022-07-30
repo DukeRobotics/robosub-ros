@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-from functools import total_ordering
 from statistics import mean
-from tkinter import image_names
 from task_utils import cv_object_position, object_vector, ObjectVisibleTask
 from numpy import object_, array_equal
 import smach

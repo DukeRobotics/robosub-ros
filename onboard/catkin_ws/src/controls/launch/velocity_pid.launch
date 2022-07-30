@@ -85,9 +85,9 @@
             <param name="Kd" value="0.01" />
         </group>
         <group ns="controls/yaw_vel/controller">
-            <param name="Kp" value="2" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.005" />
+            <param name="Kp" value="2" /> <!--2 -->
+            <param name="Ki" value="0.001" /> <!--0.001-->
+            <param name="Kd" value="0.005" /> <!--0.005-->
         </group>
     </group>
 

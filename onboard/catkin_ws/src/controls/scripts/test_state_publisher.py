@@ -39,7 +39,7 @@ class TestStatePublisher:
 
         # These values correspond to the desired local pose of the robot
         self.desired_pose_local = Pose()
-        self.desired_pose_local.position.x = 1
+        self.desired_pose_local.position.x = 0
         self.desired_pose_local.position.y = 0
         self.desired_pose_local.position.z = 0
         self.desired_pose_local.orientation.x = 0
@@ -48,15 +48,15 @@ class TestStatePublisher:
         self.desired_pose_local.orientation.w = 1
         self.recalculate_local_pose()
 
-        # These values correspond to the desired global twist for the robot
+        # These values correspond to the desired local twist for the robot
         # Max linear z speed is ~ -0.26 -- ignore (for different mass)
         self.desired_twist = Twist()
         self.desired_twist.linear.x = 0
         self.desired_twist.linear.y = 0
         self.desired_twist.linear.z = 0
         self.desired_twist.angular.x = 0
-        self.desired_twist.angular.y = -1
-        self.desired_twist.angular.z = 0
+        self.desired_twist.angular.y = 0
+        self.desired_twist.angular.z = 1
 
         # These values correspond to the desired twist for the robot
         self.desired_power = Twist()
@@ -68,11 +68,12 @@ class TestStatePublisher:
         self.desired_power.angular.z = 0
 
         self.current_state = Odometry()
-        self.current_state.pose.pose.position.x = -7
+        self.current_state.pose.pose.position.x = 0
         self.current_state.pose.pose.position.y = 0
         self.current_state.pose.pose.position.z = 0
         self.current_state.pose.pose.orientation.x = 0
         self.current_state.pose.pose.orientation.y = 0
+        self.current_state.pose.pose.orientation.z = 0
         self.current_state.pose.pose.orientation.w = 1
 
         self.current_state.twist.twist.linear.x = 0
@@ -111,6 +112,39 @@ class TestStatePublisher:
             # self._pub_current_state.publish(self.current_state)
             rate.sleep()
 
+    def test_yaw(self):
+        delay = 0
+        rate = rospy.Rate(15)
+        while not rospy.is_shutdown():
+            delay += 1
+            if delay == 1:
+                self.desired_twist.angular.z = 1
+            if delay == 150:
+                print("Stop")
+                self.desired_twist.angular.z = 0
+            if delay == 300:
+                print("Switching direction")
+                self.desired_twist.angular.z = -1
+            self._pub_desired_twist.publish(self.desired_twist)
+            rate.sleep()
+
+    def semifinal_sunday_no_camera(self):
+        delay = 0
+        rate = rospy.Rate(15)
+        while not rospy.is_shutdown():
+            delay += 1
+            if delay == 1:
+                print("Diving")
+                self.desired_pose_local.position.z = -1.2
+                self.recalculate_local_pose()
+            if delay == 60:
+                print("Going forward")
+                self.desired_pose_local.position.z = 0
+                self.desired_pose_local.position.x = 15
+                self.recalculate_local_pose()
+            self._pub_desired_pose.publish(self.desired_pose_transformed)
+            rate.sleep()
+
     def circle_pole(self):
         delay = 0
         rate = rospy.Rate(15)
@@ -144,11 +178,12 @@ class TestStatePublisher:
             rate.sleep()
 
 def main():
-    TestStatePublisher().gate_move()
+    #TestStatePublisher().gate_move()
     # TestStatePublisher().publish_desired_pose_global()
-    # TestStatePublisher().publish_desired_pose_local()
+    TestStatePublisher().publish_desired_pose_local()
     # TestStatePublisher().publish_desired_twist()
     # TestStatePublisher().publish_desired_power()
+    # TestStatePublisher().test_yaw()
 
 
 if __name__ == '__main__':
