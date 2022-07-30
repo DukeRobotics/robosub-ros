@@ -15,7 +15,7 @@ from tf import TransformListener
 
 def main():
     rospy.init_node("task_planning")
-    MoveLocaly(2, 0, -1, 0, 0, 0).publish_desired_pose_local
+    MoveLocaly(2, 0, -1, 0, 0, 0, 0).publish_desired_pose_local()
 
 def main2():
     rospy.init_node("task_planning")
