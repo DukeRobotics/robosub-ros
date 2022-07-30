@@ -34,14 +34,15 @@ INPUT FROM CMD copper or bootlegger, direction to rotate, time to wait and movin
 def main():
     rospy.init_node('octagon_task')
     
-    sm = create_octagon_task_sm()
+    sm = create_eyeball_octagon_sm()
     sleep(2)
     # Execute SMACH plan
     outcome = sm.execute()
 
 # Rotate direction is +1 or -1 depending on how we should rotate
-def create_octagon_task_sm(rotate_direction):
-    sm = smach.StateMachine(outcomes=['octagon_task_succeeded', 'octagon_task_failed'])
+def create_acoustics_task_sm(rotate_direction):
+    # NOTE: THIS IS ENTIRELY WRONG
+    sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
     listener = TransformListener()
     octagon_euler_position = [0, 0, 0, 0, 0, 0]
     image_name = "gun"
@@ -78,11 +79,26 @@ def create_octagon_task_sm(rotate_direction):
         
         smach.StateMachine.add('MOVE_AWAY_FROM_octagon', MoveToPoseLocalTask(0, 0, 4, 0, 0, 0, listener),
                                 transitions={
-                                    'done': 'octagon_task_succeeded'
+                                    'done': 'succeeded'
                                 })
 
     return sm
 
+def create_eyeball_octagon_sm(x_estimate, y_estimate):
+    sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
+    listener = TransformListener()
+    with sm:
+        smach.StateMachine.add('MOVE_TO_OCTAGON', MoveToPoseLocalTask(x_estimate, y_estimate, 0, 0, 0, 0, listener),
+                                transitions={
+                                    'done': 'SURFACE'
+                                })
+
+        smach.StateMachine.add('SURFACE', MoveToPoseLocalTask(0, 0, 20, 0, 0, 0, listener),
+                                transitions={
+                                    'done': 'succeeded'
+                                })
+
+    return sm
 
 class SurveyOctagonTask(Task):
     def __init__(self, object_name, time, ratio, output_euler_position):
