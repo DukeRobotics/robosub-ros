@@ -40,13 +40,13 @@ def main():
     rospy.init_node('gate_task')
     
     #needs direction to work
-    sm = create_gate_task_sm()
+    sm = create_simple_gate_task_sm()
     sleep(2)
     # Execute SMACH plan
     outcome = sm.execute()
 
 # Rotate direction is +1 or -1 depending on how we should rotate
-def create_gate_task_sm(rotate_direction):
+def create_gate_task_sm_DEFUNCT(rotate_direction):
     sm = smach.StateMachine(outcomes=['gate_task_succeeded', 'gate_task_failed'])
     listener = TransformListener()
     gate_euler_position = [0, 0, 0, 0, 0, 0]
@@ -87,6 +87,11 @@ def create_simple_gate_task_sm(rotate_direction):
     global_object_position = [0, 0, 0, 0, 0, 0]
     image_name = "bootleggerbouy"
     with sm:
+        smach.StateMachine.add('DIVE_TO_GATE', MoveToPoseGlobalTask(0, 0, -2, 0, 0, 0, listener),
+                                transitions={
+                                    'done': 'SURVEY_GATE_IMAGE_LOCATION'
+                                })
+
         smach.StateMachine.add('SURVEY_GATE_IMAGE_LOCATION', SurveyGateImage(image_name, 1, 3),
                                 transitions={
                                     'undetected': 'ROTATE_TO_GATE',
@@ -101,6 +106,22 @@ def create_simple_gate_task_sm(rotate_direction):
         smach.StateMachine.add('MOVE_TO_GATE', MoveToPoseLocalTask(*global_object_position, listener),
                                 transitions={
                                     'done': 'gate_task_succeeded'
+                                })
+
+    return sm
+
+def create_simplest_gate_task_sm():
+    sm = smach.StateMachine(outcomes=['gate_task_succeeded'])
+    listener = TransformListener()
+    with sm:
+        smach.StateMachine.add('MOVE_1', MoveToPoseLocalTask(2.5, 0, -2, 0, 0, 0, listener),
+                                transitions={
+                                    'done': 'MOVE_2'
+                                })
+        
+        smach.StateMachine.add('MOVE_2', MoveToPoseLocalTask(2.5, 0, 0, 0, 0, 0, listener),
+                                transitions={
+                                    'done': 'MOVE_3'
                                 })
 
     return sm
