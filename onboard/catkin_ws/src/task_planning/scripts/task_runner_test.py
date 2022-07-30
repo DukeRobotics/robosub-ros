@@ -48,17 +48,23 @@ class MoveLocaly(smach.State):
         self.oy = oy
         self.oz = oz
         self.ow = ow
+        self.PUBLISHING_TOPIC_DESIRED_POSE = 'controls/desired_pose'
         self.listener = TransformListener()
         smach.State.__init__(self, outcomes=['done'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state BAS')
+        rate = rospy.Rate(15)
+
+        self.publish_desired_pose_local()
+
+        while not rospy.is_shutdown():
+            self._pub_desired_pose.publish(self.desired_pose_transformed)
+            rate.sleep()
+        
         return 'done'
 
     def publish_desired_pose_local(self):
-        rate = rospy.Rate(15)
-        self.PUBLISHING_TOPIC_DESIRED_POSE = 'controls/desired_pose'
-
         self._pub_desired_pose = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_POSE, Pose, queue_size=3)
 
         self.desired_pose_local = Pose()
@@ -74,7 +80,9 @@ class MoveLocaly(smach.State):
         pose_stamped.pose = self.desired_pose_local
         pose_stamped.header.frame_id = "base_link"
         self.desired_pose_transformed = self.listener.transformPose("odom", pose_stamped).pose
-        
+
+        rate = rospy.Rate(15)
+
         while not rospy.is_shutdown():
             self._pub_desired_pose.publish(self.desired_pose_transformed)
             rate.sleep()
