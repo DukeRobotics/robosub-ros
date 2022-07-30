@@ -13,6 +13,7 @@ class TestStatePublisher:
     PUBLISHING_TOPIC_DESIRED_TWIST = 'controls/desired_twist'
     PUBLISHING_TOPIC_CURRENT_STATE = '/state'
     PUBLISHING_TOPIC_DESIRED_POWER = 'controls/desired_power'
+    
 
     def recalculate_local_pose(self):
         self.desired_pose_transformed = controls_utils.transform_pose(self.listener, "base_link", "odom", self.desired_pose_local)
@@ -24,7 +25,12 @@ class TestStatePublisher:
         self.state_listener = rospy.Subscriber("/controls/y_pos/setpoint", Float64, self._on_receive_data_y)
         self.state_listener = rospy.Subscriber("/controls/z_pos/setpoint", Float64, self._on_receive_data_z)
 
+<<<<<<< HEAD
         self.current_setpoint = [Float64(0), Float64(0), Float64(0)]  #x,y,z
+=======
+        self.current_setpoint = [0.0, 0.0, 0.0] # x,y,z
+        self.MOVE_OFFSET_CONSTANT = 0.2
+>>>>>>> f5c707b063de987e351b701915af6b3121496344
 
         sleep(1)
 
@@ -193,19 +199,42 @@ class TestStatePublisher:
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             self._pub_desired_pose.publish(self.desired_pose_transformed)
+<<<<<<< HEAD
             print(self.current_setpoint[0].data)
             if self.current_setpoint[0].data <= 0.2 and self.current_setpoint[1].data <= 0.2 and self.current_setpoint[2].data <= 0.2:
                 print("Here!")
+=======
+            print(self.current_setpoint)
+            print(type(self.current_setpoint[0].data))
+            if self.current_setpoint[0] <= 0.2 and self.current_setpoint[1] <= 0.2 and self.current_setpoint[2] <= 0.2:
+                print("Here!")
             rate.sleep()
+
+    def move_to_pos_and_stop(self, x, y, z):
+        self.desired_pose_local.position.x = x
+        self.desired_pose_local.position.y = y
+        self.desired_pose_local.position.z = z
+
+        self.recalculate_local_pose()
+    
+        rate = rospy.Rate(15)
+        while not rospy.is_shutdown():
+            self._pub_desired_pose.publish(self.desired_pose_transformed)
+            if self.current_setpoint[0] <= self.MOVE_OFFSET_CONSTANT and self.current_setpoint[1] <= self.MOVE_OFFSET_CONSTANT and self.current_setpoint[2] <= self.MOVE_OFFSET_CONSTANT:
+                print("Done with loop")
+                break
+>>>>>>> f5c707b063de987e351b701915af6b3121496344
+            rate.sleep()
+        print("Finished")
     
     def _on_receive_data_x(self, data):
-        self.current_setpoint[0] = data
+        self.current_setpoint[0] = data.data
 
     def _on_receive_data_y(self, data):
-        self.current_setpoint[1] = data
+        self.current_setpoint[1] = data.data
 
     def _on_receive_data_z(self, data):
-        self.current_setpoint[2] = data
+        self.current_setpoint[2] = data.data
 
 def main():
     #TestStatePublisher().gate_move()
@@ -214,7 +243,7 @@ def main():
     # TestStatePublisher().publish_desired_twist()
     # TestStatePublisher().publish_desired_power()
     # TestStatePublisher().test_yaw()
-    TestStatePublisher().test_receive_data()
+    TestStatePublisher().move_to_pos_and_stop(0,0,0)
 
 
 if __name__ == '__main__':
