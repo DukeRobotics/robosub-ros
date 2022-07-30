@@ -194,7 +194,7 @@ class TestStatePublisher:
         while not rospy.is_shutdown():
             self._pub_desired_pose.publish(self.desired_pose_transformed)
             print(self.current_setpoint)
-            print(type(self.current_setpoint[0]))
+            print(type(self.current_setpoint[0].data))
             #if self.current_setpoint[0] <= 0.2 and self.current_setpoint[1] <= 0.2 and self.current_setpoint[2] <= 0.2:
             #    print("Here!")
             rate.sleep()
