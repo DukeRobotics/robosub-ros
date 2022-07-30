@@ -14,8 +14,8 @@ class TaskRunner:
         rospy.init_node("task_planning")
         # SET THESE TO CURRENT WORKING STATE OF ROBOT
         self.YAW_WORKING = True
-        self.CV_GATE_WORKING = True
-        self.CV_BUOY_WORKING = True
+        self.CV_GATE_WORKING = False
+        self.CV_BUOY_WORKING = False
         self.ACOUSTICS_WORKING = False
         self.GATE_ROTATION_DIRECTION = 1
         self.GATE_IMAGE = "robber"
