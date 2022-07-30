@@ -36,8 +36,8 @@
        	# previously set to 1, 0.001, 0.01
 	<group ns="controls/yaw_pos/controller">
             <param name="Kp" value="0.5" />
-            <param name="Ki" value="0.5" />
-            <param name="Kd" value="0.25" />
+            <param name="Ki" value="0" /> <!--0.5 -->
+            <param name="Kd" value="0.15" /> <!--0.25 -->
         </group>
     </group>
 
