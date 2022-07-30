@@ -1,0 +1,5 @@
+<launch>
+	
+	<node pkg="task_planning" name="task_runner_test" type="task_runner_test.py" output="screen" />
+
+</launch>
