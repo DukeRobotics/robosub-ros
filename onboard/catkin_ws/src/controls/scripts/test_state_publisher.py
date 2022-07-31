@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import secrets
 import rospy
 from geometry_msgs.msg import Pose, Twist
 from std_msgs.msg import Float64
@@ -27,8 +28,6 @@ class TestStatePublisher:
 
         self.current_setpoint = [100.0, 100.0, 100.0] # x,y,z
         self.MOVE_OFFSET_CONSTANT = 0.2
-
-
 
         sleep(1)
 
@@ -248,6 +247,19 @@ class TestStatePublisher:
         #z_submerge = -1 #tune by finding depth for which we can travel length of pool without surfacing (until of couse we want to)
         #self.move_to_pos_and_stop(0,0,z_submerge)
         #print("Submerge done")
+
+
+        #initial delay
+        sec_to_wait = 15
+        rate = rospy.Rate(15)
+        while not rospy.is_shutdown():
+            delay += 1
+            if delay % 15 == 0:
+                print(delay / 15)
+            if delay > 15*sec_to_wait:
+                break
+            rate.sleep()
+        print("starting!")
         
         x_forward_to_octagon = 17.5 #tune by measurement of pool by driving robot and looking at controls setpoint, then negate it
         self.move_to_pos_and_stop(x_forward_to_octagon,0,-1)
