@@ -28,6 +28,8 @@ class TestStatePublisher:
         self.current_setpoint = [0.0, 0.0, 10.0] # x,y,z
         self.MOVE_OFFSET_CONSTANT = 0.2
 
+
+
         sleep(1)
 
         self._pub_desired_pose = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_POSE, Pose, queue_size=3)
@@ -136,7 +138,7 @@ class TestStatePublisher:
             self._pub_desired_twist.publish(self.desired_twist)
             rate.sleep()
 
-    def semifinal_sunday_no_camera(self):
+    def semifinal_sunday_with_timings(self):
         delay = 0
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
@@ -217,6 +219,18 @@ class TestStatePublisher:
                 break
             rate.sleep()
         print("Finished")
+
+    
+    def semifinal_sunday_v1(self):
+        #No style, no random starting orientation (just point directly to the octagon)
+        z_submerge = -1 #tune by finding depth for which we can travel length of pool without surfacing (until of couse we want to)
+        TestStatePublisher.move_to_pos_and_stop(0,0,z_submerge)
+        x_forward_to_octagon = 25 #tune by measurement of pool by driving robot and looking at controls setpoint, then negate it
+        TestStatePublisher.move_to_pos_and_stop(x_forward_to_octagon,0,0)
+        z_surface = -z_submerge #should cause robot to reach surface, provided robot is positively buoyant
+        TestStatePublisher.move_to_pos_and_stop(0,0,z_surface)
+
+    #Then do v2 and v3; ideally we do v3 successfully and earn 2350 points total
     
     def _on_receive_data_x(self, data):
         self.current_setpoint[0] = data.data
