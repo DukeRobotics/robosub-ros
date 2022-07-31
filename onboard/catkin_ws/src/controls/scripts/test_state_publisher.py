@@ -27,7 +27,7 @@ class TestStatePublisher:
         self.state_listener = rospy.Subscriber("/controls/z_pos/setpoint", Float64, self._on_receive_data_z)
 
         self.current_setpoint = [100.0, 100.0, 100.0] # x,y,z
-        self.MOVE_OFFSET_CONSTANT = 0.2
+        self.MOVE_OFFSET_CONSTANT = 1
 
         sleep(1)
 
@@ -48,7 +48,7 @@ class TestStatePublisher:
 
         # These values correspond to the desired local pose of the robot
         self.desired_pose_local = Pose()
-        self.desired_pose_local.position.x = 2
+        self.desired_pose_local.position.x = 0
         self.desired_pose_local.position.y = 0
         self.desired_pose_local.position.z = 0
         self.desired_pose_local.orientation.x = 0
@@ -250,7 +250,8 @@ class TestStatePublisher:
 
 
         #initial delay
-        sec_to_wait = 15
+        delay = 0
+        sec_to_wait = 90
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             delay += 1
@@ -264,6 +265,8 @@ class TestStatePublisher:
         x_forward_to_octagon = 17.5 #tune by measurement of pool by driving robot and looking at controls setpoint, then negate it
         self.move_to_pos_and_stop(x_forward_to_octagon,0,-1)
         print("Move forward done")
+
+        self.surface_in_octagon()
         
         #z_surface = -z_submerge #should cause robot to reach surface, provided robot is positively buoyant
         #self.move_to_pos_and_stop(0,0,z_surface)
