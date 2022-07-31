@@ -25,7 +25,7 @@ class TestStatePublisher:
         self.state_listener = rospy.Subscriber("/controls/y_pos/setpoint", Float64, self._on_receive_data_y)
         self.state_listener = rospy.Subscriber("/controls/z_pos/setpoint", Float64, self._on_receive_data_z)
 
-        self.current_setpoint = [0.0, 0.0, 10.0] # x,y,z
+        self.current_setpoint = [100.0, 100.0, 100.0] # x,y,z
         self.MOVE_OFFSET_CONSTANT = 0.2
 
 
@@ -49,7 +49,7 @@ class TestStatePublisher:
 
         # These values correspond to the desired local pose of the robot
         self.desired_pose_local = Pose()
-        self.desired_pose_local.position.x = 0
+        self.desired_pose_local.position.x = 2
         self.desired_pose_local.position.y = 0
         self.desired_pose_local.position.z = 0
         self.desired_pose_local.orientation.x = 0
@@ -211,24 +211,51 @@ class TestStatePublisher:
         self.recalculate_local_pose()
 
         rate = rospy.Rate(15)
+        
+        delay = 0
         while not rospy.is_shutdown():
+            delay += 1
             self._pub_desired_pose.publish(self.desired_pose_transformed)
-            print(self.current_setpoint)
-            if self.current_setpoint[0] <= self.MOVE_OFFSET_CONSTANT and self.current_setpoint[1] <= self.MOVE_OFFSET_CONSTANT and self.current_setpoint[2] <= self.MOVE_OFFSET_CONSTANT:
-                print("Done with loop")
+            
+            if delay > 30:
+                #print(self.current_setpoint)
+                #if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT and abs(self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT and abs(self.current_setpoint[2]) <= self.MOVE_OFFSET_CONSTANT:
+                if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT and abs(self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT:
+                    #print("Done with loop")
+                    break
+            rate.sleep()
+        #print("Finished")
+
+    def surface_in_octagon(self):
+        self.desired_pose_local.position.x = 0
+        self.desired_pose_local.position.y = 0
+        self.desired_pose_local.position.z = 10
+
+        self.recalculate_local_pose()
+
+        rate = rospy.Rate(15)
+        
+        delay = 0
+        while not rospy.is_shutdown():
+            delay += 1
+            self._pub_desired_pose.publish(self.desired_pose_transformed)
+            if delay > 100:
                 break
             rate.sleep()
-        print("Finished")
-
     
     def semifinal_sunday_v1(self):
         #No style, no random starting orientation (just point directly to the octagon)
-        z_submerge = -1 #tune by finding depth for which we can travel length of pool without surfacing (until of couse we want to)
-        TestStatePublisher.move_to_pos_and_stop(0,0,z_submerge)
-        x_forward_to_octagon = 25 #tune by measurement of pool by driving robot and looking at controls setpoint, then negate it
-        TestStatePublisher.move_to_pos_and_stop(x_forward_to_octagon,0,0)
-        z_surface = -z_submerge #should cause robot to reach surface, provided robot is positively buoyant
-        TestStatePublisher.move_to_pos_and_stop(0,0,z_surface)
+        #z_submerge = -1 #tune by finding depth for which we can travel length of pool without surfacing (until of couse we want to)
+        #self.move_to_pos_and_stop(0,0,z_submerge)
+        #print("Submerge done")
+        
+        x_forward_to_octagon = 17.5 #tune by measurement of pool by driving robot and looking at controls setpoint, then negate it
+        self.move_to_pos_and_stop(x_forward_to_octagon,0,-1)
+        print("Move forward done")
+        
+        #z_surface = -z_submerge #should cause robot to reach surface, provided robot is positively buoyant
+        #self.move_to_pos_and_stop(0,0,z_surface)
+        #print("Rise to surface done")
 
     #Then do v2 and v3; ideally we do v3 successfully and earn 2350 points total
     
@@ -248,7 +275,8 @@ def main():
     # TestStatePublisher().publish_desired_twist()
     # TestStatePublisher().publish_desired_power()
     # TestStatePublisher().test_yaw()
-    TestStatePublisher().move_to_pos_and_stop(2,0,0)
+    # TestStatePublisher().move_to_pos_and_stop(17.5,0,-1)
+    TestStatePublisher().semifinal_sunday_v1()
 
 
 if __name__ == '__main__':
