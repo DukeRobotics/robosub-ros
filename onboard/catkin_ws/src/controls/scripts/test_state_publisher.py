@@ -2,6 +2,7 @@
 
 import secrets
 import rospy
+from custom_msgs.msg import CVObject
 from geometry_msgs.msg import Pose, Twist
 from std_msgs.msg import Float64
 from nav_msgs.msg import Odometry
@@ -26,8 +27,21 @@ class TestStatePublisher:
         self.state_listener = rospy.Subscriber("/controls/y_pos/setpoint", Float64, self._on_receive_data_y)
         self.state_listener = rospy.Subscriber("/controls/z_pos/setpoint", Float64, self._on_receive_data_z)
 
+        self.cv_listener_gman = rospy.Subscriber("/cv/right/buoy_gman", CVObject, self._on_receive_buoy_gman)
+        self.cv_listener_bootlegger = rospy.Subscriber("/cv/right/buoy_bootlegger", CVObject, self._on_receive_buoy_bootlegger)
+
         self.current_setpoint = [100.0, 100.0, 100.0] # x,y,z
         self.MOVE_OFFSET_CONSTANT = 1
+
+        self.gman_xmin = 0.0
+        self.gman_ymin = 0.0
+        self.gman_xmax = 0.0
+        self.gman_ymax = 0.0
+
+        self.bootlegger_xmin = 0.0
+        self.bootlegger_ymin = 0.0
+        self.bootlegger_xmax = 0.0
+        self.bootlegger_ymax = 0.0
 
         sleep(1)
 
@@ -273,6 +287,10 @@ class TestStatePublisher:
         #print("Rise to surface done")
 
     #Then do v2 and v3; ideally we do v3 successfully and earn 2350 points total
+
+    
+
+
     
     def _on_receive_data_x(self, data):
         self.current_setpoint[0] = data.data
@@ -282,6 +300,22 @@ class TestStatePublisher:
 
     def _on_receive_data_z(self, data):
         self.current_setpoint[2] = data.data
+
+    def _on_receive_buoy_gman(self, data):
+        print("Receiving gman!")
+        self.gman_xmin = data.xmin
+        self.gman_xmax = data.xmax
+        self.gman_ymin = data.ymin
+        self.gman_ymax = data.ymax
+
+    def _on_receive_buoy_bootlegger(self, data):
+        print("Receiving bootlegger!")
+        self.bootlegger_xmin = data.xmin
+        self.bootlegger_xmax = data.xmax
+        self.bootlegger_ymin = data.ymin
+        self.bootlegger_ymax = data.ymax
+
+     
 
 def main():
     #TestStatePublisher().gate_move()
