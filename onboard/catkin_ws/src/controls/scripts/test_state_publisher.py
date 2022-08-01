@@ -288,10 +288,10 @@ class TestStatePublisher:
 
     #Then do v2 and v3; ideally we do v3 successfully and earn 2350 points total
 
-    
+    def test_comm_cv(self):
+        while not rospy.is_shutdown():
+            print(self.bootlegger_xmin)
 
-
-    
     def _on_receive_data_x(self, data):
         self.current_setpoint[0] = data.data
 
@@ -302,14 +302,12 @@ class TestStatePublisher:
         self.current_setpoint[2] = data.data
 
     def _on_receive_buoy_gman(self, data):
-        print("Receiving gman!")
         self.gman_xmin = data.xmin
         self.gman_xmax = data.xmax
         self.gman_ymin = data.ymin
         self.gman_ymax = data.ymax
 
     def _on_receive_buoy_bootlegger(self, data):
-        print("Receiving bootlegger!")
         self.bootlegger_xmin = data.xmin
         self.bootlegger_xmax = data.xmax
         self.bootlegger_ymin = data.ymin
@@ -325,7 +323,10 @@ def main():
     # TestStatePublisher().publish_desired_power()
     # TestStatePublisher().test_yaw()
     # TestStatePublisher().move_to_pos_and_stop(17.5,0,-1)
-    TestStatePublisher().semifinal_sunday_v1()
+    #TestStatePublisher().semifinal_sunday_v1()
+    TestStatePublisher().test_comm_cv()
+
+    
 
 
 if __name__ == '__main__':
