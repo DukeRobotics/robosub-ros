@@ -289,8 +289,10 @@ class TestStatePublisher:
     #Then do v2 and v3; ideally we do v3 successfully and earn 2350 points total
 
     def test_comm_cv(self):
+        rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             print(self.bootlegger_xmin)
+            rate.sleep()
 
     def _on_receive_data_x(self, data):
         self.current_setpoint[0] = data.data
