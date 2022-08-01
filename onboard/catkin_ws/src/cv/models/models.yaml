@@ -1,4 +1,4 @@
 gate:
-  classes: [gate, gate_side_left, gate_side_right, gate_tick, gate_top, gate_gman, gate_bootlegger, buoy_gman, buoy_bootlegger]
+  classes: [buoy_bootlegger, buoy_gman, gate, gate_bootlegger, gate_gman, gate_side_left, gate_side_right, gate_tick, gate_top]
   topic: /cv
-  weights: robosub-2022-detecto-1210-760-10-epoch-FIXED.pth
+  weights: detecto-1210-760-24-epochs-7-31-2022-gatepicsandbuoys-FIXED.pth
