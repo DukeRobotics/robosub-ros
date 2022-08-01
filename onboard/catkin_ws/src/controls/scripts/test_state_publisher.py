@@ -304,16 +304,18 @@ class TestStatePublisher:
         self.current_setpoint[2] = data.data
 
     def _on_receive_buoy_gman(self, data):
-        self.gman_xmin = data.xmin
-        self.gman_xmax = data.xmax
-        self.gman_ymin = data.ymin
-        self.gman_ymax = data.ymax
+        if data.score > 0.7:
+            self.gman_xmin = data.xmin
+            self.gman_xmax = data.xmax
+            self.gman_ymin = data.ymin
+            self.gman_ymax = data.ymax
 
     def _on_receive_buoy_bootlegger(self, data):
-        self.bootlegger_xmin = data.xmin
-        self.bootlegger_xmax = data.xmax
-        self.bootlegger_ymin = data.ymin
-        self.bootlegger_ymax = data.ymax
+        if data.score > 0.7:
+            self.bootlegger_xmin = data.xmin
+            self.bootlegger_xmax = data.xmax
+            self.bootlegger_ymin = data.ymin
+            self.bootlegger_ymax = data.ymax
 
      
 
