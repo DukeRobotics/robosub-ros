@@ -71,13 +71,13 @@ class Detector:
                 self.init_model(model_name)
 
                 # Generate model predictions
-                labels, boxes, scores = model['predictor'].predict(image)
+                labels, boxes, scores = model['predictor'].predict_top(image)
                 # Pass raw model predictions into nms algorithm for filtering
-                nms_labels, nms_boxes, nms_scores = utils.nms(labels, boxes,
-                                                              scores.detach())
+                # nms_labels, nms_boxes, nms_scores = utils.nms(labels, boxes,
+                #                                               scores.detach())
 
                 # Publish post-nms predictions
-                self.publish_predictions((nms_labels, nms_boxes, nms_scores),
+                self.publish_predictions((labels, boxes, scores),
                                          model['publisher'], image.shape)
 
     # Publish predictions with the given publisher
