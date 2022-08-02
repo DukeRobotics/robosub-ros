@@ -197,6 +197,16 @@ class TestStatePublisher:
             # self._pub_current_state.publish(self.current_state)
             rate.sleep()
 
+    # Publish self.desired_twist for a fixed duration
+    def publish_desired_twist_duration(self, duration):
+        rate = rospy.Rate(15)
+        tot = 0
+        while not rospy.is_shutdown() and tot < duration:
+            self._pub_desired_twist.publish(self.desired_twist)
+            # self._pub_current_state.publish(self.current_state)
+            rate.sleep()
+            tot += 15
+
     def publish_desired_power(self):
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
@@ -269,6 +279,49 @@ class TestStatePublisher:
                 if abs(self.current_yaw) <= self.MOVE_OFFSET_CONSTANT_ANGULAR and abs(self.current_yaw) <= self.MOVE_OFFSET_CONSTANT_ANGULAR:
                     break
             rate.sleep()
+    
+    # Point the robot forward in the global frame
+    def global_face_foward(self):
+        # Set desired local pose to current postion
+        self.desired_pose_local.position.x = 0
+        self.desired_pose_local.position.y = 0
+        self.desired_pose_local.position.z = 0
+        self.desired_pose_local.orientation.x = 0
+        self.desired_pose_local.orientation.y = 0
+        self.desired_pose_local.orientation.z = 0
+        self.desired_pose_local.orientation.w = 1
+
+        # Convert to global pose
+        self.recalculate_local_pose()
+
+        # Set global pose to point forward
+        self.desired_pose_transformed.orientation.x = 0
+        self.desired_pose_transformed.orientation.y = 0
+        self.desired_pose_transformed.orientation.z = 0
+        self.desired_pose_transformed.orientation.w = 1
+
+        rate = rospy.Rate(15)
+        
+        # DELAY BASED STOPPING PROTOCOL
+        # tot = 0
+        # duration = 60_000
+        # while tot < duration and not rospy.is_shutdown():
+        #     self._pub_desired_pose.publish(self.desired_pose_transformed)
+        #     tot += 15
+        #     rate.sleep()
+        
+        # SET POINT BASED STOPPING PROTOCOL
+        delay = 0
+        while not rospy.is_shutdown():
+            delay += 1
+            self._pub_desired_pose.publish(self.desired_pose_transformed)
+
+            if delay > 30:
+                if abs(self.current_yaw) <= self.MOVE_OFFSET_CONSTANT_ANGULAR and abs(self.current_yaw) <= self.MOVE_OFFSET_CONSTANT_ANGULAR:
+                    break
+            rate.sleep()
+        
+
 
     def surface_in_octagon(self):
         self.desired_pose_local.position.x = 0
@@ -319,6 +372,38 @@ class TestStatePublisher:
 
     #Then do v2 and v3; ideally we do v3 successfully and earn 2350 points total
 
+    def last_chance(self):
+        # Dear god please work
+
+        #initial delay
+        delay = 0
+        sec_to_wait = 90
+        rate = rospy.Rate(15)
+        while not rospy.is_shutdown():
+            delay += 1
+            if delay % 15 == 0:
+                print(delay / 15)
+            if delay > 15*sec_to_wait:
+                break
+            rate.sleep()
+        print("starting!")
+        
+        # Move through the gate
+        self.move_to_pos_and_stop(5,0,-1.5)
+        print("Move forward done")
+        # Spin for the listed duration
+        self.publish_desired_twist_duration(45_000)
+
+        # Face towards the octagon
+        self.global_face_forward()
+
+        # Move to the octagon
+        self.move_to_pos_and_stop(17, 0, 0)
+
+        # Surface in the octagon
+        self.move_to_pos_and_stop(0, 0, 100)
+
+    
     def test_comm_cv(self):
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
