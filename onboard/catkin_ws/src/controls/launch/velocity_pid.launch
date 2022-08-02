@@ -70,7 +70,7 @@
             <param name="Kd" value="0.05" />
         </group>
         <group ns="controls/z_vel/controller">
-            <param name="Kp" value="20" /> <!--10-->
+            <param name="Kp" value="10" /> <!--20-->
             <param name="Ki" value="0.1" />
             <param name="Kd" value="1" />
         </group>
