@@ -284,7 +284,7 @@ class TestStatePublisher:
             rate.sleep()
     
     # Point the robot forward in the global frame
-    def global_face_foward(self):
+    def global_face_forward(self):
         # Set desired local pose to current postion
         self.desired_pose_local.position.x = 0
         self.desired_pose_local.position.y = 0
