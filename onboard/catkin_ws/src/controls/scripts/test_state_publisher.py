@@ -9,6 +9,7 @@ from nav_msgs.msg import Odometry
 import controls_utils
 from tf import TransformListener
 from time import sleep
+import math
 
 class TestStatePublisher:
     PUBLISHING_TOPIC_DESIRED_POSE = 'controls/desired_pose'
@@ -26,12 +27,15 @@ class TestStatePublisher:
         self.state_listener = rospy.Subscriber("/controls/x_pos/setpoint", Float64, self._on_receive_data_x)
         self.state_listener = rospy.Subscriber("/controls/y_pos/setpoint", Float64, self._on_receive_data_y)
         self.state_listener = rospy.Subscriber("/controls/z_pos/setpoint", Float64, self._on_receive_data_z)
+        self.state_listener = rospy.Subscriber("/controls/yaw_pos/setpoint", Float64, self._on_receive_data_yaw)
 
         self.cv_listener_gman = rospy.Subscriber("/cv/right/buoy_gman", CVObject, self._on_receive_buoy_gman)
         self.cv_listener_bootlegger = rospy.Subscriber("/cv/right/buoy_bootlegger", CVObject, self._on_receive_buoy_bootlegger)
 
         self.current_setpoint = [100.0, 100.0, 100.0] # x,y,z
         self.MOVE_OFFSET_CONSTANT = 1
+        self.current_yaw = 100.0
+        self.MOVE_OFFSET_CONSTANT_ANGULAR = 0.2
 
         self.gman_xmin = 0.0
         self.gman_ymin = 0.0
@@ -83,7 +87,7 @@ class TestStatePublisher:
 
         # These values correspond to the desired twist for the robot
         self.desired_power = Twist()
-        self.desired_power.linear.x = 1
+        self.desired_power.linear.x = 0
         self.desired_power.linear.y = 0
         self.desired_power.linear.z = 0
         self.desired_power.angular.x = 0
@@ -220,6 +224,10 @@ class TestStatePublisher:
         self.desired_pose_local.position.x = x
         self.desired_pose_local.position.y = y
         self.desired_pose_local.position.z = z
+        #self.desired_pose_local.orientation.x = 0
+        #self.desired_pose_local.orientation.y = 0
+        #self.desired_pose_local.orientation.z = 0
+        #self.desired_pose_local.orientation.w = 1
 
         self.recalculate_local_pose()
 
@@ -238,6 +246,29 @@ class TestStatePublisher:
                     break
             rate.sleep()
         #print("Finished")
+
+    def move_to_yaw_and_stop(self, x, y, z, w):
+        #self.desired_pose_local.position.x = 0
+        #self.desired_pose_local.position.y = 0
+        self.desired_pose_local.position.z = -0.1
+        self.desired_pose_local.orientation.x = x
+        self.desired_pose_local.orientation.y = y
+        self.desired_pose_local.orientation.z = z
+        self.desired_pose_local.orientation.w = w
+
+        self.recalculate_local_pose()
+
+        rate = rospy.Rate(15)
+
+        delay = 0
+        while not rospy.is_shutdown():
+            delay += 1
+            self._pub_desired_pose.publish(self.desired_pose_transformed)
+
+            if delay > 30:
+                if abs(self.current_yaw) <= self.MOVE_OFFSET_CONSTANT_ANGULAR and abs(self.current_yaw) <= self.MOVE_OFFSET_CONSTANT_ANGULAR:
+                    break
+            rate.sleep()
 
     def surface_in_octagon(self):
         self.desired_pose_local.position.x = 0
@@ -276,11 +307,11 @@ class TestStatePublisher:
             rate.sleep()
         print("starting!")
         
-        x_forward_to_octagon = 17.5 #tune by measurement of pool by driving robot and looking at controls setpoint, then negate it
-        self.move_to_pos_and_stop(x_forward_to_octagon,0,-1)
+        self.move_to_pos_and_stop(5,0,-1.5)
         print("Move forward done")
+        self.publish_desired_twist()
 
-        self.surface_in_octagon()
+        #self.surface_in_octagon()
         
         #z_surface = -z_submerge #should cause robot to reach surface, provided robot is positively buoyant
         #self.move_to_pos_and_stop(0,0,z_surface)
@@ -294,6 +325,36 @@ class TestStatePublisher:
             print(self.bootlegger_xmin)
             rate.sleep()
 
+    def calculate_depth_to_gman_buoy(self,d):
+        f = 1347.67 #y focal length in pixels for camera
+        D = 1.2192 #height of buoy in meters
+        return f * D / d #calculated x distance to buoy using similar triangles
+
+    def move_to_gman_buoy(self):
+        horizontal_fov = 50
+        horizontal_pixel_count = 1210
+        degrees_per_pixel_horizontal = horizontal_fov / horizontal_pixel_count
+
+        vertical_fov = 0
+        vertical_pixel_count = 760
+        degrees_per_pixel_vertical = vertical_fov / vertical_pixel_count
+
+        rate = rospy.Rate(15)
+        while not rospy.is_shutdown():
+            d = (self.gman_ymax - self.gman_ymin) * 760 #height of buoy in pixels
+            x_setpoint = self.calculate_depth_to_gman_buoy(d)
+            y_setpoint_in_degrees = -((self.gman_xmax + self.gman_xmin)/2 - 0.5) * 1210 * degrees_per_pixel_horizontal
+            y_setpoint = x_setpoint * math.tan(y_setpoint_in_degrees)
+            z_setpoint_in_degrees = -((self.gman_ymax + self.gman_ymin)/2 - 0.5) * 760 * degrees_per_pixel_vertical
+            z_setpoint = x_setpoint * math.tan(z_setpoint_in_degrees)
+            self.desired_pose_local.position.x = x_setpoint
+            self.desired_pose_local.position
+
+            rate.sleep()
+
+
+
+
     def _on_receive_data_x(self, data):
         self.current_setpoint[0] = data.data
 
@@ -302,6 +363,10 @@ class TestStatePublisher:
 
     def _on_receive_data_z(self, data):
         self.current_setpoint[2] = data.data
+
+    def _on_receive_data_yaw(self, data):
+        self.current_yaw = data.data
+
 
     def _on_receive_buoy_gman(self, data):
         if data.score > 0.7:
@@ -322,13 +387,20 @@ class TestStatePublisher:
 def main():
     #TestStatePublisher().gate_move()
     # TestStatePublisher().publish_desired_pose_global()
+    TestStatePublisher().semifinal_sunday_v1()
     # TestStatePublisher().publish_desired_pose_local()
+    # TestStatePublisher().move_to_pos_and_stop(3,0,-1.2)
     # TestStatePublisher().publish_desired_twist()
     # TestStatePublisher().publish_desired_power()
     # TestStatePublisher().test_yaw()
-    # TestStatePublisher().move_to_pos_and_stop(17.5,0,-1)
+    #TestStatePublisher().move_to_pos_and_stop(8,0,-1)
+    #TestStatePublisher().move_to_yaw_and_stop(0,0,1,0) #submerges as well
+    #print("Done with yaw")
+    #TestStatePublisher().move_to_pos_and_stop(2,0,-0.5)
+    print("Done with x")
+
     #TestStatePublisher().semifinal_sunday_v1()
-    TestStatePublisher().test_comm_cv()
+    #TestStatePublisher().test_comm_cv()
 
     
 
