@@ -411,6 +411,10 @@ class TestStatePublisher:
         # Face towards the octagon
         self.global_face_forward()
 
+        # TIME DELAY VERSION
+        # TBD
+
+        # SET POINT VERSION
         # Move to the octagon
         self.move_to_pos_and_stop(17, 0, 0)
 
