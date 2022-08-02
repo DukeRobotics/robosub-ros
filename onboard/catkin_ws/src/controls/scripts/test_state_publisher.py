@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from copy import deepcopy
 import secrets
 import rospy
 from custom_msgs.msg import CVObject
@@ -74,6 +75,8 @@ class TestStatePublisher:
         self.desired_pose_local.orientation.z = 0
         self.desired_pose_local.orientation.w = 1
         self.recalculate_local_pose()
+        
+        self.global_start_pose = Pose()
 
         # These values correspond to the desired local twist for the robot
         # Max linear z speed is ~ -0.26 -- ignore (for different mass)
@@ -294,11 +297,11 @@ class TestStatePublisher:
         # Convert to global pose
         self.recalculate_local_pose()
 
-        # Set global pose to point forward
-        self.desired_pose_transformed.orientation.x = 0
-        self.desired_pose_transformed.orientation.y = 0
-        self.desired_pose_transformed.orientation.z = 0
-        self.desired_pose_transformed.orientation.w = 1
+        # Set global pose to point forward relative to start orientation
+        self.desired_pose_transformed.orientation.x = self.global_start_pose.orientation.x
+        self.desired_pose_transformed.orientation.y = self.global_start_pose.orientation.y
+        self.desired_pose_transformed.orientation.z = self.global_start_pose.orientation.z
+        self.desired_pose_transformed.orientation.w = self.global_start_pose.orientation.w
 
         rate = rospy.Rate(15)
         
@@ -388,6 +391,17 @@ class TestStatePublisher:
             rate.sleep()
         print("starting!")
         
+        # Save start pose
+        self.desired_pose_local.position.x = 0
+        self.desired_pose_local.position.y = 0
+        self.desired_pose_local.position.z = 0
+        self.desired_pose_local.orientation.x = 0
+        self.desired_pose_local.orientation.y = 0
+        self.desired_pose_local.orientation.z = 0
+        self.desired_pose_local.orientation.w = 1
+        self.recalculate_local_pose()
+        self.global_start_pose = deepcopy(self.desired_pose_transformed)
+
         # Move through the gate
         self.move_to_pos_and_stop(5,0,-1.5)
         print("Move forward done")
