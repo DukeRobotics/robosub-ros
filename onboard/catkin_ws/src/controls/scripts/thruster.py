@@ -12,17 +12,11 @@ class Thruster:
     Attributes:
         flipped: Whether the thruster is reversed, meaning power has to be negated
         force_hat: The unit force vector (N) applied by the thruster in x, y, z 
-        MAX_NEG_POW: The maximum negative power that can be sent to the thruster
-        MAX_POS_POW: The maximum positive power that can be sent to the thruster
         pos: The x, y, z position of the thruster (m) relative to the robot's center of mass
         rpy: The euler angle orientation of the thruster (degrees) relative to the robot's frame of reference
         torque: The torque vector (N m) applied by the thruster
     """
     
-    # Constants for scaling thruster speeds to ROS thruster controller
-    MAX_NEG_POW = -128
-    MAX_POS_POW = 127
-
     def __init__(self, pos, rpy, flipped):
         self.pos = pos
         self.rpy = rpy
