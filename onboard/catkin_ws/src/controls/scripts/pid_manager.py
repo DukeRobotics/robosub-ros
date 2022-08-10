@@ -34,16 +34,35 @@ class PIDManager:
         utils.publish_data_constant(self.pub_control_effort, 0)
 
     def position_control(self, pose):
+        """Enables position control, which is a nested PID system. Input should be transformed to the
+        local reference frame. Position PID loops generate set-points for the velocity loops, which
+        produce control efforts.
+        
+        Args:
+            pose: A dictionary mapping direction to desired local pose
+        """
         self._enable_loops()
         utils.publish_data_dictionary(self.pub_pos, pose)
 
     def velocity_control(self, twist):
+        """Enables velocity control, bypassing position loops. Input should be transformed to the 
+        local reference frame. Velocity PID loops produce control efforts based on desired twist.
+        
+        Args:
+            twist: A dictionary mapping direction to desired local velocity
+        """
         self._enable_loops()
         # Disable position loop
         utils.publish_data_constant(self.pub_pos_enable, False)
         utils.publish_data_dictionary(self.pub_vel, twist)
 
     def power_control(self, powers):
+        """Enables power control, publishing control efforts directly for certain axes.
+        Stabilizes on all axes with zero power required.
+        
+        Args:
+            powers: A dictionary mapping direction to desired local power ranging from [-1, 1]
+        """
         self._disable_loops()
         # Enable stabilization on all axes with 0 power input
         for d in powers:
