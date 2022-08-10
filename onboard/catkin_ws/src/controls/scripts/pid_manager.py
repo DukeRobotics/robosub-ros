@@ -31,43 +31,35 @@ class PIDManager:
         algorithm without explicitly disabling thrusters.
         """
         self._disable_loops()
-        self._publish_constant(self.pub_control_effort, 0)
+        utils.publish_data_constant(self.pub_control_effort, 0)
 
     def position_control(self, pose):
         self._enable_loops()
-        self._publish_dictionary(self.pub_pos, pose)
+        utils.publish_data_dictionary(self.pub_pos, pose)
 
     def velocity_control(self, twist):
         self._enable_loops()
         # Disable position loop
-        self._publish_constant(self.pub_pos_enable, False)
-        self._publish_dictionary(self.pub_vel, twist)
+        utils.publish_data_constant(self.pub_pos_enable, False)
+        utils.publish_data_dictionary(self.pub_vel, twist)
 
     def power_control(self, powers):
         self._disable_loops()
         # Enable stabilization on all axes with 0 power input
         for d in powers:
             if powers[d] == 0:
-                self.pub_vel_enable[d].publish(True)
+                utils.publish_data_constant(self.pub_vel_enable, True, [d])
         # Publish velocity setpoints to all Velocity loops, even though some are not enabled
-        self._publish_dictionary(self.pub_vel, powers)
-        self._publish_dictionary(self.pub_power, powers)
+        utils.publish_data_dictionary(self.pub_vel, powers)
+        utils.publish_data_dictionary(self.pub_power, powers)
 
     def _disable_loops(self):
-        self._publish_constant(self.pub_pos_enable, False)
-        self._publish_constant(self.pub_vel_enable, False)
+        utils.publish_data_constant(self.pub_pos_enable, False)
+        utils.publish_data_constant(self.pub_vel_enable, False)
 
     def _enable_loops(self):
-        self._publish_constant(self.pub_pos_enable, True)
-        self._publish_constant(self.pub_vel_enable, True)
-
-    def _publish_dictionary(publishers, vals):
-        for d in publishers:
-            publishers[d].publish(vals[d])
-
-    def _publish_constant(publishers, val):
-        for d in publishers:
-            publishers[d].publish(val)
+        utils.publish_data_constant(self.pub_pos_enable, True)
+        utils.publish_data_constant(self.pub_vel_enable, True)
 
     def _get_pos_pid_topic(axis):
         return 'controls/' + axis + '_pos/setpoint'
