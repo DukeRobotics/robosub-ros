@@ -116,6 +116,7 @@ class DesiredStateHandler:
             if self.valid:
                 if self.pose:
                     self.pid_manager.position_control(self.pose)
+                # TODO: Add safety net that checks that twist/power control values are within an expected range 
                 elif self.twist:
                     self.pid_manager.velocity_control(self.twist)
                 elif self.power:
