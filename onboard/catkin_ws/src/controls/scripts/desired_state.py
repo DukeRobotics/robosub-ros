@@ -2,7 +2,6 @@
 
 import rospy
 from geometry_msgs.msg import Pose, Twist
-from std_msgs.msg import Float64, Bool
 import controls_utils as utils
 from tf import TransformListener
 from pid_manager import PIDManager
