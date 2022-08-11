@@ -10,6 +10,10 @@ def get_controls_move_topic(axis):
     return '/control_effort/' + axis
 
 
+def get_power_topic(axis):
+    return '/controls/power/' + axis
+
+
 def parse_pose(pose):
     """Converts a ROS pose message to a dictionary that maps direction to value. Does a transformation from quaternion
     to euler to convert orientation data to euler angles used by PID loops.

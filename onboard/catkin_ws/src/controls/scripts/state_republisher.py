@@ -20,8 +20,7 @@ class StateRepublisher:
     LOCAL_STATE_TOPIC = '/state_local'
 
     def __init__(self):
-        """Initializes pub/sub config used to transform and isolate state topics.
-        """
+        """Initializes pub/sub config used to transform and isolate state topics."""
         rospy.init_node('state_republisher')
         self._pub_pose = {}
         self._pub_twist = {}
@@ -36,10 +35,10 @@ class StateRepublisher:
         rospy.Subscriber(self.STATE_TOPIC, Odometry, self._receive_odometry)
         rospy.spin()
 
-    def _get_pose_topic(axis):
+    def _get_pose_topic(self, axis):
         return '/controls/state/pose/' + axis
 
-    def _get_twist_topic(axis):
+    def _get_twist_topic(self, axis):
         return '/controls/state/twist/' + axis
 
     def _receive_odometry(self, odometry):

@@ -23,8 +23,8 @@ class PIDManager:
             self.pub_pos_enable[d] = rospy.Publisher(self._get_pos_pid_enable_topic(d), Bool, queue_size=3)
             self.pub_vel[d] = rospy.Publisher(self._get_vel_pid_topic(d), Float64, queue_size=3)
             self.pub_vel_enable[d] = rospy.Publisher(self._get_vel_pid_enable_topic(d), Bool, queue_size=3)
-            self.pub_control_effort[d] = rospy.Publisher(self._get_controls_move_topic(d), Float64, queue_size=3)
-            self.pub_power[d] = rospy.Publisher(self._get_power_topic(d), Float64, queue_size=3)
+            self.pub_control_effort[d] = rospy.Publisher(utils.get_controls_move_topic(d), Float64, queue_size=3)
+            self.pub_power[d] = rospy.Publisher(utils.get_power_topic(d), Float64, queue_size=3)
 
     def soft_estop(self):
         """Disables all PID loops and publishes 0 to control efforts. Completely disables PID control
@@ -80,20 +80,14 @@ class PIDManager:
         utils.publish_data_constant(self.pub_pos_enable, True)
         utils.publish_data_constant(self.pub_vel_enable, True)
 
-    def _get_pos_pid_topic(axis):
+    def _get_pos_pid_topic(self, axis):
         return 'controls/' + axis + '_pos/setpoint'
 
-    def _get_vel_pid_topic(axis):
+    def _get_vel_pid_topic(self, axis):
         return 'controls/' + axis + '_vel/setpoint'
 
-    def _get_pos_pid_enable_topic(axis):
+    def _get_pos_pid_enable_topic(self, axis):
         return 'controls/enable/' + axis + '_pos'
 
-    def _get_vel_pid_enable_topic(axis):
+    def _get_vel_pid_enable_topic(self, axis):
         return 'controls/enable/' + axis + '_vel'
-
-    def _get_power_topic(axis):
-        return '/controls/power/' + axis
-
-    def get_controls_move_topic(axis):
-        return '/control_effort/' + axis

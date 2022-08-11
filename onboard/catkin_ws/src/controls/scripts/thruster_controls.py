@@ -29,7 +29,7 @@ class ThrusterController:
     """
 
     ROBOT_PUB_TOPIC = '/offboard/thruster_speeds'
-    RUN_LOOP_RATE = rospy.Rate(10)  # 10 Hz
+    RUN_LOOP_RATE = 10  # 10 Hz
     MAX_THRUSTER_POWER = 127  # Some nuance, max neg power is -128. Ignoring that for now
     POWER_SCALING_FACTOR = 0.5
 
@@ -72,7 +72,8 @@ class ThrusterController:
 
         TODO: Examine performance and determine if the thruster calculation should be done in the run loop or as part
         of this PID callback. Theoretically these calculations only have to be done once per run loop (before
-        publishing to off-board comms).
+        publishing to off-board comms). PID loops are publishing with min frequency of 100 Hz, so we are recalculating
+        thruster allocations at 600 Hz. We can cut this down to 10 Hz.
 
         Args:
             val: The PID control effort (float ranging from [-1, 1])
@@ -85,6 +86,8 @@ class ThrusterController:
         """Callback that stores powers for use in the run loop. This is used for power control, which bypasses PID
         control efforts. If the power in a direction is 0, PID loops are not bypassed. This enables stabilization on
         axes that don't have a power setpoint.
+
+        TODO: Same as _on_pid_received
 
         Args:
             val: The desired power (float ranging from [-1, 1])
@@ -102,17 +105,17 @@ class ThrusterController:
             if not self.enabled:
                 i8_t_allocs = ThrusterSpeeds()
                 i8_t_allocs.speeds = np.zeros(8).astype(int)
-                self.pub.publish(i8_t_allocs)
+                self.thruster_speeds_pub.publish(i8_t_allocs)
 
             if self.enabled:
                 self._scale_thruster_speeds()
                 i8_t_allocs = ThrusterSpeeds()
-                i8_t_allocs.speeds = (self.t_allocs * MAX_THRUSTER_POWER * POWER_SCALING_FACTOR).astype(int)
-                self.pub.publish(i8_t_allocs)
+                i8_t_allocs.speeds = (self.t_allocs * self.MAX_THRUSTER_POWER * self.POWER_SCALING_FACTOR).astype(int)
+                self.thruster_speeds_pub.publish(i8_t_allocs)
 
-            RUN_LOOP_RATE.sleep()
+            rospy.Rate(self.RUN_LOOP_RATE).sleep()
 
-    def _scale_thruster_speeds():
+    def _scale_thruster_speeds(self):
         """Scales thruster speeds according to a custom algorithm. Doesn't scale if all allocations are 0.
 
         TODO: Determine if our scaling algorithm is valid. Currently, we first scale the max thruster allocation to the
