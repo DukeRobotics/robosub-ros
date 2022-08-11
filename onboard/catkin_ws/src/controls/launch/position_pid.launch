@@ -2,8 +2,19 @@
 
     <arg name="sim" default="false" />
 
-    <arg name="pos_max" default="1" />
-    <arg name="orient_max" default="0.5" />
+    <!-- 
+        TODO: Determine if max velocities match the expected range of velocity loop setpoint values. We need to take
+        measurements of the max speed the robot can move in x, y, and z directions (local) and set these value 
+        accordingly. The units should be meters/sec. Current setup assumes min and max vel are the same.
+    /-->
+    <arg name="max_vel_x" default="1" />
+    <arg name="max_vel_y" default="1" />
+    <arg name="max_vel_z" default="1" />
+    <!-- TODO: Determine if these values are correct. Seems like 0.5 was chosen randomly. /-->
+    <arg name="max_vel_roll" default="0.5" />
+    <arg name="max_vel_pitch" default="0.5" />
+    <arg name="max_vel_yaw" default="0.5" />
+
     <arg name="min_loop_freq" value="100" />
 
     <!-- ROBOT PID Constants -->
@@ -74,10 +85,11 @@
         </group>
     </group>
 
+    <!-- Position loop control efforts map to velocity loop setpoints in nested control /-->
     <node name="controller" pkg="pid" type="controller" ns="controls/x_pos" output="log" >
         <param name="node_name" value="global_x_pos_pid" />
-        <param name="upper_limit" value="$(arg pos_max)" />
-        <param name="lower_limit" value="-$(arg pos_max)" />
+        <param name="upper_limit" value="$(arg max_vel_x)" />
+        <param name="lower_limit" value="-$(arg max_vel_x)" />
         <!-- <param name="windup_limit" value="10" /> -->
         <param name="pid_enable_topic" value="/controls/enable/x_pos" />
         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
@@ -87,8 +99,8 @@
 
     <node name="controller" pkg="pid" type="controller" ns="controls/y_pos" output="log" >
         <param name="node_name" value="global_y_pos_pid" />
-        <param name="upper_limit" value="$(arg pos_max)" />
-        <param name="lower_limit" value="-$(arg pos_max)" />
+        <param name="upper_limit" value="$(arg max_vel_y)" />
+        <param name="lower_limit" value="-$(arg max_vel_y)" />
         <!-- <param name="windup_limit" value="10" /> -->
         <param name="pid_enable_topic" value="/controls/enable/y_pos" />
         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
@@ -98,8 +110,8 @@
 
     <node name="controller" pkg="pid" type="controller" ns="controls/z_pos" output="log" >
         <param name="node_name" value="global_z_pos_pid" />
-        <param name="upper_limit" value="$(arg pos_max)" />
-        <param name="lower_limit" value="-$(arg pos_max)" />
+        <param name="upper_limit" value="$(arg max_vel_z)" />
+        <param name="lower_limit" value="-$(arg max_vel_z)" />
         <!-- <param name="windup_limit" value="10" /> -->
         <param name="pid_enable_topic" value="/controls/enable/z_pos" />
         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
@@ -109,8 +121,8 @@
 
     <node name="controller" pkg="pid" type="controller" ns="controls/roll_pos" output="log" >
         <param name="node_name" value="global_roll_pos_pid" />
-        <param name="upper_limit" value="$(arg orient_max)" />
-        <param name="lower_limit" value="-$(arg orient_max)" />
+        <param name="upper_limit" value="$(arg max_vel_roll)" />
+        <param name="lower_limit" value="-$(arg max_vel_roll)" />
         <!-- <param name="windup_limit" value="10" /> -->
         <param name="pid_enable_topic" value="/controls/enable/roll_pos" />
         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
@@ -120,8 +132,8 @@
 
     <node name="controller" pkg="pid" type="controller" ns="controls/pitch_pos" output="log" >
         <param name="node_name" value="global_pitch_pos_pid" />
-        <param name="upper_limit" value="$(arg orient_max)" />
-        <param name="lower_limit" value="-$(arg orient_max)" />
+        <param name="upper_limit" value="$(arg max_vel_pitch)" />
+        <param name="lower_limit" value="-$(arg max_vel_pitch)" />
         <!-- <param name="windup_limit" value="10" /> -->
         <param name="pid_enable_topic" value="/controls/enable/pitch_pos" />
         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
@@ -131,8 +143,8 @@
 
     <node name="controller" pkg="pid" type="controller" ns="controls/yaw_pos" output="log" >
         <param name="node_name" value="global_yaw_pos_pid" />
-        <param name="upper_limit" value="$(arg orient_max)" />
-        <param name="lower_limit" value="-$(arg orient_max)" />
+        <param name="upper_limit" value="$(arg max_vel_yaw)" />
+        <param name="lower_limit" value="-$(arg max_vel_yaw)" />
         <!-- <param name="windup_limit" value="10" /> -->
         <param name="pid_enable_topic" value="/controls/enable/yaw_pos" />
         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
