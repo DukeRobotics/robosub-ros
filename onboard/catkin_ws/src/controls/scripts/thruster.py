@@ -8,16 +8,16 @@ from controls_utils import quat_vec_mult
 class Thruster:
     """Describes a thruster in terms of position and orientation. Calculates the
     force and torque that the thruster applies when spun.
-    
+
     Attributes:
-        flipped: Whether the thruster is reversed, meaning power has to be negated. This is related to how 
+        flipped: Whether the thruster is reversed, meaning power has to be negated. This is related to how
             the thrusters were wired to the ESCs and is part of the robot config
-        force_hat: The unit force vector (N) applied by the thruster in x, y, z 
+        force_hat: The unit force vector (N) applied by the thruster in x, y, z
         pos: The x, y, z position of the thruster (m) relative to the robot's center of mass
         rpy: The euler angle orientation of the thruster (degrees) relative to the robot's frame of reference
         torque: The torque vector (N m) applied by the thruster
     """
-    
+
     def __init__(self, pos, rpy, flipped):
         self.pos = pos
         self.rpy = rpy

@@ -13,7 +13,7 @@ import resource_retriever as rr
 class ThrusterController:
     """ROS node that manages thruster allocation and publishing once PID loops have generated
     control efforts. Also manages power control if PID loops are bypassed.
-    
+
     Attributes:
         enable_service: The ROS Service used for enabling/disabling thruster publishing (soft e-stop)
         enabled: Whether controls is enabled
@@ -24,14 +24,14 @@ class ThrusterController:
         ROBOT_PUB_TOPIC: The topic that thruster allocations get published to
         RUN_LOOP_RATE: The rate at which thruster allocations are published
         t_allocs: The Tx1 vector of thruster allocations ranging from [-1, 1]
-        thruster_speeds_pub: The ROS publisher that publishes 8-bit thruster speeds used by downstream packages 
+        thruster_speeds_pub: The ROS publisher that publishes 8-bit thruster speeds used by downstream packages
         tm: The ThrusterManager object used to calculate thruster allocations
     """
-    
+
     ROBOT_PUB_TOPIC = '/offboard/thruster_speeds'
-    RUN_LOOP_RATE = rospy.Rate(10) # 10 Hz
-    MAX_THRUSTER_POWER = 127 # Some nuance, max neg power is -128. Ignoring that for now
-    POWER_SCALING_FACTOR = 0.5 
+    RUN_LOOP_RATE = rospy.Rate(10)  # 10 Hz
+    MAX_THRUSTER_POWER = 127  # Some nuance, max neg power is -128. Ignoring that for now
+    POWER_SCALING_FACTOR = 0.5
 
     def __init__(self):
         """Initializes the ROS node, creating thruster manager and required pub/sub configuration.
@@ -54,12 +54,12 @@ class ThrusterController:
             rospy.Subscriber(utils.get_power_topic(d), Float64, self._on_power_received, d)
 
     def _handle_enable_controls(self, req):
-        """Handles requests to the enable ROS service, disabling/enabling output accordingly. An example call is 
+        """Handles requests to the enable ROS service, disabling/enabling output accordingly. An example call is
         `rosservice call /enable_controls true`.
-        
+
         Args:
             req: The request data sent in the service call. In this case, a boolean denoting whether to enable.
-        
+
         Returns:
             A message relaying the enablement status of controls.
         """
@@ -69,11 +69,11 @@ class ThrusterController:
     def _on_pid_received(self, val, direction):
         """Callback that stores PID control efforts for use in the run loop. Also updates thruster allocations based
         on new control effort.
-        
+
         TODO: Examine performance and determine if the thruster calculation should be done in the run loop or as part
         of this PID callback. Theoretically these calculations only have to be done once per run loop (before
-        publishing to off-board comms). 
-        
+        publishing to off-board comms).
+
         Args:
             val: The PID control effort (float ranging from [-1, 1])
             direction: The axis the control effort maps to
@@ -82,10 +82,10 @@ class ThrusterController:
         self.t_allocs = self.tm.calc_t_allocs(self.pid_outputs)
 
     def _on_power_received(self, val, direction):
-        """Callback that stores powers for use in the run loop. This is used for power control, which bypasses PID 
+        """Callback that stores powers for use in the run loop. This is used for power control, which bypasses PID
         control efforts. If the power in a direction is 0, PID loops are not bypassed. This enables stabilization on
         axes that don't have a power setpoint.
-        
+
         Args:
             val: The desired power (float ranging from [-1, 1])
             direction: The axis the desired power maps to
@@ -116,7 +116,7 @@ class ThrusterController:
         """Scales thruster speeds according to a custom algorithm. Doesn't scale if all allocations are 0.
 
         TODO: Determine if our scaling algorithm is valid. Currently, we first scale the max thruster allocation to the
-        max PID control effort. Then we clamp values between -1 and 1 and multiply by max thruster speed.  
+        max PID control effort. Then we clamp values between -1 and 1 and multiply by max thruster speed.
         """
         t_alloc_max = float(np.max(np.absolute(self.t_allocs)))
         pid_max = float(np.max(np.absolute(self.pid_outputs)))

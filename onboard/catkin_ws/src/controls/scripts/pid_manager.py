@@ -8,7 +8,7 @@ import controls_utils as utils
 
 class PIDManager:
     """Manages all publishing to PID loops. Pub dictionaries contain mappings from direction strings
-    to corresponding rospy publisher objects. 
+    to corresponding rospy publisher objects.
     """
     pub_pos = {}
     pub_pos_enable = {}
@@ -37,7 +37,7 @@ class PIDManager:
         """Enables position control, which is a nested PID system. Input should be transformed to the
         local reference frame. Position PID loops generate set-points for the velocity loops, which
         produce control efforts.
-        
+
         Args:
             pose: A dictionary mapping direction to desired local pose
         """
@@ -45,9 +45,9 @@ class PIDManager:
         utils.publish_data_dictionary(self.pub_pos, pose)
 
     def velocity_control(self, twist):
-        """Enables velocity control, bypassing position loops. Input should be transformed to the 
+        """Enables velocity control, bypassing position loops. Input should be transformed to the
         local reference frame. Velocity PID loops produce control efforts based on desired twist.
-        
+
         Args:
             twist: A dictionary mapping direction to desired local velocity
         """
@@ -59,7 +59,7 @@ class PIDManager:
     def power_control(self, powers):
         """Enables power control, publishing control efforts directly for certain axes.
         Stabilizes on all axes with zero power required.
-        
+
         Args:
             powers: A dictionary mapping direction to desired local power ranging from [-1, 1]
         """

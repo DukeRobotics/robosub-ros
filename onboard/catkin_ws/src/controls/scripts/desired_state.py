@@ -18,12 +18,12 @@ class bcolors:
 
 class DesiredStateHandler:
     """Receives desired states and runs the corresponding controls algorithm.
-    
+
     Attributes:
         listener: TransformListener used to transform input to local reference frame
         pid_manager: PIDManager object that is called for publishing data to PID loops
     """
-    
+
     DESIRED_TWIST_TOPIC = 'controls/desired_twist'
     DESIRED_POSE_TOPIC = 'controls/desired_pose'
     DESIRED_POWER_TOPIC = 'controls/desired_power'
@@ -50,16 +50,16 @@ class DesiredStateHandler:
     def _on_pose_received(self, pose):
         """Handler for receiving desired pose. Transforms global desired pose to local reference frame
         for PID loops.
-        
+
         Args:
             pose: ROS Pose message corresponding to desired pose in global reference frame
         """
         self.pose = utils.parse_pose(utils.transform_pose(self.listener, 'odom', 'base_link', pose))
 
     def _on_twist_received(self, twist):
-        """Handler for receiving desired twists. Received desired twists are assumed to be defined in the 
+        """Handler for receiving desired twists. Received desired twists are assumed to be defined in the
         local reference frame.
-        
+
         Args:
             power: ROS Twist message corresponding to desired twists in local reference frame
         """
@@ -67,9 +67,9 @@ class DesiredStateHandler:
 
     def _on_power_received(self, power):
         """Handler for receiving desired powers. A desired power in a given axis represents the control
-        effort that the robot should exert in a certain axis (ranges from [-1, 1]). Desired power is 
+        effort that the robot should exert in a certain axis (ranges from [-1, 1]). Desired power is
         local by definition.
-        
+
         Args:
             power: ROS Twist message corresponding to desired powers in local reference frame
         """
@@ -85,7 +85,7 @@ class DesiredStateHandler:
         """Validates the desired state data that was received. Status is False (invalid) if multiple desired states
         are received at the same time (i.e. position and velocity control requested) or if no desired state is received.
         If the previous status was invalid and the new status is valid, increments event_id and logs a success message.
-        
+
         Returns:
             True if status is valid, false otherwise
         """
@@ -102,7 +102,7 @@ class DesiredStateHandler:
             return False
         elif not self.valid:
             rospy.loginfo(bcolors.OKGREEN + ("===> Controls now receiving desired state (End event %d) <===" %
-                                 (self.event_id)) + bcolors.RESET)
+                                             (self.event_id)) + bcolors.RESET)
             self.event_id += 1
         return True
 
@@ -116,7 +116,7 @@ class DesiredStateHandler:
             if self.valid:
                 if self.pose:
                     self.pid_manager.position_control(self.pose)
-                # TODO: Add safety net that checks that twist/power control values are within an expected range 
+                # TODO: Add safety net that checks that twist/power control values are within an expected range
                 elif self.twist:
                     self.pid_manager.velocity_control(self.twist)
                 elif self.power:

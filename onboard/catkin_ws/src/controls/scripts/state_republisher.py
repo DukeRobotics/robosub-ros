@@ -8,14 +8,14 @@ from tf import TransformListener
 
 
 class StateRepublisher:
-    """Handles re-publishing of monolithic state topic (Odom) to separate topics. Also handles conversion from global 
-    to local reference frame (controls operates solely in the local frame). PID loops require individual state topics 
+    """Handles re-publishing of monolithic state topic (Odom) to separate topics. Also handles conversion from global
+    to local reference frame (controls operates solely in the local frame). PID loops require individual state topics
     to compare to set-points.
-    
+
     Attributes:
         listener: The ROS transformation listener used to transform from global to local reference frame
     """
-    
+
     STATE_TOPIC = '/state'
     LOCAL_STATE_TOPIC = '/state_local'
 
@@ -44,7 +44,7 @@ class StateRepublisher:
 
     def _receive_odometry(self, odometry):
         """Callback that handles re-publishing of state topics and transformation to local frame.
-        
+
         Args:
             odometry: The Odom message holding the state of the robot in the global frame of reference
         """
