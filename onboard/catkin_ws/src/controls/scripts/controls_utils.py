@@ -11,6 +11,15 @@ def get_controls_move_topic(axis):
 
 
 def parse_pose(pose):
+    """Converts a ROS pose message to a dictionary that maps direction to value. Does a transformation from quaternion
+    to euler to convert orientation data to euler angles used by PID loops.
+    
+    Args:
+        pose: ROS pose message
+    
+    Returns:
+        TYPE: Dictionary that maps direction to value for each axis in pose
+    """
     pose_dict = {'x': pose.position.x, 'y': pose.position.y, 'z': pose.position.z}
     pose_dict['roll'], pose_dict['pitch'], pose_dict['yaw'] = euler_from_quaternion(
         [pose.orientation.x,
@@ -21,6 +30,14 @@ def parse_pose(pose):
 
 
 def parse_twist(twist):
+    """Converts a ROS twist message to a dictionary that maps direction to value
+    
+    Args:
+        twist: ROS twist message
+    
+    Returns:
+        TYPE: Dictionary that maps direction to value for each axis in twist
+    """
     twist_dict = {'x': twist.linear.x,
                   'y': twist.linear.y,
                   'z': twist.linear.z,
@@ -43,6 +60,17 @@ def quat_vec_mult(q1, v1):
 
 
 def transform_pose(listener, base_frame, target_frame, pose):
+    """Transforms a ROS pose into another reference frame.
+    
+    Args:
+        listener: The ROS TransformListener that retrieves transformation data
+        base_frame: The initial reference frame
+        target_frame: The target reference frame
+        pose: The ROS pose that will be transformed
+    
+    Returns:
+        A new ROS pose transformed into the target frame
+    """
     pose_stamped = PoseStamped()
     pose_stamped.pose = pose
     pose_stamped.header.frame_id = base_frame
@@ -51,6 +79,17 @@ def transform_pose(listener, base_frame, target_frame, pose):
 
 
 def transform_twist(listener, base_frame, target_frame, twist):
+    """Transforms a ROS twist into another reference frame.
+    
+    Args:
+        listener: The ROS TransformListener that retrieves transformation data
+        base_frame: The initial reference frame
+        target_frame: The target reference frame
+        twist: The ROS twist that will be transformed
+    
+    Returns:
+        A new ROS twist transformed into the target frame
+    """
     lin = Vector3Stamped()
     ang = Vector3Stamped()
 
