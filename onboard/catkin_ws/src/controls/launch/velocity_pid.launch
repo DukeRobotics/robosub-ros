@@ -32,31 +32,6 @@
     <arg name = "yaw_vel_Ki" default = "0.001" />
     <arg name = "yaw_vel_Kd" default = "0.001" />
 
-    <!-- <arg name = "roll_vel_Kp" default = "0.05" />
-    <arg name = "roll_vel_Ki" default = "0.005" />
-    <arg name = "roll_vel_Kd" default = "0.005" />
-    
-    <arg name = "pitch_vel_Kp" default = "0.05" />
-    <arg name = "pitch_vel_Ki" default = "0.005" />
-    <arg name = "pitch_vel_Kd" default = "0.005" />
-
-    <arg name = "yaw_vel_Kp" default = "0.05" />
-    <arg name = "yaw_vel_Ki" default = "0.005" />
-    <arg name = "yaw_vel_Kd" default = "0.005" /> -->
-
-
-    <!-- <arg name = "roll_vel_Kp" default = "1" />
-    <arg name = "roll_vel_Ki" default = "0.001" />
-    <arg name = "roll_vel_Kd" default = "0.001" />
-
-    <arg name = "pitch_vel_Kp" default = "1" />
-    <arg name = "pitch_vel_Ki" default = "0.001" />
-    <arg name = "pitch_vel_Kd" default = "0.001" />
-
-    <arg name = "yaw_vel_Kp" default = "0.2" />
-    <arg name = "yaw_vel_Ki" default = "0.001" />
-    <arg name = "yaw_vel_Kd" default = "0.002" /> -->
-
     <!-- ROBOT PID Constants -->
     <group unless="$(arg sim)">
 	   <group ns="controls/x_vel/controller">
@@ -85,9 +60,9 @@
             <param name="Kd" value="0.01" />
         </group>
         <group ns="controls/yaw_vel/controller">
-            <param name="Kp" value="2" /> <!--2 -->
-            <param name="Ki" value="0.001" /> <!--0.001-->
-            <param name="Kd" value="0.005" /> <!--0.005-->
+            <param name="Kp" value="2" />
+            <param name="Ki" value="0.001" />
+            <param name="Kd" value="0.005" />
         </group>
     </group>
 

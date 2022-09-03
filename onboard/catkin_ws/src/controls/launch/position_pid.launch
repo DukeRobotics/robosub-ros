@@ -19,13 +19,14 @@
             <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/z_pos/controller">
+            <!-- Commented values are for camera pods /-->
             <param name="Kp" value="15" /> <!-- 25 -->
             <param name="Ki" value="0.3" /> <!-- 0.5 -->
             <param name="Kd" value="0.12" /> <!--0.3 -->
         </group>
         <group ns="controls/roll_pos/controller">
-            <param name="Kp" value="0.01" /> <!--0.01-->
-            <param name="Ki" value="0.001" /> <!--0.001-->
+            <param name="Kp" value="0.01" />
+            <param name="Ki" value="0.001" />
             <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/pitch_pos/controller">
@@ -33,11 +34,10 @@
             <param name="Ki" value="0.001" />
             <param name="Kd" value="0.001" />
         </group>
-       	# previously set to 1, 0.001, 0.01
 	<group ns="controls/yaw_pos/controller">
             <param name="Kp" value="0.5" />
-            <param name="Ki" value="0" /> <!--0.5 -->
-            <param name="Kd" value="0.15" /> <!--0.25 -->
+            <param name="Ki" value="0" />
+            <param name="Kd" value="0.15" />
         </group>
     </group>
 
@@ -73,21 +73,6 @@
             <param name="Ki" value="0.01" />
             <param name="Kd" value="0.01" />
         </group>
-        <!--<group ns="controls/roll_pos/controller">
-            <param name="Kp" value="0.01" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
-        </group>
-        <group ns="controls/pitch_pos/controller">
-            <param name="Kp" value="0.01" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
-        </group>
-        <group ns="controls/yaw_pos/controller">
-            <param name="Kp" value="0.1" />
-            <param name="Ki" value="0.1" />
-            <param name="Kd" value="0.05" />
-        </group>-->
     </group>
 
     <node name="controller" pkg="pid" type="controller" ns="controls/x_pos" output="log" >

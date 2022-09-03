@@ -52,22 +52,7 @@ class DesiredStateHandler:
         rospy.Subscriber(self.DESIRED_POWER_TOPIC, Twist, self._on_power_received)
 
     def _on_pose_received(self, pose):
-        local_pose = utils.transform_pose(self.listener, 'odom', 'base_link', pose)
-        """
-        # Local pose in quaternion form
-        rospy.loginfo(local_pose.orientation.x)
-        rospy.loginfo(local_pose.orientation.y)
-        rospy.loginfo(local_pose.orientation.z)
-        rospy.loginfo(local_pose.orientation.w)
-        """
-        # Transforms to global
-        self.pose = utils.parse_pose(local_pose)
-        """
-        # Setpoint of pid loops
-        rospy.loginfo(self.pose["roll"])
-        rospy.loginfo(self.pose["pitch"])
-        rospy.loginfo(self.pose["yaw"])
-        """
+        self.pose = utils.parse_pose(utils.transform_pose(self.listener, 'odom', 'base_link', pose))
 
     def _on_twist_received(self, twist):
         self.twist = utils.parse_twist(twist)
