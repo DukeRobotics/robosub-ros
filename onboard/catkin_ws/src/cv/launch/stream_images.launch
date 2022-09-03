@@ -1,0 +1,4 @@
+<launch>
+	<!-- Uncomment node once depthai is added to Dockerfile /-->
+	<!--node name="test_stream" pkg="cv" type="stream_images.py" /-->
+</launch>

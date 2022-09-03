@@ -1,4 +1,5 @@
 import sim
+import simConst
 import rospy
 import sys
 from geometry_msgs.msg import Pose, Quaternion, Point, Twist, Vector3
@@ -9,6 +10,7 @@ import resource_retriever as rr
 import yaml
 import traceback
 import numpy as np
+from tf.transformations import quaternion_multiply
 
 
 class SimHandle:
@@ -125,20 +127,36 @@ class SimHandle:
         base_x, base_y, base_z = self.run_sim_function(sim.simxGetObjectPosition,
                                                        (self.clientID, obj, -1, mode))
 
-        min_x = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, obj, 15, mode))
-        min_y = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, obj, 16, mode))
-        min_z = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, obj, 17, mode))
+        min_x = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID,
+                                      obj, simConst.sim_objfloatparam_objbbox_min_x, mode))
+        min_y = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID,
+                                      obj, simConst.sim_objfloatparam_objbbox_min_y, mode))
+        min_z = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID,
+                                      obj, simConst.sim_objfloatparam_objbbox_min_z, mode))
 
-        max_x = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, obj, 18, mode))
-        max_y = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, obj, 19, mode))
-        max_z = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID, obj, 20, mode))
+        max_x = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID,
+                                      obj, simConst.sim_objfloatparam_objbbox_max_x, mode))
+        max_y = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID,
+                                      obj, simConst.sim_objfloatparam_objbbox_max_y, mode))
+        max_z = self.run_sim_function(sim.simxGetObjectFloatParameter, (self.clientID,
+                                      obj, simConst.sim_objfloatparam_objbbox_max_z, mode))
+
+        # We need to convert the corners from relative to the object to global coordinates
+        quat = self.run_sim_function(sim.simxGetObjectQuaternion, (self.clientID, obj, -1, mode))
+        pos = self.run_sim_function(sim.simxGetObjectPosition, (self.clientID, obj, -1, mode))
+        # Invert the quaternion
+        quat_conj = [-quat[0], -quat[1], -quat[2], quat[3]]
+
         for i in range(2):
             for j in range(2):
                 for k in range(2):
                     point_x = base_x + (min_x if i == 0 else max_x)
                     point_y = base_y + (min_y if j == 0 else max_y)
                     point_z = base_z + (min_z if k == 0 else max_z)
-                    ret.append(Point(x=point_x, y=point_y, z=point_z))
+                    point = [point_x, point_y, point_z, 0]
+                    point = quaternion_multiply(quat_conj, quaternion_multiply(point, quat))
+                    point[:3] += pos
+                    ret.append(Point(x=point[0], y=point[1], z=point[2]))
         return ret
 
     # Returns a SimObjArray message consisting of

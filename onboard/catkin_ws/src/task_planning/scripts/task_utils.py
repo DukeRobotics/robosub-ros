@@ -1,3 +1,4 @@
+from cmath import nan
 import numpy as np
 import rospy
 import tf2_geometry_msgs
@@ -7,6 +8,9 @@ from geometry_msgs.msg import Vector3, Pose, PoseStamped, PoseWithCovariance, \
 from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_quaternion, quaternion_multiply
 from std_msgs.msg import Header
+from tf.transformations import quaternion_from_euler
+from copy import deepcopy
+from task import Task
 
 
 def linear_distance(point1, point2):
@@ -110,11 +114,23 @@ def stopped_at_pose(current_pose, desired_pose, current_twist):
     Returns:
     Boolean: true if stopped (current_twist = 0) at desired_pose
     """
+    # FIXME revert hackfix
+    current_pose.position.z = 0
+    desired_pose.position.z = 0
+    at_desired_pose = at_pose(current_pose, desired_pose, 0.2, 12)
+    at_desired_vel = at_vel(current_twist, Twist(), 0.6, 6)
 
-    at_desired_pose = at_pose(current_pose, desired_pose)
-    at_desired_vel = at_vel(current_twist, Twist())
+    # print("At Pose:", at_desired_pose, " At Vel:", at_desired_vel)
 
     return at_desired_pose and at_desired_vel
+
+
+def transform_pose(listener, base_frame, target_frame, pose):
+    pose_stamped = PoseStamped()
+    pose_stamped.pose = pose
+    pose_stamped.header.frame_id = base_frame
+
+    return listener.transformPose(target_frame, pose_stamped).pose
 
 
 def transform(origin_frame, dest_frame, poseORodom):
@@ -209,3 +225,85 @@ def add_poses(pose_list):
             [pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w], q_sum)
 
     return Pose(p_sum, Quaternion(*q_sum))
+
+
+def parse_pose(pose):
+    pose_dict = {'x': pose.position.x, 'y': pose.position.y, 'z': pose.position.z}
+    pose_dict['roll'], pose_dict['pitch'], pose_dict['yaw'] = euler_from_quaternion(
+        [pose.orientation.x,
+         pose.orientation.y,
+         pose.orientation.z,
+         pose.orientation.w])
+    return pose_dict
+
+
+def object_vector(cv_obj_data):
+    print(cv_obj_data)
+    if not(cv_obj_data) or cv_obj_data.label == 'none':
+        return None
+
+    return [cv_obj_data.x, cv_obj_data.y, cv_obj_data.z]
+
+
+def cv_object_position(cv_obj_data):
+    if not(cv_obj_data) or cv_obj_data.label == 'none':
+        return None
+    return [cv_obj_data.x, cv_obj_data.y, cv_obj_data.z]
+
+
+class ObjectVisibleTask(Task):
+    def __init__(self, image_name, timeout):
+        super(ObjectVisibleTask, self).__init__(["undetected", "detected"],
+                                                input_keys=['image_name'],
+                                                output_keys=['image_name'])
+        self.image_name = image_name
+        self.timeout = timeout
+
+    def run(self, userdata):
+        millis = 10
+        rate = rospy.Rate(millis)
+        total = 0
+        while total < self.time * 1000:
+            if object_vector(self.cv_data[self.image_name]) is not None:
+                return "detected"
+            total += millis
+            rate.sleep()
+        return "undetected"
+
+
+class MutatePoseTask(Task):
+    def __init__(self, mutablePose):
+        super().__init__(['done'], input_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'])
+        self.mutablePose = mutablePose
+
+    def run(self, userdata):
+        if userdata.x != nan and userdata.y != nan and userdata.z != nan:
+            self.mutablePose.setPoseCoords(
+                userdata.x,
+                userdata.y,
+                userdata.z,
+                userdata.roll,
+                userdata.pitch,
+                userdata.yaw)
+        if self.preempt_requested():
+            self.service_preempt()
+        return "done"
+
+
+class MutablePose:
+    def __init__(self):
+        self.pose = None
+
+    def setPoseCoords(self, x, y, z, roll, pitch, yaw):
+        quaternion = Quaternion(*quaternion_from_euler(roll, pitch, yaw))
+        point = Point(x, y, z)
+        self.pose = Pose(point, quaternion)
+
+    def setPose(self, newPose):
+        self.pose = deepcopy(newPose)
+
+    def getPose(self):
+        return self.pose
+
+    def getPoseEuler(self):
+        return parse_pose(self.pose)

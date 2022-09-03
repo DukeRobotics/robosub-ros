@@ -14,6 +14,9 @@
   <depend>cv_bridge</depend>
   <depend>resource_retriever</depend>
 
+  <!-- Uncomment dependency once Dockerfile is updated -->
+  <!--depend>depthai</depend/-->
+
   <exec_depend>python-yaml</exec_depend>
   <exec_depend>python-opencv</exec_depend>
   <exec_depend>detecto</exec_depend>
