@@ -44,6 +44,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip3 install --no-cache-dir \
     numpy==1.20.3 scipy pymba python-dateutil \
     pyserial dependency-injector \ 
+    gputil saleae
 
 # Install PyTorch and Torchvision
 COPY torch_installer.sh torch_deps/torch_installer.sh
