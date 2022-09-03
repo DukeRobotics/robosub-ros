@@ -6,38 +6,43 @@ from geometry_msgs.msg import Pose, PoseStamped
 from move_tasks import MoveToPoseLocalTask
 from tf import TransformListener
 
-"""smach.StateMachine.add('MoveLeft2', MoveToPoseLocalTask(2, 0, -1, 0, 0, 0), 
+"""smach.StateMachine.add('MoveLeft2', MoveToPoseLocalTask(2, 0, -1, 0, 0, 0),
                             transitions={'done':'MoveLeft3'})
-        smach.StateMachine.add('MoveLeft3', MoveToPoseLocalTask(2, 0, 0, 0, 0, 0), 
+        smach.StateMachine.add('MoveLeft3', MoveToPoseLocalTask(2, 0, 0, 0, 0, 0),
                             transitions={'done':'MoveLeft4'})
-        smach.StateMachine.add('MoveLeft4', MoveToPoseLocalTask(2, 0, 1, 0, 0, 0), 
+        smach.StateMachine.add('MoveLeft4', MoveToPoseLocalTask(2, 0, 1, 0, 0, 0),
                             transitions={'done':'finish'})"""
+
 
 def main():
     rospy.init_node("task_planning")
     MoveLocally(2, 0, -1, 0, 0, 0, 0).publish_desired_pose_local()
+
 
 def main2():
     rospy.init_node("task_planning")
 
     sm_top = smach.StateMachine(outcomes=['finish'])
     with sm_top:
-        smach.StateMachine.add('MoveLeft2', MoveToPoseLocalTask(2, 0, -1, 0, 0, 0), 
-                            transitions={'done':'MoveLeft3'})
-        smach.StateMachine.add('MoveLeft3', MoveToPoseLocalTask(2, 0, 0, 0, 0, 0), 
-                            transitions={'done':'MoveLeft4'})
-        smach.StateMachine.add('MoveLeft4', MoveToPoseLocalTask(2, 0, 1, 0, 0, 0), 
-                            transitions={'done':'finish'})
+        smach.StateMachine.add('MoveLeft2', MoveToPoseLocalTask(2, 0, -1, 0, 0, 0),
+                               transitions={'done': 'MoveLeft3'})
+        smach.StateMachine.add('MoveLeft3', MoveToPoseLocalTask(2, 0, 0, 0, 0, 0),
+                               transitions={'done': 'MoveLeft4'})
+        smach.StateMachine.add('MoveLeft4', MoveToPoseLocalTask(2, 0, 1, 0, 0, 0),
+                               transitions={'done': 'finish'})
 
     try:
         sm_top.execute()
     except rospy.ROSInterruptException:
         pass
 
+
 if __name__ == '__main__':
     main()
 
 # define state Bas
+
+
 class MoveLocally():
     def __init__(self, px, py, pz, ox, oy, oz, ow):
         self.px = px
@@ -61,7 +66,7 @@ class MoveLocally():
         while not rospy.is_shutdown():
             self._pub_desired_pose.publish(self.desired_pose_transformed)
             rate.sleep()
-        
+
         return 'done'
 
     def publish_desired_pose_local(self):

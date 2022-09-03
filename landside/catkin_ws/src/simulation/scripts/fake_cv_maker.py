@@ -114,7 +114,7 @@ class BoundingBox:
         # FOV - field of view
         if rel_point.x < 0:
             return (-1, -1)
-        print("rel_point",rel_point.x, rel_point.y, rel_point.z)
+        print("rel_point", rel_point.x, rel_point.y, rel_point.z)
         # note, since this uses the x value only, the "FOV" isn't completely accurate to a curved camera view
         xFOV = 0.933 * rel_point.x
         yFOV = 0.586 * rel_point.x
@@ -123,7 +123,7 @@ class BoundingBox:
         xPix = (xFOV / 2 - rel_point.y) / xFOV
         yPix = (yFOV / 2 - rel_point.z) / yFOV
         #print(xPix, yPix)
-        return xPix, yPix#clip(xPix, 0, 1), clip(yPix, 0, 1)
+        return xPix, yPix  # clip(xPix, 0, 1), clip(yPix, 0, 1)
 
     def point_rel_to_bot(self, point):
         poses = PoseStamped()

@@ -15,7 +15,7 @@ class MoveToPoseGlobalTask(Task):
 
     def __init__(self, x, y, z, roll, pitch, yaw):
         super(MoveToPoseGlobalTask, self).__init__(outcomes=['done'])
-        
+
         self.coords = [x, y, z, roll, pitch, yaw]
 
     def execute(self, userdata):
@@ -29,14 +29,23 @@ class MoveToPoseGlobalTask(Task):
 
         self.desired_pose = Pose()
         self.desired_pose.position = Point(x=self.coords[0], y=self.coords[1], z=self.coords[2])
-        self.desired_pose.orientation = Quaternion(*quaternion_from_euler(self.coords[3], self.coords[4], self.coords[5]))
+        self.desired_pose.orientation = Quaternion(
+            *
+            quaternion_from_euler(
+                self.coords[3],
+                self.coords[4],
+                self.coords[5]))
 
         return super(MoveToPoseGlobalTask, self).execute(userdata)
 
     def run(self, userdata):
         print("moving to ", self.desired_pose)
         rate = rospy.Rate(15)
-        while not(self.state and task_utils.stopped_at_pose(self.state.pose.pose, self.getPose(), self.state.twist.twist)):
+        while not(
+            self.state and task_utils.stopped_at_pose(
+                self.state.pose.pose,
+                self.getPose(),
+                self.state.twist.twist)):
             self.publish_desired_pose_global(self.getPose())
             rate.sleep()
         return "done"
@@ -50,7 +59,7 @@ class MoveToMutablePoseGlobalTask(MoveToPoseGlobalTask):
 
     def __init__(self, mutable_pose: task_utils.MutablePose):
         self.mutable_pose = mutable_pose
-        super(MoveToMutablePoseGlobalTask, self).__init__(0,0,0,0,0,0)
+        super(MoveToMutablePoseGlobalTask, self).__init__(0, 0, 0, 0, 0, 0)
 
     def run(self, userdata):
         rate = rospy.Rate(15)
@@ -72,6 +81,7 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
     def run(self, userdata):
         self.desired_pose = task_utils.transform_pose(self.listener, 'base_link', 'odom', self.desired_pose)
         return super(MoveToPoseLocalTask, self).run(userdata)
+
 
 class AllocatePowerTask(Task):
     """Allocate specified power amount in a direction"""
@@ -107,6 +117,7 @@ class AllocateVelocityLocalTask(Task):
         self.publish_desired_twist(self.desired_twist)
         return "done"
 
+
 class AllocateVelocityLocalForeverTask(Task):
     def __init__(self, x, y, z, roll, pitch, yaw):
         super(AllocateVelocityLocalForeverTask, self).__init__(outcomes=["preempted"])
@@ -123,6 +134,7 @@ class AllocateVelocityLocalForeverTask(Task):
                 return 'preempted'
             self.publish_desired_twist(self.desired_twist)
             rate.sleep()
+
 
 class AllocateVelocityGlobalTask(AllocateVelocityLocalTask):
     """Allocate specified velocity in a direction"""
@@ -161,5 +173,3 @@ class HoldPositionTask(Task):
         self.publish_desired_pose_global(self.initial_state.pose.pose)
         if self.hold_time and (rospy.get_rostime() - self.start_time) > self.hold_time:
             self.finish()
-
-            

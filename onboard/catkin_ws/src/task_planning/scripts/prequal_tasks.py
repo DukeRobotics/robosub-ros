@@ -12,15 +12,17 @@ import math
 import time
 from custom_msgs.msg import ThrusterSpeeds
 
+
 def main():
     rospy.init_node('gate_task')
-    
+
     jank_prequal_with_turn()
 
     # sm = create_prequal_task_sm()
     # time.sleep(2)
     # # Execute SMACH plan
     # outcome = sm.execute()
+
 
 SPEED = 80
 DIVE_SPEED = 0
@@ -32,15 +34,20 @@ LONG_TIME = 5
 # NOTE: The third sign is not what I expected, looking at the robot
 # We need to figure out what "flipped" means
 # It seems to mean counterclockwise
-FORWARD_THRUST = [-SPEED, -SPEED, -SPEED, SPEED, DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
-BACKWARD_THRUST = [SPEED, SPEED, SPEED, -SPEED, DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
+FORWARD_THRUST = [-SPEED, -SPEED, -SPEED, SPEED, DEPTH_HOLD_SPEED, -
+                  DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
+BACKWARD_THRUST = [SPEED, SPEED, SPEED, -SPEED, DEPTH_HOLD_SPEED, -
+                   DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
 DOWNWARD_THRUST = [0, 0, 0, 0, DIVE_SPEED, -DIVE_SPEED, -DIVE_SPEED, DIVE_SPEED]
 FORWARD_LEFT_THRUST = [-SPEED, 0, 0, SPEED, DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
 FORWARD_RIGHT_THRUST = [0, -SPEED, -SPEED, 0, DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
 BACKWARD_RIGHT_THRUST = [SPEED, 0, 0, -SPEED, DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
 BACKWARD_LEFT_THRUST = [0, SPEED, SPEED, 0, DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
-SPIN_LEFT_THRUST = [-SPEED, SPEED, SPEED, -SPEED, DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
-SPIN_RIGHT_THRUST = [SPEED, -SPEED, -SPEED, SPEED, DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
+SPIN_LEFT_THRUST = [-SPEED, SPEED, SPEED, -SPEED, DEPTH_HOLD_SPEED, -
+                    DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
+SPIN_RIGHT_THRUST = [SPEED, -SPEED, -SPEED, SPEED, DEPTH_HOLD_SPEED, -
+                     DEPTH_HOLD_SPEED, -DEPTH_HOLD_SPEED, DEPTH_HOLD_SPEED]
+
 
 def move_with_thrust_for_seconds(pub, rate, thrust, seconds):
     for i in range(seconds * 10):
@@ -49,10 +56,11 @@ def move_with_thrust_for_seconds(pub, rate, thrust, seconds):
         pub.publish(t)
         rate.sleep()
 
+
 def jank_prequal_with_turn():
     pub = rospy.Publisher('/offboard/thruster_speeds', ThrusterSpeeds, queue_size=3)
     rate = rospy.Rate(10)
-    #time.sleep(10)
+    # time.sleep(10)
     # Down for 1 second
     move_with_thrust_for_seconds(pub, rate, DOWNWARD_THRUST, 1)
     # Forward for 3 seconds
@@ -77,6 +85,7 @@ def jank_prequal_with_turn():
     move_with_thrust_for_seconds(pub, rate, SPIN_LEFT_THRUST, 1)
     # Forward for 3 seconds
     move_with_thrust_for_seconds(pub, rate, FORWARD_THRUST, LONG_TIME)
+
 
 def jank_prequal():
     pub = rospy.Publisher('/offboard/thruster_speeds', ThrusterSpeeds, queue_size=3)
@@ -141,9 +150,8 @@ def create_prequal_task_sm():
         smach.StateMachine.add('RIGHT_OF_MARKER', MoveToPoseLocalTask(-LOOP_SIZE, -LOOP_SIZE, 0, 0, 0, 0, listener),
                                transitions={
                                    'done': 'BACK_TO_FRONT_OF_MARKER'})
-        smach.StateMachine.add('BACK_TO_FRONT_OF_MARKER', MoveToPoseLocalTask(-LOOP_SIZE, LOOP_SIZE, 0, 0, 0, math.pi, listener),
-                               transitions={
-                                   'done': 'BACK_THROUGH_GATE'})
+        smach.StateMachine.add('BACK_TO_FRONT_OF_MARKER', MoveToPoseLocalTask(-LOOP_SIZE, LOOP_SIZE,
+                               0, 0, 0, math.pi, listener), transitions={'done': 'BACK_THROUGH_GATE'})
         smach.StateMachine.add('BACK_THROUGH_GATE', MoveToPoseLocalTask(-STRETCH_LENGTH, 0, 0, 0, 0, 0, listener),
                                transitions={
                                    'done': 'prequal_task_succeeded'})
@@ -157,8 +165,6 @@ def create_prequal_task_sm():
 
 if __name__ == '__main__':
     main()
-
-
 
 
 # class PreQualGlobalTask(Task):

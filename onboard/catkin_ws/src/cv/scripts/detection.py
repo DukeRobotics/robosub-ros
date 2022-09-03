@@ -41,8 +41,8 @@ class Detector:
             return
 
         weights_file = rr.get_filename(
-                f"package://cv/models/{model['weights']}",
-                use_protocol=False)
+            f"package://cv/models/{model['weights']}",
+            use_protocol=False)
 
         predictor = Model.load(weights_file, model['classes'])
         publisher_dict = {}

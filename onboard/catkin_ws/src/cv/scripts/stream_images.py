@@ -19,13 +19,13 @@ class StreamPublisher:
     # Set up publisher and camera node pipeline
     def __init__(self):
         self.stream_publisher = rospy.Publisher(self.STREAM_TOPIC, Image,
-                                               queue_size=10)
+                                                queue_size=10)
 
         self.bridge = CvBridge()
         self.pipeline = dai.Pipeline()
 
-
     # Publish newest image off queue to topic every few seconds
+
     def run(self):
 
         rospy.init_node(self.NODE_NAME)
@@ -48,9 +48,10 @@ class StreamPublisher:
         # Upload the pipeline to the device
         with dai.Device(self.pipeline) as device:
 
-            # Output queue, to receive message on the host from the device (you can send the message on the device with XLinkOut)
+            # Output queue, to receive message on the host from the device (you can
+            # send the message on the device with XLinkOut)
             rgbQueue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
-            
+
             while not rospy.is_shutdown():
 
                 # Get a message that came from the queue
@@ -74,13 +75,13 @@ class DummyStreamPublisher:
     # Read in the dummy image and other misc. setup work
     def __init__(self):
         self.stream_publisher = rospy.Publisher(self.STREAM_TOPIC, Image,
-                                               queue_size=10)
+                                                queue_size=10)
 
         self.bridge = CvBridge()
         self.pipeline = dai.Pipeline()
 
-
     # Publish dummy image to topic every few seconds
+
     def run(self):
 
         rospy.init_node(self.NODE_NAME)
@@ -93,7 +94,7 @@ class DummyStreamPublisher:
 
         # Define source and output
         camRgb = self.pipeline.create(dai.node.ColorCamera)
-         # Properties
+        # Properties
         camRgb.setPreviewSize(300, 300)
         camRgb.setInterleaved(False)
         camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)
@@ -105,7 +106,7 @@ class DummyStreamPublisher:
         manip = self.pipeline.createImageManip()
         manip.initialConfig.setResize(300, 300)
         manip.initialConfig.setFrameType(dai.ImgFrame.Type.BGR888p)
-        
+
         xIn.out.link(manip.inputImage)
 
         # Upload the pipeline to the device
@@ -120,9 +121,10 @@ class DummyStreamPublisher:
             img.setFrame(byte_im)
             qCamControl.send(img)
 
-            # Output queue, to receive message on the host from the device (you can send the message on the device with XLinkOut)
+            # Output queue, to receive message on the host from the device (you can
+            # send the message on the device with XLinkOut)
             rgbQueue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
-            
+
             while not rospy.is_shutdown():
 
                 # Get a message that came from the queue
@@ -134,6 +136,7 @@ class DummyStreamPublisher:
                 self.stream_publisher.publish(image_msg)
 
             loop_rate.sleep()
+
 
 if __name__ == '__main__':
     StreamPublisher().run()

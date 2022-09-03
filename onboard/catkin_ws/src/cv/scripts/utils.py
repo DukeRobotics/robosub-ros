@@ -50,7 +50,7 @@ def nms(labels, dets, scores, thresh=0.01, conf_thresh=0.7):
         # Get the indices that sort a tensor along a given dimension
         # in ascending order by value
         c_score_tensor_indices = torch.argsort(c_score_tensor)
-        inv_idx = torch.arange(c_score_tensor_indices.size(0)-1, -1, -1).long()
+        inv_idx = torch.arange(c_score_tensor_indices.size(0) - 1, -1, -1).long()
         order = c_score_tensor_indices.index_select(0, inv_idx)
         order = c_score_tensor_indices[inv_idx]
 

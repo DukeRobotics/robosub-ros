@@ -11,14 +11,14 @@ class TaskState:
     DESIRED_TWIST_POWER_TOPIC = 'controls/desired_power'
     DESIRED_TWIST_VELOCITY_TOPIC = 'controls/desired_twist'
     CV_DATA_TOPICS = ["/cv/simulation/bin/left",
-                    "/cv/simulation/bootleggerbuoy/left",
-                    "/cv/simulation/gate/left",
-                    "/cv/simulation/gateleftchild/left",
-                    "/cv/simulation/gaterightchild/left",
-                    "/cv/simulation/gmanbuoy/left",
-                    "/cv/simulation/octagon/left",
-                    "/cv/simulation/pole/left",
-                    "/cv/simulation/straightpathmarker/left"]
+                      "/cv/simulation/bootleggerbuoy/left",
+                      "/cv/simulation/gate/left",
+                      "/cv/simulation/gateleftchild/left",
+                      "/cv/simulation/gaterightchild/left",
+                      "/cv/simulation/gmanbuoy/left",
+                      "/cv/simulation/octagon/left",
+                      "/cv/simulation/pole/left",
+                      "/cv/simulation/straightpathmarker/left"]
 
     def __init__(self):
         self.state_listener = rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state)

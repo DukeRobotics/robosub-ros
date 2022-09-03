@@ -68,7 +68,7 @@ class IMURawPublisher:
     def _parse_orient(self, items):
         untransformed_orient = [float(items[1]), float(items[2]), float(items[3]), float(items[4])]
         # Transform quaternion from NED to ENU coordinates
-        updated_quat = quaternion_multiply([0.707,0.707,0,0], untransformed_orient)
+        updated_quat = quaternion_multiply([0.707, 0.707, 0, 0], untransformed_orient)
 
         self._current_imu_msg.orientation.x = updated_quat[0]
         self._current_imu_msg.orientation.y = updated_quat[1]

@@ -124,12 +124,14 @@ def stopped_at_pose(current_pose, desired_pose, current_twist):
 
     return at_desired_pose and at_desired_vel
 
+
 def transform_pose(listener, base_frame, target_frame, pose):
     pose_stamped = PoseStamped()
     pose_stamped.pose = pose
     pose_stamped.header.frame_id = base_frame
 
     return listener.transformPose(target_frame, pose_stamped).pose
+
 
 def transform(origin_frame, dest_frame, poseORodom):
     """Transforms poseORodom from origin_frame to dest_frame frame
@@ -200,6 +202,7 @@ def transform(origin_frame, dest_frame, poseORodom):
         rospy.logerr("Invalid message type passed to transform()")
         return None
 
+
 def add_poses(pose_list):
     """Adds a list of poses
 
@@ -223,6 +226,7 @@ def add_poses(pose_list):
 
     return Pose(p_sum, Quaternion(*q_sum))
 
+
 def parse_pose(pose):
     pose_dict = {'x': pose.position.x, 'y': pose.position.y, 'z': pose.position.z}
     pose_dict['roll'], pose_dict['pitch'], pose_dict['yaw'] = euler_from_quaternion(
@@ -232,12 +236,14 @@ def parse_pose(pose):
          pose.orientation.w])
     return pose_dict
 
+
 def object_vector(cv_obj_data):
     print(cv_obj_data)
     if not(cv_obj_data) or cv_obj_data.label == 'none':
         return None
 
     return [cv_obj_data.x, cv_obj_data.y, cv_obj_data.z]
+
 
 def cv_object_position(cv_obj_data):
     if not(cv_obj_data) or cv_obj_data.label == 'none':
@@ -248,8 +254,8 @@ def cv_object_position(cv_obj_data):
 class ObjectVisibleTask(Task):
     def __init__(self, image_name, timeout):
         super(ObjectVisibleTask, self).__init__(["undetected", "detected"],
-                                input_keys=['image_name'],
-                                output_keys=['image_name'])
+                                                input_keys=['image_name'],
+                                                output_keys=['image_name'])
         self.image_name = image_name
         self.timeout = timeout
 
@@ -264,6 +270,7 @@ class ObjectVisibleTask(Task):
             rate.sleep()
         return "undetected"
 
+
 class MutatePoseTask(Task):
     def __init__(self, mutablePose):
         super().__init__(['done'], input_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'])
@@ -271,7 +278,13 @@ class MutatePoseTask(Task):
 
     def run(self, userdata):
         if userdata.x != nan and userdata.y != nan and userdata.z != nan:
-            self.mutablePose.setPoseCoords(userdata.x, userdata.y, userdata.z, userdata.roll, userdata.pitch, userdata.yaw)
+            self.mutablePose.setPoseCoords(
+                userdata.x,
+                userdata.y,
+                userdata.z,
+                userdata.roll,
+                userdata.pitch,
+                userdata.yaw)
         if self.preempt_requested():
             self.service_preempt()
         return "done"
@@ -283,12 +296,12 @@ class MutablePose:
 
     def setPoseCoords(self, x, y, z, roll, pitch, yaw):
         quaternion = Quaternion(*quaternion_from_euler(roll, pitch, yaw))
-        point = Point(x,y,z)
+        point = Point(x, y, z)
         self.pose = Pose(point, quaternion)
-    
+
     def setPose(self, newPose):
         self.pose = deepcopy(newPose)
-    
+
     def getPose(self):
         return self.pose
 
