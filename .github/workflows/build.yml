@@ -70,7 +70,8 @@ jobs:
       TARGETPLATFORM: 'linux/${{ matrix.arch }}'
       SERVICE_NAME: onboard
       BASE_IMAGE: 'dukerobotics/robosub-ros:core-${{ matrix.arch }}'
-      FILE_NAME: '${{ matrix.arch }}-core.tar.gz'
+      CORE_FILE_NAME: '${{ matrix.arch }}-core.tar.gz'
+      ONBOARD_FILE_NAME: '${{ matrix.arch }}-onboard.tar.gz'
       CUDA: ${{ matrix.arch == 'arm64'  }}
     steps:
       - uses: actions/checkout@v2
@@ -81,7 +82,7 @@ jobs:
           path: core_im
       - name: Load core image
         run: |
-          docker load < ./core_im/${FILE_NAME}
+          docker load < ./core_im/${CORE_FILE_NAME}
           rm -rf core_im
       - name: Setup environment and build docker image
         run: ./.github/workflows/build.sh
@@ -102,6 +103,15 @@ jobs:
         run: |
           echo "${{ secrets.DOCKER_BOT_TOKEN }}" | docker login -u dukeroboticsbot --password-stdin
           docker push ${IMAGE_NAME}
+      - name: Save onboard image
+        run: |
+          docker save ${IMAGE_NAME} | gzip > ${ONBOARD_FILE_NAME}
+      - name: Create artifact from image
+        if: ${{ github.event.label.name == 'artifact' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: onboard
+          path: ${{ env.ONBOARD_FILE_NAME }}
 
   push-docker:
     runs-on: ubuntu-18.04
@@ -116,17 +126,6 @@ jobs:
           docker buildx imagetools create --tag dukerobotics/robosub-ros:core dukerobotics/robosub-ros:core-amd64 dukerobotics/robosub-ros:core-arm64
           docker buildx imagetools create --tag dukerobotics/robosub-ros:onboard dukerobotics/robosub-ros:onboard-amd64 dukerobotics/robosub-ros:onboard-arm64
   
-  cleanup-docker:
-    runs-on: ubuntu-18.04
-    needs: [check-docker, push-docker]
-    if: always() && (needs.check-docker.outputs.docker == 'true')
-    steps:
-      - uses: actions/checkout@v2
-      - name: Cleanup artifacts
-        uses: geekyeggo/delete-artifact@v1
-        with:
-          name: core
-
   landside-docker:
     runs-on: ubuntu-18.04
     needs: core-docker
@@ -160,6 +159,15 @@ jobs:
         run: |
           echo "${{ secrets.DOCKER_BOT_TOKEN }}" | docker login -u dukeroboticsbot --password-stdin
           docker push ${IMAGE_NAME}
+      - name: Save landside image
+        run: |
+          docker save ${IMAGE_NAME} | gzip > amd64-landside.tar.gz
+      - name: Create artifact from image
+        if: ${{ github.event.label.name == 'artifact' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: landside
+          path: amd64-landside.tar.gz
 
   build-without-docker:
     runs-on: ubuntu-18.04
