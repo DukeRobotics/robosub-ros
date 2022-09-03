@@ -2,17 +2,14 @@
 
 from statistics import mean
 
-from numpy import object_, array_equal
+from numpy import array_equal
 from task_utils import cv_object_position, object_vector, ObjectVisibleTask
 import smach
 import rospy
 from task import Task
-from move_tasks import MoveToPoseLocalTask, AllocateVelocityLocalTask, AllocateVelocityLocalForeverTask, MoveToPoseGlobalTask, MoveToMutablePoseGlobalTask
+from move_tasks import MoveToPoseLocalTask
 from tf import TransformListener
 from time import sleep
-from math import *
-from custom_msgs.msg import CVObject
-from geometry_msgs.msg import Pose
 
 
 SIDE_THRESHOLD = 0.1  # means gate post is within 1 tenth of the side of the frame
@@ -41,7 +38,7 @@ def main():
     sm = create_simple_gate_task_sm()
     sleep(2)
     # Execute SMACH plan
-    outcome = sm.execute()
+    sm.execute()
 
 # Rotate direction is +1 or -1 depending on how we should rotate
 
@@ -307,7 +304,8 @@ class SurveyGateTask(Task):
 #         rate = rospy.Rate(10)
 #         while self.cv_data['gateleftchild'] == None or self.cv_data['gaterightchild'] == None:
 #             rate.sleep()
-#         v1, v2 = _find_gate_normal_and_center(self.cv_data['gateleftchild'], self.cv_data['gaterightchild'], self.listener)
+#         v1, v2 = _find_gate_normal_and_center(self.cv_data['gateleftchild'], 
+#           self.cv_data['gaterightchild'], self.listener)
 
 #         userdata['vector1'] = v1
 #         userdata['vector2'] = v2
@@ -334,16 +332,23 @@ Then position robot along that normal and whatever distance we want
 
 # def _find_gate_normal_and_center(gate_data_l, gate_data_r, listener):
 #     global past_gate_info
-#     top_left = _real_pos_from_cv((gate_data_l.xmin + gate_data_l.xmax)/2, gate_data_l.ymin, gate_data_l.distance, listener)
-#     top_right = _real_pos_from_cv((gate_data_r.xmin + gate_data_r.xmax)/2, gate_data_r.ymin, gate_data_r.distance, listener)
-#     bottom_left = _real_pos_from_cv((gate_data_l.xmin + gate_data_l.xmax)/2, gate_data_l.ymax, gate_data_l.distance, listener)
-#     bottom_right = _real_pos_from_cv((gate_data_r.xmin + gate_data_r.xmax)/2, gate_data_r.ymax, gate_data_r.distance, listener)
+#     top_left = _real_pos_from_cv((gate_data_l.xmin + gate_data_l.xmax)/2, 
+#       gate_data_l.ymin, gate_data_l.distance, listener)
+#     top_right = _real_pos_from_cv((gate_data_r.xmin + gate_data_r.xmax)/2, 
+#       gate_data_r.ymin, gate_data_r.distance, listener)
+#     bottom_left = _real_pos_from_cv((gate_data_l.xmin + gate_data_l.xmax)/2, 
+#       gate_data_l.ymax, gate_data_l.distance, listener)
+#     bottom_right = _real_pos_from_cv((gate_data_r.xmin + gate_data_r.xmax)/2, 
+#       gate_data_r.ymax, gate_data_r.distance, listener)
 
 #     # Midpoint between top_left and bottom_right
-#     center_pt = Vector3(x=(top_left.position.x + bottom_right.position.x) / 2, y=(top_left.position.y + bottom_right.position.y) / 2, z=(top_left.position.z + bottom_right.position.z) / 2)
+#       center_pt = Vector3(x=(top_left.position.x + bottom_right.position.x) / 2, 
+#           y=(top_left.position.y + bottom_right.position.y) / 2, z=(top_left.position.z + bottom_right.position.z) / 2)
 
-#     diag_1 = Vector3(top_left.position.x - bottom_right.position.x, top_left.position.y - bottom_right.position.y, top_left.position.z - bottom_right.position.z)
-#     diag_2 = Vector3(bottom_left.position.x - top_right.position.x, bottom_left.position.y - top_right.position.y, bottom_left.position.z - top_right.position.z)
+#     diag_1 = Vector3(top_left.position.x - bottom_right.position.x, top_left.position.y - bottom_right.position.y, 
+#           top_left.position.z - bottom_right.position.z)
+#     diag_2 = Vector3(bottom_left.position.x - top_right.position.x, bottom_left.position.y - top_right.position.y, 
+#           bottom_left.position.z - top_right.position.z)
 
 #     # FIXME temporarily setting z to 0
 #     center_pt.z = 0

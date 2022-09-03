@@ -4,10 +4,6 @@ from nav_msgs.msg import Odometry
 from tf.transformations import quaternion_from_euler
 import task_utils
 import rospy
-from time import sleep
-from geometry_msgs.msg import PoseStamped
-
-from smach import State
 
 
 class MoveToPoseGlobalTask(Task):
@@ -113,7 +109,7 @@ class AllocateVelocityLocalTask(Task):
         self.desired_twist = Twist(linear=linear, angular=angular)
 
     def run(self, userdata):
-        #rospy.loginfo("publishing desired twist...")
+        # rospy.loginfo("publishing desired twist...")
         self.publish_desired_twist(self.desired_twist)
         return "done"
 
@@ -126,7 +122,7 @@ class AllocateVelocityLocalForeverTask(Task):
         self.desired_twist = Twist(linear=linear, angular=angular)
 
     def run(self, userdata):
-        #rospy.loginfo("publishing desired twist...")
+        # rospy.loginfo("publishing desired twist...")
         rate = rospy.Rate(15)
         while True:
             if self.preempt_requested():

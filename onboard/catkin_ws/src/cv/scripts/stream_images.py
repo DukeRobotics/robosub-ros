@@ -4,7 +4,6 @@ import rospy
 import depthai as dai
 import cv2
 import os
-from custom_msgs.srv import EnableModel
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 

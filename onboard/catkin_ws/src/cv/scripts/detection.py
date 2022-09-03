@@ -3,7 +3,6 @@
 import rospy
 import yaml
 import resource_retriever as rr
-import utils
 
 from custom_msgs.msg import CVObject
 from custom_msgs.srv import EnableModel

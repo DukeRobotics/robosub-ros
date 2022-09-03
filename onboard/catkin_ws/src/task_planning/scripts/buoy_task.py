@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 
 from statistics import mean
-from task_utils import cv_object_position, object_vector, ObjectVisibleTask
-from numpy import object_, array_equal
+from task_utils import cv_object_position, object_vector
+from numpy import array_equal
 import smach
 import rospy
 from task import Task
-from move_tasks import MoveToPoseLocalTask, AllocateVelocityLocalTask, AllocateVelocityLocalForeverTask, MoveToPoseGlobalTask, MoveToMutablePoseGlobalTask
+from move_tasks import MoveToPoseLocalTask
 from tf import TransformListener
 from time import sleep
-from math import *
 
 
 SIDE_THRESHOLD = 0.1  # means buoy post is within 1 tenth of the side of the frame
@@ -37,7 +36,7 @@ def main():
     sm = create_buoy_task_sm()
     sleep(2)
     # Execute SMACH plan
-    outcome = sm.execute()
+    sm.execute()
 
 # Rotate direction is +1 or -1 depending on how we should rotate
 

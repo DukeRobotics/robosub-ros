@@ -35,4 +35,4 @@ def main():
     # smach.StateMachine.add('CON', sm_top,
     #                        transitions = {'succeeded':'CON'})
 
-    outcome = sm_top.execute()
+    sm_top.execute()

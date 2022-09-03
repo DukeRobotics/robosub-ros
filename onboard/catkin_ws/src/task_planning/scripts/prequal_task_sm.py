@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 
-from task_utils import parse_pose
 import smach
 import rospy
 from task import Task
-from move_tasks import MoveToPoseLocalTask, AllocateVelocityLocalTask, AllocateVelocityLocalForeverTask, MoveToPoseGlobalTask, MoveToMutablePoseGlobalTask
+from move_tasks import MoveToPoseLocalTask
 from time import sleep
-from math import *
 
 
 prequal_TICK_CV_NAME = "bin"  # change back to prequal_tick
@@ -18,7 +16,7 @@ def main():
     sm = create_prequal_task_sm()
     sleep(2)
     # Execute SMACH plan
-    outcome = sm.execute()
+    sm.execute()
 
 
 def create_prequal_task_sm(velocity=0.2):

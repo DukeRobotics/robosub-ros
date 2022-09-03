@@ -73,7 +73,8 @@ class MoveOneCVBoxToAnotherTask(Task):
     method is either "rotate" or "strafe"
     camera is either "front" or "down"
     coordinates are scaled from 0.0 to 1.0 (e.g. x_curr=0.0 is the left side of the frame), and so is the tolerance
-    the center of the box will be aligned to x_target and y_target, and will match at least one of either w_target or h_target in dimension
+    the center of the box will be aligned to x_target and y_target, and will match at least one of either
+    w_target or h_target in dimension
     """
 
     def __init__(
@@ -128,10 +129,12 @@ class MoveOneCVBoxToAnotherTask(Task):
         resize_box = current_area - target_area  # probably want to add tolerance and change if statements accordingly
 
         if resize_box < 0:  # current box smaller than target, so scale up
+            pass
             # move to position and then scale up
             # check if position met (w or h is within tolerance)
             # then execute scale up
         elif resize_box > 0:  # current box larger than target, so scale down
+            pass
             # scale down then move to position
             # scale down and check if size requirement is met
             # then execute movement to put (w or H within tolerance)

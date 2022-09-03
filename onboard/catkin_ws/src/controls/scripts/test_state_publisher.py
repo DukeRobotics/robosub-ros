@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from copy import deepcopy
-import secrets
 import rospy
 from custom_msgs.msg import CVObject
 from geometry_msgs.msg import Pose, Twist
@@ -180,7 +179,7 @@ class TestStatePublisher:
     def circle_pole(self):
         delay = 0
         rate = rospy.Rate(15)
-        #self.desired_pose_local.position.x = 0
+        # self.desired_pose_local.position.x = 0
         while not rospy.is_shutdown():
             delay += 1
             if delay == 30:
@@ -239,10 +238,10 @@ class TestStatePublisher:
         self.desired_pose_local.position.x = x
         self.desired_pose_local.position.y = y
         self.desired_pose_local.position.z = z
-        #self.desired_pose_local.orientation.x = 0
-        #self.desired_pose_local.orientation.y = 0
-        #self.desired_pose_local.orientation.z = 0
-        #self.desired_pose_local.orientation.w = 1
+        # self.desired_pose_local.orientation.x = 0
+        # self.desired_pose_local.orientation.y = 0
+        # self.desired_pose_local.orientation.z = 0
+        # self.desired_pose_local.orientation.w = 1
 
         self.recalculate_local_pose()
 
@@ -260,14 +259,14 @@ class TestStatePublisher:
                 # abs(self.current_setpoint[2]) <= self.MOVE_OFFSET_CONSTANT:
                 if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT and abs(
                         self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT:
-                    #print("Done with loop")
+                    # print("Done with loop")
                     break
             rate.sleep()
         # print("Finished")
 
     def move_to_yaw_and_stop(self, x, y, z, w):
-        #self.desired_pose_local.position.x = 0
-        #self.desired_pose_local.position.y = 0
+        # self.desired_pose_local.position.x = 0
+        # self.desired_pose_local.position.y = 0
         self.desired_pose_local.position.z = -0.1
         self.desired_pose_local.orientation.x = x
         self.desired_pose_local.orientation.y = y
@@ -350,9 +349,9 @@ class TestStatePublisher:
 
     def semifinal_sunday_v1(self):
         # No style, no random starting orientation (just point directly to the octagon)
-        # z_submerge = -1 #tune by finding depth for which we can travel length of pool without surfacing (until of couse we want to)
+        # z_submerge = -1 #tune by finding depth for which we can travel length of pool without surfacing
         # self.move_to_pos_and_stop(0,0,z_submerge)
-        #print("Submerge done")
+        # print("Submerge done")
 
         # initial delay
         delay = 0
@@ -375,7 +374,7 @@ class TestStatePublisher:
 
         # z_surface = -z_submerge #should cause robot to reach surface, provided robot is positively buoyant
         # self.move_to_pos_and_stop(0,0,z_surface)
-        #print("Rise to surface done")
+        # print("Rise to surface done")
 
     # Then do v2 and v3; ideally we do v3 successfully and earn 2350 points total
 
@@ -449,10 +448,6 @@ class TestStatePublisher:
         while not rospy.is_shutdown():
             d = (self.gman_ymax - self.gman_ymin) * 760  # height of buoy in pixels
             x_setpoint = self.calculate_depth_to_gman_buoy(d)
-            y_setpoint_in_degrees = -((self.gman_xmax + self.gman_xmin) / 2 - 0.5) * 1210 * degrees_per_pixel_horizontal
-            y_setpoint = x_setpoint * math.tan(y_setpoint_in_degrees)
-            z_setpoint_in_degrees = -((self.gman_ymax + self.gman_ymin) / 2 - 0.5) * 760 * degrees_per_pixel_vertical
-            z_setpoint = x_setpoint * math.tan(z_setpoint_in_degrees)
             self.desired_pose_local.position.x = x_setpoint
             self.desired_pose_local.position
 
@@ -496,7 +491,7 @@ def main():
     # TestStatePublisher().test_yaw()
     # TestStatePublisher().move_to_pos_and_stop(8,0,-1)
     # TestStatePublisher().move_to_yaw_and_stop(0,0,1,0) #submerges as well
-    #print("Done with yaw")
+    # print("Done with yaw")
     # TestStatePublisher().move_to_pos_and_stop(2,0,-0.5)
     print("Done with x")
 

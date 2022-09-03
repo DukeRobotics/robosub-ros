@@ -4,9 +4,9 @@ import rospy
 import smach
 import random
 from task import Task
-from move_tasks import MoveToPoseGlobalTask, MoveToPoseLocalTask, AllocateVelocityLocalTask, MoveToMutablePoseGlobalTask
+from move_tasks import MoveToPoseGlobalTask
 from time import sleep
-from geometry_msgs.msg import Pose, Quaternion, Twist, Point, Vector3
+from geometry_msgs.msg import Vector3
 from tf import TransformListener
 import task_utils
 import gate_task
@@ -20,11 +20,11 @@ def main():
     print("before sleep")
     sleep(2)
     # print("before ctor")
-    #move = AllocateVelocityLocalTask(0, 0, -10, 0, 0, 0)
-    move = MoveToPoseGlobalTask(5, 0, 0, 0, 0, 0)
+    # move = AllocateVelocityLocalTask(0, 0, -10, 0, 0, 0)
+    MoveToPoseGlobalTask(5, 0, 0, 0, 0, 0)
     # move.execute({})
     # return
-    #rate = rospy.Rate(15)
+    # rate = rospy.Rate(15)
     # while True:
     #    move.execute({})
     #    rate.sleep()
@@ -48,7 +48,7 @@ def main():
     sm = gate_task_is_broken_test(listener)
 
     # Execute SMACH plan
-    outcome = sm.execute()
+    sm.execute()
 
 
 def gate_task_is_broken_test(listener):
@@ -172,8 +172,7 @@ def concurrency():
                                transitions={'done': 'ConcurrentMove2'})
         cc = smach.Concurrence(outcomes=['done'],
                                default_outcome='done',
-                               outcome_map={'done': {'Move2': 'done',  # end concurrency when Move2 and Log have both completed
-                                                     'Log': 'done'}})
+                               outcome_map={'done': {'Move2': 'done', 'Log': 'done'}})
         with cc:
             smach.Concurrence.add('Move2', MoveToPoseGlobalTask(2, 2, 0, 0, 0, 0))
             smach.Concurrence.add('Log', LogSomethingUseful())

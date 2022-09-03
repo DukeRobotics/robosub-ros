@@ -1,20 +1,18 @@
 #!/usr/bin/env python
 
-
 from statistics import mean
 
-from task_utils import object_vector, ObjectVisibleTask
 import smach
 import rospy
 from task import Task
-from move_tasks import MoveToPoseLocalTask, AllocateVelocityLocalTask, AllocateVelocityLocalForeverTask, MoveToPoseGlobalTask, MoveToMutablePoseGlobalTask
+from move_tasks import MoveToPoseLocalTask
 from tf import TransformListener
 from time import sleep
-from math import *
 
 
 SIDE_THRESHOLD = 0.1  # means octagon post is within 1 tenth of the side of the frame
-CENTERED_THRESHOLD = 0.1  # means octagon will be considered centered if within 1 tenth of the center of the frame
+# Octagon will be considered centered if within 1 tenth of the center of the frame
+CENTERED_THRESHOLD = 0.1
 octagon_TICK_CV_NAME = "bin"  # change back to octagon_tick
 
 """
@@ -38,7 +36,7 @@ def main():
     sm = create_eyeball_octagon_task_sm()
     sleep(2)
     # Execute SMACH plan
-    outcome = sm.execute()
+    sm.execute()
 
 # Rotate direction is +1 or -1 depending on how we should rotate
 

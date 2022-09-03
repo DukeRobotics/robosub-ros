@@ -2,7 +2,7 @@ from task_state import TaskState
 import dependency_injector.providers as providers
 import smach
 
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 
 
 class Task(smach.State):

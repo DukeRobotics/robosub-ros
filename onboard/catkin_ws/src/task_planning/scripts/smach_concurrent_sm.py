@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import smach_ros
 import smach
 import rospy
 import roslib
@@ -73,7 +72,7 @@ def main():
                                             'outcome5': 'outcome6'})
 
     # Execute SMACH plan
-    outcome = sm_top.execute()
+    sm_top.execute()
 
 
 if __name__ == '__main__':

@@ -1,11 +1,10 @@
 from task import Task
-from geometry_msgs.msg import Pose, Quaternion, Twist, Point
+from geometry_msgs.msg import Pose, Quaternion, Point
 from tf.transformations import quaternion_from_euler
 import task_utils
 import move_tasks
 import math
 import rospy
-from move_tasks import AllocateVelocityGlobalTask, AllocateVelocityLocalTask
 
 
 class StyleTask(Task):

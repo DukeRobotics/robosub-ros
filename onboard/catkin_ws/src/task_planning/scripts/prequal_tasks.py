@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
-from combination_tasks import ListTask
-from move_tasks import MoveToPoseGlobalTask
 from move_tasks import MoveToPoseLocalTask
-from task import Task
 import smach
 import rospy
 import gate_task
@@ -124,7 +121,7 @@ def jank_prequal():
 def create_prequal_task_sm():
     sm = smach.StateMachine(outcomes=['prequal_task_succeeded', 'prequal_task_failed'])
     listener = TransformListener()
-    gate_sm = gate_task.create_gate_task_sm()
+    gate_task.create_gate_task_sm()
 
     DEPTH = -3
     STRETCH_LENGTH = 4

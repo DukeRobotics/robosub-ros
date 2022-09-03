@@ -6,7 +6,7 @@ import serial.tools.list_ports as list_ports
 import traceback
 
 from sensor_msgs.msg import Imu, MagneticField
-from tf.transformations import euler_from_quaternion, quaternion_from_euler, quaternion_multiply
+from tf.transformations import quaternion_multiply
 
 
 class IMURawPublisher:
