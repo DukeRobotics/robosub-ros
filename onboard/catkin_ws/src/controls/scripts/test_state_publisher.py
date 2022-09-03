@@ -9,7 +9,6 @@ from nav_msgs.msg import Odometry
 import controls_utils
 from tf import TransformListener
 from time import sleep
-import math
 
 
 class TestStatePublisher:
@@ -436,14 +435,6 @@ class TestStatePublisher:
         return f * D / d  # calculated x distance to buoy using similar triangles
 
     def move_to_gman_buoy(self):
-        horizontal_fov = 50
-        horizontal_pixel_count = 1210
-        degrees_per_pixel_horizontal = horizontal_fov / horizontal_pixel_count
-
-        vertical_fov = 0
-        vertical_pixel_count = 760
-        degrees_per_pixel_vertical = vertical_fov / vertical_pixel_count
-
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             d = (self.gman_ymax - self.gman_ymin) * 760  # height of buoy in pixels

@@ -4,7 +4,7 @@ import rospy
 import smach
 import random
 from task import Task
-from move_tasks import MoveToPoseGlobalTask
+from move_tasks import MoveToPoseGlobalTask, MoveToMutablePoseGlobalTask
 from time import sleep
 from geometry_msgs.msg import Vector3
 from tf import TransformListener
