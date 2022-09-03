@@ -8,8 +8,6 @@ on:
 jobs:
   cleanup-docker:
     runs-on: ubuntu-18.04
-    needs: [check-docker, push-docker]
-    if: always() && (needs.check-docker.outputs.docker == 'true')
     steps:
       - uses: actions/checkout@v2
       - name: Cleanup artifacts
