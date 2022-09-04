@@ -105,6 +105,7 @@ jobs:
           echo "${{ secrets.DOCKER_BOT_TOKEN }}" | docker login -u dukeroboticsbot --password-stdin
           docker push ${IMAGE_NAME}
       - name: Save onboard image
+        if: ${{ github.event.label.name == 'artifact' }}
         run: |
           docker save ${IMAGE_NAME} | gzip > ${ONBOARD_FILE_NAME}
       - name: Create artifact from image
@@ -172,6 +173,7 @@ jobs:
           echo "${{ secrets.DOCKER_BOT_TOKEN }}" | docker login -u dukeroboticsbot --password-stdin
           docker push ${IMAGE_NAME}
       - name: Save landside image
+        if: ${{ github.event.label.name == 'artifact' }}
         run: |
           docker save ${IMAGE_NAME} | gzip > amd64-landside.tar.gz
       - name: Create artifact from image
