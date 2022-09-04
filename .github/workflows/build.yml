@@ -11,11 +11,22 @@ on:
   pull_request:
 
 jobs:
-  check-docker:
-    if: github.event_name != 'issue_comment' || (github.event.issue.pull_request && contains(github.event.comment.body, '/build-artifacts'))
+  check-comment:
     runs-on: ubuntu-18.04
     outputs:
-      docker: ${{ steps.filter.outputs.docker }}
+      triggered: ${{ steps.check.outputs.triggered}}
+    steps:
+    - name: Check if pull request has build-artifacts comment
+    - uses: khan/pull-request-comment-trigger@v1.1.0
+      id: check
+      with:
+        trigger: '/build-artifacts'
+
+  check-docker:
+    needs: check-comment
+    runs-on: ubuntu-18.04
+    outputs:
+      docker: ${{ steps.filter.outputs.docker || needs.check-comment.outputs.triggered }}
     steps:
     - uses: actions/checkout@v2
     - name: Check if docker directory has changed
