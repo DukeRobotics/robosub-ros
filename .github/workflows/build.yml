@@ -16,19 +16,22 @@ jobs:
     outputs:
       triggered: ${{ github.event.issue.pull_request && github.event.comment.body == '/build-artifacts'}}
     steps:
-    - name: Github API Request
-      id: request
-      uses: octokit/request-action@v2.0.0
+    - name: Get PR SHA
+      id: sha
+      uses: actions/github-script@v4
       with:
-        route: ${{ github.event.issue.pull_request.url }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Checkout PR Branch
-      uses: actions/checkout@v2
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        repository: ${{ fromJson(steps.request.outputs.data).head.repo.full_name }}
-        ref: ${{ steps.pr_data.outputs.branch }}
+        result-encoding: string
+        script: |
+          const { owner, repo, number } = context.issue;
+          const pr = await github.pulls.get({
+            owner,
+            repo,
+            pull_number: number,
+          });
+          return pr.data.head.sha          
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ steps.sha.outputs.result }}
     - name: Build confirmation
       run: 'echo Build command found, building artifacts.'
 
