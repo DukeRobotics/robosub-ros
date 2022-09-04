@@ -13,9 +13,8 @@ on:
 jobs:
   check-comment:
     runs-on: ubuntu-18.04
-    if: ${{ github.event.issue.pull_request && github.event.comment.body == '/build-artifacts'}}
     outputs:
-      triggered: true
+      triggered: ${{ github.event.issue.pull_request && github.event.comment.body == '/build-artifacts'}}
     steps:
     - name: Github API Request
       id: request
