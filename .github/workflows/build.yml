@@ -16,12 +16,13 @@ jobs:
     outputs:
       triggered: ${{ steps.check.outputs.triggered}}
     steps:
-    - name: Check if pull request has build-artifacts comment
+    - name: Check if triggered by /build-artifacts
       uses: khan/pull-request-comment-trigger@v1.1.0
       id: check
       with:
         trigger: '/build-artifacts'
-    - run: 'echo Build command found, building artifacts.'
+    - name: Build confirmation
+      run: 'echo Build command found, building artifacts.'
       if: steps.check.outputs.triggered == 'true'
 
   check-docker:
