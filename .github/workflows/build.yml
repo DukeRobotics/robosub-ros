@@ -21,6 +21,8 @@ jobs:
       id: check
       with:
         trigger: '/build-artifacts'
+      run: 'echo Build command found, building artifacts.'
+        if: steps.check.outputs.triggered == 'true'
 
   check-docker:
     needs: check-comment
