@@ -5,12 +5,14 @@ on:
     # Publish `master` as Docker `latest` image. Run only when the docker subdirectory is modified.
     branches:
       - master
+  issue_comment:
+    types: [created]
   # Run tests for any PRs that have changed a file in the docker subdirectory.
   pull_request:
-    types: [opened, synchronize, reopened, labeled]
 
 jobs:
   check-docker:
+    if: github.event_name != 'issue_comment' || (github.event.issue.pull_request && contains(github.event.comment.body, '/build-artifacts'))
     runs-on: ubuntu-18.04
     outputs:
       docker: ${{ steps.filter.outputs.docker }}
@@ -105,11 +107,11 @@ jobs:
           echo "${{ secrets.DOCKER_BOT_TOKEN }}" | docker login -u dukeroboticsbot --password-stdin
           docker push ${IMAGE_NAME}
       - name: Save onboard image
-        if: ${{ github.event.label.name == 'artifact' }}
+        if: ${{ github.event_name != 'issue_comment' }}
         run: |
           docker save ${IMAGE_NAME} | gzip > ${ONBOARD_FILE_NAME}
       - name: Create artifact from image
-        if: ${{ github.event.label.name == 'artifact' }}
+        if: ${{ github.event_name != 'issue_comment' }}
         uses: actions/upload-artifact@v2
         with:
           name: onboard
@@ -137,7 +139,7 @@ jobs:
       - name: Cleanup artifacts
         uses: geekyeggo/delete-artifact@v1
         with:
-          name: core 
+          name: core
 
   landside-docker:
     runs-on: ubuntu-18.04
@@ -173,11 +175,11 @@ jobs:
           echo "${{ secrets.DOCKER_BOT_TOKEN }}" | docker login -u dukeroboticsbot --password-stdin
           docker push ${IMAGE_NAME}
       - name: Save landside image
-        if: ${{ github.event.label.name == 'artifact' }}
+        if: ${{ github.event_name != 'issue_comment' }}
         run: |
           docker save ${IMAGE_NAME} | gzip > amd64-landside.tar.gz
       - name: Create artifact from image
-        if: ${{ github.event.label.name == 'artifact' }}
+        if: ${{ github.event_name != 'issue_comment' }}
         uses: actions/upload-artifact@v2
         with:
           name: landside
