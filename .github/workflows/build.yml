@@ -16,8 +16,8 @@ jobs:
     outputs:
       triggered: ${{ steps.check.outputs.triggered}}
     steps:
-    - name: Check if pull request has build-artifacts comment
     - uses: khan/pull-request-comment-trigger@v1.1.0
+    - name: Check if pull request has build-artifacts comment
       id: check
       with:
         trigger: '/build-artifacts'
