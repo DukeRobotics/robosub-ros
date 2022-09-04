@@ -13,17 +13,25 @@ on:
 jobs:
   check-comment:
     runs-on: ubuntu-18.04
+    if: ${{ github.event.issue.pull_request && github.event.comment.body == '/build-artifacts'}}
     outputs:
-      triggered: ${{ steps.check.outputs.triggered}}
+      triggered: true
     steps:
-    - name: Check if triggered by /build-artifacts
-      uses: khan/pull-request-comment-trigger@v1.1.0
-      id: check
+    - name: Github API Request
+      id: request
+      uses: octokit/request-action@v2.0.0
       with:
-        trigger: '/build-artifacts'
+        route: ${{ github.event.issue.pull_request.url }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout PR Branch
+      uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        repository: ${{ fromJson(steps.request.outputs.data).head.repo.full_name }}
+        ref: ${{ steps.pr_data.outputs.branch }}
     - name: Build confirmation
       run: 'echo Build command found, building artifacts.'
-      if: steps.check.outputs.triggered == 'true'
 
   check-docker:
     needs: check-comment
