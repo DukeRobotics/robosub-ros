@@ -32,8 +32,6 @@ jobs:
     - uses: actions/checkout@v2
       with:
         ref: ${{ steps.sha.outputs.result }}
-    - name: Build confirmation
-      run: 'echo Build command found, building artifacts.'
 
   check-docker:
     needs: check-comment
