@@ -45,23 +45,26 @@ class StreamPublisher:
         camRgb.preview.link(xoutRgb.input)
 
         # Upload the pipeline to the device
-        with dai.Device(self.pipeline) as device:
+        try:
+            with dai.Device(self.pipeline) as device:
 
-            # Output queue, to receive message on the host from the device (you can
-            # send the message on the device with XLinkOut)
-            rgbQueue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
+                # Output queue, to receive message on the host from the device (you can
+                # send the message on the device with XLinkOut)
+                rgbQueue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
 
-            while not rospy.is_shutdown():
+                while not rospy.is_shutdown():
 
-                # Get a message that came from the queue
-                raw_img = rgbQueue.get()
-                img = raw_img.getCvFrame()
+                    # Get a message that came from the queue
+                    raw_img = rgbQueue.get()
+                    img = raw_img.getCvFrame()
 
-                # Publish the image
-                image_msg = self.bridge.cv2_to_imgmsg(img, 'bgr8')
-                self.stream_publisher.publish(image_msg)
+                    # Publish the image
+                    image_msg = self.bridge.cv2_to_imgmsg(img, 'bgr8')
+                    self.stream_publisher.publish(image_msg)
 
-            loop_rate.sleep()
+                loop_rate.sleep()
+        except RuntimeError:
+            rospy.logerr("No device found!")
 
 
 # Mock the camera by publishing the same image to a topic
@@ -138,4 +141,7 @@ class DummyStreamPublisher:
 
 
 if __name__ == '__main__':
-    StreamPublisher().run()
+    try:
+        StreamPublisher().run()
+    except rospy.ROSInterruptException:
+        pass
