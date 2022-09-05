@@ -43,6 +43,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Check if docker directory has changed
+      if: github.event_name != 'issue_comment'
       uses: dorny/paths-filter@v2.2.1
       id: filter
       with:
@@ -50,7 +51,6 @@ jobs:
           docker:
             - 'docker/**'
             - '.github/workflows/**'
-
   core-docker:
     runs-on: ubuntu-18.04
     needs: check-docker
@@ -212,7 +212,7 @@ jobs:
   build-without-docker:
     runs-on: ubuntu-18.04
     needs: check-docker
-    if: needs.check-docker.outputs.docker == 'false'
+    if: needs.check-docker.outputs.docker == 'false' && github.event_name != 'issue_comment'
     strategy:
       matrix:
         workspace: [onboard, landside]
