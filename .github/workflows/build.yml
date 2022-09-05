@@ -5,45 +5,17 @@ on:
     # Publish `master` as Docker `latest` image. Run only when the docker subdirectory is modified.
     branches:
       - master
-  issue_comment:
-    types: [created]
   # Run tests for any PRs that have changed a file in the docker subdirectory.
   pull_request:
 
 jobs:
-  check-comment:
-    runs-on: ubuntu-18.04
-    outputs:
-      triggered: ${{ github.event.issue.pull_request && github.event.comment.body == '/build-artifacts'}}
-    steps:
-    - name: Get PR SHA
-      if: github.event_name != 'push'
-      id: sha
-      uses: actions/github-script@v4
-      with:
-        result-encoding: string
-        script: |
-          const { owner, repo, number } = context.issue;
-          const pr = await github.pulls.get({
-            owner,
-            repo,
-            pull_number: number,
-          });
-          return pr.data.head.sha          
-    - uses: actions/checkout@v2
-      if: github.event_name != 'push'
-      with:
-        ref: ${{ steps.sha.outputs.result }}
-
   check-docker:
-    needs: check-comment
     runs-on: ubuntu-18.04
     outputs:
-      docker: ${{ steps.filter.outputs.docker || needs.check-comment.outputs.triggered }}
+      docker: ${{ steps.filter.outputs.docker }}
     steps:
     - uses: actions/checkout@v2
     - name: Check if docker directory has changed
-      if: github.event_name != 'issue_comment'
       uses: dorny/paths-filter@v2.2.1
       id: filter
       with:
@@ -51,6 +23,7 @@ jobs:
           docker:
             - 'docker/**'
             - '.github/workflows/**'
+
   core-docker:
     runs-on: ubuntu-18.04
     needs: check-docker
@@ -97,8 +70,7 @@ jobs:
       TARGETPLATFORM: 'linux/${{ matrix.arch }}'
       SERVICE_NAME: onboard
       BASE_IMAGE: 'dukerobotics/robosub-ros:core-${{ matrix.arch }}'
-      CORE_FILE_NAME: '${{ matrix.arch }}-core.tar.gz'
-      ONBOARD_FILE_NAME: '${{ matrix.arch }}-onboard.tar.gz'
+      FILE_NAME: '${{ matrix.arch }}-core.tar.gz'
       CUDA: ${{ matrix.arch == 'arm64'  }}
     steps:
       - uses: actions/checkout@v2
@@ -109,7 +81,7 @@ jobs:
           path: core_im
       - name: Load core image
         run: |
-          docker load < ./core_im/${CORE_FILE_NAME}
+          docker load < ./core_im/${FILE_NAME}
           rm -rf core_im
       - name: Setup environment and build docker image
         run: ./.github/workflows/build.sh
@@ -130,16 +102,6 @@ jobs:
         run: |
           echo "${{ secrets.DOCKER_BOT_TOKEN }}" | docker login -u dukeroboticsbot --password-stdin
           docker push ${IMAGE_NAME}
-      - name: Save onboard image
-        if: ${{ github.event_name == 'issue_comment' }}
-        run: |
-          docker save ${IMAGE_NAME} | gzip > ${ONBOARD_FILE_NAME}
-      - name: Create artifact from image
-        if: ${{ github.event_name == 'issue_comment' }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: onboard
-          path: ${{ env.ONBOARD_FILE_NAME }}
 
   push-docker:
     runs-on: ubuntu-18.04
@@ -153,7 +115,7 @@ jobs:
           echo "${{ secrets.DOCKER_BOT_TOKEN }}" | docker login -u dukeroboticsbot --password-stdin
           docker buildx imagetools create --tag dukerobotics/robosub-ros:core dukerobotics/robosub-ros:core-amd64 dukerobotics/robosub-ros:core-arm64
           docker buildx imagetools create --tag dukerobotics/robosub-ros:onboard dukerobotics/robosub-ros:onboard-amd64 dukerobotics/robosub-ros:onboard-arm64
-
+  
   cleanup-docker:
     runs-on: ubuntu-18.04
     needs: [check-docker, push-docker]
@@ -198,21 +160,11 @@ jobs:
         run: |
           echo "${{ secrets.DOCKER_BOT_TOKEN }}" | docker login -u dukeroboticsbot --password-stdin
           docker push ${IMAGE_NAME}
-      - name: Save landside image
-        if: ${{ github.event_name == 'issue_comment' }}
-        run: |
-          docker save ${IMAGE_NAME} | gzip > amd64-landside.tar.gz
-      - name: Create artifact from image
-        if: ${{ github.event_name == 'issue_comment' }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: landside
-          path: amd64-landside.tar.gz
 
   build-without-docker:
     runs-on: ubuntu-18.04
     needs: check-docker
-    if: needs.check-docker.outputs.docker == 'false' && github.event_name != 'issue_comment'
+    if: needs.check-docker.outputs.docker == 'false'
     strategy:
       matrix:
         workspace: [onboard, landside]
