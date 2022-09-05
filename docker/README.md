@@ -8,6 +8,11 @@ Our images are automatically built and pushed to [our Docker Hub repo](https://h
 - [`onboard`](onboard) - built on `core`, run on the robot itself
 - [`landside`](landside) - built on `core`, run on the landside computer during a pool test
 
+## Building images via GitHub Actions
+
+Normally, GitHub Actions build the `core`, `onboard`, and `landside` images and run tests that validate our code base against the updated images. If you would like to test any images manually before they are uploaded to Docker Hub, submit a pull request with the updated Dockerfiles. You can generate downloadable versions of the `onboard` and `landside` images by commenting `/build-artifacts` on this pull request. 
+
+The artifacts can be downloaded by navigating to Actions > Workflows > build-artifacts and selecting the workflow that was triggered by your comment. At the bottom, you should see artifacts for both images. This is generally preferred over building on your local machine because it is simpler and faster.
 
 ## Building manually
 

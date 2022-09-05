@@ -1,0 +1,144 @@
+name: build-artifacts
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  check-comment:
+    runs-on: ubuntu-18.04
+    outputs:
+      triggered: ${{ github.event.issue.pull_request && github.event.comment.body == '/build-artifacts'}}
+      sha: ${{ steps.sha.outputs.result }}
+    steps:
+    - name: Get PR SHA
+      id: sha
+      uses: actions/github-script@v4
+      with:
+        result-encoding: string
+        script: |
+          const { owner, repo, number } = context.issue;
+          const pr = await github.pulls.get({
+            owner,
+            repo,
+            pull_number: number,
+          });
+          return pr.data.head.sha          
+    - uses: actions/checkout@v2
+      with:
+        ref: ${{ steps.sha.outputs.result }}
+
+  core-docker:
+    runs-on: ubuntu-18.04
+    needs: check-comment
+    if: ${{ needs.check-comment.outputs.triggered == 'true' }}
+    strategy:
+      matrix:
+        arch: [arm64, amd64]
+      fail-fast: false
+    env:
+      IMAGE_NAME: 'dukerobotics/robosub-ros:core-${{ matrix.arch }}'
+      TARGETPLATFORM: 'linux/${{ matrix.arch }}'
+      SERVICE_NAME: core
+      BASE_IMAGE: dukerobotics/robosub-ros:base
+      FILE_NAME: '${{ matrix.arch }}-core.tar.gz'
+      CUDA: ${{ matrix.arch == 'arm64'  }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.check-comment.outputs.sha }}
+      - name: Setup environment and build
+        run: |
+          ./.github/workflows/build.sh
+      - name: Save image
+        run: |
+          docker save ${IMAGE_NAME} | gzip > ${FILE_NAME}
+      - name: Create artifact from image
+        uses: actions/upload-artifact@v2
+        with:
+          name: core
+          path: ${{ env.FILE_NAME }}
+
+  onboard-docker:
+    runs-on: ubuntu-18.04
+    needs: [check-comment, core-docker]
+    strategy:
+      matrix:
+        arch: [arm64, amd64]
+      fail-fast: false
+    env:
+      IMAGE_NAME: 'dukerobotics/robosub-ros:onboard-${{ matrix.arch }}'
+      TARGETPLATFORM: 'linux/${{ matrix.arch }}'
+      SERVICE_NAME: onboard
+      BASE_IMAGE: 'dukerobotics/robosub-ros:core-${{ matrix.arch }}'
+      CORE_FILE_NAME: '${{ matrix.arch }}-core.tar.gz'
+      ONBOARD_FILE_NAME: '${{ matrix.arch }}-onboard.tar.gz'
+      CUDA: ${{ matrix.arch == 'arm64'  }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.check-comment.outputs.sha }}
+      - name: Get core image
+        uses: actions/download-artifact@v2
+        with:
+          name: core
+          path: core_im
+      - name: Load core image
+        run: |
+          docker load < ./core_im/${CORE_FILE_NAME}
+          rm -rf core_im
+      - name: Setup environment and build docker image
+        run: ./.github/workflows/build.sh
+      - name: Save onboard image
+        run: |
+          docker save ${IMAGE_NAME} | gzip > ${ONBOARD_FILE_NAME}
+      - name: Create artifact from image
+        uses: actions/upload-artifact@v2
+        with:
+          name: onboard
+          path: ${{ env.ONBOARD_FILE_NAME }}
+
+  landside-docker:
+    runs-on: ubuntu-18.04
+    needs: [check-comment, core-docker]
+    env:
+      IMAGE_NAME: dukerobotics/robosub-ros:landside
+      BASE_IMAGE: dukerobotics/robosub-ros:core-amd64
+      SERVICE_NAME: landside
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.check-comment.outputs.sha }}
+      - name: Get core image
+        uses: actions/download-artifact@v2
+        with:
+          name: core
+          path: core_im
+      - name: Load core image
+        run: |
+          docker load < ./core_im/amd64-core.tar.gz
+          rm -rf core_im
+      - name: Setup environment and build docker image
+        run: |
+          cd docker/${SERVICE_NAME}
+          docker build --build-arg BASE_IMAGE=${BASE_IMAGE} -t  ${IMAGE_NAME} .
+      - name: Save landside image
+        run: |
+          docker save ${IMAGE_NAME} | gzip > amd64-landside.tar.gz
+      - name: Create artifact from image
+        uses: actions/upload-artifact@v2
+        with:
+          name: landside
+          path: amd64-landside.tar.gz
+
+  cleanup-docker:
+    runs-on: ubuntu-18.04
+    needs: [check-comment, onboard-docker, landside-docker]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.check-comment.outputs.sha }}
+      - name: Cleanup artifacts
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: core
