@@ -7,7 +7,6 @@ import pandas as pd
 import saleae
 import resource_retriever as rr
 from datetime import datetime
-import os
 
 
 class Saleae:
@@ -25,8 +24,9 @@ class Saleae:
 
         # Delete the saleae settings file to get around this issue:
         # https://github.com/saleae/SaleaeSocketApi/issues/14
-        if os.path.exists(self.SALEAE_SETTINGS):
-            os.remove(self.SALEAE_SETTINGS)
+        # if os.path.exists(self.SALEAE_SETTINGS):
+        #   os.remove(self.SALEAE_SETTINGS)
+
         self.saleae = saleae.Saleae(args='-disablepopups -socket')
         rospy.loginfo("Saleae started")
 

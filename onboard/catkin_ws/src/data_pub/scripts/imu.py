@@ -6,7 +6,7 @@ import serial.tools.list_ports as list_ports
 import traceback
 
 from sensor_msgs.msg import Imu, MagneticField
-from tf.transformations import euler_from_quaternion, quaternion_from_euler
+from tf.transformations import quaternion_multiply
 
 
 class IMURawPublisher:
@@ -66,10 +66,9 @@ class IMURawPublisher:
         return line.split(self.LINE_DELIM)
 
     def _parse_orient(self, items):
-        r, p, y = euler_from_quaternion([float(items[1]), float(items[2]), float(items[3]), float(items[4])])
-        p = -p
-        y = -y
-        updated_quat = quaternion_from_euler(r, p, y)
+        untransformed_orient = [float(items[1]), float(items[2]), float(items[3]), float(items[4])]
+        # Transform quaternion from NED to ENU coordinates
+        updated_quat = quaternion_multiply([0.707, 0.707, 0, 0], untransformed_orient)
 
         self._current_imu_msg.orientation.x = updated_quat[0]
         self._current_imu_msg.orientation.y = updated_quat[1]

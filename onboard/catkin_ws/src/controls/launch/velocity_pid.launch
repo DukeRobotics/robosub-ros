@@ -12,34 +12,34 @@
     <!-- ROBOT PID Constants -->
     <group unless="$(arg sim)">
 	   <group ns="controls/x_vel/controller">
-            <param name="Kp" value="1" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+            <param name="Kp" value="3" />
+            <param name="Ki" value="0.02" />
+            <param name="Kd" value="0.05" />
         </group>
         <group ns="controls/y_vel/controller">
-            <param name="Kp" value="1" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+            <param name="Kp" value="3" />
+            <param name="Ki" value="0.02" />
+            <param name="Kd" value="0.05" />
         </group>
         <group ns="controls/z_vel/controller">
-            <param name="Kp" value="5" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+            <param name="Kp" value="10" /> <!--20-->
+            <param name="Ki" value="0.1" />
+            <param name="Kd" value="1" />
         </group>
         <group ns="controls/roll_vel/controller">
             <param name="Kp" value="0.01" />
             <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+            <param name="Kd" value="0.05" />
         </group>
         <group ns="controls/pitch_vel/controller">
-            <param name="Kp" value="0.01" />
+            <param name="Kp" value="0.25" />
             <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+            <param name="Kd" value="0.01" />
         </group>
         <group ns="controls/yaw_vel/controller">
-            <param name="Kp" value="1" />
+            <param name="Kp" value="2" />
             <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+            <param name="Kd" value="0.005" />
         </group>
     </group>
 
@@ -47,18 +47,18 @@
     <group if="$(arg sim)">
        <group ns="controls/x_vel/controller">
             <param name="Kp" value="1" />
-            <param name="Ki" value="0.001" />
+            <param name="Ki" value="0.01" />
             <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/y_vel/controller">
             <param name="Kp" value="1" />
-            <param name="Ki" value="0.001" />
+            <param name="Ki" value="0.01" />
             <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/z_vel/controller">
-            <param name="Kp" value="10" />
-            <param name="Ki" value="0" />
-            <param name="Kd" value="0" />
+            <param name="Kp" value="1" />
+            <param name="Ki" value="1" />
+            <param name="Kd" value="0.01" />
         </group>
         <group ns="controls/roll_vel/controller">
             <param name="Kp" value="0.01" />

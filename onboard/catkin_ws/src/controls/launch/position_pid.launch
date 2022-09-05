@@ -20,19 +20,20 @@
     <!-- ROBOT PID Constants -->
     <group unless="$(arg sim)">
 	   <group ns="controls/x_pos/controller">
-            <param name="Kp" value="1" />
+            <param name="Kp" value=".1" />
             <param name="Ki" value="0.001" />
             <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/y_pos/controller">
-            <param name="Kp" value="1" />
+            <param name="Kp" value=".1" />
             <param name="Ki" value="0.001" />
             <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/z_pos/controller">
-            <param name="Kp" value="1" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+            <!-- Commented values are for camera pods /-->
+            <param name="Kp" value="15" /> <!-- 25 -->
+            <param name="Ki" value="0.3" /> <!-- 0.5 -->
+            <param name="Kd" value="0.12" /> <!--0.3 -->
         </group>
         <group ns="controls/roll_pos/controller">
             <param name="Kp" value="0.01" />
@@ -44,44 +45,44 @@
             <param name="Ki" value="0.001" />
             <param name="Kd" value="0.001" />
         </group>
-        <group ns="controls/yaw_pos/controller">
-            <param name="Kp" value="1" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+	<group ns="controls/yaw_pos/controller">
+            <param name="Kp" value="0.5" />
+            <param name="Ki" value="0" />
+            <param name="Kd" value="0.15" />
         </group>
     </group>
 
     <!-- SIMULATION PID Constants -->
     <group if="$(arg sim)">
        <group ns="controls/x_pos/controller">
-            <param name="Kp" value="1" />
-            <param name="Ki" value="0.001" />
+            <param name="Kp" value="0.7" />
+            <param name="Ki" value="0.005" />
             <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/y_pos/controller">
-            <param name="Kp" value="1" />
-            <param name="Ki" value="0.001" />
+            <param name="Kp" value="0.7" />
+            <param name="Ki" value="0.005" />
             <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/z_pos/controller">
-            <param name="Kp" value="1" />
+            <param name="Kp" value="10" />
             <param name="Ki" value="0.001" />
             <param name="Kd" value="0.001" />
         </group>
         <group ns="controls/roll_pos/controller">
-            <param name="Kp" value="0.01" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+            <param name="Kp" value="0.1" />
+            <param name="Ki" value="0.01" />
+            <param name="Kd" value="0.01" />
         </group>
         <group ns="controls/pitch_pos/controller">
-            <param name="Kp" value="0.01" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+            <param name="Kp" value="0.1" />
+            <param name="Ki" value="0.01" />
+            <param name="Kd" value="0.01" />
         </group>
         <group ns="controls/yaw_pos/controller">
-            <param name="Kp" value="1" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+            <param name="Kp" value="0.1" />
+            <param name="Ki" value="0.01" />
+            <param name="Kd" value="0.01" />
         </group>
     </group>
 
