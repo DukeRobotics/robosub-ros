@@ -17,6 +17,7 @@ jobs:
       triggered: ${{ github.event.issue.pull_request && github.event.comment.body == '/build-artifacts'}}
     steps:
     - name: Get PR SHA
+      if: github.event_name != 'push'
       id: sha
       uses: actions/github-script@v4
       with:
@@ -30,6 +31,7 @@ jobs:
           });
           return pr.data.head.sha          
     - uses: actions/checkout@v2
+      if: github.event_name != 'push'
       with:
         ref: ${{ steps.sha.outputs.result }}
 
