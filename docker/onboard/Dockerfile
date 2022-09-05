@@ -56,11 +56,8 @@ RUN cd torch_deps && \
     cd ../ && \
     rm -rf torch_deps
 
-# Install Detecto
-RUN pip3 install --no-cache-dir detecto
-
-# Install DepthAI
-RUN pip3 install depthai
+# Install CV Dependencies
+RUN pip3 install --no-cache-dir detecto depthai
 
 ### ROS Plugins and Dependencies ###
 
