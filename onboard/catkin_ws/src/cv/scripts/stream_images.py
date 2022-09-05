@@ -65,6 +65,7 @@ class StreamPublisher:
                 loop_rate.sleep()
         except RuntimeError:
             rospy.logerr("No device found!")
+            rospy.spin()
 
 
 # Mock the camera by publishing the same image to a topic
