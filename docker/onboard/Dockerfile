@@ -92,3 +92,8 @@ RUN echo "COMPUTER_TYPE=onboard" >> /root/.ssh/environment
 
 # Set working directory to codebase
 WORKDIR /root/dev/robosub-ros
+
+# Copy and set entrypoint script
+COPY entrypoint.sh entrypoint.sh
+RUN chmod +x entrypoint.sh
+ENTRYPOINT $WORKDIR/entrypoint.sh
