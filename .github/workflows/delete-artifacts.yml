@@ -10,10 +10,7 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
-      - name: Cleanup artifacts
-        uses: geekyeggo/delete-artifact@v1
+      - name: Cleanup old artifacts
+        uses: c-hive/gha-remove-artifacts@v1
         with:
-          name: |
-            onboard
-            landside
-          failOnError: false
+          age: '1 day'
