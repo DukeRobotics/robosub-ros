@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Start roscore
-roscore &
+echo "Starting roscore!"
+roscore
 
 bash
