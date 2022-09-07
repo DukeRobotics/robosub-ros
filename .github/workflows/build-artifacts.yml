@@ -50,6 +50,14 @@ jobs:
       - name: Setup environment and build
         run: |
           ./.github/workflows/build.sh
+      - name: Save image
+        run: |
+          docker save ${IMAGE_NAME} | gzip > ${FILE_NAME}
+      - name: Create artifact from image
+        uses: actions/upload-artifact@v2
+        with:
+          name: core
+          path: ${{ env.FILE_NAME }}
 
   onboard-docker:
     runs-on: ubuntu-22.04
@@ -70,6 +78,15 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ needs.check-comment.outputs.sha }}
+      - name: Get core image
+        uses: actions/download-artifact@v2
+        with:
+          name: core
+          path: core_im
+      - name: Load core image
+        run: |
+          docker load < ./core_im/${CORE_FILE_NAME}
+          rm -rf core_im
       - name: Setup environment and build docker image
         run: ./.github/workflows/build.sh
       - name: Save onboard image
@@ -92,6 +109,15 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ needs.check-comment.outputs.sha }}
+      - name: Get core image
+        uses: actions/download-artifact@v2
+        with:
+          name: core
+          path: core_im
+      - name: Load core image
+        run: |
+          docker load < ./core_im/amd64-core.tar.gz
+          rm -rf core_im
       - name: Setup environment and build docker image
         run: |
           cd docker/${SERVICE_NAME}
