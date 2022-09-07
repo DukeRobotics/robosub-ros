@@ -6,7 +6,7 @@ on:
 
 jobs:
   check-comment:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     outputs:
       triggered: ${{ github.event.issue.pull_request && github.event.comment.body == '/build-artifacts'}}
       sha: ${{ steps.sha.outputs.result }}
@@ -29,7 +29,7 @@ jobs:
         ref: ${{ steps.sha.outputs.result }}
 
   core-docker:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     needs: check-comment
     if: ${{ needs.check-comment.outputs.triggered == 'true' }}
     strategy:
@@ -60,7 +60,7 @@ jobs:
           path: ${{ env.FILE_NAME }}
 
   onboard-docker:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     needs: [check-comment, core-docker]
     strategy:
       matrix:
@@ -99,7 +99,7 @@ jobs:
           path: ${{ env.ONBOARD_FILE_NAME }}
 
   landside-docker:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     needs: [check-comment, core-docker]
     env:
       IMAGE_NAME: dukerobotics/robosub-ros:landside
@@ -132,7 +132,7 @@ jobs:
           path: amd64-landside.tar.gz
 
   cleanup-docker:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     needs: [check-comment, onboard-docker, landside-docker]
     steps:
       - uses: actions/checkout@v2
