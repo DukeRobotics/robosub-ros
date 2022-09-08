@@ -101,7 +101,7 @@ class ThrusterController:
         """Loop that publishes thruster allocations to corresponding topic. If disabled, zeroes are published to make
         sure thrusters don't spin.
         """
-        rate = Rospy.rate(self.RUN_LOOP_RATE)
+        rate = rospy.Rate(self.RUN_LOOP_RATE)
         while not rospy.is_shutdown():
             if not self.enabled:
                 i8_t_allocs = ThrusterSpeeds()
