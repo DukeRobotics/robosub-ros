@@ -101,6 +101,7 @@ class ThrusterController:
         """Loop that publishes thruster allocations to corresponding topic. If disabled, zeroes are published to make
         sure thrusters don't spin.
         """
+        rate = Rospy.rate(self.RUN_LOOP_RATE)
         while not rospy.is_shutdown():
             if not self.enabled:
                 i8_t_allocs = ThrusterSpeeds()
@@ -113,7 +114,7 @@ class ThrusterController:
                 i8_t_allocs.speeds = (self.t_allocs * self.MAX_THRUSTER_POWER * self.POWER_SCALING_FACTOR).astype(int)
                 self.thruster_speeds_pub.publish(i8_t_allocs)
 
-            rospy.Rate(self.RUN_LOOP_RATE).sleep()
+            rate.sleep()
 
     def _scale_thruster_speeds(self):
         """Scales thruster speeds according to a custom algorithm. Doesn't scale if all allocations are 0.
