@@ -10,7 +10,7 @@ on:
 
 jobs:
   check-docker:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     outputs:
       docker: ${{ steps.filter.outputs.docker }}
     steps:
@@ -25,7 +25,7 @@ jobs:
             - '.github/workflows/**'
 
   core-docker:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     needs: check-docker
     if: needs.check-docker.outputs.docker == 'true'
     strategy:
@@ -59,7 +59,7 @@ jobs:
           path: ${{ env.FILE_NAME }}
 
   onboard-docker:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     needs: core-docker
     strategy:
       matrix:
@@ -104,7 +104,7 @@ jobs:
           docker push ${IMAGE_NAME}
 
   push-docker:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     needs: [onboard-docker, landside-docker]
     steps:
       - uses: actions/checkout@v2
@@ -117,7 +117,7 @@ jobs:
           docker buildx imagetools create --tag dukerobotics/robosub-ros:onboard dukerobotics/robosub-ros:onboard-amd64 dukerobotics/robosub-ros:onboard-arm64
   
   cleanup-docker:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     needs: [check-docker, push-docker]
     if: always() && (needs.check-docker.outputs.docker == 'true')
     steps:
@@ -128,7 +128,7 @@ jobs:
           name: core
 
   landside-docker:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     needs: core-docker
     env:
       IMAGE_NAME: dukerobotics/robosub-ros:landside
@@ -162,7 +162,7 @@ jobs:
           docker push ${IMAGE_NAME}
 
   build-without-docker:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     needs: check-docker
     if: needs.check-docker.outputs.docker == 'false'
     strategy:
