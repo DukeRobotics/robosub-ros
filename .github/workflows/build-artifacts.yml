@@ -7,8 +7,8 @@ on:
 jobs:
   check-comment:
     runs-on: ubuntu-22.04
+    if: ${{ github.event.issue.pull_request && github.event.comment.body == '/build-artifacts'}}
     outputs:
-      triggered: ${{ github.event.issue.pull_request && github.event.comment.body == '/build-artifacts'}}
       sha: ${{ steps.sha.outputs.result }}
     steps:
     - name: Get PR SHA
@@ -31,7 +31,6 @@ jobs:
   core-docker:
     runs-on: ubuntu-22.04
     needs: check-comment
-    if: ${{ needs.check-comment.outputs.triggered == 'true' }}
     strategy:
       matrix:
         arch: [arm64, amd64]
