@@ -32,9 +32,8 @@ class Detector:
         # Toggle model service name
         self.enable_service = f'enable_model_{self.camera}'
 
-    # Initialize model predictor and publisher if not already initialized
     def init_model(self, model_name):
-        """Load the specified detecto model and initialize the publishers for specified model.
+        """Initialize model predictor and publisher if not already initialized.
 
         There will be a single topic for every class. The format for the topics will be cv/<camera>/<class-name>
 
@@ -73,9 +72,10 @@ class Detector:
         model['predictor'] = predictor
         model['publisher'] = publisher_dict
 
-    # Camera subscriber callback; publishes predictions for each frame
     def detect(self, img_msg):
-        """Compute predictions on the raw image and publish results.
+        """Compute predictions on a raw image frame and publish results.
+
+        This can be used as the camera topic subscriber callback.
 
         :param img_msg: ROS Image message to compute predictions on.
         """
@@ -101,7 +101,6 @@ class Detector:
                 self.publish_predictions((labels, boxes, scores),
                                          model['publisher'], image.shape)
 
-    # Publish predictions with the given publisher
     def publish_predictions(self, preds, publisher, shape):
         """Publish prediction results to a publisher based on which predicted class each object is.
 
@@ -139,9 +138,8 @@ class Detector:
                     # the given returned label
                     publisher[label].publish(object_msg)
 
-    # Service for toggling specific models on and off
     def enable_model(self, req):
-        """Enable a model specified in a rosservice request.
+        """Service for toggling specific models on and off.
 
         :param req: The request from another node or command line to enable the model. This service request is
         defined in /robosub-ros/core/catkin_ws/src/custom_msgs/srv/EnableModel.srv
