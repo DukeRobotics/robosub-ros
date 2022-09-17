@@ -12,9 +12,7 @@ from detecto.core import Model
 
 
 class Detector:
-    """
-    This class computes and publishes predictions on a image stream.
-    """
+    """This class computes and publishes predictions on a image stream."""
 
     # Load in models and other misc. setup work
     def __init__(self):
@@ -36,9 +34,9 @@ class Detector:
 
     # Initialize model predictor and publisher if not already initialized
     def init_model(self, model_name):
-        """
-        Load the specified detecto model and initialize the publishers for this model. There will be a single topic
-        for every class. The format for the topics will be cv/<camera>/<class-name>
+        """Load the specified detecto model and initialize the publishers for specified model.
+
+        There will be a single topic for every class. The format for the topics will be cv/<camera>/<class-name>
 
         :param model_name: The name of the model to initialize. This string should be a key in the
         cv/models/models.yaml file. For example, if the models.yaml file is:
@@ -77,8 +75,7 @@ class Detector:
 
     # Camera subscriber callback; publishes predictions for each frame
     def detect(self, img_msg):
-        """
-        Compute predictions on the raw image and publish results.
+        """Compute predictions on the raw image and publish results.
 
         :param img_msg: ROS Image message to compute predictions on.
         """
@@ -106,8 +103,7 @@ class Detector:
 
     # Publish predictions with the given publisher
     def publish_predictions(self, preds, publisher, shape):
-        """
-        Publish prediction results to a publisher based on which predicted class each object is.
+        """Publish prediction results to a publisher based on which predicted class each object is.
 
         :param preds: Tuple of labels, bounding boxes, and scores. These are returned from detecto's
         predict_top() function. For futher information, see https://detecto.readthedocs.io/en/latest/api/core.html#.
@@ -145,8 +141,8 @@ class Detector:
 
     # Service for toggling specific models on and off
     def enable_model(self, req):
-        """
-        Enable a model specified in a rosservice request.
+        """Enable a model specified in a rosservice request.
+
         :param req: The request from another node or command line to enable the model. This service request is
         defined in /robosub-ros/core/catkin_ws/src/custom_msgs/srv/EnableModel.srv
         """
@@ -165,9 +161,7 @@ class Detector:
         return False
 
     def run(self):
-        """
-        Initialize node and set up Subscriber to generate and publish predictions at every camera frame received.
-        """
+        """Initialize node and set up Subscriber to generate and publish predictions at every camera frame received."""
         rospy.Subscriber(self.camera_feed_topic, Image, self.detect)
 
         # Allow service for toggling of models
