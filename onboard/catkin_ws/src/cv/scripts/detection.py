@@ -12,6 +12,9 @@ from detecto.core import Model
 
 
 class Detector:
+    """
+    This class computes and publishes predictions on a image stream.
+    """
 
     # Load in models and other misc. setup work
     def __init__(self):
@@ -33,6 +36,21 @@ class Detector:
 
     # Initialize model predictor and publisher if not already initialized
     def init_model(self, model_name):
+        """
+        Load the specified detecto model and initialize the publishers for this model. There will be a single topic
+        for every class. The format for the topics will be cv/<camera>/<class-name>
+        
+        :param model_name: The name of the model to initialize. This string should be a key in the
+        cv/models/models.yaml file. For example, if the models.yaml file is:
+
+        gate:
+            classes: [gate]
+            topic: /cv
+            weights: detect-gate.pth
+
+        and you would like to initialize the gate model, the model_name should be 'gate'
+        """
+
         model = self.models[model_name]
 
         # Model already initialized; return from method
@@ -59,6 +77,12 @@ class Detector:
 
     # Camera subscriber callback; publishes predictions for each frame
     def detect(self, img_msg):
+        """
+        Compute predictions on the raw image and publish results.
+
+        :param img_msg: ROS Image message to compute predictions on.
+        """
+
         image = self.bridge.imgmsg_to_cv2(img_msg, 'rgb8')
 
         for model_name in self.models:
@@ -71,6 +95,7 @@ class Detector:
 
                 # Generate model predictions
                 labels, boxes, scores = model['predictor'].predict_top(image)
+                
                 # Pass raw model predictions into nms algorithm for filtering
                 # nms_labels, nms_boxes, nms_scores = utils.nms(labels, boxes,
                 #                                               scores.detach())
@@ -81,6 +106,16 @@ class Detector:
 
     # Publish predictions with the given publisher
     def publish_predictions(self, preds, publisher, shape):
+        """
+        Publish prediction results to a publisher based on which predicted class each object is.
+
+        :param preds: Tuple of labels, bounding boxes, and scores. These are returned from detecto's
+        predict_top() function. For futher information, see https://detecto.readthedocs.io/en/latest/api/core.html#.
+        :param publisher: Dictionary of publishers for the model. keys are the class / label string and the values are
+        the publisher for that class.
+        :param shape: The shape of the image in format (height, width)
+        """
+
         labels, boxes, scores = preds
 
         # If there are no predictions, publish nothing
@@ -110,6 +145,12 @@ class Detector:
 
     # Service for toggling specific models on and off
     def enable_model(self, req):
+        """
+        Enable a model specified in a rosservice request.
+        :param req: The request from another node or command line to enable the model. This service request is
+        defined in /robosub-ros/core/catkin_ws/src/custom_msgs/srv/EnableModel.srv
+        """
+
         if req.model_name in self.models:
             model = self.models[req.model_name]
             model['enabled'] = req.enabled
@@ -123,9 +164,10 @@ class Detector:
 
         return False
 
-    # Initialize node and set up Subscriber to generate and
-    # publish predictions at every camera frame
     def run(self):
+        """
+        Initialize node and set up Subscriber to generate and publish predictions at every camera frame received.
+        """
         rospy.Subscriber(self.camera_feed_topic, Image, self.detect)
 
         # Allow service for toggling of models
