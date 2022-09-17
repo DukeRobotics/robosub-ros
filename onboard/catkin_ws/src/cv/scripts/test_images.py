@@ -53,4 +53,7 @@ class DummyImagePublisher:
 
 
 if __name__ == '__main__':
-    DummyImagePublisher().run()
+    try:
+        DummyImagePublisher().run()
+    except rospy.ROSInterruptException:
+        pass

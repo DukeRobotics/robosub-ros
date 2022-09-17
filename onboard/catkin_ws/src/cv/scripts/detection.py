@@ -39,7 +39,7 @@ class Detector:
         """
         Load the specified detecto model and initialize the publishers for this model. There will be a single topic
         for every class. The format for the topics will be cv/<camera>/<class-name>
-        
+
         :param model_name: The name of the model to initialize. This string should be a key in the
         cv/models/models.yaml file. For example, if the models.yaml file is:
 
@@ -178,4 +178,7 @@ class Detector:
 
 
 if __name__ == '__main__':
-    Detector().run()
+    try:
+        Detector().run()
+    except rospy.ROSInterruptException:
+        pass
