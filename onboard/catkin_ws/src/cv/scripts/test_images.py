@@ -8,15 +8,15 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
 
-# Mock the camera by publishing the same image to a topic
 class DummyImagePublisher:
+    """Mock the camera by publishing a still image to a topic."""
 
     NODE_NAME = 'test_images'
     CAMERA = 'left'
     IMAGE_TOPIC = f'/camera/{CAMERA}/image_raw'
 
-    # Read in the dummy image and other misc. setup work
     def __init__(self):
+        """Read in the dummy image and other misc. setup work."""
         self.image_publisher = rospy.Publisher(self.IMAGE_TOPIC, Image,
                                                queue_size=10)
 
@@ -27,8 +27,12 @@ class DummyImagePublisher:
 
         self.image_msg = bridge.cv2_to_imgmsg(image, 'bgr8')
 
-    # Publish dummy image to topic every few seconds
     def run(self):
+        """Publish dummy image to topic every few seconds.
+
+        Will wait until the enable_model_<camera> service becomes available before starting to publish.
+        Every 30 frames published, this node will toggle the enable for the prediction model to test the service.
+        """
         rospy.init_node(self.NODE_NAME)
 
         # Testing enable_model service
@@ -53,4 +57,7 @@ class DummyImagePublisher:
 
 
 if __name__ == '__main__':
-    DummyImagePublisher().run()
+    try:
+        DummyImagePublisher().run()
+    except rospy.ROSInterruptException:
+        pass
