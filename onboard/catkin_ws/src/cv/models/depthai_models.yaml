@@ -1,0 +1,4 @@
+gate:
+  classes: ['gate', 'gate_side', 'gate_tick', 'gate_top', 'start_gate']
+  topic: cv/
+  weights: yolo_v4_tiny_openvino_2021.3_6shave-2022-7-21_416_416.blob

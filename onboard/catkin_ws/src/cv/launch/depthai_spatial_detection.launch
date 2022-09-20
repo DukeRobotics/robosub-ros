@@ -1,0 +1,3 @@
+<launch>
+    <node name="depthai_spatial_detection" pkg="cv" type="depthai_spatial_detection.py" />
+</launch>
