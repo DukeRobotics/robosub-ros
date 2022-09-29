@@ -9,6 +9,7 @@
   <license>MIT</license>
 
   <depend>rospy</depend>
+  <depend>brping</depend>
 
   <buildtool_depend>catkin</buildtool_depend>
 
