@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>sonar</name>
+  <version>0.0.0</version>
+  <description>Package that retrieves data from a sonar device.</description>
+
+  <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>
+
+  <license>MIT</license>
+
+  <depend>rospy</depend>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+</package>
