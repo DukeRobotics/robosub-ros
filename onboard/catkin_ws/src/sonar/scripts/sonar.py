@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from brping import Ping360  # TODO add this import dependency to dockerfile and update dependencies in CMakeLists.txt and package.xml
 
 SERIAL_PORT_NAME = "COM4"
