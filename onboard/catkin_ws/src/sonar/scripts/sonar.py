@@ -59,6 +59,15 @@ class Sonar:
         distance = (self.sample_period * SAMPLE_PERIOD_TICK_DURATION) * sample_number * SPEED_OF_SOUND_IN_WATER / 2.0
         return distance
 
+    def get_range(self):
+        """Get current range of the sonar device in meters.
+
+        Returns:
+            float: Range of device in meters.
+        """
+        last_sample_index = self.number_of_samples - 1
+        return self.get_distance_of_sample(last_sample_index)
+
 
 if __name__ == "__main__":
     sonar = Sonar()
