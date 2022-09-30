@@ -17,7 +17,7 @@ class Sonar:
 
     def __init__(self, sample_period, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
         self.ping360 = Ping360()
-        self.ping360.connect_serial(serial_port_name, baud_rate)
+        self.ping360.connect_serial(serial_port_name, baud_rate)  # TODO: Add try except for connecting to device
 
         self.number_of_samples = number_of_samples
         self.ping360.set_number_of_samples(number_of_samples)
