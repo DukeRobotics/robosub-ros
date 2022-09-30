@@ -50,12 +50,13 @@ class Sonar:
         """Get the distance in meters of a sample given its index in the data array returned from the device.
 
         Args:
-            sample_index (int): Index of the sample in the data array.
+            sample_index (int): Index of the sample in the data array, from 0 to N-1, where N = number of samples.
 
         Returns:
             float: Distance in meters of the sample from the sonar device.
         """
-        distance = (self.sample_period * SAMPLE_PERIOD_TICK_DURATION) * sample_index * SPEED_OF_SOUND_IN_WATER / 2.0
+        sample_number = sample_index + 1
+        distance = (self.sample_period * SAMPLE_PERIOD_TICK_DURATION) * sample_number * SPEED_OF_SOUND_IN_WATER / 2.0
         return distance
 
 
