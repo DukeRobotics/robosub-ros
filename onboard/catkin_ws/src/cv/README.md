@@ -5,6 +5,31 @@ will then run pre-trained machine learning models on each frame and output bound
 in the frame. These objects could be the gate, buoys, etc. The package will publish to different topics depending 
 on which classes are being detected and which cameras are being used.
 
+## Depthai / Oak Camera
+This branch contains code for the Luxonis OAK-D PoE camera, which uses a python package called [depthai](https://docs.luxonis.com/en/latest/). This camera handles neural network and image processing on the camera's processor, which necessitates a different code structure. Because of this, we have depthai-specific scripts and launch files that can be run for any Luxonis / depthai camera. For running other cameras, see the instructions below, titled Non-Depthai Cameras.
+
+### Running the Code
+To stream the feed or perform spatial detection using the OAK camera, use `roslaunch` with either of the following two files.
+* `depthai_image_stream.launch`: Streams the live feed from the camera.
+* `depthai_spatial_detection.launch`: Runs spatial detection. Waits for a enable_model rosservice call to specify what model to activate. This requires a valid `.blob` file in `models/` and the path to this `.blob` file should be specified in the `depthai_models.yaml` file. For more information about these files, see the code structure outline below. This will publish `CVObject` messages to a topic for each class that the model detects. 
+
+### Structure
+`scripts/`
+* `depthai_spatial_detection.py`: Waits for an enable_model rosservice call, and then publishes spatial detections using the model specified in the service call and in depthai_models.yaml.
+* `depthai_publish_image_stream.py`: Publishes a preview of the image feed from the OAK camera. This can be used to verify connection to the camera and to check if there are any issues with the camera feed.
+* `depthai_mock_camera_feed.py`: Simulates the camera feed by sending a still image to the camera, passing it through a neural network, and retrieving the output. It is meant for testing the object detection model, since we can feed test data to the camera without needing to have a live feed of our targets. This can be run outside of the Docker container.
+
+`launch/`
+* `depthai_image_stream.launch`: Runs the image stream script
+* `depthai_spatial_detection.launch`: Runs the spatial detection script
+
+`models/`
+* `depthai_models.yaml`: contains models for object detection. A model is specified by a name, what classes it predicts, and the path to a .blob file. This file format is specific to the processors that the OAK cameras use.
+
+`footage_extraction`
+* Can be used to extract footage from rosbag files. See the README file in the footage_extraction directory.
+
+# Non-Depthai Cameras
 ## Setup
 
 Generally, you would train a separate object detection model for each task you need computer vision for (gates, buoys, etc.). You can then load them as follows:
