@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
 from brping import Ping360  # TODO add this import dependency to dockerfile and update dependencies in CMakeLists.txt and package.xml
+import rospy
 
 SERIAL_PORT_NAME = "COM4"
 BAUD_RATE = 115200  # hz
 SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
 SPEED_OF_SOUND_IN_WATER = 1480  # m/s
+
+NODE_NAME = "sonar"
 
 
 class Sonar:
@@ -13,6 +16,8 @@ class Sonar:
         self.ping360 = Ping360()
         self.ping360.connect_serial(serial_port_name, baud_rate)
         self.sample_period = 80  # Double check this
+        
+        rospy.init_node(NODE_NAME)
 
     def is_initialized(self):
         return self.ping360.initialize()
