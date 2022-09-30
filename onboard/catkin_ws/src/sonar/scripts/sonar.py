@@ -26,4 +26,3 @@ class Sonar:
 
 if __name__ == "__main__":
     sonar = Sonar()
-    sonar.publish_data()
