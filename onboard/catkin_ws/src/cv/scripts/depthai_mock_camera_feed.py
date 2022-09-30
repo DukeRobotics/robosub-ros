@@ -10,13 +10,11 @@ NN_PATH = "blobs/yolo_v4_tiny_openvino_2021.3_6shave-2022-7-21_416_416.blob"
 
 class DepthAIMockImageStream:
     """
-    THIS FILE IS INCOMPLETE.
+    THIS FILE IS INCOMPLETE. It can be used for local testing outside of the docker container since it does not require ROS.
 
-    This class is used to test a CV neural network model locally without having access to a camera.
+    This class is used to test a CV neural network model locally with a simulated image feed.
     This class takes a still image and transfers it from the host (local computer) to the camera. The
-    image feed is then ran through the provided neural network. The goal is to run the neural network inference
-    on this still image feed and publish the predictions. This is currently not implemented. Alternatively, this
-    script can be run locally since ROS is not required.
+    image feed is then ran through the provided neural network.
     """
 
     # Read in the dummy image and other misc. setup work
