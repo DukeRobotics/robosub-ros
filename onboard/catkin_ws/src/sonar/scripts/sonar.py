@@ -18,6 +18,7 @@ class Sonar:
     def __init__(self, sample_period, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
         self.ping360 = Ping360()
         self.ping360.connect_serial(serial_port_name, baud_rate)  # TODO: Add try except for connecting to device
+        self.ping360.initialize()
 
         self.number_of_samples = number_of_samples
         self.ping360.set_number_of_samples(number_of_samples)
@@ -25,14 +26,6 @@ class Sonar:
         self.ping360.set_sample_period(sample_period)
 
         rospy.init_node(NODE_NAME)
-
-    def is_initialized(self):
-        """Checks if the sonar device is initialized.
-
-        Returns:
-            bool: True if the sonar device is initialized
-        """
-        return self.ping360.initialize()
 
     def request_data_at_angle(self, angle_in_gradians):
         """Set sonar device to provided angle and retrieve data.
