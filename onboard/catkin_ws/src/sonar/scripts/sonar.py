@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 from brping import Ping360
-import rospy
+#import rospy
+import numpy as np
 
 SERIAL_PORT_NAME = "COM4"  # TODO determine what port this is for the robot.
 BAUD_RATE = 115200  # hz
@@ -19,12 +20,14 @@ class Sonar:
         self.ping360 = Ping360()
         self.ping360.connect_serial(serial_port_name, baud_rate)  # TODO: Add try except for connecting to device
 
+        self.is_initialized()
+
         self.number_of_samples = number_of_samples
         self.ping360.set_number_of_samples(number_of_samples)
         self.sample_period = sample_period
         self.ping360.set_sample_period(sample_period)
 
-        rospy.init_node(NODE_NAME)
+        #rospy.init_node(NODE_NAME)
 
     def is_initialized(self):
         """Checks if the sonar device is initialized.
@@ -70,6 +73,29 @@ class Sonar:
         last_sample_index = self.number_of_samples - 1
         return self.get_distance_of_sample(last_sample_index)
 
+    def get_biggest_byte(self):
+        """Get the biggest value of the byte array.
+
+        Returns:
+            int: index of the biggest value.
+        """
+        data = self.ping360.transmitAngle(0).data
+        split_bytes = [data[i:i+1] for i in range(len(data))]
+        #print(split_bytes)
+        cur_byte = 0
+        byte_index = 0
+        for i in range(100, len(split_bytes) - 1):
+            byte_int = int.from_bytes(split_bytes[i], "big")
+            byte_distance = self.get_distance_of_sample(i)
+            print(f"{byte_int} {byte_distance}")
+            if byte_int > cur_byte:
+                cur_byte = byte_int
+                byte_index = i
+        print(f"{cur_byte} {byte_index}")
+        return(byte_index)
+
 
 if __name__ == "__main__":
-    sonar = Sonar()
+    sonar = Sonar(200, serial_port_name="COM3")
+    index = sonar.get_biggest_byte()
+    print(sonar.get_distance_of_sample(index))
