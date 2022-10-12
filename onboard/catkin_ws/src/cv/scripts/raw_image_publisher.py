@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import cv2
 import yaml
 import resource_retriever as rr
 
@@ -23,16 +24,13 @@ class RawImagePublisher:
 
         # The topic that the camera publishes its feed to
         self.camera_feed_topic = f'/camera/{self.camera}/image_raw'
-        self.publish_path = f'/raw_image/{self.camera}/'
-        self.publisher = rospy.Publisher(self.publish_path, Image, queue_size = 10)
-
 
     def publish_image(self, img_msg):
         image = self.bridge.imgmsg_to_cv2(img_msg, 'rgb8')
-        self.publisher.publish(image)
+        cv2.imshow('image', image)
 
     def run(self):
-        """Initialize node and set up Subscriber to generate and publish predictions at every camera frame received."""
+        """Initialize node and set up Subscriber to generate and publish cv2 image at every camera frame received."""
         rospy.Subscriber(self.camera_feed_topic, Image, self.publish_image)
 
         # Keep node running until shut down
