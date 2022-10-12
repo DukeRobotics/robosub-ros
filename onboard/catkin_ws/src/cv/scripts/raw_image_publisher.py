@@ -7,6 +7,7 @@ import resource_retriever as rr
 
 from custom_msgs.msg import CVObject
 from custom_msgs.srv import EnableModel
+from custom_msgs.srv import EnableMonoStream
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from detecto.core import Model
@@ -24,14 +25,25 @@ class RawImagePublisher:
 
         # The topic that the camera publishes its feed to
         self.camera_feed_topic = f'/camera/{self.camera}/image_raw'
+        self.stream_enabled = False
 
     def publish_image(self, img_msg):
         image = self.bridge.imgmsg_to_cv2(img_msg, 'rgb8')
-        cv2.imshow('image', image)
+        if self.stream_enabled:
+            cv2.imshow('image', image)
+        else:
+            cv2.destroyAllWindows()
+
+    def enable_stream(self, req):
+        self.stream_enabled = req.enabled
+        return self.stream_enabled
 
     def run(self):
         """Initialize node and set up Subscriber to generate and publish cv2 image at every camera frame received."""
         rospy.Subscriber(self.camera_feed_topic, Image, self.publish_image)
+
+        # Allow service for toggling of stream
+        rospy.Service(self.enable_service, EnableMonoStream, self.enable_stream)
 
         # Keep node running until shut down
         rospy.spin()
@@ -41,5 +53,3 @@ if __name__ == '__main__':
         RawImagePublisher().run()
     except rospy.ROSInterruptException:
         pass
-
-
