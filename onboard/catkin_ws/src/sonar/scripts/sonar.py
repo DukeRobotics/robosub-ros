@@ -16,7 +16,7 @@ class Sonar:
     """Class to interface with the Sonar device.
     """
 
-    def __init__(self, sample_period, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
+    def __init__(self, sample_period, transmit_duration=11, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
         self.ping360 = Ping360()
         self.ping360.connect_serial(serial_port_name, baud_rate)  # TODO: Add try except for connecting to device
         self.ping360.initialize()
@@ -27,6 +27,8 @@ class Sonar:
         self.ping360.set_number_of_samples(number_of_samples)
         self.sample_period = sample_period
         self.ping360.set_sample_period(sample_period)
+        self.transmit_duration = transmit_duration
+        self.ping360.set_transmit_duration(transmit_duration)
 
         #rospy.init_node(NODE_NAME)
 
@@ -74,7 +76,6 @@ class Sonar:
         """
         data = self.ping360.transmitAngle(0).data
         split_bytes = [data[i:i+1] for i in range(len(data))]
-        #print(split_bytes)
         cur_byte = 0
         byte_index = 0
         for i in range(100, len(split_bytes) - 1):
