@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>cv_control_panel</name>
+  <version>0.0.0</version>
+  <description>
+    Package that provides a graphical interface to streamline testing of CV.
+  </description>
+
+  <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>
+
+  <license>MIT</license>
+
+  <depend>image_view</depend>
+  <depend>image_publisher</depend>
+  <depend>rospy</depend>
+  <depend>rosbag</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>resource_retriever</depend>
+  <depend>tkinter</depend>
+
+  <exec_depend>opencv-python</exec_depend>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+</package>

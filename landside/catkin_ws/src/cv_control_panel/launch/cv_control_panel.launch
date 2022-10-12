@@ -1,0 +1,3 @@
+<launch>
+    <node name="cv_control_panel" pkg="cv_control_panel" type="cv_control_panel.py" />
+</launch>
