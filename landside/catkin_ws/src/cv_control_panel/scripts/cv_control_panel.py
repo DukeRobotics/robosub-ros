@@ -11,7 +11,7 @@
 
 # If you get an error saying this file is not executable
 # chmod +x path_to_this_file
-# From /dev/robosub-ros/: chmod +x landside/catkin_ws/src/cv_control_panel.py
+# From /dev/robosub-ros/: chmod +x landside/catkin_ws/src/cv_control_panel/scripts/cv_control_panel.py
 
 from tkinter import *
   
