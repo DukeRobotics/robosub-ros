@@ -233,6 +233,7 @@ class TestStatePublisher:
     def _on_receive_data_yaw(self, data):
         self.current_yaw = data.data
 
+
 def main():
     # TestStatePublisher().publish_desired_pose_global()
     TestStatePublisher().publish_desired_pose_local()
