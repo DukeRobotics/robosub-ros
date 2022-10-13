@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     usbutils apt-utils \
     python-dev-is-python3 \
     python3-pip \
-    python3-catkin-tools python3-osrf-pycommon \
+    python3-osrf-pycommon \
     git \
     locales && \
     apt-get clean && \
@@ -39,12 +39,13 @@ RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
     mkdir -p /root/.ssh && \
     touch /root/.ssh/environment
 
+COPY ssh_entry.sh /root/.bash_profile
+
 ### Final Setup ###
 
 # Install common pip packages
 RUN pip3 install autopep8 psutil
 
-# Add catkin ws
 RUN mkdir -p /root/dev/robosub-ros
 
 # Copy and set entrypoint script
