@@ -1,4 +1,4 @@
-FROM ros:noetic
+FROM ros:humble
 
 ### Arguments ###
 ARG BUILD_DIR_NAME=docker-build
@@ -16,9 +16,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     vim \
     curl wget \
     usbutils apt-utils \
-    ros-noetic-cv-bridge \
-    ros-noetic-resource-retriever \
-    ros-noetic-actionlib-tools \
     python-dev-is-python3 \
     python3-pip \
     python3-catkin-tools python3-osrf-pycommon \
@@ -41,8 +38,6 @@ RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
     echo "PermitUserEnvironment yes" >> /etc/ssh/sshd_config && \
     mkdir -p /root/.ssh && \
     touch /root/.ssh/environment
-
-COPY ssh_entry.sh /root/.bash_profile
 
 ### Final Setup ###
 
