@@ -68,25 +68,33 @@ class Sonar:
         last_sample_index = self.number_of_samples - 1
         return self.get_distance_of_sample(last_sample_index)
 
-    def get_biggest_byte(self):
+    def sweep(self):
+        bob = []
+        for i in range(1, 361):
+            bob.push(self.get_biggest_byte(self,i)[1])
+            #(angle,  index_in_angle)
+            joe = np.argmax(bob)
+        return (joe+1 , self.get_biggest_byte(self, joe+1)[0])
+
+    def get_biggest_byte(self, angle):
         """Get the biggest value of the byte array.
 
         Returns:
             int: index of the biggest value.
         """
-        data = self.ping360.transmitAngle(0).data
+
+        import numpy as np
+
+        data = self.ping360.transmitAngle(angle).data
         split_bytes = [data[i:i+1] for i in range(len(data))]
-        cur_byte = 0
-        byte_index = 0
-        for i in range(100, len(split_bytes) - 1):
-            byte_int = int.from_bytes(split_bytes[i], "big")
-            byte_distance = self.get_distance_of_sample(i)
-            print(f"{byte_int} {byte_distance}")
-            if byte_int > cur_byte:
-                cur_byte = byte_int
-                byte_index = i
-        print(f"{cur_byte} {byte_index}")
-        return(byte_index)
+        bruhbytes = split_bytes[100:]
+        best = np.argmax(bruhbytes)
+        print(best)
+        print(
+            f"{split_bytes[best+100]} {best+100} {self.get_distance_of_sample(best+100)}")
+
+            #(index, value)
+        return (best+100, bruhbytes[best])
 
 
 if __name__ == "__main__":
