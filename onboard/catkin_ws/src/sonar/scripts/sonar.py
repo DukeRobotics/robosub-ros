@@ -69,6 +69,11 @@ class Sonar:
         return self.get_distance_of_sample(last_sample_index)
 
     def sweep(self):
+        """Get the biggest value out of all angles
+
+        Returns:
+            (angle of value, index within angle)
+        """
         bob = []
         for i in range(1, 361):
             bob.push(self.get_biggest_byte(self,i)[1])
@@ -80,7 +85,7 @@ class Sonar:
         """Get the biggest value of the byte array.
 
         Returns:
-            int: index of the biggest value.
+            (biggest value index, biggest value)
         """
 
         import numpy as np
