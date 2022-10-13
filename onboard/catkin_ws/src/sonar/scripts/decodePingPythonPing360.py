@@ -264,30 +264,29 @@ class Ping360Settings:
         # time of flight -> v_sound * (there + back) / 2
         return v_sound * self.sample_period_us * 1e-6 / 2
 
-
-if __name__ == "__main__":
-    from argparse import ArgumentParser
-
-    # Parse arguments
-    parser = ArgumentParser(description=__doc__)
-    parser.add_argument("file",
-                        help="File that contains PingViewer sensor log file.")
-    args = parser.parse_args()
+def getdecodedfile():
+    dirname = os.path.dirname(__file__)
+    
+    filename =  dirname + '\SampleData.bin'
 
     # Open log and begin processing
-    log = PingViewerLogReader(args.file)
+    log = PingViewerLogReader(filename)
+
+    return log.parser()
+
+if __name__ == "__main__":
+    import os
+    dirname = os.path.dirname(__file__)
+    
+    filename =  dirname + '\SampleData.bin'
+
+    # Open log and begin processing
+    log = PingViewerLogReader(filename)
 
     for index, (timestamp, decoded_message) in enumerate(log.parser()):
-        if index == 0:
-            # Get header information from log
-            # (parser has to do first yield before header info is available)
-            print(log.header)
-
-            # ask if processing
-            yes = input("Continue and decode received messages? [Y/n]: ")
-            if yes.lower() in ('n', 'no'):
-                break
-
-        print('timestamp:', repr(timestamp))
-        print(decoded_message)
+        if(index >= 49 and index <= 149):
+            print(f"{index} {decoded_message.angle}")
+            print(type(decoded_message.data))
+            split_bytes = [decoded_message.data[i:i+1] for i in range(len(decoded_message.data))]
+            print(split_bytes)
         
