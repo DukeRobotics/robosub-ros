@@ -38,7 +38,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Get required python packages
 RUN pip3 install --no-cache-dir \
-    numpy==1.20.3 scipy pymba python-dateutil \
+    numpy scipy pymba python-dateutil \
     pyserial dependency-injector \ 
     gputil saleae
 
