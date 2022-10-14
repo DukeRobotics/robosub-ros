@@ -95,7 +95,7 @@ jobs:
   
   cleanup-docker:
     runs-on: ubuntu-22.04
-    needs: [check-docker]
+    needs: [check-docker, onboard-docker, landside-docker]
     if: always() && (needs.check-docker.outputs.docker == 'true')
     steps:
       - uses: actions/checkout@v2
