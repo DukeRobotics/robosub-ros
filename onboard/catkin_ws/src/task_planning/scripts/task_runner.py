@@ -18,8 +18,8 @@ class TaskRunner:
             sm_gate = create_gate_task_sm()
             smach.StateMachine.add('GATE_STATE', sm_gate,
                                    transitions={
-                                       'gate_task_succeeded': 'task_runner_succeeded',
-                                       'gate_task_failed': 'task_runner_failed'})
+                                       'succeeded': 'task_runner_succeeded',
+                                       'failed': 'task_runner_failed'})
 
         sm_top.execute()
 
