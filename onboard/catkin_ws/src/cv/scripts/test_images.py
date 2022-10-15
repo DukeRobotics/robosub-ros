@@ -7,14 +7,16 @@ from custom_msgs.srv import EnableModel
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
-
+# TODO: Modify this class and launch file to accept a path to a still image, rosbag, AVI, MOV, or folder as a command line argument to roslaunch and set self.feed_path to the string of the path.
+# TODO: Modify this class to call the appropriate run function based on the type of file passed in the command line argument.
+# TODO: Modify this class and launch file to accept a topic name as a command line argument to roslaunch and set the self.image_publisher topic name to it.
 class DummyImagePublisher:
     """Mock the camera by publishing a still image to a topic."""
 
     NODE_NAME = 'test_images'
     CAMERA = 'left'
     IMAGE_TOPIC = f'/camera/{CAMERA}/image_raw'
-
+    
     def __init__(self):
         """Read in the dummy image and other misc. setup work."""
         self.image_publisher = rospy.Publisher(self.IMAGE_TOPIC, Image,
@@ -27,6 +29,7 @@ class DummyImagePublisher:
 
         self.image_msg = bridge.cv2_to_imgmsg(image, 'bgr8')
 
+    # TODO: Modify this function to publish a still image without waiting on enable model.
     def run(self):
         """Publish dummy image to topic every few seconds.
 
@@ -80,7 +83,7 @@ class DummyImagePublisher:
         """
     
     # TODO: Complete this function
-    # Assume that self.feed_path is a string with the path to a MOV video file
+    # Assume that self.feed_path is a string with the path to a folder
     def run_avi(self):
         """Publish a simulated image feed from a folder containing images to a topic.
 
