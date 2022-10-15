@@ -3,6 +3,7 @@
 from brping import Ping360
 #import rospy
 import numpy as np
+import decodePingPythonPing360
 
 SERIAL_PORT_NAME = "COM4"  # TODO determine what port this is for the robot.
 BAUD_RATE = 115200  # hz
@@ -10,7 +11,6 @@ SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
 SPEED_OF_SOUND_IN_WATER = 1480  # m/s
 
 NODE_NAME = "sonar"
-
 
 class Sonar:
     """Class to interface with the Sonar device.
@@ -20,8 +20,6 @@ class Sonar:
         self.ping360 = Ping360()
         self.ping360.connect_serial(serial_port_name, baud_rate)  # TODO: Add try except for connecting to device
         self.ping360.initialize()
-
-        self.is_initialized()
 
         self.number_of_samples = number_of_samples
         self.ping360.set_number_of_samples(number_of_samples)
@@ -74,12 +72,12 @@ class Sonar:
         Returns:
             (angle of value, index within angle)
         """
-        bob = []
+        biggestByteArray = []
         for i in range(1, 361):
-            bob.push(self.get_biggest_byte(self,i)[1])
+            biggestByteArray.push(self.get_biggest_byte(self,i)[1])
             #(angle,  index_in_angle)
-            joe = np.argmax(bob)
-        return (joe+1 , self.get_biggest_byte(self, joe+1)[0])
+            largestSweepByte = np.argmax(biggestByteArray)
+        return (largestSweepByte+1 , self.get_biggest_byte(self, largestSweepByte+1)[0])
 
     def get_biggest_byte(self, angle):
         """Get the biggest value of the byte array.
@@ -87,22 +85,57 @@ class Sonar:
         Returns:
             (biggest value index, biggest value)
         """
-
-        import numpy as np
-
         data = self.ping360.transmitAngle(angle).data
         split_bytes = [data[i:i+1] for i in range(len(data))]
-        bruhbytes = split_bytes[100:]
-        best = np.argmax(bruhbytes)
+        filteredbytes = split_bytes[100:]
+        best = np.argmax(filteredbytes)
         print(best)
         print(
             f"{split_bytes[best+100]} {best+100} {self.get_distance_of_sample(best+100)}")
+        #(index, value)
+        return (best+100, filteredbytes[best])
 
-            #(index, value)
-        return (best+100, bruhbytes[best])
+    def get_biggest_byte(self, data):
+        """Get the biggest value of the byte array with preloaded data.
+
+        Returns:
+            (biggest value index, biggest value)
+        """
+        split_bytes = [data[i:i+1] for i in range(len(data))]
+        filteredbytes = split_bytes[100:]
+        best = np.argmax(filteredbytes)
+        #print(best)
+        #print(f"{split_bytes[best+100]} {best+100} {self.get_distance_of_sample(best+100)}")
+              #(index,    value)
+        return (best+100, int.from_bytes(filteredbytes[best],"little"))
 
 
 if __name__ == "__main__":
-    sonar = Sonar(200, serial_port_name="COM3")
-    index = sonar.get_biggest_byte()
-    print(sonar.get_distance_of_sample(index))
+    #settings for a 10m scan:
+    #   transmit_duration = 53
+    #   sample_period = 444
+    #   transmit_frequency = 750
+    #   BAUD_RATE = 2000000
+
+    #settings for 5m scan:
+    #   transmit_duration = 27
+    #   sample_period = 222
+    #   transmit_frequency = 750
+    #   BAUD_RATE = 2000000
+
+    sonar = Sonar(sample_period=222, transmit_duration=27, serial_port_name="COM3", baud_rate=2000000)
+    #index = sonar.get_biggest_byte()
+
+
+    #Below is for testing with a given local file
+    sampleData = decodePingPythonPing360.getdecodedfile('\\SampleTylerData.bin')
+    biggestbytearray = []
+    for index, (timestamp, decoded_message) in enumerate(sampleData):
+        if(index >= 49 and index <= 149):
+            biggestByte = sonar.get_biggest_byte(decoded_message.data)
+            #print(f"{biggestByte} {decoded_message.angle}")
+            biggestbytearray.append(biggestByte + (decoded_message.angle,))
+        #index of the biggest byte
+    #print(biggestbytearray)
+    max_tup = max(biggestbytearray, key=lambda tup: tup[1])
+    print(f"biggest value of {sonar.get_distance_of_sample(max_tup[0])}m at angle {max_tup[2]}")

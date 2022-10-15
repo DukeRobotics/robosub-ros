@@ -4,22 +4,20 @@ SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
 SPEED_OF_SOUND_IN_WATER = 1480  # m/s
 
 import numpy as np
+import decodePingPythonPing360
 databruh = np.ones(200)
 databruh[156]= 3
 class Sonar:
     def __init__(self):
         self.sample_period = 1
 
-    def get_biggest_byte(self):
+    def get_biggest_byte(self, data):
         """Get the biggest value of the byte array.
 
         Returns:
             int: index of the biggest value.
         """
 
-        import numpy as np
-
-        data = databruh
         split_bytes = [data[i:i+1] for i in range(len(data))]
         bruhbytes = split_bytes[100:]
         best = np.argmax(bruhbytes)
@@ -42,8 +40,13 @@ class Sonar:
         sample_number = sample_index + 1
         distance = SPEED_OF_SOUND_IN_WATER * ((self.sample_period * SAMPLE_PERIOD_TICK_DURATION) * sample_number) / 2.0
         return distance
+
 sonar = Sonar()
-sonar.get_biggest_byte()
+
+sampleData = decodePingPythonPing360.getdecodedfile()
+for index, (timestamp, decoded_message) in enumerate(sampleData):
+    if(index >= 49 and index <= 149):
+        print(sonar.get_biggest_byte(decoded_message.data))
 
 
 
