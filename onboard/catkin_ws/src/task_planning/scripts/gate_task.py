@@ -40,6 +40,9 @@ def main():
     # Execute SMACH plan
     sm.execute()
 
+def create_gate_task_sm():
+    return create_simple_gate_task_sm()
+
 # Rotate direction is +1 or -1 depending on how we should rotate
 
 
