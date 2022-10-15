@@ -55,6 +55,41 @@ class DummyImagePublisher:
             count += 1
             loop_rate.sleep()
 
+    # TODO: Complete this function
+    # Assume that self.feed_path is a string with the path to a rosbag file
+    def run_bag(self):
+        """Publish a simulated image feed from a rosbag file to a topic.
+
+        Once it publishes all images in the rosbag file, it loops and publishes images from the beginning again.
+        """
+
+    # TODO: Complete this function
+    # Assume that self.feed_path is a string with the path to a AVI video file
+    def run_avi(self):
+        """Publish a simulated image feed from a AVI video file to a topic.
+
+        Once it publishes all images in the AVI file, it loops and publishes images from the beginning again.
+        """
+
+    # TODO: Complete this function
+    # Assume that self.feed_path is a string with the path to a MOV video file
+    def run_avi(self):
+        """Publish a simulated image feed from a MOV video file to a topic.
+
+        Once it publishes all images in the MOV file, it loops and publishes images from the beginning again.
+        """
+    
+    # TODO: Complete this function
+    # Assume that self.feed_path is a string with the path to a MOV video file
+    def run_avi(self):
+        """Publish a simulated image feed from a folder containing images to a topic.
+
+        All JPG images in the folder will be published in alphabetical order by filename.
+        Once it publishes all JPG images in the folder, it loops and publishes images from the beginning again.
+        """
+
+        
+
 
 if __name__ == '__main__':
     try:
