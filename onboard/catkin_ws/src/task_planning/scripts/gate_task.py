@@ -42,6 +42,8 @@ def main():
 
 # Here to appease automatic testing
 # Check if we actually want this later
+
+
 def create_gate_task_sm():
     return create_gate_task_sm_DEFUNCT(1)
 
