@@ -4,6 +4,7 @@ import rospy
 import smach
 from gate_task import create_gate_task_sm
 
+
 class TaskRunner:
     RATE = 30  # Hz
 
@@ -19,8 +20,9 @@ class TaskRunner:
                                    transitions={
                                        'gate_task_succeeded': 'task_runner_succeeded',
                                        'gate_task_failed': 'task_runner_failed'})
-        
+
         sm_top.execute()
+
 
 def main():
     try:
