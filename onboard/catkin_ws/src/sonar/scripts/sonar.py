@@ -95,7 +95,7 @@ class Sonar:
         #(index, value)
         return (best+100, filteredbytes[best])
 
-    def get_biggest_byte(self, data):
+    def get_biggest_byte_data(self, data):
         """Get the biggest value of the byte array with preloaded data.
 
         Returns:
@@ -130,12 +130,16 @@ if __name__ == "__main__":
     #Below is for testing with a given local file
     sampleData = decodePingPythonPing360.getdecodedfile('\\SampleTylerData.bin')
     biggestbytearray = []
-    for index, (timestamp, decoded_message) in enumerate(sampleData):
-        if(index >= 49 and index <= 149):
-            biggestByte = sonar.get_biggest_byte(decoded_message.data)
-            #print(f"{biggestByte} {decoded_message.angle}")
-            biggestbytearray.append(biggestByte + (decoded_message.angle,))
-        #index of the biggest byte
+    # for index, (timestamp, decoded_message) in enumerate(sampleData):
+    #     if(index >= 49 and index <= 149):
+    #         biggestByte = sonar.get_biggest_byte_data(decoded_message.data)
+    #         #print(f"{biggestByte} {decoded_message.angle}")
+    #         biggestbytearray.append(biggestByte + (decoded_message.angle,))
+    #     #index of the biggest byte
+    
+    for theta in range(150, 250):
+        biggestByte = sonar.get_biggest_byte(theta)
+        biggestbytearray.append(biggestByte[0], biggestByte[1], theta)
     #print(biggestbytearray)
     max_tup = max(biggestbytearray, key=lambda tup: tup[1])
     print(f"biggest value of {sonar.get_distance_of_sample(max_tup[0])}m at angle {max_tup[2]}")
