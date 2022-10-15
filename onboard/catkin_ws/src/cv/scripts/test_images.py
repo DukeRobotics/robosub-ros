@@ -76,7 +76,7 @@ class DummyImagePublisher:
 
     # TODO: Complete this function
     # Assume that self.feed_path is a string with the path to a MOV video file
-    def run_avi(self):
+    def run_mov(self):
         """Publish a simulated image feed from a MOV video file to a topic.
 
         Once it publishes all images in the MOV file, it loops and publishes images from the beginning again.
@@ -84,7 +84,7 @@ class DummyImagePublisher:
     
     # TODO: Complete this function
     # Assume that self.feed_path is a string with the path to a folder
-    def run_avi(self):
+    def run_folder(self):
         """Publish a simulated image feed from a folder containing images to a topic.
 
         All JPG images in the folder will be published in alphabetical order by filename.
