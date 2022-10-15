@@ -54,7 +54,7 @@ def create_gate_task_sm_DEFUNCT(rotate_direction):
     sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
     listener = TransformListener()
     gate_euler_position = [0, 0, 0, 0, 0, 0]
-    image_name = "bootlegger"
+    image_name = "bootleggerbuoy"
     with sm:
         smach.StateMachine.add('CHECK_IMAGE_VISIBLE', ObjectVisibleTask(image_name, 3),
                                transitions={
