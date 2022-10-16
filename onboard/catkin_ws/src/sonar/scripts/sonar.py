@@ -9,6 +9,7 @@ SERIAL_PORT_NAME = "COM4"  # TODO determine what port this is for the robot.
 BAUD_RATE = 115200  # hz
 SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
 SPEED_OF_SOUND_IN_WATER = 1480  # m/s
+FILTER_INDEX = 100 #number of values to filter TODO figure out where the noise starts
 
 NODE_NAME = "sonar"
 
@@ -66,18 +67,20 @@ class Sonar:
         last_sample_index = self.number_of_samples - 1
         return self.get_distance_of_sample(last_sample_index)
 
-    def sweep(self):
-        """Get the biggest value out of all angles
+    def sweep(self, start_angele, end_angle):
+        """Get the index of the biggest value and angle value out of all angles in a sweep
 
         Returns:
-            (angle of value, index within angle)
+            (index within angle, biggest value (byte), angle of biggest value)
         """
-        biggestByteArray = []
-        for i in range(1, 361):
-            biggestByteArray.push(self.get_biggest_byte(self,i)[1])
-            #(angle,  index_in_angle)
-            largestSweepByte = np.argmax(biggestByteArray)
-        return (largestSweepByte+1 , self.get_biggest_byte(self, largestSweepByte+1)[0])
+        biggest_byte_array = []
+        for theta in range (start_angele, end_angle):
+            data = sonar.request_data_at_angle(theta)
+            biggest_byte = sonar.get_biggest_byte(data)
+            biggest_byte_array.append(biggest_byte + (theta,))
+        max_tup = max(biggest_byte_array, key=lambda tup: tup[1])
+        #      (index, byte, angle)
+        return max_tup
 
     def get_biggest_byte(self, angle):
         """Get the biggest value of the byte array.
@@ -87,14 +90,12 @@ class Sonar:
         """
         data = self.ping360.transmitAngle(angle).data
         split_bytes = [data[i:i+1] for i in range(len(data))]
-        filteredbytes = split_bytes[100:]
+        filteredbytes = split_bytes[FILTER_INDEX:]
         best = np.argmax(filteredbytes)
-        print(best)
-        print(
-            f"{split_bytes[best+100]} {best+100} {self.get_distance_of_sample(best+100)}")
-        #(index, value)
-        return (best+100, filteredbytes[best])
+              #(index,             value)
+        return (best+FILTER_INDEX, filteredbytes[best])
 
+    #for local testing
     def get_biggest_byte_data(self, data):
         """Get the biggest value of the byte array with preloaded data.
 
@@ -102,12 +103,10 @@ class Sonar:
             (biggest value index, biggest value)
         """
         split_bytes = [data[i:i+1] for i in range(len(data))]
-        filteredbytes = split_bytes[100:]
+        filteredbytes = split_bytes[FILTER_INDEX:]
         best = np.argmax(filteredbytes)
-        #print(best)
-        #print(f"{split_bytes[best+100]} {best+100} {self.get_distance_of_sample(best+100)}")
-              #(index,    value)
-        return (best+100, int.from_bytes(filteredbytes[best],"little"))
+              #(index,             value)
+        return (best+FILTER_INDEX, int.from_bytes(filteredbytes[best],"little"))
 
 
 if __name__ == "__main__":
@@ -124,12 +123,10 @@ if __name__ == "__main__":
     #   BAUD_RATE = 2000000
 
     sonar = Sonar(sample_period=222, transmit_duration=27, serial_port_name="COM3", baud_rate=2000000)
-    #index = sonar.get_biggest_byte()
 
-
+    #sampleData = decodePingPythonPing360.getdecodedfile('\\SampleTylerData.bin')
     #Below is for testing with a given local file
-    sampleData = decodePingPythonPing360.getdecodedfile('\\SampleTylerData.bin')
-    biggestbytearray = []
+    #biggestbytearray = []
     # for index, (timestamp, decoded_message) in enumerate(sampleData):
     #     if(index >= 49 and index <= 149):
     #         biggestByte = sonar.get_biggest_byte_data(decoded_message.data)
@@ -137,9 +134,6 @@ if __name__ == "__main__":
     #         biggestbytearray.append(biggestByte + (decoded_message.angle,))
     #     #index of the biggest byte
     
-    for theta in range(150, 250):
-        biggestByte = sonar.get_biggest_byte(theta)
-        biggestbytearray.append(biggestByte[0], biggestByte[1], theta)
-    #print(biggestbytearray)
-    max_tup = max(biggestbytearray, key=lambda tup: tup[1])
-    print(f"biggest value of {sonar.get_distance_of_sample(max_tup[0])}m at angle {max_tup[2]}")
+    #Below is testing with the main sonar
+    sweep_data = sonar.sweep(150, 250)  #90deg in front
+    print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
