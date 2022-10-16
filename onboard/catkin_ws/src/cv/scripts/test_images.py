@@ -22,6 +22,9 @@ class DummyImagePublisher:
         self.image_publisher = rospy.Publisher(self.IMAGE_TOPIC, Image,
                                                queue_size=10)
 
+        rospy.init_node(self.NODE_NAME)
+        self.feed_path = rospy.get_param('~feed_path')
+        
         path = os.path.dirname(__file__)
         image = cv2.imread(os.path.join(path, '../assets/left384.jpg'),
                            cv2.IMREAD_COLOR)
@@ -36,7 +39,6 @@ class DummyImagePublisher:
         Will wait until the enable_model_<camera> service becomes available before starting to publish.
         Every 30 frames published, this node will toggle the enable for the prediction model to test the service.
         """
-        rospy.init_node(self.NODE_NAME)
 
         # Testing enable_model service
         service_name = f'enable_model_{self.CAMERA}'
