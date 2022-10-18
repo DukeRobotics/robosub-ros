@@ -55,9 +55,7 @@ class DummyImagePublisher:
 
         Once it publishes all images in the rosbag file, it loops and publishes images from the beginning again.
         """
-
-    # TODO: Complete this function
-    # Assume that self.feed_path is a string with the path to a AVI video file
+    
     def run_avi(self):
         """Publish a simulated image feed from a AVI video file to a topic.
 
