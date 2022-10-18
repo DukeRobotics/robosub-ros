@@ -27,8 +27,10 @@ class StateRepublisher:
         self.listener = TransformListener()
 
         for d in utils.get_axes():
-            self._pub_pose[d] = rospy.Publisher(self._get_pose_topic(d), Float64, queue_size=3)
-            self._pub_twist[d] = rospy.Publisher(self._get_twist_topic(d), Float64, queue_size=3)
+            self._pub_pose[d] = rospy.Publisher(self._get_pose_topic(d), Float64, latch=True, queue_size=3)
+            self._pub_pose[d].publish(Float64(0))
+            self._pub_twist[d] = rospy.Publisher(self._get_twist_topic(d), Float64, latch=True, queue_size=3)
+            self._pub_twist[d].publish(Float64(0))
 
         self._pub_local_state = rospy.Publisher(self.LOCAL_STATE_TOPIC, Odometry, queue_size=3)
 

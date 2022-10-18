@@ -11,7 +11,7 @@ class ServoWrapperPublisher:
     NUM_SERVOS = 8
 
     def __init__(self):
-        rospy.init_node('test_state_publisher')
+        rospy.init_node('servo_wrapper')
 
         self.pub_servo_angles = rospy.Publisher(self.SERVO_SUB_TOPIC, ServoAngleArray, queue_size=3)
         rospy.Service(self.SERVO_SERVICE_TOPIC, SetServo, self.set_servo_angle)

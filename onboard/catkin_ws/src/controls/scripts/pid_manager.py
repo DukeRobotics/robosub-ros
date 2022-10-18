@@ -2,6 +2,7 @@
 
 import rospy
 from std_msgs.msg import Float64, Bool
+from geometry_msgs.msg import Pose, Twist
 import controls_utils as utils
 
 
@@ -30,6 +31,8 @@ class PIDManager:
         algorithm without explicitly disabling thrusters.
         """
         self._disable_loops()
+        utils.publish_data_dictionary(self.pub_pos, utils.parse_pose(Pose()))
+        utils.publish_data_dictionary(self.pub_vel, utils.parse_twist(Twist()))
         utils.publish_data_constant(self.pub_control_effort, 0)
 
     def position_control(self, pose):
