@@ -1,6 +1,8 @@
 <launch>
 	<arg name="feed_path" />
+	<arg name="topic" />
 	<node name="test_images" pkg="cv" type="test_images.py">
 		<param name="feed_path" value="$(arg feed_path)" />
+		<param name="topic" value="$(arg topic)" />
 	</node>
 </launch>
