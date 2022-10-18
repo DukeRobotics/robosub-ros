@@ -32,6 +32,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libusb-dev libqt5x11extras5 \
     unzip zip util-linux \
     ros-noetic-pid \
+    ros-noetic-smach-ros \
     ros-noetic-rosserial ros-noetic-rosserial-arduino \
     python3-pandas && \
     apt-get clean && \
@@ -53,8 +54,8 @@ RUN cd torch_deps && \
     cd ../ && \
     rm -rf torch_deps
 
-# Install Detecto
-RUN pip3 install --no-cache-dir detecto
+# Install CV Dependencies
+RUN pip3 install --no-cache-dir detecto depthai
 
 ### ROS Plugins and Dependencies ###
 

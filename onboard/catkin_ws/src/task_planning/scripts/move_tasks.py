@@ -10,28 +10,74 @@ class MoveToPoseGlobalTask(Task):
     """Move to pose given in global coordinates."""
 
     def __init__(self, x, y, z, roll, pitch, yaw):
-        super(MoveToPoseGlobalTask, self).__init__()
+        super(MoveToPoseGlobalTask, self).__init__(outcomes=['done'])
+
+        self.coords = [x, y, z, roll, pitch, yaw]
+
+    def execute(self, userdata):
+        self.initial_state = self.state
+
+        # Get pose from userdata if supplied
+        arg_names = ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
+        for i in range(len(arg_names)):
+            if arg_names[i] in userdata:
+                self.coords[i] = userdata[arg_names[i]]
 
         self.desired_pose = Pose()
-        self.desired_pose.position = Point(x=x, y=y, z=z)
-        self.desired_pose.orientation = Quaternion(*quaternion_from_euler(roll, pitch, yaw))
+        self.desired_pose.position = Point(x=self.coords[0], y=self.coords[1], z=self.coords[2])
+        self.desired_pose.orientation = Quaternion(
+            *
+            quaternion_from_euler(
+                self.coords[3],
+                self.coords[4],
+                self.coords[5]))
 
-    def _on_task_run(self):
-        self.publish_desired_pose_global(self.desired_pose)
-        at_desired_pose_vel = task_utils.stopped_at_pose(
-            self.state.pose.pose, self.desired_pose, self.state.twist.twist)
-        if at_desired_pose_vel:
-            self.finish()
+        return super(MoveToPoseGlobalTask, self).execute(userdata)
+
+    def run(self, userdata):
+        print("moving to ", self.desired_pose)
+        rate = rospy.Rate(15)
+        while not(
+            self.state and task_utils.stopped_at_pose(
+                self.state.pose.pose,
+                self.getPose(),
+                self.state.twist.twist)):
+            self.publish_desired_pose_global(self.getPose())
+            rate.sleep()
+        return "done"
+
+    def getPose(self):
+        return self.desired_pose
+
+
+class MoveToMutablePoseGlobalTask(MoveToPoseGlobalTask):
+    """Move to MutablePose given in local coordinates."""
+
+    def __init__(self, mutable_pose: task_utils.MutablePose):
+        self.mutable_pose = mutable_pose
+        super(MoveToMutablePoseGlobalTask, self).__init__(0, 0, 0, 0, 0, 0)
+
+    def run(self, userdata):
+        rate = rospy.Rate(15)
+        while self.mutable_pose.getPose() is None:
+            rate.sleep()
+        return super(MoveToMutablePoseGlobalTask, self).run(userdata)
+
+    def getPose(self):
+        return self.mutable_pose.getPose()
 
 
 class MoveToPoseLocalTask(MoveToPoseGlobalTask):
     """Move to pose given in local coordinates."""
 
-    def __init__(self, x, y, z, roll, pitch, yaw):
+    def __init__(self, x, y, z, roll, pitch, yaw, listener):
         super(MoveToPoseLocalTask, self).__init__(x, y, z, roll, pitch, yaw)
+        self.listener = listener
 
-    def _on_task_start(self):
-        self.desired_pose = task_utils.transform('base_link', 'odom', self.desired_pose)
+    def run(self, userdata):
+        if 'base_link' in self.listener.getFrameStrings():
+            self.desired_pose = task_utils.transform_pose(self.listener, 'base_link', 'odom', self.desired_pose)
+        return super(MoveToPoseLocalTask, self).run(userdata)
 
 
 class AllocatePowerTask(Task):
@@ -56,19 +102,38 @@ class AllocatePowerTask(Task):
         self.publish_desired_twist_power(self.twist_power)
 
 
-class AllocateVelocityGlobalTask(Task):
+class AllocateVelocityLocalTask(Task):
     def __init__(self, x, y, z, roll, pitch, yaw):
-        super(AllocateVelocityGlobalTask, self).__init__()
+        super(AllocateVelocityLocalTask, self).__init__(outcomes=["done"])
         linear = Vector3(x=x, y=y, z=z)
         angular = Vector3(x=roll, y=pitch, z=yaw)
         self.desired_twist = Twist(linear=linear, angular=angular)
 
-    def _on_task_run(self):
-        rospy.loginfo("publishing desired twist...")
+    def run(self, userdata):
+        # rospy.loginfo("publishing desired twist...")
         self.publish_desired_twist(self.desired_twist)
+        return "done"
 
 
-class AllocateVelocityLocalTask(AllocateVelocityGlobalTask):
+class AllocateVelocityLocalForeverTask(Task):
+    def __init__(self, x, y, z, roll, pitch, yaw):
+        super(AllocateVelocityLocalForeverTask, self).__init__(outcomes=["preempted"])
+        linear = Vector3(x=x, y=y, z=z)
+        angular = Vector3(x=roll, y=pitch, z=yaw)
+        self.desired_twist = Twist(linear=linear, angular=angular)
+
+    def run(self, userdata):
+        # rospy.loginfo("publishing desired twist...")
+        rate = rospy.Rate(15)
+        while True:
+            if self.preempt_requested():
+                self.service_preempt()
+                return 'preempted'
+            self.publish_desired_twist(self.desired_twist)
+            rate.sleep()
+
+
+class AllocateVelocityGlobalTask(AllocateVelocityLocalTask):
     """Allocate specified velocity in a direction"""
 
     def __init__(self, x, y, z, roll, pitch, yaw):
@@ -81,16 +146,12 @@ class AllocateVelocityLocalTask(AllocateVelocityGlobalTask):
             pitch (float): pitch-component of angular velocity
             yaw (float): yaw-component of angular velocity
         """
-        super(AllocateVelocityLocalTask, self).__init__(x, y, z, roll, pitch, yaw)
-        self.first_start = True
-
-    def _on_task_start(self):
-        if self.first_start:
-            odom_local = Odometry()
-            odom_local.twist.twist = self.desired_twist
-            odom_global = task_utils.transform('base_link', 'odom', odom_local)
-            self.desired_twist = odom_global.twist.twist
-            self.first_start = False
+        super(AllocateVelocityGlobalTask, self).__init__(x, y, z, roll, pitch, yaw)
+        # Removed self.first_start check...not sure what it's used for? - EJ 04/13/21
+        odom_global = Odometry()
+        odom_global.twist.twist = self.desired_twist
+        odom_local = task_utils.transform('odom', 'base_link', odom_global)
+        self.desired_twist = odom_local.twist.twist
 
 
 class HoldPositionTask(Task):

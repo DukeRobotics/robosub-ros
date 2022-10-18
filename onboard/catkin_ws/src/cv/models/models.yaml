@@ -1,4 +1,4 @@
-buoy:
-  classes: [alien, bat, witch, brick, _start_gate, _start_tick, _]
-  topic: /cv/buoy
-  weights: buoy.pth
+gate:
+  classes: [buoy_bootlegger, buoy_gman, gate, gate_bootlegger, gate_gman, gate_side_left, gate_side_right, gate_tick, gate_top]
+  topic: /cv
+  weights: detecto-1210-760-24-epochs-7-31-2022-gatepicsandbuoys-FIXED.pth
