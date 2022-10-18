@@ -21,6 +21,10 @@ class ControlsWidget(QWidget):
 
     DIRS = ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
     PID = ['p', 'i', 'd']
+    DESIRED_POSE_TOPIC = 'controls/desired_pose'
+    DESIRED_TWIST_TOPIC = 'controls/desired_twist'
+    DESIRED_POWER_TOPIC = 'controls/desired_power'
+    ENABLE_SERVICE = 'enable_controls'
 
     def __init__(self):
 
@@ -53,9 +57,9 @@ class ControlsWidget(QWidget):
             'power': rospy.Time.now()
         }
 
-        self.desired_pose_sub = rospy.Subscriber('controls/desired_pose', Pose, self.pose_received)
-        self.desired_twist_sub = rospy.Subscriber('controls/desired_twist', Twist, self.twist_received)
-        self.desired_power_sub = rospy.Subscriber('controls/desired_power', Twist, self.power_received)
+        self.desired_pose_sub = rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self.pose_received)
+        self.desired_twist_sub = rospy.Subscriber(self.DESIRED_TWIST_TOPIC, Twist, self.twist_received)
+        self.desired_power_sub = rospy.Subscriber(self.DESIRED_POWER_TOPIC, Twist, self.power_received)
 
         self.gui_publishing = False
         self.state_timer = QTimer(self)
@@ -115,7 +119,7 @@ class ControlsWidget(QWidget):
         rospy.loginfo("Controls Widget successfully initialized")
 
     def enable_state_clicked(self):
-        rospy.wait_for_service('enable_controls')
+        rospy.wait_for_service(self.ENABLE_SERVICE)
         enable_state = self.enable_controls_button.text() == self.controls_button_text['enable']
 
         if enable_state:
@@ -126,13 +130,13 @@ class ControlsWidget(QWidget):
             self.enable_controls_button.setText(self.controls_button_text["enable"])
 
         try:
-            enable_controls = rospy.ServiceProxy('enable_controls', SetBool)
+            enable_controls = rospy.ServiceProxy(self.ENABLE_SERVICE, SetBool)
             _ = enable_controls(enable_state)
         except rospy.ServiceException as e:
             print(f"Service call failed: {e}")
 
     def check_enable_controls(self):
-        self.enable_controls_button.setEnabled('/enable_controls' in rosservice.get_service_list())
+        self.enable_controls_button.setEnabled(f'/{self.ENABLE_SERVICE}' in rosservice.get_service_list())
 
     def pose_received(self, pose):
         self.state_times['pose'] = rospy.Time.now()
@@ -192,13 +196,13 @@ class ControlsWidget(QWidget):
         self.publishing_timer.start()
 
     def pose_entered(self, x, y, z, roll, pitch, yaw):
-        self.pub = rospy.Publisher('/controls/desired_pose', Pose, queue_size=3)
+        self.pub = rospy.Publisher(self.DESIRED_POSE_TOPIC, Pose, queue_size=3)
         quat = quaternion_from_euler(np.radians(roll), np.radians(pitch), np.radians(yaw))
         self.controls_msg = Pose(position=Point(x=x, y=y, z=z), orientation=Quaternion(*quat))
         self.pose_twist_entered()
 
     def twist_entered(self, x, y, z, roll, pitch, yaw):
-        self.pub = rospy.Publisher('/controls/desired_twist', Twist, queue_size=3)
+        self.pub = rospy.Publisher(self.DESIRED_TWIST_TOPIC, Twist, queue_size=3)
         self.controls_msg = Twist(linear=Vector3(x=x, y=y, z=z), angular=Vector3(x=roll, y=pitch, z=yaw))
         self.pose_twist_entered()
 
