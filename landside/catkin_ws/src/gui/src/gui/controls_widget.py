@@ -68,7 +68,7 @@ class ControlsWidget(QWidget):
         self.state_timer.start()
         self.publishing_timer = QTimer(self)
         self.publishing_timer.timeout.connect(self.publish_controls)
-        self.publishing_timer.setInterval(100)
+        self.publishing_timer.setInterval(60)
 
         self.pose_twist_dialog = PoseTwistDialog()
         self.pose_twist_dialog.pose.connect(self.pose_entered)
