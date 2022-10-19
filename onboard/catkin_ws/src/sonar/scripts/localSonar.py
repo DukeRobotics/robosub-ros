@@ -2,62 +2,31 @@
 
 from brping import Ping360
 import numpy as np
+import decodePingPythonPing360
+
+SERIAL_PORT_NAME = "COM4"  # TODO determine what port this is for the robot.
+BAUD_RATE = 115200  # hz
+SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
+SPEED_OF_SOUND_IN_WATER = 1480  # m/s
+FILTER_INDEX = 100 #number of values to filter TODO figure out where the noise starts
 
 class Sonar:
     """Class to interface with the Sonar device.
     """
 
-    SERIAL_PORT_NAME = "COM4"  # TODO determine what port this is for the robot.
-    BAUD_RATE = 115200  # hz
-    SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
-    SPEED_OF_SOUND_IN_WATER = 1480  # m/s
-    FILTER_INDEX = 100 #number of values to filter TODO figure out where the noise starts
-
-    def __init__(self, range, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
+    def __init__(self, sample_period, transmit_duration=11, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
         self.ping360 = Ping360()
         self.ping360.connect_serial(serial_port_name, baud_rate)  # TODO: Add try except for connecting to device
         self.ping360.initialize()
-        period_and_duration = self.range_to_period_and_duration(range)
 
         self.number_of_samples = number_of_samples
         self.ping360.set_number_of_samples(number_of_samples)
-        self.sample_period = period_and_duration[0]
-        self.ping360.set_sample_period(self.sample_period)
-        self.transmit_duration = period_and_duration[1]
-        self.ping360.set_transmit_duration(self.transmit_duration)
+        self.sample_period = sample_period
+        self.ping360.set_sample_period(sample_period)
+        self.transmit_duration = transmit_duration
+        self.ping360.set_transmit_duration(transmit_duration)
 
-    def range_to_period_and_duration(self, range):
-        """From a given range determines the sample_period and transmit_duration
-
-        Based off of sample data, the period and duration have the following relationship with the range:
-            44.4*range = sample_period
-            5.3*range = transmit_duration
-        These were calculated using the pingviewer application from bluerobotics
-
-        Args:
-            range (int): max range in meters of the sonar scan
-        
-        Returns:
-            tuple (int, int): tuple of (sample_period, transmit_duration)
-        
-        """
-        return (int(44.4*range), int(5.3*range))
-
-    def set_new_range(self, range):
-        """Sets a new sample_period and transmit_duration
-
-        Args:
-            range (int): max range in meters of the sonar scan
-        
-        Returns:
-            Nothing
-        """
-        period_and_duration = self.range_to_period_and_duration(range)
-        self.sample_period = period_and_duration[0]
-        self.ping360.set_sample_period(self.sample_period)
-        self.transmit_duration = period_and_duration[1]
-        self.ping360.set_transmit_duration(self.transmit_duration)
-
+        #rospy.init_node(NODE_NAME)
 
     def request_data_at_angle(self, angle_in_gradians):
         """Set sonar device to provided angle and retrieve data.
@@ -83,7 +52,7 @@ class Sonar:
             float: Distance in meters of the sample from the sonar device.
         """
         sample_number = sample_index + 1
-        distance = self.SPEED_OF_SOUND_IN_WATER * ((self.sample_period * self.SAMPLE_PERIOD_TICK_DURATION) * sample_number) / 2.0
+        distance = SPEED_OF_SOUND_IN_WATER * ((self.sample_period * SAMPLE_PERIOD_TICK_DURATION) * sample_number) / 2.0
         return distance
 
     def get_range(self):
@@ -95,7 +64,7 @@ class Sonar:
         last_sample_index = self.number_of_samples - 1
         return self.get_distance_of_sample(last_sample_index)
 
-    def sweep_biggest_byte(self, start_angele, end_angle):
+    def sweep(self, start_angele, end_angle):
         """Get the index of the biggest value and angle value out of all angles in a sweep
 
         Returns:
@@ -118,10 +87,23 @@ class Sonar:
         """
         data = self.ping360.transmitAngle(angle).data
         split_bytes = [data[i:i+1] for i in range(len(data))]
-        filteredbytes = split_bytes[self.FILTER_INDEX:]
+        filteredbytes = split_bytes[FILTER_INDEX:]
         best = np.argmax(filteredbytes)
-              #(index, value)
-        return (best+self.FILTER_INDEX, filteredbytes[best])
+              #(index,             value)
+        return (best+FILTER_INDEX, filteredbytes[best])
+
+    #for local testing
+    def get_biggest_byte_data(self, data):
+        """Get the biggest value of the byte array with preloaded data.
+
+        Returns:
+            (biggest value index, biggest value)
+        """
+        split_bytes = [data[i:i+1] for i in range(len(data))]
+        filteredbytes = split_bytes[FILTER_INDEX:]
+        best = np.argmax(filteredbytes)
+              #(index,             value)
+        return (best+FILTER_INDEX, int.from_bytes(filteredbytes[best],"little"))
 
 
 if __name__ == "__main__":
@@ -138,5 +120,17 @@ if __name__ == "__main__":
     #   BAUD_RATE = 2000000
 
     sonar = Sonar(sample_period=222, transmit_duration=27, serial_port_name="COM3", baud_rate=2000000)
+
+    #sampleData = decodePingPythonPing360.getdecodedfile('\\SampleTylerData.bin')
+    #Below is for testing with a given local file
+    #biggestbytearray = []
+    # for index, (timestamp, decoded_message) in enumerate(sampleData):
+    #     if(index >= 49 and index <= 149):
+    #         biggestByte = sonar.get_biggest_byte_data(decoded_message.data)
+    #         #print(f"{biggestByte} {decoded_message.angle}")
+    #         biggestbytearray.append(biggestByte + (decoded_message.angle,))
+    #     #index of the biggest byte
+    
+    #Below is testing with the main sonar
     sweep_data = sonar.sweep(150, 250)  #90deg in front
     print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")

@@ -271,7 +271,7 @@ def getdecodedfile(localfilename):
     filename =  dirname + localfilename
 
     # Open log and begin processing
-    log = PingViewerLogReader(filename)
+    log = PingViewerLogReader("\\sampleData\\"+filename)
 
     return log.parser()
 
