@@ -20,7 +20,10 @@ class RemoteLaunchNode:
     def start_launch(self, req):
         exe = 'roslaunch' if req.is_launch_file else 'rosrun'
         rospy.loginfo(f'Executing {exe} {req.package} {req.file} {req.args}')
-        proc = subprocess.Popen([exe, req.package, req.file] + req.args)
+        if req.args == ['']: # No arguments provided
+            proc = subprocess.Popen([exe, req.package, req.file])
+        else:
+            proc = subprocess.Popen([exe, req.package, req.file] + req.args)
         self.processes[int(proc.pid)] = proc
         return {'pid': int(proc.pid)}
 
