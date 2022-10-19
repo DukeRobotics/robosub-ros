@@ -1,0 +1,3 @@
+<launch>
+  <node name="cv_gui" pkg="rqt_gui" type="rqt_gui" output="screen" args="--perspective-file $(find gui)/config/robosub_ros_cv_gui.perspective"/>
+</launch>

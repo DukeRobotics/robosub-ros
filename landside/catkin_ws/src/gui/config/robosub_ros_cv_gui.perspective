@@ -1,0 +1,150 @@
+{
+  "keys": {},
+  "groups": {
+    "mainwindow": {
+      "keys": {
+        "geometry": {
+          "repr(QByteArray.hex)": "QtCore.QByteArray(b'01d9d0cb00030000000000640000004e000004140000028b0000006400000064000004140000028b000000000000000005a00000006400000064000004140000028b')",
+          "type": "repr(QByteArray.hex)",
+          "pretty-print": "     d N     d d          d d    "
+        },
+        "state": {
+          "repr(QByteArray.hex)": "QtCore.QByteArray(b'000000ff00000000fd0000000100000003000003b1000001fefc0100000003fc00000000000003590000000000fffffffc0100000003fb00000046006700750069005f005f00530079007300740065006d00200050006c007500670069006e005f005f0031005f005f00530079007300740065006d0057006900640067006500740100000000000000d40000000000000000fb0000004e006700750069005f005f0043006f006e00740072006f006c007300200050006c007500670069006e005f005f0031005f005f0043006f006e00740072006f006c007300570069006400670065007401000000000000011c0000000000000000fc00000000000003590000000000fffffffc0100000002fb00000046006700750069005f005f00530065006e0073006f007200200050006c007500670069006e005f005f0031005f005f00530065006e0073006f007200570069006400670065007401000000000000019d0000000000000000fb0000004e006700750069005f005f004f006600660062006f00610072006400200050006c007500670069006e005f005f0031005f005f004f006600660062006f0061007200640057006900640067006500740100000000000003590000000000000000fb00000046006700750069005f005f00530065006e0073006f007200200050006c007500670069006e005f005f0032005f005f00530065006e0073006f00720057006900640067006500740100000000000002f80000000000000000fb00000050006700750069005f005f004300560020004c00610075006e0063006800200050006c007500670069006e005f005f0031005f005f00430056004c00610075006e006300680057006900640067006500740100000000000003b1000000e100ffffff000003b10000000000000004000000040000000800000008fc00000001000000030000000100000036004d0069006e0069006d0069007a006500640044006f0063006b00570069006400670065007400730054006f006f006c0062006100720000000000ffffffff0000000000000000')",
+          "type": "repr(QByteArray.hex)",
+          "pretty-print": "                   Y                                                                                                                    Fgui__Sensor Plugin__1__SensorWidget          Ngui__Offboard Plugin__1__OffboardWidget          Fgui__Sensor Plugin__2__SensorWidget          Pgui__CV Launch Plugin__1__CVLaunchWidget                            6MinimizedDockWidgetsToolbar        "
+        }
+      },
+      "groups": {
+        "toolbar_areas": {
+          "keys": {
+            "MinimizedDockWidgetsToolbar": {
+              "repr": "8",
+              "type": "repr"
+            }
+          },
+          "groups": {}
+        }
+      }
+    },
+    "pluginmanager": {
+      "keys": {
+        "running-plugins": {
+          "repr": "{'gui/CV Launch Plugin': [1]}",
+          "type": "repr"
+        }
+      },
+      "groups": {
+        "plugin__gui__CV Launch Plugin__1": {
+          "keys": {},
+          "groups": {
+            "dock_widget__CVLaunchWidget": {
+              "keys": {
+                "dock_widget_title": {
+                  "repr": "'CV Launch Plugin'",
+                  "type": "repr"
+                },
+                "dockable": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "parent": {
+                  "repr": "None",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            }
+          }
+        },
+        "plugin__gui__Controls Plugin__1": {
+          "keys": {},
+          "groups": {
+            "dock_widget__ControlsWidget": {
+              "keys": {
+                "dock_widget_title": {
+                  "repr": "'Controls Plugin'",
+                  "type": "repr"
+                },
+                "dockable": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "parent": {
+                  "repr": "None",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            }
+          }
+        },
+        "plugin__gui__Offboard Plugin__1": {
+          "keys": {},
+          "groups": {
+            "dock_widget__OffboardWidget": {
+              "keys": {
+                "dock_widget_title": {
+                  "repr": "'Offboard Plugin'",
+                  "type": "repr"
+                },
+                "dockable": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "parent": {
+                  "repr": "None",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            }
+          }
+        },
+        "plugin__gui__Sensor Plugin__1": {
+          "keys": {},
+          "groups": {
+            "dock_widget__SensorWidget": {
+              "keys": {
+                "dock_widget_title": {
+                  "repr": "'Sensor Plugin'",
+                  "type": "repr"
+                },
+                "dockable": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "parent": {
+                  "repr": "None",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            }
+          }
+        },
+        "plugin__gui__System Plugin__1": {
+          "keys": {},
+          "groups": {
+            "dock_widget__SystemWidget": {
+              "keys": {
+                "dock_widget_title": {
+                  "repr": "'Systems Plugin'",
+                  "type": "repr"
+                },
+                "dockable": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "parent": {
+                  "repr": "None",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            }
+          }
+        }
+      }
+    }
+  }
+}
