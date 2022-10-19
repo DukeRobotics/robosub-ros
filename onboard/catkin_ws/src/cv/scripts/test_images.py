@@ -57,12 +57,22 @@ class DummyImagePublisher:
 
         Once it publishes all images in the rosbag file, it loops and publishes images from the beginning again.
         """
+
+        # Keep track of the rosbag play process; will not be None if command to run rosbag is activated
+        proc = None
+        # Set the framerate of the stream off of what was passed in from the roslaunch command
+        loop_rate = rospy.Rate(self.framerate)
+
         while not rospy.is_shutdown():
-            if self.feed_path:
+            if os.path.isfile(self.feed_path) and self.feed_path.endswith('.bag'):
                 # Check if self.feed_path is a valid rosbag file
-                pass
-            proc = subprocess.Popen(f'rosbag play {self.feed_path} -l')
-            pass
+                proc = subprocess.Popen(f'rosbag play {self.feed_path} -l --topics {self.topic}')
+            loop_rate.sleep()
+
+        if proc is not None:
+            # Terminate the rosbag play process
+            proc.terminate()
+            proc.wait()
     
     def run_avi(self):
         """Publish a simulated image feed from a AVI video file to a topic.
