@@ -51,8 +51,21 @@ class DepthAIImageStreamPublisher:
         """
         loop_rate = rospy.Rate(1)
 
+        # TODO: Remove this if manual IP address specification is not needed
+        # Manually specify device IP address
+        # https://docs.luxonis.com/projects/hardware/en/latest/pages/guides/getting-started-with-poe.html#manually-specify-device-ip
+        device_info = dai.DeviceInfo("169.254.1.222")
+
+        # NOTE:
+        # If you get an error along the lines of:
+        # "Could not load the Qt platform plugin "xcb" in "/usr/local/lib/python3.8/dist-packages/cv2/qt/plugins" even though it was found. 
+        # This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem."
+        # This error occurs because the container thinks there no UI to show the graphics window. 
+        # This is because you SSH'd into the onboard container WITHOUT specifying the -X or -Y flag, which enables graphics forwarding.
+        # To fix this error, exit your current SSH session, and SSH into the onboard container again with the -X or -Y flag and it should work.
+
         # Upload the pipeline to the device
-        with dai.Device(self.pipeline) as device:
+        with dai.Device(self.pipeline, device_info) as device:
 
             # Output queue, to receive message on the host from the device (you can send the message on the device with XLinkOut)
             rgbQueue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
