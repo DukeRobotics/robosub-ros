@@ -26,6 +26,8 @@ add_service_files(
   FILES
   SetServo.srv
   EnableModel.srv
+  StartLaunch.srv
+  StopLaunch.srv
 )
 
 add_action_files(
