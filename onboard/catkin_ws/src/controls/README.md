@@ -72,13 +72,13 @@ Desired State Topics:
     + Type: geometry_msgs/Pose
 
   - ```controls/desired_twist```
-    + A twist with values corresponding to linear and angular velocities.
-    + These values are considered as global inputs. If local velocity input is desired, then call ```rosservice call /enable_local_control true```.
+    + A twist with representing the robot's desired local linear and angular velocities.
     + Type: geometry_msgs/Twist
 
   - ```controls/desired_power```
-    + A twist with values [-1,1] corresponding to relative linear and angular velocities. 1 is full speed in a positive direction, -1 is full speed in the negative direction.
-    + This option completely ignores all PID loops, and offers no stabilization. It is mainly for use with joysticks.
+    + A twist with values [-1,1] corresponding to effort the robot should exert in each local axis. 1 is full speed in a positive direction, -1 is full speed in the negative direction.
+    + This option stabilizes velocity on all axes with values of 0. It is mainly for use with joysticks (velocity control should be used in almost every other case).
+    + For instance, a `desired_power` message of [1, 0, -0.5, 0, 0, 0], the robot will move full speed in the +x direction, half speed in the -z direction, and stabilize velocities on all other axes.
     + Type: geometry_msgs/Twist
 
 Current State Topics:
@@ -111,7 +111,7 @@ This package has the following launch files:
 * `controls.launch` is the entrypoint to the package. It takes in a `sim` argument to indicate whether we are publishing for the simulation or the Arduino. It includes the `pid.launch` file to launch the PID for position loops. It then starts the three nodes above.
 * `position_pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for position control on x, y, z, roll, pitch, and yaw. It defines the PID parameters at the top, depending on the `sim` argument passed in.
 
-* `velocity_pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for velocity control on x, y, z, roll, pitch, and yaw. For ease of tuning via dynamic reconfiguration, this file accepts PID simulation constants as parameters which are used if the `sim` argument is asserted. 
+* `velocity_pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for velocity control on x, y, z, roll, pitch, and yaw. 
 
 ### Flow
 
@@ -164,7 +164,8 @@ A thruster's starting orientation when aligned with robot frame is defined as th
 ### Scripts
 
 * `state_republisher.py` - listens to Current State Topics and republishes relevant components to their own `/controls/state/...` topics for use in all of the other parts of this controls package.
-* `desired_state.py` - listens to Desired State Topics, warns the user via the console if none or more than one are received, and outputs setpoints to PID loops if desiring position or velocity, or outputs powers directly to `thruster_controls`.
+* `desired_state.py` - listens to Desired State Topics, warns the user via the console if none or more than one are received, and uses an instance of `PIDManager` to run position, velocity, or power control.
+* `pid_manager.py` - Defines the `PIDManager` class, which has methods for running position, velocity, and power control. Handles publishing to all PID topics, which includes set-points and enabling/disabling loops. Publishes directly to control effort topics listened to by `thruster_controls` if power control is selected.
 * `thruster_controls.py` - listens to control efforts from PID or `desired_state`, uses an instance of `ThrusterManager` to calculate thruster allocations from the them, scales outputs so that the maximum is 1 or -1 in any direction, and publishes to Arduino or simulation movement topics.
 * `thruster_manager.py` - Defines the `ThrusterManager` class, which reads in config file, creates `Thruster` array from it, and has math for calculating thruster allocations.
 * `thruster.py` - Defines the `Thruster` class, which takes in a position and orientation of a thruster relative to the center of the robot, and then calculates and stores the force and torque it exerts on the robot.
