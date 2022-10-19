@@ -3,6 +3,7 @@
 import rospy
 import cv2
 import os
+import subprocess
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
@@ -17,6 +18,7 @@ class DummyImagePublisher:
         rospy.init_node(self.NODE_NAME)
         
         self.topic = rospy.get_param("~topic")
+        self.framerate = rospy.get_param("~framerate")
         self.image_publisher = rospy.Publisher(self.topic, Image, queue_size=10)
 
         self.feed_path = os.path.join(os.path.dirname(__file__), rospy.get_param("~feed_path"))
@@ -55,6 +57,12 @@ class DummyImagePublisher:
 
         Once it publishes all images in the rosbag file, it loops and publishes images from the beginning again.
         """
+        while not rospy.is_shutdown():
+            if self.feed_path:
+                # Check if self.feed_path is a valid rosbag file
+                pass
+            proc = subprocess.Popen(f'rosbag play {self.feed_path} -l')
+            pass
     
     def run_avi(self):
         """Publish a simulated image feed from a AVI video file to a topic.
