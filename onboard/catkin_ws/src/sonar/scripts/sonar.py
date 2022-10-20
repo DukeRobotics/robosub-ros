@@ -137,6 +137,6 @@ if __name__ == "__main__":
     #   transmit_frequency = 750
     #   BAUD_RATE = 2000000
 
-    sonar = Sonar(sample_period=222, transmit_duration=27, serial_port_name="COM3", baud_rate=2000000)
+    sonar = Sonar(range=5)
     sweep_data = sonar.sweep(150, 250)  #90deg in front
     print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
