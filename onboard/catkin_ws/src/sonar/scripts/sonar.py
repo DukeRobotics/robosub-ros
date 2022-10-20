@@ -7,7 +7,7 @@ class Sonar:
     """Class to interface with the Sonar device.
     """
 
-    SERIAL_PORT_NAME = "COM4"  # TODO determine what port this is for the robot.
+    SERIAL_PORT_NAME = "/dev/ttyUSB1"  # TODO determine what port this is for the robot.
     BAUD_RATE = 115200  # hz
     SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
     SPEED_OF_SOUND_IN_WATER = 1480  # m/s
