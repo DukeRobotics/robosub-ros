@@ -19,12 +19,12 @@ class Sonar:
         self.ping360.initialize()
         period_and_duration = self.range_to_period_and_duration(range)
 
-        self.number_of_samples = number_of_samples
-        self.ping360.set_number_of_samples(number_of_samples)
-        self.sample_period = period_and_duration[0]
-        self.ping360.set_sample_period(self.sample_period)
-        self.transmit_duration = period_and_duration[1]
-        self.ping360.set_transmit_duration(self.transmit_duration)
+        # self.number_of_samples = number_of_samples
+        # self.ping360.set_number_of_samples(number_of_samples)
+        # self.sample_period = period_and_duration[0]
+        # self.ping360.set_sample_period(self.sample_period)
+        # self.transmit_duration = period_and_duration[1]
+        # self.ping360.set_transmit_duration(self.transmit_duration)
 
     def range_to_period_and_duration(self, range):
         """From a given range determines the sample_period and transmit_duration
@@ -138,5 +138,5 @@ if __name__ == "__main__":
     #   BAUD_RATE = 2000000
 
     sonar = Sonar(range=5)
-    sweep_data = sonar.sweep(150, 250)  #90deg in front
+    sweep_data = sonar.sweep_biggest_byte(150, 250)  #90deg in front
     print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
