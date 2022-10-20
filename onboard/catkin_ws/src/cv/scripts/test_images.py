@@ -27,7 +27,6 @@ class DummyImagePublisher:
     
     def run(self):
         """Runs the appropriate function based on the type of file passed in feed_path"""
-
         file_extension = os.path.splitext(self.feed_path)[1]
         if file_extension == '.jpg': self.run_still()
         elif file_extension == '.bag': self.run_bag()
@@ -50,14 +49,12 @@ class DummyImagePublisher:
 
             loop_rate.sleep()
 
-    # TODO: Complete this function
     # Assume that self.feed_path is a string with the path to a rosbag file
     def run_bag(self):
         """Publish a simulated image feed from a rosbag file to a topic.
 
         Once it publishes all images in the rosbag file, it loops and publishes images from the beginning again.
         """
-
         # Keep track of the rosbag play process; will not be None if command to run rosbag is activated
         proc = None
         # Set the framerate of the stream off of what was passed in from the roslaunch command
@@ -66,7 +63,7 @@ class DummyImagePublisher:
         while not rospy.is_shutdown():
             if os.path.isfile(self.feed_path) and self.feed_path.endswith('.bag'):
                 # Check if self.feed_path is a valid rosbag file
-                proc = subprocess.Popen(f'rosbag play {self.feed_path} -l --topics {self.topic}')
+                proc = subprocess.Popen(['rosbag', 'play', f'{self.feed_path}', '-l', '--topics', '{self.topic}'])
             loop_rate.sleep()
 
         if proc is not None:
