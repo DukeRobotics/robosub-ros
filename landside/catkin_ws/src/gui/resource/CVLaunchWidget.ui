@@ -13,83 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QPushButton" name="motion_button">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>40</y>
-     <width>121</width>
-     <height>28</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Start motion.launch</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="simulation_check_box">
-   <property name="geometry">
-    <rect>
-     <x>70</x>
-     <y>10</y>
-     <width>141</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Simulation Enabled</string>
-   </property>
-   <property name="checked">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="state_button">
-   <property name="geometry">
-    <rect>
-     <x>140</x>
-     <y>40</y>
-     <width>121</width>
-     <height>28</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Start state.launch</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="tasks_button">
-   <property name="geometry">
-    <rect>
-     <x>70</x>
-     <y>70</y>
-     <width>121</width>
-     <height>28</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Start tasks.launch</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="launch_dialog_button">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>110</y>
-     <width>231</width>
-     <height>28</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Open Node Launch Dialog</string>
-   </property>
-  </widget>
+
   <widget class="Line" name="line">
    <property name="geometry">
     <rect>
@@ -103,6 +27,7 @@
     <enum>Qt::Horizontal</enum>
    </property>
   </widget>
+
   <widget class="QGroupBox" name="system_usage_box">
    <property name="geometry">
     <rect>
