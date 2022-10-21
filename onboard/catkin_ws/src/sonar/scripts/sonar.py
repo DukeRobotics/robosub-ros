@@ -13,6 +13,8 @@ class Sonar:
     SPEED_OF_SOUND_IN_WATER = 1480  # m/s
     FILTER_INDEX = 100 #number of values to filter TODO figure out where the noise starts
 
+    FTDI_STR = "DK0C1WF7"
+
     def __init__(self, range, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
         self.ping360 = Ping360()
         self.ping360.connect_serial(serial_port_name, baud_rate)  # TODO: Add try except for connecting to device
