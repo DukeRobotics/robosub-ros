@@ -7,8 +7,8 @@ class Sonar:
     """Class to interface with the Sonar device.
     """
 
-    SERIAL_PORT_NAME = "/dev/ttyUSB1"  # TODO determine what port this is for the robot.
-    BAUD_RATE = 115200  # hz
+    SERIAL_PORT_NAME = "/dev/ttyUSB2"  # PORT of the salea is ttyUSB2 for testing
+    BAUD_RATE = 2000000  # hz
     SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
     SPEED_OF_SOUND_IN_WATER = 1480  # m/s
     FILTER_INDEX = 100 #number of values to filter TODO figure out where the noise starts
@@ -21,12 +21,12 @@ class Sonar:
         self.ping360.initialize()
         period_and_duration = self.range_to_period_and_duration(range)
 
-        # self.number_of_samples = number_of_samples
-        # self.ping360.set_number_of_samples(number_of_samples)
-        # self.sample_period = period_and_duration[0]
-        # self.ping360.set_sample_period(self.sample_period)
-        # self.transmit_duration = period_and_duration[1]
-        # self.ping360.set_transmit_duration(self.transmit_duration)
+        self.number_of_samples = number_of_samples
+        self.ping360.set_number_of_samples(number_of_samples)
+        self.sample_period = period_and_duration[0]
+        self.ping360.set_sample_period(self.sample_period)
+        self.transmit_duration = period_and_duration[1]
+        self.ping360.set_transmit_duration(self.transmit_duration)
 
     def range_to_period_and_duration(self, range):
         """From a given range determines the sample_period and transmit_duration
@@ -44,6 +44,7 @@ class Sonar:
         
         """
         return (int(44.4*range), int(5.3*range))
+
 
     def set_new_range(self, range):
         """Sets a new sample_period and transmit_duration
@@ -73,6 +74,7 @@ class Sonar:
         response = self.ping360.transmitAngle(angle_in_gradians)
         return response
 
+
     def get_distance_of_sample(self, sample_index):
         """Get the distance in meters of a sample given its index in the data array returned from the device.
 
@@ -88,6 +90,7 @@ class Sonar:
         distance = self.SPEED_OF_SOUND_IN_WATER * ((self.sample_period * self.SAMPLE_PERIOD_TICK_DURATION) * sample_number) / 2.0
         return distance
 
+
     def get_range(self):
         """Get current range of the sonar device in meters.
 
@@ -96,6 +99,7 @@ class Sonar:
         """
         last_sample_index = self.number_of_samples - 1
         return self.get_distance_of_sample(last_sample_index)
+
 
     def sweep_biggest_byte(self, start_angele, end_angle):
         """Get the index of the biggest value and angle value out of all angles in a sweep
@@ -111,6 +115,7 @@ class Sonar:
         max_tup = max(biggest_byte_array, key=lambda tup: tup[1])
         #      (index, byte, angle)
         return max_tup
+
 
     def get_biggest_byte(self, angle):
         """Get the biggest value of the byte array.
