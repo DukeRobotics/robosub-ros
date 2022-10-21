@@ -7,7 +7,7 @@ class Sonar:
     """Class to interface with the Sonar device.
     """
 
-    SERIAL_PORT_NAME = "COM4"  # TODO determine what port this is for the robot.
+    SERIAL_PORT_NAME = "/dev/ttyUSB1"  # TODO determine what port this is for the robot.
     BAUD_RATE = 115200  # hz
     SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
     SPEED_OF_SOUND_IN_WATER = 1480  # m/s
@@ -21,12 +21,12 @@ class Sonar:
         self.ping360.initialize()
         period_and_duration = self.range_to_period_and_duration(range)
 
-        self.number_of_samples = number_of_samples
-        self.ping360.set_number_of_samples(number_of_samples)
-        self.sample_period = period_and_duration[0]
-        self.ping360.set_sample_period(self.sample_period)
-        self.transmit_duration = period_and_duration[1]
-        self.ping360.set_transmit_duration(self.transmit_duration)
+        # self.number_of_samples = number_of_samples
+        # self.ping360.set_number_of_samples(number_of_samples)
+        # self.sample_period = period_and_duration[0]
+        # self.ping360.set_sample_period(self.sample_period)
+        # self.transmit_duration = period_and_duration[1]
+        # self.ping360.set_transmit_duration(self.transmit_duration)
 
     def range_to_period_and_duration(self, range):
         """From a given range determines the sample_period and transmit_duration
@@ -139,6 +139,6 @@ if __name__ == "__main__":
     #   transmit_frequency = 750
     #   BAUD_RATE = 2000000
 
-    sonar = Sonar(sample_period=222, transmit_duration=27, serial_port_name="COM3", baud_rate=2000000)
-    sweep_data = sonar.sweep(150, 250)  #90deg in front
+    sonar = Sonar(range=5)
+    sweep_data = sonar.sweep_biggest_byte(150, 250)  #90deg in front
     print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
