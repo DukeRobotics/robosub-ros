@@ -10,7 +10,7 @@ class sonar_client:
         self._client.wait_for_server()
 
     def execute_sweep(self, sangle, eangle, range):
-        goal = sweepGoal(start_angle=sangle, end_angle=eangle, distance_to_scan=range)
+        goal = sweepGoal(start_angle=sangle, end_angle=eangle, distance_of_scan=range)
         self._client.send_goal(goal)
         self._client.wait_for_result()
         return self._client.get_result()
