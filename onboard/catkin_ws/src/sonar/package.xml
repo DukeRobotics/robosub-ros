@@ -10,6 +10,7 @@
 
   <depend>rospy</depend>
   <depend>brping</depend>
+  <depend>actionlib_msgs</depend>
 
   <buildtool_depend>catkin</buildtool_depend>
 
