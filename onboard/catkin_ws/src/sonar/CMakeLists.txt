@@ -5,6 +5,8 @@ project(sonar)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   actionlib_msgs
+  actionlib
+  genmsg
 )
 
 add_action_files(
