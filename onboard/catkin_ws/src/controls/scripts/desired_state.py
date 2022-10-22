@@ -29,6 +29,10 @@ class DesiredStateHandler:
 
     REFRESH_HZ = 10  # for main loop
 
+    # Max power & Max twist for the controls need values
+    maxpower = None
+    maxtwist = None
+
     # All variables are dictionaries that map directions to their corresponding value (local reference frame)
     pose = None  # Desired pose (position)
     twist = None  # Desired twist (velocity)
@@ -62,7 +66,10 @@ class DesiredStateHandler:
         Args:
             power: ROS Twist message corresponding to desired twists in local reference frame
         """
-        self.twist = utils.parse_twist(twist)
+        parsed_twist = utils.parse_twist(twist)
+        if self.twist_state_safety(parsed_twist):
+            self.twist = parsed_twist
+       
 
     def _on_power_received(self, power):
         """Handler for receiving desired powers. A desired power in a given axis represents the control
@@ -72,7 +79,30 @@ class DesiredStateHandler:
         Args:
             power: ROS Twist message corresponding to desired powers in local reference frame
         """
-        self.power = utils.parse_twist(power)
+        parsed_power = utils.parse_twist(power)
+        if self.power_state_safety(parsed_power):
+            self.power = parsed_power
+
+    def power_state_safety(self, power):
+        # Compares power with controller limits
+        return_status = True
+        for axes in utils.get_axes():
+            if power[axes] > self.maxpower[axes]:
+                rospy.logerr("===> Desired power exceeds maximum power in ", axes, "! Halting robot. <===")
+                self.pid_manager.soft_estop()
+                return_status = False
+        return return_status
+            
+    def twist_state_safety(self, twist):
+        # Compares twist with controller limits
+        return_status = True
+        for axes in utils.get_axes():
+            if twist[axes] > self.maxtwist[axes]:
+                rospy.logerr("===> Desired twist exceeds maximum twist in ", axes, "! Halting robot <===")
+                self.pid_manager.soft_estop()
+                return_status = False
+        return return_status
+
 
     def _reset_data(self):
         """Resets all desired state data"""
