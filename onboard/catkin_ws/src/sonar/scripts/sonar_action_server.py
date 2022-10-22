@@ -4,7 +4,7 @@ import rospy
 import actionlib
 from sonar import Sonar
 
-from sonar.msg import sweepAction, sweepResult
+from custom_msgs.msg import sweepAction, sweepResult
 """ The  following messages are created by the .action file
     sweepAction.msg
     sweepActionGoal.msg 
@@ -43,9 +43,10 @@ class SonarServer:
     def execute(self, goal):
         self._sonar.set_new_range(goal.distance_of_scan)
         max_tuple = self._sonar.sweep_biggest_byte(goal.start_angle, goal.end_angle)
+
         self._result.angle_found = max_tuple[2]
         self._result.distance_to_sample = self._sonar.get_distance_of_sample(max_tuple[0])
-        self.server.set_succeeded(self._result)
+        self._server.set_succeeded(self._result)
 
 if __name__ == '__main__':
     rospy.init_node('sonar_server')

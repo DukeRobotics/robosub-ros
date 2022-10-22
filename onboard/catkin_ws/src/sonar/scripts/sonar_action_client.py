@@ -1,7 +1,7 @@
 import rospy
 import actionlib
 
-from sonar.msg import sweepAction, sweepGoal
+from custom_msgs.msg import sweepAction, sweepGoal
 
 class sonar_client:
 
