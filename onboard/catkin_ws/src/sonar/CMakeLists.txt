@@ -5,7 +5,6 @@ project(sonar)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   actionlib
-  actionlib_msg
   custom_msgs
 )
 
@@ -14,6 +13,5 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(CATKIN_DEPENDS 
   rospy
   actionlib
-  actionlib_msg
   custom_msgs
 )
