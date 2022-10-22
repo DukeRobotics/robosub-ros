@@ -47,8 +47,10 @@ class DesiredStateHandler:
         self.pid_manager = PIDManager()
 
         rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self._on_pose_received)
-        rospy.Subscriber(self.DESIRED_TWIST_TOPIC, Twist, self._on_twist_received)
-        rospy.Subscriber(self.DESIRED_POWER_TOPIC, Twist, self._on_power_received)
+        rospy.Subscriber(self.DESIRED_TWIST_TOPIC,
+                         Twist, self._on_twist_received)
+        rospy.Subscriber(self.DESIRED_POWER_TOPIC,
+                         Twist, self._on_power_received)
 
     def _on_pose_received(self, pose):
         """Handler for receiving desired pose. Transforms global desired pose to local reference frame
@@ -57,7 +59,8 @@ class DesiredStateHandler:
         Args:
             pose: ROS Pose message corresponding to desired pose in global reference frame
         """
-        self.pose = utils.parse_pose(utils.transform_pose(self.listener, 'odom', 'base_link', pose))
+        self.pose = utils.parse_pose(utils.transform_pose(
+            self.listener, 'odom', 'base_link', pose))
 
     def _on_twist_received(self, twist):
         """Handler for receiving desired twists. Received desired twists are assumed to be defined in the
@@ -69,7 +72,6 @@ class DesiredStateHandler:
         parsed_twist = utils.parse_twist(twist)
         if self.twist_state_safety(parsed_twist):
             self.twist = parsed_twist
-       
 
     def _on_power_received(self, power):
         """Handler for receiving desired powers. A desired power in a given axis represents the control
@@ -88,21 +90,22 @@ class DesiredStateHandler:
         return_status = True
         for axes in utils.get_axes():
             if power[axes] > self.maxpower[axes]:
-                rospy.logerr("===> Desired power exceeds maximum power in ", axes, "! Halting robot. <===")
+                rospy.logerr(
+                    "===> Desired power exceeds maximum power in ", axes, "! Halting robot. <===")
                 self.pid_manager.soft_estop()
                 return_status = False
         return return_status
-            
+
     def twist_state_safety(self, twist):
         # Compares twist with controller limits
         return_status = True
         for axes in utils.get_axes():
             if twist[axes] > self.maxtwist[axes]:
-                rospy.logerr("===> Desired twist exceeds maximum twist in ", axes, "! Halting robot <===")
+                rospy.logerr(
+                    "===> Desired twist exceeds maximum twist in ", axes, "! Halting robot <===")
                 self.pid_manager.soft_estop()
                 return_status = False
         return return_status
-
 
     def _reset_data(self):
         """Resets all desired state data"""
@@ -121,7 +124,8 @@ class DesiredStateHandler:
         if (self.pose and self.twist) or (self.pose and self.power) or (self.twist and self.power):
             # More than one seen in one update cycle, so warn and mark as invalid
             self.pid_manager.soft_estop()
-            rospy.logerr("===> Controls received conflicting desired states! Halting robot. <===")
+            rospy.logerr(
+                "===> Controls received conflicting desired states! Halting robot. <===")
             return False
         elif not self.pose and not self.twist and not self.power:
             self.pid_manager.soft_estop()
