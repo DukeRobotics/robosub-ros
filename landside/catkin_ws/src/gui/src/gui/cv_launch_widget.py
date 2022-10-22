@@ -8,15 +8,10 @@ import resource_retriever as rr
 import rosservice
 
 from gui.cv_launch_dialog import CVLaunchDialog
-from custom_msgs.msg import SystemUsage
 from custom_msgs.srv import StartLaunch, StopLaunch
 
 
 class CVLaunchWidget(QWidget):
-
-    LAUNCHFILES = {'motion': 'motion.launch',
-                   'state': 'state.launch',
-                   'tasks': 'tasks.launch'}
 
     def __init__(self):
         super(CVLaunchWidget, self).__init__()
@@ -24,30 +19,16 @@ class CVLaunchWidget(QWidget):
         ui_file = rr.get_filename('package://gui/resource/CVLaunchWidget.ui', use_protocol=False)
         loadUi(ui_file, self)
 
-        self.simulation = False
-
-        self.cpu_value.setDigitCount(4)
-        self.cpu_value.display(0)
-        self.ram_value.setDigitCount(4)
-        self.ram_value.display(0)
-        self.system_sub = rospy.Subscriber('/system/usage', SystemUsage, self.update_cpu_ram)
-
-        self.last_system_time = rospy.Time.now() - rospy.Duration(5)
-        self.system_sub_timer = QTimer(self)
-        self.system_sub_timer.timeout.connect(self.check_system_sub)
-        self.system_sub_timer.start(100)
-
         self.current_launch = None
-        #self.execute_buttons, self.execute_rows
 
         self.table_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
 
-        self.launch_dialog = CVLaunchDialog()
-        self.launch_dialog.setObjectName('CVLaunchDialog')
-        self.launch_dialog.reset()
+        # self.launch_dialog = CVLaunchDialog(self)
+        # self.launch_dialog.setObjectName('CVLaunchDialog')
+        # self.launch_dialog.reset()
         self.launch_dialog.node_launched.connect(self.append_to_table)
 
-        self.launch_dialog_button.clicked.connect(self.launch_node_dialog)
+        # self.launch_dialog_button.clicked.connect(self.launch_node_dialog)
 
         self.remote_launch_timer = QTimer(self)
         self.remote_launch_timer.timeout.connect(self.check_remote_launch)
@@ -57,28 +38,20 @@ class CVLaunchWidget(QWidget):
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Delete:
-            items = self.table_widget.selectedItems()   #check this, deleted for loop which contained .execute_rows
+            items = self.table_widget.selectedItems()
             if items and items[0].row() != 0:
                 self.delete_launch(items[0].row())
+            rospy.loginfo("inside delete key")
         super(CVLaunchWidget, self).keyPressEvent(event)
 
     def check_remote_launch(self):
         enabled = '/start_node' in rosservice.get_service_list()
-        self.launch_dialog_button.setEnabled(enabled)
+        # self.launch_dialog_button.setEnabled(enabled)
         self.table_widget.setEnabled(enabled)
-
-    def check_system_sub(self):
-        self.system_usage_box.setEnabled(rospy.Time.now() - self.last_system_time < rospy.Duration(2))
-
-
-    def update_cpu_ram(self, system_usage):
-        self.last_system_time = rospy.Time.now()
-        self.cpu_value.display(system_usage.cpu_percent)
-        self.ram_value.display(system_usage.ram.used)
 
     def launch_node_dialog(self):
         self.launch_dialog.reset()
-        self.launch_dialog.open()
+        # self.launch_dialog.open()
 
     def launch_file(self, launchfile):
         args = ['sim:=true'] if self.simulation else ['sim:=false']
@@ -99,4 +72,7 @@ class CVLaunchWidget(QWidget):
         self.table_widget.setItem(self.table_widget.rowCount() - 1, 2, QTableWidgetItem(name))
         self.table_widget.setItem(self.table_widget.rowCount() - 1, 3, QTableWidgetItem(args))
         return self.table_widget.rowCount() - 1
+
+    def closeEvent(self, event):
+        self.launch_dialog.accept()
 
