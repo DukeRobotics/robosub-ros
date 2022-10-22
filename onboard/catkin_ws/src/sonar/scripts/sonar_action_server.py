@@ -26,6 +26,8 @@ class SonarServer:
 
     DEFAULT_RANGE = 5 #m
     _result = sweepResult()
+    NODE_NAME = "sonar_server"
+    ACTION_NAME = "sonar_sweep"
 
     def __init__(self):
         """ Creates action server with the sweepAction
@@ -33,12 +35,13 @@ class SonarServer:
         Callback: Runs the execute method
 
         """
-        rospy.init_node('sonar_sweep')
-        self._server = actionlib.SimpleActionServer(rospy.get_name(), sweepAction, self.execute, auto_start=False)
-        self._server.start()
-
         #5m range
         self._sonar = Sonar(self.DEFAULT_RANGE)
+        
+        rospy.init_node(self.NODE_NAME)
+        self._server = actionlib.SimpleActionServer(self.ACTION_NAME, sweepAction, self.execute, auto_start=False)
+        self._server.start()
+        rospy.spin()
         
     def execute(self, goal):
         self._sonar.set_new_range(goal.distance_of_scan)
@@ -49,8 +52,4 @@ class SonarServer:
         self._server.set_succeeded(self._result)
 
 if __name__ == '__main__':
-    rospy.init_node('sonar_server')
-    server = SonarServer()
-    while not rospy.is_shutdown():
-        rospy.spin()
-    #TODO fix while not rospy.is_shutdown() method
+    SonarServer()
