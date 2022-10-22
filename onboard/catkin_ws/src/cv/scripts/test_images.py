@@ -59,15 +59,22 @@ class DummyImagePublisher:
         proc = None
         # Set the framerate of the stream off of what was passed in from the roslaunch command
         loop_rate = rospy.Rate(self.framerate)
+        started = False
 
         while not rospy.is_shutdown():
-            if os.path.isfile(self.feed_path) and self.feed_path.endswith('.bag'):
+            if not started and os.path.isfile(self.feed_path) and self.feed_path.endswith('.bag'):
                 # Check if self.feed_path is a valid rosbag file
-                proc = subprocess.Popen(['rosbag', 'play', f'{self.feed_path}', '-l', '--topics', '{self.topic}'])
+                proc = subprocess.Popen(['rosbag', 'play', self.feed_path, '-l',
+                    f'/camera_array/bottom/image_raw/compressed:={self.topic}',
+                    f'/camera_array/front/image_raw/compressed:={self.topic}2'])
+                # proc = subprocess.Popen(['rosbag', 'play', self.feed_path, '-l'])
+                rospy.loginfo("bruh")
+                started = True
             loop_rate.sleep()
 
         if proc is not None:
             # Terminate the rosbag play process
+            rospy.loginfo("end")
             proc.terminate()
             proc.wait()
     
