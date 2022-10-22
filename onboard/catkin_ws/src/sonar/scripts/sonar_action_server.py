@@ -3,6 +3,7 @@ roslib.load_manifest('sonar')
 import rospy
 import actionlib
 from sonar import Sonar
+from std_msgs.msg import Float64
 
 from custom_msgs.msg import sweepAction, sweepResult
 """ The  following messages are created by the .action file
@@ -48,7 +49,7 @@ class SonarServer:
         max_tuple = self._sonar.sweep_biggest_byte(goal.start_angle, goal.end_angle)
 
         self._result.angle_found = max_tuple[2]
-        self._result.distance_to_sample = float(self._sonar.get_distance_of_sample(max_tuple[0]))
+        self._result.distance_to_sample = Float64(self._sonar.get_distance_of_sample(max_tuple[0]))
         self._server.set_succeeded(self._result)
 
 if __name__ == '__main__':
