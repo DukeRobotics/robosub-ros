@@ -9,7 +9,6 @@ import rospy
 from task import Task
 from move_tasks import MoveToPoseLocalTask, MoveToPoseGlobalTask
 import tf
-from time import sleep
 
 
 SIDE_THRESHOLD = 0.1  # means gate post is within 1 tenth of the side of the frame
