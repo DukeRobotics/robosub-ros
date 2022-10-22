@@ -47,10 +47,8 @@ class SonarServer:
         self._sonar.set_new_range(goal.distance_of_scan)
         max_tuple = self._sonar.sweep_biggest_byte(goal.start_angle, goal.end_angle)
 
-        print(max_tuple[2])
         self._result.angle_found = max_tuple[2]
-        print(float(self._sonar.get_distance_of_sample(max_tuple[0])))
-        self._result.distance_to_sample = float(self._sonar.get_distance_of_sample(max_tuple[0]))
+        #self._result.distance_to_sample = float(self._sonar.get_distance_of_sample(max_tuple[0]))
         self._server.set_succeeded(self._result)
 
 if __name__ == '__main__':
