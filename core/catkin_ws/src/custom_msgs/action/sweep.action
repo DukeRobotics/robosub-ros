@@ -5,7 +5,7 @@ int32 distance_of_scan
 ---
 #result definition
 int32 angle_found
-#int64 distance_to_sample
+float32 distance_to_sample
 ---
 #feedback
 int32 current_angle
