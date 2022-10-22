@@ -3,6 +3,7 @@
 import rospy
 import cv2
 import os
+import subprocess
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
@@ -17,6 +18,7 @@ class DummyImagePublisher:
         rospy.init_node(self.NODE_NAME)
         
         self.topic = rospy.get_param("~topic")
+        self.framerate = rospy.get_param("~framerate")
         self.image_publisher = rospy.Publisher(self.topic, Image, queue_size=10)
 
         self.feed_path = os.path.join(os.path.dirname(__file__), rospy.get_param("~feed_path"))
@@ -25,7 +27,6 @@ class DummyImagePublisher:
     
     def run(self):
         """Runs the appropriate function based on the type of file passed in feed_path"""
-
         file_extension = os.path.splitext(self.feed_path)[1]
         if file_extension == '.jpg': self.run_still()
         elif file_extension == '.bag': self.run_bag()
@@ -48,13 +49,34 @@ class DummyImagePublisher:
 
             loop_rate.sleep()
 
-    # TODO: Complete this function
     # Assume that self.feed_path is a string with the path to a rosbag file
     def run_bag(self):
         """Publish a simulated image feed from a rosbag file to a topic.
 
         Once it publishes all images in the rosbag file, it loops and publishes images from the beginning again.
         """
+        # Keep track of the rosbag play process; will not be None if command to run rosbag is activated
+        proc = None
+        # Set the framerate of the stream off of what was passed in from the roslaunch command
+        loop_rate = rospy.Rate(self.framerate)
+        started = False
+
+        while not rospy.is_shutdown():
+            if not started and os.path.isfile(self.feed_path) and self.feed_path.endswith('.bag'):
+                # Check if self.feed_path is a valid rosbag file
+                proc = subprocess.Popen(['rosbag', 'play', self.feed_path, '-l',
+                    f'/camera_array/bottom/image_raw/compressed:={self.topic}',
+                    f'/camera_array/front/image_raw/compressed:={self.topic}2'])
+                # proc = subprocess.Popen(['rosbag', 'play', self.feed_path, '-l'])
+                rospy.loginfo("bruh")
+                started = True
+            loop_rate.sleep()
+
+        if proc is not None:
+            # Terminate the rosbag play process
+            rospy.loginfo("end")
+            proc.terminate()
+            proc.wait()
     
     def run_avi(self):
         """Publish a simulated image feed from a AVI video file to a topic.
@@ -82,6 +104,19 @@ class DummyImagePublisher:
 
         Once it publishes all images in the MOV file, it loops and publishes images from the beginning again.
         """
+        while not rospy.is_shutdown():
+
+                cap = cv2.VideoCapture(self.feed_path)
+                success, img = cap.read()
+                loop_rate = rospy.Rate(cap.get(cv2.CAP_PROP_FPS))
+
+                while success:
+                    rospy.loginfo(cap.get(cv2.CAP_PROP_FPS))
+                    image_msg = self.cv_bridge.cv2_to_imgmsg(img, 'bgr8')
+                    self.image_publisher.publish(image_msg)
+
+                    success, img = cap.read()
+                    loop_rate.sleep()
     
     # TODO: Complete this function
     # Assume that self.feed_path is a string with the path to a folder
