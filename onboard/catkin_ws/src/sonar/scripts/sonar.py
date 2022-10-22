@@ -109,7 +109,7 @@ class Sonar:
         """
         biggest_byte_array = []
         for theta in range (start_angele, end_angle):
-            biggest_byte = sonar.get_biggest_byte(theta)
+            biggest_byte = self.get_biggest_byte(theta)
             biggest_byte_array.append(biggest_byte + (theta,))
         max_tup = max(biggest_byte_array, key=lambda tup: tup[1])
         #      (index, byte, angle)
