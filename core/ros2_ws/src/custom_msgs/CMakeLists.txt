@@ -23,6 +23,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/SimObjectArray.msg"
   "srv/SetServo.srv"
   "srv/EnableModel.srv"
+  "srv/StartLaunch.srv"
+  "srv/StopLaunch.srv"
   "action/AcousticsProcessing.action"
   "action/AcousticsGuess.action"  
   "action/AcousticsWrapper.action"

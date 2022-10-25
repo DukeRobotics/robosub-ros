@@ -19,6 +19,7 @@
 
 # ROS_Serial
 ros_lib/
+ros_lib.zip
 
 # Acoustics
 *.csv

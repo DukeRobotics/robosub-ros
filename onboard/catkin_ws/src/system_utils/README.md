@@ -9,3 +9,11 @@ To launch the system publisher, use the command
 ```bash
 roslaunch system_utils system_pub.launch
 ```
+
+## Remote Launch
+The remote launch node allows for nodes to launch other nodes in this workspace. It has two service servers, `/start_node` and `/stop_node` of type `custom_msgs/StartLaunch.srv` and `custom_msgs/StopLaunch.srv` respectively. To start the servers, run
+```bash
+roslaunch system_utils remote_launch.launch
+```
+
+To start a node with the `/start_node` service, provide the package, file, any args (leave empty if none), and if it is a launch file or not (are we running roslaunch or rosrun). It will return a pid in the response. To stop a node, simply provide this pid to the `/stop_node` process, and the node will then be terminated.
