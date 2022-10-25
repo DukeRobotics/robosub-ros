@@ -1,0 +1,8 @@
+string package
+string file
+string[] args
+
+# True for launch file, False if a node
+bool is_launch_file
+---
+uint64 pid

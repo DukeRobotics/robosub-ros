@@ -31,8 +31,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xauth pciutils \
     libusb-dev libqt5x11extras5 \
     unzip zip util-linux \
-    ros-noetic-tf \ 
-    ros-noetic-robot-localization \
     ros-noetic-pid \
     ros-noetic-smach-ros \
     ros-noetic-rosserial ros-noetic-rosserial-arduino \
