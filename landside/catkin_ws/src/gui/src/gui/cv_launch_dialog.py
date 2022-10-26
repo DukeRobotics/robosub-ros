@@ -1,3 +1,4 @@
+from multiprocessing.spawn import is_forking
 import os
 import glob
 
@@ -10,12 +11,15 @@ import resource_retriever as rr
 
 from custom_msgs.srv import StartLaunch
 
+import xml.etree.ElementTree as ET
 
 class CVLaunchDialog(QDialog):
 
     ROOT_PATH = '/root/dev/robosub-ros/onboard/catkin_ws/src'
 
     node_launched = pyqtSignal(int, str, str, str, name='nodeLaunched')
+
+    argFormRows = []
 
     def __init__(self, p):
         super(CVLaunchDialog, self).__init__()
@@ -31,7 +35,7 @@ class CVLaunchDialog(QDialog):
         self.package_name_box.activated.connect(self.package_name_selected)
         self.node_name_box.activated.connect(self.node_name_selected)
         self.accept_button.clicked.connect(self.click_ok)
-        self.cancel_button.clicked.connect(self.reject)
+        # self.cancel_button.clicked.connect(self.reject)
 
     @pyqtProperty(str)
     def default_pkg(self):
@@ -42,7 +46,7 @@ class CVLaunchDialog(QDialog):
         self.default_package = value
         
         # Making self.default_package selected by default
-        self.package_name_box.setCurrentIndex(self.get_package_names().index(self.default_package))
+        self.package_name_box.setCurrentText(self.default_package)
         self.setup_node_name_box(self.default_package)
         self.node_name_box.setEnabled(bool(self.default_package))
 
@@ -58,7 +62,7 @@ class CVLaunchDialog(QDialog):
         self.node_name_box.setEnabled(False)
         self.args_input.clear()
         self.accept_button.setEnabled(False)
-        self.cancel_button.setEnabled(True)
+        #self.cancel_button.setEnabled(True)
 
     def get_launchables(self, package_name):
         package_dir = os.path.join(self.ROOT_PATH, package_name)
@@ -88,10 +92,44 @@ class CVLaunchDialog(QDialog):
         else:
             self.accept_button.setEnabled(True)
 
-        # Example code to add row to form for args
-        # self.test_label = QtWidgets.QLabel("Test")
-        # self.test_input = QtWidgets.QLineEdit()
-        # self.formLayout.addRow(self.test_label, self.test_input)
+        # TODO: Step 3 - Remove all widgets in the self.argFormRows list from the UI.
+
+        selected_node =  self.node_name_box.currentText()
+        selected_node_file_type = selected_node.split(".")[1]
+
+        if selected_node_file_type == "launch":
+            package_dir = os.path.join(self.ROOT_PATH, self.package_name_box.currentText())
+            launch_file_path = os.path.join(package_dir, 'launch/' + self.node_name_box.currentText())
+
+            # This is a list of arguments accepted by selected_node
+            # A list of dictionaries of the form: [{name: 'arg1'}, {name: 'arg2', defaultValue: 'val'}, {name: 'arg3'} ... ]
+            # If an argument has the 'value' property specified, it should NOT be included in this list
+            args = []
+
+            tree = ET.parse(launch_file_path)
+
+            def traverse_tree(root):
+                for child in root:
+                    # TODO: Step 1 - Populate the args list above
+                    # If child is an arg tag AND does not have the 'value' property specified, add it to the args list
+                    # child.tag - the tag of child
+                    # child.attrib - a dictionary with child's attribute names as keys and attribute values as values
+                    
+                    traverse_tree(child)
+            
+            root = tree.getroot()
+            traverse_tree(root)
+
+            # TODO: Step 2 - For each arg in args, add a row to the form with that input value
+            # The 'name' of the arg should be the Label
+            # The 'defaultValue' of the arg (if any) should be the default value of the LineEdit
+            # Add the QLabel and QLineEdit widgets to the self.argFormRows list
+
+            # Example code to add row to form with label "Sample" and default value "sample_default_value"
+            # sample_label = QtWidgets.QLabel("Sample")
+            # sample_input = QtWidgets.QLineEdit()
+            # sample_input.setText("sample_default_value")
+            # self.form_layout.addRow(sample_label, sample_input)
 
     def click_ok(self):
         package = self.package_name_box.currentText()
