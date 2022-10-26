@@ -45,6 +45,8 @@ COPY ssh_entry.sh /root/.bash_profile
 
 # Install common pip packages
 RUN pip3 install autopep8 psutil
+# Install correct setuptools version
+RUN pip install setuptools==58.2.0
 
 RUN mkdir -p /root/dev/robosub-ros
 
