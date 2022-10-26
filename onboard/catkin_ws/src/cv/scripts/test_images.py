@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import rosbag
 import cv2
 import os
 import subprocess
@@ -62,14 +63,25 @@ class DummyImagePublisher:
         started = False
 
         while not rospy.is_shutdown():
+
+            # Check if self.feed_path is a valid rosbag file
             if not started and os.path.isfile(self.feed_path) and self.feed_path.endswith('.bag'):
-                # Check if self.feed_path is a valid rosbag file
-                proc = subprocess.Popen(['rosbag', 'play', self.feed_path, '-l',
-                    f'/camera_array/bottom/image_raw/compressed:={self.topic}',
-                    f'/camera_array/front/image_raw/compressed:={self.topic}2'])
-                # proc = subprocess.Popen(['rosbag', 'play', self.feed_path, '-l'])
-                rospy.loginfo("bruh")
+                
+                bag_command = ['rosbag', 'play', self.feed_path, '-l']
+
+                # Get list of topics recorded on bag
+                bag_topics = rosbag.Bag(self.feed_path).get_type_and_topic_info()[1].keys()
+                index = 1
+                # Remap all topics to self.topic_index
+                for topic in bag_topics:
+                    bag_command.append(f'{topic}:={self.topic}_{index}')
+
+                rospy.loginfo(bag_command)
+
+                # Publish images from .bag file to the remapped topics
+                proc = subprocess.Popen(bag_command)
                 started = True
+
             loop_rate.sleep()
 
         if proc is not None:
