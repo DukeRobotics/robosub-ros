@@ -14,7 +14,10 @@ WORKDIR $WORKDIR
 RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-server xvfb \
     vim \
-    curl wget \
+    neovim \
+    nano \
+    curl \
+    wget \
     usbutils apt-utils \
     ros-noetic-cv-bridge \
     ros-noetic-resource-retriever \
