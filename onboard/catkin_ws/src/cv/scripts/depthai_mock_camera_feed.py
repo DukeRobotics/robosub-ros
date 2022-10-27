@@ -4,9 +4,11 @@ import depthai as dai
 import numpy as np
 import cv2
 import os
+import rospy
 
-IMAGE_RELATIVE_PATH = 'left384.jpg'
-NN_PATH = "blobs/yolo_v4_tiny_openvino_2021.3_6shave-2022-7-21_416_416.blob"
+path = os.path.dirname(__file__)
+NN_PATH = os.path.join(path, '../assets/bloblol.blob')
+IMAGE_RELATIVE_PATH = os.path.join(path, '../assets/left384.jpg')
 
 class DepthAIMockImageStream:
     """
@@ -16,9 +18,11 @@ class DepthAIMockImageStream:
     This class takes a still image and transfers it from the host (local computer) to the camera. The
     image feed is then ran through the provided neural network.
     """
-
+    CAMERA = 'left'
+    IMAGE_TOPIC = f'/camera/{CAMERA}/image_raw'
     # Read in the dummy image and other misc. setup work
     def __init__(self):
+        self.nnPath = NN_PATH
         self.pipeline = dai.Pipeline()
         self._build_pipeline()
 
@@ -26,8 +30,12 @@ class DepthAIMockImageStream:
         path = os.path.dirname(__file__)
         self.image = cv2.imread(os.path.join(path, IMAGE_RELATIVE_PATH),
                                 cv2.IMREAD_COLOR)
+        self.subscribe = rospy.Subscriber(self.IMAGE_TOPIC,
+                                               queue_size=10)
+        
+        
         # Get path to nn blob file
-        self.nnPath = NN_PATH
+
 
     def _build_pipeline(self):
         """
