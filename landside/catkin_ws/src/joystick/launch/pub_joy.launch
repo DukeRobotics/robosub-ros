@@ -1,6 +1,0 @@
-<launch>
-    <arg name="joystick_type" />
-    <node name="joy_pub" pkg="joystick" type="joystick.py">
-        <param name="joystick_type" value="$(arg joystick_type)" />
-    </node>
-</launch>
