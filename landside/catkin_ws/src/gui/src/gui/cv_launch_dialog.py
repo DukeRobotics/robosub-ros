@@ -1,3 +1,5 @@
+from ast import arg
+from email.policy import default
 from multiprocessing.spawn import is_forking
 import os
 import glob
@@ -93,6 +95,9 @@ class CVLaunchDialog(QDialog):
             self.accept_button.setEnabled(True)
 
         # TODO: Step 3 - Remove all widgets in the self.argFormRows list from the UI.
+        for row in self.argFormRows:
+            self.form_layout.removeRow(row[0])
+        self.argFormRows = []
 
         selected_node =  self.node_name_box.currentText()
         selected_node_file_type = selected_node.split(".")[1]
@@ -102,7 +107,7 @@ class CVLaunchDialog(QDialog):
             launch_file_path = os.path.join(package_dir, 'launch/' + self.node_name_box.currentText())
 
             # This is a list of arguments accepted by selected_node
-            # A list of dictionaries of the form: [{name: 'arg1'}, {name: 'arg2', defaultValue: 'val'}, {name: 'arg3'} ... ]
+            # A list of dictionaries of the form: [{name: 'arg1', default: ''}, {name: 'arg2', default: 'val2'}, {name: 'arg3', default: 'val3'} ... ]
             # If an argument has the 'value' property specified, it should NOT be included in this list
             args = []
 
@@ -114,6 +119,8 @@ class CVLaunchDialog(QDialog):
                     # If child is an arg tag AND does not have the 'value' property specified, add it to the args list
                     # child.tag - the tag of child
                     # child.attrib - a dictionary with child's attribute names as keys and attribute values as values
+                    if child.tag == 'arg' and child.get('value') is None:
+                        args.append(child.attrib)
                     
                     traverse_tree(child)
             
@@ -130,6 +137,20 @@ class CVLaunchDialog(QDialog):
             # sample_input = QtWidgets.QLineEdit()
             # sample_input.setText("sample_default_value")
             # self.form_layout.addRow(sample_label, sample_input)
+            for i in range(len(args)):
+                if args[i].get('default') is None:
+                    default_value = ''
+                else:
+                    default_value = args[i]['default']
+                
+                label = QtWidgets.QLabel(args[i]['name'])
+                input = QtWidgets.QLineEdit()
+                input.setText(default_value)
+                
+                # row inserted at position i+2, after the Package and Node Name rows
+                self.form_layout.insertRow(i+2, label, input)
+                
+                self.argFormRows.append([label, input])
 
     def click_ok(self):
         package = self.package_name_box.currentText()
