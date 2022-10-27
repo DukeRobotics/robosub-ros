@@ -12,7 +12,8 @@ WORKDIR $WORKDIR
 
 # Update and install tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    openssh-server xvfb \
+    openssh-server \
+    xvfb \
     bat \
     vim \
     neovim \
