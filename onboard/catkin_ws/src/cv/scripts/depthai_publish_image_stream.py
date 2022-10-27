@@ -16,15 +16,19 @@ class DepthAIImageStreamPublisher:
     """
 
     CAMERA = 'front'
-    STREAM_TOPIC = f'/camera/{CAMERA}/stream_raw'
+    STREAM_TOPIC_RGB = f'/camera/{CAMERA}/stream_raw'
+    STREAM_TOPIC_LEFT = f'/camera/{CAMERA}/stream_raw'
+    STREAM_TOPIC_RIGHT = f'/camera/{CAMERA}/stream_raw'
 
     def __init__(self):
         """
         Set up publisher and camera node pipeline.
         """
         rospy.init_node('depthai_image_stream')
-        self.stream_publisher = rospy.Publisher(self.STREAM_TOPIC, Image,
+        self.stream_publisher_rgb = rospy.Publisher(self.STREAM_TOPIC_RGB, Image,
                                                queue_size=10)
+        self.stream_publisher_left = rospy.Publisher(self.STREAM_TOPIC_LEFT, Image, queue_size=10)
+        self.stream_publisher_right = rospy.Publisher(self.STREAM_TOPIC_RIGHT, Image, queue_size=10)
 
         self.bridge = CvBridge()
         self.pipeline = dai.Pipeline()
@@ -39,10 +43,29 @@ class DepthAIImageStreamPublisher:
         camRgb.setInterleaved(False)
         camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)
 
+        camLeft = self.pipeline.create(dai.node.MonoCamera)
+        #camLeft.setInterleaved(False)
+
+        camRight = self.pipeline.create(dai.node.MonoCamera)
+        #camRight.setInterleaved(False)
+
+        camLeft.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
+        camLeft.setBoardSocket(dai.CameraBoardSocket.LEFT)
+        camRight.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
+        camRight.setBoardSocket(dai.CameraBoardSocket.RIGHT)
+
         xoutRgb = self.pipeline.create(dai.node.XLinkOut)
         xoutRgb.setStreamName("rgb")
 
+        xoutLeft = self.pipeline.create(dai.node.XLinkOut)
+        xoutLeft.setStreamName("left")
+
+        xoutRight = self.pipeline.create(dai.node.XLinkOut)
+        xoutRight.setStreamName("right")
+
         camRgb.preview.link(xoutRgb.input)
+        camLeft.out.link(xoutLeft.input)
+        camRight.out.link(xoutRight.input)
 
     # Publish newest image off queue to topic every few seconds
     def run(self):
@@ -69,16 +92,32 @@ class DepthAIImageStreamPublisher:
 
             # Output queue, to receive message on the host from the device (you can send the message on the device with XLinkOut)
             rgbQueue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
+            leftQueue = device.getOutputQueue(name="left", maxSize=4, blocking=False)
+            rightQueue = device.getOutputQueue(name="right", maxSize=4, blocking=False)
             
             while not rospy.is_shutdown():
 
                 # Get a message that came from the queue
-                raw_img = rgbQueue.get()
-                img = raw_img.getCvFrame()
+                raw_img_rgb = rgbQueue.get()
+                img_rgb = raw_img_rgb.getCvFrame()
+
+                raw_img_left = leftQueue.get()
+                img_left = raw_img_left.getCvFrame()
+
+                raw_img_right = rightQueue.get()
+                img_right = raw_img_right.getCvFrame()
 
                 # Publish the image
-                image_msg = self.bridge.cv2_to_imgmsg(img, 'bgr8')
-                self.stream_publisher.publish(image_msg)
+                image_msg_rgb = self.bridge.cv2_to_imgmsg(img_rgb, 'bgr8')
+                self.stream_publisher_rgb.publish(image_msg_rgb)
+
+                image_msg_left = self.bridge.cv2_to_imgmsg(img_left, 'bgr8')
+                self.stream_publisher_left.publish(image_msg_left)
+
+                image_msg_right = self.bridge.cv2_to_imgmsg(img_right, 'bgr8')
+                self.stream_publisher_right.publish(image_msg_right)
+
+
 
             loop_rate.sleep()
 
