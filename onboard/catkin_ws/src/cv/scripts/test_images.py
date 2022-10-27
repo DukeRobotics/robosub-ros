@@ -139,12 +139,25 @@ class DummyImagePublisher:
         Once it publishes all JPG images in the folder, it loops and publishes images from the beginning again.
         """
         # Get all .jpg images in the folder
+        images = []
+        for file in [os.listdir(self.feed_path).sort()]:
+            # Parse each image using cv2.imread
+            img = cv2.imread(file, cv2.IMREAD_COLOR)
+            if img is not None:
+                images.append(img)
+
+        loop_rate = rospy.Rate(1)
 
         # while not rospy.is_shutdown():
+        while not rospy.is_shutdown():
             # Loop over all .jpg images in the folder in alphabetical order by filename
-                # Parse each image using cv2.imread
+            for image in images:
                 # Convert each cv2 image to ros image message using CvBridge (see run_still for an example)
+                image_msg = self.cv_bridge.cv2_to_imgmsg(image, 'bgr8')
                 # Publish the ros image message using self.image_publisher.publish
+                self.image_publisher.publish(image_msg)
+
+                loop_rate.sleep()
 
         
 if __name__ == '__main__':
