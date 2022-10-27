@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
-import rospy
+import rclpy
+from rclpy.node import Node
 import yaml
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
 from enum import Enum
 import resource_retriever as rr
+import sys
 
 
 class Movement(Enum):
@@ -13,24 +15,26 @@ class Movement(Enum):
     ROTATION = 1
 
 
-class JoystickParser:
+class JoystickParser(Node):
     NODE_NAME = 'joy_pub'
     JOYSTICK_RAW_TOPIC = 'joystick/raw'
     JOY_DEST_TOPIC = 'controls/desired_power'
+    DEFAULT_JOYSTICK = 'F310'
 
     def __init__(self):
-        self._pub = rospy.Publisher(self.JOY_DEST_TOPIC, Twist, queue_size=50)
+        super().__init__(self.NODE_NAME)
+        self._pub = self.create_publisher(Twist, self.JOY_DEST_TOPIC, 50)
         self._current_joy_msg = Twist()
         self._movement_type = Movement.TRANSLATION
 
-        joystick_type = rospy.get_param("~/joy_pub/joystick_type")
+        joystick_type = self.declare_parameter(f'{self.NODE_NAME}/joystick_type', 
+            self.DEFAULT_JOYSTICK).value
+        self.get_logger().info(f'Starting {joystick_type} joystick')
         with open(rr.get_filename('package://joystick/config/joystick.yaml', use_protocol=False)) as f:
             data = yaml.safe_load(f)
         self._button_indices = data[joystick_type]
 
-        rospy.init_node(self.NODE_NAME)
-        rospy.Subscriber(self.JOYSTICK_RAW_TOPIC, Joy, self._parse_data)
-        rospy.spin()
+        self.create_subscription(Joy, self.JOYSTICK_RAW_TOPIC, self._parse_data, 10)
 
     def _parse_data(self, raw_joystick_data):
         self._read_joystick_data(raw_joystick_data)
@@ -72,7 +76,8 @@ class JoystickParser:
         self._current_joy_msg.linear.y = 0
         self._current_joy_msg.linear.z = self._rightUD
 
-        self._current_joy_msg.angular.x = -self._leftLR  # invert roll to match orientation given by right-hand rule
+        # invert roll to match orientation given by right-hand rule
+        self._current_joy_msg.angular.x = -self._leftLR
         self._current_joy_msg.angular.y = self._leftUD
         self._current_joy_msg.angular.z = self._rightLR
 
@@ -80,8 +85,20 @@ class JoystickParser:
         self._pub.publish(self._current_joy_msg)
 
 
-if __name__ == '__main__':
+def main(args=None):
     try:
+        rclpy.init(args=args)
         parser = JoystickParser()
-    except rospy.ROSInterruptException:
+        rclpy.spin(parser)
+    except KeyboardInterrupt:
         pass
+    except rclpy.executors.ExternalShutdownException:
+        sys.exit(1)
+    finally:
+        parser.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()

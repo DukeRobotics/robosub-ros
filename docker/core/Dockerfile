@@ -1,4 +1,4 @@
-FROM ros:noetic
+FROM ros:humble
 
 ### Arguments ###
 ARG BUILD_DIR_NAME=docker-build
@@ -16,13 +16,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     vim \
     curl wget \
     usbutils apt-utils \
-    ros-noetic-cv-bridge \
-    ros-noetic-resource-retriever \
-    ros-noetic-actionlib-tools \
-    ros-noetic-robot-localization \
+    ros-humble-resource-retriever \
     python-dev-is-python3 \
     python3-pip \
-    python3-catkin-tools python3-osrf-pycommon \
+    python3-osrf-pycommon \
     git \
     locales && \
     apt-get clean && \
@@ -49,8 +46,9 @@ COPY ssh_entry.sh /root/.bash_profile
 
 # Install common pip packages
 RUN pip3 install autopep8 psutil
+# Install correct setuptools version
+RUN pip install setuptools==58.2.0
 
-# Add catkin ws
 RUN mkdir -p /root/dev/robosub-ros
 
 # Copy and set entrypoint script
