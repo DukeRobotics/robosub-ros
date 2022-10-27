@@ -13,10 +13,12 @@ WORKDIR $WORKDIR
 # Update and install tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-server xvfb \
+    bat \
     vim \
     neovim \
     nano \
     tmux \
+    screen \
     curl \
     wget \
     usbutils apt-utils \
