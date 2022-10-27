@@ -9,12 +9,16 @@ RUN echo "Port 2201" >> /etc/ssh/sshd_config
 ### Final Installs ###
 
 # Update and install tools
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ros-noetic-geometry2 ros-noetic-rviz \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    ros-noetic-geometry2\ 
+    ros-noetic-rviz \
     ros-noetic-joy \
-    ros-noetic-image-view ros-noetic-image-publisher \
+    ros-noetic-image-view \
+    ros-noetic-image-publisher \
     ros-noetic-rqt \
-    xsltproc xauth && \
+    xsltproc \
+    xauth && \
     apt-get clean && \
     # Clear apt caches to reduce image size
     rm -rf /var/lib/apt/lists/*
