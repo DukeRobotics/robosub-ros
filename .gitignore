@@ -27,6 +27,8 @@ ros_lib.zip
 # Video and Bags
 *.avi
 *.bag
+**/bag
+*.db3
 
 # PyCharm/IntelliJ
 .idea

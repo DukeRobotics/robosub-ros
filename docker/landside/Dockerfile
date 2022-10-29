@@ -11,6 +11,8 @@ RUN echo "Port 2201" >> /etc/ssh/sshd_config
 # Update and install tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-humble-joy \
+    ros-humble-image-view \
+    ros-humble-image-publisher \
     xsltproc xauth && \
     apt-get clean && \
     # Clear apt caches to reduce image size
