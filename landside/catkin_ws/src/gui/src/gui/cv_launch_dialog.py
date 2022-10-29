@@ -21,6 +21,11 @@ class CVLaunchDialog(QDialog):
 
     node_launched = pyqtSignal(int, str, str, str, name='nodeLaunched')
 
+    # Commands to install rqt_bag and rqt_image_view; run these in landside
+    # sudo apt-get update
+    # sudo apt-get install ros-noetic-rqt-bag
+    # sudo apt-get install ros-noetic-rqt-image-view
+
     # TODO: Change the data stored in this array into this format
     # Format: [{name: "arg1", default: "", label: QLabel, lineEdit: QLineEdit},
     # {name: "arg2", default: "val2", label: QLabel, lineEdit: QLineEdit}, ...]
@@ -99,7 +104,7 @@ class CVLaunchDialog(QDialog):
 
         # TODO: Step 3 - Remove all widgets in the self.argFormRows list from the UI.
         for row in self.argFormRows:
-            self.form_layout.removeRow(row[0])
+            self.form_layout.removeRow(row['label'])
         self.argFormRows = []
 
         selected_node =  self.node_name_box.currentText()
@@ -110,34 +115,35 @@ class CVLaunchDialog(QDialog):
             launch_file_path = os.path.join(package_dir, 'launch/' + self.node_name_box.currentText())
 
             # TODO: Get rid of this list
-            args = []
 
             tree = ET.parse(launch_file_path)
 
             def traverse_tree(root):
                 for child in root:
                     if child.tag == 'arg' and child.get('value') is None:
-                        args.append(child.attrib)
+                        self.argFormRows.append(child.attrib)
                     
                     traverse_tree(child)
             
             root = tree.getroot()
             traverse_tree(root)
 
-            for i in range(len(args)):
-                if args[i].get('default') is None:
+            for row in range(len(self.argFormRows)):
+                arg = self.argFormRows[row]
+                if arg.get('default') is None:
                     default_value = ''
                 else:
-                    default_value = args[i]['default']
+                    default_value = row['default']
                 
-                label = QtWidgets.QLabel(args[i]['name'])
+                label = QtWidgets.QLabel(arg['name'])
                 input = QtWidgets.QLineEdit()
                 input.setText(default_value)
                 
-                # row inserted at position i+2, after the Package and Node Name rows
-                self.form_layout.insertRow(i+2, label, input)
+                # row inserted at position row+2, after the Package and Node Name rows
+                self.form_layout.insertRow(row + 2, label, input)
                 
-                self.argFormRows.append([label, input])
+                arg['label'] = label
+                arg['lineEdit'] = input
 
     def click_ok(self):
         package = self.package_name_box.currentText()
@@ -145,11 +151,17 @@ class CVLaunchDialog(QDialog):
         args = self.args_input.text().split(' ')
 
         # TODO: Add values of the lineEdits from self.argFormRows into the args array
+        # The args array needs to be in the form ["arg1:=val1", "arg2:=val2", ...]
+        for row in self.argFormRows:
+            if row['lineEdit'].text() == "":
+                return
+            arg = row['name'] + ":=" + row['lineEdit'].text()
+            args.append(arg)
         
         # If one or more lineEdits' value is an empty string, then don't execute the following code
         start_launch = rospy.ServiceProxy('start_node', StartLaunch)
         try:
             resp = start_launch(package, node, args, node.endswith('.launch'))
-            self.node_launched.emit(resp.pid, package, node, self.args_input.text())
+            self.node_launched.emit(resp.pid, package, node, " ".join(args))
         except rospy.ServiceException as exc:
             rospy.logerr(f'Service did not process request: {str(exc)}')
