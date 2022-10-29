@@ -21,6 +21,9 @@ class CVLaunchDialog(QDialog):
 
     node_launched = pyqtSignal(int, str, str, str, name='nodeLaunched')
 
+    # TODO: Change the data stored in this array into this format
+    # Format: [{name: "arg1", default: "", label: QLabel, lineEdit: QLineEdit},
+    # {name: "arg2", default: "val2", label: QLabel, lineEdit: QLineEdit}, ...]
     argFormRows = []
 
     def __init__(self, p):
@@ -106,19 +109,13 @@ class CVLaunchDialog(QDialog):
             package_dir = os.path.join(self.ROOT_PATH, self.package_name_box.currentText())
             launch_file_path = os.path.join(package_dir, 'launch/' + self.node_name_box.currentText())
 
-            # This is a list of arguments accepted by selected_node
-            # A list of dictionaries of the form: [{name: 'arg1', default: ''}, {name: 'arg2', default: 'val2'}, {name: 'arg3', default: 'val3'} ... ]
-            # If an argument has the 'value' property specified, it should NOT be included in this list
+            # TODO: Get rid of this list
             args = []
 
             tree = ET.parse(launch_file_path)
 
             def traverse_tree(root):
                 for child in root:
-                    # TODO: Step 1 - Populate the args list above
-                    # If child is an arg tag AND does not have the 'value' property specified, add it to the args list
-                    # child.tag - the tag of child
-                    # child.attrib - a dictionary with child's attribute names as keys and attribute values as values
                     if child.tag == 'arg' and child.get('value') is None:
                         args.append(child.attrib)
                     
@@ -127,16 +124,6 @@ class CVLaunchDialog(QDialog):
             root = tree.getroot()
             traverse_tree(root)
 
-            # TODO: Step 2 - For each arg in args, add a row to the form with that input value
-            # The 'name' of the arg should be the Label
-            # The 'defaultValue' of the arg (if any) should be the default value of the LineEdit
-            # Add the QLabel and QLineEdit widgets to the self.argFormRows list
-
-            # Example code to add row to form with label "Sample" and default value "sample_default_value"
-            # sample_label = QtWidgets.QLabel("Sample")
-            # sample_input = QtWidgets.QLineEdit()
-            # sample_input.setText("sample_default_value")
-            # self.form_layout.addRow(sample_label, sample_input)
             for i in range(len(args)):
                 if args[i].get('default') is None:
                     default_value = ''
@@ -156,6 +143,10 @@ class CVLaunchDialog(QDialog):
         package = self.package_name_box.currentText()
         node = self.node_name_box.currentText()
         args = self.args_input.text().split(' ')
+
+        # TODO: Add values of the lineEdits from self.argFormRows into the args array
+        
+        # If one or more lineEdits' value is an empty string, then don't execute the following code
         start_launch = rospy.ServiceProxy('start_node', StartLaunch)
         try:
             resp = start_launch(package, node, args, node.endswith('.launch'))
