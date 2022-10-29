@@ -30,7 +30,7 @@ class DepthAISimulateSpatialDetection:
         # Dummy still image
         path = os.path.dirname(__file__)
         self.image = cv2.imread(os.path.join(path, IMAGE_RELATIVE_PATH), cv2.IMREAD_COLOR)
-        self.subscribe = rospy.Subscriber(self.IMAGE_TOPIC, queue_size=10)
+        self.subscribe = rospy.Subscriber(self.IMAGE_TOPIC, self.run, queue_size=10)
         
         
         # Get path to nn blob file
@@ -77,7 +77,7 @@ class DepthAISimulateSpatialDetection:
         nn.passthrough.link(feedOut.input)
 
     # Publish dummy image to topic every few seconds
-    def run(self):
+    def run(self, img_msg):
         """
         Send the still image through to the input queue (qIn) after converting it to the proper format.
         Then retreive what was fed into the neural network. The input to the neural network should be the same
@@ -105,13 +105,14 @@ class DepthAISimulateSpatialDetection:
             # Send a message to the ColorCamera to capture a still image
             img = dai.ImgFrame()
             img.setType(dai.ImgFrame.Type.BGR888p)
-            img.setData(to_planar(self.image, (416, 416)))
+            img.setData(to_planar(img_msg, (416, 416)))
 
             img.setWidth(416)
             img.setHeight(416)
 
             qIn.send(img)
             inFeed = qFeed.get()
+            rospy.loginfo(inFeed)
 
 if __name__ == '__main__':
-    DepthAISimulateSpatialDetection().run()
+    DepthAISimulateSpatialDetection()
