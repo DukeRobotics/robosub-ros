@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
 import rospy
+import rosbag
 import cv2
 import os
+import subprocess
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
@@ -17,6 +19,7 @@ class DummyImagePublisher:
         rospy.init_node(self.NODE_NAME)
         
         self.topic = rospy.get_param("~topic")
+        self.framerate = rospy.get_param("~framerate")
         self.image_publisher = rospy.Publisher(self.topic, Image, queue_size=10)
 
         self.feed_path = os.path.join(os.path.dirname(__file__), rospy.get_param("~feed_path"))
@@ -25,7 +28,6 @@ class DummyImagePublisher:
     
     def run(self):
         """Runs the appropriate function based on the type of file passed in feed_path"""
-
         file_extension = os.path.splitext(self.feed_path)[1]
         if file_extension == '.jpg': self.run_still()
         elif file_extension == '.bag': self.run_bag()
@@ -47,41 +49,75 @@ class DummyImagePublisher:
 
             loop_rate.sleep()
 
-    # TODO: Complete this function
+    # Assume that self.feed_path is a string with the path to a rosbag file
     def run_bag(self):
         """
         Publish a simulated image feed from a rosbag file to a topic.
 
         Once it publishes all images in the rosbag file, it loops and publishes images from the beginning again.
         """
+        # Keep track of the rosbag play process; will not be None if command to run rosbag is activated
+        proc = None
+        # Set the framerate of the stream off of what was passed in from the roslaunch command
+        loop_rate = rospy.Rate(self.framerate)
+        started = False
 
-        # Check that the bagfile provided in self.feed_path is a valid bagfile
-        # If it is not a valid bagfile, raise an exception with an appropriate error message
+        while not rospy.is_shutdown():
 
-        # Use code inspired from remote_launch.py in the system_utils package to execute a rosbag command in the terminal
-        # The rosbag command should look like this:
-        # f'rosbag play {self.feed_path} -l'
-        # The rosbag command should terminate when test_images.launch (this script) is terminated
-    
+            # Check if self.feed_path is a valid rosbag file
+            if not started and os.path.isfile(self.feed_path) and self.feed_path.endswith('.bag'):
+                
+                bag_command = ['rosbag', 'play', self.feed_path, '-l']
+
+                # Get list of topics recorded on bag
+                bag_topics = rosbag.Bag(self.feed_path).get_type_and_topic_info()[1].keys()
+                index = 1
+                # Remap all topics to self.topic_index
+                for topic in bag_topics:
+                    bag_command.append(f'{topic}:={self.topic}_{index}')
+
+                rospy.loginfo(bag_command)
+
+                # Publish images from .bag file to the remapped topics
+                proc = subprocess.Popen(bag_command)
+                started = True
+
+            loop_rate.sleep()
+
+        if proc is not None:
+            # Terminate the rosbag play process
+            rospy.loginfo("end")
+            proc.terminate()
+            proc.wait()
+
     # TODO: Complete this function
+    # Assume that self.feed_path is a string with the path to a folder
     def run_folder(self):
-        """
-        Publish a simulated image feed from a folder containing images to a topic.
+        """Publish a simulated image feed from a folder containing images to a topic.
 
         All JPG images in the folder will be published in alphabetical order by filename.
         Once it publishes all JPG images in the folder, it loops and publishes images from the beginning again.
         """
-
-        # Add an OPTIONAL framerate argument to the launch file
-        
         # Get all .jpg images in the folder
-        # If there are no .jpg images in the folder, raise an exception with an appropriate error message
+        images = []
+        for file in [os.listdir(self.feed_path).sort()]:
+            # Parse each image using cv2.imread
+            img = cv2.imread(file, cv2.IMREAD_COLOR)
+            if img is not None:
+                images.append(img)
+
+        loop_rate = rospy.Rate(1)
 
         # while not rospy.is_shutdown():
-            # Loop over all .jpg images in the folder in alphabetical order by filename with a the specified framerate
-                # Parse each image using cv2.imread
+        while not rospy.is_shutdown():
+            # Loop over all .jpg images in the folder in alphabetical order by filename
+            for image in images:
                 # Convert each cv2 image to ros image message using CvBridge (see run_still for an example)
+                image_msg = self.cv_bridge.cv2_to_imgmsg(image, 'bgr8')
                 # Publish the ros image message using self.image_publisher.publish
+                self.image_publisher.publish(image_msg)
+
+                loop_rate.sleep()
 
     def test_if_video(self) -> bool:
         """Check if the file in self.feed_path is a video file that can be opened using cv2.VideoCapture."""
@@ -111,7 +147,7 @@ class DummyImagePublisher:
 
                 success, img = cap.read()
                 loop_rate.sleep()
-    
+        
 if __name__ == '__main__':
     try:
         DummyImagePublisher().run()
