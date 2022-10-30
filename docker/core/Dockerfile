@@ -52,6 +52,8 @@ RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
 
 COPY ssh_entry.sh /root/.bash_profile
 
+COPY tmux.conf /etc/
+
 ### Final Setup ###
 
 # Install common pip packages
