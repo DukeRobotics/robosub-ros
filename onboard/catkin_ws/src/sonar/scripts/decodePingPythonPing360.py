@@ -279,7 +279,7 @@ if __name__ == "__main__":
     import os
     dirname = os.path.dirname(__file__)
     
-    filename =  dirname + '\\SampleTylerData.bin'
+    filename =  dirname + '\\sampleData\\SampleTylerData.bin'
 
     # Open log and begin processing
     log = PingViewerLogReader(filename)
