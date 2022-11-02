@@ -38,7 +38,6 @@ class DesiredStateHandler:
     twist = None  # Desired twist (velocity)
     power = None  # Desired power (control effort)
     event_id = 0
-    valid = True
 
     def __init__(self):
         rospy.init_node('desired_state')
@@ -120,16 +119,15 @@ class DesiredStateHandler:
         if (self.pose and self.twist) or (self.pose and self.power) or (self.twist and self.power):
             # More than one seen in one update cycle, so warn and mark as invalid
             self.pid_manager.soft_estop()
-            rospy.logerr(
-                "===> Controls received conflicting desired states! Halting robot. <===")
+            rospy.logerr("===> Controls received conflicting desired states! Halting robot. <===")
             return False
         elif not self.pose and not self.twist and not self.power:
-            self.pid_manager.soft_estop()
-            if self.valid:
+            if not self.pid_manager.halted:
                 rospy.logwarn(bcolors.WARN + ("===> Controls received no desired state! Halting robot. "
                                               "(Event %d) <===" % self.event_id) + bcolors.RESET)
+            self.pid_manager.soft_estop()
             return False
-        elif not self.valid:
+        elif self.pid_manager.halted:
             rospy.loginfo(bcolors.OKGREEN + ("===> Controls now receiving desired state (End event %d) <===" %
                                              (self.event_id)) + bcolors.RESET)
             self.event_id += 1
@@ -141,8 +139,7 @@ class DesiredStateHandler:
         while not rospy.is_shutdown():
             rate.sleep()
 
-            self.valid = self._validate_status()
-            if self.valid:
+            if self._validate_status():
                 if self.pose:
                     self.pid_manager.position_control(self.pose)
                 elif self.twist and self._twist_state_safety(self.twist):
