@@ -14,6 +14,7 @@
   <depend>cv_bridge</depend>
   <depend>resource_retriever</depend>
   <depend>depthai</depend>
+  <depend>video_stream_opencv</depend>
 
   <exec_depend>python-yaml</exec_depend>
   <exec_depend>python-opencv</exec_depend>
