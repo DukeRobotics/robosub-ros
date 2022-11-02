@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 
+from asyncio.windows_events import NULL
 from brping import Ping360
 import numpy as np
+import sonar_utils
+from tf import TransformListener
+from geometry_msgs.msg import Pose
 
 class Sonar:
     """Class to interface with the Sonar device.
@@ -27,6 +31,8 @@ class Sonar:
         self.ping360.set_sample_period(self.sample_period)
         self.transmit_duration = period_and_duration[1]
         self.ping360.set_transmit_duration(self.transmit_duration)
+
+        self.listener = TransformListener()
 
     def range_to_period_and_duration(self, range):
         """From a given range determines the sample_period and transmit_duration
@@ -128,6 +134,36 @@ class Sonar:
         best = np.argmax(filteredbytes)
               #(index, value)
         return (best+self.FILTER_INDEX, filteredbytes[best])
+
+    def angle_to_radian(self, angle):
+        """Converts gradians to degrees 
+
+        Returns:
+            angle in degrees
+        """
+        return (angle-200)*np.pi/200
+
+    def to_robot_position(self, angle, index):
+        """Converts a point in sonar space a robot global position
+
+        Returns:
+            (coordinate)
+        """
+        #Need to change the static transform for where the sonar is on the robot
+        x_pos = self.get_distance_of_sample(index) * np.cos(self.angle_to_radian(angle))
+        y_pos = self.get_distance_of_sample(index) * np.sin(self.angle_to_radian(angle))
+        pos_of_point = Pose()
+        pos_of_point.position.x = x_pos
+        pos_of_point.position.y = y_pos
+        pos_of_point.position.z = 0 #z cord isnt 0 as gate is a line 
+        pos_of_point.orientation.x = 0
+        pos_of_point.orientation.y = 0
+        pos_of_point.orientation.z = 0
+        pos_of_point.orientation.w = 1
+
+        global_pose = sonar_utils.transform_pose(self.listener, "sonar_link", "odom", pos_of_point)
+
+        return global_pose
 
 
 if __name__ == "__main__":
