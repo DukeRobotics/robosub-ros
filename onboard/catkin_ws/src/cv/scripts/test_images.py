@@ -100,22 +100,12 @@ class DummyImagePublisher:
         All images in the folder readable by OpenCV will be published in alphabetical order by filename.
         Once it publishes all images in the folder, it loops and publishes images from the beginning again.
         """
-        print("inside run folder")
 
         images = []
         for file in sorted(os.listdir(self.feed_path)):
-            print(file)
             img = cv2.imread(os.path.join(self.feed_path, file), cv2.IMREAD_COLOR)
-            print("before if")
-            print(img is not None)
-            if file == "auv7_both_gate_one_sonia copy.bag":
-                print(img) 
-            print(img.size == 0)
             if img is not None and img.size != 0:
-                print("inside if")
                 images.append(img)
-
-        print("built images")
 
         loop_rate = rospy.Rate(self.framerate)
 
