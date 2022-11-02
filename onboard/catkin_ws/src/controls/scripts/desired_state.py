@@ -86,7 +86,7 @@ class DesiredStateHandler:
         for axis in utils.get_axes():
             if abs(power[axis]) > self.MAX_POWER[axis]:
                 rospy.logerr(
-                    "===> Desired power exceeds maximum power in ", axis, "! Halting robot. <===")
+                    "===> Desired power exceeds maximum %s value! Halting robot <===", axis)
                 self.pid_manager.soft_estop()
                 return_status = False
         return return_status
@@ -97,7 +97,7 @@ class DesiredStateHandler:
         for axis in utils.get_axes():
             if abs(twist[axis]) > self.MAX_TWIST[axis]:
                 rospy.logerr(
-                    "===> Desired twist exceeds maximum twist in ", axis, "! Halting robot <===")
+                    "===> Desired twist exceeds maximum %s value! Halting robot <===", axis)
                 self.pid_manager.soft_estop()
                 return_status = False
         return return_status
