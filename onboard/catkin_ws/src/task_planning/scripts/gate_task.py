@@ -110,7 +110,7 @@ def create_gate_task_sm():
                                 'done': 'MOVE_TO_CALCULATED_GATE_POSE'
                             })
 
-        smach.StateMachine.add('MOVE_TO_CALCULATED_GATE_POSE', MoveToPoseGlobalTask(),
+        smach.StateMachine.add('MOVE_TO_CALCULATED_GATE_POSE', MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0),
                             transitions={
                                 'continue': 'FORWARD_MOVE_SWEEP',
                                 'done': 'SPIN_THROUGH_GATE'
