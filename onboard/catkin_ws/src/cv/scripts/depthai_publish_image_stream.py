@@ -16,9 +16,9 @@ class DepthAIImageStreamPublisher:
     """
 
     CAMERA = 'front'
-    STREAM_TOPIC_RGB = f'/camera/{CAMERA}/stream_raw'
-    STREAM_TOPIC_LEFT = f'/camera/{CAMERA}/stream_raw'
-    STREAM_TOPIC_RIGHT = f'/camera/{CAMERA}/stream_raw'
+    STREAM_TOPIC_RGB = f'/camera/{CAMERA}/rgb/stream_raw'
+    STREAM_TOPIC_LEFT = f'/camera/{CAMERA}/left/stream_raw'
+    STREAM_TOPIC_RIGHT = f'/camera/{CAMERA}/right/stream_raw'
 
     def __init__(self):
         """
