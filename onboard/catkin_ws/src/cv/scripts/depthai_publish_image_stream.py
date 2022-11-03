@@ -16,9 +16,9 @@ class DepthAIImageStreamPublisher:
     """
 
     CAMERA = 'front'
-    STREAM_TOPIC_RGB = f'/camera/{CAMERA}/stream_raw'
-    STREAM_TOPIC_LEFT = f'/camera/{CAMERA}/stream_raw'
-    STREAM_TOPIC_RIGHT = f'/camera/{CAMERA}/stream_raw'
+    STREAM_TOPIC_RGB = f'/camera/{CAMERA}/rgb/stream_raw'
+    STREAM_TOPIC_LEFT = f'/camera/{CAMERA}/left/stream_raw'
+    STREAM_TOPIC_RIGHT = f'/camera/{CAMERA}/right/stream_raw'
 
     def __init__(self):
         """
@@ -111,10 +111,10 @@ class DepthAIImageStreamPublisher:
                 image_msg_rgb = self.bridge.cv2_to_imgmsg(img_rgb, 'bgr8')
                 self.stream_publisher_rgb.publish(image_msg_rgb)
 
-                image_msg_left = self.bridge.cv2_to_imgmsg(img_left, 'bgr8')
+                image_msg_left = self.bridge.cv2_to_imgmsg(img_left, 'mono8')
                 self.stream_publisher_left.publish(image_msg_left)
 
-                image_msg_right = self.bridge.cv2_to_imgmsg(img_right, 'bgr8')
+                image_msg_right = self.bridge.cv2_to_imgmsg(img_right, 'mono8')
                 self.stream_publisher_right.publish(image_msg_right)
 
 
