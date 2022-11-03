@@ -305,19 +305,20 @@ class PoseFromVectorsTask(Task):
 class GateSpinDirectionTask(smach.StateMachine):
     def __init__(self):
         super(GateSpinDirectionTask, self).__init__(outcomes=["left", "right", "center"])
-        self.add('FIND_GATE', GateSweepTask(),
-                                transitions = {
-                                    'done': 'CHOOSE_ROTATE_DIR'
-                                })
+        with self:
+            smach.StateMachine.add('FIND_GATE', GateSweepTask(),
+                                    transitions = {
+                                        'done': 'CHOOSE_ROTATE_DIR'
+                                    })
 
-        self.add('CHOOSE_ROTATE_DIR', LambdaTask(
-                lambda ud: "left" if ud["left"] is None else ("right" if ud["right"] is None else "center"),
-                ["left", "right", "center"],
-                input_keys=["left", "right"]
-            ), transitions={
-                'left': 'left',
-                'right': 'right',
-                'center': 'center'})    
+            smach.StateMachine.add('CHOOSE_ROTATE_DIR', LambdaTask(
+                    lambda ud: "left" if ud["left"] is None else ("right" if ud["right"] is None else "center"),
+                    ["left", "right", "center"],
+                    input_keys=["left", "right"]
+                ), transitions={
+                    'left': 'left',
+                    'right': 'right',
+                    'center': 'center'})    
 
 # class GateRotationDoneTask(Task):
 #     def __init__(self, threshold):
