@@ -3,11 +3,14 @@
 from statistics import mean
 
 from numpy import array_equal
-from task_utils import cv_object_position, object_vector, ObjectVisibleTask
+from sonar_tasks import GateSweepTask
+from task_utils import cv_object_position, object_vector, ObjectVisibleTask, LambdaTask
+from geometry_msgs.msg import Vector3
 import smach
 import rospy
 from task import Task
-from move_tasks import MoveToPoseLocalTask, MoveToPoseGlobalTask
+from math import *
+from move_tasks import AllocateVelocityLocalTask, MoveToPoseGlobalTask
 from tf import TransformListener
 from time import sleep
 
@@ -16,26 +19,12 @@ SIDE_THRESHOLD = 0.1  # means gate post is within 1 tenth of the side of the fra
 CENTERED_THRESHOLD = 0.1  # means gate will be considered centered if within 1 tenth of the center of the frame
 GATE_TICK_CV_NAME = "bin"  # change back to gate_tick
 
-"""
-Plan for task restructure:
-
-INPUT FROM CMD copper or bootlegger, direction to rotate, time to wait and moving average
-
-1) rotate ~0.25 radians
-2) check if image is in camera frame, maybe see if in center
-    a) if not in frame, go to 1
-    b) if in frame, proceed
-3) moving average for some time to find location to move to
-4) move to position ~0.5 below and ~1 past image
-5) done
-"""
-
 
 def main():
     rospy.init_node('gate_task')
 
     # needs direction to work
-    sm = create_simple_gate_task_sm()
+    sm = create_gate_task_sm()
     sleep(2)
     # Execute SMACH plan
     sm.execute()
@@ -45,192 +34,290 @@ def main():
 
 
 def create_gate_task_sm():
-    return create_gate_task_sm_DEFUNCT(1)
+    sm = smach.StateMachine(outcomes=['gate_task_succeeded', 'gate_task_failed'])
+    listener = TransformListener()
+    ROTATE_SPEED = 1
+    METERS_FROM_GATE = 3
+    MOVE_THROUGH_GATE_SPEED = 0.1
+    with sm:
+        # TODO add "dive and move away from dock task"
+        # smach.StateMachine.add('NEAR_GATE', NearGateTask(SIDE_THRESHOLD),
+        #                        transitions={
+        #                            'true': 'MOVE_TO_GATE_FRONT',
+        #                            'false': 'CHOOSE_ROTATE_DIR',
+        #                            'spin': 'NEAR_GATE'})
+
+        # Pick an initial direction to move in
+        smach.StateMachine.add('CHOOSE_ROTATE_DIR', GateSpinDirectionTask(),
+                                transitions={
+                                   'left': 'ROTATE_TO_GATE_LEFT',
+                                   'right': 'ROTATE_TO_GATE_RIGHT',
+                                   'center': 'MOVE_TO_GATE_FRONT'
+                                })
+
+        # Turn left or right until the gate is centered
+        # NOTE This code might not work as written unless we switch to actions for controls
+        # I can change it to work with our current setup, but switching and using this feels cleaner
+        rotate_gate_left_cc = smach.Concurrence(outcomes = ['left', 'right', 'center'],
+                outcome_map = {
+                    'left': {'ROTATION_DIR':'left'},
+                    'right': {'ROTATION_DIR':'right'},
+                    'center': {'ROTATION_DIR':'center'}
+                })
+        with rotate_gate_left_cc:
+            smach.Concurrence.add('ROTATION_DIR', GateSpinDirectionTask())
+            smach.Concurrence.add('ROTATE', AllocateVelocityLocalTask(0, 0, 0, 0, 0, ROTATE_SPEED))
+
+        rotate_gate_right_cc = smach.Concurrence(outcomes = ['left', 'right', 'center'],
+                outcome_map = {
+                    'left': {'ROTATION_DIR':'left'},
+                    'right': {'ROTATION_DIR':'right'},
+                    'center': {'ROTATION_DIR':'center'}
+                })
+        with rotate_gate_right_cc:
+            smach.Concurrence.add('ROTATION_DIR', GateSpinDirectionTask())
+            smach.Concurrence.add('ROTATE', AllocateVelocityLocalTask(0, 0, 0, 0, 0, -ROTATE_SPEED))
+
+        smach.StateMachine.add('ROTATE_TO_GATE_LEFT', rotate_gate_left_cc,
+                                transitions={
+                                   'left': 'ROTATE_TO_GATE_LEFT',
+                                   'right': 'ROTATE_TO_GATE_RIGHT',
+                                   'center': 'FORWARD_MOVE_SWEEP'
+                                })
+
+        smach.StateMachine.add('ROTATE_TO_GATE_RIGHT', rotate_gate_right_cc,
+                                transitions={
+                                   'left': 'ROTATE_TO_GATE_LEFT',
+                                   'right': 'ROTATE_TO_GATE_RIGHT',
+                                   'center': 'FORWARD_MOVE_SWEEP'
+                                })
+
+        # Move to METERS_FROM_GATE meters in front of the gate
+        smach.StateMachine.add('FORWARD_MOVE_SWEEP', GateSweepTask(),
+                            transitions={
+                                'done': 'CALC_GATE_POSE'
+                            })
+
+        smach.StateMachine.add('CALC_GATE_POSE', CalcGateParamsTask(listener),
+                            transitions={
+                                'done': 'CALC_DESIRED_ROBOT_GATE_POSE'
+                            })
+
+        smach.StateMachine.add('CALC_DESIRED_ROBOT_GATE_POSE', PoseFromVectorsTask(1, METERS_FROM_GATE, 1),
+                            transitions={
+                                'done': 'MOVE_TO_CALCULATED_GATE_POSE'
+                            })
+
+        smach.StateMachine.add('MOVE_TO_CALCULATED_GATE_POSE', MoveToPoseGlobalTask(),
+                            transitions={
+                                'continue': 'FORWARD_MOVE_SWEEP',
+                                'done': 'SPIN_THROUGH_GATE'
+                            })
+
+        # TODO Add part where we actually go through the gate
+        # spin_through_gate_cc = smach.Concurrence(outcomes = ['done'],
+        #          default_outcome = 'done',
+        #          child_termination_cb = concurrence_term_rotate_loop_cb,
+        #          outcome_map = {'done':{'ROTATION_DONE':'done'}})
+        # with spin_through_gate_cc:
+        #     smach.Concurrence.add('ROTATION_DONE', RollDoneTask(4*pi))
+        #     # Spin and move through the gate
+        #     smach.Concurrence.add('MOVE_AND_ROTATE', AllocateVelocityLocalForeverTask(MOVE_THROUGH_GATE_SPEED * METERS_FROM_GATE, 0, -.001, velocity, 0, 0))
+
+
+        # smach.StateMachine.add('SPIN_THROUGH_GATE', spin_through_gate_cc,
+        #                         transitions={
+        #                             'done':'gate_task_succeeded'
+        #                         })
+
+
+
+    return sm
 
 # Rotate direction is +1 or -1 depending on how we should rotate
 
 
-def create_gate_task_sm_DEFUNCT(rotate_direction):
-    sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
-    listener = TransformListener()
-    gate_euler_position = [0, 0, 0, 0, 0, 0]
-    image_name = "bootleggerbuoy"
-    with sm:
-        smach.StateMachine.add('CHECK_IMAGE_VISIBLE', ObjectVisibleTask(image_name, 3),
-                               transitions={
-            'undetected': 'ROTATE_TO_GATE',
-            'detected': 'SURVEY_GATE'
-        })
+# def create_gate_task_sm_DEFUNCT(rotate_direction):
+#     sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
+#     listener = TransformListener()
+#     gate_euler_position = [0, 0, 0, 0, 0, 0]
+#     image_name = "bootleggerbuoy"
+#     with sm:
+#         smach.StateMachine.add('CHECK_IMAGE_VISIBLE', ObjectVisibleTask(image_name, 3),
+#                                transitions={
+#             'undetected': 'ROTATE_TO_GATE',
+#             'detected': 'SURVEY_GATE'
+#         })
 
-        smach.StateMachine.add('ROTATE_TO_GATE', MoveToPoseLocalTask(0, 0, 0, 0, 0, 0.25 * rotate_direction, listener),
-                               transitions={
-            'done': 'CHECK_IMAGE_VISIBLE'
-        })
+#         smach.StateMachine.add('ROTATE_TO_GATE', MoveToPoseLocalTask(0, 0, 0, 0, 0, 0.25 * rotate_direction, listener),
+#                                transitions={
+#             'done': 'CHECK_IMAGE_VISIBLE'
+#         })
 
-        smach.StateMachine.add('SURVEY_GATE', SurveyGateTask(image_name, 20, gate_euler_position),
-                               transitions={
-            'done': 'MOVE_THROUGH_GATE'
-        })
+#         smach.StateMachine.add('SURVEY_GATE', SurveyGateTask(image_name, 20, gate_euler_position),
+#                                transitions={
+#             'done': 'MOVE_THROUGH_GATE'
+#         })
 
-        smach.StateMachine.add('MOVE_THROUGH_GATE', MoveToPoseLocalTask(*gate_euler_position, listener),
-                               transitions={
-            'done': 'succeeded'
-        })
-    return sm
+#         smach.StateMachine.add('MOVE_THROUGH_GATE', MoveToPoseLocalTask(*gate_euler_position, listener),
+#                                transitions={
+#             'done': 'succeeded'
+#         })
+#     return sm
 
-# SIMPLE version below
-
-
-def create_simple_gate_task_sm(rotate_direction, image_name):
-    sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
-    listener = TransformListener()
-    global_object_position = [0, 0, 0, 0, 0, 0]
-    with sm:
-        smach.StateMachine.add('DIVE_TO_GATE', MoveToPoseGlobalTask(0, 0, -2, 0, 0, 0, listener),
-                               transitions={
-            'done': 'SURVEY_GATE_IMAGE_LOCATION'
-        })
-
-        smach.StateMachine.add('SURVEY_GATE_IMAGE_LOCATION', SurveyGateImage(image_name, 1, 3),
-                               transitions={
-            'undetected': 'ROTATE_TO_GATE',
-            'detected': 'MOVE_TO_GATE'
-        })
-
-        smach.StateMachine.add('ROTATE_TO_GATE', MoveToPoseLocalTask(0, 0, 0, 0, 0, 0.25 * rotate_direction, listener),
-                               transitions={
-            'done': 'CHECK_IMAGE_VISIBLE'
-        })
-
-        smach.StateMachine.add('MOVE_TO_GATE', MoveToPoseLocalTask(*global_object_position, listener),
-                               transitions={
-            'done': 'succeeded'
-        })
-
-    return sm
+# # SIMPLE version below
 
 
-def create_simplest_gate_task_sm():
-    sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
-    listener = TransformListener()
-    with sm:
-        smach.StateMachine.add('MOVE_1', MoveToPoseLocalTask(2.5, 0, -2, 0, 0, 0, listener),
-                               transitions={
-            'done': 'MOVE_2'
-        })
+# def create_simple_gate_task_sm(rotate_direction, image_name):
+#     sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
+#     listener = TransformListener()
+#     global_object_position = [0, 0, 0, 0, 0, 0]
+#     with sm:
+#         smach.StateMachine.add('DIVE_TO_GATE', MoveToPoseGlobalTask(0, 0, -2, 0, 0, 0, listener),
+#                                transitions={
+#             'done': 'SURVEY_GATE_IMAGE_LOCATION'
+#         })
 
-        smach.StateMachine.add('MOVE_2', MoveToPoseLocalTask(2.5, 0, 0, 0, 0, 0, listener),
-                               transitions={
-            'done': 'succeeded'
-        })
+#         smach.StateMachine.add('SURVEY_GATE_IMAGE_LOCATION', SurveyGateImage(image_name, 1, 3),
+#                                transitions={
+#             'undetected': 'ROTATE_TO_GATE',
+#             'detected': 'MOVE_TO_GATE'
+#         })
 
-    return sm
+#         smach.StateMachine.add('ROTATE_TO_GATE', MoveToPoseLocalTask(0, 0, 0, 0, 0, 0.25 * rotate_direction, listener),
+#                                transitions={
+#             'done': 'CHECK_IMAGE_VISIBLE'
+#         })
 
+#         smach.StateMachine.add('MOVE_TO_GATE', MoveToPoseLocalTask(*global_object_position, listener),
+#                                transitions={
+#             'done': 'succeeded'
+#         })
 
-class SurveyGateImage(Task):
-    def __init__(self, object_name, time, global_object_position):
-        super(SurveyGateTask, self).__init__(["undetected", "detected"])
-        self.object_name = object_name
-        self.time = time
-        self.global_object_position = global_object_position
-
-    def run(self):
-        millis = 200  # for 5 times per second
-        rate = rospy.Rate(millis)
-        total = 0
-
-        x_offset = 5
-        z_offset = -1
-
-        last_cv_object_position = cv_object_position(self.cv_data[self.image_name])
-        while total < self.time * 1000:
-            cur_cv_object_position = cv_object_position(self.cv_data[self.image_name])
-            if cur_cv_object_position is not None and not array_equal(cur_cv_object_position, last_cv_object_position):
-                self.global_object_position = [cur_cv_object_position[0] + x_offset,
-                                               cur_cv_object_position[1],
-                                               cur_cv_object_position[2] + z_offset,
-                                               0,
-                                               0,
-                                               0, ]
-                return "detected"
-            last_cv_object_position = cur_cv_object_position
-            total += millis
-            rate.sleep()
-        return "undetected"
+#     return sm
 
 
-class SurveyGateTask(Task):
-    def __init__(self, object_name, time, output_euler_position):
-        super(SurveyGateTask, self).__init__(["done"])
-        self.object_name = object_name
-        self.time = time
-        self.output_euler_position = output_euler_position
+# def create_simplest_gate_task_sm():
+#     sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
+#     listener = TransformListener()
+#     with sm:
+#         smach.StateMachine.add('MOVE_1', MoveToPoseLocalTask(2.5, 0, -2, 0, 0, 0, listener),
+#                                transitions={
+#             'done': 'MOVE_2'
+#         })
 
-    def run(self, userdata):
-        millis = 10
-        rate = rospy.Rate(millis)
-        total = 0
-        captured_vectors = []
+#         smach.StateMachine.add('MOVE_2', MoveToPoseLocalTask(2.5, 0, 0, 0, 0, 0, listener),
+#                                transitions={
+#             'done': 'succeeded'
+#         })
 
-        while total < self.time * 1000:
-            gate_vector = object_vector(self.cv_data[self.object_name])
-            if gate_vector is not None:
-                captured_vectors.append(gate_vector)
-            total += millis
-            rate.sleep()
+#     return sm
 
-        avg_x = mean([v[0] for v in captured_vectors]) + 1
-        avg_y = mean([v[1] for v in captured_vectors])
-        avg_z = mean([v[2] for v in captured_vectors]) - 0.5
-        self.output_euler_position = [avg_x, avg_y, avg_z, 0, 0, 0]
-        return "done"
 
-# class PoseFromVectorsTask(Task):
-#     def __init__(self, direction_arg, *coefficients):
-#         super(PoseFromVectorsTask, self).__init__(["done"],
-#                                 input_keys=['vector1', 'vector2'],
-#                                 output_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'])
-#         self.direction_arg = direction_arg
-#         self.coefficients = coefficients
+# class SurveyGateImage(Task):
+#     def __init__(self, object_name, time, global_object_position):
+#         super(SurveyGateTask, self).__init__(["undetected", "detected"])
+#         self.object_name = object_name
+#         self.time = time
+#         self.global_object_position = global_object_position
+
+#     def run(self):
+#         millis = 200  # for 5 times per second
+#         rate = rospy.Rate(millis)
+#         total = 0
+
+#         x_offset = 5
+#         z_offset = -1
+
+#         last_cv_object_position = cv_object_position(self.cv_data[self.image_name])
+#         while total < self.time * 1000:
+#             cur_cv_object_position = cv_object_position(self.cv_data[self.image_name])
+#             if cur_cv_object_position is not None and not array_equal(cur_cv_object_position, last_cv_object_position):
+#                 self.global_object_position = [cur_cv_object_position[0] + x_offset,
+#                                                cur_cv_object_position[1],
+#                                                cur_cv_object_position[2] + z_offset,
+#                                                0,
+#                                                0,
+#                                                0, ]
+#                 return "detected"
+#             last_cv_object_position = cur_cv_object_position
+#             total += millis
+#             rate.sleep()
+#         return "undetected"
+
+
+# class SurveyGateTask(Task):
+#     def __init__(self, object_name, time, output_euler_position):
+#         super(SurveyGateTask, self).__init__(["done"])
+#         self.object_name = object_name
+#         self.time = time
+#         self.output_euler_position = output_euler_position
 
 #     def run(self, userdata):
-#         pos = Vector3()
-#         for i in range(1, len(self.coefficients) + 1):
-#             print(userdata["vector" + str(i)])
-#             pos.x += userdata["vector" + str(i)].x * self.coefficients[i-1]
-#             pos.y += userdata["vector" + str(i)].y * self.coefficients[i-1]
-#             pos.z += userdata["vector" + str(i)].z * self.coefficients[i-1]
+#         millis = 10
+#         rate = rospy.Rate(millis)
+#         total = 0
+#         captured_vectors = []
 
-#         dir_vec = userdata["vector" + str(self.direction_arg)]
+#         while total < self.time * 1000:
+#             gate_vector = object_vector(self.cv_data[self.object_name])
+#             if gate_vector is not None:
+#                 captured_vectors.append(gate_vector)
+#             total += millis
+#             rate.sleep()
 
-#         userdata.x = pos.x
-#         userdata.y = pos.y
-#         userdata.z = pos.z
-
-#         userdata.roll = 0
-#         userdata.pitch = pi / 2 - arccos(-dir_vec.z)
-#         userdata.yaw = atan2(-dir_vec.y, -dir_vec.x)
-
-#         print(pos.x, pos.y, pos.z)
-
+#         avg_x = mean([v[0] for v in captured_vectors]) + 1
+#         avg_y = mean([v[1] for v in captured_vectors])
+#         avg_z = mean([v[2] for v in captured_vectors]) - 0.5
+#         self.output_euler_position = [avg_x, avg_y, avg_z, 0, 0, 0]
 #         return "done"
 
+class PoseFromVectorsTask(Task):
+    def __init__(self, direction_arg, *coefficients):
+        super(PoseFromVectorsTask, self).__init__(["done"],
+                                input_keys=['vector1', 'vector2'],
+                                output_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'])
+        self.direction_arg = direction_arg
+        self.coefficients = coefficients
 
-# class GateSpinDirectionTask(Task):
-#     def __init__(self, threshold):
-#         super(GateSpinDirectionTask, self).__init__(["center","right","left"])
-#         self.threshold = threshold
+    def run(self, userdata):
+        pos = Vector3()
+        for i in range(1, len(self.coefficients) + 1):
+            print(userdata["vector" + str(i)])
+            pos.x += userdata["vector" + str(i)].x * self.coefficients[i-1]
+            pos.y += userdata["vector" + str(i)].y * self.coefficients[i-1]
+            pos.z += userdata["vector" + str(i)].z * self.coefficients[i-1]
 
-#     def run(self, userdata):
-#         gate_info = _scrutinize_gate(self.cv_data['gate'], self.cv_data[GATE_TICK_CV_NAME])
-#         if gate_info:
-#             if abs(gate_info["offset_h"]) < self.threshold:
-#                 return "center"
-#             if gate_info["offset_h"] < 0:
-#                 return "right"
-#             return "left"
-#         # default to right if we can't find the gate
-#         return "right"
+        dir_vec = userdata["vector" + str(self.direction_arg)]
+
+        userdata.x = pos.x
+        userdata.y = pos.y
+        userdata.z = pos.z
+
+        userdata.roll = 0
+        userdata.pitch = pi / 2 - acos(-dir_vec.z)
+        userdata.yaw = atan2(-dir_vec.y, -dir_vec.x)
+
+        print(pos.x, pos.y, pos.z)
+
+        return "done"
+
+class GateSpinDirectionTask(smach.StateMachine):
+    def __init__(self):
+        super(GateSpinDirectionTask, self).__init__(outcomes=["left", "right", "center"])
+        self.add('FIND_GATE', GateSweepTask(),
+                                transitions = {
+                                    'done': 'CHOOSE_ROTATE_DIR'
+                                })
+
+        self.add('CHOOSE_ROTATE_DIR', LambdaTask(
+                lambda ud: "left" if ud["left"] is None else ("right" if ud["right"] is None else "center"),
+                ["left", "right", "center"],
+                input_keys=["left", "right"]
+            ), transitions={
+                'left': 'left',
+                'right': 'right',
+                'center': 'center'})    
 
 # class GateRotationDoneTask(Task):
 #     def __init__(self, threshold):
@@ -302,22 +389,19 @@ class SurveyGateTask(Task):
 #                 return "false"
 #         return "spin"
 
-# class CalcGatePoseTask(Task):
-#     def __init__(self, listener):
-#         super(CalcGatePoseTask, self).__init__(["done"], output_keys=['vector1','vector2'])
-#         self.listener = listener
+class CalcGateParamsTask(Task):
+    def __init__(self, listener):
+        super(CalcGateParamsTask, self).__init__(["done"], output_keys=['vector1','vector2'])
+        self.listener = listener
 
-#     def run(self, userdata):
-#         rate = rospy.Rate(10)
-#         while self.cv_data['gateleftchild'] == None or self.cv_data['gaterightchild'] == None:
-#             rate.sleep()
-#         v1, v2 = _find_gate_normal_and_center(self.cv_data['gateleftchild'],
-#           self.cv_data['gaterightchild'], self.listener)
+    def run(self, userdata):
+        v1, v2 = _find_gate_normal_and_center(userdata['left'],
+          userdata['right'], self.listener)
 
-#         userdata['vector1'] = v1
-#         userdata['vector2'] = v2
+        userdata['vector1'] = v1
+        userdata['vector2'] = v2
 
-#         return "done"
+        return "done"
 """
 Algorithm plan for finding gate pos from cv data:
 
@@ -337,46 +421,38 @@ Then position robot along that normal and whatever distance we want
 
 # past_gate_info = []
 
-# def _find_gate_normal_and_center(gate_data_l, gate_data_r, listener):
-#     global past_gate_info
-#     top_left = _real_pos_from_cv((gate_data_l.xmin + gate_data_l.xmax)/2,
-#       gate_data_l.ymin, gate_data_l.distance, listener)
-#     top_right = _real_pos_from_cv((gate_data_r.xmin + gate_data_r.xmax)/2,
-#       gate_data_r.ymin, gate_data_r.distance, listener)
-#     bottom_left = _real_pos_from_cv((gate_data_l.xmin + gate_data_l.xmax)/2,
-#       gate_data_l.ymax, gate_data_l.distance, listener)
-#     bottom_right = _real_pos_from_cv((gate_data_r.xmin + gate_data_r.xmax)/2,
-#       gate_data_r.ymax, gate_data_r.distance, listener)
+def _find_gate_normal_and_center(gate_left, gate_right, listener):
+    # TODO Change this to match the actual height and z of the gate
+    gate_height = 1
+    top_z = 0
 
-#     # Midpoint between top_left and bottom_right
-#       center_pt = Vector3(x=(top_left.position.x + bottom_right.position.x) / 2,
-#           y=(top_left.position.y + bottom_right.position.y) / 2,
-#           z=(top_left.position.z + bottom_right.position.z) / 2)
+    # Midpoint between left and right legs
+    center_pt = Vector3(x=(gate_left.x + gate_left.x) / 2,
+        y=(gate_left.y + gate_left.y) / 2,
+        z=top_z + gate_height / 2)
 
-#     diag_1 = Vector3(top_left.position.x - bottom_right.position.x, top_left.position.y - bottom_right.position.y,
-#           top_left.position.z - bottom_right.position.z)
-#     diag_2 = Vector3(bottom_left.position.x - top_right.position.x, bottom_left.position.y - top_right.position.y,
-#           bottom_left.position.z - top_right.position.z)
+    diag_1 = Vector3(gate_left.x - gate_right.position.x, gate_left.y - gate_right.y,
+          gate_height)
+    diag_2 = Vector3(gate_left.x - gate_right.x, gate_left.y - gate_right.y,
+          -gate_height)
 
-#     # FIXME temporarily setting z to 0
-#     center_pt.z = 0
-#     normal = normalize(cross(diag_1,diag_2))
+    normal = normalize(cross(diag_1,diag_2))
 
-#     if len(past_gate_info) >= 5:
-#         sum = [Vector3(), Vector3()]
-#         for info in past_gate_info:
-#             sum[0] = add_vectors(sum[0], info[0])
-#             sum[1] = add_vectors(sum[1], info[1])
-#         sum[0] = divide_vector(sum[0], len(past_gate_info))
-#         sum[1] = divide_vector(sum[1], len(past_gate_info))
-#         if vect_dist(normal, sum[0]) + vect_dist(center_pt, sum[1]) > 0.5:
-#             return (sum[0], sum[1])
+    # if len(past_gate_info) >= 5:
+    #     sum = [Vector3(), Vector3()]
+    #     for info in past_gate_info:
+    #         sum[0] = add_vectors(sum[0], info[0])
+    #         sum[1] = add_vectors(sum[1], info[1])
+    #     sum[0] = divide_vector(sum[0], len(past_gate_info))
+    #     sum[1] = divide_vector(sum[1], len(past_gate_info))
+    #     if vect_dist(normal, sum[0]) + vect_dist(center_pt, sum[1]) > 0.5:
+    #         return (sum[0], sum[1])
 
-#     past_gate_info.append((normal, center_pt))
-#     if len(past_gate_info) > 5:
-#         past_gate_info.pop(0)
+    # past_gate_info.append((normal, center_pt))
+    # if len(past_gate_info) > 5:
+    #     past_gate_info.pop(0)
 
-#     return (normal, center_pt)
+    return (normal, center_pt)
 
 # # add two vectors
 # def add_vectors(v1, v2):
@@ -390,16 +466,16 @@ Then position robot along that normal and whatever distance we want
 # def vect_dist(v1, v2):
 #     return sqrt(pow(v1.x - v2.x, 2) + pow(v1.y - v2.y, 2) + pow(v1.z - v2.z, 2))
 
-# # calculate cross product of two vectors
-# def cross(v1, v2):
-#     return Vector3(x=v1.y*v2.z - v1.z*v2.y, y=v1.z*v2.x - v1.x*v2.z, z=v1.x*v2.y - v1.y*v2.x)
+# calculate cross product of two vectors
+def cross(v1, v2):
+    return Vector3(x=v1.y*v2.z - v1.z*v2.y, y=v1.z*v2.x - v1.x*v2.z, z=v1.x*v2.y - v1.y*v2.x)
 
-# # normalize vector
-# def normalize(v):
-#     mag = sqrt(v.x**2 + v.y**2 + v.z**2)
-#     if mag == 0:
-#         return Vector3(0, 0, 0)
-#     return Vector3(x=v.x/mag, y=v.y/mag, z=v.z/mag)
+# normalize vector
+def normalize(v):
+    mag = sqrt(v.x**2 + v.y**2 + v.z**2)
+    if mag == 0:
+        return Vector3(0, 0, 0)
+    return Vector3(x=v.x/mag, y=v.y/mag, z=v.z/mag)
 
 # """Get the position of a point in global coordinates from its position from the camera
 # Parameters:

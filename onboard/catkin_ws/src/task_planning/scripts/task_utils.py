@@ -250,6 +250,13 @@ def cv_object_position(cv_obj_data):
         return None
     return [cv_obj_data.x, cv_obj_data.y, cv_obj_data.z]
 
+class LambdaTask(Task):
+    def __init__(self, func, outcomes=[], input_keys=[], output_keys=[]):
+        super().__init__(outcomes, input_keys=input_keys, output_keys=output_keys)
+        self.func = func
+
+    def run(self, userdata):
+        return self.func(userdata)
 
 class ObjectVisibleTask(Task):
     def __init__(self, image_name, timeout):
