@@ -59,6 +59,7 @@ def create_gate_task_sm():
         # NOTE This code might not work as written unless we switch to actions for controls
         # I can change it to work with our current setup, but switching and using this feels cleaner
         rotate_gate_left_cc = smach.Concurrence(outcomes = ['left', 'right', 'center'],
+                default_outcome = 'left',
                 outcome_map = {
                     'left': {'ROTATION_DIR':'left'},
                     'right': {'ROTATION_DIR':'right'},
@@ -69,6 +70,7 @@ def create_gate_task_sm():
             smach.Concurrence.add('ROTATE', AllocateVelocityLocalTask(0, 0, 0, 0, 0, ROTATE_SPEED))
 
         rotate_gate_right_cc = smach.Concurrence(outcomes = ['left', 'right', 'center'],
+                default_outcome = 'right',
                 outcome_map = {
                     'left': {'ROTATION_DIR':'left'},
                     'right': {'ROTATION_DIR':'right'},
