@@ -111,11 +111,11 @@ class DepthAIImageStreamPublisher:
                 image_msg_rgb = self.bridge.cv2_to_imgmsg(img_rgb, 'bgr8')
                 self.stream_publisher_rgb.publish(image_msg_rgb)
 
-                image_msg_left = self.bridge.cv2_to_imgmsg(img_left, 'bgr8')
-                self.stream_publisher_left.publish(image_msg_left)
+                # image_msg_left = self.bridge.cv2_to_imgmsg(img_left, 'bgr8')
+                # self.stream_publisher_left.publish(image_msg_left)
 
-                image_msg_right = self.bridge.cv2_to_imgmsg(img_right, 'bgr8')
-                self.stream_publisher_right.publish(image_msg_right)
+                # image_msg_right = self.bridge.cv2_to_imgmsg(img_right, 'bgr8')
+                # self.stream_publisher_right.publish(image_msg_right)
 
 
 
