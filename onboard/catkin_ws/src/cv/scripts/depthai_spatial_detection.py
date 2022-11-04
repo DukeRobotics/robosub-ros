@@ -181,7 +181,8 @@ class DepthAISpatialDetector:
         self.output_queues["detections"] = device.getOutputQueue(name="detections", maxSize=1, blocking=False)
         self.output_queues["boundingBoxDepthMapping"] = device.getOutputQueue(
             name="boundingBoxDepthMapping",
-            maxSize=1,blocking=False
+            maxSize=1,
+            blocking=False
         )
         self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
         self.connected = True

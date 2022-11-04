@@ -97,7 +97,7 @@ class DepthAIMockImageStream:
             # Output queue will be used to get nn data from the video frames.
 
             # qFeed = device.getOutputQueue(name="feed", maxSize=4, blocking=False)
-            
+
             # qOut = device.getOutputQueue(name="nn", maxSize=4, blocking=False)
 
             # Send a message to the ColorCamera to capture a still image
