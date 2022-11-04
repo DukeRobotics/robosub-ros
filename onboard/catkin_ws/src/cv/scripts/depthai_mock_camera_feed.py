@@ -23,6 +23,7 @@ class DepthAIMockImageStream:
 
     CAMERA = 'left'
     IMAGE_TOPIC = f'/camera/{CAMERA}/image_raw'
+
     # Read in the dummy image and other misc. setup work
     def __init__(self):
         self.nnPath = NN_PATH
@@ -33,7 +34,7 @@ class DepthAIMockImageStream:
         path = os.path.dirname(__file__)
         self.image = cv2.imread(os.path.join(path, IMAGE_RELATIVE_PATH), cv2.IMREAD_COLOR)
         self.subscribe = rospy.Subscriber(self.IMAGE_TOPIC, queue_size=10)
-        
+
         # Get path to nn blob file
 
     def _build_pipeline(self):
@@ -94,8 +95,10 @@ class DepthAIMockImageStream:
             qIn = device.getInputQueue("camIn")
 
             # Output queue will be used to get nn data from the video frames.
-            qFeed = device.getOutputQueue(name="feed", maxSize=4, blocking=False)
-            #qOut = device.getOutputQueue(name="nn", maxSize=4, blocking=False)
+
+            # qFeed = device.getOutputQueue(name="feed", maxSize=4, blocking=False)
+            
+            # qOut = device.getOutputQueue(name="nn", maxSize=4, blocking=False)
 
             # Send a message to the ColorCamera to capture a still image
             img = dai.ImgFrame()

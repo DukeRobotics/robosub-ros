@@ -179,8 +179,10 @@ class DepthAISpatialDetector:
 
         self.output_queues["rgb"] = device.getOutputQueue(name="rgb", maxSize=1, blocking=False)
         self.output_queues["detections"] = device.getOutputQueue(name="detections", maxSize=1, blocking=False)
-        self.output_queues["boundingBoxDepthMapping"] = device.getOutputQueue(name="boundingBoxDepthMapping",
-        maxSize=1,blocking=False)
+        self.output_queues["boundingBoxDepthMapping"] = device.getOutputQueue(
+            name="boundingBoxDepthMapping",
+            maxSize=1,blocking=False
+        )
         self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
         self.connected = True
 
@@ -213,9 +215,9 @@ class DepthAISpatialDetector:
             # and to the right is positive x
             # y is down/up axis, where 0 is in the middle of the frame, down is negative y, and up is positive y
             # z is distance of object from camera in mm
-            x_cam_mm = detection.spatialCoordinates.x  
-            y_cam_mm = detection.spatialCoordinates.y  
-            z_cam_mm = detection.spatialCoordinates.z  
+            x_cam_mm = detection.spatialCoordinates.x
+            y_cam_mm = detection.spatialCoordinates.y
+            z_cam_mm = detection.spatialCoordinates.z
 
             x_cam_meters, y_cam_meters, z_cam_meters = mm_to_meters(x_cam_mm), mm_to_meters(y_cam_mm),
             mm_to_meters(z_cam_mm)

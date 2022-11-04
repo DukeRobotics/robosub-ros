@@ -277,7 +277,9 @@ class ImageTools(object):
 
 
 if __name__ == '__main__':
-    from sensor_msgs.msg import Image, CompressedImage
+    # If this script does not work, try uncommenting the line below
+    
+    # from sensor_msgs.msg import Image, CompressedImage
     it = ImageTools()
     from cPickle import load
     img = load(open('rgb_image.pickle', 'r'))
