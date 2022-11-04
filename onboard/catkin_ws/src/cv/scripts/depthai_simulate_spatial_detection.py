@@ -10,9 +10,11 @@ path = os.path.dirname(__file__)
 NN_PATH = os.path.join(path, '../assets/bloblol.blob')
 IMAGE_RELATIVE_PATH = os.path.join(path, '../assets/left384.jpg')
 
+
 class DepthAISimulateSpatialDetection:
     """
-    THIS FILE IS INCOMPLETE. It can be used for local testing outside of the docker container since it does not require ROS.
+    THIS FILE IS INCOMPLETE. It can be used for local testing outside of the docker container since
+    it does not require ROS.
 
     This class is used to test a CV neural network model locally with a simulated image feed.
     This class takes a still image and transfers it from the host (local computer) to the camera. The
@@ -20,7 +22,6 @@ class DepthAISimulateSpatialDetection:
     """
     CAMERA = 'left'
     IMAGE_TOPIC = f'/camera/{CAMERA}/image_raw'
-
     # Read in the dummy image and other misc. setup work
     def __init__(self):
         self.nnPath = NN_PATH
@@ -32,16 +33,14 @@ class DepthAISimulateSpatialDetection:
         self.image = cv2.imread(os.path.join(path, IMAGE_RELATIVE_PATH), cv2.IMREAD_COLOR)
         self.subscribe = rospy.Subscriber(self.IMAGE_TOPIC, self.run, queue_size=10)
         
-        
         # Get path to nn blob file
-
 
     def _build_pipeline(self):
         """
-        Build the pipeline. Create an input stream to feed the still image and transfer it to the camera. Link that still image
-        stream to the input of the neural network. Create a output link to get the image that was fed through the neural network.
-        In the future, we'd like to create an output link to get the predictions from the neural network rather than the input 
-        to the neural network.
+        Build the pipeline. Create an input stream to feed the still image and transfer it to the camera. Link that
+        still image stream to the input of the neural network. Create a output link to get the image that was fed
+        through the neural network. In the future, we'd like to create an output link to get the predictions from the
+        neural network rather than the input to the neural network.
         """
 
         # Point xIn to still image
@@ -113,6 +112,7 @@ class DepthAISimulateSpatialDetection:
             qIn.send(img)
             inFeed = qFeed.get()
             rospy.loginfo(inFeed)
+
 
 if __name__ == '__main__':
     DepthAISimulateSpatialDetection()

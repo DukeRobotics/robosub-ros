@@ -4,14 +4,14 @@ import rospy
 import depthai as dai
 import cv2
 import numpy as np
-import os
-from custom_msgs.srv import EnableModel
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
+
 class DepthAIImageStreamPublisher:
     """
-    Class to stream the RGB video, RGB stereo, mono left, mono right, and disparity image feeds from the depthai camera and publish them to their own topics.
+    Class to stream the RGB video, RGB stereo, mono left, mono right, and disparity image feeds from the depthai camera
+    and publish them to their own topics.
     """
 
     CAMERA = 'front'
@@ -99,7 +99,8 @@ class DepthAIImageStreamPublisher:
     # Publish newest image off queue to topic every few seconds
     def run(self):
         """
-        Get RGB video, RGB stereo, mono left, mono right, and disparity images from the camera and publish them to their respective topics.
+        Get RGB video, RGB stereo, mono left, mono right, and disparity images from the camera and
+        publish them to their respective topics.
         """
 
         # Upload pipeline to device
@@ -111,7 +112,8 @@ class DepthAIImageStreamPublisher:
             device_info = dai.DeviceInfo("169.254.1.222")
             device = dai.Device(self.pipeline, device_info)
 
-        # Output queue, to receive message on the host from the device (you can send the message on the device with XLinkOut)
+        # Output queue, to receive message on the host from the device(you can send the message
+        # on the device with XLinkOut)
         rgbVideoQueue = device.getOutputQueue(name="rgbVideo", maxSize=4, blocking=False)
         rgbPreviewQueue = device.getOutputQueue(name="rgbPreview", maxSize=4, blocking=False)
         leftQueue = device.getOutputQueue(name="left", maxSize=4, blocking=False)

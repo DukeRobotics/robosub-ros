@@ -4,18 +4,16 @@ import rospy
 import resource_retriever as rr
 import yaml
 
-from pathlib import Path
-import cv2
 import depthai as dai
 import numpy as np
 
 from custom_msgs.srv import EnableModel
 from custom_msgs.msg import CVObject
-from sensor_msgs.msg import Image
 
 
 MM_IN_METER = 1000
 DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH = 'package://cv/models/depthai_models.yaml'
+
 
 # Compute detections on live camera feed and publish spatial coordinates for detected objects
 class DepthAISpatialDetector:
@@ -51,12 +49,13 @@ class DepthAISpatialDetector:
         https://docs.luxonis.com/projects/api/en/latest/components/nodes/yolo_spatial_detection_network/.
         The output queues available from this pipeline are:
             - "rgb": contains the 400x400 RGB preview of the camera feed.
-            - "detections": contains SpatialImgDetections messages (https://docs.luxonis.com/projects/api/en/latest/components/messages/spatial_img_detections/#spatialimgdetections),
-                            which includes bounding boxes for detections as well as XYZ coordinates of the detected objects.
+            - "detections": contains SpatialImgDetections messages (https://docs.luxonis.com/projects/api/en/latest/
+                            components/messages/spatial_img_detections/#spatialimgdetections), which includes bounding
+                            boxes for detections as well as XYZ coordinates of the detected objects.
             - "boundingBoxDepthMapping": contains SpatialLocationCalculatorConfig messages, which provide a mapping
                                          between the RGB feed from which bounding boxes are computed and the depth map.
-            - "depth": contains ImgFrame messages with UINT16 values which represent the depth in millimeters by default.
-                       see the depth output of https://docs.luxonis.com/projects/api/en/latest/components/nodes/stereo_depth/
+            - "depth": contains ImgFrame messages with UINT16 values representing the depth in millimeters by default.
+                       see https://docs.luxonis.com/projects/api/en/latest/components/nodes/stereo_depth/
 
         :param nn_blob_path: Path to blob file used for object detection.
         :param sync_nn: If True, sync the RGB output feed with the detection from the neural network. Needed if the RGB
@@ -107,7 +106,7 @@ class DepthAISpatialDetector:
         spatial_detection_network.setNumClasses(5)
         spatial_detection_network.setCoordinateSize(4)
         spatial_detection_network.setAnchors(np.array([10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]))
-        spatial_detection_network.setAnchorMasks({ "side26": [0, 1, 2], "side13": [3,4,5] })
+        spatial_detection_network.setAnchorMasks({"side26": [0, 1, 2], "side13": [3, 4, 5]})
         spatial_detection_network.setIouThreshold(0.5)
 
         # Linking
@@ -172,14 +171,16 @@ class DepthAISpatialDetector:
     def init_output_queues(self, device):
         """
         Assigns output queues from the pipeline to dictionary of queues.
-        :param device: DepthAI.Device object for the connected device. See https://docs.luxonis.com/projects/api/en/latest/components/device/
+        :param device: DepthAI.Device object for the connected device.
+        See https://docs.luxonis.com/projects/api/en/latest/components/device/
         """
         if self.connected:
             return
 
         self.output_queues["rgb"] = device.getOutputQueue(name="rgb", maxSize=1, blocking=False)
         self.output_queues["detections"] = device.getOutputQueue(name="detections", maxSize=1, blocking=False)
-        self.output_queues["boundingBoxDepthMapping"] = device.getOutputQueue(name="boundingBoxDepthMapping", maxSize=1, blocking=False)
+        self.output_queues["boundingBoxDepthMapping"] = device.getOutputQueue(name="boundingBoxDepthMapping",
+        maxSize=1,blocking=False)
         self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
         self.connected = True
 
@@ -192,7 +193,7 @@ class DepthAISpatialDetector:
 
         inPreview = self.output_queues["rgb"].get()
         inDet = self.output_queues["detections"].get()
-        depth = self.output_queues["depth"].get()
+        # depth = self.output_queues["depth"].get()
 
         frame = inPreview.getCvFrame()
         detections = inDet.detections
@@ -207,11 +208,17 @@ class DepthAISpatialDetector:
             label = self.classes[label_idx]
 
             confidence = detection.confidence
-            x_cam_mm = detection.spatialCoordinates.x  # x is left/right axis, where 0 is in middle of the frame, to the left is negative x, and to the right is positive x
-            y_cam_mm = detection.spatialCoordinates.y  # y is down/up axis, where 0 is in the middle of the frame, down is negative y, and up is positive y
-            z_cam_mm = detection.spatialCoordinates.z  # z is distance of object from camera in mm
 
-            x_cam_meters, y_cam_meters, z_cam_meters = mm_to_meters(x_cam_mm), mm_to_meters(y_cam_mm), mm_to_meters(z_cam_mm)
+            # x is left/right axis, where 0 is in middle of the frame, to the left is negative x,
+            # and to the right is positive x
+            # y is down/up axis, where 0 is in the middle of the frame, down is negative y, and up is positive y
+            # z is distance of object from camera in mm
+            x_cam_mm = detection.spatialCoordinates.x  
+            y_cam_mm = detection.spatialCoordinates.y  
+            z_cam_mm = detection.spatialCoordinates.z  
+
+            x_cam_meters, y_cam_meters, z_cam_meters = mm_to_meters(x_cam_mm), mm_to_meters(y_cam_mm),
+            mm_to_meters(z_cam_mm)
 
             det_coords_robot_mm = camera_frame_to_robot_frame(x_cam_meters, y_cam_meters, z_cam_meters)
 
@@ -250,9 +257,10 @@ class DepthAISpatialDetector:
         """
         Runs the model on the connected device.
         :param req: Request from
-        :return: False if the model is not in cv/models/depthai_models.yaml. Otherwise, the model will be run on the device.
+        :return: False if the model is not in cv/models/depthai_models.yaml.Otherwise, the model
+        will be run on the device.
         """
-        if not req.model_name in self.models:
+        if req.model_name not in self.models:
             return False
 
         self.init_model(req.model_name)
@@ -289,6 +297,7 @@ def mm_to_meters(val_mm):
     :return: Input value converted to meters.
     """
     return val_mm / MM_IN_METER
+
 
 def camera_frame_to_robot_frame(cam_x, cam_y, cam_z):
     """
