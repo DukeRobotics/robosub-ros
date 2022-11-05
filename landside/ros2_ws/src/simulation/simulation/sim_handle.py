@@ -32,7 +32,7 @@ class SimHandle:
         objs = self.run_sim_function(sim.simxGetObjects, (self.clientID, sim.sim_handle_all, sim.simx_opmode_blocking))
         self.logger.info(f'sim_handle.__init__: Number of objects in the scene: {len(objs)}')
         self.robot = self.run_sim_function(sim.simxGetObjectHandle, (self.clientID, "Rob", sim.simx_opmode_blocking))
-        time.sleep(1)
+        time.sleep(0.1)
         self.init_streaming()
 
         config_filepath = rr.get_filename(

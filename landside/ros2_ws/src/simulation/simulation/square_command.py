@@ -9,11 +9,11 @@ class SquareCommand(Node):
 
     NODE_NAME = "sim_move_square"
     MOVE_TOPIC = "/offboard/thruster_speeds"
-    FORWARDS = (40, 40, 40, 40, 0, 0, 0, 0)
-    BACKWARDS = (-40, -40, -40, -40, 0, 0, 0, 0)
-    RIGHT = (-40, 40, 40, -40, 0, 0, 0, 0)  # top view
-    LEFT = (40, -40, -40, 40, 0, 0, 0, 0)
-    RUN_LOOP_RATE = 1  # Hz
+    FORWARDS = (127, 127, 127, 127, 0, 0, 0, 0)
+    BACKWARDS = (-127, -127, -127, -127, 0, 0, 0, 0)
+    RIGHT = (-127, 127, 127, -127, 0, 0, 0, 0)  # top view
+    LEFT = (127, -127, -127, 127, 0, 0, 0, 0)
+    RUN_LOOP_RATE = 10  # Hz
 
     def __init__(self):
         super().__init__(self.NODE_NAME)
@@ -25,7 +25,6 @@ class SquareCommand(Node):
 
     def run(self):
         data = ThrusterSpeeds()
-        self.get_logger().info("HI")
         if (self.get_clock().now() - self.start).to_msg().sec > 5:
             self.ct = (self.ct + 1) % 4
             self.start = self.get_clock().now()

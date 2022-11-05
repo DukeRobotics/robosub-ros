@@ -19,7 +19,7 @@ class SimLoop(Node):
     ROBOT_MOVE_TOPIC = 'offboard/thruster_speeds'
     OBJ_POINTS_TOPIC = 'sim/object_points'
     DEPTH_TOPIC = 'sensors/depth'
-    RUN_LOOP_RATE = 1
+    RUN_LOOP_RATE = 10
 
     def __init__(self):
         super().__init__(self.NODE_NAME)
