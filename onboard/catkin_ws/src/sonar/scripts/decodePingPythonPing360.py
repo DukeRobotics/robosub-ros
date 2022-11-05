@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
 import struct, sys, re
+import numpy as np
+from PIL import ImageFilter
+import matplotlib.pyplot as plt
+from scipy import signal
 
 # 3.7 for dataclasses, 3.8 for walrus (:=) in recovery
 assert (sys.version_info.major >= 3 and sys.version_info.minor >= 8), \
@@ -276,6 +280,28 @@ def getdecodedfile(localfilename):
     return log.parser()
 
 if __name__ == "__main__":
+
+    LotG = np.array([[-0.0612,-0.0614,-0.0395,-0.0614,-0.0612], 
+                     [-0.0614, 0.0963, 0.2505, 0.0963,-0.0614], 
+                     [-0.0395, 0.2505, 0.5072, 0.2505,-0.0395], 
+                     [-0.0614, 0.0963, 0.2505, 0.0963,-0.0614], 
+                     [-0.0612,-0.0614,-0.0395,-0.0614,-0.0612]])
+    
+    G9x9 = np.array([[0.0000,    0.0000,    0.0000,    0.0000,    0.0001,    0.0000,    0.0000,    0.0000,    0.0000],
+                     [0.0000,    0.0000,    0.0002,    0.0011,    0.0018,    0.0011,    0.0002,    0.0000,    0.0000],
+                     [0.0000,    0.0002,    0.0029,    0.0131,    0.0215,    0.0131,    0.0029,    0.0002,    0.0000],
+                     [0.0000,    0.0011,    0.0131,    0.0586,    0.0965,    0.0586,    0.0131,    0.0011,    0.0000],
+                     [0.0001,    0.0018,    0.0215,    0.0965,    0.1592,    0.0965,    0.0215,    0.0018,    0.0001],
+                     [0.0000,    0.0011,    0.0131,    0.0586,    0.0965,    0.0586,    0.0131,    0.0011,    0.0000],
+                     [0.0000,    0.0002,    0.0029,    0.0131,    0.0215,    0.0131,    0.0029,    0.0002,    0.0000],
+                     [0.0000,    0.0000,    0.0002,    0.0011,    0.0018,    0.0011,    0.0002,    0.0000,    0.0000],
+                     [0.0000,    0.0000,    0.0000,    0.0000,    0.0001,    0.0000,    0.0000,    0.0000,    0.0000]])
+    
+    G3x3 = np.array([[0.0751,    0.1238,    0.0751],
+                     [0.1238,    0.2042,    0.1238],
+                     [0.0751,    0.1238,    0.0751]])
+
+
     import os
     dirname = os.path.dirname(__file__)
     
@@ -285,9 +311,27 @@ if __name__ == "__main__":
     log = PingViewerLogReader(filename)
 
     for index, (timestamp, decoded_message) in enumerate(log.parser()):
+        
         if(index >= 49 and index <= 149):
-            #print(f"{index} {decoded_message.angle}")
-            print(decoded_message)
-            #split_bytes = [decoded_message.data[i:i+1] for i in range(len(decoded_message.data))]
-            #print(split_bytes)
+            split_bytes = [decoded_message.data[i:i+1] for i in range(len(decoded_message.data))]
+            split_bytes = split_bytes[100:]
+            byte_from_int = int.from_bytes(split_bytes[0], "big")
+            intarray = np.array([byte_from_int])
+            for i in range(len(split_bytes) -1):
+                byte_from_int = int.from_bytes(split_bytes[i+1], "big")
+                #if(byte_from_int <= 90):
+                    #byte_from_int = 0
+                intarray = np.append(intarray, [byte_from_int])
+            if(index == 49):
+                sonar_matrix = np.asarray(intarray)
+            else:
+                sonar_matrix = np.vstack((sonar_matrix, intarray))
+
+    LotG_conv_sonar = signal.convolve2d(sonar_matrix, LotG, "valid")
+    G3x3_conv_sonar = signal.convolve2d(sonar_matrix, G3x3, "valid")
+    G9x9_conv_sonar = signal.convolve2d(sonar_matrix, G9x9, "valid")
+    plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image.jpeg', sonar_matrix)
+    plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\LotG_Sonar_Image.jpeg', LotG_conv_sonar)
+    plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\G3x3_Sonar_Image.jpeg', G3x3_conv_sonar)
+    plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\G9x9_Sonar_Image.jpeg', G9x9_conv_sonar)
         

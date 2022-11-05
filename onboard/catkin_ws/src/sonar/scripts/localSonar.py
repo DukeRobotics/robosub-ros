@@ -2,7 +2,6 @@
 
 from brping import Ping360
 import numpy as np
-import decodePingPythonPing360
 
 SERIAL_PORT_NAME = "COM4"  # TODO determine what port this is for the robot.
 BAUD_RATE = 115200  # hz
