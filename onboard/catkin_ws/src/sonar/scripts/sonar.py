@@ -12,16 +12,16 @@ class Sonar:
     """
 
     SERIAL_PORT_NAME = "/dev/ttyUSB2"  # PORT of the salea is ttyUSB2 for testing
+    ETHERNET_PORT_NAME = "192.168.1.4"
     BAUD_RATE = 2000000  # hz
     SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
     SPEED_OF_SOUND_IN_WATER = 1480  # m/s
     FILTER_INDEX = 100 #number of values to filter TODO figure out where the noise starts
 
-    FTDI_STR = "DK0C1WF7"
-
     def __init__(self, range, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
         self.ping360 = Ping360()
-        self.ping360.connect_serial(serial_port_name, baud_rate)  # TODO: Add try except for connecting to device
+        #self.ping360.connect_serial(serial_port_name, baud_rate)  # TODO: Add try except for connecting to device
+        self.ping360.connect_udp(self.ETHERNET_PORT_NAME)
         self.ping360.initialize()
         period_and_duration = self.range_to_period_and_duration(range)
 
@@ -180,5 +180,5 @@ if __name__ == "__main__":
     #   BAUD_RATE = 2000000
 
     sonar = Sonar(range=5)
-    sweep_data = sonar.sweep_biggest_byte(150, 250)  #90deg in front
-    print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
+    # sweep_data = sonar.sweep_biggest_byte(150, 250)  #90deg in front
+    # print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
