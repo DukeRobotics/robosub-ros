@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from asyncio.windows_events import NULL
 from brping import Ping360
 import numpy as np
 import sonar_utils
