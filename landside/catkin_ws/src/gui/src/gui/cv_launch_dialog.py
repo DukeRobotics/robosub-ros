@@ -1,6 +1,3 @@
-from ast import arg
-from email.policy import default
-from multiprocessing.spawn import is_forking
 import os
 import glob
 
@@ -15,20 +12,13 @@ from custom_msgs.srv import StartLaunch
 
 import xml.etree.ElementTree as ET
 
+
 class CVLaunchDialog(QDialog):
 
     ROOT_PATH = '/root/dev/robosub-ros/onboard/catkin_ws/src'
 
     node_launched = pyqtSignal(int, str, str, str, name='nodeLaunched')
 
-    # Commands to install rqt_bag and rqt_image_view; run these in landside
-    # sudo apt-get update
-    # sudo apt-get install ros-noetic-rqt-bag
-    # sudo apt-get install ros-noetic-rqt-image-view
-
-    # TODO: Change the data stored in this array into this format
-    # Format: [{name: "arg1", default: "", label: QLabel, lineEdit: QLineEdit},
-    # {name: "arg2", default: "val2", label: QLabel, lineEdit: QLineEdit}, ...]
     argFormRows = []
 
     def __init__(self, p):
@@ -45,7 +35,6 @@ class CVLaunchDialog(QDialog):
         self.package_name_box.activated.connect(self.package_name_selected)
         self.node_name_box.activated.connect(self.node_name_selected)
         self.accept_button.clicked.connect(self.click_ok)
-        # self.cancel_button.clicked.connect(self.reject)
 
     @pyqtProperty(str)
     def default_pkg(self):
@@ -54,7 +43,7 @@ class CVLaunchDialog(QDialog):
     @default_pkg.setter
     def default_pkg(self, value):
         self.default_package = value
-        
+
         # Making self.default_package selected by default
         self.package_name_box.setCurrentText(self.default_package)
         self.setup_node_name_box(self.default_package)
@@ -72,7 +61,6 @@ class CVLaunchDialog(QDialog):
         self.node_name_box.setEnabled(False)
         self.args_input.clear()
         self.accept_button.setEnabled(False)
-        #self.cancel_button.setEnabled(True)
 
     def get_launchables(self, package_name):
         package_dir = os.path.join(self.ROOT_PATH, package_name)
@@ -91,7 +79,7 @@ class CVLaunchDialog(QDialog):
         self.node_name_box.setEnabled(True)
 
     def setup_node_name_box(self, selected_package):
-        self.node_name_box.clear() 
+        self.node_name_box.clear()
         launchables = self.get_launchables(selected_package)
         launchable_names = [os.path.split(f)[1] for f in launchables]
         self.node_name_box.addItems(launchable_names)
@@ -102,19 +90,16 @@ class CVLaunchDialog(QDialog):
         else:
             self.accept_button.setEnabled(True)
 
-        # TODO: Step 3 - Remove all widgets in the self.argFormRows list from the UI.
         for row in self.argFormRows:
             self.form_layout.removeRow(row['label'])
         self.argFormRows = []
 
-        selected_node =  self.node_name_box.currentText()
+        selected_node = self.node_name_box.currentText()
         selected_node_file_type = selected_node.split(".")[1]
 
         if selected_node_file_type == "launch":
             package_dir = os.path.join(self.ROOT_PATH, self.package_name_box.currentText())
             launch_file_path = os.path.join(package_dir, 'launch/' + self.node_name_box.currentText())
-
-            # TODO: Get rid of this list
 
             tree = ET.parse(launch_file_path)
 
@@ -122,9 +107,8 @@ class CVLaunchDialog(QDialog):
                 for child in root:
                     if child.tag == 'arg' and child.get('value') is None:
                         self.argFormRows.append(child.attrib)
-                    
                     traverse_tree(child)
-            
+
             root = tree.getroot()
             traverse_tree(root)
 
@@ -134,14 +118,14 @@ class CVLaunchDialog(QDialog):
                     default_value = ''
                 else:
                     default_value = row['default']
-                
+
                 label = QtWidgets.QLabel(arg['name'])
                 input = QtWidgets.QLineEdit()
                 input.setText(default_value)
-                
+
                 # row inserted at position row+2, after the Package and Node Name rows
                 self.form_layout.insertRow(row + 2, label, input)
-                
+
                 arg['label'] = label
                 arg['lineEdit'] = input
 
@@ -150,15 +134,12 @@ class CVLaunchDialog(QDialog):
         node = self.node_name_box.currentText()
         args = self.args_input.text().split(' ')
 
-        # TODO: Add values of the lineEdits from self.argFormRows into the args array
-        # The args array needs to be in the form ["arg1:=val1", "arg2:=val2", ...]
         for row in self.argFormRows:
             if row['lineEdit'].text() == "":
                 return
             arg = row['name'] + ":=" + row['lineEdit'].text()
             args.append(arg)
-        
-        # If one or more lineEdits' value is an empty string, then don't execute the following code
+
         start_launch = rospy.ServiceProxy('start_node', StartLaunch)
         try:
             resp = start_launch(package, node, args, node.endswith('.launch'))

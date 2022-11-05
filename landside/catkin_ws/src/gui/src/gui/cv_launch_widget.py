@@ -7,7 +7,6 @@ import rospy
 import resource_retriever as rr
 import rosservice
 
-from gui.cv_launch_dialog import CVLaunchDialog
 from custom_msgs.srv import StartLaunch, StopLaunch
 
 
@@ -23,12 +22,7 @@ class CVLaunchWidget(QWidget):
 
         self.table_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
 
-        # self.launch_dialog = CVLaunchDialog(self)
-        # self.launch_dialog.setObjectName('CVLaunchDialog')
-        # self.launch_dialog.reset()
         self.launch_dialog.node_launched.connect(self.append_to_table)
-
-        # self.launch_dialog_button.clicked.connect(self.launch_node_dialog)
 
         self.remote_launch_timer = QTimer(self)
         self.remote_launch_timer.timeout.connect(self.check_remote_launch)
@@ -41,17 +35,15 @@ class CVLaunchWidget(QWidget):
             items = self.table_widget.selectedItems()
             if items and items[0].row() != 0:
                 self.delete_launch(items[0].row())
-            rospy.loginfo("inside delete key")
         super(CVLaunchWidget, self).keyPressEvent(event)
 
     def check_remote_launch(self):
         enabled = '/start_node' in rosservice.get_service_list()
-        # self.launch_dialog_button.setEnabled(enabled)
+        self.launch_dialog.setEnabled(enabled)
         self.table_widget.setEnabled(enabled)
 
     def launch_node_dialog(self):
         self.launch_dialog.reset()
-        # self.launch_dialog.open()
 
     def launch_file(self, launchfile):
         args = ['sim:=true'] if self.simulation else ['sim:=false']
@@ -75,4 +67,3 @@ class CVLaunchWidget(QWidget):
 
     def closeEvent(self, event):
         self.launch_dialog.accept()
-
