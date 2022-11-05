@@ -263,7 +263,7 @@ class ObjectVisibleTask(Task):
         millis = 10
         rate = rospy.Rate(millis)
         total = 0
-        while total < self.time * 1000:
+        while total < self.timeout * 1000:
             if object_vector(self.cv_data[self.image_name]) is not None:
                 return "detected"
             total += millis
