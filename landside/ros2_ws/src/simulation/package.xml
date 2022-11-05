@@ -18,6 +18,7 @@
   <depend>resource_retriever</depend>
   <depend>tf_transformations</depend>
   <depend>tf2</depend>
+  <depend>tf2_geometry_msgs</depend>
 
   <export>
     <build_type>ament_python</build_type>

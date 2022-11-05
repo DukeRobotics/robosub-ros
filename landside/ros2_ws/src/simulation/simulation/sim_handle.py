@@ -159,7 +159,7 @@ class SimHandle:
                     point_y = base_y + (min_y if j == 0 else max_y)
                     point_z = base_z + (min_z if k == 0 else max_z)
                     point = [point_x, point_y, point_z, 0]
-                    point = quaternion_multiply(quat_conj, quaternion_multiply(point, quat))
+                    point = list(quaternion_multiply(quat_conj, quaternion_multiply(point, quat)))
                     point[:3] += pos
                     ret.append(Point(x=point[0], y=point[1], z=point[2]))
         return ret

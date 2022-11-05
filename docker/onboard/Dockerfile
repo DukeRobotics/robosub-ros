@@ -39,7 +39,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Get required python packages
 RUN pip3 install --no-cache-dir \
     numpy scipy pymba python-dateutil \
-    pyserial dependency-injector \ 
+    pyserial dependency-injector \
     gputil saleae
 
 # Install PyTorch and Torchvision

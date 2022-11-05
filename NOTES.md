@@ -4,11 +4,11 @@ To source ROS: `source /opt/ros/humble/setup.bash`
 custom_msgs takes very long to build (around 90 seconds) with colcon. We should consider pre-building custom_msgs for the core DockerFile if possible.
 
 ## Bulding
-For building, use `colcon build --symlink-install`, because colcon has no devel space.
+For building, use `colcon build --symlink-install`, because colcon has no devel space. This allows us to change scripts without rebuilding for each change.
 
 Post colcon build, run
 
-```
+```bash
 source landside/ros2_ws/install/setup.bash
 source onboard/ros2_ws/install/setup.bash
 ```
@@ -16,7 +16,7 @@ source onboard/ros2_ws/install/setup.bash
 No `colcon clean`, instead `rm -r build install log`
 
 ## Writing nodes
-Nodes now inherit from rclpy.node.Node, and are created via `super().__init__(self.NODE_NAME)`
+Nodes now inherit from `rclpy.node.Node`, and are created via `super().__init__(self.NODE_NAME)`
 
 `main()` should now include `rclpy.init()`
 
@@ -50,15 +50,25 @@ Have to convert time to messages explicitly: `.to_msg().sec`
 Replace `tf` with `tf_transformations`
 Replace `import tf2` with `import tf2_ros`
 
-To declare a transform listener in a node:
-```
+To declare a transform listener in a node and transform a PoseStamped:
+```python
+import rclpy
 from tf2_ros.transform_listener import TransformListener
+from tf2_ros.buffer import Buffer
+from tf2_geometry_msgs import do_transform_pose_stamped
 
 
-class TestNode(Node):
-    super().__init__(self.NODE_NAME)
-    self.buffer = Buffer()
-    self.listener = TransformListener(self.buffer, self)
+class TestNode(rcply.node.Node):
+    super().__init__("node_name")
+    self.tf_buffer = Buffer()
+    self.tf_listener = TransformListener(self.buffer, self)
+
+    pose_stamped = PoseStamped()
+    pose_stamped.header.frame_id = "source_frame"
+    transform = self.tf_buffer.lookup_transform("target_frame",
+                                                poses.header.frame_id,
+                                                rclpy.time.Time())
+    transformed_pose_stamped = do_transform_pose_stamped(poses, transform)
 ```
 
 
@@ -67,18 +77,21 @@ class TestNode(Node):
 Rosbags are no longer stored as .bag files. They are now stored as sqlite3 databases.
 
 ## Dependencies
-    `sudo apt update`
 
 ### Core
-	`pip install setuptools==58.2.0`
-    `pip install transforms3d`
-	`apt-get install ros-humble-resource-retriever`
-    `apt-get install ros-humble-cv-bridge`
-    `apt-get install ros-humble-tf2`
-    `apt-get install ros-humble-tf-transformations`
+```bash
+	pip install setuptools==58.2.0
+    pip install transforms3d
+	apt-get install ros-humble-resource-retriever
+    apt-get install ros-humble-cv-bridge
+    apt-get install ros-humble-tf2
+    apt-get install ros-humble-tf-transformations
+```
 
 ### Landside
-	`apt-get install ros-humble-joy`
-    `apt-get install ros-humble-image-view`
-    `apt-get install ros-humble-image-publisher`
-    `apt-get install ros-humble-rqt`
+```bash
+	apt-get install ros-humble-joy
+    apt-get install ros-humble-image-view
+    apt-get install ros-humble-image-publisher
+    apt-get install ros-humble-rqt
+````

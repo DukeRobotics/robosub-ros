@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-from custom_msgs.msg import CVObject, SimObjectArray
-from tf2_ros.transform_listener import TransformListener
-from tf2_ros.buffer import Buffer
-from geometry_msgs.msg import Pose, Quaternion, PoseStamped
 import rclpy
 from rclpy.node import Node
+from custom_msgs.msg import CVObject, SimObjectArray
+from geometry_msgs.msg import Pose, Quaternion, PoseStamped
+from tf2_ros.transform_listener import TransformListener
+from tf2_ros.buffer import Buffer
+from tf2_geometry_msgs import do_transform_pose_stamped
 from numpy import clip
 import resource_retriever as rr
 import yaml
@@ -18,8 +19,8 @@ class BoundingBox(Node):
 
     def __init__(self):
         super().__init__(self.NODE_NAME)
-        self.buffer = Buffer()
-        self.listener = TransformListener(self.buffer, self)
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
         config_filepath = rr.get_filename(
             'package://simulation/data/config.yaml',
             use_protocol=False
@@ -36,13 +37,6 @@ class BoundingBox(Node):
                 CVObject,
                 f'cv/simulation/{label.strip().lower()}/left',
                 10)
-
-    def test_point_rel_to_base_link(self, point):
-        poses = PoseStamped()
-        poses.pose = Pose(position=point, orientation=Quaternion(w=1, x=0, y=0, z=0))
-        poses.header.frame_id = "odom"
-        transformed = self.listener.transformPose("base_link", poses).pose.position
-        return transformed
 
     def callback(self, data):
         object_data = {}
@@ -126,9 +120,22 @@ class BoundingBox(Node):
 
     def point_rel_to_bot(self, point):
         poses = PoseStamped()
+        poses.pose = Pose(position=point, orientation=Quaternion(w=1.0, x=0.0, y=0.0, z=0.0))
+        poses.header.frame_id = "odom"
+        transform = self.tf_buffer.lookup_transform("cameras_link",
+                                                 poses.header.frame_id,
+                                                 rclpy.time.Time())
+        transformed = do_transform_pose_stamped(poses, transform).pose.position
+        return transformed
+
+    def test_point_rel_to_base_link(self, point):
+        poses = PoseStamped()
         poses.pose = Pose(position=point, orientation=Quaternion(w=1, x=0, y=0, z=0))
         poses.header.frame_id = "odom"
-        transformed = self.listener.transformPose("cameras_link", poses).pose.position
+        transform = self.tf_buffer.lookup_transform("base_link",
+                                                 poses.header.frame_id,
+                                                 rclpy.time.Time())
+        transformed = do_transform_pose_stamped(poses, transform).pose.position
         return transformed
 
 

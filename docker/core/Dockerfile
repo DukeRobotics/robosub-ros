@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-humble-cv-bridge \
     ros-humble-tf2 \
     ros-humble-tf-transformations \
+    ros-humble-tf2-geometry-msgs \
     python-dev-is-python3 \
     python3-pip \
     python3-osrf-pycommon \
