@@ -117,7 +117,7 @@ class CVLaunchDialog(QDialog):
                 if arg.get('default') is None:
                     default_value = ''
                 else:
-                    default_value = row['default']
+                    default_value = arg['default']
 
                 label = QtWidgets.QLabel(arg['name'])
                 input = QtWidgets.QLineEdit()
