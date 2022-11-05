@@ -14,32 +14,19 @@ Left Stick (`Up/Down, Left/Right`), Right Stick (`Up/Down, Left/Right`)
 
 ### Setup
 
-#### Network
-First, run roscore on the **onboard** computer. Then set up the network on the **landside** computer by executing
-
-`
-source /opt/ros/noetic/setup_network.bash
-`
-
-on the landside computer, if you are using the landside image. Otherwise you may execute
-
-`
-export ROS_MASTER_URI=http://192.168.1.1:11311
-`
-
 #### Nodes
 Before launching the nodes, ensure that the joystick is plugged in and the input is being mapped to `/dev/input/js0`. 
 
 Start the raw joystick node on the **landside** computer by executing
 
 `
-roslaunch joystick_raw.launch
+ros2 launch joystick joystick_raw.launch.py
 `
 
 Start the joystick pulishing node on either computer by executing 
 
 `
-roslaunch pub_joy.launch
+ros2 launch joystick pub_joy.launch.py
 `
 
 ### Dependencies

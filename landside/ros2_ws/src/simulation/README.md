@@ -32,10 +32,9 @@ sudo xattr -r -d com.apple.quarantine *
 3. Press the play button to start the simulation. The robot should start bobbing up and down.
 
 ### Docker Simulation Setup
-1. In the onboard container, make sure `roscore` is running.
-2. Run `roslaunch simulation base_sim.launch` in the landside container. If you don't have any thruster speed publishing code and would just like to test basic movement in a square, instead run `roslaunch simulation test_sim_comm.launch`. Once `Starting main loop` is displayed, the simulation is ready to receive inputs.
-3. Run whatever ROS topic publishing code you have. If you ran the test_sim_comm launch file, `scripts/square_command.py` will be executed, which publishes thruster values to naively make the robot move in a square (in reality, the robot will spin in wide circles because the robot isn't balanced).
-4. The robot should start moving, if everything is successful.
+1. Run `ros2 launch simulation base_sim.launch.py` in the landside container. If you don't have any thruster speed publishing code and would just like to test basic movement in a square, instead run `ros2 launch simulation test_sim_comm.launch.py`. Once `Starting main loop` is displayed, the simulation is ready to receive inputs.
+2. Run whatever ROS topic publishing code you have. If you ran the test_sim_comm launch file, `scripts/square_command.py` will be executed, which publishes thruster values to naively make the robot move in a square (in reality, the robot will spin in wide circles because the robot isn't balanced).
+3. The robot should start moving, if everything is successful.
 
 #### A Note for Windows
 On Windows machines with high res displays, some apps will not scale the font correctly. This happens because some applications essentially “tell” Windows that it will handle the scaling, but then don’t. To fix this, right click on the application icon, go to properties, compatibility, change high DPI settings, check override, and select system.
