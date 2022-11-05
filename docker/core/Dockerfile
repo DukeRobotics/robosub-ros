@@ -18,6 +18,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     usbutils apt-utils \
     ros-humble-resource-retriever \
     ros-humble-cv-bridge \
+    ros-humble-tf2 \
+    ros-humble-tf-transformations \
     python-dev-is-python3 \
     python3-pip \
     python3-osrf-pycommon \

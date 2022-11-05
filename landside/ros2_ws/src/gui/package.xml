@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>gui</name>
+  <version>0.0.0</version>
+  <description>Provides a GUI to interact with the robot</description>
+
+  <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>
+
+  <license>MIT</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <depend>geometry_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>nav_msgs</depend>
+  <depend>resource_retriever</depend>
+  <depend>tf</depend>
+  <depend>dynamic_reconfigure</depend>
+  <depend>custom_msgs</depend>
+  <depend>robot_localization</depend>
+
+  <build_export_depend>rclpy</build_export_depend>
+  <build_export_depend>rqt_gui</build_export_depend>
+  <build_export_depend>rqt_gui_py</build_export_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>rqt_gui</exec_depend>
+  <exec_depend>rqt_gui_py</exec_depend>
+  <exec_depend>python-numpy</exec_depend>
+
+  <export>
+    <rqt_gui plugin="${prefix}/plugins/system_plugin.xml"/>
+    <rqt_gui plugin="${prefix}/plugins/offboard_plugin.xml"/>
+    <rqt_gui plugin="${prefix}/plugins/sensor_plugin.xml"/>
+    <rqt_gui plugin="${prefix}/plugins/controls_plugin.xml"/>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

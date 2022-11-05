@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-humble-joy \
     ros-humble-image-view \
     ros-humble-image-publisher \
+    ros-humble-rqt \
     xsltproc xauth && \
     apt-get clean && \
     # Clear apt caches to reduce image size
