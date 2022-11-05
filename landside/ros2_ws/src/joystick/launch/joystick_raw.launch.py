@@ -13,6 +13,7 @@ def generate_launch_description():
         ],
         remappings=[
             ("joy", "joystick/raw")
-        ])
+        ],
+        emulate_tty=True)
     ld.add_action(joy_node)
     return ld 

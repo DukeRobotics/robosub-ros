@@ -8,12 +8,14 @@ def generate_launch_description():
         package='simulation',
         executable='sim',
         name='simulation',
-        output='screen')
+        output='screen',
+        emulate_tty=True)
     fake_cv_node = Node(
         package='simulation',
         executable='fake_cv_maker',
         name='sim_fake_cv_maker',
-        output='screen')
+        output='screen',
+        emulate_tty=True)
 
     ld.add_action(sim_node)
     ld.add_action(fake_cv_node)

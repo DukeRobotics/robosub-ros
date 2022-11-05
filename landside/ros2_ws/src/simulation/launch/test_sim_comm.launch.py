@@ -18,7 +18,8 @@ def generate_launch_description():
     square_node = Node(
         package='simulation',
         executable='square_command',
-        name='square_command')
+        name='square_command',
+        emulate_tty=True)
 
     ld.add_action(base_sim)
     ld.add_action(square_node)

@@ -11,6 +11,7 @@ def generate_launch_description():
         output='screen',
         arguments=[
             {"perspective-file": "$(find gui)/share/gui/config/robosub_ros_gui.perspective"}
-        ])
+        ],
+        emulate_tty=True)
     ld.add_action(gui)
     return ld 

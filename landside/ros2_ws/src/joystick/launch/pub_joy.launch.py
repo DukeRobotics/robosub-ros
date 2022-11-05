@@ -19,7 +19,8 @@ def generate_launch_description():
         name='joy_pub',
         parameters=[
             {"joy_pub/joystick_type": joystick_type}
-        ])
+        ],
+        emulate_tty=True)
     ld.add_action(joystick_type_arg)
     ld.add_action(joy_pub)
     return ld 
