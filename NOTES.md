@@ -86,6 +86,7 @@ Rosbags are no longer stored as .bag files. They are now stored as sqlite3 datab
     apt-get install ros-humble-cv-bridge
     apt-get install ros-humble-tf2
     apt-get install ros-humble-tf-transformations
+    apt-get install ros-humble-tf2-geometry-msgs
 ```
 
 ### Landside
