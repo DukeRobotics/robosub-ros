@@ -1,7 +1,7 @@
 # to adjust this script to different noise environment,
 # change fft_w_size, large_window_portion, and invalidation requirement in get_pdiff
 import numpy as np
-import acoustics_math as ac
+import acoustics.math as ac
 import resource_retriever as rr
 
 
@@ -13,7 +13,8 @@ class AcousticProcessor:
     LARGE_WINDOW_PORTION = 5
     SPAC = 0.0115
 
-    def __init__(self, file_paths, if_double, fs, freq, guess, publish_counts, if_plot=False):
+    def __init__(self, goal, file_paths, if_double, fs, freq, guess, publish_counts, if_plot=False):
+        self.goal = goal
         self.file_paths = [rr.get_filename(fpath, use_protocol=False) for fpath in file_paths]
         self.if_double = if_double
         self.fs = fs
@@ -60,7 +61,7 @@ class AcousticProcessor:
                 # print("pdiff_12", pdiff[0], "pdiff_13", pdiff[1], "pdiff_34", pdiff[2], "\n")
             else:
                 print("invalid acoustics data\n")
-            self.publish_counts(self.success_count, self.process_count)
+            self.publish_counts(goal, self.success_count, self.process_count)
 
     def run(self):
 

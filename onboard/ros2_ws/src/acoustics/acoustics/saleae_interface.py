@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 
-import rospy
-import actionlib
-from custom_msgs.msg import SaleaeAction, SaleaeFeedback, SaleaeResult, HydrophoneSet
+import rclpy
+from rclpy.node import Node
+from rclpy.action import ActionServer
+from custom_msgs.action import Saleae
+from custom_msgs.msg import HydrophoneSet
 import pandas as pd
 import saleae
 import resource_retriever as rr
 from datetime import datetime
 
 
-class Saleae:
+class SaleaeInterface(Node):
 
     NODE_NAME = "saleae"
     ACTION_NAME = "call_saleae"
@@ -19,8 +21,8 @@ class Saleae:
     FILE_EXTENSIONS = {HydrophoneSet.GUESS: "_guess", HydrophoneSet.PROCESS: "_processing"}
 
     def __init__(self):
-        rospy.init_node(self.NODE_NAME)
-        self.server = actionlib.SimpleActionServer(self.ACTION_NAME, SaleaeAction, self.execute, False)
+        super().__init__(self.NODE_NAME)
+        self.server = ActionServer(self, Saleae, self.ACTION_NAME, self.execute)
 
         # Delete the saleae settings file to get around this issue:
         # https://github.com/saleae/SaleaeSocketApi/issues/14
@@ -28,21 +30,14 @@ class Saleae:
         #   os.remove(self.SALEAE_SETTINGS)
 
         self.saleae = saleae.Saleae(args='-disablepopups -socket')
-        rospy.loginfo("Saleae started")
+        rclpy.get_logger().info("Saleae started")
 
-        self.server.start()
-        rospy.spin()
-
-    def publish_feedback(self, stage, total_stages, msg):
-        feedback = SaleaeFeedback()
+    def publish_feedback(self, goal, stage, total_stages, msg):
+        feedback = Saleae.Feedback()
         feedback.curr_stage = stage
         feedback.total_stages = total_stages
         feedback.message = msg
-        self.server.publish_feedback(feedback)
-
-    def publish_result(self, save_paths):
-        result = SaleaeResult(file_paths=save_paths)
-        self.server.set_succeeded(result)
+        goal.publish_feedback(feedback)
 
     def format_csv(self, file):
         df = pd.read_csv(file)
@@ -59,16 +54,33 @@ class Saleae:
         save_paths = []
 
         for i in range(goal.capture_count):
-            self.publish_feedback(i + 1, goal.capture_count + 1, f"Starting capture {i}")
+            self.publish_feedback(goal, i + 1, goal.capture_count + 1, f"Starting capture {i}")
             save_paths.append(package_path.format(i))
             save_path = rr.get_filename(package_path.format(i), use_protocol=False)
             rospy.loginfo("Path: " + save_path)
             self.saleae.export_data2(save_path, analog_channels=self.HYDROPHONE_SET[goal.hydrophone_set.type])
             self.format_csv(save_path)
 
-        self.publish_feedback(goal.capture_count + 1, goal.capture_count + 1, "Saleae capture complete")
-        self.publish_result(save_paths)
+        self.publish_feedback(goal, goal.capture_count + 1, goal.capture_count + 1, "Saleae capture complete")
+
+        goal.succeed()
+        return Saleae.Result(file_paths=save_paths)
+
+
+def main(args=None):
+    try:
+        rclpy.init(args=args)
+        saleae = SaleaeInterface()
+        rclpy.spin(saleae)
+    except KeyboardInterrupt:
+        pass
+    except rclpy.executors.ExternalShutdownException:
+        sys.exit(1)
+    finally:
+        saleae.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == '__main__':
-    Saleae()
+    main()

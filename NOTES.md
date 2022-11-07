@@ -81,7 +81,6 @@ Rosbags are no longer stored as .bag files. They are now stored as sqlite3 datab
 ### Core
 ```bash
 	pip install setuptools==58.2.0
-    pip install transforms3d
 	apt-get install ros-humble-resource-retriever
     apt-get install ros-humble-cv-bridge
     apt-get install ros-humble-tf2
@@ -95,4 +94,9 @@ Rosbags are no longer stored as .bag files. They are now stored as sqlite3 datab
     apt-get install ros-humble-image-view
     apt-get install ros-humble-image-publisher
     apt-get install ros-humble-rqt
+````
+
+### Onboard
+```bash
+
 ````

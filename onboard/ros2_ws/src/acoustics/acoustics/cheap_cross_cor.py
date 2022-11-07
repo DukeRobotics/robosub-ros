@@ -1,17 +1,18 @@
 import numpy as np
 from scipy.signal import correlate
-from acoustics_math import read_data, butter_bandpass_filter
+from acoustics.math import read_data, butter_bandpass_filter
 import resource_retriever as rr
 
 
-class AcousticGuess:
+class Guess:
     BAND_WIDTH = 500
 
-    def __init__(self, file_paths, fs, freq, publish):
+    def __init__(self, goal, file_paths, fs, freq, publish):
         self.file_paths = [rr.get_filename(fpath, use_protocol=False) for fpath in file_paths]
         self.fs = fs
         self.freq = freq
         self.publish = publish
+        self.goal = goal
 
     def run(self):
         octants = {}
@@ -33,6 +34,6 @@ class AcousticGuess:
                 octants[octant] = 0
             octants[octant] += 1
 
-            self.publish(curr_stage=i + 1, total_stages=len(self.file_paths), msg="Finished file, moving onto next one")
+            self.publish(goal, curr_stage=i + 1, total_stages=len(self.file_paths), msg="Finished file, moving onto next one")
 
         return max(octants, key=lambda k: octants[k])

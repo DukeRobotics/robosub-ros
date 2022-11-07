@@ -9,7 +9,8 @@ from custom_msgs.msg import HydrophoneSet
 class DataGenerator:
     VS = 1511.5  # velocity of sound
 
-    def __init__(self, sampling_freq, pinger_freq, hydrophone_set, pinger_loc, publish):
+    def __init__(self, goal, sampling_freq, pinger_freq, hydrophone_set, pinger_loc, publish):
+        self.goal = goal
         self.sf = sampling_freq
         self.pinger_frequency = pinger_freq
         self.publish = publish
@@ -30,7 +31,7 @@ class DataGenerator:
                        [-space, -space, 0]]
         else:
             self.hp = None
-            self.publish(curr_stage=0, total_stages=4, msg="Failure: incorrect hydrophone set on data generation")
+            self.publish(goal, curr_stage=0, total_stages=4, msg="Failure: incorrect hydrophone set on data generation")
 
     def run(self):
         if self.hp is None:
@@ -70,6 +71,6 @@ class DataGenerator:
             filepath = f"package://acoustics/data/simulated_{fileop[0]}_{fileop[1]}_{fileop[2]}_{fileop[3]}_({i}).csv"
             df.to_csv(rr.get_filename(filepath, use_protocol=False))
             file_paths.append(filepath)
-            self.publish(curr_stage=i, total_stages=4, msg="File generation successful, moving onto next file")
+            self.publish(goal, curr_stage=i, total_stages=4, msg="File generation successful, moving onto next file")
 
         return file_paths

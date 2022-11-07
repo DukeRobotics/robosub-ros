@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>acoustics</name>
+  <version>0.0.0</version>
+  <description>
+    This package performs the processing on acoustics signals.
+  </description>
+
+  <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>
+
+  <license>MIT</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <depend>rclpy</depend>
+  <depend>custom_msgs</depend>
+  <depend>resource-retriever</depend>
+
+  <exec_depend>python-numpy</exec_depend>
+  <exec_depend>python-pandas</exec_depend>
+  <exec_depend>python-scipy</exec_depend>
+  <exec_depend>python-matplotlib</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
