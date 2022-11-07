@@ -1,6 +1,6 @@
 # Data pub
 
-The `data_pub` package contains scripts that interface with various sensors, currently interfacing with the IMU and DVL. You can launch all nodes in this package using the `pub_all.launch` file.
+The `data_pub` package contains scripts that interface with various sensors, currently interfacing with the IMU and DVL. You can launch all nodes in this package using the `pub_all.launch.py` file.
 ## IMU Documentation
 
 Publishes an `sensor_msgs/IMU` message to the `sensors/imu/imu` topic that contains information about
@@ -26,13 +26,13 @@ In the transition from the old computer (`NUC`) to the new computer (`Jetson`), 
 
 First you want to make sure that both the IMU and (ADAPTER) are plugged into the robot *before* booting it up.
 
-In this case we want to run the `data_pub` package's file `IMU.py`:
+In this case we want to run the `data_pub` package's file `imu.py`:
 ```
 rosrun data_pub IMU.py
 ```
-You can also use the launch file provided, `pub_imu.launch`.
+You can also use the launch file provided, `pub_imu.launch.py`.
 
-You should see data being printed out in the following format for the `sensor_msgs/IMU` topic in this new terminal:
+You should see data being printed out in the following format for the `sensor_msgs/imu` topic in this new terminal:
 
 ```
 header:
@@ -64,4 +64,4 @@ The `dvl_raw` script publishes the raw DVL data using the `dvl_raw` message from
 
 The `dvl_to_odom` script converts the raw dvl data to an `odometry` message for use in other scripts. It publishes to topic `sensors/dvl/odom`.
 
-You can launch both scripts using the `pub_dvl.launch` file.
+You can launch both scripts using the `pub_dvl.launch.py` file.

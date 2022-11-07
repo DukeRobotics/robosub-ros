@@ -1,24 +1,27 @@
 #!/usr/bin/env python3
 
+import rclpy
+from rclpy.node import Node
 import serial
 import serial.tools.list_ports as list_ports
-import rospy
 import traceback
 
 from custom_msgs.msg import DVLRaw
 
 
-class DvlRawPublisher:
+class DvlRawPublisher(Node):
 
     FTDI_STR = '7006fIP'
     BAUDRATE = 115200
     TOPIC_NAME = 'sensors/dvl/raw'
     NODE_NAME = 'dvl_raw_publisher'
     LINE_DELIM = ','
+    RETRY_PERIOD = 0.1
+    RUN_LOOP_RATE = 20  # TODO: Determine if this rate is correct. Was previously in a while loop with no sleep call
 
     def __init__(self):
-        self._pub = rospy.Publisher(self.TOPIC_NAME, DVLRaw, queue_size=10)
-
+        super().__init__(self.NODE_NAME)
+        self._pub = self.create_publisher(DVLRaw, self.TOPIC_NAME, 10)
         self._current_msg = DVLRaw()
 
         self._serial_port = None
@@ -33,34 +36,35 @@ class DvlRawPublisher:
             'BD': self._parse_BD
         }
 
-    def connect(self):
-        while self._serial_port is None and not rospy.is_shutdown():
-            try:
-                self._serial_port = next(list_ports.grep(self.FTDI_STR)).device
-                self._serial = serial.Serial(self._serial_port, self.BAUDRATE,
-                                             timeout=0.1, write_timeout=1.0,
-                                             bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
-                                             stopbits=serial.STOPBITS_ONE)
-            except StopIteration:
-                rospy.logerr("DVL not found, trying again in 0.1 seconds.")
-                rospy.sleep(0.1)
+        self.connection_timer = self.create_timer(self.RETRY_PERIOD, self._connect)
+        self.run_timer = self.create_timer(1/self.RUN_LOOP_RATE, self._run)
+        self.run_timer.cancel()
 
-    def run(self):
-        rospy.init_node(self.NODE_NAME)
-        self.connect()
+    def _connect(self):
+        try:
+            self._serial_port = next(list_ports.grep(self.FTDI_STR)).device
+            self._serial = serial.serial(self._serial_port, self.baudrate,
+                                         timeout=0.1, write_timeout=1.0,
+                                         bytesize=serial.eightbits, parity=serial.parity_none,
+                                         stopbits=serial.stopbits_one)
+            self.connection_timer.cancel()
+            self.run_timer.reset()
+        except StopIteration:
+            self.get_logger().error(f"DVL not found, trying again in {self.RETRY_PERIOD} seconds.")
 
-        while not rospy.is_shutdown():
-            try:
-                line = self._serial.readline().decode('utf-8')
-                if line.strip() and line[0] == ':':
-                    self._parse_line(line)
-            except Exception:
-                rospy.logerr("Error in reading and extracting information. Reconnecting.")
-                rospy.logerr(traceback.format_exc())
-                self._serial.close()
-                self._serial = None
-                self._serial_port = None
-                self.connect()
+    def _run(self):
+        try:
+            line = self._serial.readline().decode('utf-8')
+            if line.strip() and line[0] == ':':
+                self._parse_line(line)
+        except Exception:
+            self.get_logger().error("Error in reading and extracting information. Reconnecting.")
+            self.get_logger().error(traceback.format_exc())
+            self._serial.close()
+            self._serial = None
+            self._serial_port = None
+            self.run_timer.cancel()
+            self.connection_timer.reset()
 
     def _parse_line(self, line):
         data_type = line[1:3]
@@ -129,8 +133,20 @@ class DvlRawPublisher:
         self._current_msg = DVLRaw()
 
 
-if __name__ == '__main__':
+def main(args=None):
     try:
-        DvlRawPublisher().run()
-    except rospy.ROSInterruptException:
+        rclpy.init(args=args)
+        dvl_raw = DvlRawPublisher()
+        rclpy.spin(dvl_raw)
+    except KeyboardInterrupt:
         pass
+    except rclpy.executors.ExternalShutdownException:
+        sys.exit(1)
+    finally:
+        dvl_raw.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()

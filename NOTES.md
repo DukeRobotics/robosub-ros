@@ -41,13 +41,46 @@ Subscribers need QoS (Quality of Service) profiles. This is the 4th positional a
 
 `self.create_subscription(SimObjectArray, "/sim/object_points", self.callback, 10)`
 
-## Time
+### Time
 Replace `rospy.Time.now()` with `self.get_clock().now()`
+
 Replace `while not rospy.is_shutdown():` with `while rclpy.ok():`
+
 Have to convert time to messages explicitly: `.to_msg().sec`
+
+### Run Loops
+Previously, run loops were written as:
+
+```python
+def run(self):
+    rate = rospy.Rate(self.RUN_LOOP_RATE)
+    while not rospy.is_shutdown():
+        # Do stuff
+        rate.sleep()
+```
+
+In ROS2, a way to do this is to create timers:
+
+```python
+class TestNode(Node)
+    def __init__(self):
+        super().__init__(self.NODE_NAME)
+        self.timer = self.create_timer(1/self.RUN_LOOP_RATE, self.run)
+
+    def run(self):
+        # Do stuff
+
+
+def main():
+    tn = TestNode()
+    rclpy.spin(tn)
+```
+
+This allows us to take advantage of threading and have multiple "loops" running in a node cleanly. There are other methods, but this is generally the cleanest.
 
 ## Transforms
 Replace `tf` with `tf_transformations`
+
 Replace `import tf2` with `import tf2_ros`
 
 To declare a transform listener in a node and transform a PoseStamped:
@@ -80,23 +113,57 @@ Rosbags are no longer stored as .bag files. They are now stored as sqlite3 datab
 
 ### Core
 ```bash
-	pip install setuptools==58.2.0
-	apt-get install ros-humble-resource-retriever
-    apt-get install ros-humble-cv-bridge
-    apt-get install ros-humble-tf2
-    apt-get install ros-humble-tf-transformations
-    apt-get install ros-humble-tf2-geometry-msgs
+pip install transforms3d
+pip install setuptools==58.2.0
+apt-get install ros-humble-resource-retriever
+apt-get install ros-humble-cv-bridge
+apt-get install ros-humble-tf2
+apt-get install ros-humble-tf-transformations
+apt-get install ros-humble-tf2-geometry-msgs
 ```
 
 ### Landside
 ```bash
-	apt-get install ros-humble-joy
-    apt-get install ros-humble-image-view
-    apt-get install ros-humble-image-publisher
-    apt-get install ros-humble-rqt
-````
+apt-get install ros-humble-joy
+apt-get install ros-humble-image-view
+apt-get install ros-humble-image-publisher
+apt-get install ros-humble-rqt
+```
 
 ### Onboard
 ```bash
 
-````
+```
+
+## Testing Plan
+Highlighting some general functionality that we need to cover in our testing plan. We will eventually write a GitHub issue for this.
+
+### Landside
+
+#### camera_view
+1. Record bag from cameras using ROS2 bag cli. Add usage to the README
+1. Run `bag_to_video` to convert the bag to an avi file, and verify that the feed looks correct
+1. Run `video_to_bag` to convert the avi file back to a bag file. Note that the size should increase drastically due to frame padding, this is expected (use a small original bag file).
+
+#### joystick
+1. Connect F310 joystick to the robot computer and run `F310.launch.py`. Verify that `joystick/raw` and `controls/desired_power` are receiving messages.
+1. Connect Thrustmaster joystick to the robot computer and run `thrustmaster.launch.py`. Verify that `joystick/raw` and `controls/desired_power` are receiving messages.
+
+#### simulation
+1. Run `test_sim_comm.launch.py` in an empty scene and verify that there are no errors (the robot doesn't need to move in a square).
+1. Run `test_sim_comm.launch,py` in a scene with an object (i.e. gate) and verify that `fake_cv_maker.py` works correctly.
+
+### Onboard
+#### acoustics
+1. Run `acoustics.launch.py` in simulation and use the ROS2 action cli to generate some sample data. Verify that the results are expected.
+
+#### avt_camera
+1. Connect the left and right Allied Vision cameras to the robot computer and run `mono_camera` on both. Verify that the cameras connect and the corresponding topics are being published to (`camera/left/image_raw` and `camera/left/camera_info`)
+1. Run `stereo_cameras.launch.py` and verify that all of the corresponding topics are being published.
+
+#### data_pub
+1. Run `pub_dvl.launch.py` and verify that the computer connects to the dvl. Verify that the `dvl/raw` and `dvl/odom` topics are being published to. Make sure the data is reasonable and the publishing rate is adequate.
+1. Run `pub_imu.launch.py` and verify that the computer connects to the imu. Verify that the `sensors/imu/imu` and `sensors/imu/mag` topics are being published to. Make sure the data is reasonable and the publishing rate is adequate.
+1. Run `pub_depth.launch.py` and verify that `offboard/pressure` is receiving values and `sensors/depth` is being published to. Make sure the data is reasonable and the publishing rate is adequate. This requires`offboard_comms` to be running to receive pressure sensor data from the Arduino.
+1. Run `pub_all.launch.py` to make sure all of the sensors work together.
+
