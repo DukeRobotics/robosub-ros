@@ -15,7 +15,7 @@
 
   <depend>rclpy</depend>
   <depend>custom_msgs</depend>
-  <depend>resource-retriever</depend>
+  <depend>resource_retriever</depend>
 
   <exec_depend>python-numpy</exec_depend>
   <exec_depend>python-pandas</exec_depend>

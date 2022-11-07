@@ -123,8 +123,8 @@ class BoundingBox(Node):
         poses.pose = Pose(position=point, orientation=Quaternion(w=1.0, x=0.0, y=0.0, z=0.0))
         poses.header.frame_id = "odom"
         transform = self.tf_buffer.lookup_transform("cameras_link",
-                                                 poses.header.frame_id,
-                                                 rclpy.time.Time())
+                                                    poses.header.frame_id,
+                                                    rclpy.time.Time())
         transformed = do_transform_pose_stamped(poses, transform).pose.position
         return transformed
 
@@ -133,8 +133,8 @@ class BoundingBox(Node):
         poses.pose = Pose(position=point, orientation=Quaternion(w=1, x=0, y=0, z=0))
         poses.header.frame_id = "odom"
         transform = self.tf_buffer.lookup_transform("base_link",
-                                                 poses.header.frame_id,
-                                                 rclpy.time.Time())
+                                                    poses.header.frame_id,
+                                                    rclpy.time.Time())
         transformed = do_transform_pose_stamped(poses, transform).pose.position
         return transformed
 
