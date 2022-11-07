@@ -28,19 +28,29 @@ ENV NVIDIA_DRIVER_CAPABILITIES ${CUDA:+all}
 
 # Update and install tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    xauth pciutils \
-    libusb-dev libqt5x11extras5 \
-    unzip zip util-linux \
+    ros-humble-robot-localization \
+    xauth \
+    pciutils \
+    libusb-dev \
+    libqt5x11extras5 \
+    unzip \
+    zip \
+    util-linux \
     python3-pandas && \
     apt-get clean && \
     # Clear apt caches to reduce image size
     rm -rf /var/lib/apt/lists/*
 
 # Get required python packages
-RUN pip3 install --no-cache-dir \
-    numpy scipy pymba python-dateutil \
-    pyserial dependency-injector \
-    gputil saleae
+RUN pip install --no-cache-dir \
+    numpy \
+    scipy \
+    pymba \
+    python-dateutil \
+    pyserial \
+    dependency-injector \
+    gputil \
+    saleae
 
 # Install PyTorch and Torchvision
 COPY torch_installer.sh torch_deps/torch_installer.sh
@@ -48,7 +58,7 @@ COPY --from=jetson-pytorch /root/torch-1.8.0a0+5c1479f-cp38-cp38-linux_aarch64.w
 COPY --from=jetson-pytorch /root/torchvision-0.9.0a0+8fb5838-cp38-cp38-linux_aarch64.whl torch_deps/torchvision-0.9.0a0+8fb5838-cp38-cp38-linux_aarch64.whl
 
 # Install CV Dependencies
-RUN pip3 install --no-cache-dir detecto depthai
+RUN pip install --no-cache-dir detecto depthai
 
 ### ROS Plugins and Dependencies ###
 

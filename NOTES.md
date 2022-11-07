@@ -132,7 +132,7 @@ apt-get install ros-humble-rqt
 
 ### Onboard
 ```bash
-
+apt-get install ros-humble-robot-localization
 ```
 
 ## Testing Plan
@@ -166,4 +166,8 @@ Highlighting some general functionality that we need to cover in our testing pla
 1. Run `pub_imu.launch.py` and verify that the computer connects to the imu. Verify that the `sensors/imu/imu` and `sensors/imu/mag` topics are being published to. Make sure the data is reasonable and the publishing rate is adequate.
 1. Run `pub_depth.launch.py` and verify that `offboard/pressure` is receiving values and `sensors/depth` is being published to. Make sure the data is reasonable and the publishing rate is adequate. This requires`offboard_comms` to be running to receive pressure sensor data from the Arduino.
 1. Run `pub_all.launch.py` to make sure all of the sensors work together.
+
+#### sensor_fusion
+1. Run `fuse.launch.py` while the DVL and IMU are publishing. Verify that `/state` is published and has reasonable values.
+1. Verify that we don't need to publish `robot_description` to get tf2 transforms. Our old documentation says that this is needed but I don't think this is the case anymore.
 
