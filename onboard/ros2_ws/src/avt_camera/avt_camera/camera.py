@@ -1,7 +1,6 @@
 from vimba import *  # noqa
-import rospy
 from cv_bridge import CvBridge
-from camera_info_manager import CameraInfoManager
+from avt_camera.camera_info_manager import CameraInfoManager
 
 
 class bcolors:
@@ -11,14 +10,15 @@ class bcolors:
 
 class Camera:
 
-    def __init__(self, img_pub, info_pub, namespace, camera_id):
+    def __init__(self, node, img_pub, info_pub, namespace, camera_id):
+        self.node = node
         self._img_pub = img_pub
         self._info_pub = info_pub
         self._bridge = CvBridge()
         self._camera_id = camera_id
         self._namespace = namespace
         if camera_id is not None:
-            self._info_manager = CameraInfoManager(cname=self._camera_id, namespace=self._namespace,
+            self._info_manager = CameraInfoManager(self.node, cname=self._camera_id, namespace=self._namespace,
                                                    url=f"package://avt_camera/calibrations/{self._camera_id}.yaml")
         self._c0 = None
 
@@ -29,21 +29,21 @@ class Camera:
         with Vimba.get_instance() as vimba:     # noqa
             cameras = vimba.get_all_cameras()
             if not cameras:
-                rospy.logerr("Cameras were not found.")
+                self.node.get_logger().error("Cameras were not found.")
                 return False
 
             for cam in cameras:
-                rospy.loginfo("Camera found: " + cam.get_id())
+                self.node.get_logger().info("Camera found: " + cam.get_id())
 
             if self._camera_id is None:
                 self._camera_id = cameras[0].get_id()
                 self._info_manager = CameraInfoManager(cname=self._camera_id, namespace=self._namespace,
                                                        url=f"package://avt_camera/calibrations/{self._camera_id}.yaml")
             elif self._camera_id not in (cam.get_id() for cam in cameras):
-                rospy.logerr(f"Requested camera ID {self._camera_id} not found.")
+                self.node.get_logger().error(f"Requested camera ID {self._camera_id} not found.")
                 return False
             self._c0 = vimba.get_camera_by_id(self._camera_id)
-            rospy.loginfo(bcolors.OKGREEN + f"Connected camera {self._camera_id}." + bcolors.RESET)
+            self.node.get_logger().info(bcolors.OKGREEN + f"Connected camera {self._camera_id}." + bcolors.RESET)
 
         return True
 
@@ -52,7 +52,7 @@ class Camera:
             self._c0.GVSPAdjustPacketSize.run()
             while not self._c0.GVSPAdjustPacketSize.is_done():
                 pass
-            rospy.loginfo(f"{self._c0.get_pixel_formats()}")
+            self.node.get_logger().info(f"{self._c0.get_pixel_formats()}")
             self._c0.StreamBytesPerSecond.set(124000000)
             self._c0.set_pixel_format(PixelFormat.BayerRG8)     # noqa
             self._c0.AcquisitionMode.set("Continuous")
@@ -73,7 +73,7 @@ class Camera:
                 pass
 
     def publish_image(self, cam, frame):
-        rospy.loginfo(f"Received frame from camera {cam.get_id()}. Publishing to ROS")
+        self.node.get_logger().info(f"Received frame from camera {cam.get_id()}. Publishing to ROS")
         img_message = self._bridge.cv2_to_imgmsg(frame.as_numpy_ndarray(), "bayer_rggb8")
         img_message.header.stamp = rospy.Time.now()
         self._img_pub.publish(img_message)

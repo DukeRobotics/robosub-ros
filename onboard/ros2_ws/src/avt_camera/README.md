@@ -7,7 +7,7 @@ This package contains driver code for Allied Vision GigE cameras. It uses the [p
 ### Single Camera
 Just running the `mono_camera.py` node will print out all the available camera IDs and will attach the node to the first of those cameras. Alternatively, you can attach to a specific camera using:
 ```bash
-rosrun avt_camera mono_camera.py _camera:=<cam_name> _camera_id:=<cam_id>
+ros2 run avt_camera mono_camera.py --ros-args -p camera:=<cam_name> -p camera_id:=<cam_id>
 ```
 This will publish the camera stream to topic `/camera/<cam_name>/image_raw` and the camera info will be published to `/camera/<cam_name>/camera_info`.
 
@@ -16,13 +16,13 @@ The parameter `<cam_name>` is a string that represents the desired namespace of 
 
 To run the right camera, you could run:
 ```bash
-rosrun avt_camera mono_camera.py _camera:="right" _camera_id:="DEV_000F315C1ED5"
+ros2 run avt_camera mono_camera --ros-args -p camera:="right" -p camera_id:="DEV_000F315C1ED5"
 ```
 This will publish the camera stream to topic `/camera/right/image_raw` and the camera info will be published to `/camera/right/camera_info`.
 
 To run the left camera, you could run:
 ```bash
-rosrun avt_camera mono_camera.py _camera:="left" _camera_id:="DEV_000F315C1ED8"
+ros2 run avt_camera mono_camera --ros-args -p camera:="left" -p camera_id:="DEV_000F315C1ED8"
 ```
 This will publish the camera stream to topic `/camera/left/image_raw` and the camera info will be published to `/camera/left/camera_info`.
 
@@ -30,7 +30,7 @@ This will publish the camera stream to topic `/camera/left/image_raw` and the ca
 You can use the `stereo_camera.py` node to run stereo cameras, or anytime you need multiple cameras. Since the parameters can be quite long, we recommend
 using a launch file, such as the one provided, `stereo_camera.launch`. You can run the launch file using:
 ```bash
-roslaunch avt_camera stereo_camera.launch
+ros2 launch avt_camera stereo_camera.launch.py
 ```
 which will start stereo camera on the left and right cameras and will publish to `/camera/left/image_raw`, `/camera/right/image_raw` and the corresponding camera info topics.
 

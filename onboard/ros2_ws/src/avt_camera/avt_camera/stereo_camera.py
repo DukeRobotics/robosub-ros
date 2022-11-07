@@ -1,28 +1,29 @@
 #!/usr/bin/env python3
 
 from vimba import *  # noqa
-import rospy
+import rclpy
+from rclpy.node import Node
 from sensor_msgs.msg import Image, CameraInfo
-from camera import Camera
+from avt_camera.camera import Camera
 import threading
 
 
-class StereoCamera:
+class StereoCamera(Node):
 
     NODE_NAME = 'stereo'
 
     def __init__(self):
-        rospy.init_node(self.NODE_NAME, anonymous=True)
-        cam_name = rospy.get_param('~camera', ['camera'])
-        cam_ids = rospy.get_param('~camera_id', dict.fromkeys(cam_name))
+        super().__init__(self.NODE_NAME)
+        cam_names = self.declare_parameter('camera', ['camera']).value
+        cam_ids = self.declare_parameter('camera_id', ['camera_id']).value
         self._cameras = {}
         self._threads = {}
-        for cam in cam_name:
+        for cam, cam_id in zip(cam_names, cam_ids):
             image_topic = f'/camera/{cam}/image_raw'
             info_topic = f'/camera/{cam}/camera_info'
-            img_pub = rospy.Publisher(image_topic, Image, queue_size=10)
-            info_pub = rospy.Publisher(info_topic, CameraInfo, queue_size=10)
-            self._cameras[cam_ids[cam]] = Camera(img_pub, info_pub, cam, cam_ids[cam])
+            img_pub = self.create_publisher(Image, image_topic, 10)
+            info_pub = self.create_publisher(CameraInfo, info_topic, 10)
+            self._cameras[cam_id] = Camera(self, img_pub, info_pub, cam, cam_id)
 
         self._thread_lock = threading.Lock()
 
@@ -39,7 +40,7 @@ class StereoCamera:
 
         elif event == CameraEvent.Missing and cam.get_id() in self._threads:                # noqa: F405
             with self._thread_lock:
-                rospy.logerr(f"Lost camera {cam.get_id()}.")
+                self.get_logger().error(f"Lost camera {cam.get_id()}.")
                 self._threads[cam.get_id()][1].set()
                 self._threads[cam.get_id()][0].join()
 
@@ -50,21 +51,37 @@ class StereoCamera:
             with self._thread_lock:
                 for id, camera in self._cameras.items():
                     event = threading.Event()
-                    self._threads[id] = (threading.Thread(target=camera.capture, args=(event,)), event)
+                    self._threads[id] = (threading.Thread(
+                        target=camera.capture, args=(event,)), event)
                     self._threads[id][0].start()
 
             vimba.register_camera_change_handler(self.connection_handler)
-            rospy.spin()
-            vimba.unregister_camera_change_handler(self.connection_handler)
 
-            with self._thread_lock:
-                for thread, event in self._threads.values():
-                    event.set()
-                    thread.join()
+    def teardown(self):
+        vimba.unregister_camera_change_handler(self.connection_handler)
+
+        with self._thread_lock:
+            for thread, event in self._threads.values():
+                event.set()
+                thread.join()
+
+
+def main(args=None):
+    try:
+        rclpy.init(args=args)
+        camera = StereoCamera()
+        camera.run()
+        rclpy.spin(camera)
+        camera.teardown()
+    except KeyboardInterrupt:
+        pass
+    except rclpy.executors.ExternalShutdownException:
+        sys.exit(1)
+    finally:
+        camera.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == '__main__':
-    try:
-        StereoCamera().run()
-    except rospy.ROSInterruptException:
-        pass
+    main()
