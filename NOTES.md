@@ -144,6 +144,7 @@ Highlighting some general functionality that we need to cover in our testing pla
 1. Record bag from cameras using ROS2 bag cli. Add usage to the README
 1. Run `bag_to_video` to convert the bag to an avi file, and verify that the feed looks correct
 1. Run `video_to_bag` to convert the avi file back to a bag file. Note that the size should increase drastically due to frame padding, this is expected (use a small original bag file).
+1. View stereo and mono camera feeds from landside while `avt_camera` is publishing. Update README to include new commands for viewing feeds.
 
 #### joystick
 1. Connect F310 joystick to the robot computer and run `F310.launch.py`. Verify that `joystick/raw` and `controls/desired_power` are receiving messages.
@@ -170,4 +171,7 @@ Highlighting some general functionality that we need to cover in our testing pla
 #### sensor_fusion
 1. Run `fuse.launch.py` while the DVL and IMU are publishing. Verify that `/state` is published and has reasonable values.
 1. Verify that we don't need to publish `robot_description` to get tf2 transforms. Our old documentation says that this is needed but I don't think this is the case anymore.
+
+#### static_transforms
+1. Run `static_transforms.launch.py` and verify that the correct transform values are being published.
 

@@ -1,6 +1,6 @@
 # Static Transforms
 
-The `static_transforms.launch` file publishes the static transforms that define key parts of the robot using the ROS [static_transform_publisher](http://wiki.ros.org/static_transform_publisher). These are used to calculate the robot state based on sensor data, in addition to other uses. Measurements are xyz in meters and ypr in radians. See link for specific syntax and more details.
+The `static_transforms.launch.py` file publishes the static transforms that define key parts of the robot using the ROS [static_transform_publisher](http://wiki.ros.org/static_transform_publisher). These are used to calculate the robot state based on sensor data, in addition to other uses. Measurements are xyz in meters and ypr in radians. See link for specific syntax and more details.
 
 Most recently updated on 2/29/2020 for Cthulhu 2.0.
 
