@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 
-import roslaunch
-import rospy
 import os
 import sys
 import psutil
 import subprocess
+import time
+
+import signal
 
 IGNORE_LIST = []
 BLOCK_LIST = [
-    'cv/launch/cv.launch',
-    'joystick/launch/pub_joy.launch',
-    'simulation/launch/base_sim.launch',
-    'simulation/launch/test_sim_comm.launch',
+    'cv.launch.py',
+    'pub_joy.launch.py',
+    'base_sim.launch.py',
+    'test_sim_comm.launch.py',
 ]
 
 
@@ -24,65 +25,65 @@ class bcolors:
 
 
 def get_ws_file(abs_path):
-    return abs_path.split('catkin_ws/src/')[1]
+    return abs_path.split('ros2_ws/src/')[1]
 
 
 def check_roslaunch_up():
+    """ Checks if any ros2 processes are running """
     for proc in psutil.process_iter(['pid', 'name']):
-        if proc.info['name'] == 'rosmaster':
+        if proc.info['name'] == 'ros2':
             return True
     return False
 
 
 def get_launchfiles(basedir):
-    launchfiles = []
+    """ Return map of package name to launch file """
+    launchfiles = {}
     for dirpath, dirnames, filenames in os.walk(basedir):
         for filename in filenames:
-            if not filename.endswith('.launch'):
+            if not filename.endswith('.launch.py'):
                 continue
-            filepath = os.path.join(dirpath, filename)
-            if get_ws_file(filepath) not in BLOCK_LIST:
-                launchfiles.append([filepath, 'sim:=true'])
+            if filename not in BLOCK_LIST:
+                package = dirpath.split('/')[-2]
+                if package not in launchfiles:
+                    launchfiles[package] = []
+                launchfiles[package].append(filename)
     return launchfiles
 
 
 def test_launch():
 
     timeout = 10
-
     ws = os.environ['COMPUTER_TYPE']
 
     if ws == 'landside':
-        del os.environ['ROS_MASTER_URI']
         _ = subprocess.Popen(['Xvfb', ':99'])
         os.environ["DISPLAY"] = ":99"
 
-    launchfiles = get_launchfiles(f'{ws}/catkin_ws/src/')
-    print(len(launchfiles))
-    uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
-    roslaunch.configure_logging(uuid)
+    launchfiles = get_launchfiles(f'{ws}/ros2_ws/src/')
 
     if check_roslaunch_up():
-        print("rosmaster is already running, please stop before running this test")
+        print("ROS is already running, please stop before running this test")
         sys.exit(1)
 
-    for launchfile in launchfiles:
-        if check_roslaunch_up():
-            print("Failed to shut launch down")
-            sys.exit(1)
-        launch = roslaunch.parent.ROSLaunchParent(
-            uuid, [(roslaunch.rlutil.resolve_launch_arguments(launchfile)[0], launchfile[1:])], force_required=True)
-        print(f"Launching launchfile: {launchfile[0]}.")
-        launch.start()
-        rospy.sleep(timeout)
-        if get_ws_file(launchfile[0]) in IGNORE_LIST and not check_roslaunch_up():
-            print(bcolors.WARNING + f"IGNORE {launchfile[0]}. Ignoring error due to IGNORE_LIST." + bcolors.ENDC)
-        elif not check_roslaunch_up():
-            print(bcolors.FAIL + f"FAIL {launchfile[0]}. ROS crashed during launch." + bcolors.ENDC)
-            sys.exit(1)
-        else:
-            print(bcolors.OKGREEN + f"PASS {launchfile[0]}." + bcolors.ENDC)
-        launch.shutdown()
+    for package in launchfiles:
+        for launchfile in launchfiles[package]:
+
+            print(f"Launching launchfile: {launchfile}.")
+            proc = subprocess.Popen(['ros2', 'launch', package, launchfile])
+            time.sleep(timeout)
+
+            if not check_roslaunch_up():
+                print(bcolors.FAIL + f"FAIL {launchfile}. ROS crashed during launch." + bcolors.ENDC)
+                sys.exit(1)
+            else:
+                print(bcolors.OKGREEN + f"PASS {launchfile}." + bcolors.ENDC)
+
+            proc.send_signal(signal.SIGINT)
+            proc.wait(timeout=timeout)
+            if check_roslaunch_up():
+                print("Failed to shut launch down")
+                sys.exit(1)
     print(bcolors.OKGREEN + "ALL PASSED." + bcolors.ENDC)
 
 

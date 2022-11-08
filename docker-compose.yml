@@ -2,7 +2,7 @@ version: "3.3"
 
 services:
   onboard:
-    image: dukerobotics/robosub-ros2:onboard
+    image: dukerobotics/robosub-ros:onboard
     container_name: onboard
     privileged: true
     ports: 
@@ -20,7 +20,7 @@ services:
         target: /root/dev/robosub-ros
 
   landside:
-    image: dukerobotics/robosub-ros2:landside
+    image: dukerobotics/robosub-ros:landside
     container_name: landside
     privileged: true
     ports:
