@@ -88,7 +88,7 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     except rclpy.executors.ExternalShutdownException:
-        sys.exit(1)
+        raise
     finally:
         sim.destroy_node()
         if rclpy.ok():

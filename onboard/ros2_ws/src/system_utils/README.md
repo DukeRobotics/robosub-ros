@@ -30,8 +30,9 @@ ros2 service call /stop_node custom_msgs/srv/StopLaunch "{pid: <pid>}"
 
 ```bash
 ros2 service call /start_node custom_msgs/srv/StartLaunch "{package: <package>, file: <node_name>}"
-ros2 service call /stop_node custom_msgs/srv/StopLaunch "{pid: <pid>}"
 ```
+
+Currently, nodes cannot be stopped due to complications with `ros2 run`. This feature will be added in the future.
 
 #### With arguments
 ```bash

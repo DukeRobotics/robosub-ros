@@ -4,6 +4,7 @@ import rclpy
 from rclpy.node import Node
 from custom_msgs.srv import StartLaunch, StopLaunch
 import subprocess
+import signal
 
 
 class RemoteLaunch(Node):
@@ -34,11 +35,13 @@ class RemoteLaunch(Node):
         if req.pid not in self.processes:
             return res
         if self.processes[req.pid].poll() is None:
-            # ros2 starts 2 process, a ros2 process with pid and a node process with pid + 1
-            # When the ros2 process is killed, the node process does not die
-            # We need a way to fix this, otherwise we can't shut down nodes
-            self.processes[req.pid].terminate()
-            self.processes[req.pid].wait()
+            try:
+                self.processes[req.pid].send_signal(signal.SIGINT)
+                self.processes[req.pid].wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                # TODO: Cannot stop processes that were ran with ros2 run
+                self.get_logger().error(f'Termination of {req.pid} timed out.')
+                return res
             self.processes.pop(req.pid)
             res.success = True
         return res
@@ -52,7 +55,7 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     except rclpy.executors.ExternalShutdownException:
-        sys.exit(1)
+        raise
     finally:
         remote_launch.destroy_node()
         if rclpy.ok():

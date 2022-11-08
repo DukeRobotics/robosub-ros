@@ -45,7 +45,7 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     except rclpy.executors.ExternalShutdownException:
-        sys.exit(1)
+        raise
     finally:
         server.destroy_node()
         if rclpy.ok():
