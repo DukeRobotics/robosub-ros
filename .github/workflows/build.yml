@@ -88,7 +88,7 @@ jobs:
       - name: Start containers
         run: |
           docker tag ${IMAGE_NAME} dukerobotics/robosub-ros:onboard
-          docker-compose up -d
+          docker compose up -d
       - name: Test build
         run: docker exec ${SERVICE_NAME} ./build.sh
       - name: Test Arduino build
@@ -96,9 +96,7 @@ jobs:
         run: docker exec ${SERVICE_NAME} ./.github/workflows/test_arduino.sh
       - name: Test ROS launchfiles
         if: matrix.arch == 'amd64'
-        run: |
-          docker exec -t ${SERVICE_NAME} bash -lc "source onboard/ros2_ws/install/setup.bash"
-          docker exec -t ${SERVICE_NAME} bash -lc "python ./scripts/test-launch.py"
+        run: docker exec -t ${SERVICE_NAME} bash -lc "source onboard/ros2_ws/install/setup.bash && python ./scripts/test-launch.py"
       - name: Push image to dockerhub
         if: github.event_name == 'push'
         run: |
@@ -152,13 +150,11 @@ jobs:
           cd docker/${SERVICE_NAME}
           docker build --build-arg BASE_IMAGE=${BASE_IMAGE} -t  ${IMAGE_NAME} .
       - name: Start containers
-        run: docker-compose up -d
+        run: docker compose up -d
       - name: Test build
         run: docker exec ${SERVICE_NAME} ./build.sh
       - name: Test ROS launchfiles
-        run: |
-          docker exec -t ${SERVICE_NAME} bash -lc "source landside/ros2_ws/install/setup.bash"
-          docker exec -t ${SERVICE_NAME} bash -lc "python ./scripts/test-launch.py"
+        run: docker exec -t ${SERVICE_NAME} bash -lc "source landside/ros2_ws/install/setup.bash && python ./scripts/test-launch.py"
       - name: Push image to dockerhub
         if: github.event_name == 'push'
         run: |
