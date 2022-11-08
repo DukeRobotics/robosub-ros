@@ -175,3 +175,6 @@ Highlighting some general functionality that we need to cover in our testing pla
 #### static_transforms
 1. Run `static_transforms.launch.py` and verify that the correct transform values are being published.
 
+#### system_utils
+1. Run `system_info` and verify that the correct system usage messages are published.
+1. Run `remote_launch` and verify that the `start_node` and `stop_node` services are created. Use the `ros2 service` cli to start and stop a test node and test launch file.
