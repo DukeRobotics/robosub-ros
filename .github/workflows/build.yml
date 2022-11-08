@@ -96,7 +96,9 @@ jobs:
         run: docker exec ${SERVICE_NAME} ./.github/workflows/test_arduino.sh
       - name: Test ROS launchfiles
         if: matrix.arch == 'amd64'
-        run: docker exec -t ${SERVICE_NAME} bash -lc "python ./scripts/test-launch.py"
+        run: |
+          docker exec -t ${SERVICE_NAME} bash -lc "source onboard/ros2_ws/install/setup.bash"
+          docker exec -t ${SERVICE_NAME} bash -lc "python ./scripts/test-launch.py"
       - name: Push image to dockerhub
         if: github.event_name == 'push'
         run: |
@@ -154,7 +156,9 @@ jobs:
       - name: Test build
         run: docker exec ${SERVICE_NAME} ./build.sh
       - name: Test ROS launchfiles
-        run: docker exec -t ${SERVICE_NAME} bash -lc "python ./scripts/test-launch.py"
+        run: |
+          docker exec -t ${SERVICE_NAME} bash -lc "source landside/ros2_ws/install/setup.bash"
+          docker exec -t ${SERVICE_NAME} bash -lc "python ./scripts/test-launch.py"
       - name: Push image to dockerhub
         if: github.event_name == 'push'
         run: |
@@ -180,5 +184,5 @@ jobs:
       - name: Test ROS launchfiles
         shell: bash -elo pipefail {0}
         run: |
-          source ${{ matrix.workspace }}/catkin_ws/devel/setup.bash
+          source ${{ matrix.workspace }}/ros2_ws/install/setup.bash
           ./scripts/test-launch.py
