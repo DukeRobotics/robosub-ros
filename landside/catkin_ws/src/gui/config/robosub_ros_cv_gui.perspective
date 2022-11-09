@@ -53,90 +53,11 @@
                 }
               },
               "groups": {}
-            }
-          }
-        },
-        "plugin__gui__Controls Plugin__1": {
-          "keys": {},
-          "groups": {
-            "dock_widget__ControlsWidget": {
+            },
+            "plugin": {
               "keys": {
-                "dock_widget_title": {
-                  "repr": "'Controls Plugin'",
-                  "type": "repr"
-                },
-                "dockable": {
-                  "repr": "'true'",
-                  "type": "repr"
-                },
-                "parent": {
-                  "repr": "None",
-                  "type": "repr"
-                }
-              },
-              "groups": {}
-            }
-          }
-        },
-        "plugin__gui__Offboard Plugin__1": {
-          "keys": {},
-          "groups": {
-            "dock_widget__OffboardWidget": {
-              "keys": {
-                "dock_widget_title": {
-                  "repr": "'Offboard Plugin'",
-                  "type": "repr"
-                },
-                "dockable": {
-                  "repr": "'true'",
-                  "type": "repr"
-                },
-                "parent": {
-                  "repr": "None",
-                  "type": "repr"
-                }
-              },
-              "groups": {}
-            }
-          }
-        },
-        "plugin__gui__Sensor Plugin__1": {
-          "keys": {},
-          "groups": {
-            "dock_widget__SensorWidget": {
-              "keys": {
-                "dock_widget_title": {
-                  "repr": "'Sensor Plugin'",
-                  "type": "repr"
-                },
-                "dockable": {
-                  "repr": "'true'",
-                  "type": "repr"
-                },
-                "parent": {
-                  "repr": "None",
-                  "type": "repr"
-                }
-              },
-              "groups": {}
-            }
-          }
-        },
-        "plugin__gui__System Plugin__1": {
-          "keys": {},
-          "groups": {
-            "dock_widget__SystemWidget": {
-              "keys": {
-                "dock_widget_title": {
-                  "repr": "'Systems Plugin'",
-                  "type": "repr"
-                },
-                "dockable": {
-                  "repr": "'true'",
-                  "type": "repr"
-                },
-                "parent": {
-                  "repr": "None",
+                "default_pkg": {
+                  "repr": "'cv'",
                   "type": "repr"
                 }
               },

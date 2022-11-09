@@ -22,4 +22,5 @@ class CVLaunchPlugin(Plugin):
         pass
 
     def restore_settings(self, plugin_settings, instance_settings):
+        self.widget.default_pkg = instance_settings.value("default_pkg")
         pass

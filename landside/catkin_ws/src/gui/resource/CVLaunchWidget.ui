@@ -34,9 +34,6 @@
        <height>0</height>
       </size>
      </property>
-     <property name="default_pkg" stdset="0">
-      <string>cv</string>
-     </property>
     </widget>
    </item>
    <item>
