@@ -3,10 +3,10 @@
 import rospy
 import depthai as dai
 import cv2
-import time
 import numpy as np
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
+import depthai_camera_connect
 
 
 class DepthAIImageStreamPublisher:
@@ -107,24 +107,24 @@ class DepthAIImageStreamPublisher:
         # Upload pipeline to device
         # Camera connects to robot only through autodiscovery
         # Camera connects to local environment only through manual IP address specification
-        device = None
-        if self.robot:
-            while device == None:
-                try:
-                    device = dai.Device(self.pipeline)
-                    break
-                except:
-                    # Have the robot wait for a few seconds before trying to reconnect
-                    time.sleep(5)
-        else:
-            while device == None:
-                try:
-                    device_info = dai.DeviceInfo("169.254.1.222")
-                    device = dai.Device(self.pipeline, device_info)
-                    break
-                except:
-                     # Have the robot wait for a few seconds before trying to reconnect
-                    time.sleep(5)
+        device = depthai_camera_connect.connect(self.pipeline, self.robot)
+        # if self.robot:
+        #     while device == None:
+        #         try:
+        #             device = dai.Device(self.pipeline)
+        #             break
+        #         except:
+        #             # Have the robot wait for a few seconds before trying to reconnect
+        #             time.sleep(5)
+        # else:
+        #     while device == None:
+        #         try:
+        #             device_info = dai.DeviceInfo("169.254.1.222")
+        #             device = dai.Device(self.pipeline, device_info)
+        #             break
+        #         except:
+        #              # Have the robot wait for a few seconds before trying to reconnect
+        #             time.sleep(5)
 
         # Output queue, to receive message on the host from the device(you can send the message
         # on the device with XLinkOut)
