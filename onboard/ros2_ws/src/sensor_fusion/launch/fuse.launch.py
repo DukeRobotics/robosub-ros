@@ -20,6 +20,7 @@ def generate_launch_description():
         remappings=[
             ("odometry/filtered", "state")
         ])
+    # TODO: Do we need to republish the robot urdf here?
 
     ld.add_action(robot_localization)
     return ld

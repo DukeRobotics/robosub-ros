@@ -1,7 +1,13 @@
 # Notes
 To source ROS: `source /opt/ros/humble/setup.bash`
 
-custom_msgs takes very long to build (around 90 seconds) with colcon. We should consider pre-building custom_msgs for the core DockerFile if possible.
+ROS2 removed the functionality of anonymous nodes. To get around this, all nodes that can have multiple instances should be ran with:
+
+```bash
+ros2 run <package> <node> --ros-args --remap __node:=<unique_name> -p <param_name>:=<param_val>
+```
+
+All launch files that create multiple nodes of the same type should assign them unique names accordingly.
 
 ## Bulding
 For building, use `colcon build --symlink-install`, because colcon has no devel space. This allows us to change scripts without rebuilding for each change.
@@ -161,6 +167,10 @@ Highlighting some general functionality that we need to cover in our testing pla
 #### avt_camera
 1. Connect the left and right Allied Vision cameras to the robot computer and run `mono_camera` on both. Verify that the cameras connect and the corresponding topics are being published to (`camera/left/image_raw` and `camera/left/camera_info`)
 1. Run `stereo_cameras.launch.py` and verify that all of the corresponding topics are being published.
+
+#### cv
+1. Move a test model to the `models` folder and rebuild the package. 
+1. Run `cv.launch.py` and `ros2 run cv test_images` and verify that the expected topics are published to without error. Note that `test_images` is currently configured to send images to the left camera topic.
 
 #### data_pub
 1. Run `pub_dvl.launch.py` and verify that the computer connects to the dvl. Verify that the `dvl/raw` and `dvl/odom` topics are being published to. Make sure the data is reasonable and the publishing rate is adequate.
