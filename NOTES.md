@@ -30,7 +30,7 @@ try:
 except KeyboardInterrupt:
     pass
 except ExternalShutdownException:
-    sys.exit(1)
+    raise
 finally:
     parser.destroy_node()
     if rclpy.ok():
