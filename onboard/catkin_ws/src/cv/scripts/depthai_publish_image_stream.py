@@ -21,6 +21,7 @@ class DepthAIImageStreamPublisher:
     STREAM_TOPIC_LEFT = f'/camera/{CAMERA}/left/stream_raw'
     STREAM_TOPIC_RIGHT = f'/camera/{CAMERA}/right/stream_raw'
     STREAM_TOPIC_DISPARITY = f'/camera/{CAMERA}/disparity/stream_raw'
+    STREAM_TOPIC_DEPTH = f'/camera/{CAMERA}/depth/stream_raw'
 
     def __init__(self):
         """
@@ -34,6 +35,7 @@ class DepthAIImageStreamPublisher:
         self.stream_publisher_left = rospy.Publisher(self.STREAM_TOPIC_LEFT, Image, queue_size=10)
         self.stream_publisher_right = rospy.Publisher(self.STREAM_TOPIC_RIGHT, Image, queue_size=10)
         self.stream_publisher_disparity = rospy.Publisher(self.STREAM_TOPIC_DISPARITY, Image, queue_size=10)
+        self.stream_publisher_depth = rospy.Publisher(self.STREAM_TOPIC_DEPTH, Image, queue_size=10)
 
         self.bridge = CvBridge()
         self.pipeline = dai.Pipeline()
@@ -88,6 +90,11 @@ class DepthAIImageStreamPublisher:
         xoutDisparity.input.setBlocking(False)
         xoutDisparity.input.setQueueSize(1)
 
+        xoutDepth = self.pipeline.create(dai.node.XLinkOut)
+        xoutDepth.setStreamName("depth")
+        xoutDepth.input.setBlocking(False)
+        xoutDepth.input.setQueueSize(1)
+
         camLeft.out.link(stereo.left)
         camRight.out.link(stereo.right)
 
@@ -96,6 +103,7 @@ class DepthAIImageStreamPublisher:
         camLeft.out.link(xoutLeft.input)
         camRight.out.link(xoutRight.input)
         stereo.disparity.link(xoutDisparity.input)
+        stereo.depth.link(xoutDepth.input)
 
     # Publish newest image off queue to topic every few seconds
     def run(self):
@@ -104,72 +112,59 @@ class DepthAIImageStreamPublisher:
         publish them to their respective topics.
         """
 
-        # Upload pipeline to device
-        # Camera connects to robot only through autodiscovery
-        # Camera connects to local environment only through manual IP address specification
-        device = depthai_camera_connect.connect(self.pipeline, self.robot)
-        # if self.robot:
-        #     while device == None:
-        #         try:
-        #             device = dai.Device(self.pipeline)
-        #             break
-        #         except:
-        #             # Have the robot wait for a few seconds before trying to reconnect
-        #             time.sleep(5)
-        # else:
-        #     while device == None:
-        #         try:
-        #             device_info = dai.DeviceInfo("169.254.1.222")
-        #             device = dai.Device(self.pipeline, device_info)
-        #             break
-        #         except:
-        #              # Have the robot wait for a few seconds before trying to reconnect
-        #             time.sleep(5)
+        with depthai_camera_connect.connect(self.pipeline, self.robot) as device:
 
-        # Output queue, to receive message on the host from the device(you can send the message
-        # on the device with XLinkOut)
-        rgbVideoQueue = device.getOutputQueue(name="rgbVideo", maxSize=4, blocking=False)
-        rgbPreviewQueue = device.getOutputQueue(name="rgbPreview", maxSize=4, blocking=False)
-        leftQueue = device.getOutputQueue(name="left", maxSize=4, blocking=False)
-        rightQueue = device.getOutputQueue(name="right", maxSize=4, blocking=False)
-        disparityQueue = device.getOutputQueue(name="disparity", maxSize=4, blocking=False)
+            # Output queue, to receive message on the host from the device(you can send the message
+            # on the device with XLinkOut)
+            rgbVideoQueue = device.getOutputQueue(name="rgbVideo", maxSize=4, blocking=False)
+            rgbPreviewQueue = device.getOutputQueue(name="rgbPreview", maxSize=4, blocking=False)
+            leftQueue = device.getOutputQueue(name="left", maxSize=4, blocking=False)
+            rightQueue = device.getOutputQueue(name="right", maxSize=4, blocking=False)
+            disparityQueue = device.getOutputQueue(name="disparity", maxSize=4, blocking=False)
+            depthQueue = device.getOutputQueue(name="depth", maxSize=4, blocking=False)
 
-        while not rospy.is_shutdown():
+            while not rospy.is_shutdown():
 
-            # Get messages that came from the queue
-            raw_img_rgb_video = rgbVideoQueue.get()
-            img_rgb_video = raw_img_rgb_video.getCvFrame()
+                # Get messages that came from the queue
+                raw_img_rgb_video = rgbVideoQueue.get()
+                img_rgb_video = raw_img_rgb_video.getCvFrame()
 
-            raw_img_rgb_preview = rgbPreviewQueue.get()
-            img_rgb_preview = raw_img_rgb_preview.getCvFrame()
+                raw_img_rgb_preview = rgbPreviewQueue.get()
+                img_rgb_preview = raw_img_rgb_preview.getCvFrame()
 
-            raw_img_left = leftQueue.get()
-            img_left = raw_img_left.getCvFrame()
+                raw_img_left = leftQueue.get()
+                img_left = raw_img_left.getCvFrame()
 
-            raw_img_right = rightQueue.get()
-            img_right = raw_img_right.getCvFrame()
+                raw_img_right = rightQueue.get()
+                img_right = raw_img_right.getCvFrame()
 
-            # Normalize and apply color map to disparity image
-            raw_img_disparity = disparityQueue.get()
-            img_disparity = raw_img_disparity.getFrame()
-            img_disparity = (img_disparity * (255 / self.stereoMaxDisparity)).astype(np.uint8)
-            img_disparity = cv2.applyColorMap(img_disparity, cv2.COLORMAP_AUTUMN)
+                # Normalize and apply color map to disparity image
+                raw_img_disparity = disparityQueue.get()
+                img_disparity = raw_img_disparity.getFrame()
+                img_disparity = (img_disparity * (255 / self.stereoMaxDisparity)).astype(np.uint8)
+                img_disparity = cv2.applyColorMap(img_disparity, cv2.COLORMAP_AUTUMN)
 
-            # Publish the images
-            image_msg_rgb_video = self.bridge.cv2_to_imgmsg(img_rgb_video, 'bgr8')
-            self.stream_publisher_rgb_video.publish(image_msg_rgb_video)
+                raw_img_depth = depthQueue.get()
+                img_depth = raw_img_depth.getCvFrame()
 
-            image_msg_rgb_preview = self.bridge.cv2_to_imgmsg(img_rgb_preview, 'bgr8')
-            self.stream_publisher_rgb_preview.publish(image_msg_rgb_preview)
+                # Publish the images
+                image_msg_rgb_video = self.bridge.cv2_to_imgmsg(img_rgb_video, 'bgr8')
+                self.stream_publisher_rgb_video.publish(image_msg_rgb_video)
 
-            image_msg_left = self.bridge.cv2_to_imgmsg(img_left, 'mono8')
-            self.stream_publisher_left.publish(image_msg_left)
+                image_msg_rgb_preview = self.bridge.cv2_to_imgmsg(img_rgb_preview, 'bgr8')
+                self.stream_publisher_rgb_preview.publish(image_msg_rgb_preview)
 
-            image_msg_right = self.bridge.cv2_to_imgmsg(img_right, 'mono8')
-            self.stream_publisher_right.publish(image_msg_right)
+                image_msg_left = self.bridge.cv2_to_imgmsg(img_left, 'mono8')
+                self.stream_publisher_left.publish(image_msg_left)
 
-            image_msg_disparity = self.bridge.cv2_to_imgmsg(img_disparity, 'bgr8')
-            self.stream_publisher_disparity.publish(image_msg_disparity)
+                image_msg_right = self.bridge.cv2_to_imgmsg(img_right, 'mono8')
+                self.stream_publisher_right.publish(image_msg_right)
+
+                image_msg_disparity = self.bridge.cv2_to_imgmsg(img_disparity, 'bgr8')
+                self.stream_publisher_disparity.publish(image_msg_disparity)
+
+                image_msg_depth = self.bridge.cv2_to_imgmsg(img_depth, 'mono16')
+                self.stream_publisher_depth.publish(image_msg_depth)
 
 
 if __name__ == '__main__':
