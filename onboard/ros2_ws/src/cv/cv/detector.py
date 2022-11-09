@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import rospy
+import rclpy
+from rclpy.node import Node
 import yaml
 import resource_retriever as rr
 
@@ -11,29 +12,32 @@ from cv_bridge import CvBridge
 from detecto.core import Model
 
 
-class Detector:
+class Detector(Node):
     """This class computes and publishes predictions on a image stream."""
+
+    NODE_NAME = 'detector'
 
     # Load in models and other misc. setup work
     def __init__(self):
-        rospy.init_node('cv', anonymous=True)
+        super().__init__(self.NODE_NAME)
 
         self.bridge = CvBridge()
-        self.camera = rospy.get_param('~camera')
-
+        self.camera = self.declare_parameter('camera', 'left').value
         # Load in model configurations
-        with open(rr.get_filename('package://cv/models/models.yaml',
-                                  use_protocol=False)) as f:
+        with open(rr.get_filename('package://cv/models/models.yaml', use_protocol=False)) as f:
             self.models = yaml.safe_load(f)
 
-        # The topic that the camera publishes its feed to
-        self.camera_feed_topic = f'/camera/{self.camera}/image_raw'
+        for model_name in self.models:
+            self.models[model_name]['predictor'] = None
+            self.models[model_name]['publisher'] = None
 
-        # Toggle model service name
-        self.enable_service = f'enable_model_{self.camera}'
+        camera_feed_topic = f'/camera/{self.camera}/image_raw'
+        enable_service = f'enable_model_{self.camera}'
+        self.create_subscription(Image, camera_feed_topic, self.detect, 10)
+        self.create_service(EnableModel, enable_service, self.enable_model)
 
     def init_model(self, model_name):
-        """Initialize model predictor and publisher if not already initialized.
+        """Initialize model predictor and publisher.
 
         There will be a single topic for every class. The format for the topics will be cv/<camera>/<class-name>
 
@@ -50,10 +54,6 @@ class Detector:
 
         model = self.models[model_name]
 
-        # Model already initialized; return from method
-        if model.get('predictor') is not None:
-            return
-
         weights_file = rr.get_filename(
             f"package://cv/models/{model['weights']}",
             use_protocol=False)
@@ -65,9 +65,7 @@ class Detector:
         # creating new publisher topics for each class
         for model_class in model['classes']:
             publisher_name = f"{model['topic']}/{self.camera}/{model_class}"
-            publisher_dict[model_class] = rospy.Publisher(publisher_name,
-                                                          CVObject,
-                                                          queue_size=10)
+            publisher_dict[model_class] = self.create_publisher(CVObject, publisher_name, 10)
 
         model['predictor'] = predictor
         model['publisher'] = publisher_dict
@@ -84,12 +82,10 @@ class Detector:
 
         for model_name in self.models:
             model = self.models[model_name]
-
             # Generate predictions for each enabled model
             if model.get('enabled'):
-                # Initialize predictor if not already
-                self.init_model(model_name)
-
+                if model.get('predictor') is None:
+                    self.init_model(model_name)
                 # Generate model predictions
                 labels, boxes, scores = model['predictor'].predict_top(image)
 
@@ -138,13 +134,13 @@ class Detector:
                     # the given returned label
                     publisher[label].publish(object_msg)
 
-    def enable_model(self, req):
+    def enable_model(self, req, res):
         """Service for toggling specific models on and off.
 
         :param req: The request from another node or command line to enable the model. This service request is
         defined in /robosub-ros/core/catkin_ws/src/custom_msgs/srv/EnableModel.srv
         """
-
+        res.success = False
         if req.model_name in self.models:
             model = self.models[req.model_name]
             model['enabled'] = req.enabled
@@ -154,23 +150,25 @@ class Detector:
                 model['predictor'] = None
                 model['publisher'] = None
 
-            return True
+            res.success = True
 
-        return False
-
-    def run(self):
-        """Initialize node and set up Subscriber to generate and publish predictions at every camera frame received."""
-        rospy.Subscriber(self.camera_feed_topic, Image, self.detect)
-
-        # Allow service for toggling of models
-        rospy.Service(self.enable_service, EnableModel, self.enable_model)
-
-        # Keep node running until shut down
-        rospy.spin()
+        return res
 
 
-if __name__ == '__main__':
+def main(args=None):
     try:
-        Detector().run()
-    except rospy.ROSInterruptException:
+        rclpy.init(args=args)
+        detector = Detector()
+        rclpy.spin(detector)
+    except KeyboardInterrupt:
         pass
+    except rclpy.executors.ExternalShutdownException:
+        raise
+    finally:
+        detector.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()

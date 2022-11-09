@@ -44,7 +44,7 @@ container under the directory `/root/.cache/torch/checkpoints/` (do not rename t
 To start up a CV node, run the following command:
 
 ```bash
-roslaunch cv cv_<camera>.launch
+ros2 launch cv <camera>.launch.py
 ```
 
 Where `<camera>` is one of `left`, `right`, or `down`. 
@@ -67,7 +67,7 @@ Once 1+ models are enabled for a specific node, they listen and publish to topic
 
  * `/camera/<camera>/image_raw`
    * The topic that the camera publishes each frame to
-   * If no actual camera feed is available, you can simulate one using `roslaunch cv test_images.launch`
+   * If no actual camera feed is available, you can simulate one using `ros2 run cv test_images`. If you add a new test, image, you must rebuild the package. 
    * Type: sensor_msgs/Image
 
 #### Publishing:
@@ -92,24 +92,22 @@ could be anywhere from like 0.2 to 10 FPS depending on computing power/the GPU/o
 
 The following are the folders and files in the CV package:
 
-`assets`: Folder with a dummy image to test the CV package on
+`assets`: Folder with a dummy image to test the CV package on. If you add a new test image, you must rebuild the package otherwise `test_iamges.py` won't recognize the file.
 
-`launch`: Contains the various launch files for our CV package. There is a general launch file for all the cameras (`cv.launch`), and then there are specific launch files for each camera (`cv_left`, `cv_right`, and `cv_down`). Finally, we have a launch file for our testing script `test_images.launch`
+`launch`: Contains the various launch files for our CV package. There is a general launch file for all the cameras (`cv.launch.py`), and then there are specific launch files for each camera (`left`, `right`, and `down`). 
 
 `models`: Contains our pre-trained models and a `.yaml` file that specifies the details of each model (classes predicted, topic name, and the path to the model weights)
 
 `scripts`: This is the "meat" of our package. We have a detection script `detection.py` that will read in images and publish predictions onto a node. We also have a `test_images.py` script that is used for testing our package on a dummy video feed (basically one image repeated over and over). The path of this image is specified in `test_images.py`. We can simulate different video feeds coming in on the different cameras on our `test_images.py` script. The `utils.py` script has a function implementing the NMS algorithms; this goes through all raw predictions made by a model to remove overlapping predictions of the same class and to remove predictions below a confidence threshold.
 
-`CMakeLists.txt`: A text file stating the necessary package dependencies and the files in our package.
-
-`package.xml`: A xml file stating the basic information about the CV package
+`package.xml`: An xml file stating the basic information about the CV package
 
 The CV package also has dependencies in the `core/catkin_ws/src/custom_msgs` folder.
 
 ## Examples
 To simulate camera feed and then run a model on the feed from the left camera. We'll assume the model we want to run is called 'buoy':
-* In one terminal, run `roslaunch cv test_images.launch` to start the script meant to simulate the raw camera feed
-* In a new terminal, run `roslaunch cv cv_left.launch` to start the cv node
+* In one terminal, run `ros2 run cv test_images` to start the script meant to simulate the raw camera feed
+* In a new terminal, run `roslaunch cv left.launch` to start the cv node
 * In another new terminal, run `rosservice list` and should see the `enable_model_left` service be listed in the terminal
 * In the same terminal, run `rosservice call enable_model_left buoy true` to enable the buoy model on the feed coming from the left camera. This model should now be publishing predictions
 * To verify that the predictions are being published, you can run `rostopic list`, and you should see both `/camera/left/image_raw` and `/cv/buoy/left` be listed. Then you can run `rostopic echo /cv/buoy/left` and the model predictions should be printed to the terminal
