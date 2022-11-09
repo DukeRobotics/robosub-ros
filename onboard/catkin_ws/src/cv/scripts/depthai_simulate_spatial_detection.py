@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 import os
 import rospy
+import depthai_camera_connect
 
 path = os.path.dirname(__file__)
 NN_PATH = os.path.join(path, '../assets/bloblol.blob')
@@ -84,13 +85,8 @@ class DepthAISimulateSpatialDetection:
         as the still image sent into the input queue.
         """
 
-        # TODO: Remove this if manual IP address specification is not needed
-        # Manually specify device IP address
-        # https://docs.luxonis.com/projects/hardware/en/latest/pages/guides/getting-started-with-poe.html#manually-specify-device-ip
-        device_info = dai.DeviceInfo("169.254.1.222")
-
         # Upload the pipeline to the device
-        with dai.Device(self.pipeline, device_info) as device:
+        with depthai_camera_connect.connect(self.pipeline, self.robot) as device:
 
             def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
                 return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()

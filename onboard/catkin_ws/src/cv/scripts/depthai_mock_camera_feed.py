@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 import os
 import rospy
+import depthai_camera_connect
 
 path = os.path.dirname(__file__)
 NN_PATH = os.path.join(path, '../assets/bloblol.blob')
@@ -86,7 +87,7 @@ class DepthAIMockImageStream:
         """
 
         # Upload the pipeline to the device
-        with dai.Device(self.pipeline) as device:
+        with depthai_camera_connect.connect(self.pipeline, self.robot) as device:
 
             def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
                 return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
