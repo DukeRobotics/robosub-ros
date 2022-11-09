@@ -13,7 +13,7 @@ jobs:
         workspace: [onboard, landside]
     container: dukerobotics/robosub-ros:${{ matrix.workspace }}
     steps:
-      - uses: actions/checkout@v3s
+      - uses: actions/checkout@v3
       - name: Test build
         run: ./build.sh
       - name: Test Arduino build
