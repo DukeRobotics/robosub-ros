@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
+import math
 import struct, sys, re
 import numpy as np
 from PIL import ImageFilter
 import matplotlib.pyplot as plt
 from scipy import signal
-
+import cv2
 # 3.7 for dataclasses, 3.8 for walrus (:=) in recovery
 assert (sys.version_info.major >= 3 and sys.version_info.minor >= 8), \
     "Python version should be at least 3.8."
@@ -268,6 +269,76 @@ class Ping360Settings:
         # time of flight -> v_sound * (there + back) / 2
         return v_sound * self.sample_period_us * 1e-6 / 2
 
+
+def increase_brightness(img, value=20):
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(hsv)
+
+    lim = 255 - value
+    v[v > lim] = 255
+    v[v <= lim] += value
+
+    final_hsv = cv2.merge((h, s, v))
+    img = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
+    return img
+
+def doCoolStuff(img): 
+    
+    gray = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+    img = cv2.applyColorMap(gray, cv2.COLORMAP_VIRIDIS)
+        
+    #img = cv2.imread("onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\bruh.jpg", cv2.IMREAD_COLOR)
+   # img = increase_brightness(img)
+    john = img
+    cv2.copyTo(img, john)
+    img = cv2.medianBlur(img,5)
+
+    lower_color_bounds = (40,80,0)
+    upper_color_bounds = (230,250,255)
+    mask = cv2.inRange(img,lower_color_bounds,upper_color_bounds )
+
+    # cv2.imshow("image", mask)
+    # cv2.waitKey(0)
+    # mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+
+    #th, threshed = cv2.threshold(mask, 100, 255,cv2.THRESH_BINARY_INV|cv2.THRESH_OTSU)
+
+    cnts = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[-2]
+    cnts = sorted(cnts, key=cv2.contourArea, reverse=True)
+    cnts = list(filter(lambda x: (cv2.contourArea(x) > 200), cnts)) 
+    cnts = list(filter(lambda x: (cv2.arcLength(x, True)**2/(4*math.pi*cv2.contourArea(x)) < 5.4), cnts)) 
+
+
+
+
+
+    coolcont = cnts[0:2]
+    cv2.drawContours(john,coolcont, -1, (0,255,0), 2)
+
+
+    for con in coolcont:
+        perimeter = cv2.arcLength(con,True)
+
+        area = cv2.contourArea(con)
+    
+        M = cv2.moments(con)
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+        print("object at " + "x: " + str(cX) + "  Y: " + str(cY)  +  " has circularity : " + str(perimeter**2/ (4*math.pi*area) ) )
+        cv2.circle(john, (cX, cY), 3, (255, 255, 255), -1)
+
+    # detector = cv2.SimpleBlobDetector_create()
+    # keypoints = detector.detect(mask)
+    # newimg = cv2.drawKeypoints(mask, keypoints, np.array([]), (0,255,0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+
+    #ret, thresh1 = cv2.threshold(img,120,180,cv2.THRESH_BINARY)
+
+
+    cv2.imshow("image", john)
+    cv2.waitKey(0)
+
+
 def getdecodedfile(localfilename):
     import os
     dirname = os.path.dirname(__file__)
@@ -334,8 +405,12 @@ if __name__ == "__main__":
     LotG_conv_sonar = signal.convolve2d(sonar_matrix, LotG, "valid")
     G3x3_conv_sonar = signal.convolve2d(sonar_matrix, G3x3, "valid")
     G9x9_conv_sonar = signal.convolve2d(sonar_matrix, G9x9, "valid")
-    plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image.jpeg', sonar_matrix)
-    plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\LotG_Sonar_Image.jpeg', LotG_conv_sonar)
-    plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\G3x3_Sonar_Image.jpeg', G3x3_conv_sonar)
-    plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\G9x9_Sonar_Image.jpeg', G9x9_conv_sonar)
+
+   
+    doCoolStuff(sonar_matrix)
+
+    # plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image.jpeg', sonar_matrix)
+    # plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\LotG_Sonar_Image.jpeg', LotG_conv_sonar)
+    # plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\G3x3_Sonar_Image.jpeg', G3x3_conv_sonar)
+    # plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\G9x9_Sonar_Image.jpeg', G9x9_conv_sonar)
         
