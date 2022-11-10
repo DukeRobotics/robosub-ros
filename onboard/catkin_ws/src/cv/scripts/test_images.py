@@ -7,50 +7,57 @@ import subprocess
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
+
 class DummyImagePublisher:
     """Mock the camera by publishing a still image to a topic."""
 
     NODE_NAME = 'test_images'
-    
+
     def __init__(self):
         """Get command line arguments and run function appropriate for file type."""
 
         rospy.init_node(self.NODE_NAME)
-        
         self.topic = rospy.get_param("~topic")
         self.framerate = rospy.get_param("~framerate")
         self.feed_path = os.path.join(os.path.dirname(__file__), rospy.get_param("~feed_path"))
 
         self.cv_bridge = CvBridge()
-    
+
     def run(self):
         """Check arguments for errors and run the appropriate function based on the type of feed_path."""
         file_extension = os.path.splitext(self.feed_path)[1]
-        
+
         if file_extension != ".bag":
             # Only create the publisher if feed_path is not a bagfile and self.topic exists
             if self.topic:
                 self.image_publisher = rospy.Publisher(self.topic, Image, queue_size=10)
             # Raise an exception if self.topic is not specified and the feed_path is not a bagfile
             else:
-                raise ValueError("A non-empty value for the topic argument must be provided if feed_path is not a bag file.")
+                raise ValueError("A non-empty value for the topic argument must be provided \
+                                    if feed_path is not a bag file.")
 
         # Run the appropriate function based on the file extension
         # If the file extension is not supported, raise an exception
-        if self.test_if_image(): self.run_still()
-        elif file_extension == '.bag': self.run_bag()
-        elif file_extension == '': self.run_folder()
-        elif self.test_if_video(): self.run_video()
+        if self.test_if_image():
+            self.run_still()
+        elif file_extension == '.bag':
+            self.run_bag()
+        elif file_extension == '':
+            self.run_folder()
+        elif self.test_if_video():
+            self.run_video()
         else:
-            raise ValueError("The feed_path passed does not have a compatible extension. The following are compatible extensions: .jpg, .bag, a folder, or a video file compatible with cv2.VideoCapture.")
+            raise ValueError("The feed_path passed does not have a compatible extension. \
+                                The following are compatible extensions: .jpg, .bag, a folder, \
+                                or a video file compatible with cv2.VideoCapture.")
 
     def test_if_image(self):
         """Check if the file in self.feed_path is an image file that can be opened using cv2.imread."""
-        
+
         try:
             image = cv2.imread(self.feed_path, cv2.IMREAD_COLOR)
-            return not(image is None or image.size == 0)
-        except:
+            return not (image is None or image.size == 0)
+        except Exception:
             return False
 
     def run_still(self):
@@ -66,11 +73,12 @@ class DummyImagePublisher:
 
     def run_bag(self):
         """
-        Play a rosbag file with looping. 
+        Play a rosbag file with looping.
 
-        Although this function is intended to be used with rosbag files with image feeds, it can be used for any rosbag file.
-        This function does not rename the topics of the rosbag file. If you want to rename the topics, either manually run
-        `rosbag play` with topic mappings or create a new bagfile with the topics renamed and provide it to this function.
+        Although this function is intended to be used with rosbag files with image feeds,
+        it can be used for any rosbag file. This function does not rename the topics of the rosbag file.
+        If you want to rename the topics, either manually run `rosbag play` with topic mappings
+        or create a new bagfile with the topics renamed and provide it to this function.
         """
         # Keep track of the rosbag play process; will not be None if command to run rosbag is activated
         proc = None
@@ -80,7 +88,7 @@ class DummyImagePublisher:
         while not rospy.is_shutdown():
 
             # Check if self.feed_path is a valid rosbag file
-            if not started and os.path.isfile(self.feed_path) and self.feed_path.endswith('.bag'):    
+            if not started and os.path.isfile(self.feed_path) and self.feed_path.endswith('.bag'):
                 bag_command = ['rosbag', 'play', self.feed_path, '-l']
                 rospy.loginfo(bag_command)
 
@@ -93,7 +101,7 @@ class DummyImagePublisher:
             rospy.loginfo("end")
             proc.terminate()
             proc.wait()
-            
+
     def run_folder(self):
         """Publish a simulated image feed from a folder containing images to a topic.
 
@@ -118,11 +126,11 @@ class DummyImagePublisher:
 
     def test_if_video(self) -> bool:
         """Check if the file in self.feed_path is a video file that can be opened using cv2.VideoCapture."""
-        
+
         try:
             cap = cv2.VideoCapture(self.feed_path)
-            return not(cap is None or not cap.isOpened())
-        except:
+            return not (cap is None or not cap.isOpened())
+        except Exception:
             return False
 
     def run_video(self):
@@ -145,9 +153,10 @@ class DummyImagePublisher:
 
                 success, img = cap.read()
                 loop_rate.sleep()
-        
+
+
 if __name__ == '__main__':
     try:
         DummyImagePublisher().run()
-    except:
+    except Exception:
         exit()
