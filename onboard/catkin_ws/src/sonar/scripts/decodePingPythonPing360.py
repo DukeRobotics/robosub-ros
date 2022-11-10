@@ -9,7 +9,7 @@ assert (sys.version_info.major >= 3 and sys.version_info.minor >= 8), \
 from brping import PingParser, PingMessage
 from dataclasses import dataclass
 from typing import IO, Any, Set
-
+from localSonar import Sonar
 
 def indent(obj, by=' '*4):
     return by + str(obj).replace('\n', f'\n{by}')
@@ -283,11 +283,22 @@ if __name__ == "__main__":
 
     # Open log and begin processing
     log = PingViewerLogReader(filename)
-
+    bitch = Sonar()
+    bob = []
+   
+    import numpy as np
+    yeet = False
     for index, (timestamp, decoded_message) in enumerate(log.parser()):
         if(index >= 49 and index <= 149):
-            #print(f"{index} {decoded_message.angle}")
-            print(decoded_message)
+            fuckYou = decoded_message.data
+            split_bytes = [fuckYou[i:i+1] for i in range(len(fuckYou))]
+            #bob.append(split_bytes)
+            if yeet is False:
+                bob = split_bytes
+                yeet = True
+            bob = np.vstack([bob,split_bytes])
             #split_bytes = [decoded_message.data[i:i+1] for i in range(len(decoded_message.data))]
             #print(split_bytes)
-        
+    print(bob)
+    bitch.findBlobbies()
+    bitch.displayShit(bob)    

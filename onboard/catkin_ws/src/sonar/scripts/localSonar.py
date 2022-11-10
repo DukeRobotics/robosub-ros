@@ -2,7 +2,6 @@
 
 from brping import Ping360
 import numpy as np
-import decodePingPythonPing360
 
 SERIAL_PORT_NAME = "COM4"  # TODO determine what port this is for the robot.
 BAUD_RATE = 115200  # hz
@@ -14,18 +13,7 @@ class Sonar:
     """Class to interface with the Sonar device.
     """
 
-    def __init__(self, sample_period, transmit_duration=11, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
-        self.ping360 = Ping360()
-        self.ping360.connect_serial(serial_port_name, baud_rate)  # TODO: Add try except for connecting to device
-        self.ping360.initialize()
-
-        self.number_of_samples = number_of_samples
-        self.ping360.set_number_of_samples(number_of_samples)
-        self.sample_period = sample_period
-        self.ping360.set_sample_period(sample_period)
-        self.transmit_duration = transmit_duration
-        self.ping360.set_transmit_duration(transmit_duration)
-
+ 
         #rospy.init_node(NODE_NAME)
 
     def request_data_at_angle(self, angle_in_gradians):
@@ -105,6 +93,17 @@ class Sonar:
               #(index,             value)
         return (best+FILTER_INDEX, int.from_bytes(filteredbytes[best],"little"))
 
+    @staticmethod
+    def displayShit(shitToDisplay):
+        from PIL import Image
+        im = Image.fromarray(shitToDisplay.astype(np.uint8))
+        im.resize((80000,80000))
+        im.show()
+    @staticmethod
+    def findBlobbies():
+        arr = np.random.randint(0,256, 100*100) #example of a 1-D array
+        arr.resize((100,100))
+        Sonar.displayShit(arr)
 
 if __name__ == "__main__":
     #settings for a 10m scan:

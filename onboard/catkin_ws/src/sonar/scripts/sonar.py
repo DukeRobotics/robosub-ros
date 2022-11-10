@@ -121,6 +121,15 @@ class Sonar:
         #      (index, byte, angle)
         return max_tup
 
+    
+    def displayShit(shitToDisplay):
+        from PIL import Image
+        im = Image.fromarray(shitToDisplay)
+        im.show()
+    
+    def findBlobbies():
+        arr = np.random.randint(0,256, 100*100) #example of a 1-D array
+        arr.resize((100,100))
 
     def get_biggest_byte(self, angle):
         """Get the biggest value of the byte array.
