@@ -68,6 +68,7 @@ class DesiredStateHandler:
         while not self.pose_server.is_preempt_requested(): 
             self.pid_manager.position_control(pose)
             rate.sleep()
+        self.pid_manager.soft_estop()
         self.pose_server.set_preempted()
 
 
@@ -90,6 +91,7 @@ class DesiredStateHandler:
         while not self.twist_server.is_preempt_requested(): 
             self.pid_manager.velocity_control(twist)
             rate.sleep()
+        self.pid_manager.soft_estop()
         self.twist_server.set_preempted()
 
     def _on_power_received(self, goal):
@@ -112,6 +114,7 @@ class DesiredStateHandler:
         while not self.power_server.is_preempt_requested(): 
             self.pid_manager.power_control(power)
             rate.sleep()
+        self.pid_manager.soft_estop()
         self.power_server.set_preempted()
 
     def _power_state_safety(self, power):
@@ -135,31 +138,6 @@ class DesiredStateHandler:
                 self.pid_manager.soft_estop()
                 return_status = False
         return return_status
-
-    def _validate_status(self):
-        """Validates the desired state data that was received. Status is False (invalid) if multiple desired states
-        are received at the same time (i.e. position and velocity control requested) or if no desired state is received.
-        If the previous status was invalid and the new status is valid, increments event_id and logs a success message.
-
-        Returns:
-            True if status is valid, false otherwise
-        """
-        if (self.pose and self.twist) or (self.pose and self.power) or (self.twist and self.power):
-            # More than one seen in one update cycle, so warn and mark as invalid
-            self.pid_manager.soft_estop()
-            rospy.logerr("===> Controls received conflicting desired states! Halting robot. <===")
-            return False
-        elif not self.pose and not self.twist and not self.power:
-            if not self.pid_manager.halted:
-                rospy.logwarn(bcolors.WARN + ("===> Controls received no desired state! Halting robot. "
-                                              "(Event %d) <===" % self.event_id) + bcolors.RESET)
-            self.pid_manager.soft_estop()
-            return False
-        elif self.pid_manager.halted:
-            rospy.loginfo(bcolors.OKGREEN + ("===> Controls now receiving desired state (End event %d) <===" %
-                                             (self.event_id)) + bcolors.RESET)
-            self.event_id += 1
-        return True
 
 def main():
     try:
