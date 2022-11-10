@@ -13,6 +13,19 @@ To stream the feed or perform spatial detection using the OAK camera, use `rosla
 * `depthai_image_stream.launch`: Streams the live feed from the camera.
 * `depthai_spatial_detection.launch`: Runs spatial detection. Waits for a enable_model rosservice call to specify what model to activate. This requires a valid `.blob` file in `models/` and the path to this `.blob` file should be specified in the `depthai_models.yaml` file. For more information about these files, see the code structure outline below. This will publish `CVObject` messages to a topic for each class that the model detects. 
 
+## Simulating Image feeds
+`test_images.py` simulates the camera feed by constantly publishing images to a topic. It can publish still images, a folder of images, rosbag files, and video files to a topic on loop. This helps us locally test our code without needing to connect to a camera. Use `roslaunch` with the files when running.
+* `test_images.launch`: Publishes dummy images to a topic every few seconds. It has the following three parameters:
+* `feed_path`: Path to the image, video, folder, or rosbag file that you want published.
+* `topic`: Name of topic that you want to be publish the images to. Required if `feed_path` is not a rosbag file.
+* `framerate`: Number of frames published per second. Default value is set to 24. Used when `feed_path` is a folder or still image to determine rate at which to publish images.
+
+Examples:
+
+`roslaunch cv test_images.launch feed_path:=../assets/gate.mov topic:=/camera/left/image_raw`: Runs test_images by taking gate.mov file in cv/assets and publishes the simulated image feed to the topic '/camera/left/image_raw'. 
+
+`roslaunch cv test_images.launch feed_path:=../assets/buoy.jpg topic:=/camera/right/image_raw framerate:=30`: Publishes the still image buoy.jpg in cv/assets to the topic '/camera/right/image_raw' 30 times per second.
+
 ### Structure
 `scripts/`
 * `depthai_spatial_detection.py`: Waits for an enable_model rosservice call, and then publishes spatial detections using the model specified in the service call and in depthai_models.yaml.
@@ -92,7 +105,7 @@ Once 1+ models are enabled for a specific node, they listen and publish to topic
 
  * `/camera/<camera>/image_raw`
    * The topic that the camera publishes each frame to
-   * If no actual camera feed is available, you can simulate one using `roslaunch cv test_images.launch`
+   * If no actual camera feed is available, you can simulate one using `test_images.py`. See Simulating image feeds above for more information.
    * Type: sensor_msgs/Image
 
 #### Publishing:
@@ -123,7 +136,7 @@ The following are the folders and files in the CV package:
 
 `models`: Contains our pre-trained models and a `.yaml` file that specifies the details of each model (classes predicted, topic name, and the path to the model weights)
 
-`scripts`: This is the "meat" of our package. We have a detection script `detection.py` that will read in images and publish predictions onto a node. We also have a `test_images.py` script that is used for testing our package on a dummy video feed (basically one image repeated over and over). The path of this image is specified in `test_images.py`. We can simulate different video feeds coming in on the different cameras on our `test_images.py` script. The `utils.py` script has a function implementing the NMS algorithms; this goes through all raw predictions made by a model to remove overlapping predictions of the same class and to remove predictions below a confidence threshold.
+`scripts`: This is the "meat" of our package. We have a detection script `detection.py` that will read in images and publish predictions onto a node. We also have a `test_images.py` script that is used for testing our package on a dummy video feed, generated either through looping an image or folder of images, or running a video or rosbag file. The path of this file is passed when `test_images.py` is launched. We can simulate different video feeds coming in on the different cameras on our `test_images.py` script. The `utils.py` script has a function implementing the NMS algorithms; this goes through all raw predictions made by a model to remove overlapping predictions of the same class and to remove predictions below a confidence threshold.
 
 `CMakeLists.txt`: A text file stating the necessary package dependencies and the files in our package.
 
@@ -133,7 +146,7 @@ The CV package also has dependencies in the `core/catkin_ws/src/custom_msgs` fol
 
 ## Examples
 To simulate camera feed and then run a model on the feed from the left camera. We'll assume the model we want to run is called 'buoy':
-* In one terminal, run `roslaunch cv test_images.launch` to start the script meant to simulate the raw camera feed
+* In one terminal, run `roslaunch cv test_images.launch feed_path:=../assets/{file_name} topic:={topic_name} framerate:={required framerate}` to start the script meant to simulate the raw camera feed
 * In a new terminal, run `roslaunch cv cv_left.launch` to start the cv node
 * In another new terminal, run `rosservice list` and should see the `enable_model_left` service be listed in the terminal
 * In the same terminal, run `rosservice call enable_model_left buoy true` to enable the buoy model on the feed coming from the left camera. This model should now be publishing predictions
