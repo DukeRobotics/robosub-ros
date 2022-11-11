@@ -10,7 +10,7 @@ This branch contains code for the Luxonis OAK-D PoE camera, which uses a python 
 
 ### Running the Code
 To stream the feed or perform spatial detection using the OAK camera, use `roslaunch` with either of the following two files.
-* `depthai_image_stream.launch`: Streams the live feed from the camera.
+* `depthai_publish_image_stream.launch`: Streams the live feed from the camera.
 * `depthai_spatial_detection.launch`: Runs spatial detection. Waits for a enable_model rosservice call to specify what model to activate. This requires a valid `.blob` file in `models/` and the path to this `.blob` file should be specified in the `depthai_models.yaml` file. For more information about these files, see the code structure outline below. This will publish `CVObject` messages to a topic for each class that the model detects. 
 
 ### Structure
@@ -20,7 +20,7 @@ To stream the feed or perform spatial detection using the OAK camera, use `rosla
 * `depthai_mock_camera_feed.py`: Simulates the camera feed by sending a still image to the camera, passing it through a neural network, and retrieving the output. It is meant for testing the object detection model, since we can feed test data to the camera without needing to have a live feed of our targets. This can be run outside of the Docker container.
 
 `launch/`
-* `depthai_image_stream.launch`: Runs the image stream script
+* `depthai_publish_image_stream.launch`: Runs the image stream script
 * `depthai_spatial_detection.launch`: Runs the spatial detection script
 
 `models/`

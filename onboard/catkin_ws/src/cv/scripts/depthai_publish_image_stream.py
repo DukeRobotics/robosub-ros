@@ -27,8 +27,7 @@ class DepthAIImageStreamPublisher:
         """
         Set up publishers and camera node pipelines.
         """
-        rospy.init_node('depthai_image_stream')
-        self.robot = rospy.get_param('~robot')
+        rospy.init_node('depthai_publish_image_stream')
 
         self.stream_publisher_rgb_video = rospy.Publisher(self.STREAM_TOPIC_RGB_VIDEO, Image, queue_size=10)
         self.stream_publisher_rgb_preview = rospy.Publisher(self.STREAM_TOPIC_RGB_PREVIEW, Image, queue_size=10)
@@ -112,7 +111,7 @@ class DepthAIImageStreamPublisher:
         publish them to their respective topics.
         """
 
-        with depthai_camera_connect.connect(self.pipeline, self.robot) as device:
+        with depthai_camera_connect.connect(self.pipeline) as device:
 
             # Output queue, to receive message on the host from the device(you can send the message
             # on the device with XLinkOut)

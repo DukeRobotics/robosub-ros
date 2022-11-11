@@ -87,7 +87,7 @@ class DepthAIMockImageStream:
         """
 
         # Upload the pipeline to the device
-        with depthai_camera_connect.connect(self.pipeline, self.robot) as device:
+        with depthai_camera_connect.connect(self.pipeline) as device:
 
             def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
                 return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
