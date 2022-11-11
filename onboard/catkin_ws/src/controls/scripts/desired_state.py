@@ -29,12 +29,15 @@ class DesiredStateHandler:
 
     REFRESH_HZ = 10  # for main loop
 
+    # Max power & Max twist for the controls need values
+    MAX_POWER = {'x': 1, 'y': 1, 'z': 1, 'roll': 0.5, 'pitch': 0.5, 'yaw': 0.5}
+    MAX_TWIST = {'x': 1, 'y': 1, 'z': 1, 'roll': 0.5, 'pitch': 0.5, 'yaw': 0.5}
+
     # All variables are dictionaries that map directions to their corresponding value (local reference frame)
     pose = None  # Desired pose (position)
     twist = None  # Desired twist (velocity)
     power = None  # Desired power (control effort)
     event_id = 0
-    valid = True
 
     def __init__(self):
         rospy.init_node('desired_state')
@@ -43,8 +46,10 @@ class DesiredStateHandler:
         self.pid_manager = PIDManager()
 
         rospy.Subscriber(self.DESIRED_POSE_TOPIC, Pose, self._on_pose_received)
-        rospy.Subscriber(self.DESIRED_TWIST_TOPIC, Twist, self._on_twist_received)
-        rospy.Subscriber(self.DESIRED_POWER_TOPIC, Twist, self._on_power_received)
+        rospy.Subscriber(self.DESIRED_TWIST_TOPIC,
+                         Twist, self._on_twist_received)
+        rospy.Subscriber(self.DESIRED_POWER_TOPIC,
+                         Twist, self._on_power_received)
 
     def _on_pose_received(self, pose):
         """Handler for receiving desired pose. Transforms global desired pose to local reference frame
@@ -53,7 +58,8 @@ class DesiredStateHandler:
         Args:
             pose: ROS Pose message corresponding to desired pose in global reference frame
         """
-        self.pose = utils.parse_pose(utils.transform_pose(self.listener, 'odom', 'base_link', pose))
+        self.pose = utils.parse_pose(utils.transform_pose(
+            self.listener, 'odom', 'base_link', pose))
 
     def _on_twist_received(self, twist):
         """Handler for receiving desired twists. Received desired twists are assumed to be defined in the
@@ -73,6 +79,28 @@ class DesiredStateHandler:
             power: ROS Twist message corresponding to desired powers in local reference frame
         """
         self.power = utils.parse_twist(power)
+
+    def _power_state_safety(self, power):
+        # Compares power with controller limits
+        return_status = True
+        for axis in utils.get_axes():
+            if abs(power[axis]) > self.MAX_POWER[axis]:
+                rospy.logerr(
+                    "===> Desired power exceeds maximum %s value! Halting robot <===", axis)
+                self.pid_manager.soft_estop()
+                return_status = False
+        return return_status
+
+    def _twist_state_safety(self, twist):
+        # Compares twist with controller limits
+        return_status = True
+        for axis in utils.get_axes():
+            if abs(twist[axis]) > self.MAX_TWIST[axis]:
+                rospy.logerr(
+                    "===> Desired twist exceeds maximum %s value! Halting robot <===", axis)
+                self.pid_manager.soft_estop()
+                return_status = False
+        return return_status
 
     def _reset_data(self):
         """Resets all desired state data"""
@@ -94,12 +122,12 @@ class DesiredStateHandler:
             rospy.logerr("===> Controls received conflicting desired states! Halting robot. <===")
             return False
         elif not self.pose and not self.twist and not self.power:
-            self.pid_manager.soft_estop()
-            if self.valid:
+            if not self.pid_manager.halted:
                 rospy.logwarn(bcolors.WARN + ("===> Controls received no desired state! Halting robot. "
                                               "(Event %d) <===" % self.event_id) + bcolors.RESET)
+            self.pid_manager.soft_estop()
             return False
-        elif not self.valid:
+        elif self.pid_manager.halted:
             rospy.loginfo(bcolors.OKGREEN + ("===> Controls now receiving desired state (End event %d) <===" %
                                              (self.event_id)) + bcolors.RESET)
             self.event_id += 1
@@ -111,14 +139,12 @@ class DesiredStateHandler:
         while not rospy.is_shutdown():
             rate.sleep()
 
-            self.valid = self._validate_status()
-            if self.valid:
+            if self._validate_status():
                 if self.pose:
                     self.pid_manager.position_control(self.pose)
-                # TODO: Add safety net that checks that twist/power control values are within an expected range
-                elif self.twist:
+                elif self.twist and self._twist_state_safety(self.twist):
                     self.pid_manager.velocity_control(self.twist)
-                elif self.power:
+                elif self.power and self.twist_state_safety(self.power):
                     self.pid_manager.power_control(self.power)
 
             self._reset_data()
