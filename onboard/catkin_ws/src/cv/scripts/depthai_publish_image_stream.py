@@ -3,16 +3,17 @@
 import rospy
 import depthai as dai
 import cv2
-import numpy as np
+import os
+from custom_msgs.srv import EnableModel
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import depthai_camera_connect
 
 
+
 class DepthAIImageStreamPublisher:
     """
-    Class to stream the RGB video, RGB stereo, mono left, mono right, and disparity image feeds from the depthai camera
-    and publish them to their own topics.
+    Class to stream the RGB image feed from the depthai camera and publish the raw feed to STREAM_TOPIC.
     """
 
     CAMERA = 'front'
@@ -25,7 +26,7 @@ class DepthAIImageStreamPublisher:
 
     def __init__(self):
         """
-        Set up publishers and camera node pipelines.
+        Set up publisher and camera node pipeline.
         """
         rospy.init_node('depthai_publish_image_stream')
         self.publish_rgb_video = rospy.get_param('~rgb_video')
@@ -59,7 +60,7 @@ class DepthAIImageStreamPublisher:
 
     def build_pipeline(self):
         """
-        Build the DepthAI.Pipeline, which takes the camera and disparity feeds and retrieves them using XLinkOut.
+        Build the DepthAI.Pipeline, which takes the RGB camera feed and retrieves it using an XLinkOut.
         """
 
         if self.publish_rgb_video or self.publish_rgb_preview:
@@ -152,9 +153,9 @@ class DepthAIImageStreamPublisher:
     # Publish newest image off queue to topic every few seconds
     def run(self):
         """
-        Get RGB video, RGB stereo, mono left, mono right, and disparity images from the camera and
-        publish them to their respective topics.
+        Get rgb images from the camera and publish them to STREAM_TOPIC.
         """
+        loop_rate = rospy.Rate(1)
 
         with depthai_camera_connect.connect(self.pipeline) as device:
 
@@ -221,6 +222,7 @@ class DepthAIImageStreamPublisher:
                     image_msg_depth = self.bridge.cv2_to_imgmsg(img_depth, 'mono16')
                     self.stream_publisher_depth.publish(image_msg_depth)
 
+            loop_rate.sleep()
 
 if __name__ == '__main__':
     try:
