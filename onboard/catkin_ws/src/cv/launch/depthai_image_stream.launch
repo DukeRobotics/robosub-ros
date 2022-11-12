@@ -1,0 +1,6 @@
+<launch>
+	<arg name="robot" default="True" />
+	<node name="depthai_image_stream" pkg="cv" type="depthai_publish_image_stream.py" output="screen">
+		<param name="robot" value="$(arg robot)" />
+	</node>
+</launch>

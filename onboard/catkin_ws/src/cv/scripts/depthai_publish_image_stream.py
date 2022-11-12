@@ -22,7 +22,7 @@ class DepthAIImageStreamPublisher:
     STREAM_TOPIC_RIGHT = f'/camera/{CAMERA}/right/stream_raw'
     STREAM_TOPIC_DISPARITY = f'/camera/{CAMERA}/disparity/stream_raw'
     STREAM_TOPIC_DEPTH = f'/camera/{CAMERA}/depth/stream_raw'
-
+    
     def __init__(self):
         """
         Set up publishers and camera node pipelines.
@@ -93,7 +93,7 @@ class DepthAIImageStreamPublisher:
         xoutDepth.setStreamName("depth")
         xoutDepth.input.setBlocking(False)
         xoutDepth.input.setQueueSize(1)
-
+        
         camLeft.out.link(stereo.left)
         camRight.out.link(stereo.right)
 
@@ -164,7 +164,6 @@ class DepthAIImageStreamPublisher:
 
                 image_msg_depth = self.bridge.cv2_to_imgmsg(img_depth, 'mono16')
                 self.stream_publisher_depth.publish(image_msg_depth)
-
 
 if __name__ == '__main__':
     try:
