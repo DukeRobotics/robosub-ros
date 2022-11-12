@@ -48,7 +48,6 @@ class ROSBagFootageExtractor:
         for topic, msg, t in bag.read_messages(topics=[topic_name]):
             if topic == topic_name:
                 if frame_count % step_size == 0:
-
                     cv_img = image_tools.convert_ros_msg_to_cv2(msg)
 
                     file_save_path = os.path.join(save_dir, f"{file_name_no_extension}_{frame_count}.jpg")
