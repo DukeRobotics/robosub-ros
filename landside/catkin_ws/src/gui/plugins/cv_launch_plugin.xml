@@ -1,0 +1,12 @@
+<library path="src">
+  <class name="CV Launch Plugin" type="gui.cv_launch_plugin.CVLaunchPlugin" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      GUI interface for launching and monitoring CV nodes.
+    </description>
+    <qtgui>
+      <label>RoboSub CV Launch</label>
+      <icon type="theme">system-help</icon>
+      <statustip>GUI interface for launching and monitoring CV nodes.</statustip>
+    </qtgui>
+  </class>
+</library>
