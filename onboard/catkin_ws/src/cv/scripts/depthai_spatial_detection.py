@@ -3,9 +3,13 @@
 import rospy
 import resource_retriever as rr
 import yaml
+<<<<<<< HEAD
+import depthai_camera_connect
+=======
 
 from pathlib import Path
 import cv2
+>>>>>>> 01ac9666084d1fb101a9b65c2d48f5f01080074e
 import depthai as dai
 import numpy as np
 
@@ -258,7 +262,7 @@ class DepthAISpatialDetector:
         self.init_model(req.model_name)
         self.init_publishers(req.model_name)
 
-        with dai.Device(self.pipeline) as device:
+        with depthai_camera_connect.connect(self.pipeline) as device:
             self.init_output_queues(device)
 
             loop_rate = rospy.Rate(1)

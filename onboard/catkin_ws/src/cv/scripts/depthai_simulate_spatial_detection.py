@@ -12,7 +12,7 @@ NN_PATH = os.path.join(path, '../assets/bloblol.blob')
 IMAGE_RELATIVE_PATH = os.path.join(path, '../assets/left384.jpg')
 
 
-class DepthAIMockImageStream:
+class DepthAISimulateSpatialDetection:
     """
     THIS FILE IS INCOMPLETE. It can be used for local testing outside of the docker container since
     it does not require ROS.
@@ -21,7 +21,6 @@ class DepthAIMockImageStream:
     This class takes a still image and transfers it from the host (local computer) to the camera. The
     image feed is then ran through the provided neural network.
     """
-
     CAMERA = 'left'
     IMAGE_TOPIC = f'/camera/{CAMERA}/image_raw'
 
@@ -34,7 +33,7 @@ class DepthAIMockImageStream:
         # Dummy still image
         path = os.path.dirname(__file__)
         self.image = cv2.imread(os.path.join(path, IMAGE_RELATIVE_PATH), cv2.IMREAD_COLOR)
-        self.subscribe = rospy.Subscriber(self.IMAGE_TOPIC, queue_size=10)
+        self.subscribe = rospy.Subscriber(self.IMAGE_TOPIC, self.run, queue_size=10)
 
         # Get path to nn blob file
 
@@ -79,7 +78,7 @@ class DepthAIMockImageStream:
         nn.passthrough.link(feedOut.input)
 
     # Publish dummy image to topic every few seconds
-    def run(self):
+    def run(self, img_msg):
         """
         Send the still image through to the input queue (qIn) after converting it to the proper format.
         Then retreive what was fed into the neural network. The input to the neural network should be the same
@@ -97,20 +96,22 @@ class DepthAIMockImageStream:
 
             # Output queue will be used to get nn data from the video frames.
 
-            # qFeed = device.getOutputQueue(name="feed", maxSize=4, blocking=False)
+            qFeed = device.getOutputQueue(name="feed", maxSize=4, blocking=False)
 
             # qOut = device.getOutputQueue(name="nn", maxSize=4, blocking=False)
 
             # Send a message to the ColorCamera to capture a still image
             img = dai.ImgFrame()
             img.setType(dai.ImgFrame.Type.BGR888p)
-            img.setData(to_planar(self.image, (416, 416)))
+            img.setData(to_planar(img_msg, (416, 416)))
 
             img.setWidth(416)
             img.setHeight(416)
 
             qIn.send(img)
-            # inFeed = qFeed.get()
+            inFeed = qFeed.get()
+            rospy.loginfo(inFeed)
+
 
 if __name__ == '__main__':
-    DepthAIMockImageStream().run()
+    DepthAISimulateSpatialDetection()
