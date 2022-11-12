@@ -2,7 +2,6 @@
 
 import rospy
 import actionlib
-from geometry_msgs.msg import Pose, Twist
 import controls_utils as utils
 from tf import TransformListener
 from pid_manager import PIDManager
@@ -29,7 +28,7 @@ class DesiredStateHandler:
     DESIRED_POSE_ACTION = 'controls/desired_pose'
     DESIRED_POWER_ACTION = 'controls/desired_power'
 
-    REFRESH_HZ = 10  # for main loop
+    REFRESH_HZ = 10  # rate of publishing to PID topics
 
     # Max power & Max twist for the controls need values
     MAX_POWER = {'x': 1, 'y': 1, 'z': 1, 'roll': 0.5, 'pitch': 0.5, 'yaw': 0.5}
@@ -64,12 +63,7 @@ class DesiredStateHandler:
         pose = utils.parse_pose(utils.transform_pose(
             self.listener, 'odom', 'base_link', goal.pose))
         
-        rate = rospy.Rate(self.REFRESH_HZ)
-        while not self.pose_server.is_preempt_requested(): 
-            self.pid_manager.position_control(pose)
-            rate.sleep()
-        self.pid_manager.soft_estop()
-        self.pose_server.set_preempted()
+        self._publish_control(self.pose_server, self.pid_manager.position_control, pose)
 
 
     def _on_twist_received(self, goal):
@@ -87,12 +81,8 @@ class DesiredStateHandler:
         if not self._twist_state_safety(twist): 
             self.twist_server.set_aborted()
             return
-        rate = rospy.Rate(self.REFRESH_HZ)
-        while not self.twist_server.is_preempt_requested(): 
-            self.pid_manager.velocity_control(twist)
-            rate.sleep()
-        self.pid_manager.soft_estop()
-        self.twist_server.set_preempted()
+        
+        self._publish_control(self.twist_server, self.pid_manager.velocity_control, twist)
 
     def _on_power_received(self, goal):
         """Handler for receiving desired powers. A desired power in a given axis represents the control
@@ -110,12 +100,8 @@ class DesiredStateHandler:
         if not self._power_state_safety(power): 
             self.power_server.set_aborted()
             return
-        rate = rospy.Rate(self.REFRESH_HZ)
-        while not self.power_server.is_preempt_requested(): 
-            self.pid_manager.power_control(power)
-            rate.sleep()
-        self.pid_manager.soft_estop()
-        self.power_server.set_preempted()
+
+        self._publish_control(self.power_server, self.pid_manager.power_control, power)
 
     def _power_state_safety(self, power):
         # Compares power with controller limits
@@ -138,6 +124,14 @@ class DesiredStateHandler:
                 self.pid_manager.soft_estop()
                 return_status = False
         return return_status
+
+    def _publish_control(self, server, publish_func, data):
+        rate = rospy.Rate(self.REFRESH_HZ)
+        while not server.is_preempt_requested(): 
+            publish_func(data)
+            rate.sleep()
+        self.pid_manager.soft_estop()
+        server.set_preempted()
 
 def main():
     try:
