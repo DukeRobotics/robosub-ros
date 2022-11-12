@@ -1,0 +1,12 @@
+<library path="src">
+  <class name="Controls Plugin" type="gui.controls_plugin.ControlsPlugin" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      GUI interface monitoring controls.
+    </description>
+    <qtgui>
+      <label>RoboSub Controls</label>
+      <icon type="theme">system-help</icon>
+      <statustip>GUI interface monitoring controls.</statustip>
+    </qtgui>
+  </class>
+</library>

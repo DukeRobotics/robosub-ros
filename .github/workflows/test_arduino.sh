@@ -3,5 +3,5 @@
 set -e
 
 # shellcheck disable=SC1091
-source onboard/catkin_ws/devel/setup.bash
-rosrun offboard_comms arduino_upload.sh -c
+source onboard/ros2_ws/install/setup.bash
+# rosrun offboard_comms arduino_upload.sh -c

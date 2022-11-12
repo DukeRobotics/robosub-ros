@@ -22,6 +22,7 @@ services:
   landside:
     image: dukerobotics/robosub-ros:landside
     container_name: landside
+    privileged: true
     ports:
       - 2201:2201
     networks:

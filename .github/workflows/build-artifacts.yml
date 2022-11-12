@@ -33,7 +33,7 @@ jobs:
     needs: check-comment
     strategy:
       matrix:
-        arch: [arm64, amd64]
+        arch: [amd64]
       fail-fast: false
     env:
       IMAGE_NAME: 'dukerobotics/robosub-ros:core-${{ matrix.arch }}'
@@ -63,7 +63,7 @@ jobs:
     needs: [check-comment, core-docker]
     strategy:
       matrix:
-        arch: [arm64, amd64]
+        arch: [amd64]
       fail-fast: false
     env:
       IMAGE_NAME: 'dukerobotics/robosub-ros:onboard-${{ matrix.arch }}'

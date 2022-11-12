@@ -1,6 +1,0 @@
-<launch>
-    <include file="$(find joystick)/launch/joystick_raw.launch" />
-    <include file="$(find joystick)/launch/pub_joy.launch">
-        <arg name="joystick_type" value="F310" />
-    </include>
-</launch>
