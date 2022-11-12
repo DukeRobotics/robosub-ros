@@ -2,6 +2,7 @@
 
 import rospy
 import smach
+import tf
 from gate_task import create_gate_task_sm
 
 
@@ -10,16 +11,20 @@ class TaskRunner:
 
     def __init__(self):
         rospy.init_node("task_planning")
+        self.listener = tf.TransformListener()
 
     def start(self):
         sm_top = smach.StateMachine(outcomes=['task_runner_succeeded', 'task_runner_failed'])
 
         with sm_top:
-            sm_gate = create_gate_task_sm()
+            sm_gate = create_gate_task_sm(self.listener)
             smach.StateMachine.add('GATE_STATE', sm_gate,
                                    transitions={
                                        'succeeded': 'task_runner_succeeded',
                                        'failed': 'task_runner_failed'})
+
+        rospy.loginfo("Waiting for transform listener")
+        self.listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(15))
 
         sm_top.execute()
 
