@@ -40,6 +40,13 @@ def main():
     # Execute SMACH plan
     sm.execute()
 
+# Here to appease automatic testing
+# Check if we actually want this later
+
+
+def create_gate_task_sm():
+    return create_gate_task_sm_DEFUNCT(1)
+
 # Rotate direction is +1 or -1 depending on how we should rotate
 
 
@@ -47,7 +54,7 @@ def create_gate_task_sm_DEFUNCT(rotate_direction):
     sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
     listener = TransformListener()
     gate_euler_position = [0, 0, 0, 0, 0, 0]
-    image_name = "bootlegger"
+    image_name = "bootleggerbuoy"
     with sm:
         smach.StateMachine.add('CHECK_IMAGE_VISIBLE', ObjectVisibleTask(image_name, 3),
                                transitions={

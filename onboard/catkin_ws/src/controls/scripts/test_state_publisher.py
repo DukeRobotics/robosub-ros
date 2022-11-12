@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-from copy import deepcopy
 import rospy
-from custom_msgs.msg import CVObject
 from geometry_msgs.msg import Pose, Twist
 from std_msgs.msg import Float64
 from nav_msgs.msg import Odometry
@@ -24,29 +22,15 @@ class TestStatePublisher:
     def __init__(self):
         rospy.init_node('test_state_publisher')
         self.listener = TransformListener()
-        self.state_listener = rospy.Subscriber("/controls/x_pos/setpoint", Float64, self._on_receive_data_x)
-        self.state_listener = rospy.Subscriber("/controls/y_pos/setpoint", Float64, self._on_receive_data_y)
-        self.state_listener = rospy.Subscriber("/controls/z_pos/setpoint", Float64, self._on_receive_data_z)
-        self.state_listener = rospy.Subscriber("/controls/yaw_pos/setpoint", Float64, self._on_receive_data_yaw)
-
-        self.cv_listener_gman = rospy.Subscriber("/cv/right/buoy_gman", CVObject, self._on_receive_buoy_gman)
-        self.cv_listener_bootlegger = rospy.Subscriber(
-            "/cv/right/buoy_bootlegger", CVObject, self._on_receive_buoy_bootlegger)
+        rospy.Subscriber("/controls/x_pos/setpoint", Float64, self._on_receive_data_x)
+        rospy.Subscriber("/controls/y_pos/setpoint", Float64, self._on_receive_data_y)
+        rospy.Subscriber("/controls/z_pos/setpoint", Float64, self._on_receive_data_z)
+        rospy.Subscriber("/controls/yaw_pos/setpoint", Float64, self._on_receive_data_yaw)
 
         self.current_setpoint = [100.0, 100.0, 100.0]  # x,y,z
         self.MOVE_OFFSET_CONSTANT = 1
         self.current_yaw = 100.0
         self.MOVE_OFFSET_CONSTANT_ANGULAR = 0.2
-
-        self.gman_xmin = 0.0
-        self.gman_ymin = 0.0
-        self.gman_xmax = 0.0
-        self.gman_ymax = 0.0
-
-        self.bootlegger_xmin = 0.0
-        self.bootlegger_ymin = 0.0
-        self.bootlegger_xmax = 0.0
-        self.bootlegger_ymax = 0.0
 
         sleep(1)
 
@@ -75,8 +59,6 @@ class TestStatePublisher:
         self.desired_pose_local.orientation.z = 0
         self.desired_pose_local.orientation.w = 1
         self.recalculate_local_pose()
-
-        self.global_start_pose = Pose()
 
         # These values correspond to the desired local twist for the robot
         # Max linear z speed is ~ -0.26 -- ignore (for different mass)
@@ -129,70 +111,6 @@ class TestStatePublisher:
             self._pub_desired_pose.publish(self.desired_pose_transformed)
             rate.sleep()
 
-    def gate_move(self):
-        delay = 500
-        rate = rospy.Rate(15)
-        while not rospy.is_shutdown():
-            delay -= 1
-            if delay == 0:
-                self.desired_pose_local.position.z = -1.2
-                self.desired_pose_local.position.x = 8
-                self.recalculate_local_pose()
-            self._pub_desired_pose.publish(self.desired_pose_transformed)
-            # self._pub_current_state.publish(self.current_state)
-            rate.sleep()
-
-    def test_yaw(self):
-        delay = 0
-        rate = rospy.Rate(15)
-        while not rospy.is_shutdown():
-            delay += 1
-            if delay == 1:
-                self.desired_twist.angular.z = 1
-            if delay == 150:
-                print("Stop")
-                self.desired_twist.angular.z = 0
-            if delay == 300:
-                print("Switching direction")
-                self.desired_twist.angular.z = -1
-            self._pub_desired_twist.publish(self.desired_twist)
-            rate.sleep()
-
-    def semifinal_sunday_with_timings(self):
-        delay = 0
-        rate = rospy.Rate(15)
-        while not rospy.is_shutdown():
-            delay += 1
-            if delay == 1:
-                print("Diving")
-                self.desired_pose_local.position.z = -1.2
-                self.recalculate_local_pose()
-            if delay == 60:
-                print("Going forward")
-                self.desired_pose_local.position.z = 0
-                self.desired_pose_local.position.x = 15
-                self.recalculate_local_pose()
-            self._pub_desired_pose.publish(self.desired_pose_transformed)
-            rate.sleep()
-
-    def circle_pole(self):
-        delay = 0
-        rate = rospy.Rate(15)
-        # self.desired_pose_local.position.x = 0
-        while not rospy.is_shutdown():
-            delay += 1
-            if delay == 30:
-                self.desired_pose_local.position.x = 0
-                self.desired_pose_local.position.y = -2
-                self.recalculate_local_pose()
-            if delay == 210:
-                print("Back")
-                self.desired_pose_local.position.y = 0
-                self.desired_pose_local.position.x = -5
-                self.recalculate_local_pose()
-            self._pub_desired_pose.publish(self.desired_pose_transformed)
-            rate.sleep()
-
     def publish_desired_twist(self):
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
@@ -200,37 +118,11 @@ class TestStatePublisher:
             # self._pub_current_state.publish(self.current_state)
             rate.sleep()
 
-    # Publish self.desired_twist for a fixed duration
-    def publish_desired_twist_duration(self, duration):
-        rate = rospy.Rate(15)
-        tot = 0
-        while not rospy.is_shutdown() and tot < duration:
-            self._pub_desired_twist.publish(self.desired_twist)
-            # self._pub_current_state.publish(self.current_state)
-            rate.sleep()
-            tot += 15
-
     def publish_desired_power(self):
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
             self._pub_desired_power.publish(self.desired_power)
             # self._pub_current_state.publish(self.current_state)
-            rate.sleep()
-
-    def test_receive_data(self):
-        self.desired_pose_local.position.x = 2
-        self.desired_pose_local.position.y = 0
-        self.desired_pose_local.position.z = 0
-
-        self.recalculate_local_pose()
-
-        rate = rospy.Rate(15)
-        while not rospy.is_shutdown():
-            self._pub_desired_pose.publish(self.desired_pose_transformed)
-            print(self.current_setpoint)
-            print(type(self.current_setpoint[0]))
-            if self.current_setpoint[0] <= 0.2 and self.current_setpoint[1] <= 0.2 and self.current_setpoint[2] <= 0.2:
-                print("Here!")
             rate.sleep()
 
     def move_to_pos_and_stop(self, x, y, z):
@@ -329,121 +221,6 @@ class TestStatePublisher:
                     break
             rate.sleep()
 
-    def surface_in_octagon(self):
-        self.desired_pose_local.position.x = 0
-        self.desired_pose_local.position.y = 0
-        self.desired_pose_local.position.z = 10
-
-        self.recalculate_local_pose()
-
-        rate = rospy.Rate(15)
-
-        delay = 0
-        while not rospy.is_shutdown():
-            delay += 1
-            self._pub_desired_pose.publish(self.desired_pose_transformed)
-            if delay > 100:
-                break
-            rate.sleep()
-
-    def semifinal_sunday_v1(self):
-        # No style, no random starting orientation (just point directly to the octagon)
-        # z_submerge = -1 #tune by finding depth for which we can travel length of pool without surfacing
-        # self.move_to_pos_and_stop(0,0,z_submerge)
-        # print("Submerge done")
-
-        # initial delay
-        delay = 0
-        sec_to_wait = 90
-        rate = rospy.Rate(15)
-        while not rospy.is_shutdown():
-            delay += 1
-            if delay % 15 == 0:
-                print(delay / 15)
-            if delay > 15 * sec_to_wait:
-                break
-            rate.sleep()
-        print("starting!")
-
-        self.move_to_pos_and_stop(5, 0, -1.5)
-        print("Move forward done")
-        self.publish_desired_twist()
-
-        # self.surface_in_octagon()
-
-        # z_surface = -z_submerge #should cause robot to reach surface, provided robot is positively buoyant
-        # self.move_to_pos_and_stop(0,0,z_surface)
-        # print("Rise to surface done")
-
-    # Then do v2 and v3; ideally we do v3 successfully and earn 2350 points total
-
-    def last_chance(self):
-        # Dear god please work
-
-        # initial delay
-        delay = 0
-        sec_to_wait = 90
-        rate = rospy.Rate(15)
-        while not rospy.is_shutdown():
-            delay += 1
-            if delay % 15 == 0:
-                print(delay / 15)
-            if delay > 15 * sec_to_wait:
-                break
-            rate.sleep()
-        print("starting!")
-
-        # Save start pose
-        self.desired_pose_local.position.x = 0
-        self.desired_pose_local.position.y = 0
-        self.desired_pose_local.position.z = 0
-        self.desired_pose_local.orientation.x = 0
-        self.desired_pose_local.orientation.y = 0
-        self.desired_pose_local.orientation.z = 0
-        self.desired_pose_local.orientation.w = 1
-        self.recalculate_local_pose()
-        self.global_start_pose = deepcopy(self.desired_pose_transformed)
-
-        # Move through the gate
-        self.move_to_pos_and_stop(5, 0, -1.5)
-        print("Move forward done")
-        # Spin for the listed duration
-        self.publish_desired_twist_duration(45_000)
-
-        # Face towards the octagon
-        self.global_face_forward()
-
-        # TIME DELAY VERSION
-        # TBD
-
-        # SET POINT VERSION
-        # Move to the octagon
-        self.move_to_pos_and_stop(17, 0, 0)
-
-        # Surface in the octagon
-        self.move_to_pos_and_stop(0, 0, 100)
-
-    def test_comm_cv(self):
-        rate = rospy.Rate(15)
-        while not rospy.is_shutdown():
-            print(self.bootlegger_xmin)
-            rate.sleep()
-
-    def calculate_depth_to_gman_buoy(self, d):
-        f = 1347.67  # y focal length in pixels for camera
-        D = 1.2192  # height of buoy in meters
-        return f * D / d  # calculated x distance to buoy using similar triangles
-
-    def move_to_gman_buoy(self):
-        rate = rospy.Rate(15)
-        while not rospy.is_shutdown():
-            d = (self.gman_ymax - self.gman_ymin) * 760  # height of buoy in pixels
-            x_setpoint = self.calculate_depth_to_gman_buoy(d)
-            self.desired_pose_local.position.x = x_setpoint
-            self.desired_pose_local.position
-
-            rate.sleep()
-
     def _on_receive_data_x(self, data):
         self.current_setpoint[0] = data.data
 
@@ -456,38 +233,12 @@ class TestStatePublisher:
     def _on_receive_data_yaw(self, data):
         self.current_yaw = data.data
 
-    def _on_receive_buoy_gman(self, data):
-        if data.score > 0.7:
-            self.gman_xmin = data.xmin
-            self.gman_xmax = data.xmax
-            self.gman_ymin = data.ymin
-            self.gman_ymax = data.ymax
-
-    def _on_receive_buoy_bootlegger(self, data):
-        if data.score > 0.7:
-            self.bootlegger_xmin = data.xmin
-            self.bootlegger_xmax = data.xmax
-            self.bootlegger_ymin = data.ymin
-            self.bootlegger_ymax = data.ymax
-
 
 def main():
-    # TestStatePublisher().gate_move()
     # TestStatePublisher().publish_desired_pose_global()
-    TestStatePublisher().semifinal_sunday_v1()
-    # TestStatePublisher().publish_desired_pose_local()
-    # TestStatePublisher().move_to_pos_and_stop(3,0,-1.2)
+    TestStatePublisher().publish_desired_pose_local()
     # TestStatePublisher().publish_desired_twist()
     # TestStatePublisher().publish_desired_power()
-    # TestStatePublisher().test_yaw()
-    # TestStatePublisher().move_to_pos_and_stop(8,0,-1)
-    # TestStatePublisher().move_to_yaw_and_stop(0,0,1,0) #submerges as well
-    # print("Done with yaw")
-    # TestStatePublisher().move_to_pos_and_stop(2,0,-0.5)
-    print("Done with x")
-
-    # TestStatePublisher().semifinal_sunday_v1()
-    # TestStatePublisher().test_comm_cv()
 
 
 if __name__ == '__main__':
