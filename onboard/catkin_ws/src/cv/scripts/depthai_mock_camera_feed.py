@@ -112,5 +112,6 @@ class DepthAIMockImageStream:
             qIn.send(img)
             # inFeed = qFeed.get()
 
+
 if __name__ == '__main__':
     DepthAIMockImageStream().run()

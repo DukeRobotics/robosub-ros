@@ -132,7 +132,7 @@ class CVLaunchDialog(QDialog):
     def click_ok(self):
         package = self.package_name_box.currentText()
         node = self.node_name_box.currentText()
-        args = self.args_input.text().split(' ')
+        args = self.args_input.text().split(' ') if self.args_input.text() != "" else []
 
         for row in self.argFormRows:
             if row['lineEdit'].text() == "":

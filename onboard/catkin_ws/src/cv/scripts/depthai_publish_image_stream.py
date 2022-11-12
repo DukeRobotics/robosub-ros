@@ -3,12 +3,10 @@
 import rospy
 import depthai as dai
 import cv2
-import os
-from custom_msgs.srv import EnableModel
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import depthai_camera_connect
-
+import numpy as np
 
 
 class DepthAIImageStreamPublisher:
@@ -223,6 +221,7 @@ class DepthAIImageStreamPublisher:
                     self.stream_publisher_depth.publish(image_msg_depth)
 
             loop_rate.sleep()
+
 
 if __name__ == '__main__':
     try:
