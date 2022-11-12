@@ -66,6 +66,7 @@ class PIDManager:
             powers: A dictionary mapping direction to desired local power ranging from [-1, 1]
         """
         self._disable_loops()
+
         # Enable stabilization on all axes with 0 power input
         for d in powers:
             if powers[d] == 0:

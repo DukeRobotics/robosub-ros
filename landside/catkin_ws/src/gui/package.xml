@@ -33,5 +33,6 @@
     <rqt_gui plugin="${prefix}/plugins/offboard_plugin.xml"/>
     <rqt_gui plugin="${prefix}/plugins/sensor_plugin.xml"/>
     <rqt_gui plugin="${prefix}/plugins/controls_plugin.xml"/>
+    <rqt_gui plugin="${prefix}/plugins/cv_launch_plugin.xml"/>
   </export>
 </package>

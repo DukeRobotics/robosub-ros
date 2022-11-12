@@ -29,5 +29,6 @@ install(FILES
   plugins/offboard_plugin.xml
   plugins/sensor_plugin.xml
   plugins/controls_plugin.xml
+  plugins/cv_launch_plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 ) 

@@ -86,3 +86,26 @@ The Servo Control box contains buttons to actuate each servo (setting it to angl
 
 The `Upload Arduino Code` will upload arduino code to the arduino when pressed.
 
+### CV Plugin
+
+#### Dependencies
+- `remote_launch.py` in system_utils
+
+Run 
+```
+roslaunch gui cv_gui.launch
+```
+
+in the landside container.
+
+#### Description
+
+To launch any node in the cv package, select the node from the Node Name drop down list in the CV Launch Plugin window. Depending on the node, additional textboxes may appear, each one corresponding to a required argument. Fill in the required arguments, then click OK to launch.
+
+The table will show you what nodes are running.
+
+To stop a node that was run using the Node Launch Dialog, you may click on the item in the table and press Delete (on your keyboard), which will stop the node.
+
+To stop a node run using the buttons, you may also click on the stop button that replaced the same button to start. This will stop that specific node. 
+
+Data is published in percentage for CPU and GB for RAM in the System Usage box.
