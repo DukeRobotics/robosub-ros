@@ -66,8 +66,13 @@ class DepthAIImageStreamPublisher:
             camRgb = self.pipeline.create(dai.node.ColorCamera)
             camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
             camRgb.setBoardSocket(dai.CameraBoardSocket.RGB)
-            camRgb.setVideoSize(1920, 1080)
-            camRgb.setPreviewSize(300, 300)
+
+            if self.publish_rgb_video:
+                camRgb.setVideoSize(1920, 1080)
+
+            if self.publish_rgb_preview:
+                camRgb.setPreviewSize(300, 300)
+
             camRgb.setInterleaved(False)
             camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)
 
