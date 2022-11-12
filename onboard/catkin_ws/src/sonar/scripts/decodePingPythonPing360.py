@@ -308,10 +308,6 @@ def doCoolStuff(img):
     cnts = list(filter(lambda x: (cv2.contourArea(x) > 200), cnts)) 
     cnts = list(filter(lambda x: (cv2.arcLength(x, True)**2/(4*math.pi*cv2.contourArea(x)) < 5.4), cnts)) 
 
-
-
-
-
     coolcont = cnts[0:2]
     cv2.drawContours(john,coolcont, -1, (0,255,0), 2)
 
@@ -380,11 +376,7 @@ if __name__ == "__main__":
 
     # Open log and begin processing
     log = PingViewerLogReader(filename)
-    bitch = Sonar()
-    bob = []
-   
-    import numpy as np
-    yeet = False
+
     for index, (timestamp, decoded_message) in enumerate(log.parser()):
         
         if(index >= 49 and index <= 149):
@@ -402,14 +394,14 @@ if __name__ == "__main__":
             else:
                 sonar_matrix = np.vstack((sonar_matrix, intarray))
 
-    LotG_conv_sonar = signal.convolve2d(sonar_matrix, LotG, "valid")
-    G3x3_conv_sonar = signal.convolve2d(sonar_matrix, G3x3, "valid")
-    G9x9_conv_sonar = signal.convolve2d(sonar_matrix, G9x9, "valid")
+    #LotG_conv_sonar = signal.convolve2d(sonar_matrix, LotG, "valid")
+    #G3x3_conv_sonar = signal.convolve2d(sonar_matrix, G3x3, "valid")
+    #G9x9_conv_sonar = signal.convolve2d(sonar_matrix, G9x9, "valid")
 
    
-    doCoolStuff(sonar_matrix)
+    #doCoolStuff(sonar_matrix)
 
-    # plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image.jpeg', sonar_matrix)
+    plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image.jpeg', sonar_matrix)
     # plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\LotG_Sonar_Image.jpeg', LotG_conv_sonar)
     # plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\G3x3_Sonar_Image.jpeg', G3x3_conv_sonar)
     # plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\G9x9_Sonar_Image.jpeg', G9x9_conv_sonar)

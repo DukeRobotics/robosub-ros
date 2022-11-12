@@ -3,7 +3,8 @@
 from brping import Ping360
 import numpy as np
 import sonar_utils
-from tf import TransformListener
+import matplotlib.pyplot as plt
+#from tf import TransformListener
 from geometry_msgs.msg import Pose
 
 class Sonar:
@@ -11,7 +12,6 @@ class Sonar:
     """
 
     SERIAL_PORT_NAME = "/dev/ttyUSB2"  # PORT of the salea is ttyUSB2 for testing
-    ETHERNET_PORT_NAME = "192.168.1.4"
     BAUD_RATE = 2000000  # hz
     SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
     SPEED_OF_SOUND_IN_WATER = 1480  # m/s
@@ -19,8 +19,8 @@ class Sonar:
 
     def __init__(self, range, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
         self.ping360 = Ping360()
-        #self.ping360.connect_serial(serial_port_name, baud_rate)  # TODO: Add try except for connecting to device
-        self.ping360.connect_udp(self.ETHERNET_PORT_NAME)
+        self.ping360.connect_serial(serial_port_name, baud_rate)  # TODO: Add try except for connecting to device
+        #self.ping360.connect_udp(self.ETHERNET_PORT_NAME)
         self.ping360.initialize()
         period_and_duration = self.range_to_period_and_duration(range)
 
@@ -31,7 +31,7 @@ class Sonar:
         self.transmit_duration = period_and_duration[1]
         self.ping360.set_transmit_duration(self.transmit_duration)
 
-        self.listener = TransformListener()
+        #self.listener = TransformListener()
 
     def range_to_period_and_duration(self, range):
         """From a given range determines the sample_period and transmit_duration
@@ -188,5 +188,21 @@ if __name__ == "__main__":
     #   BAUD_RATE = 2000000
 
     sonar = Sonar(range=5)
-    # sweep_data = sonar.sweep_biggest_byte(150, 250)  #90deg in front
-    # print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
+    #sweep_data = sonar.sweep_biggest_byte(100, 300)  #180deg in front
+
+    for i in range(100, 300):
+        data = sonar.request_data_at_angle(i)
+        split_bytes = [data[i:i+1] for i in range(len(data))]
+        split_bytes = split_bytes[100:]
+        byte_from_int = int.from_bytes(split_bytes[0], "big")
+        intarray = np.array([byte_from_int])
+        for i in range(len(split_bytes) -1):
+            byte_from_int = int.from_bytes(split_bytes[i+1], "big")
+            intarray = np.append(intarray, [byte_from_int])
+        if(i == 150):
+            sonar_matrix = np.asarray(intarray)
+        else:
+            sonar_matrix = np.vstack((sonar_matrix, intarray))
+    plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.jpeg', sonar_matrix)
+    np.save('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Matrix_robot.npy', sonar_matrix)
+    #print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
