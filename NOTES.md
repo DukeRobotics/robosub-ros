@@ -100,7 +100,7 @@ from tf2_geometry_msgs import do_transform_pose_stamped
 class TestNode(rcply.node.Node):
     super().__init__("node_name")
     self.tf_buffer = Buffer()
-    self.tf_listener = TransformListener(self.buffer, self)
+    self.tf_listener = TransformListener(self.tf_buffer, self)
 
     pose_stamped = PoseStamped()
     pose_stamped.header.frame_id = "source_frame"
@@ -167,6 +167,11 @@ Highlighting some general functionality that we need to cover in our testing pla
 #### avt_camera
 1. Connect the left and right Allied Vision cameras to the robot computer and run `mono_camera` on both. Verify that the cameras connect and the corresponding topics are being published to (`camera/left/image_raw` and `camera/left/camera_info`)
 1. Run `stereo_cameras.launch.py` and verify that all of the corresponding topics are being published.
+
+#### controls
+1. Run `controls.launch.py transform:=true` to verify that controls can be tested without simulation
+1. Run `controls.launch.py sim:=true` while the simulation is running. Then run `test_state_publisher` with pose, velocity, and power control and verify that there are no errors (movement will probably be pretty bad).
+1. Run `controls.launch.py` on the robot computer while `state.launch.py` is running. Verify that the robot moves.
 
 #### cv
 1. Move a test model to the `models` folder and rebuild the package. 

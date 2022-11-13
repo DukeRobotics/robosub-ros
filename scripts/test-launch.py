@@ -7,7 +7,6 @@ import subprocess
 import signal
 
 BLOCK_LIST = [
-    'cv.launch.py',
     'pub_joy.launch.py',
     'gui.launch.py',  # TODO: Remove this once gui is migrated properly
     'base_sim.launch.py',

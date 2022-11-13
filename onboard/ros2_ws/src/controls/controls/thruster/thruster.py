@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import numpy as np
-from tf.transformations import quaternion_from_euler
-from controls_utils import quat_vec_mult
+from tf_transformations import quaternion_from_euler
+from controls.controls_utils import quat_vec_mult
 
 
 class Thruster:

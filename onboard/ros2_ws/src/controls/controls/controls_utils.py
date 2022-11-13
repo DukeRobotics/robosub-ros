@@ -1,13 +1,15 @@
-from tf.transformations import euler_from_quaternion, quaternion_multiply, quaternion_conjugate
+from std_msgs.msg import Float64
+from tf_transformations import euler_from_quaternion, quaternion_multiply, quaternion_conjugate
 from geometry_msgs.msg import Vector3Stamped, Twist, PoseStamped
+from tf2_geometry_msgs import do_transform_pose, do_transform_vector3
 
 
 def get_axes():
     return ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
 
 
-def get_controls_move_topic(axis):
-    return '/control_effort/' + axis
+def get_effort_topic(axis):
+    return '/controls/effort/' + axis
 
 
 def get_power_topic(axis):
@@ -63,36 +65,29 @@ def quat_vec_mult(q1, v1):
     )[:3]
 
 
-def transform_pose(listener, base_frame, target_frame, pose):
+def transform_pose(pose, transform):
     """Transforms a ROS pose into another reference frame.
 
     Args:
-        listener: The ROS TransformListener that retrieves transformation data
-        base_frame: The initial reference frame
-        target_frame: The target reference frame
         pose: The ROS pose that will be transformed
+        transform: The tf2 transform object
 
     Returns:
-        A new ROS pose transformed into the target frame
+        A new ROS pose transformed according to the transform
     """
-    pose_stamped = PoseStamped()
-    pose_stamped.pose = pose
-    pose_stamped.header.frame_id = base_frame
 
-    return listener.transformPose(target_frame, pose_stamped).pose
+    return do_transform_pose(pose, transform)
 
 
-def transform_twist(listener, base_frame, target_frame, twist):
+def transform_twist(twist, transform):
     """Transforms a ROS twist into another reference frame.
 
     Args:
-        listener: The ROS TransformListener that retrieves transformation data
-        base_frame: The initial reference frame
-        target_frame: The target reference frame
         twist: The ROS twist that will be transformed
+        transform: The tf2 transform object
 
     Returns:
-        A new ROS twist transformed into the target frame
+        A new ROS twist transformed according to the transform
     """
     lin = Vector3Stamped()
     ang = Vector3Stamped()
@@ -100,21 +95,20 @@ def transform_twist(listener, base_frame, target_frame, twist):
     lin.vector = twist.linear
     ang.vector = twist.angular
 
-    lin.header.frame_id = base_frame
-    ang.header.frame_id = base_frame
-
     twist_tf = Twist()
-    twist_tf.linear = listener.transformVector3(target_frame, lin).vector
-    twist_tf.angular = listener.transformVector3(target_frame, ang).vector
+    twist_tf.linear = do_transform_vector3(lin, transform).vector
+    twist_tf.angular = do_transform_vector3(ang, transform).vector
 
     return twist_tf
 
 
 def publish_data_dictionary(publishers, vals, indexes=get_axes()):
+    """ Publish a dictionary of floats """
     for d in indexes:
-        publishers[d].publish(vals[d])
+        publishers[d].publish(Float64(data=vals[d]))
 
 
 def publish_data_constant(publishers, val, indexes=get_axes()):
+    """ Publish a float msg to all publishers """
     for d in indexes:
-        publishers[d].publish(val)
+        publishers[d].publish(Float64(data=val))

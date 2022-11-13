@@ -2,7 +2,7 @@
 
 import yaml
 import numpy as np
-from thruster import Thruster
+from controls.thruster.thruster import Thruster
 
 
 class ThrusterManager:

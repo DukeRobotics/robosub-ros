@@ -1,0 +1,78 @@
+name: '{{ axis }}_pos'
+enable: /controls/enable/{{ axis }}_pos
+reset: /controls/reset/{{ axis }}_pos
+effort: /controls/setpoint/{{ axis }}_vel
+state: /controls/state/pose/{{ axis }}
+setpoint: /controls/setpoint/{{ axis }}_pos
+pid:
+  x:
+    robot:
+      kp: 0.1
+      ki: 0.001
+      kd: 0.001
+    sim:
+      kp: 0.7
+      ki: 0.005
+      kd: 0.001
+# TODO: Determine if max velocities match the expected range of velocity loop setpoint values. We need to take
+# measurements of the max speed the robot can move in x, y, and z directions (local) and set these value 
+# accordingly. The units should be meters/sec. Current setup assumes min and max vel are the same.
+    upper_limit: 1.0
+    lower_limit: -1.0
+# Default frequency and windup limit
+  y:
+    robot:
+      kp: 0.1
+      ki: 0.001
+      kd: 0.001
+    sim:
+      kp: 0.7
+      ki: 0.005
+      kd: 0.001
+    upper_limit: 1.0
+    lower_limit: -1.0
+  z:
+    robot:
+      kp: 15.0
+      ki: 0.3
+      kd: 0.12
+    sim:
+      kp: 10.0
+      ki: 0.001
+      kd: 0.001
+    upper_limit: 1.0
+    lower_limit: -1.0
+  roll:
+    robot:
+      kp: 0.01
+      ki: 0.001
+      kd: 0.001
+    sim:
+      kp: 0.1
+      ki: 0.01
+      kd: 0.01
+# TODO: Determine if these values are correct. Seems like 0.5 was chosen randomly.
+    upper_limit: 0.5
+    lower_limit: -0.5
+  pitch:
+    robot:
+      kp: 0.01
+      ki: 0.001
+      kd: 0.001
+    sim:
+      kp: 0.1
+      ki: 0.01
+      kd: 0.01
+    upper_limit: 0.5
+    lower_limit: -0.5
+  yaw:
+    robot:
+      kp: 0.5
+      ki: 0.0
+      kd: 0.15
+    sim:
+      kp: 0.1
+      ki: 0.01
+      kd: 0.01
+    upper_limit: 0.5
+    lower_limit: -0.5

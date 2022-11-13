@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
-import rospy
+import rclpy
+from rclpy.node import Node
 from std_msgs.msg import Float64
 from custom_msgs.msg import ThrusterSpeeds
 import numpy as np
-from thruster_manager import ThrusterManager
-from std_srvs.srv import SetBool
-import controls_utils as utils
 import resource_retriever as rr
+from std_srvs.srv import SetBool
+from controls.thruster.thruster_manager import ThrusterManager
+import controls.controls_utils as utils
 
 
-class ThrusterController:
+class ThrusterController(Node):
     """ROS node that manages thruster allocation and publishing once PID loops have generated
     control efforts. Also manages power control if PID loops are bypassed.
 
@@ -28,6 +29,7 @@ class ThrusterController:
         tm: The ThrusterManager object used to calculate thruster allocations
     """
 
+    NODE_NAME = 'thruster_controller'
     ROBOT_PUB_TOPIC = '/offboard/thruster_speeds'
     RUN_LOOP_RATE = 10  # 10 Hz
     MAX_THRUSTER_POWER = 127  # Some nuance, max neg power is -128. Ignoring that for now
@@ -37,12 +39,13 @@ class ThrusterController:
         """Initializes the ROS node, creating thruster manager and required pub/sub configuration.
         Controls is disabled by default and requires a service call to enable output.
         """
-        rospy.init_node('thruster_controls')
+        super().__init__(self.NODE_NAME)
 
-        self.thruster_speeds_pub = rospy.Publisher(self.ROBOT_PUB_TOPIC, ThrusterSpeeds, queue_size=3)
-        self.enable_service = rospy.Service('enable_controls', SetBool, self._handle_enable_controls)
-
-        self.tm = ThrusterManager(rr.get_filename('package://controls/config/cthulhu.config', use_protocol=False))
+        self.thruster_speeds_pub = self.create_publisher(ThrusterSpeeds, self.ROBOT_PUB_TOPIC, 3)
+        self.enable_service = self.create_service(
+            SetBool, 'enable_controls', self._handle_enable_controls)
+        self.tm = ThrusterManager(rr.get_filename(
+            'package://controls/config/cthulhu.yaml', use_protocol=False))
 
         self.enabled = False
         self.pid_outputs = np.zeros(6)
@@ -50,21 +53,23 @@ class ThrusterController:
         self.t_allocs = np.zeros(8)
 
         for d in utils.get_axes():
-            rospy.Subscriber(utils.get_controls_move_topic(d), Float64, self._on_pid_received, d)
-            rospy.Subscriber(utils.get_power_topic(d), Float64, self._on_power_received, d)
+            self.create_subscription(Float64, utils.get_effort_topic(d),
+                                     lambda msg: self._on_pid_received(msg, d), 10)
+            self.create_subscription(Float64, utils.get_power_topic(d),
+                                     lambda msg: self._on_power_received(msg, d), 10)
+        self.timer = self.create_timer(1/self.RUN_LOOP_RATE, self.run)
 
-    def _handle_enable_controls(self, req):
+    def _handle_enable_controls(self, req, res):
         """Handles requests to the enable ROS service, disabling/enabling output accordingly. An example call is
-        `rosservice call /enable_controls true`.
+        `ros2 service call /enable_controls true`.
 
         Args:
             req: The request data sent in the service call. In this case, a boolean denoting whether to enable.
-
-        Returns:
-            A message relaying the enablement status of controls.
         """
         self.enabled = req.data
-        return {'success': True, 'message': 'Successfully set enabled to ' + str(req.data)}
+        res.success = True
+        res.message = f'Successfully set enabled to {str(req.data)}'
+        return res
 
     def _on_pid_received(self, val, direction):
         """Callback that stores PID control efforts for use in the run loop. Also updates thruster allocations based
@@ -101,20 +106,17 @@ class ThrusterController:
         """Loop that publishes thruster allocations to corresponding topic. If disabled, zeroes are published to make
         sure thrusters don't spin.
         """
-        rate = rospy.Rate(self.RUN_LOOP_RATE)
-        while not rospy.is_shutdown():
-            if not self.enabled:
-                i8_t_allocs = ThrusterSpeeds()
-                i8_t_allocs.speeds = np.zeros(8).astype(int)
-                self.thruster_speeds_pub.publish(i8_t_allocs)
+        if not self.enabled:
+            i8_t_allocs = ThrusterSpeeds()
+            i8_t_allocs.speeds = np.zeros(8).astype(np.int8)
+            self.thruster_speeds_pub.publish(i8_t_allocs)
 
-            if self.enabled:
-                self._scale_thruster_speeds()
-                i8_t_allocs = ThrusterSpeeds()
-                i8_t_allocs.speeds = (self.t_allocs * self.MAX_THRUSTER_POWER * self.POWER_SCALING_FACTOR).astype(int)
-                self.thruster_speeds_pub.publish(i8_t_allocs)
-
-            rate.sleep()
+        if self.enabled:
+            self._scale_thruster_speeds()
+            i8_t_allocs = ThrusterSpeeds()
+            i8_t_allocs.speeds = (self.t_allocs * self.MAX_THRUSTER_POWER *
+                                  self.POWER_SCALING_FACTOR).astype(np.int8)
+            self.thruster_speeds_pub.publish(i8_t_allocs)
 
     def _scale_thruster_speeds(self):
         """Scales thruster speeds according to a custom algorithm. Doesn't scale if all allocations are 0.
@@ -132,12 +134,20 @@ class ThrusterController:
         self.t_allocs = np.clip(self.t_allocs, -1, 1)
 
 
-def main():
+def main(args=None):
     try:
-        ThrusterController().run()
-    except rospy.ROSInterruptException:
+        rclpy.init(args=args)
+        tc = ThrusterController()
+        rclpy.spin(tc)
+    except KeyboardInterrupt:
         pass
+    except rclpy.executors.ExternalShutdownException:
+        raise
+    finally:
+        tc.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

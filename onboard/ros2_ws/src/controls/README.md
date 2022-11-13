@@ -3,30 +3,26 @@
 
 These are the instructions to initialize and test our controls algorithm. We take input from various topics and move the robot based on desired global position, global velocity, or power. By default, we publish thruster power outputs (thruster allocations) on a range [-128, 127].
 
-Thruster information is read from `*.config` files, which are written in YAML. The ordering of the thruster allocations is determined by the order in which the thrusters appear the config file.
+PID and thruster information is read from `*.yaml` files. The ordering of the thruster allocations is determined by the order in which the thrusters appear the config file.
 
-`controls.launch` takes in a `sim` argument to indicate whether it is running in the simulation or on the robot.
+`controls.launch` takes in a `sim` argument to indicate whether it is running in the simulation or on the robot. It also takes in a `transform` argument if testing locally without running the simulation.
 
 Only the most recently updated Desired State Topic will be used in movement. Therefore any updates will override the current movement of the robot. Controls will warn you if more than one Desired State Topic is being published to at any given time to prevent such issues. If Controls stops receiving Desired State messages at a high enough rate (at the moment, 10 Hz), it will warn you and will output zero power for safety purposes.
 
 The controls algorithm will output all 0's unless it is enabled with a call to rosservice as detailed in the setup. Sending the disable call to the service acts as a software emergency stop that cuts off all power to the thrusters.
 
 
-## Setup
-
-1. Make sure that you have the latest controls code (from controls or master branch), your catkin workspace has been built, and your terminal has been sourced correctly.
-2. SSH into the docker container, either on the robot or [on your local computer](https://github.com/DukeRobotics/documentation/blob/master/docker/README.md), and maybe [configured for simulation](https://github.com/DukeRobotics/robosub-ros/blob/master/simulation/README.md).
-3. Initialize `roscore` and run the following in the terminal to start the PID Loops:
+## Usage
 
 ```
-roslaunch controls controls.launch &
+ros2 launch controls controls.launch.py
 ```
 
 ## Testing Outputs
 
 To enable non-zero thruster output, the following command should be used:
 ```
-rosservice call /enable_controls true
+ros2 service call /enable_controls true
 ```
 To test the outputs of the PID Loops, edit the values in `test_state_publisher.py` to whatever current and desired state you wish to test. Then, run the following:
 

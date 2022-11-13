@@ -1,0 +1,74 @@
+name: '{{ axis }}_vel'
+enable: /controls/enable/{{ axis }}_vel
+reset: /controls/reset/{{ axis }}_vel
+effort: /controls/effort/{{ axis }}
+state: /controls/state/twist/{{ axis }}
+setpoint: /controls/setpoint/{{ axis }}_vel
+pid:
+  x:
+    robot:
+      kp: 3.0
+      ki: 0.02
+      kd: 0.05
+    sim:
+      kp: 1.0
+      ki: 0.01
+      kd: 0.001
+    upper_limit: 1.0
+    lower_limit: -1.0
+# Default frequency and windup limit
+  y:
+    robot:
+      kp: 3.0
+      ki: 0.02
+      kd: 0.05
+    sim:
+      kp: 1.0
+      ki: 0.01
+      kd: 0.001
+    upper_limit: 1.0
+    lower_limit: -1.0
+  z:
+    robot:
+      kp: 10.0
+      ki: 0.1
+      kd: 1.0
+    sim:
+      kp: 1.0
+      ki: 1.0
+      kd: 0.01
+    upper_limit: 1.0
+    lower_limit: -1.0
+  roll:
+    robot:
+      kp: 0.01
+      ki: 0.001
+      kd: 0.05
+    sim:
+      kp: 0.01
+      ki: 0.001
+      kd: 0.001
+    upper_limit: 0.5
+    lower_limit: -0.5
+  pitch:
+    robot:
+      kp: 0.25
+      ki: 0.001
+      kd: 0.01
+    sim:
+      kp: 0.01
+      ki: 0.001
+      kd: 0.001
+    upper_limit: 0.5
+    lower_limit: -0.5
+  yaw:
+    robot:
+      kp: 2.0
+      ki: 0.001
+      kd: 0.005
+    sim:
+      kp: 0.01
+      ki: 0.001
+      kd: 0.001
+    upper_limit: 0.5
+    lower_limit: -0.5
