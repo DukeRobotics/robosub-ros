@@ -1,4 +1,3 @@
-from cv_bridge import CvBridge
 import rosbag
 import cv2
 import image_tools
@@ -39,7 +38,7 @@ class ROSBagFootageExtractor:
 
         frame_count = 0
         num_frames_saved = 0
-        image_tools = image_tools.ImageTools()
+        img_tools = image_tools.ImageTools()
 
         save_dir = os.path.join(output_dir, file_name_no_extension)
         if not os.path.exists(save_dir):
@@ -48,7 +47,7 @@ class ROSBagFootageExtractor:
         for topic, msg, t in bag.read_messages(topics=[topic_name]):
             if topic == topic_name:
                 if frame_count % step_size == 0:
-                    cv_img = image_tools.convert_ros_msg_to_cv2(msg)
+                    cv_img = img_tools.convert_ros_msg_to_cv2(msg)
 
                     file_save_path = os.path.join(save_dir, f"{file_name_no_extension}_{frame_count}.jpg")
                     success = cv2.imwrite(file_save_path, cv_img)
@@ -61,9 +60,10 @@ class ROSBagFootageExtractor:
                 frame_count += 1
 
         print(f"Read {frame_count} frames")
-        print(f"Saved {num_frames_saved} frames to {output_dir + file_name}")
+        print(f"Saved {num_frames_saved} frames to {output_dir + file_name_no_extension}")
 
         bag.close()
+
 
 if __name__ == '__main__':
 
