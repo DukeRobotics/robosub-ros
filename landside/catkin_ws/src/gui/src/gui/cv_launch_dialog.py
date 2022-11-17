@@ -2,7 +2,7 @@ import os
 import glob
 
 from python_qt_binding import loadUi, QtWidgets
-from python_qt_binding.QtWidgets import QDialog
+from python_qt_binding.QtWidgets import QDialog, QMessageBox
 from python_qt_binding.QtCore import pyqtSignal, pyqtProperty
 
 import rospy
@@ -11,7 +11,6 @@ import resource_retriever as rr
 from custom_msgs.srv import StartLaunch
 
 import xml.etree.ElementTree as ET
-
 
 class CVLaunchDialog(QDialog):
 
@@ -135,7 +134,8 @@ class CVLaunchDialog(QDialog):
         args = self.args_input.text().split(' ') if self.args_input.text() != "" else []
 
         for row in self.argFormRows:
-            if row['lineEdit'].text() == "":
+            if row['lineEdit'].text() == "" and row.get('default') is None:
+                self.missing_argument_dialog(row['name'])
                 return
             arg = row['name'] + ":=" + row['lineEdit'].text()
             args.append(arg)
@@ -146,3 +146,16 @@ class CVLaunchDialog(QDialog):
             self.node_launched.emit(resp.pid, package, node, " ".join(args))
         except rospy.ServiceException as exc:
             rospy.logerr(f'Service did not process request: {str(exc)}')
+    
+    def missing_argument_dialog(self, missing_arg):
+        msg = QMessageBox()
+
+        msg.setIcon(QMessageBox.Warning)
+
+        msg.setWindowTitle("Error")
+        msg.setText("Missing argument")
+        msg.setInformativeText("You must specify a value for " + missing_arg)
+        
+        msg.setStandardButtons(QMessageBox.Close)
+            
+        msg.exec_()
