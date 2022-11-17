@@ -1,5 +1,6 @@
 from python_qt_binding import loadUi
 from python_qt_binding.QtWidgets import QWidget
+from python_qt_binding.QtCore import QTimer
 
 import rospy
 import resource_retriever as rr
@@ -22,6 +23,9 @@ class SystemUsageWidget(QWidget):
         self.system_sub = rospy.Subscriber('/system/usage', SystemUsage, self.update_cpu_ram)
 
         self.last_system_time = rospy.Time.now() - rospy.Duration(5)
+        self.system_sub_timer = QTimer(self)
+        self.system_sub_timer.timeout.connect(self.check_system_sub)
+        self.system_sub_timer.start(100)
 
         rospy.loginfo('System Usage Widget successfully initialized')
 
@@ -29,3 +33,6 @@ class SystemUsageWidget(QWidget):
         self.last_system_time = rospy.Time.now()
         self.cpu_value.display(system_usage.cpu_percent)
         self.ram_value.display(system_usage.ram.used)
+
+    def check_system_sub(self):
+        self.system_usage_box.setEnabled(rospy.Time.now() - self.last_system_time < rospy.Duration(2))

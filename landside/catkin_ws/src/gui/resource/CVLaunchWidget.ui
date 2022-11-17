@@ -19,9 +19,21 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" native="true">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="SystemUsageWidget" name="system_usage_widget" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>362</width>
+       <height>0</height>
+      </size>
+     </property>
     </widget>
    </item>
    <item>
