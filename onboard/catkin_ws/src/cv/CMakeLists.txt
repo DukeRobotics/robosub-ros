@@ -9,11 +9,10 @@ find_package(catkin REQUIRED COMPONENTS
 	cv_bridge
 	rospy
 	resource_retriever
-	video_stream_opencv
 )
 
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
-catkin_package(CATKIN_DEPENDS rospy sensor_msgs custom_msgs cv_bridge resource_retriever video_stream_opencv)
+catkin_package(CATKIN_DEPENDS rospy sensor_msgs custom_msgs cv_bridge resource_retriever)
 
 

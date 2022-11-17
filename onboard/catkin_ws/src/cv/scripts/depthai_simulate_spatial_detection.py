@@ -6,6 +6,7 @@ import cv2
 import os
 import rospy
 import depthai_camera_connect
+from sensor_msgs.msg import Image
 
 path = os.path.dirname(__file__)
 NN_PATH = os.path.join(path, '../assets/bloblol.blob')
@@ -33,7 +34,7 @@ class DepthAISimulateSpatialDetection:
         # Dummy still image
         path = os.path.dirname(__file__)
         self.image = cv2.imread(os.path.join(path, IMAGE_RELATIVE_PATH), cv2.IMREAD_COLOR)
-        self.subscribe = rospy.Subscriber(self.IMAGE_TOPIC, self.run, queue_size=10)
+        self.subscribe = rospy.Subscriber(self.IMAGE_TOPIC, Image, self.run, queue_size=10)
 
         # Get path to nn blob file
 
