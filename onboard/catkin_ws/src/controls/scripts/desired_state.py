@@ -6,7 +6,7 @@ import controls_utils as utils
 from tf import TransformListener
 from pid_manager import PIDManager
 
-from custom_msgs.msg import ControlsDesiredPose, ControlsDesiredTwist, ControlsDesiredPower
+from custom_msgs.msg import ControlsDesiredPoseAction, ControlsDesiredTwistAction, ControlsDesiredPowerAction
 
 class bcolors:
     BOLD = '\033[1m'
@@ -42,9 +42,9 @@ class DesiredStateHandler:
         self.listener = TransformListener()
         self.pid_manager = PIDManager()
 
-        self.pose_server = actionlib.SimpleActionServer(self.DESIRED_POSE_ACTION, ControlsDesiredPose, self._on_pose_received, False)
-        self.twist_server = actionlib.SimpleActionServer(self.DESIRED_TWIST_ACTION, ControlsDesiredTwist, self._on_twist_received, False)
-        self.power_server = actionlib.SimpleActionServer(self.DESIRED_POWER_ACTION, ControlsDesiredPower, self._on_power_received, False)
+        self.pose_server = actionlib.SimpleActionServer(self.DESIRED_POSE_ACTION, ControlsDesiredPoseAction, self._on_pose_received, False)
+        self.twist_server = actionlib.SimpleActionServer(self.DESIRED_TWIST_ACTION, ControlsDesiredTwistAction, self._on_twist_received, False)
+        self.power_server = actionlib.SimpleActionServer(self.DESIRED_POWER_ACTION, ControlsDesiredPowerAction, self._on_power_received, False)
         
         self.pose_server.start()
         self.twist_server.start()

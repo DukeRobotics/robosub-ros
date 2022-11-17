@@ -2,7 +2,8 @@
 
 import rospy
 import actionlib
-from custom_msgs.msg import ControlsDesiredPose, ControlsDesiredTwist, ControlsDesiredPower, ControlsDesiredPoseGoal, ControlsDesiredTwistGoal, ControlsDesiredPowerGoal
+from custom_msgs.msg import ControlsDesiredPoseAction, ControlsDesiredTwistAction, ControlsDesiredPowerAction, \
+                            ControlsDesiredPoseGoal, ControlsDesiredTwistGoal, ControlsDesiredPowerGoal
 from geometry_msgs.msg import Pose, Twist
 from std_msgs.msg import Float64
 from nav_msgs.msg import Odometry
@@ -35,9 +36,9 @@ class TestStatePublisher:
 
         self.listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(10))
 
-        self._desired_pose_client = actionlib.SimpleActionClient(self.ACTION_DESIRED_POSE, ControlsDesiredPose)
-        self._desired_twist_client = actionlib.SimpleActionClient(self.ACTION_DESIRED_TWIST, ControlsDesiredTwist)
-        self._desired_power_client = actionlib.SimpleActionClient(self.ACTION_DESIRED_POWER, ControlsDesiredPower)
+        self._desired_pose_client = actionlib.SimpleActionClient(self.ACTION_DESIRED_POSE, ControlsDesiredPoseAction)
+        self._desired_twist_client = actionlib.SimpleActionClient(self.ACTION_DESIRED_TWIST, ControlsDesiredTwistAction)
+        self._desired_power_client = actionlib.SimpleActionClient(self.ACTION_DESIRED_POWER, ControlsDesiredPowerAction)
         self._pub_current_state = rospy.Publisher(self.PUBLISHING_TOPIC_CURRENT_STATE, Odometry, queue_size=3)
 
         self._desired_pose_client.wait_for_server()
