@@ -19,7 +19,11 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" native="true">
+   <item>
+    <widget class="SystemUsageWidget" name="system_usage_widget" native="true">
+    </widget>
+   </item>
    <item>
     <widget class="CVLaunchDialog" name="launch_dialog" native="true">
      <property name="sizePolicy">
@@ -110,6 +114,12 @@
    <extends>QWidget</extends>
    <header>gui.cv_launch_dialog</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SystemUsageWidget</class>
+   <extends>QWidget</extends>
+   <header>gui.system_usage_widget</header>
+   <container>2</container>
   </customwidget>
  </customwidgets>
  <resources/>
