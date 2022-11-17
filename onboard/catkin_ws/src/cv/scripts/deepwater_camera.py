@@ -2,12 +2,8 @@
 
 import rospy
 import cv2
-
 import os
-import yaml
-import resource_retriever as rr
 
-from custom_msgs.msg import CVObject
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
