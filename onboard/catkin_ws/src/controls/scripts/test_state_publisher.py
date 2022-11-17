@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import rospy
+import actionlib
+from custom_msgs.msg import ControlsDesiredPose, ControlsDesiredTwist, ControlsDesiredPower, ControlsDesiredPoseGoal, ControlsDesiredTwistGoal, ControlsDesiredPowerGoal
 from geometry_msgs.msg import Pose, Twist
 from std_msgs.msg import Float64
 from nav_msgs.msg import Odometry
@@ -9,10 +11,10 @@ from tf import TransformListener
 
 
 class TestStatePublisher:
-    PUBLISHING_TOPIC_DESIRED_POSE = 'controls/desired_pose'
-    PUBLISHING_TOPIC_DESIRED_TWIST = 'controls/desired_twist'
+    ACTION_DESIRED_POSE = 'controls/desired_pose'
+    ACTION_DESIRED_TWIST = 'controls/desired_twist'
+    ACTION_DESIRED_POWER = 'controls/desired_power'
     PUBLISHING_TOPIC_CURRENT_STATE = '/state'
-    PUBLISHING_TOPIC_DESIRED_POWER = 'controls/desired_power'
 
     def recalculate_local_pose(self):
         self.desired_pose_transformed = controls_utils.transform_pose(
@@ -33,10 +35,14 @@ class TestStatePublisher:
 
         self.listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(10))
 
-        self._pub_desired_pose = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_POSE, Pose, queue_size=3)
-        self._pub_desired_twist = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_TWIST, Twist, queue_size=3)
-        self._pub_desired_power = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_POWER, Twist, queue_size=3)
+        self._desired_pose_client = actionlib.SimpleActionClient(self.ACTION_DESIRED_POSE, ControlsDesiredPose)
+        self._desired_twist_client = actionlib.SimpleActionClient(self.ACTION_DESIRED_TWIST, ControlsDesiredTwist)
+        self._desired_power_client = actionlib.SimpleActionClient(self.ACTION_DESIRED_POWER, ControlsDesiredPower)
         self._pub_current_state = rospy.Publisher(self.PUBLISHING_TOPIC_CURRENT_STATE, Odometry, queue_size=3)
+
+        self._desired_pose_client.wait_for_server()
+        self._desired_twist_client.wait_for_server()
+        self._desired_power_client.wait_for_server()
 
         # These values correspond to the desired global pose of the robot
         self.desired_pose_global = Pose()
@@ -98,31 +104,20 @@ class TestStatePublisher:
         self.current_state.header.stamp = rospy.Time()
 
     def publish_desired_pose_global(self):
-        rate = rospy.Rate(15)
-        while not rospy.is_shutdown():
-            self._pub_desired_pose.publish(self.desired_pose_global)
-            # self._pub_current_state.publish(self.current_state)
-            rate.sleep()
+        self._desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose = self.desired_pose_global))
+        rospy.spin()
 
     def publish_desired_pose_local(self):
-        rate = rospy.Rate(15)
-        while not rospy.is_shutdown():
-            self._pub_desired_pose.publish(self.desired_pose_transformed)
-            rate.sleep()
+        self._desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose = self.desired_pose_transformed))
+        rospy.spin()
 
     def publish_desired_twist(self):
-        rate = rospy.Rate(15)
-        while not rospy.is_shutdown():
-            self._pub_desired_twist.publish(self.desired_twist)
-            # self._pub_current_state.publish(self.current_state)
-            rate.sleep()
+        self._desired_twist_client.send_goal(ControlsDesiredTwistGoal(twist = self.desired_twist))
+        rospy.spin()
 
     def publish_desired_power(self):
-        rate = rospy.Rate(15)
-        while not rospy.is_shutdown():
-            self._pub_desired_power.publish(self.desired_power)
-            # self._pub_current_state.publish(self.current_state)
-            rate.sleep()
+        self._desired_power_client.send_goal(ControlsDesiredPowerGoal(power = self.desired_power))
+        rospy.spin()
 
     def move_to_pos_and_stop(self, x, y, z):
         self.desired_pose_local.position.x = x
@@ -137,10 +132,11 @@ class TestStatePublisher:
 
         rate = rospy.Rate(15)
 
+        self._desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose = self.desired_pose_transformed))
+
         delay = 0
         while not rospy.is_shutdown():
             delay += 1
-            self._pub_desired_pose.publish(self.desired_pose_transformed)
 
             if delay > 30:
                 # print(self.current_setpoint)
@@ -152,6 +148,8 @@ class TestStatePublisher:
                     # print("Done with loop")
                     break
             rate.sleep()
+
+        self._desired_pose_client.cancel_goal()
         # print("Finished")
 
     def move_to_yaw_and_stop(self, x, y, z, w):
@@ -167,16 +165,19 @@ class TestStatePublisher:
 
         rate = rospy.Rate(15)
 
+        self._desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose = self.desired_pose_transformed))
+
         delay = 0
         while not rospy.is_shutdown():
             delay += 1
-            self._pub_desired_pose.publish(self.desired_pose_transformed)
 
             if delay > 30:
                 if abs(self.current_yaw) <= self.MOVE_OFFSET_CONSTANT_ANGULAR and abs(
                         self.current_yaw) <= self.MOVE_OFFSET_CONSTANT_ANGULAR:
                     break
             rate.sleep()
+
+        self._desired_pose_client.cancel_goal()
 
     # Point the robot forward in the global frame
     def global_face_forward(self):
@@ -200,6 +201,8 @@ class TestStatePublisher:
 
         rate = rospy.Rate(15)
 
+        self._desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose = self.desired_pose_transformed))
+
         # DELAY BASED STOPPING PROTOCOL
         # tot = 0
         # duration = 60_000
@@ -212,13 +215,14 @@ class TestStatePublisher:
         delay = 0
         while not rospy.is_shutdown():
             delay += 1
-            self._pub_desired_pose.publish(self.desired_pose_transformed)
 
             if delay > 30:
                 if abs(self.current_yaw) <= self.MOVE_OFFSET_CONSTANT_ANGULAR and abs(
                         self.current_yaw) <= self.MOVE_OFFSET_CONSTANT_ANGULAR:
                     break
             rate.sleep()
+
+        self._desired_pose_client.cancel_goal()
 
     def _on_receive_data_x(self, data):
         self.current_setpoint[0] = data.data
