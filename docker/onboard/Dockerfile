@@ -38,7 +38,6 @@ RUN apt-get update && \
     util-linux \
     ros-noetic-pid \
     ros-noetic-smach-ros \
-    ros-noetic-video-stream-opencv \
     ros-noetic-rosserial \
     ros-noetic-rosserial-arduino \
     python3-pandas && \
