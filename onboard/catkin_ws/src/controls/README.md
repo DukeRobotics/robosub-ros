@@ -7,7 +7,7 @@ Thruster information is read from `*.config` files, which are written in YAML. T
 
 `controls.launch` takes in a `sim` argument to indicate whether it is running in the simulation or on the robot.
 
-Only the most recently updated Desired State Topic will be used in movement. Therefore any updates will override the current movement of the robot. Controls will warn you if more than one Desired State Topic is being published to at any given time to prevent such issues. If Controls stops receiving Desired State messages at a high enough rate (at the moment, 10 Hz), it will warn you and will output zero power for safety purposes.
+Only the most recently sent goal received by a Desired State Action Server will be used in movement. Therefore any new goals will preempt existing goals for any of the three control actions and override the current movement of the robot.
 
 The controls algorithm will output all 0's unless it is enabled with a call to rosservice as detailed in the setup. Sending the disable call to the service acts as a software emergency stop that cuts off all power to the thrusters.
 
@@ -61,25 +61,29 @@ roslaunch controls controls.launch sim:=true
 `test_state_publisher.py` is where we specify the desired state of the robot. Alternatively, you can publish to any of the desired state topics directly using your own code. The second command launches the entire controls node in simulation mode.
 
 
-## Topics
+## Interface
 
 ### Listening
 
-Desired State Topics:
+Desired State Action Servers:
 
   - ```controls/desired_pose```
-    + A point and quaternion representing the robot's desired global xyz position and rpy orientation.
-    + Type: geometry_msgs/Pose
+    + Type: ```custom_msgs/ControlsDesiredPoseAction```
+    + Goal: ```custom_msgs/ControlsDesiredPoseGoal```
+      - Contains a ```geometry_msgs/Pose```
+      - Pose has fields for a point and quaternion representing the robot's desired global xyz position and rpy orientation.
 
   - ```controls/desired_twist```
-    + A twist with representing the robot's desired local linear and angular velocities.
-    + Type: geometry_msgs/Twist
+    + Type: ```custom_msgs/ControlsDesiredTwistAction```
+    + Goal: ```custom_msgs/ControlsDesiredTwistGoal```
+      - Contains a ```geometry_msgs/Twist``` which has fields for the robot's desired local linear and angular velocities.
 
   - ```controls/desired_power```
-    + A twist with values [-1,1] corresponding to effort the robot should exert in each local axis. 1 is full speed in a positive direction, -1 is full speed in the negative direction.
-    + This option stabilizes velocity on all axes with values of 0. It is mainly for use with joysticks (velocity control should be used in almost every other case).
-    + For instance, a `desired_power` message of [1, 0, -0.5, 0, 0, 0], the robot will move full speed in the +x direction, half speed in the -z direction, and stabilize velocities on all other axes.
-    + Type: geometry_msgs/Twist
+    + Type: ```custom_msgs/ControlsDesiredPowerAction```
+    + Goal: ```custom_msgs/ControlsDesiredPowerGoal```
+      - Contains a ```geometry_msgs/Twist``` with values [-1,1] corresponding to effort the robot should exert in each local axis. 1 is full speed in a positive direction, -1 is full speed in the negative direction.
+      - This option stabilizes velocity on all axes with values of 0. It is mainly for use with joysticks (velocity control should be used in almost every other case).
+      - For instance, a `desired_power` goal of [1, 0, -0.5, 0, 0, 0], the robot will move full speed in the +x direction, half speed in the -z direction, and stabilize velocities on all other axes.
 
 Current State Topics:
 
