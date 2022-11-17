@@ -62,11 +62,14 @@ class CVLaunchDialog(QDialog):
         self.accept_button.setEnabled(False)
 
     def get_launchables(self, package_name):
-        package_dir = os.path.join(self.ROOT_PATH, package_name)
-        launch_files = glob.glob(os.path.join(package_dir, 'launch', '*.launch'))
-        script_files = glob.glob(os.path.join(package_dir, 'scripts', '*.py'))
-        executables = [f for f in script_files if os.access(f, os.X_OK)]
-        return [''] + launch_files + executables
+        if package_name:
+            package_dir = os.path.join(self.ROOT_PATH, package_name)
+            launch_files = glob.glob(os.path.join(package_dir, 'launch', '*.launch'))
+            script_files = glob.glob(os.path.join(package_dir, 'scripts', '*.py'))
+            executables = [f for f in script_files if os.access(f, os.X_OK)]
+            return [''] + launch_files + executables
+        else:
+            return []
 
     def package_name_selected(self, item_index):
         if item_index == 0:
