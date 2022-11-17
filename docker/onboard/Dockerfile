@@ -34,7 +34,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-noetic-pid \
     ros-noetic-smach-ros \
     ros-noetic-rosserial ros-noetic-rosserial-arduino \
-    ros-noetic-video-stream-opencv \
     python3-pandas && \
     apt-get clean && \
     # Clear apt caches to reduce image size
