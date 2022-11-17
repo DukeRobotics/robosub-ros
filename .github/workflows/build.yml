@@ -14,9 +14,9 @@ jobs:
     outputs:
       docker: ${{ steps.filter.outputs.docker }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Check if docker directory has changed
-      uses: dorny/paths-filter@v2.2.1
+      uses: dorny/paths-filter@v2.11.1
       id: filter
       with:
         filters: |
@@ -40,7 +40,7 @@ jobs:
       FILE_NAME: '${{ matrix.arch }}-core.tar.gz'
       CUDA: ${{ matrix.arch == 'arm64'  }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup environment and build
         run: |
           ./.github/workflows/build.sh
@@ -53,7 +53,7 @@ jobs:
         run: |
           docker save ${IMAGE_NAME} | gzip > ${FILE_NAME}
       - name: Create artifact from image
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: core
           path: ${{ env.FILE_NAME }}
@@ -73,9 +73,9 @@ jobs:
       FILE_NAME: '${{ matrix.arch }}-core.tar.gz'
       CUDA: ${{ matrix.arch == 'arm64'  }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Get core image
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: core
           path: core_im
@@ -107,7 +107,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [onboard-docker, landside-docker]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Push images to latest on dockerhub
         if: github.event_name == 'push'
         run: |
@@ -121,9 +121,9 @@ jobs:
     needs: [check-docker, push-docker]
     if: always() && (needs.check-docker.outputs.docker == 'true')
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Cleanup artifacts
-        uses: geekyeggo/delete-artifact@v1
+        uses: geekyeggo/delete-artifact@v2
         with:
           name: core
 
@@ -135,9 +135,9 @@ jobs:
       BASE_IMAGE: dukerobotics/robosub-ros:core-amd64
       SERVICE_NAME: landside
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Get core image
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: core
           path: core_im
@@ -171,7 +171,7 @@ jobs:
       fail-fast: false
     container: dukerobotics/robosub-ros:${{ matrix.workspace }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Test build
         run: ./build.sh
       - name: Test Arduino build
