@@ -191,7 +191,7 @@ if __name__ == "__main__":
     #sweep_data = sonar.sweep_biggest_byte(100, 300)  #180deg in front
 
     for i in range(100, 300):
-        data = sonar.request_data_at_angle(i)
+        data = sonar.request_data_at_angle(i).data
         split_bytes = [data[i:i+1] for i in range(len(data))]
         split_bytes = split_bytes[100:]
         byte_from_int = int.from_bytes(split_bytes[0], "big")

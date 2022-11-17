@@ -282,56 +282,64 @@ def increase_brightness(img, value=20):
     img = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
     return img
 
-def doCoolStuff(img): 
+def find_gate_posts(img): 
     
-    gray = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
-    img = cv2.applyColorMap(gray, cv2.COLORMAP_VIRIDIS)
-        
-    #img = cv2.imread("onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\bruh.jpg", cv2.IMREAD_COLOR)
-   # img = increase_brightness(img)
-    john = img
-    cv2.copyTo(img, john)
-    img = cv2.medianBlur(img,5)
+    greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+    cm_image = cv2.applyColorMap(greyscale_image, cv2.COLORMAP_VIRIDIS)
 
-    lower_color_bounds = (40,80,0)
-    upper_color_bounds = (230,250,255)
-    mask = cv2.inRange(img,lower_color_bounds,upper_color_bounds )
+    cm_image = cv2.imread("C:\\Users\\willd\\DukeRobotics\\robosub-ros\\onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image2.jpeg", cv2.IMREAD_COLOR)
 
-    # cv2.imshow("image", mask)
-    # cv2.waitKey(0)
-    # mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+    cm_copy_image = cm_image
+    cv2.copyTo(cm_image, cm_copy_image)
+    cm_image = cv2.medianBlur(cm_image,5) # blur image
 
-    #th, threshed = cv2.threshold(mask, 100, 255,cv2.THRESH_BINARY_INV|cv2.THRESH_OTSU)
+    lower_color_bounds = (40,80,0) # filter out lower values (ie blue)
+    upper_color_bounds = (230,250,255) #filter out too high values
+    mask = cv2.inRange(cm_image,lower_color_bounds,upper_color_bounds)
 
-    cnts = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[-2]
-    cnts = sorted(cnts, key=cv2.contourArea, reverse=True)
-    cnts = list(filter(lambda x: (cv2.contourArea(x) > 200), cnts)) 
-    cnts = list(filter(lambda x: (cv2.arcLength(x, True)**2/(4*math.pi*cv2.contourArea(x)) < 5.4), cnts)) 
+    cm_circles = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[-2]
+    cm_circles = sorted(cm_circles, key=cv2.contourArea, reverse=True)
+    cm_circles = list(filter(lambda x: (cv2.contourArea(x) > 200), cm_circles)) 
+    cm_circles = list(filter(lambda x: (cv2.arcLength(x, True)**2/(4*math.pi*cv2.contourArea(x)) < 5.4), cm_circles)) 
 
-    coolcont = cnts[0:2]
-    cv2.drawContours(john,coolcont, -1, (0,255,0), 2)
+    #return if not both goal posts found 
+    if(len(cm_circles) < 1):
+        print("not enough circles found")
+        return None
 
+    filtered_circles = cm_circles[0:2]
 
-    for con in coolcont:
-        perimeter = cv2.arcLength(con,True)
-
-        area = cv2.contourArea(con)
-    
-        M = cv2.moments(con)
+    circle_positions = []
+    for circle in filtered_circles:  #find center of circle code
+        M = cv2.moments(circle)
         cX = int(M["m10"] / M["m00"])
         cY = int(M["m01"] / M["m00"])
-        print("object at " + "x: " + str(cX) + "  Y: " + str(cY)  +  " has circularity : " + str(perimeter**2/ (4*math.pi*area) ) )
-        cv2.circle(john, (cX, cY), 3, (255, 255, 255), -1)
+        circle_positions.append((cX,cY))
+        #print("object at " + "x: " + str(cX) + "  Y: " + str(cY)  +  " has circularity : " + str(perimeter**2/ (4*math.pi*area) ) )
+        #cv2.circle(cm_copy_image, (cX, cY), 3, (255, 255, 255), -1)
 
-    # detector = cv2.SimpleBlobDetector_create()
-    # keypoints = detector.detect(mask)
-    # newimg = cv2.drawKeypoints(mask, keypoints, np.array([]), (0,255,0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+    cv2.drawContours(cm_copy_image, filtered_circles, -1, (0,255,0), 2)
+    cv2.imshow("image", cm_copy_image)
+    cv2.waitKey(0)
 
+    return circle_positions
 
-    #ret, thresh1 = cv2.threshold(img,120,180,cv2.THRESH_BINARY)
+def find_buouy(img): 
+    
+    greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+    cm_image = cv2.applyColorMap(greyscale_image, cv2.COLORMAP_VIRIDIS)
 
+    cm_image = cv2.imread("C:\\Users\\willd\\DukeRobotics\\robosub-ros\\onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image3.jpeg", cv2.IMREAD_COLOR)
 
-    cv2.imshow("image", john)
+    cm_copy_image = cm_image
+    cv2.copyTo(cm_image, cm_copy_image)
+    cm_image = cv2.medianBlur(cm_image,5) # blur image
+
+    lower_color_bounds = (40,80,0) # filter out lower values (ie blue)
+    upper_color_bounds = (230,250,255) #filter out too high values
+    mask = cv2.inRange(cm_image,lower_color_bounds,upper_color_bounds)
+
+    cv2.imshow("image", mask)
     cv2.waitKey(0)
 
 
@@ -347,27 +355,6 @@ def getdecodedfile(localfilename):
     return log.parser()
 
 if __name__ == "__main__":
-
-    LotG = np.array([[-0.0612,-0.0614,-0.0395,-0.0614,-0.0612], 
-                     [-0.0614, 0.0963, 0.2505, 0.0963,-0.0614], 
-                     [-0.0395, 0.2505, 0.5072, 0.2505,-0.0395], 
-                     [-0.0614, 0.0963, 0.2505, 0.0963,-0.0614], 
-                     [-0.0612,-0.0614,-0.0395,-0.0614,-0.0612]])
-    
-    G9x9 = np.array([[0.0000,    0.0000,    0.0000,    0.0000,    0.0001,    0.0000,    0.0000,    0.0000,    0.0000],
-                     [0.0000,    0.0000,    0.0002,    0.0011,    0.0018,    0.0011,    0.0002,    0.0000,    0.0000],
-                     [0.0000,    0.0002,    0.0029,    0.0131,    0.0215,    0.0131,    0.0029,    0.0002,    0.0000],
-                     [0.0000,    0.0011,    0.0131,    0.0586,    0.0965,    0.0586,    0.0131,    0.0011,    0.0000],
-                     [0.0001,    0.0018,    0.0215,    0.0965,    0.1592,    0.0965,    0.0215,    0.0018,    0.0001],
-                     [0.0000,    0.0011,    0.0131,    0.0586,    0.0965,    0.0586,    0.0131,    0.0011,    0.0000],
-                     [0.0000,    0.0002,    0.0029,    0.0131,    0.0215,    0.0131,    0.0029,    0.0002,    0.0000],
-                     [0.0000,    0.0000,    0.0002,    0.0011,    0.0018,    0.0011,    0.0002,    0.0000,    0.0000],
-                     [0.0000,    0.0000,    0.0000,    0.0000,    0.0001,    0.0000,    0.0000,    0.0000,    0.0000]])
-    
-    G3x3 = np.array([[0.0751,    0.1238,    0.0751],
-                     [0.1238,    0.2042,    0.1238],
-                     [0.0751,    0.1238,    0.0751]])
-
 
     import os
     dirname = os.path.dirname(__file__)
@@ -394,15 +381,9 @@ if __name__ == "__main__":
             else:
                 sonar_matrix = np.vstack((sonar_matrix, intarray))
 
-    #LotG_conv_sonar = signal.convolve2d(sonar_matrix, LotG, "valid")
-    #G3x3_conv_sonar = signal.convolve2d(sonar_matrix, G3x3, "valid")
-    #G9x9_conv_sonar = signal.convolve2d(sonar_matrix, G9x9, "valid")
-
-   
-    #doCoolStuff(sonar_matrix)
-
+    print("finding posts")
+    found_posts = find_gate_posts(sonar_matrix)
+    print(found_posts)
     plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image.jpeg', sonar_matrix)
-    # plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\LotG_Sonar_Image.jpeg', LotG_conv_sonar)
-    # plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\G3x3_Sonar_Image.jpeg', G3x3_conv_sonar)
-    # plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\G9x9_Sonar_Image.jpeg', G9x9_conv_sonar)
+
         
