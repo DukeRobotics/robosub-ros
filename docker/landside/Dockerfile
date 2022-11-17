@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-noetic-joy \
     ros-noetic-image-view ros-noetic-image-publisher \
     ros-noetic-rqt \
+    ros-noetic-rqt-image-view \
+    ros-noetic-rqt-bag \
     xsltproc xauth && \
     apt-get clean && \
     # Clear apt caches to reduce image size
