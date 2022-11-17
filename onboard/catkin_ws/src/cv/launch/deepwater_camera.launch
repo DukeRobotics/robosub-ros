@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-	<arg name="topic" default="" />
+	<arg name="topic" default="/camera/image_raw" />
 	<arg name="channel" default="0" />
 	<arg name="framerate" default="24" />
 	<node name="deepwater_camera" pkg="cv" type="deepwater_camera.py" output="screen">
