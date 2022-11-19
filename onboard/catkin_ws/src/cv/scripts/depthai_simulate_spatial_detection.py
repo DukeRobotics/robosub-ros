@@ -75,7 +75,7 @@ class DepthAISimulateSpatialDetection:
 
     def detect_single_image(self, img):
         with depthai_camera_connect.connect(self.pipeline) as device:
-            self.detect(device, img)
+            return self.detect(device, img)
 
         # Publish dummy image to topic every few seconds
 
