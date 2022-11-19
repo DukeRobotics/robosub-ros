@@ -17,6 +17,8 @@ RUN apt-get update && \
     ros-noetic-image-view \
     ros-noetic-image-publisher \
     ros-noetic-rqt \
+    ros-noetic-rqt-image-view \
+    ros-noetic-rqt-bag \
     xsltproc \
     xauth && \
     apt-get clean && \
