@@ -51,7 +51,7 @@ class MoveToPoseGlobalTask(Task):
                 self.publish_desired_pose_global(lastPose)
 
             rate.sleep()
-        
+
         self.task_state.desired_pose_global_client.cancel_goal()
         return "done"
 

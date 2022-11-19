@@ -8,6 +8,7 @@ from pid_manager import PIDManager
 
 from custom_msgs.msg import ControlsDesiredPoseAction, ControlsDesiredTwistAction, ControlsDesiredPowerAction
 
+
 class bcolors:
     BOLD = '\033[1m'
     OKGREEN = '\033[92m'
@@ -42,10 +43,22 @@ class DesiredStateHandler:
         self.listener = TransformListener()
         self.pid_manager = PIDManager()
 
-        self.pose_server = actionlib.SimpleActionServer(self.DESIRED_POSE_ACTION, ControlsDesiredPoseAction, self._on_pose_received, False)
-        self.twist_server = actionlib.SimpleActionServer(self.DESIRED_TWIST_ACTION, ControlsDesiredTwistAction, self._on_twist_received, False)
-        self.power_server = actionlib.SimpleActionServer(self.DESIRED_POWER_ACTION, ControlsDesiredPowerAction, self._on_power_received, False)
-        
+        self.pose_server = actionlib.SimpleActionServer(
+            self.DESIRED_POSE_ACTION,
+            ControlsDesiredPoseAction,
+            self._on_pose_received,
+            False)
+        self.twist_server = actionlib.SimpleActionServer(
+            self.DESIRED_TWIST_ACTION,
+            ControlsDesiredTwistAction,
+            self._on_twist_received,
+            False)
+        self.power_server = actionlib.SimpleActionServer(
+            self.DESIRED_POWER_ACTION,
+            ControlsDesiredPowerAction,
+            self._on_power_received,
+            False)
+
         self.pose_server.start()
         self.twist_server.start()
         self.power_server.start()
@@ -62,9 +75,8 @@ class DesiredStateHandler:
 
         pose = utils.parse_pose(utils.transform_pose(
             self.listener, 'odom', 'base_link', goal.pose))
-        
-        self._publish_control(self.pose_server, self.pid_manager.position_control, pose)
 
+        self._publish_control(self.pose_server, self.pid_manager.position_control, pose)
 
     def _on_twist_received(self, goal):
         """Handler for receiving desired twists. Received desired twists are assumed to be defined in the
@@ -75,13 +87,13 @@ class DesiredStateHandler:
         """
         self.pose_server.preempt_request = True
         self.power_server.preempt_request = True
-        
+
         twist = utils.parse_twist(goal.twist)
 
-        if not self._twist_state_safety(twist): 
+        if not self._twist_state_safety(twist):
             self.twist_server.set_aborted()
             return
-        
+
         self._publish_control(self.twist_server, self.pid_manager.velocity_control, twist)
 
     def _on_power_received(self, goal):
@@ -97,7 +109,7 @@ class DesiredStateHandler:
 
         power = utils.parse_twist(goal.power)
 
-        if not self._power_state_safety(power): 
+        if not self._power_state_safety(power):
             self.power_server.set_aborted()
             return
 
@@ -127,11 +139,12 @@ class DesiredStateHandler:
 
     def _publish_control(self, server, publish_func, data):
         rate = rospy.Rate(self.REFRESH_HZ)
-        while not server.is_preempt_requested(): 
+        while not server.is_preempt_requested():
             publish_func(data)
             rate.sleep()
         self.pid_manager.soft_estop()
         server.set_preempted()
+
 
 def main():
     try:

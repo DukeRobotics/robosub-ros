@@ -3,7 +3,7 @@
 import rospy
 import actionlib
 from custom_msgs.msg import ControlsDesiredPoseAction, ControlsDesiredTwistAction, ControlsDesiredPowerAction, \
-                            ControlsDesiredPoseGoal, ControlsDesiredTwistGoal, ControlsDesiredPowerGoal
+    ControlsDesiredPoseGoal, ControlsDesiredTwistGoal, ControlsDesiredPowerGoal
 from geometry_msgs.msg import Pose, Twist
 from std_msgs.msg import Float64
 from nav_msgs.msg import Odometry
@@ -105,19 +105,19 @@ class TestStatePublisher:
         self.current_state.header.stamp = rospy.Time()
 
     def publish_desired_pose_global(self):
-        self._desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose = self.desired_pose_global))
+        self._desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose=self.desired_pose_global))
         rospy.spin()
 
     def publish_desired_pose_local(self):
-        self._desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose = self.desired_pose_transformed))
+        self._desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose=self.desired_pose_transformed))
         rospy.spin()
 
     def publish_desired_twist(self):
-        self._desired_twist_client.send_goal(ControlsDesiredTwistGoal(twist = self.desired_twist))
+        self._desired_twist_client.send_goal(ControlsDesiredTwistGoal(twist=self.desired_twist))
         rospy.spin()
 
     def publish_desired_power(self):
-        self._desired_power_client.send_goal(ControlsDesiredPowerGoal(power = self.desired_power))
+        self._desired_power_client.send_goal(ControlsDesiredPowerGoal(power=self.desired_power))
         rospy.spin()
 
     def move_to_pos_and_stop(self, x, y, z):
@@ -133,7 +133,7 @@ class TestStatePublisher:
 
         rate = rospy.Rate(15)
 
-        self._desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose = self.desired_pose_transformed))
+        self._desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose=self.desired_pose_transformed))
 
         delay = 0
         while not rospy.is_shutdown():
@@ -166,7 +166,7 @@ class TestStatePublisher:
 
         rate = rospy.Rate(15)
 
-        self._desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose = self.desired_pose_transformed))
+        self._desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose=self.desired_pose_transformed))
 
         delay = 0
         while not rospy.is_shutdown():
@@ -202,7 +202,7 @@ class TestStatePublisher:
 
         rate = rospy.Rate(15)
 
-        self._desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose = self.desired_pose_transformed))
+        self._desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose=self.desired_pose_transformed))
 
         # DELAY BASED STOPPING PROTOCOL
         # tot = 0

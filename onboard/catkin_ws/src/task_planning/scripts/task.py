@@ -44,10 +44,10 @@ class Task(smach.State):
         return self.run(userdata)
 
     def publish_desired_pose_global(self, pose):
-        self.task_state.desired_pose_global_client.send_goal(ControlsDesiredPoseGoal(pose = pose))
+        self.task_state.desired_pose_global_client.send_goal(ControlsDesiredPoseGoal(pose=pose))
 
     def publish_desired_power(self, twist_power):
-        self.task_state.desired_twist_power_client.send_goal(ControlsDesiredPowerGoal(power = twist_power))
+        self.task_state.desired_twist_power_client.send_goal(ControlsDesiredPowerGoal(power=twist_power))
 
     def publish_desired_twist(self, twist_velocity):
-        self.task_state.desired_twist_velocity_client.send_goal(ControlsDesiredTwistGoal(twist = twist_velocity))
+        self.task_state.desired_twist_velocity_client.send_goal(ControlsDesiredTwistGoal(twist=twist_velocity))
