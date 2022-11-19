@@ -1,0 +1,12 @@
+<library path="src">
+  <class name="Rosbag Plugin" type="gui.rosbag_plugin.Rosbag" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      GUI interface for Rosbag record.
+    </description>
+    <qtgui>
+      <label>RoboSub Rosbag</label>
+      <icon type="theme">system-help</icon>
+      <statustip>GUI interface for Rosbag record.</statustip>
+    </qtgui>
+  </class>
+</library>

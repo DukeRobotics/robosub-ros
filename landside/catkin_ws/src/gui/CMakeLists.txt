@@ -30,5 +30,6 @@ install(FILES
   plugins/sensor_plugin.xml
   plugins/controls_plugin.xml
   plugins/cv_launch_plugin.xml
+  plugins/rosbag_plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 ) 
