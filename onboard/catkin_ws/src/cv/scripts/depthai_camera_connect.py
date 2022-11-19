@@ -49,7 +49,7 @@ def connect(pipeline):
             # For all tries before the last one, don't raise the exception and try connecting again
             # On the last try, raise the exception so DepthAI code doesn't run without a successful camera connection
             if i == totalTries - 1:
-                raise RuntimeError((f"{totalTries} attempts were made to connect to the DepthAI camera using"
+                raise RuntimeError((f"{totalTries} attempts were made to connect to the DepthAI camera using "
                                     "autodiscovery and manual IP address specification. All attempts failed.")) from e
 
         # Wait two seconds before trying again
