@@ -1,5 +1,5 @@
 <library path="src">
-  <class name="Rosbag Plugin" type="gui.rosbag_plugin.Rosbag" base_class_type="rqt_gui_py::Plugin">
+  <class name="Rosbag Plugin" type="gui.rosbag_plugin.RosbagPlugin" base_class_type="rqt_gui_py::Plugin">
     <description>
       GUI interface for Rosbag record.
     </description>
