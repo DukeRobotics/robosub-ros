@@ -28,6 +28,7 @@ class DeepwaterCamera:
         while not rospy.is_shutdown():
             try:
                 cap = cv2.VideoCapture(self.channel)
+                success, img = cap.read()
                 loop_rate = rospy.Rate(cap.get(cv2.CAP_PROP_FPS))
 
                 # Including 'not rospy.is_shutdown()' in the loop condition here to ensure if this script is exited
