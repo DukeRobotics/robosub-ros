@@ -143,7 +143,7 @@ class DepthAISpatialDetector:
         """
         if model_name == self.current_model_name:
             return
-        
+
         self.current_model_name = model_name
 
         model = self.models[model_name]
