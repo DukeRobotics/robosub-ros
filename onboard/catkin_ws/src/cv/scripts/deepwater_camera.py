@@ -12,7 +12,7 @@ class DeepwaterCamera:
     def __init__(self):
 
         # Instantiate new deepwater camera node
-        rospy.init_node('cv', anonymous=True)
+        rospy.init_node('deepwater_camera')
 
         # Read custom camera configs
         self.topic = rospy.get_param("~topic")
