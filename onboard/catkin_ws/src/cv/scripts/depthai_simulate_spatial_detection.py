@@ -73,8 +73,13 @@ class DepthAISimulateSpatialDetection:
         feedOut.setStreamName("feed")
         nn.passthrough.link(feedOut.input)
 
-    # Publish dummy image to topic every few seconds
-    def run(self, img_msg):
+    def detect_single_image(self, img):
+        with depthai_camera_connect.connect(self.pipeline) as device:
+            self.detect(device, img)
+
+        # Publish dummy image to topic every few seconds
+
+    def detect(self, device, input_image):
         """
         Send the still image through to the input queue (qIn) after converting it to the proper format.
         Then retreive what was fed into the neural network. The input to the neural network should be the same
@@ -83,45 +88,43 @@ class DepthAISimulateSpatialDetection:
         """
 
         # Upload the pipeline to the device
-        with depthai_camera_connect.connect(self.pipeline) as device:
+        def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
+            return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
 
-            def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
-                return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
+        # Input queue will be used to send video frames to the device.
+        qIn = device.getInputQueue("camIn")
 
-            # Input queue will be used to send video frames to the device.
-            qIn = device.getInputQueue("camIn")
+        # Output queue will be used to get nn data from the video frames.
 
-            # Output queue will be used to get nn data from the video frames.
+        qFeed = device.getOutputQueue(
+            name="feed", maxSize=4, blocking=False)
 
-            qFeed = device.getOutputQueue(
-                name="feed", maxSize=4, blocking=False)
+        qOut = device.getOutputQueue(
+            name="nn", maxSize=4, blocking=False)
 
-            qOut = device.getOutputQueue(
-                name="nn", maxSize=4, blocking=False)
+        # Send a message to the ColorCamera to capture a still image
+        img = dai.ImgFrame()
+        img.setType(dai.ImgFrame.Type.BGR888p)
+        img.setData(to_planar(input_image, (416, 416)))
 
-            # Send a message to the ColorCamera to capture a still image
-            img = dai.ImgFrame()
-            img.setType(dai.ImgFrame.Type.BGR888p)
-            img.setData(to_planar(img_msg, (416, 416)))
+        img.setWidth(416)
+        img.setHeight(416)
 
-            img.setWidth(416)
-            img.setHeight(416)
+        qIn.send(img)
+        inFeed = qFeed.get()
 
-            qIn.send(img)
-            inFeed = qFeed.get()
+        imageFrame = inFeed.getCvFrame()
 
-            imageFrame = inFeed.getCvFrame()
+        detections = qOut.get().detections
 
-            detections = qOut.get().detections
-
-            return {
-                "frame": imageFrame,
-                "detections": detections
-            }
+        return {
+            "frame": imageFrame,
+            "detections": detections
+        }
 
 
 if __name__ == '__main__':
     d = DepthAISimulateSpatialDetection()
-    out = d.run(d.image)
+    out = d.detect_single_image(d.image)
 
     print(out)
