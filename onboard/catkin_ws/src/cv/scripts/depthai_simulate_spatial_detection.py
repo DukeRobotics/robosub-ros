@@ -4,13 +4,11 @@ import depthai as dai
 import numpy as np
 import cv2
 import os
-import rospy
 import depthai_camera_connect
-from sensor_msgs.msg import Image
 
 path = os.path.dirname(__file__)
 NN_PATH = os.path.join(path, '../assets/bloblol.blob')
-IMAGE_RELATIVE_PATH = os.path.join(path, '../assets/left384.jpg')
+IMAGE_PATH = os.path.join(path, '../assets/left384.jpg')
 
 
 class DepthAISimulateSpatialDetection:
@@ -32,11 +30,7 @@ class DepthAISimulateSpatialDetection:
         self._build_pipeline()
 
         # Dummy still image
-        path = os.path.dirname(__file__)
-        self.image = cv2.imread(os.path.join(path, IMAGE_RELATIVE_PATH), cv2.IMREAD_COLOR)
-        self.subscribe = rospy.Subscriber(self.IMAGE_TOPIC, Image, self.run, queue_size=10)
-
-        # Get path to nn blob file
+        self.image = cv2.imread(IMAGE_PATH, cv2.IMREAD_COLOR)
 
     def _build_pipeline(self):
         """
@@ -51,7 +45,7 @@ class DepthAISimulateSpatialDetection:
 
         xOut = self.pipeline.create(dai.node.XLinkOut)
         xIn.setStreamName("camIn")
-        xOut.setStreamName("camOut")
+        xOut.setStreamName("nn")
 
         # Define neural net architecture
         nn = self.pipeline.create(dai.node.YoloDetectionNetwork)
@@ -63,7 +57,8 @@ class DepthAISimulateSpatialDetection:
         nn.input.setBlocking(False)
         nn.setNumClasses(5)
         nn.setCoordinateSize(4)
-        nn.setAnchors(np.array([10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]))
+        nn.setAnchors(
+            np.array([10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]))
         nn.setAnchorMasks({"side26": [0, 1, 2], "side13": [3, 4, 5]})
         nn.setIouThreshold(0.5)
 
@@ -83,7 +78,8 @@ class DepthAISimulateSpatialDetection:
         """
         Send the still image through to the input queue (qIn) after converting it to the proper format.
         Then retreive what was fed into the neural network. The input to the neural network should be the same
-        as the still image sent into the input queue.
+        as the still image sent into the input queue. Ouput the resulting opencv-formatted image and the
+        detections objects.
         """
 
         # Upload the pipeline to the device
@@ -97,9 +93,11 @@ class DepthAISimulateSpatialDetection:
 
             # Output queue will be used to get nn data from the video frames.
 
-            qFeed = device.getOutputQueue(name="feed", maxSize=4, blocking=False)
+            qFeed = device.getOutputQueue(
+                name="feed", maxSize=4, blocking=False)
 
-            # qOut = device.getOutputQueue(name="nn", maxSize=4, blocking=False)
+            qOut = device.getOutputQueue(
+                name="nn", maxSize=4, blocking=False)
 
             # Send a message to the ColorCamera to capture a still image
             img = dai.ImgFrame()
@@ -111,8 +109,19 @@ class DepthAISimulateSpatialDetection:
 
             qIn.send(img)
             inFeed = qFeed.get()
-            rospy.loginfo(inFeed)
+
+            imageFrame = inFeed.getCvFrame()
+
+            detections = qOut.get().detections
+
+            return {
+                "frame": imageFrame,
+                "detections": detections
+            }
 
 
 if __name__ == '__main__':
-    DepthAISimulateSpatialDetection()
+    d = DepthAISimulateSpatialDetection()
+    out = d.run(d.image)
+
+    print(out)
