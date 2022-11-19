@@ -143,6 +143,7 @@ class DepthAISpatialDetector:
         """
         if model_name == self.current_model_name:
             return
+
         self.current_model_name = model_name
 
         model = self.models[model_name]
@@ -238,9 +239,9 @@ class DepthAISpatialDetector:
         object_msg.label = label
         object_msg.score = confidence
 
-        object_msg.x = det_coords[0]
-        object_msg.y = det_coords[1]
-        object_msg.z = det_coords[2]
+        object_msg.coords.x = det_coords[0]
+        object_msg.coords.y = det_coords[1]
+        object_msg.coords.z = det_coords[2]
 
         object_msg.xmin = bbox[0]
         object_msg.ymin = bbox[1]

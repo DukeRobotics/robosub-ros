@@ -21,6 +21,22 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
+    <widget class="SystemUsageWidget" name="system_usage_widget" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>362</width>
+       <height>0</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="CVLaunchDialog" name="launch_dialog" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -110,6 +126,12 @@
    <extends>QWidget</extends>
    <header>gui.cv_launch_dialog</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SystemUsageWidget</class>
+   <extends>QWidget</extends>
+   <header>gui.system_usage_widget</header>
+   <container>2</container>
   </customwidget>
  </customwidgets>
  <resources/>
