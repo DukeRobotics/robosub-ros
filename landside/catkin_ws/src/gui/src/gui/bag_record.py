@@ -8,6 +8,12 @@ import rosgraph
 class BagRecord():
 
     def __init__(self, topics, bag_file_path):
+        """
+        topics: List of strings, where each string is a topic to record
+        bag_file_path: String with absolute path to bag file to record, including name of bag file. Must end with .bag
+        extension.
+        """
+
         if len(topics) == 0 or ''.join(topics) == "":
             raise ValueError("The list of topics must not be empty.")
 
@@ -29,16 +35,27 @@ class BagRecord():
 
         self.proc = None
 
-    def record(self, optional_args=[]):
+    def record(self, optional_args=""):
+        """
+        Starts recording the bag file.
+        optional_args: String with arguments to add to rosbag record command. Not required.
+        """
+
         bag_command = ['rosbag', 'record']
         bag_command.extend(self.topics)
         bag_command.extend(["-O", self.bag_file_path])
-        bag_command.extend(optional_args)
+
+        if optional_args:
+            bag_command.extend(optional_args.split(" "))
 
         self.proc = subprocess.Popen(bag_command)
         return {'pid': int(self.proc.pid)}
 
     def stop(self):
+        """
+        Stops recording the bag file.
+        """
+
         if self.proc and self.proc.poll() is None:
             self.proc.terminate()
             self.proc.wait()
