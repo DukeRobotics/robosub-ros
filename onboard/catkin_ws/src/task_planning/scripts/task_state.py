@@ -2,7 +2,6 @@ import rospy
 import actionlib
 
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Pose, Twist
 from custom_msgs.msg import CVObject, ControlsDesiredPoseAction, ControlsDesiredTwistAction, ControlsDesiredPowerAction
 
 
