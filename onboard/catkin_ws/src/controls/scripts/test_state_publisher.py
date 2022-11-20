@@ -6,7 +6,6 @@ from std_msgs.msg import Float64
 from nav_msgs.msg import Odometry
 import controls_utils
 from tf import TransformListener
-from time import sleep
 
 
 class TestStatePublisher:
@@ -32,7 +31,7 @@ class TestStatePublisher:
         self.current_yaw = 100.0
         self.MOVE_OFFSET_CONSTANT_ANGULAR = 0.2
 
-        sleep(1)
+        self.listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(10))
 
         self._pub_desired_pose = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_POSE, Pose, queue_size=3)
         self._pub_desired_twist = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_TWIST, Twist, queue_size=3)
