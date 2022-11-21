@@ -76,6 +76,7 @@ class DepthAISimulateSpatialDetection:
             out = self.detect(device, img)
             if show:
                 display_frame("detections", out["frame"], out["detections"])
+            return out
 
     def detect(self, device, input_image):
         """
