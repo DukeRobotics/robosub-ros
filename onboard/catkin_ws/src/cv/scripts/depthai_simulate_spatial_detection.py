@@ -111,12 +111,12 @@ class DepthAISimulateSpatialDetection:
         qIn.send(img)
         inFeed = qFeed.get()
 
-        imageFrame = inFeed.getCvFrame()
+        image_frame = inFeed.getCvFrame()
 
         detections = qOut.get().detections
 
         return {
-            "frame": imageFrame,
+            "frame": image_frame,
             "detections": detections
         }
 
