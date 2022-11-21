@@ -142,5 +142,3 @@ def display_frame(name, frame, detections):
 if __name__ == '__main__':
     d = DepthAISimulateSpatialDetection()
     out = d.detect_single_image(d.image)
-
-    print(out)
