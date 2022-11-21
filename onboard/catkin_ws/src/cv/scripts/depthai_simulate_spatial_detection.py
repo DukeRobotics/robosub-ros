@@ -71,11 +71,11 @@ class DepthAISimulateSpatialDetection:
         feedOut.setStreamName("feed")
         nn.passthrough.link(feedOut.input)
 
-    def detect_single_image(self, img):
+    def detect_single_image(self, img, show=True):
         with depthai_camera_connect.connect(self.pipeline) as device:
-            return self.detect(device, img)
-
-        # Publish dummy image to topic every few seconds
+            out = self.detect(device, img)
+            if show:
+                display_frame("detections", out["frame"], out["detections"])
 
     def detect(self, device, input_image):
         """
