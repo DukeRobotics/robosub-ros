@@ -13,12 +13,13 @@ IMAGE_PATH = os.path.join(path, '../assets/left384.jpg')
 
 class DepthAISimulateSpatialDetection:
     """
-    THIS FILE IS INCOMPLETE. It can be used for local testing outside of the docker container since
-    it does not require ROS.
-
     This class is used to test a CV neural network model locally with a simulated image feed.
     This class takes a still image and transfers it from the host (local computer) to the camera. The
     image feed is then ran through the provided neural network.
+
+    This file can be used for local testing outside of the docker container since
+    it does not require ROS.
+
     """
     CAMERA = 'left'
     IMAGE_TOPIC = f'/camera/{CAMERA}/image_raw'
