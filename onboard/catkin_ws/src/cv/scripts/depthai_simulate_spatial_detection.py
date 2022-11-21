@@ -123,12 +123,12 @@ class DepthAISimulateSpatialDetection:
 
 # nn data, being the bounding box locations, are in <0..1> range - they need to be normalized with frame width/height
 def frame_norm(frame, bbox):
-    normVals = np.full(len(bbox), frame.shape[0])
-    normVals[::2] = frame.shape[1]
-    return (np.clip(np.array(bbox), 0, 1) * normVals).astype(int)
+    norm_vals = np.full(len(bbox), frame.shape[0])
+    norm_vals[::2] = frame.shape[1]
+    return (np.clip(np.array(bbox), 0, 1) * norm_vals).astype(int)
 
 
-def display_frame(name, frame):
+def display_frame(name, frame, detections):
     color = (255, 0, 0)
     for detection in detections:
         bbox = frame_norm(frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
