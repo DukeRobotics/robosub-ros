@@ -19,10 +19,7 @@ class DepthAISimulateSpatialDetection:
 
     This file can be used for local testing outside of the docker container since
     it does not require ROS.
-
     """
-    CAMERA = 'left'
-    IMAGE_TOPIC = f'/camera/{CAMERA}/image_raw'
 
     # Read in the dummy image and other misc. setup work
     def __init__(self):
