@@ -10,12 +10,12 @@ import rosservice
 from custom_msgs.srv import StartLaunch, StopLaunch
 
 
-class CVLaunchWidget(QWidget):
+class LaunchWidget(QWidget):
 
     def __init__(self):
-        super(CVLaunchWidget, self).__init__()
+        super(LaunchWidget, self).__init__()
 
-        ui_file = rr.get_filename('package://gui/resource/CVLaunchWidget.ui', use_protocol=False)
+        ui_file = rr.get_filename('package://gui/resource/LaunchWidget.ui', use_protocol=False)
         loadUi(ui_file, self)
 
         self.current_launch = None
@@ -30,7 +30,7 @@ class CVLaunchWidget(QWidget):
         self.remote_launch_timer.timeout.connect(self.check_remote_launch)
         self.remote_launch_timer.start(100)
 
-        rospy.loginfo('CV Launch Widget successfully initialized')
+        rospy.loginfo('Launch Widget successfully initialized')
 
     @pyqtProperty(str)
     def default_pkg(self):
@@ -46,7 +46,7 @@ class CVLaunchWidget(QWidget):
             items = self.table_widget.selectedItems()
             if items and items[0].row() != 0:
                 self.delete_launch(items[0].row())
-        super(CVLaunchWidget, self).keyPressEvent(event)
+        super(LaunchWidget, self).keyPressEvent(event)
 
     def check_remote_launch(self):
         enabled = '/start_node' in rosservice.get_service_list()

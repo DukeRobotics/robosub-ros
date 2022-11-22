@@ -34,7 +34,7 @@ class RosbagWidget(QWidget):
         self.remote_launch_timer.timeout.connect(self.check_remote_launch)
         self.remote_launch_timer.start(100)
 
-        rospy.loginfo('CV Launch Widget successfully initialized')
+        rospy.loginfo('Launch Widget successfully initialized')
 
     @pyqtProperty(str)
     def default_pkg(self):

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>cv_launch_widget</class>
- <widget class="QWidget" name="cv_launch_widget">
+ <class>launch_widget</class>
+ <widget class="QWidget" name="launch_widget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+   <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -37,7 +37,7 @@
     </widget>
    </item>
    <item>
-    <widget class="CVLaunchDialog" name="launch_dialog" native="true">
+    <widget class="LaunchDialog" name="launch_dialog" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -122,16 +122,16 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CVLaunchDialog</class>
+   <class>LaunchDialog</class>
    <extends>QWidget</extends>
-   <header>gui.cv_launch_dialog</header>
+   <header>gui.launch_dialog</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>SystemUsageWidget</class>
    <extends>QWidget</extends>
    <header>gui.system_usage_widget</header>
-   <container>2</container>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>
