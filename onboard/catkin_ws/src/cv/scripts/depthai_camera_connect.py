@@ -55,3 +55,8 @@ def connect(pipeline):
         # Wait two seconds before trying again
         # This ensures the script does not terminate if the camera is just temporarily unavailable
         time.sleep(2)
+
+
+if __name__ == '__main__':
+    if connect(dai.Pipeline()):
+        print("Connected to DepthAI device successfully.")
