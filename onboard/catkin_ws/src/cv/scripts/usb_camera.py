@@ -6,12 +6,12 @@ import cv2
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
-class DeepwaterCamera:
+class USBCamera:
     """
     Object to stream any camera at /dev/video* and publishes the image feed at the device framerate
                                     (currently used for the deepwater exploration usb mono cameras)
     
-    Launch using: roslaunch cv deepwater_camera.launch
+    Launch using: roslaunch cv usb_camera.launch
     :param topic: rostopic to publish the image feed to; default is set to camera/image_raw
     :param channel: which device channel to read the stream from (e.g., dev/video0)
     :param framerate: custom framerate to stream the camera at; default is set to device default
@@ -19,8 +19,8 @@ class DeepwaterCamera:
 
     def __init__(self):
 
-        # Instantiate new deepwater camera node
-        rospy.init_node('deepwater_camera')
+        # Instantiate new USB camera node
+        rospy.init_node('usb_camera')
 
         # Read custom camera configs from launch command
         self.topic = rospy.get_param("~topic")
@@ -65,6 +65,6 @@ class DeepwaterCamera:
 
 if __name__ == '__main__':
     try:
-        DeepwaterCamera().run()
+        USBCamera().run()
     except Exception:
         exit()
