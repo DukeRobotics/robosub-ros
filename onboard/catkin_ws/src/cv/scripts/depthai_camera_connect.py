@@ -1,5 +1,8 @@
+#!/usr/bin/env python3
+
 import depthai as dai
 import time
+import rospy
 
 
 def connect(pipeline):
@@ -58,5 +61,6 @@ def connect(pipeline):
 
 
 if __name__ == '__main__':
+    rospy.init_node('depthai_camera_connect')
     if connect(dai.Pipeline()):
-        print("Connected to DepthAI device successfully.")
+        rospy.loginfo("Connected to DepthAI device successfully.")
