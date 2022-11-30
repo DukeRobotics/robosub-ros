@@ -13,33 +13,6 @@ This will run `rqt` with the perspective file `robosub_ros_gui.perspective` loca
 
 If part of a plugin is greyed out, ensure that the appropriate service is running, as listed in the dependencies in this README under each feature.
 
-### Systems Plugin
-
-#### Dependencies
-- `remote_launch.py` in system_utils
-- `system_info_publisher.py` in system_utils
-
-Run 
-```
-roslaunch system_utils remote_launch.launch
-```
-
-in the onboard container.
-
-
-#### Description
-To launch any node in the onboard container, you may use the Node Launch Dialog, which opens a new dialog into which you may enter your info. 
-
-You may also use the 3 buttons and sim checkbox instead if you want to launch a commonly used file from the execute package (such as motion.launch). You may only have one file from the execute package running, so the other buttons will be disabled while a launch file is being run.
-
-The table will show you what nodes are running.
-
-To stop a node that was run using the Node Launch Dialog, you may click on the item in the table and press Delete (on your keyboard), which will stop the node.
-
-To stop a node run using the buttons, you may also click on the stop button that replaced the same button to start. This will stop that specific node. 
-
-Data is published in percentage for CPU and GB for RAM in the System Usage box.
-
 ### Controls Plugin
 
 #### Dependencies
@@ -86,7 +59,7 @@ The Servo Control box contains buttons to actuate each servo (setting it to angl
 
 The `Upload Arduino Code` will upload arduino code to the arduino when pressed.
 
-### CV Plugin
+### Launch Plugin
 
 #### Dependencies
 - `remote_launch.py` in system_utils
@@ -100,7 +73,7 @@ in the landside container.
 
 #### Description
 
-To launch any node in the cv package, select the node from the Node Name drop down list in the CV Launch Plugin window. Depending on the node, additional textboxes may appear, each one corresponding to a required argument. Fill in the required arguments, then click OK to launch.
+To launch any node on onboard, select the node from the Node Name drop down list in the Launch Plugin window. Depending on the node, additional textboxes may appear, each one corresponding to a required argument. Fill in the required arguments, then click OK to launch.
 
 The table will show you what nodes are running.
 

@@ -25,10 +25,10 @@ install(DIRECTORY
 )
 
 install(FILES
-  plugins/system_plugin.xml
   plugins/offboard_plugin.xml
   plugins/sensor_plugin.xml
   plugins/controls_plugin.xml
-  plugins/cv_launch_plugin.xml
+  plugins/launch_plugin.xml
+  plugins/rosbag_plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 ) 

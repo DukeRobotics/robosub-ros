@@ -1,10 +1,10 @@
 <library path="src">
-  <class name="System Plugin" type="gui.system_plugin.SystemPlugin" base_class_type="rqt_gui_py::Plugin">
+  <class name="Launch Plugin" type="gui.launch_plugin.LaunchPlugin" base_class_type="rqt_gui_py::Plugin">
     <description>
       GUI interface for launching and monitoring nodes.
     </description>
     <qtgui>
-      <label>RoboSub Systems</label>
+      <label>RoboSub Launch</label>
       <icon type="theme">system-help</icon>
       <statustip>GUI interface for launching and monitoring nodes.</statustip>
     </qtgui>
