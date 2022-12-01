@@ -72,6 +72,7 @@ class DepthAISimulateSpatialDetection:
         nn.passthrough.link(feedOut.input)
 
     def detect_single_image(self, img, show=True):
+        """ Run detection on a single provided image """
         with depthai_camera_connect.connect(self.pipeline) as device:
             out = self.detect(device, img)
             if show:
@@ -93,7 +94,7 @@ class DepthAISimulateSpatialDetection:
         # Input queue will be used to send video frames to the device.
         input_queue = device.getInputQueue("camIn")
 
-        feed_passthrough_queue = device.getOutputQueue(
+        passthrough_feed_queue = device.getOutputQueue(
             name="feed", maxSize=4, blocking=False)
 
         detections_queue = device.getOutputQueue(
@@ -106,9 +107,10 @@ class DepthAISimulateSpatialDetection:
         img.setWidth(416)
         img.setHeight(416)
         input_queue.send(img)
-        feed = feed_passthrough_queue.get()
 
-        image_frame = feed.getCvFrame()
+        passthrough_feed = passthrough_feed_queue.get()
+
+        image_frame = passthrough_feed.getCvFrame()
         detections = detections_queue.get().detections
 
         return {
