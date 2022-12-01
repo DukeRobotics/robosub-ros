@@ -14,7 +14,9 @@ assert (sys.version_info.major >= 3 and sys.version_info.minor >= 8), \
 from brping import PingParser, PingMessage
 from dataclasses import dataclass
 from typing import IO, Any, Set
-from localSonar import Sonar
+from sonar import Sonar
+from sonar_image_processing import build_sonar_image
+import os
 
 
 def indent(obj, by=' '*4):
@@ -285,34 +287,18 @@ def get_decoded_file(localfilename):
 
 if __name__ == "__main__":
 
-    import os
     dirname = os.path.dirname(__file__)
-    
     filename =  dirname + '\\sampleData\\SampleTylerData.bin'
 
     # Open log and begin processing
     log = PingViewerLogReader(filename)
 
+    data_list = []
     for index, (timestamp, decoded_message) in enumerate(log.parser()):
-        
-        if(index >= 49 and index <= 149):
-            split_bytes = [decoded_message.data[i:i+1] for i in range(len(decoded_message.data))]
-            split_bytes = split_bytes[100:]
-            byte_from_int = int.from_bytes(split_bytes[0], "big")
-            intarray = np.array([byte_from_int])
-            for i in range(len(split_bytes) -1):
-                byte_from_int = int.from_bytes(split_bytes[i+1], "big")
-                #if(byte_from_int <= 90):
-                    #byte_from_int = 0
-                intarray = np.append(intarray, [byte_from_int])
-            if(index == 49):
-                sonar_matrix = np.asarray(intarray)
-            else:
-                sonar_matrix = np.vstack((sonar_matrix, intarray))
+        if index >= 49 and index <= 149:
+            data_list.append(decoded_message.data)
 
-    print("finding posts")
-    found_posts = find_gate_posts(sonar_matrix)
-    print(found_posts)
-    plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image.jpeg', sonar_matrix)
-
+    sonar_img = build_sonar_image(data_list)
+    posts = find_gate_posts(sonar_img)
+    print(posts)
         

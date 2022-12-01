@@ -34,6 +34,7 @@ def build_sonar_image(data_list, display_result=False, save_as_npy=None, save_as
         else:
             sonar_img = np.vstack((sonar_img, intarray))
     
+    # TODO: replace with argument
     if save_as_jpeg:
         plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.jpeg', sonar_img)
     if save_as_npy:
