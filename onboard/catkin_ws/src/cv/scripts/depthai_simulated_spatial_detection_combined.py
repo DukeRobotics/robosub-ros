@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 import os
 import depthai_camera_connect
+from utils import visualize_detections
 
 
 IMAGE_STREAM_TOPIC = '/cv/camera/raw_image'
@@ -79,7 +80,9 @@ class DepthAISimulateSpatialDetection:
         with depthai_camera_connect.connect(self.pipeline) as device:
             out = self.detect(device, img)
             if show:
-                display_frame("detections", out["frame"], out["detections"])
+                frame = visualize_detections(out["frame"], out["detections"])
+                cv2.imshow("detections", frame)
+                cv2.waitKey(-1)
             return out
 
     def detect(self, device, input_image):
@@ -170,24 +173,6 @@ class DepthAISimulateSpatialDetectionROS(DepthAISimulateSpatialDetection):
                     object_msg.width = frame.shape[1]
 
                     self.publisher.publish(object_msg)
-
-
-def frame_norm(frame, bbox):
-    """ Normalize bbox locations between frame width/height """
-    norm_vals = np.full(len(bbox), frame.shape[0])
-    norm_vals[::2] = frame.shape[1]
-    return (np.clip(np.array(bbox), 0, 1) * norm_vals).astype(int)
-
-
-def display_frame(name, frame, detections):
-    """ Display frame and nn detections """
-    color = (255, 0, 0)
-    for detection in detections:
-        bbox = frame_norm(frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
-        cv2.putText(frame, f"{int(detection.confidence * 100)}%", (bbox[0] + 10, bbox[1] + 40), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-        cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
-    cv2.imshow(name, frame)
-    cv2.waitKey(-1)
 
 
 if __name__ == '__main__':
