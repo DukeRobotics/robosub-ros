@@ -224,13 +224,13 @@ if __name__ == "__main__":
         for i in range(len(split_bytes) -1):
             byte_from_int = int.from_bytes(split_bytes[i+1], "big")
             intarray = np.append(intarray, [byte_from_int])
-        if(i == 150):
+        if(i == 100):
             sonar_matrix = np.asarray(intarray)
         else:
             sonar_matrix = np.vstack((sonar_matrix, intarray))
     plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.jpeg', sonar_matrix)
     np.save('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Matrix_robot.npy', sonar_matrix)
-    
+
     found_posts = sonar.find_gate_posts(sonar_matrix)
     print(found_posts)
     
