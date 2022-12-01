@@ -284,8 +284,7 @@ def get_decoded_file(local_filename):
     return log.parser()
 
 
-if __name__ == "__main__":
-
+def test_finding_gate_from_log_file():
     dirname = os.path.dirname(__file__)
     filename =  dirname + '\\sampleData\\SampleTylerData.bin'
 
@@ -302,4 +301,9 @@ if __name__ == "__main__":
     sonar_img = build_sonar_image(data_list, jpeg_save_path=JPEG_SAVE_PATH)
     posts = find_gate_posts(sonar_img)
     print(posts)
+
+
+if __name__ == "__main__":
+    test_finding_gate_from_log_file()
+
         
