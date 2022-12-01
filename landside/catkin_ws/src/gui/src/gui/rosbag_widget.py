@@ -13,6 +13,7 @@ from rqt_bag import topic_selection
 from topic_selection import TopicSelection
 from bag_record import BagRecord
 
+
 class RosbagWidget(QWidget):
 
     def __init__(self):
