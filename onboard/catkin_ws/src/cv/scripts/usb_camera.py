@@ -38,30 +38,29 @@ class USBCamera:
         and stream every image as it comes in at the device framerate
         """
 
-        # Continuously retry connecting to the camera if a connection is refused
-        while not rospy.is_shutdown():
-            try:
-                # Connect to camera at channel
-                cap = cv2.VideoCapture(self.channel)
-                # Read first frame
+        # Try connecting to the camera unless a connection is refused
+        try:
+            # Connect to camera at channel
+            cap = cv2.VideoCapture(self.channel)
+            # Read first frame
+            success, img = cap.read()
+            # Set publisher rate (framerate)
+            loop_rate = rospy.Rate(cap.get(cv2.CAP_PROP_FPS))
+
+            # Including 'not rospy.is_shutdown()' in the loop condition here to ensure if this script is exited
+            # while this loop is running, the script quits without escalating to SIGTERM or SIGKILL
+            while not rospy.is_shutdown() and success:
+                # Convert image read from cv2.videoCapture to image message to be published
+                image_msg = self.cv_bridge.cv2_to_imgmsg(img, 'bgr8')
+                # Publish the image
+                self.publisher.publish(image_msg)
+
+                # Read next image
                 success, img = cap.read()
-                # Set publisher rate (framerate)
-                loop_rate = rospy.Rate(cap.get(cv2.CAP_PROP_FPS))
-
-                # Including 'not rospy.is_shutdown()' in the loop condition here to ensure if this script is exited
-                # while this loop is running, the script quits without escalating to SIGTERM or SIGKILL
-                while not rospy.is_shutdown() and success:
-                    # Convert image read from cv2.videoCapture to image message to be published
-                    image_msg = self.cv_bridge.cv2_to_imgmsg(img, 'bgr8')
-                    # Publish the image
-                    self.publisher.publish(image_msg)
-
-                    # Read next image
-                    success, img = cap.read()
-                    # Sleep loop to maintain frame rate
-                    loop_rate.sleep()
-            except:
-                rospy.loginfo("Camera not found at channel {self.channel}")
+                # Sleep loop to maintain frame rate
+                loop_rate.sleep()
+        except:
+            rospy.loginfo("Camera not found at channel {self.channel}")
 
 if __name__ == '__main__':
     try:
