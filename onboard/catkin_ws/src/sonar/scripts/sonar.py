@@ -165,6 +165,20 @@ class Sonar:
         return global_pose
 
 
+def test_scan_and_finding_gate_posts():
+    sonar = Sonar(range=5)
+    JPEG_SAVE_PATH = 'onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.jpeg'
+    NPY_SAVE_PATH = 'onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.npy'
+
+    sonar_img = scan_and_build_sonar_image(sonar, 
+                                            display_results=True,
+                                            npy_save_path=NPY_SAVE_PATH,
+                                            jpeg_save_path=JPEG_SAVE_PATH)
+
+    posts = sonar.find_gate_posts(sonar_img, display_results=True)
+    print(posts)
+
+
 if __name__ == "__main__":
     #settings for a 10m scan:
     #   transmit_duration = 53
@@ -178,21 +192,11 @@ if __name__ == "__main__":
     #   transmit_frequency = 750
     #   BAUD_RATE = 2000000
 
-    sonar = Sonar(range=5)
-
     #sweep_data = sonar.sweep_biggest_byte(100, 300)  #180deg in front
     #print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
 
     ## FOR STARTING A WEB SERVER IN FOLDER::: RUN "python -m http.server 8000"
+    test_scan_and_finding_gate_posts()
 
-    JPEG_SAVE_PATH = 'onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.jpeg'
-    NPY_SAVE_PATH = 'onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.npy'
 
-    sonar_img = scan_and_build_sonar_image(sonar, 
-                                            display_results=True,
-                                            npy_save_path=NPY_SAVE_PATH,
-                                            jpeg_save_path=JPEG_SAVE_PATH)
-
-    posts = sonar.find_gate_posts(sonar_img, display_results=True)
-    print(posts)
     
