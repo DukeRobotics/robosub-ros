@@ -217,9 +217,9 @@ if __name__ == "__main__":
 
     #sonar_matrix = None
     for i in range(100, 300):
-        print("i: " + i)
+        print("i: " + str(i))
         data = sonar.request_data_at_angle(i).data
-        print("data:" + data)
+        print("data:" + str(data))
         split_bytes = [data[i:i+1] for i in range(len(data))]
         split_bytes = split_bytes[100:]
         byte_from_int = int.from_bytes(split_bytes[0], "big")
