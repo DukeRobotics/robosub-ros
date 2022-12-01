@@ -4,6 +4,7 @@ from brping import Ping360
 import numpy as np
 import sonar_utils
 import matplotlib.pyplot as plt
+import cv2
 #from tf import TransformListener
 from geometry_msgs.msg import Pose
 
@@ -120,16 +121,6 @@ class Sonar:
         #      (index, byte, angle)
         return max_tup
 
-    
-    def displayShit(shitToDisplay):
-        from PIL import Image
-        im = Image.fromarray(shitToDisplay)
-        im.show()
-    
-    def findBlobbies():
-        arr = np.random.randint(0,256, 100*100) #example of a 1-D array
-        arr.resize((100,100))
-
     def get_biggest_byte(self, angle):
         """Get the biggest value of the byte array.
 
@@ -173,6 +164,39 @@ class Sonar:
 
         return global_pose
 
+    def find_gate_posts(img): 
+        greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+        cm_image = cv2.applyColorMap(greyscale_image, cv2.COLORMAP_VIRIDIS)
+
+        cm_copy_image = cm_image
+        cv2.copyTo(cm_image, cm_copy_image)
+        cm_image = cv2.medianBlur(cm_image,5) # blur image
+
+        lower_color_bounds = (40,80,0) # filter out lower values (ie blue)
+        upper_color_bounds = (230,250,255) #filter out too high values
+        mask = cv2.inRange(cm_image,lower_color_bounds,upper_color_bounds)
+
+        cm_circles = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[-2]
+        cm_circles = sorted(cm_circles, key=cv2.contourArea, reverse=True)
+        cm_circles = list(filter(lambda x: (cv2.contourArea(x) > 200), cm_circles)) 
+        cm_circles = list(filter(lambda x: (cv2.arcLength(x, True)**2/(4*math.pi*cv2.contourArea(x)) < 5.4), cm_circles)) 
+
+        #return if not both goal posts found 
+        if(len(cm_circles) < 1):
+            print("not enough circles found")
+            return None
+
+        filtered_circles = cm_circles[0:2]
+
+        circle_positions = []
+        for circle in filtered_circles:  #find center of circle code
+            M = cv2.moments(circle)
+            cX = int(M["m10"] / M["m00"])
+            cY = int(M["m01"] / M["m00"])
+            circle_positions.append((cX,cY))
+
+        return circle_positions
+
 
 if __name__ == "__main__":
     #settings for a 10m scan:
@@ -189,6 +213,7 @@ if __name__ == "__main__":
 
     sonar = Sonar(range=5)
     #sweep_data = sonar.sweep_biggest_byte(100, 300)  #180deg in front
+    #print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
 
     for i in range(100, 300):
         data = sonar.request_data_at_angle(i).data
@@ -205,4 +230,7 @@ if __name__ == "__main__":
             sonar_matrix = np.vstack((sonar_matrix, intarray))
     plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.jpeg', sonar_matrix)
     np.save('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Matrix_robot.npy', sonar_matrix)
-    #print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
+    
+    found_posts = sonar.find_gate_posts(sonar_matrix)
+    print(found_posts)
+    
