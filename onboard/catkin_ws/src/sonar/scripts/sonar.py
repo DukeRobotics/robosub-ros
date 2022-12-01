@@ -185,7 +185,14 @@ if __name__ == "__main__":
 
     ## FOR STARTING A WEB SERVER IN FOLDER::: RUN "python -m http.server 8000"
 
-    sonar_img = scan_and_build_sonar_image(sonar)
+    JPEG_SAVE_PATH = 'onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.jpeg'
+    NPY_SAVE_PATH = 'onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.npy'
+
+    sonar_img = scan_and_build_sonar_image(sonar, 
+                                            display_results=True,
+                                            npy_save_path=NPY_SAVE_PATH,
+                                            jpeg_save_path=JPEG_SAVE_PATH)
+
     posts = sonar.find_gate_posts(sonar_img, display_results=True)
     print(posts)
     

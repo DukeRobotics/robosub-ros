@@ -4,17 +4,17 @@ import numpy as np
 from sonar import Sonar
 
 
-def scan_and_build_sonar_image(sonar, range_start=100, range_end=300, display_result=False, save_as_npy=None, save_as_jpeg=None):
+def scan_and_build_sonar_image(sonar, range_start=100, range_end=300, display_results=False, npy_save_path=None, jpeg_save_path=None):
     # TODO: add docstring
     data_list = []
     for i in range(range_start, range_end):
         data = sonar.request_data_at_angle(i).data
         data_list.append(data)
-    sonar_img = build_sonar_image(data_list, display_result, save_as_npy, save_as_jpeg)
+    sonar_img = build_sonar_image(data_list, display_results, npy_save_path, jpeg_save_path)
     return sonar_img
 
 
-def build_sonar_image(data_list, display_result=False, save_as_npy=None, save_as_jpeg=None):
+def build_sonar_image(data_list, display_results=False, npy_save_path=None, jpeg_save_path=None):
     # TODO: add docstring
 
     sonar_img = None
@@ -36,12 +36,12 @@ def build_sonar_image(data_list, display_result=False, save_as_npy=None, save_as
     
     # TODO: replace with argument
     if save_as_jpeg:
-        plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.jpeg', sonar_img)
+        plt.imsave(jpeg_save_path, sonar_img)
     if save_as_npy:
-        np.save('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.npy', sonar_img)
+        np.save(npy_save_path, sonar_img)
 
     # TODO: test if this works
-    if display_result:
+    if display_results:
         cv2.imshow("sonar_img", sonar_img)
         cv2.waitKey(-1)
 
