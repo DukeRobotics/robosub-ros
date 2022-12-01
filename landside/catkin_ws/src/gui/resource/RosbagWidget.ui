@@ -48,7 +48,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QScrollArea" name="scrollArea">
+  <widget class="QTextEdit" name="scrollArea">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -56,9 +56,6 @@
      <width>371</width>
      <height>126</height>
     </rect>
-   </property>
-   <property name="widgetResizable">
-    <bool>true</bool>
    </property>
    <widget class="QWidget" name="scrollAreaWidgetContents">
     <property name="geometry">
