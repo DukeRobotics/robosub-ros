@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 from python_qt_binding import loadUi
 from python_qt_binding.QtWidgets import QWidget, QFileDialog, QDialog, QLineEdit, QPushButton
+=======
+from python_qt_binding import loadUi, QtGui
+from python_qt_binding.QtWidgets import QWidget, QAbstractItemView, QTableWidgetItem, QTextEdit
+>>>>>>> 19725a02aeb9db39a08623211006fb1c1a592861
 from python_qt_binding.QtCore import QTimer, pyqtProperty
 # import python_qt_binding.QtCore as QtCore
 
@@ -12,7 +17,6 @@ from custom_msgs.srv import StartLaunch, StopLaunch
 from rqt_bag import topic_selection
 from topic_selection import TopicSelection
 from bag_record import BagRecord
-
 
 class RosbagWidget(QWidget):
 
@@ -73,7 +77,7 @@ class RosbagWidget(QWidget):
             # self._timeline.record_bag(filename, all_topics, selected_topics)
 
     def click_stop(self):
-        self.bag_record.stop()
+        pass
 
     def launch_optional_args_dialog(self):
         self.optional_args_dialog = QDialog()
@@ -86,3 +90,28 @@ class RosbagWidget(QWidget):
         cancel_button.clicked.connect(self.topic_selection.close())
 
         self.optional_args_dialog.exec_()
+
+    def populate_text_area(self):
+        text_area = self.textArea
+
+        file_name = "file name"
+        file_path = "file path"
+        topics = "topics"
+        other_args = "other args"
+
+        text = f'''
+        File Name: 
+        {file_name}
+
+        File Path:
+        {file_path}
+
+        Topics:
+        {topics}
+
+        Other args:
+        {other_args}
+        '''
+
+        text_area.setReadOnly(True)
+        text_area.setText(text)
