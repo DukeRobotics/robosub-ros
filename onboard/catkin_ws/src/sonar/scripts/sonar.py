@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import cv2
 #from tf import TransformListener
 from geometry_msgs.msg import Pose
+from sonar_image_processing import scan_and_build_sonar_image, find_gate_posts
+
 
 class Sonar:
     """Class to interface with the Sonar device.
@@ -118,7 +120,6 @@ class Sonar:
             biggest_byte = self.get_biggest_byte(theta)
             biggest_byte_array.append(biggest_byte + (theta,))
         max_tup = max(biggest_byte_array, key=lambda tup: tup[1])
-        #      (index, byte, angle)
         return max_tup
 
     def get_biggest_byte(self, angle):
@@ -131,14 +132,13 @@ class Sonar:
         split_bytes = [data[i:i+1] for i in range(len(data))]
         filteredbytes = split_bytes[self.FILTER_INDEX:]
         best = np.argmax(filteredbytes)
-              #(index, value)
         return (best+self.FILTER_INDEX, filteredbytes[best])
 
-    def angle_to_radian(self, angle):
-        """Converts gradians to degrees 
+    def gradians_to_radians(self, angle):
+        """Converts gradians to radians 
 
         Returns:
-            angle in degrees
+            angle in radians
         """
         return (angle-200)*np.pi/200
 
@@ -179,35 +179,13 @@ if __name__ == "__main__":
     #   BAUD_RATE = 2000000
 
     sonar = Sonar(range=5)
+
     #sweep_data = sonar.sweep_biggest_byte(100, 300)  #180deg in front
     #print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
 
-    #sonar_matrix = None
-
     ## FOR STARTING A WEB SERVER IN FOLDER::: RUN "python -m http.server 8000"
 
-
-    firstPass = True
-    for i in range(100, 300):
-        #print("i: " + str(i))
-        data = sonar.request_data_at_angle(i).data
-        #print("data:" + str(data))
-        split_bytes = [data[i:i+1] for i in range(len(data))]
-        split_bytes = split_bytes[100:]
-        byte_from_int = int.from_bytes(split_bytes[0], "big")
-        intarray = np.array([byte_from_int])
-        for i in range(len(split_bytes) -1):
-            byte_from_int = int.from_bytes(split_bytes[i+1], "big")
-            intarray = np.append(intarray, [byte_from_int])
-        if(firstPass):
-            firstPass = False
-            print("initialized")
-            sonar_matrix = np.asarray(intarray)
-        else:
-            sonar_matrix = np.vstack((sonar_matrix, intarray))
-    plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.jpeg', sonar_matrix)
-    np.save('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Matrix_robot.npy', sonar_matrix)
-
-    found_posts = sonar.find_gate_posts(sonar_matrix)
-    print(found_posts)
+    sonar_img = scan_and_build_sonar_image(sonar)
+    posts = sonar.find_gate_posts(sonar_img, display_results=True)
+    print(posts)
     

@@ -1,7 +1,53 @@
 import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+from sonar import Sonar
 
 
-def find_gate_posts(self, img, display_results=False):
+def scan_and_build_sonar_image(sonar, range_start=100, range_end=300, display_result=False, save_as_npy=None, save_as_jpeg=None):
+    # TODO: add docstring
+    data_list = []
+    for i in range(range_start, range_end):
+        data = sonar.request_data_at_angle(i).data
+        data_list.append(data)
+    sonar_img = build_sonar_image(data_list, display_result, save_as_npy, save_as_jpeg)
+    return sonar_img
+
+
+def build_sonar_image(data_list, display_result=False, save_as_npy=None, save_as_jpeg=None):
+    # TODO: add docstring
+
+    sonar_img = None
+    for data in data_list:
+        split_bytes = [data[i:i+1] for i in range(len(data))]
+        split_bytes = split_bytes[100:]
+
+        byte_from_int = int.from_bytes(split_bytes[0], "big")
+        intarray = np.array([byte_from_int])
+
+        for i in range(len(split_bytes) -1):
+            byte_from_int = int.from_bytes(split_bytes[i+1], "big")
+            intarray = np.append(intarray, [byte_from_int])
+
+        if sonar_img is None:
+            sonar_img = np.asarray(intarray)
+        else:
+            sonar_img = np.vstack((sonar_img, intarray))
+    
+    if save_as_jpeg:
+        plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.jpeg', sonar_img)
+    if save_as_npy:
+        np.save('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.npy', sonar_img)
+
+    # TODO: test if this works
+    if display_result:
+        cv2.imshow("sonar_img", sonar_img)
+        cv2.waitKey(-1)
+
+    return sonar_img
+
+
+def find_gate_posts(img, display_results=False):
     """ Find gate posts from a sonar scan image """
 
     greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
@@ -38,7 +84,7 @@ def find_gate_posts(self, img, display_results=False):
     return circle_positions
 
 
-def find_bouy(self, img, display_results=False):
+def find_bouy(img, display_results=False):
     """ Find buoys from a sonar scan image """
 
     greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
@@ -78,6 +124,7 @@ def find_bouy(self, img, display_results=False):
 
 def mask_sonar_image(cm_image):
     """ Get mask of potential objects in a sonar image """
+    # TODO: this should probably be done with hue
     lower_color_bounds = (40,80,0) # filter out lower values (ie blue)
     upper_color_bounds = (230,250,255) #filter out too high values
     mask = cv2.inRange(cm_image, lower_color_bounds, upper_color_bounds)

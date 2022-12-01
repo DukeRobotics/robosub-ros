@@ -271,7 +271,7 @@ class Ping360Settings:
         return v_sound * self.sample_period_us * 1e-6 / 2
 
 
-def getdecodedfile(localfilename):
+def get_decoded_file(localfilename):
     import os
     dirname = os.path.dirname(__file__)
     
