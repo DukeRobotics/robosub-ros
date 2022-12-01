@@ -3,6 +3,7 @@ import actionlib
 
 from custom_msgs.msg import sweepAction, sweepGoal
 
+
 class sonar_client:
 
     def __init__(self):
@@ -14,6 +15,7 @@ class sonar_client:
         self._client.send_goal(goal)
         self._client.wait_for_result()
         return self._client.get_result()
+
 
 if __name__ == '__main__':
     try:

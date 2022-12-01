@@ -23,6 +23,7 @@ from custom_msgs.msg import sweepAction, sweepResult
         int32 current_angle
 """
 
+
 class SonarServer:
 
     DEFAULT_RANGE = 5 #m
@@ -52,6 +53,7 @@ class SonarServer:
         self._result.angle_found = max_tuple[2]
         self._result.distance_to_sample = self._sonar.get_distance_of_sample(max_tuple[0])
         self._server.set_succeeded(self._result)
+
 
 if __name__ == '__main__':
     SonarServer()
