@@ -34,7 +34,6 @@ def build_sonar_image(data_list, display_results=False, npy_save_path=None, jpeg
         else:
             sonar_img = np.vstack((sonar_img, intarray))
     
-    # TODO: replace with argument
     if save_as_jpeg:
         plt.imsave(jpeg_save_path, sonar_img)
     if save_as_npy:
