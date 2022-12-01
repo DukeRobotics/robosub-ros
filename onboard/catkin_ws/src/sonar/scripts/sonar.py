@@ -216,6 +216,7 @@ if __name__ == "__main__":
     #print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
 
     #sonar_matrix = None
+    firstPass = True
     for i in range(100, 300):
         print("i: " + str(i))
         data = sonar.request_data_at_angle(i).data
@@ -227,7 +228,8 @@ if __name__ == "__main__":
         for i in range(len(split_bytes) -1):
             byte_from_int = int.from_bytes(split_bytes[i+1], "big")
             intarray = np.append(intarray, [byte_from_int])
-        if(i == 100):
+        if(firstPass):
+            firstPass = False
             print("initialized")
             sonar_matrix = np.asarray(intarray)
         else:
