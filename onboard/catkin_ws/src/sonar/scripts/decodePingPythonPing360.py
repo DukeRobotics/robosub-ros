@@ -287,7 +287,7 @@ def find_gate_posts(img):
     greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
     cm_image = cv2.applyColorMap(greyscale_image, cv2.COLORMAP_VIRIDIS)
 
-    cm_image = cv2.imread("C:\\Users\\willd\\DukeRobotics\\robosub-ros\\onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image2.jpeg", cv2.IMREAD_COLOR)
+    cm_image = cv2.imread('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image2.jpeg', cv2.IMREAD_COLOR)
 
     cm_copy_image = cm_image
     cv2.copyTo(cm_image, cm_copy_image)
@@ -324,12 +324,13 @@ def find_gate_posts(img):
 
     return circle_positions
 
-def find_buouy(img): 
+
+def find_bouy(img): 
     
     greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
     cm_image = cv2.applyColorMap(greyscale_image, cv2.COLORMAP_VIRIDIS)
 
-    cm_image = cv2.imread("C:\\Users\\willd\\DukeRobotics\\robosub-ros\\onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image3.jpeg", cv2.IMREAD_COLOR)
+    cm_image = cv2.imread('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image3.jpeg', cv2.IMREAD_COLOR)
 
     cm_copy_image = cm_image
     cv2.copyTo(cm_image, cm_copy_image)
@@ -342,6 +343,31 @@ def find_buouy(img):
     cv2.imshow("image", mask)
     cv2.waitKey(0)
 
+
+
+
+    cm_circles = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[-2]
+    cm_circles = list(filter(lambda x: (cv2.contourArea(x) > 100), cm_circles)) 
+
+    cm_circles = sorted(cm_circles, key=lambda x: (cv2.arcLength(x, True)**2/(4*math.pi*cv2.contourArea(x))), reverse=True)
+    #cm_circles = list(filter(lambda x: (cv2.arcLength(x, True)**2/(4*math.pi*cv2.contourArea(x)) < 5.4), cm_circles)) 
+
+
+
+    filtered_circles = cm_circles[0:1]
+
+    circle_positions = []
+    for circle in filtered_circles:  #find center of circle code
+        M = cv2.moments(circle)
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+        circle_positions.append((cX,cY))
+        #print("object at " + "x: " + str(cX) + "  Y: " + str(cY)  +  " has circularity : " + str(perimeter**2/ (4*math.pi*area) ) )
+        #cv2.circle(cm_copy_image, (cX, cY), 3, (255, 255, 255), -1)
+
+    cv2.drawContours(cm_copy_image, filtered_circles, -1, (0,255,0), 2)
+    cv2.imshow("image", cm_copy_image)
+    cv2.waitKey(0)
 
 def getdecodedfile(localfilename):
     import os
@@ -382,7 +408,7 @@ if __name__ == "__main__":
                 sonar_matrix = np.vstack((sonar_matrix, intarray))
 
     print("finding posts")
-    found_posts = find_gate_posts(sonar_matrix)
+    found_posts = find_bouy(sonar_matrix)
     print(found_posts)
     plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image.jpeg', sonar_matrix)
 

@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 
-img = cv2.imread("onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\bruh.jpg", cv2.IMREAD_COLOR)
+img = cv2.imread("onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image3.jpeg", cv2.IMREAD_COLOR)
 
 john = img
 cv2.copyTo(img, john)
