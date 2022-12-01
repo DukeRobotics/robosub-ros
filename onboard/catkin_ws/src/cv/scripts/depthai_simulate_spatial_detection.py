@@ -91,30 +91,25 @@ class DepthAISimulateSpatialDetection:
             return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
 
         # Input queue will be used to send video frames to the device.
-        qIn = device.getInputQueue("camIn")
+        input_queue = device.getInputQueue("camIn")
 
-        # Output queue will be used to get nn data from the video frames.
-
-        qFeed = device.getOutputQueue(
+        feed_passthrough_queue = device.getOutputQueue(
             name="feed", maxSize=4, blocking=False)
 
-        qOut = device.getOutputQueue(
+        detections_queue = device.getOutputQueue(
             name="nn", maxSize=4, blocking=False)
 
         # Send a message to the ColorCamera to capture a still image
         img = dai.ImgFrame()
         img.setType(dai.ImgFrame.Type.BGR888p)
         img.setData(to_planar(input_image, (416, 416)))
-
         img.setWidth(416)
         img.setHeight(416)
+        input_queue.send(img)
+        feed = feed_passthrough_queue.get()
 
-        qIn.send(img)
-        inFeed = qFeed.get()
-
-        image_frame = inFeed.getCvFrame()
-
-        detections = qOut.get().detections
+        image_frame = feed.getCvFrame()
+        detections = detections_queue.get().detections
 
         return {
             "frame": image_frame,
@@ -122,21 +117,22 @@ class DepthAISimulateSpatialDetection:
         }
 
 
-# nn data, being the bounding box locations, are in <0..1> range - they need to be normalized with frame width/height
 def frame_norm(frame, bbox):
+    """ Normalize bbox locations between frame width/height """
     norm_vals = np.full(len(bbox), frame.shape[0])
     norm_vals[::2] = frame.shape[1]
     return (np.clip(np.array(bbox), 0, 1) * norm_vals).astype(int)
 
 
 def display_frame(name, frame, detections):
+    """ Display frame and nn detections """
     color = (255, 0, 0)
     for detection in detections:
         bbox = frame_norm(frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
         cv2.putText(frame, f"{int(detection.confidence * 100)}%", (bbox[0] + 10, bbox[1] + 40), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
         cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
-    # Show the frame
     cv2.imshow(name, frame)
+    cv2.waitKey(-1)
 
 
 if __name__ == '__main__':
