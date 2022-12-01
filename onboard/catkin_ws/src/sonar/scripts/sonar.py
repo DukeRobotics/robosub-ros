@@ -195,6 +195,9 @@ class Sonar:
             cY = int(M["m01"] / M["m00"])
             circle_positions.append((cX,cY))
 
+        cv2.imshow("image", cm_copy_image)
+        cv2.waitKey(0)
+
         return circle_positions
 
 
