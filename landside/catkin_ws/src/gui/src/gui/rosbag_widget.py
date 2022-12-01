@@ -1,5 +1,5 @@
 from python_qt_binding import loadUi
-from python_qt_binding.QtWidgets import QWidget, QFileDialog, QDialog, QLineEdit, QPushButton
+from python_qt_binding.QtWidgets import QWidget, QFileDialog, QDialog, QLineEdit, QPushButton, QInputDialog
 from python_qt_binding.QtCore import QTimer, pyqtProperty
 # import python_qt_binding.QtCore as QtCore
 
@@ -10,8 +10,7 @@ import time
 
 from custom_msgs.srv import StartLaunch, StopLaunch
 from rqt_bag import topic_selection
-from topic_selection import TopicSelection
-from bag_record import BagRecord
+from gui.bag_record import BagRecord
 
 
 class RosbagWidget(QWidget):
@@ -35,20 +34,20 @@ class RosbagWidget(QWidget):
 
         rospy.loginfo('Rosbag Widget successfully initialized')
 
-    @pyqtProperty(str)
-    def default_pkg(self):
-        return self.default_package
+    # @pyqtProperty(str)
+    # def default_pkg(self):
+    #     return self.default_package
 
-    @default_pkg.setter
-    def default_pkg(self, value):
-        self.default_package = value
-        self.launch_dialog.default_pkg = value
+    # @default_pkg.setter
+    # def default_pkg(self, value):
+    #     self.default_package = value
+    #     self.launch_dialog.default_pkg = value
 
     def check_remote_launch(self):
         pass
 
     def click_record(self):
-        self.topic_selection = TopicSelection()
+        self.topic_selection = topic_selection.TopicSelection()
         self.topic_selection.recordSettingsSelected.connect(self._on_record_settings_selected)
 
     def _on_record_settings_selected(self, all_topics, selected_topics):
@@ -77,16 +76,24 @@ class RosbagWidget(QWidget):
         pass
 
     def launch_optional_args_dialog(self):
-        self.optional_args_dialog = QDialog()
-        line_edit = QLineEdit(self.optional_args_dialog)
-        cancel_button = QPushButton("Cancel", )
-        start_record_button = QPushButton("Start Recording", self.optional_args_dialog)
+        self.optional_args_dialog = QInputDialog()
+        self.optional_args_dialog.setOkButtonText("Start Recording")
+        optional_args, start_recording = self.optional_args_dialog.getText(self,
+            'Optional Arguments',
+            'Optionally provide any other arguments to rosbag record:')
+        if start_recording:
+            self.bag_record.record(optional_args=optional_args)
 
-        optional_args = line_edit.text()
-        start_record_button.clicked.connect(self.bag_record.record(optional_args))
-        cancel_button.clicked.connect(self.topic_selection.close())
+        # line_edit = QLineEdit(self.optional_args_dialog)
+        # cancel_button = QPushButton("Cancel", self.optional_args_dialog)
+        # self.optional_args_dialog.setLabelText("Optional Arguments")
+        # self.optional_args_dialog.setOkButtonText("Start Recording")
 
-        self.optional_args_dialog.exec_()
+        # optional_args = line_edit.text()
+        # start_record_button.clicked.connect(lambda: self.bag_record.record(optional_args))
+        # cancel_button.clicked.connect(self.topic_selection.close)
+
+        # self.optional_args_dialog.exec_()
 
     def populate_text_area(self):
         text_area = self.textArea
