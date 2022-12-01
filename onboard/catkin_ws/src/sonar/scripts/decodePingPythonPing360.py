@@ -408,7 +408,7 @@ if __name__ == "__main__":
                 sonar_matrix = np.vstack((sonar_matrix, intarray))
 
     print("finding posts")
-    found_posts = find_bouy(sonar_matrix)
+    found_posts = find_gate_posts(sonar_matrix)
     print(found_posts)
     plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image.jpeg', sonar_matrix)
 
