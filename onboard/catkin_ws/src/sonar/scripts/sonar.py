@@ -262,6 +262,10 @@ if __name__ == "__main__":
     #print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
 
     #sonar_matrix = None
+
+    ## FOR STARTING A WEB SERVER IN FOLDER::: RUN "python -m http.server 8000"
+
+
     firstPass = True
     for i in range(100, 300):
         #print("i: " + str(i))
