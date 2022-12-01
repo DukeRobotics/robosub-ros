@@ -93,40 +93,6 @@ class RosbagWidget(QWidget):
             # self._recording = True
             # self._timeline.record_bag(filename, all_topics, selected_topics)
 
-    def click_stop(self):
-        if self.current_bag_index == 0:
-            return
-
-        self.launch_stop_confirmation_dialog()
-
-    def bag_files_selected(self, item_index):
-        self.populate_text_area(item_index)
-        self.current_bag_index = item_index
-
-        if item_index == 0:
-            self.stop_recording_button.setEnabled(False)
-        else:
-            self.stop_recording_button.setEnabled(True)
-
-    def launch_stop_confirmation_dialog(self):
-        bag_file = self.bag_dict[self.current_bag_index]
-
-        stop_confirmation = QMessageBox()
-        stop_confirmation.setIcon(QMessageBox.Warning)
-        stop_confirmation.setWindowTitle('Stop Recording Confirmation')
-        stop_confirmation.setText(f'Stop recording {bag_file["file name"]}?')
-        stop_confirmation.setStandardButtons(QMessageBox.Cancel | QMessageBox.Yes)
-        stop_button = stop_confirmation.button(QMessageBox.Yes)
-        stop_button.setText('Stop')
-        stop_button.setStyleSheet(self.background_colors["red"])
-        stop_confirmation.exec_()
-
-        if stop_confirmation.clickedButton() == stop_button:
-            bag_file['BagRecord'].stop()
-            self.bag_dict.pop(self.current_bag_index)
-            self.filenames.pop(self.current_bag_index)
-            self.reset(0)
-
     def launch_optional_args_dialog(self, selected_topics, filepath):
         optional_args_dialog = QInputDialog()
         optional_args_dialog.setOkButtonText("Start Recording")
@@ -160,6 +126,40 @@ class RosbagWidget(QWidget):
         # cancel_button.clicked.connect(self.topic_selection.close)
 
         # self.optional_args_dialog.exec_()
+
+    def click_stop(self):
+        if self.current_bag_index == 0:
+            return
+
+        self.launch_stop_confirmation_dialog()
+
+    def launch_stop_confirmation_dialog(self):
+        bag_file = self.bag_dict[self.current_bag_index]
+
+        stop_confirmation = QMessageBox()
+        stop_confirmation.setIcon(QMessageBox.Warning)
+        stop_confirmation.setWindowTitle('Stop Recording Confirmation')
+        stop_confirmation.setText(f'Stop recording {bag_file["file name"]}?')
+        stop_confirmation.setStandardButtons(QMessageBox.Cancel | QMessageBox.Yes)
+        stop_button = stop_confirmation.button(QMessageBox.Yes)
+        stop_button.setText('Stop')
+        stop_button.setStyleSheet(self.background_colors["red"])
+        stop_confirmation.exec_()
+
+        if stop_confirmation.clickedButton() == stop_button:
+            bag_file['BagRecord'].stop()
+            self.bag_dict.pop(self.current_bag_index)
+            self.filenames.pop(self.current_bag_index)
+            self.reset(0)
+
+    def bag_files_selected(self, item_index):
+        self.populate_text_area(item_index)
+        self.current_bag_index = item_index
+
+        if item_index == 0:
+            self.stop_recording_button.setEnabled(False)
+        else:
+            self.stop_recording_button.setEnabled(True)
 
     def populate_text_area(self, item_index):
         text_area = self.textArea
