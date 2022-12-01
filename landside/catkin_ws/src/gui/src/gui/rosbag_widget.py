@@ -7,6 +7,7 @@ import rospy
 import resource_retriever as rr
 # import rosservice
 import time
+import os
 
 # from custom_msgs.srv import StartLaunch, StopLaunch
 from rqt_bag import topic_selection
@@ -24,9 +25,16 @@ class RosbagWidget(QWidget):
         self.record_bag_button.clicked.connect(self.click_record)
         self.stop_recording_button.clicked.connect(self.click_stop)
 
-        self.bag_dict = [{'file name': ''}]
+        self.bag_dict = [{'file name': '', 'file path': '', 'topics': '', 'other args': '', 'BagRecord': ''}]
         self.filenames = ['']
-        self.reset()
+        self.reset(0)
+
+        self.background_colors = {
+            "green": "background-color: #8aff92",
+            "red": "background-color: #ff7878"
+        }
+        self.record_bag_button.setStyleSheet(self.background_colors["green"])
+        self.stop_recording_button.setStyleSheet(self.background_colors["red"])
 
         self.bag_files_box.activated.connect(self.bag_files_selected)
 
@@ -52,13 +60,14 @@ class RosbagWidget(QWidget):
     def check_remote_launch(self):
         pass
 
-    def reset(self):
+    def reset(self, index):
         self.bag_files_box.clear()
         self.bag_files_box.addItems(self.filenames)
         self.bag_files_box.setEnabled(True)
         self.stop_recording_button.setEnabled(False)
-        self.current_bag_index = 0
-        self.populate_text_area(0)
+        self.current_bag_index = index
+        self.bag_files_box.setCurrentText(self.filenames[index])
+        self.populate_text_area(self.current_bag_index)
 
     def click_record(self):
         self.topic_selection = topic_selection.TopicSelection()
@@ -69,15 +78,15 @@ class RosbagWidget(QWidget):
         # Get the bag name to record to, prepopulating with a file name based on the current date/time
         proposed_filename = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
 
-        filename = QFileDialog.getSaveFileName(
+        filepath = QFileDialog.getSaveFileName(
             self, self.tr('Select name for new bag'), proposed_filename, self.tr('Bag files {.bag} (*.bag)'))[0]
 
-        if filename != '':
-            filename = filename.strip()
-            if not filename.endswith('.bag'):
-                filename += ".bag"
+        if filepath != '':
+            filepath = filepath.strip()
+            if not filepath.endswith('.bag'):
+                filepath += ".bag"
 
-            self.launch_optional_args_dialog(selected_topics, filename)
+            self.launch_optional_args_dialog(selected_topics, filepath)
 
             # Begin recording
             # self.load_button.setEnabled(False)
@@ -109,15 +118,16 @@ class RosbagWidget(QWidget):
         stop_confirmation.setStandardButtons(QMessageBox.Cancel | QMessageBox.Yes)
         stop_button = stop_confirmation.button(QMessageBox.Yes)
         stop_button.setText('Stop')
+        stop_button.setStyleSheet(self.background_colors["red"])
         stop_confirmation.exec_()
 
         if stop_confirmation.clickedButton() == stop_button:
-            bag_file['bag record'].stop()
+            bag_file['BagRecord'].stop()
             self.bag_dict.pop(self.current_bag_index)
             self.filenames.pop(self.current_bag_index)
-            self.reset()
+            self.reset(0)
 
-    def launch_optional_args_dialog(self, selected_topics, filename):
+    def launch_optional_args_dialog(self, selected_topics, filepath):
         optional_args_dialog = QInputDialog()
         optional_args_dialog.setOkButtonText("Start Recording")
         optional_args, start_recording = optional_args_dialog.getText(self, 'Optional Arguments',
@@ -125,18 +135,20 @@ class RosbagWidget(QWidget):
 
         # Begin recording
         if start_recording:
-            bag_record = BagRecord(topics=selected_topics, bag_file_path=filename)
+            bag_record = BagRecord(topics=selected_topics, bag_file_path=filepath)
             bag_record.record(optional_args=optional_args)
+            filename = os.path.basename(filepath)
             bag_file = {
                 'file name': filename,
-                'file path': '',  # TODO: retrieve file path
+                'file path': filepath,  # TODO: retrieve file path
                 'topics': selected_topics,
                 'other args': optional_args,
-                'bag record': bag_record
+                'BagRecord': bag_record
             }
             self.bag_dict.append(bag_file)
             self.filenames.append(filename)
-            self.reset()
+            self.reset(-1)
+            self.stop_recording_button.setEnabled(True)
 
         # line_edit = QLineEdit(self.optional_args_dialog)
         # cancel_button = QPushButton("Cancel", self.optional_args_dialog)
@@ -152,25 +164,23 @@ class RosbagWidget(QWidget):
     def populate_text_area(self, item_index):
         text_area = self.textArea
         bag_file = self.bag_dict[item_index]
+        new_line = '\n'
 
-        file_name = bag_file.get("file name")
-        file_path = bag_file.get("file path")
-        topics = bag_file.get("topics")
-        other_args = bag_file.get("other args")
+        filename = bag_file["file name"]
+        filepath = bag_file["file path"]
+        topics = bag_file["topics"]
+        other_args = bag_file["other args"]
 
-        text = f'''
-        File Name: 
-        {file_name}
-
-        File Path:
-        {file_path}
-
-        Topics:
-        {topics}
-
-        Other args:
-        {other_args}
-        '''
+        titles = ["File Name", "File Path", "Topics", "Other args"]
+        contents = [filename, filepath, topics, other_args]
 
         text_area.setReadOnly(True)
-        text_area.setText(text)
+        text_area.setText('')
+
+        for i in range(len(titles)):
+            text_area.append('<b>{}</b>'.format(titles[i]))
+            if titles[i] == 'Topics':
+                text_area.append(new_line.join(contents[i]))
+            else:
+                text_area.append(contents[i])
+            text_area.append('')
