@@ -48,7 +48,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QTextEdit" name="scrollArea">
+  <widget class="QTextEdit" name="textArea">
    <property name="geometry">
     <rect>
      <x>10</x>

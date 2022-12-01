@@ -1,5 +1,5 @@
-from python_qt_binding import loadUi
-from python_qt_binding.QtWidgets import QWidget, QAbstractItemView, QTableWidgetItem
+from python_qt_binding import loadUi, QtGui
+from python_qt_binding.QtWidgets import QWidget, QAbstractItemView, QTableWidgetItem, QTextEdit
 from python_qt_binding.QtCore import QTimer, pyqtProperty
 # import python_qt_binding.QtCore as QtCore
 
@@ -9,7 +9,6 @@ import rosservice
 
 from custom_msgs.srv import StartLaunch, StopLaunch
 from rqt_bag import topic_selection
-
 
 class RosbagWidget(QWidget):
 
@@ -26,13 +25,13 @@ class RosbagWidget(QWidget):
 
         self.default_package = ''
 
-        self.table_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
+        # self.table_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
 
-        self.launch_dialog.node_launched.connect(self.append_to_table)
+        # self.launch_dialog.node_launched.connect(self.append_to_table)
 
-        self.remote_launch_timer = QTimer(self)
-        self.remote_launch_timer.timeout.connect(self.check_remote_launch)
-        self.remote_launch_timer.start(100)
+        # self.remote_launch_timer = QTimer(self)
+        # self.remote_launch_timer.timeout.connect(self.check_remote_launch)
+        # self.remote_launch_timer.start(100)
 
         rospy.loginfo('Launch Widget successfully initialized')
 
@@ -50,3 +49,28 @@ class RosbagWidget(QWidget):
 
     def click_stop(self):
         pass
+
+    def populate_text_area(self):
+        text_area = self.textArea
+
+        file_name = "file name"
+        file_path = "file path"
+        topics = "topics"
+        other_args = "other args"
+
+        text = f'''
+        File Name: 
+        {file_name}
+
+        File Path:
+        {file_path}
+
+        Topics:
+        {topics}
+
+        Other args:
+        {other_args}
+        '''
+
+        text_area.setReadOnly(True)
+        text_area.setText(text)
