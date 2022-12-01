@@ -215,7 +215,7 @@ if __name__ == "__main__":
     #sweep_data = sonar.sweep_biggest_byte(100, 300)  #180deg in front
     #print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
 
-    sonar_matrix = None
+    #sonar_matrix = None
     for i in range(100, 300):
         data = sonar.request_data_at_angle(i).data
         split_bytes = [data[i:i+1] for i in range(len(data))]
