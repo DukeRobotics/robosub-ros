@@ -2,6 +2,7 @@
 
 import numpy as np
 import torch
+import cv2
 
 
 def nms(labels, dets, scores, thresh=0.01, conf_thresh=0.7):
@@ -91,3 +92,21 @@ def nms(labels, dets, scores, thresh=0.01, conf_thresh=0.7):
         return None, dets, scores
 
     return nms_labels, torch.stack(nms_boxes), torch.stack(nms_scores)
+
+
+def frame_norm(frame, bbox):
+    """ Normalize bbox locations between frame width/height """
+    norm_vals = np.full(len(bbox), frame.shape[0])
+    norm_vals[::2] = frame.shape[1]
+    return (np.clip(np.array(bbox), 0, 1) * norm_vals).astype(int)
+
+
+def visualize_detections(frame, detections):
+    """ Display frame and nn detections from depthai NN """
+    frame_copy = frame.copy()
+    color = (255, 0, 0)
+    for detection in detections:
+        bbox = frame_norm(frame_copy, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
+        cv2.putText(frame_copy, f"{int(detection.confidence * 100)}%", (bbox[0] + 10, bbox[1] + 40), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+        cv2.rectangle(frame_copy, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
+    return frame_copy
