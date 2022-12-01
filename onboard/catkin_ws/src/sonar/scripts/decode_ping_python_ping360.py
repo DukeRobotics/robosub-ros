@@ -275,24 +275,16 @@ class Ping360Settings:
 
 def get_decoded_file(local_filename):
     dirname = os.path.dirname(__file__)
-    
-    filename =  dirname + local_filename
-
-    # Open log and begin processing
-    log = PingViewerLogReader("\\sampleData\\"+filename)
-
+    filepath =  os.path.join(dirname, "sampleData", local_filename)
+    log = PingViewerLogReader(filepath)
     return log.parser()
 
 
 def test_finding_gate_from_log_file():
-    dirname = os.path.dirname(__file__)
-    filename =  dirname + '\\sampleData\\SampleTylerData.bin'
-
-    # Open log and begin processing
-    log = PingViewerLogReader(filename)
+    parser = get_decoded_file('SampleTylerData.bin')
 
     data_list = []
-    for index, (timestamp, decoded_message) in enumerate(log.parser()):
+    for index, (timestamp, decoded_message) in enumerate(parser):
         if index >= 49 and index <= 149:
             data_list.append(decoded_message.data)
 
