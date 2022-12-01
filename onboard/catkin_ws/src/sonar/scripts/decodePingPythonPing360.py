@@ -273,11 +273,11 @@ class Ping360Settings:
         return v_sound * self.sample_period_us * 1e-6 / 2
 
 
-def get_decoded_file(localfilename):
+def get_decoded_file(local_filename):
     import os
     dirname = os.path.dirname(__file__)
     
-    filename =  dirname + localfilename
+    filename =  dirname + local_filename
 
     # Open log and begin processing
     log = PingViewerLogReader("\\sampleData\\"+filename)
