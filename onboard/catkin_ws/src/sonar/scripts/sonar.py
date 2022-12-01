@@ -164,7 +164,7 @@ class Sonar:
 
         return global_pose
 
-    def find_gate_posts(img): 
+    def find_gate_posts(self, img): 
         greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
         cm_image = cv2.applyColorMap(greyscale_image, cv2.COLORMAP_VIRIDIS)
 
@@ -218,9 +218,9 @@ if __name__ == "__main__":
     #sonar_matrix = None
     firstPass = True
     for i in range(100, 300):
-        print("i: " + str(i))
+        #print("i: " + str(i))
         data = sonar.request_data_at_angle(i).data
-        print("data:" + str(data))
+        #print("data:" + str(data))
         split_bytes = [data[i:i+1] for i in range(len(data))]
         split_bytes = split_bytes[100:]
         byte_from_int = int.from_bytes(split_bytes[0], "big")
