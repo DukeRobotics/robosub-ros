@@ -274,7 +274,6 @@ class Ping360Settings:
 
 
 def get_decoded_file(local_filename):
-    import os
     dirname = os.path.dirname(__file__)
     
     filename =  dirname + local_filename
