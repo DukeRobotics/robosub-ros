@@ -4,7 +4,7 @@ import actionlib
 from custom_msgs.msg import sweepAction, sweepGoal
 
 
-class sonar_client:
+class SonarClient:
 
     def __init__(self):
         self._client = actionlib.SimpleActionClient('sonar_sweep', sweepAction)
@@ -22,7 +22,7 @@ if __name__ == '__main__':
         # Initializes a rospy node so that the SimpleActionClient can
         # publ`ish and subscribe over ROS.
         rospy.init_node('sonar_sweep_client_py')
-        client = sonar_client()
+        client = SonarClient()
         result = client.execute_sweep(150,250,5)
         print(result)
     except rospy.ROSInterruptException:
