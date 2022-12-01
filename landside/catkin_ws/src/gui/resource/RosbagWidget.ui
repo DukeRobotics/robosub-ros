@@ -28,9 +28,9 @@
   <widget class="QPushButton" name="stop_recording_button">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>10</x>
      <y>190</y>
-     <width>391</width>
+     <width>371</width>
      <height>32</height>
     </rect>
    </property>
@@ -42,7 +42,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>30</y>
+     <y>35</y>
      <width>371</width>
      <height>26</height>
     </rect>
@@ -54,7 +54,7 @@
      <x>10</x>
      <y>60</y>
      <width>371</width>
-     <height>131</height>
+     <height>126</height>
     </rect>
    </property>
    <property name="widgetResizable">
@@ -63,9 +63,9 @@
    <widget class="QWidget" name="scrollAreaWidgetContents">
     <property name="geometry">
      <rect>
-      <x>0</x>
+      <x>10</x>
       <y>0</y>
-      <width>369</width>
+      <width>371</width>
       <height>129</height>
      </rect>
     </property>
@@ -74,9 +74,9 @@
   <widget class="QPushButton" name="record_bag_button">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>10</x>
      <y>0</y>
-     <width>391</width>
+     <width>371</width>
      <height>32</height>
     </rect>
    </property>
