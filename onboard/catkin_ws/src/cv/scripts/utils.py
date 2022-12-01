@@ -103,9 +103,10 @@ def frame_norm(frame, bbox):
 
 def visualize_detections(frame, detections):
     """ Display frame and nn detections from depthai NN """
+    frame_copy = frame.copy()
     color = (255, 0, 0)
     for detection in detections:
-        bbox = frame_norm(frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
-        cv2.putText(frame, f"{int(detection.confidence * 100)}%", (bbox[0] + 10, bbox[1] + 40), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-        cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
-    return frame
+        bbox = frame_norm(frame_copy, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
+        cv2.putText(frame_copy, f"{int(detection.confidence * 100)}%", (bbox[0] + 10, bbox[1] + 40), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+        cv2.rectangle(frame_copy, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
+    return frame_copy
