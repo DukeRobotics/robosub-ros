@@ -1,10 +1,5 @@
-<<<<<<< HEAD
 from python_qt_binding import loadUi
 from python_qt_binding.QtWidgets import QWidget, QFileDialog, QDialog, QLineEdit, QPushButton
-=======
-from python_qt_binding import loadUi, QtGui
-from python_qt_binding.QtWidgets import QWidget, QAbstractItemView, QTableWidgetItem, QTextEdit
->>>>>>> 19725a02aeb9db39a08623211006fb1c1a592861
 from python_qt_binding.QtCore import QTimer, pyqtProperty
 # import python_qt_binding.QtCore as QtCore
 
@@ -77,6 +72,7 @@ class RosbagWidget(QWidget):
             # self._timeline.record_bag(filename, all_topics, selected_topics)
 
     def click_stop(self):
+        # TODO: implement this
         pass
 
     def launch_optional_args_dialog(self):
