@@ -3,11 +3,9 @@
 from brping import Ping360
 import numpy as np
 import sonar_utils
-import matplotlib.pyplot as plt
-import cv2
-#from tf import TransformListener
 from geometry_msgs.msg import Pose
-from sonar_image_processing import scan_and_build_sonar_image, find_gate_posts
+from sonar_image_processing import scan_and_build_sonar_image
+# from tf import TransformListener
 
 
 class Sonar:
@@ -18,12 +16,12 @@ class Sonar:
     BAUD_RATE = 2000000  # hz
     SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
     SPEED_OF_SOUND_IN_WATER = 1480  # m/s
-    FILTER_INDEX = 100 #number of values to filter TODO figure out where the noise starts
+    FILTER_INDEX = 100  # number of values to filter TODO figure out where the noise starts
 
     def __init__(self, range, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
         self.ping360 = Ping360()
         self.ping360.connect_serial(serial_port_name, baud_rate)  # TODO: Add try except for connecting to device
-        #self.ping360.connect_udp(self.ETHERNET_PORT_NAME)
+        # self.ping360.connect_udp(self.ETHERNET_PORT_NAME)
         self.ping360.initialize()
         period_and_duration = self.range_to_period_and_duration(range)
 
@@ -34,7 +32,7 @@ class Sonar:
         self.transmit_duration = period_and_duration[1]
         self.ping360.set_transmit_duration(self.transmit_duration)
 
-        #self.listener = TransformListener()
+        # self.listener = TransformListener()
 
     def range_to_period_and_duration(self, range):
         """From a given range determines the sample_period and transmit_duration
@@ -46,20 +44,19 @@ class Sonar:
 
         Args:
             range (int): max range in meters of the sonar scan
-        
+
         Returns:
             tuple (int, int): tuple of (sample_period, transmit_duration)
-        
+
         """
         return (int(44.4*range), int(5.3*range))
-
 
     def set_new_range(self, range):
         """Sets a new sample_period and transmit_duration
 
         Args:
             range (int): max range in meters of the sonar scan
-        
+
         Returns:
             Nothing
         """
@@ -69,19 +66,19 @@ class Sonar:
         self.transmit_duration = period_and_duration[1]
         self.ping360.set_transmit_duration(self.transmit_duration)
 
-
     def request_data_at_angle(self, angle_in_gradians):
         """Set sonar device to provided angle and retrieve data.
 
         Args:
-            angle_in_gradians (float): Angle 
+            angle_in_gradians (float): Angle
 
         Returns:
-            dictionary: Response from the device. See https://docs.bluerobotics.com/ping-protocol/pingmessage-ping360/#get for information about the dictionary response.
+            dictionary: Response from the device.
+            See https://docs.bluerobotics.com/ping-protocol/pingmessage-ping360/#get for information about the
+            dictionary response.
         """
         response = self.ping360.transmitAngle(angle_in_gradians)
         return response
-
 
     def get_distance_of_sample(self, sample_index):
         """Get the distance in meters of a sample given its index in the data array returned from the device.
@@ -95,9 +92,9 @@ class Sonar:
             float: Distance in meters of the sample from the sonar device.
         """
         sample_number = sample_index + 1
-        distance = self.SPEED_OF_SOUND_IN_WATER * ((self.sample_period * self.SAMPLE_PERIOD_TICK_DURATION) * sample_number) / 2.0
+        distance = self.SPEED_OF_SOUND_IN_WATER * \
+            ((self.sample_period * self.SAMPLE_PERIOD_TICK_DURATION) * sample_number) / 2.0
         return distance
-
 
     def get_range(self):
         """Get current range of the sonar device in meters.
@@ -107,7 +104,6 @@ class Sonar:
         """
         last_sample_index = self.number_of_samples - 1
         return self.get_distance_of_sample(last_sample_index)
-
 
     def sweep_biggest_byte(self, start_angle, end_angle):
         """ Get the index of the biggest value and angle value out of all angles in a sweep
@@ -120,7 +116,7 @@ class Sonar:
             Tuple: index within angle, biggest value (byte), angle of biggest value
         """
         biggest_byte_array = []
-        for theta in range (start_angle, end_angle):
+        for theta in range(start_angle, end_angle):
             biggest_byte = self.get_biggest_byte(theta)
             biggest_byte_array.append(biggest_byte + (theta,))
         max_tup = max(biggest_byte_array, key=lambda tup: tup[1])
@@ -142,7 +138,7 @@ class Sonar:
         return (best+self.FILTER_INDEX, filteredbytes[best])
 
     def gradians_to_radians(self, angle_gradians):
-        """ Converts gradians to radians 
+        """ Converts gradians to radians
 
         Args:
             angle_gradians (float): Angle in gradians
@@ -163,13 +159,13 @@ class Sonar:
         Returns:
             Pose: Pose in robot reference frame
         """
-        #Need to change the static transform for where the sonar is on the robot
+        # Need to change the static transform for where the sonar is on the robot
         x_pos = self.get_distance_of_sample(index) * np.cos(self.gradians_to_radians(angle))
         y_pos = self.get_distance_of_sample(index) * np.sin(self.gradians_to_radians(angle))
         pos_of_point = Pose()
         pos_of_point.position.x = x_pos
         pos_of_point.position.y = y_pos
-        pos_of_point.position.z = 0 #z cord isnt 0 as gate is a line 
+        pos_of_point.position.z = 0  # z cord isnt 0 as gate is a line
         pos_of_point.orientation.x = 0
         pos_of_point.orientation.y = 0
         pos_of_point.orientation.z = 0
@@ -186,33 +182,30 @@ def test_scan_and_finding_gate_posts():
     JPEG_SAVE_PATH = 'onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.jpeg'
     NPY_SAVE_PATH = 'onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.npy'
 
-    sonar_img = scan_and_build_sonar_image(sonar, 
-                                            display_results=True,
-                                            npy_save_path=NPY_SAVE_PATH,
-                                            jpeg_save_path=JPEG_SAVE_PATH)
+    sonar_img = scan_and_build_sonar_image(sonar,
+                                           display_results=True,
+                                           npy_save_path=NPY_SAVE_PATH,
+                                           jpeg_save_path=JPEG_SAVE_PATH)
 
     posts = sonar.find_gate_posts(sonar_img, display_results=True)
     print(posts)
 
 
 if __name__ == "__main__":
-    #settings for a 10m scan:
+    # Settings for a 10m scan:
     #   transmit_duration = 53
     #   sample_period = 444
     #   transmit_frequency = 750
     #   BAUD_RATE = 2000000
 
-    #settings for 5m scan:
+    # Settings for 5m scan:
     #   transmit_duration = 27
     #   sample_period = 222
     #   transmit_frequency = 750
     #   BAUD_RATE = 2000000
 
-    #sweep_data = sonar.sweep_biggest_byte(100, 300)  #180deg in front
-    #print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
+    # sweep_data = sonar.sweep_biggest_byte(100, 300)  #180deg in front
+    # print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
 
-    ## FOR STARTING A WEB SERVER IN FOLDER::: RUN "python -m http.server 8000"
+    # FOR STARTING A WEB SERVER IN FOLDER::: RUN "python -m http.server 8000"
     test_scan_and_finding_gate_posts()
-
-
-    

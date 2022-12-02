@@ -1,22 +1,18 @@
 #!/usr/bin/env python3
 
-import math
-import struct, sys, re
-import numpy as np
-from PIL import ImageFilter
-import matplotlib.pyplot as plt
-from scipy import signal
-import cv2
-# 3.7 for dataclasses, 3.8 for walrus (:=) in recovery
-assert (sys.version_info.major >= 3 and sys.version_info.minor >= 8), \
-    "Python version should be at least 3.8."
-
+import struct
+import sys
+import re
 from brping import PingParser, PingMessage
 from dataclasses import dataclass
 from typing import IO, Any, Set
-from sonar import Sonar
 from sonar_image_processing import build_sonar_image, find_gate_posts
 import os
+
+
+# 3.7 for dataclasses, 3.8 for walrus (:=) in recovery
+assert (sys.version_info.major >= 3 and sys.version_info.minor >= 8), \
+    "Python version should be at least 3.8."
 
 
 def indent(obj, by=' '*4):
@@ -143,7 +139,7 @@ class PingViewerLogReader:
             prev_ = next_
             next_ = file.read(cls.MAX_ARRAY_LENGTH)
             if not next_:
-                break # run out of file
+                break  # run out of file
             amount_read += cls.MAX_ARRAY_LENGTH
             if start == 0 and prev_:
                 # onto the second read
@@ -189,7 +185,7 @@ class PingViewerLogReader:
                 try:
                     yield self.unpack_message(file)
                 except struct.error:
-                    break # reading complete
+                    break  # reading complete
 
     def parser(self, message_ids: Set[int] = {1300, 2300, 2301}):
         """ Returns a generator that parses and decodes this log's messages.
@@ -213,16 +209,16 @@ class PingViewerLogReader:
                     decoded_message = self._parser.rx_msg
                     if decoded_message.message_id in message_ids:
                         yield timestamp, decoded_message
-                        break # this message is (should be?) over, get next one
+                        break  # this message is (should be?) over, get next one
                 # else message is still being parsed
 
 
 @dataclass(init=False, order=True)
 class Ping1DSettings:
-    transmit_duration : int # [us]
-    scan_start        : int # [mm] from transducer
-    scan_length       : int # [mm]
-    gain_setting      : int # [0-6 -> 0.6-144]
+    transmit_duration: int  # [us]
+    scan_start: int  # [mm] from transducer
+    scan_length: int  # [mm]
+    gain_setting: int  # [0-6 -> 0.6-144]
 
     def __init__(self, profile: PingMessage):
         for attr in self.__annotations__:
@@ -232,7 +228,6 @@ class Ping1DSettings:
     def gain(self):
         """ Returns device receiver 'gain', as specified by 
         https://docs.bluerobotics.com/ping-protocol/pingmessage-ping1d/#1300-profile.
-        
         """
         assert 0 <= self.gain_setting <= 6, "Invalid gain value."
         return (0.6, 1.8, 5.5, 12.9, 30.2, 66.1, 144)[self.gain_setting]
@@ -240,12 +235,12 @@ class Ping1DSettings:
 
 @dataclass(init=False, order=True)
 class Ping360Settings:
-    mode               : int # Ping360 = 1
-    gain_setting       : int # 0-2 (low,normal,high)
-    transmit_duration  : int # 1-1000 [us]
-    sample_period      : int # 80-40_000 [25ns]
-    transmit_frequency : int # [kHz]
-    number_of_samples  : int # per ping
+    mode: int  # Ping360 = 1
+    gain_setting: int  # 0-2 (low,normal,high)
+    transmit_duration: int  # 1-1000 [us]
+    sample_period: int  # 80-40_000 [25ns]
+    transmit_frequency: int  # [kHz]
+    number_of_samples: int  # per ping
 
     def __init__(self, device_data: PingMessage):
         for attr in self.__annotations__:
@@ -261,7 +256,7 @@ class Ping360Settings:
         """ Returns device sample period in microseconds. """
         assert 80 <= self.sample_period <= 40_000, "Invalid sample period."
         return self.sample_period * 25e-3
-    
+
     def meters_per_sample(self, v_sound):
         """ Returns the distance [m] covered by each sample of a ping.
 
@@ -283,7 +278,7 @@ def get_bin_file_parser(local_filename):
         PingParser() iterable: Iterable to get the decoded messages from a .bin file
     """
     dirname = os.path.dirname(__file__)
-    filepath =  os.path.join(dirname, "sampleData", local_filename)
+    filepath = os.path.join(dirname, "sampleData", local_filename)
     log = PingViewerLogReader(filepath)
     return log.parser()
 
@@ -297,7 +292,7 @@ def test_finding_gate_from_log_file():
         if index >= 49 and index <= 149:
             data_list.append(decoded_message.data)
 
-    JPEG_SAVE_PATH ='onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image.jpeg'
+    JPEG_SAVE_PATH = 'onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image.jpeg'
 
     sonar_img = build_sonar_image(data_list, jpeg_save_path=JPEG_SAVE_PATH)
     posts = find_gate_posts(sonar_img)
@@ -306,5 +301,3 @@ def test_finding_gate_from_log_file():
 
 if __name__ == "__main__":
     test_finding_gate_from_log_file()
-
-        
