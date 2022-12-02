@@ -8,7 +8,7 @@ roslib.load_manifest('sonar')
 
 """ The  following messages are created by the .action file
     sweepAction.msg
-    sweepActionGoal.msg 
+    sweepActionGoal.msg
     sweepActionResult.msg
     sweepActionFeedback.msg
 
