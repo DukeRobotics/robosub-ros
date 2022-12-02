@@ -38,7 +38,7 @@
     <string>Stop Recording</string>
    </property>
   </widget>
-  <widget class="QComboBox" name="comboBox">
+  <widget class="QComboBox" name="bag_files_box">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -48,7 +48,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QTextEdit" name="scrollArea">
+  <widget class="QTextEdit" name="textArea">
    <property name="geometry">
     <rect>
      <x>10</x>
