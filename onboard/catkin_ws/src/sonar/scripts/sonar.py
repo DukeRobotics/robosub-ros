@@ -109,24 +109,31 @@ class Sonar:
         return self.get_distance_of_sample(last_sample_index)
 
 
-    def sweep_biggest_byte(self, start_angele, end_angle):
-        """Get the index of the biggest value and angle value out of all angles in a sweep
+    def sweep_biggest_byte(self, start_angle, end_angle):
+        """ Get the index of the biggest value and angle value out of all angles in a sweep
+
+        Args:
+            start_angle (int): Angle to start sweep in gradians
+            end_angle (int): Angle to end sweep in gradians
 
         Returns:
-            (index within angle, biggest value (byte), angle of biggest value)
+            Tuple: index within angle, biggest value (byte), angle of biggest value
         """
         biggest_byte_array = []
-        for theta in range (start_angele, end_angle):
+        for theta in range (start_angle, end_angle):
             biggest_byte = self.get_biggest_byte(theta)
             biggest_byte_array.append(biggest_byte + (theta,))
         max_tup = max(biggest_byte_array, key=lambda tup: tup[1])
         return max_tup
 
     def get_biggest_byte(self, angle):
-        """Get the biggest value of the byte array.
+        """ Get the biggest value of the byte array of data scanned at input angle
+
+        Args:
+            angle (int): Angle in gradians for where to measure with the sonar.
 
         Returns:
-            (biggest value index, biggest value)
+            Tuple: biggest value index, biggest value
         """
         data = self.ping360.transmitAngle(angle).data
         split_bytes = [data[i:i+1] for i in range(len(data))]
@@ -134,23 +141,31 @@ class Sonar:
         best = np.argmax(filteredbytes)
         return (best+self.FILTER_INDEX, filteredbytes[best])
 
-    def gradians_to_radians(self, angle):
-        """Converts gradians to radians 
+    def gradians_to_radians(self, angle_gradians):
+        """ Converts gradians to radians 
+
+        Args:
+            angle_gradians (float): Angle in gradians
 
         Returns:
-            angle in radians
+            float: Angle in radians
         """
-        return (angle-200)*np.pi/200
+        angle_radians = (angle_gradians-200)*np.pi/200
+        return angle_radians
 
     def to_robot_position(self, angle, index):
-        """Converts a point in sonar space a robot global position
+        """ Converts a point in sonar space a robot global position
+
+        Args:
+            angle (float): Angle in gradians of the point relative to in front of the sonar device
+            index (int): Index of the data in the sonar response
 
         Returns:
-            (coordinate)
+            Pose: Pose in robot reference frame
         """
         #Need to change the static transform for where the sonar is on the robot
-        x_pos = self.get_distance_of_sample(index) * np.cos(self.angle_to_radian(angle))
-        y_pos = self.get_distance_of_sample(index) * np.sin(self.angle_to_radian(angle))
+        x_pos = self.get_distance_of_sample(index) * np.cos(self.gradians_to_radians(angle))
+        y_pos = self.get_distance_of_sample(index) * np.sin(self.gradians_to_radians(angle))
         pos_of_point = Pose()
         pos_of_point.position.x = x_pos
         pos_of_point.position.y = y_pos
@@ -166,6 +181,7 @@ class Sonar:
 
 
 def test_scan_and_finding_gate_posts():
+    """ Test to do a scan with the sonar device and find gate posts from the resulting image """
     sonar = Sonar(range=5)
     JPEG_SAVE_PATH = 'onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.jpeg'
     NPY_SAVE_PATH = 'onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.npy'

@@ -2,10 +2,23 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from sonar import Sonar
+import math
 
 
 def scan_and_build_sonar_image(sonar, range_start=100, range_end=300, display_results=False, npy_save_path=None, jpeg_save_path=None):
-    # TODO: add docstring
+    """ Execute a sweep with the sonar device and then build a sonar image out of the results
+
+    Args:
+        sonar (Sonar): Sonar device being used
+        range_start (int, optional): Angle to start scanning in gradians. Defaults to 100.
+        range_end (int, optional): Angle to stop scanning in gradians. Defaults to 300.
+        display_results (bool, optional): Whether to display the resulting sonar image. Defaults to False.
+        npy_save_path (str, optional): Path to save the sonar image as a .npy file. Defaults to None.
+        jpeg_save_path (str, optional): Path to save the sonar image as a .jpeg file. Defaults to None.
+
+    Returns:
+        ndarray: Sonar image from the scan
+    """
     data_list = []
     for i in range(range_start, range_end):
         data = sonar.request_data_at_angle(i).data
@@ -15,7 +28,17 @@ def scan_and_build_sonar_image(sonar, range_start=100, range_end=300, display_re
 
 
 def build_sonar_image(data_list, display_results=False, npy_save_path=None, jpeg_save_path=None):
-    # TODO: add docstring
+    """ Build a sonar image from a list of data messages
+
+    Args:
+        data_list (List): List of data messages from either the Sonar device or from a .bin file
+        display_results (bool, optional): Whether to display the resulting sonar image. Defaults to False.
+        npy_save_path (str, optional): Path to save the sonar image as a .npy file. Defaults to None.
+        jpeg_save_path (str, optional): Path to save the sonar image as a .jpeg file. Defaults to None.
+
+    Returns:
+        ndarray: Sonar image from the scan
+    """
 
     sonar_img = None
     for data in data_list:
@@ -34,21 +57,29 @@ def build_sonar_image(data_list, display_results=False, npy_save_path=None, jpeg
         else:
             sonar_img = np.vstack((sonar_img, intarray))
     
-    if save_as_jpeg:
+    if jpeg_save_path:
         plt.imsave(jpeg_save_path, sonar_img)
-    if save_as_npy:
+    if npy_save_path:
         np.save(npy_save_path, sonar_img)
 
     # TODO: test if this works
     if display_results:
         cv2.imshow("sonar_img", sonar_img)
-        cv2.waitKey(-1)
+        cv2.waitKey(0)
 
     return sonar_img
 
 
 def find_gate_posts(img, display_results=False):
-    """ Find gate posts from a sonar scan image """
+    """ Find gate posts from a sonar scan image
+
+    Args:
+        img (ndarray): Sonar image
+        display_results (bool, optional): Whether to display the results. Defaults to False.
+
+    Returns:
+        List[Tuple]: List of of Tuples, where each tuple contains the (x,y) for a detected gate post in the image
+    """
 
     greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
     cm_image = cv2.applyColorMap(greyscale_image, cv2.COLORMAP_VIRIDIS)
@@ -57,7 +88,7 @@ def find_gate_posts(img, display_results=False):
     cv2.copyTo(cm_image, cm_copy_image)
     cm_image = cv2.medianBlur(cm_image,5) # blur image
 
-    mask = mask_sonar_image(cm_image)
+    mask = mask_sonar_image(cm_image, display_results)
 
     cm_circles = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[-2]
     cm_circles = sorted(cm_circles, key=cv2.contourArea, reverse=True)
@@ -78,14 +109,23 @@ def find_gate_posts(img, display_results=False):
         circle_positions.append((cX,cY))
 
     if display_results:
-        cv2.imshow("image", cm_copy_image)
+        cv2.drawContours(cm_copy_image, filtered_circles, -1, (0,255,0), 2)
+        cv2.imshow("found_gate_posts", cm_copy_image)
         cv2.waitKey(0)
 
     return circle_positions
 
 
 def find_bouy(img, display_results=False):
-    """ Find buoys from a sonar scan image """
+    """ Find buoys from a sonar scan image
+
+    Args:
+        img (ndarray): Sonar image
+        display_results (bool, optional): Whether to display the results. Defaults to False.
+
+    Returns:
+        List[Tuple]: List of of Tuples, where each tuple contains the (x,y) for a detected buoy in the image
+    """
 
     greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
     cm_image = cv2.applyColorMap(greyscale_image, cv2.COLORMAP_VIRIDIS)
@@ -94,11 +134,7 @@ def find_bouy(img, display_results=False):
     cv2.copyTo(cm_image, cm_copy_image)
     cm_image = cv2.medianBlur(cm_image,5) # blur image
 
-    mask = mask_sonar_image(cm_image)
-
-    if display_results:
-        cv2.imshow("image", mask)
-        cv2.waitKey(0)
+    mask = mask_sonar_image(cm_image, display_results)
 
     cm_circles = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[-2]
     cm_circles = list(filter(lambda x: (cv2.contourArea(x) > 100), cm_circles)) 
@@ -116,22 +152,44 @@ def find_bouy(img, display_results=False):
 
     if display_results:
         cv2.drawContours(cm_copy_image, filtered_circles, -1, (0,255,0), 2)
-        cv2.imshow("image", cm_copy_image)
+        cv2.imshow("found_buoys", cm_copy_image)
         cv2.waitKey(0)
 
     return circle_positions
 
 
-def mask_sonar_image(cm_image):
-    """ Get mask of potential objects in a sonar image """
+def mask_sonar_image(img, display_results=False):
+    """ Get mask of potential objects in a sonar image
+
+    Args:
+        img (ndarray): Image to mask
+        display_results (bool, optional): Whether to display the results. Defaults to False.
+
+    Returns:
+        ndarray: Mask image
+    """
     # TODO: this should probably be done with hue
     lower_color_bounds = (40,80,0) # filter out lower values (ie blue)
     upper_color_bounds = (230,250,255) #filter out too high values
-    mask = cv2.inRange(cm_image, lower_color_bounds, upper_color_bounds)
+    mask = cv2.inRange(img, lower_color_bounds, upper_color_bounds)
+
+    if display_results:
+        cv2.imshow("mask", mask)
+        cv2.waitKey(0)
+
     return mask
 
 
 def increase_brightness(img, value=20):
+    """ Increase the brightness of an input image
+
+    Args:
+        img (ndarray): Image
+        value (int, optional): How much to increase the value of the image. Defaults to 20.
+
+    Returns:
+        ndarray: Image with increased brightness
+    """
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(hsv)
 

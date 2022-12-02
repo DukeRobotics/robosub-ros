@@ -15,7 +15,7 @@ from brping import PingParser, PingMessage
 from dataclasses import dataclass
 from typing import IO, Any, Set
 from sonar import Sonar
-from sonar_image_processing import build_sonar_image
+from sonar_image_processing import build_sonar_image, find_gate_posts
 import os
 
 
@@ -273,7 +273,15 @@ class Ping360Settings:
         return v_sound * self.sample_period_us * 1e-6 / 2
 
 
-def get_decoded_file(local_filename):
+def get_bin_file_parser(local_filename):
+    """ Get parser for saved sonar data binary file
+
+    Args:
+        local_filename (str): Name of the binary file in sampleData
+
+    Returns:
+        PingParser() iterable: Iterable to get the decoded messages from a .bin file
+    """
     dirname = os.path.dirname(__file__)
     filepath =  os.path.join(dirname, "sampleData", local_filename)
     log = PingViewerLogReader(filepath)
@@ -281,7 +289,8 @@ def get_decoded_file(local_filename):
 
 
 def test_finding_gate_from_log_file():
-    parser = get_decoded_file('SampleTylerData.bin')
+    """ Test for finding gate from SampleTylerData.bin """
+    parser = get_bin_file_parser('SampleTylerData.bin')
 
     data_list = []
     for index, (timestamp, decoded_message) in enumerate(parser):
