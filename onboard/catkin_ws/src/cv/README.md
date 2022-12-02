@@ -6,7 +6,10 @@ in the frame. These objects could be the gate, buoys, etc. The package will publ
 on which classes are being detected and which cameras are being used.
 
 ## Depthai / Oak Camera
-This branch contains code for the Luxonis OAK-D PoE camera, which uses a python package called [depthai](https://docs.luxonis.com/en/latest/). This camera handles neural network and image processing on the camera's processor, which necessitates a different code structure. Because of this, we have depthai-specific scripts and launch files that can be run for any Luxonis / depthai camera. For running other cameras, see the instructions below, titled Non-Depthai Cameras.
+This package contains code for the Luxonis OAK-D PoE camera, which uses a python package called [depthai](https://docs.luxonis.com/en/latest/). This camera handles neural network and image processing on the camera's processor, which necessitates a different code structure. Because of this, we have depthai-specific scripts and launch files that can be run for any Luxonis / depthai camera. For running other cameras, see the instructions below, titled Non-Depthai Cameras.
+
+## USB Camera
+This package also contains driver code to publish a camera stream from a USB-type camera in `usb_camera.py`. A USB camera can be located by `/dev/video*` on a linux computer, where `*` can be replaced by any number specifying a given camera channel (default is `0`, with the number increasing for each new camera you plug in). The script `usb_camera.py` uses OpenCV to capture a stream frame by frame from a specified USB camera channel and publishes it to a specified ros topic. Use `roslaunch cv usb_camera.launch` to start a stream once a USB camera has been plugged in. Note that the camera must be plugged in _before_ the docker container is started.
 
 ### Running the Code
 To stream the feed or perform spatial detection using the OAK camera, use `roslaunch` with either of the following two files.
