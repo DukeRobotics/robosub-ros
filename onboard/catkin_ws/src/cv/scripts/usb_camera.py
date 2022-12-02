@@ -20,7 +20,7 @@ class USBCamera:
     def __init__(self):
 
         # Instantiate new USB camera node
-        rospy.init_node('usb_camera')
+        rospy.init_node('usb_camera', anonymous=True)
 
         # Read custom camera configs from launch command
         self.topic = rospy.get_param("~topic")
