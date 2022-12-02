@@ -5,10 +5,18 @@ import numpy as np
 import cv2
 import os
 import depthai_camera_connect
+from utils import visualize_detections
+import rospy
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
+from custom_msgs.msg import CVObject
 
-path = os.path.dirname(__file__)
-NN_PATH = os.path.join(path, '../assets/bloblol.blob')
-IMAGE_PATH = os.path.join(path, '../assets/left384.jpg')
+
+IMAGE_STREAM_TOPIC = '/cv/camera/raw_image'
+DETECTION_RESULTS_TOPIC = '/cv/sim_cam/detections'
+
+NN_PATH = os.path.join(os.path.dirname(__file__), '../assets/bloblol.blob')
+IMAGE_PATH = os.path.join(os.path.dirname(__file__), '../assets/left384.jpg')
 
 
 class DepthAISimulateSpatialDetection:
@@ -76,7 +84,9 @@ class DepthAISimulateSpatialDetection:
         with depthai_camera_connect.connect(self.pipeline) as device:
             out = self.detect(device, img)
             if show:
-                display_frame("detections", out["frame"], out["detections"])
+                frame = visualize_detections(out["frame"], out["detections"])
+                cv2.imshow("detections", frame)
+                cv2.waitKey(-1)
             return out
 
     def detect(self, device, input_image):
@@ -119,24 +129,59 @@ class DepthAISimulateSpatialDetection:
         }
 
 
-def frame_norm(frame, bbox):
-    """ Normalize bbox locations between frame width/height """
-    norm_vals = np.full(len(bbox), frame.shape[0])
-    norm_vals[::2] = frame.shape[1]
-    return (np.clip(np.array(bbox), 0, 1) * norm_vals).astype(int)
+class DepthAISimulateSpatialDetectionNode(DepthAISimulateSpatialDetection):
+    def __init__(self):
+        super().__init__()
+        rospy.init_node('depthai_simulated_spatial_detection', anonymous=True)
 
+        self.cv_bridge = CvBridge()
+        self.publisher = rospy.Publisher(DETECTION_RESULTS_TOPIC, Image, queue_size=10)
+        rospy.Subscriber(IMAGE_STREAM_TOPIC, Image, self._add_image_message_to_queue)
 
-def display_frame(name, frame, detections):
-    """ Display frame and nn detections """
-    color = (255, 0, 0)
-    for detection in detections:
-        bbox = frame_norm(frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
-        cv2.putText(frame, f"{int(detection.confidence * 100)}%", (bbox[0] + 10, bbox[1] + 40), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-        cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
-    cv2.imshow(name, frame)
-    cv2.waitKey(-1)
+        self.latest_img_msg = None
+
+    def _add_image_message_to_queue(self, img_msg):
+        """ Store latest image """
+        self.latest_img_msg = img_msg
+
+    def _publish_detections_on_img_msg(self, img_msg, device):
+        image = self.bridge.imgmsg_to_cv2(img_msg, 'rgb8')
+
+        out = self.detect(device, image)
+
+        frame = out["frame"]
+        detections = out["detections"]
+
+        for detection in detections:
+
+            object_msg = CVObject()
+
+            object_msg.label = "object"
+            object_msg.score = detection.confidence
+
+            object_msg.xmin = detection.xmin
+            object_msg.ymin = detection.ymin
+            object_msg.xmax = detection.xmax
+            object_msg.ymax = detection.ymax
+
+            object_msg.height = frame.shape[0]
+            object_msg.width = frame.shape[1]
+
+            self.publisher.publish(object_msg)
+
+    def run(self):
+        """ Run detection on the latest img message """
+        with depthai_camera_connect.connect(self.pipeline) as device:
+            while not rospy.is_shutdown():
+                img_msg = self.latest_img_msg
+                self._publish_detections_on_img_msg(img_msg, device)
 
 
 if __name__ == '__main__':
     d = DepthAISimulateSpatialDetection()
     out = d.detect_single_image(d.image)
+
+    # try:
+    #     DepthAISimulateSpatialDetectionNode().run()
+    # except rospy.ROSInterruptException:
+    #     pass
