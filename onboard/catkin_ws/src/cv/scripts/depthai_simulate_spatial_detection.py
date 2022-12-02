@@ -21,12 +21,9 @@ IMAGE_PATH = os.path.join(os.path.dirname(__file__), '../assets/left384.jpg')
 
 class DepthAISimulateSpatialDetection:
     """
-    This class is used to test a CV neural network model locally with a simulated image feed.
-    This class takes a still image and transfers it from the host (local computer) to the camera. The
-    image feed is then ran through the provided neural network.
-
-    This file can be used for local testing outside of the docker container since
-    it does not require ROS.
+    This class is used to test a CV neural network model with a simulated image feed.
+    This class takes an image, transfers it from the host (local computer) to the camera, 
+    and retrieves the output of the neural network.
     """
 
     # Read in the dummy image and other misc. setup work
@@ -79,8 +76,17 @@ class DepthAISimulateSpatialDetection:
         feedOut.setStreamName("feed")
         nn.passthrough.link(feedOut.input)
 
-    def detect_single_image(self, img, show=True):
-        """ Run detection on a single provided image """
+    def connect_and_detect_single_image(self, img, show=True):
+        """ Connect to device and run detection on an image
+
+        Args:
+            img (ndarray): Image to run detection on
+            show (bool, optional): Whether to display the results. Defaults to True.
+
+        Returns:
+            dict: Dictionary with keys "frame" and "detections", where frame is the passthrough from the neural network
+            and detections is an depthai.ImgDetections object.
+        """
         with depthai_camera_connect.connect(self.pipeline) as device:
             out = self.detect(device, img)
             if show:
@@ -90,11 +96,20 @@ class DepthAISimulateSpatialDetection:
             return out
 
     def detect(self, device, input_image):
-        """
+        """ Run detection on the input image
+
         Send the still image through to the input queue (qIn) after converting it to the proper format.
         Then retreive what was fed into the neural network. The input to the neural network should be the same
         as the still image sent into the input queue. Ouput the resulting opencv-formatted image and the
         detections objects.
+
+        Args:
+            device (depthai.Device): _description_
+            input_image (ndarray): Image to run detection on
+
+        Returns:
+            dict: Dictionary with keys "frame" and "detections", where frame is the passthrough from the neural network
+            and detections is an depthai.ImgDetections object.
         """
 
         # Upload the pipeline to the device
@@ -136,15 +151,21 @@ class DepthAISimulateSpatialDetectionNode(DepthAISimulateSpatialDetection):
 
         self.cv_bridge = CvBridge()
         self.publisher = rospy.Publisher(DETECTION_RESULTS_TOPIC, Image, queue_size=10)
-        rospy.Subscriber(IMAGE_STREAM_TOPIC, Image, self._add_image_message_to_queue)
+        rospy.Subscriber(IMAGE_STREAM_TOPIC, Image, self._update_latest_img_msg)
 
         self.latest_img_msg = None
 
-    def _add_image_message_to_queue(self, img_msg):
+    def _update_latest_img_msg(self, img_msg):
         """ Store latest image """
         self.latest_img_msg = img_msg
 
     def _publish_detections_on_img_msg(self, img_msg, device):
+        """ Run detection on an image message and publish the predictions
+
+        Args:
+            img_msg (Image): Image message to run detection on
+            device (depthai.Device): Depthai device to use for computation
+        """
         image = self.bridge.imgmsg_to_cv2(img_msg, 'rgb8')
 
         out = self.detect(device, image)
@@ -179,7 +200,7 @@ class DepthAISimulateSpatialDetectionNode(DepthAISimulateSpatialDetection):
 
 if __name__ == '__main__':
     d = DepthAISimulateSpatialDetection()
-    out = d.detect_single_image(d.image)
+    out = d.connect_and_detect_single_image(d.image)
 
     # try:
     #     DepthAISimulateSpatialDetectionNode().run()
