@@ -5,6 +5,7 @@ import numpy as np
 import sonar_utils
 from geometry_msgs.msg import Pose
 from sonar_image_processing import scan_and_build_sonar_image
+import os
 # from tf import TransformListener
 
 
@@ -179,8 +180,8 @@ class Sonar:
 def test_scan_and_finding_gate_posts():
     """ Test to do a scan with the sonar device and find gate posts from the resulting image """
     sonar = Sonar(range=5)
-    JPEG_SAVE_PATH = 'onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.jpeg'
-    NPY_SAVE_PATH = 'onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image_robot.npy'
+    JPEG_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'sampleData', 'Sonar_Image_robot.jpeg')
+    NPY_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'sampleData', 'Sonar_Image_robot.npy')
 
     sonar_img = scan_and_build_sonar_image(sonar,
                                            display_results=True,

@@ -291,7 +291,7 @@ def test_finding_gate_from_log_file():
         if index >= 49 and index <= 149:
             data_list.append(decoded_message.data)
 
-    JPEG_SAVE_PATH = 'onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image.jpeg'
+    JPEG_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'sampleData', 'Sonar_Image.jpeg')
 
     sonar_img = build_sonar_image(data_list, jpeg_save_path=JPEG_SAVE_PATH)
     posts = find_gate_posts(sonar_img)
