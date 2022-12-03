@@ -180,4 +180,3 @@ def mask_sonar_image(img, display_results=False):
         cv2.waitKey(0)
 
     return mask
-
