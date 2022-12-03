@@ -4,19 +4,20 @@ from nav_msgs.msg import Odometry
 from tf.transformations import quaternion_from_euler
 import task_utils
 import rospy
+import smach
 
 
-class MoveToPoseGlobalTask(Task):
+class MoveToPoseGlobalTask(smach.State):
     """Move to pose given in global coordinates."""
 
-    def __init__(self, x, y, z, roll, pitch, yaw):
+    def __init__(self, controls, x, y, z, roll, pitch, yaw):
         super(MoveToPoseGlobalTask, self).__init__(outcomes=['done'])
 
+        self.controls = controls
+        self.last_pose = None
         self.coords = [x, y, z, roll, pitch, yaw]
 
     def execute(self, userdata):
-        self.initial_state = self.state
-
         # Get pose from userdata if supplied
         arg_names = ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
         for i in range(len(arg_names)):
@@ -32,28 +33,20 @@ class MoveToPoseGlobalTask(Task):
                 self.coords[4],
                 self.coords[5]))
 
-        return super(MoveToPoseGlobalTask, self).execute(userdata)
+        new_pose = self.getPose()
+        # Only resend the movement goal if our desired pose has changed
+        if self.last_pose is None or not task_utils.at_pose(self.last_pose, new_pose, 0.0001, 0.0001):
+            self.last_pose = new_pose
+            self.controls.move_to_pose_global(new_pose)
 
-    def run(self, userdata):
-        print("moving to ", self.desired_pose)
-        rate = rospy.Rate(15)
-        lastPose = self.getPose()
-        self.publish_desired_pose_global(lastPose)
-        while not(
-            self.state and task_utils.stopped_at_pose(
-                self.state.pose.pose,
-                self.getPose(),
-                self.state.twist.twist)):
-            # Resend the goal pose only if the target pose has changed
-            newPose = self.getPose()
-            if not task_utils.at_pose(lastPose, newPose, 0.0001, 0.0001):
-                lastPose = newPose
-                self.publish_desired_pose_global(lastPose)
+        if task_utils.stopped_at_pose(
+            self.controls.get_state().pose.pose,
+            new_pose,
+            self.controls.get_state().twist.twist):
+            # TODO self.controls.cancel_movement()
+            return "done"
 
-            rate.sleep()
-
-        self.task_state.desired_pose_global_client.cancel_goal()
-        return "done"
+        return "continue"
 
     def getPose(self):
         return self.desired_pose
