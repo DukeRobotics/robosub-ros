@@ -13,7 +13,8 @@ class ControlsInterface:
 
     def __init__(self, listener):
         self.listener = listener
-        self.state_listener = rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state)
+        
+        rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state)
         self.desired_pose_client = actionlib.SimpleActionClient(
             self.DESIRED_POSE_ACTION, ControlsDesiredPoseAction)
         self.desired_twist_client = actionlib.SimpleActionClient(
