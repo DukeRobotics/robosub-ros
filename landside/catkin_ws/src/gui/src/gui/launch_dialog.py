@@ -88,6 +88,7 @@ class LaunchDialog(QDialog):
         self.node_name_box.addItems(launchable_names)
 
     def node_name_selected(self, item_index):
+        self.arg_form_rows = []
         for row in self.arg_form_rows:
             self.form_layout.removeRow(row['label'])
 
@@ -96,8 +97,6 @@ class LaunchDialog(QDialog):
             return
         else:
             self.accept_button.setEnabled(True)
-
-        self.arg_form_rows = []
 
         selected_node = self.node_name_box.currentText()
         selected_node_file_type = selected_node.split(".")[1]

@@ -20,12 +20,13 @@ class USBCamera:
     def __init__(self):
 
         # Instantiate new USB camera node
-        rospy.init_node('usb_camera')
+        rospy.init_node('usb_camera', anonymous=True)
 
         # Read custom camera configs from launch command
         self.topic = rospy.get_param("~topic")
         self.channel = rospy.get_param("~channel")
-        self.framerate = rospy.get_param("~framerate")
+        # If no custom framerate is passed in, set self.framerate to None to trigger default framerate
+        self.framerate = rospy.get_param("~framerate", None)
 
         # Connect to usb camera
         self.cv_bridge = CvBridge()
@@ -44,8 +45,13 @@ class USBCamera:
             cap = cv2.VideoCapture(self.channel)
             # Read first frame
             success, img = cap.read()
-            # Set publisher rate (framerate)
-            loop_rate = rospy.Rate(cap.get(cv2.CAP_PROP_FPS))
+
+            # Set publisher rate (framerate) to custom framerate if specified, otherwise, set to default
+            loop_rate = None
+            if self.framerate == None:
+                loop_rate = rospy.Rate(cap.get(cv2.CAP_PROP_FPS))
+            else:
+                loop_rate = rospy.Rate(self.framerate)
 
             # Including 'not rospy.is_shutdown()' in the loop condition here to ensure if this script is exited
             # while this loop is running, the script quits without escalating to SIGTERM or SIGKILL
