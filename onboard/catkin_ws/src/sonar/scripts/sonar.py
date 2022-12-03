@@ -81,7 +81,7 @@ class Sonar:
         response = self.ping360.transmitAngle(angle_in_gradians)
         return response
 
-    def get_sweep(self, range_start=100, range_end=300):
+    def get_sweep(self, range_start, range_end):
         """ Get data along a range of angles
 
         Args:
@@ -200,11 +200,11 @@ def test_scan_and_finding_gate_posts():
     NPY_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'sampleData', 'Sonar_Image_robot.npy')
 
     sonar_img = scan_and_build_sonar_image(sonar,
-                                           display_results=True,
+                                           display_results=False,
                                            npy_save_path=NPY_SAVE_PATH,
                                            jpeg_save_path=JPEG_SAVE_PATH)
 
-    posts = sonar.find_gate_posts(sonar_img, display_results=True)
+    posts = sonar.find_gate_posts(sonar_img, display_results=False)
     print(posts)
 
 

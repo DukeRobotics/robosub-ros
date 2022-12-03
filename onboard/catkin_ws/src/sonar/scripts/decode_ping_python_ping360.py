@@ -293,8 +293,8 @@ def test_finding_gate_from_log_file():
 
     JPEG_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'sampleData', 'Sonar_Image.jpeg')
 
-    sonar_img = build_sonar_image(data_list, jpeg_save_path=JPEG_SAVE_PATH)
-    posts = find_gate_posts(sonar_img)
+    sonar_img = build_sonar_image(data_list, display_results=True, jpeg_save_path=JPEG_SAVE_PATH)
+    posts = find_gate_posts(sonar_img, display_results=True)
     print(posts)
 
 
