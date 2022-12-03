@@ -81,6 +81,22 @@ class Sonar:
         response = self.ping360.transmitAngle(angle_in_gradians)
         return response
 
+    def get_sweep(self, range_start=100, range_end=300):
+        """ Get data along a range of angles
+
+        Args:
+            range_start (int, optional): Angle to start sweep in gradians. Defaults to 100.
+            range_end (int, optional): Angle to end sweep in gradians. Defaults to 300.
+
+        Returns:
+            List: List of data messages from the Sonar device
+        """
+        data_list = []
+        for i in range(range_start, range_end):
+            data = self.request_data_at_angle(i).data
+            data_list.append(data)
+        return data_list
+
     def get_distance_of_sample(self, sample_index):
         """Get the distance in meters of a sample given its index in the data array returned from the device.
 

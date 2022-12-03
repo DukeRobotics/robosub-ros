@@ -5,8 +5,6 @@ import math
 
 
 def scan_and_build_sonar_image(sonar,
-                               range_start=100,
-                               range_end=300,
                                display_results=False,
                                npy_save_path=None,
                                jpeg_save_path=None):
@@ -23,10 +21,7 @@ def scan_and_build_sonar_image(sonar,
     Returns:
         ndarray: Sonar image from the scan
     """
-    data_list = []
-    for i in range(range_start, range_end):
-        data = sonar.request_data_at_angle(i).data
-        data_list.append(data)
+    data_list = sonar.get_sweep()
     sonar_img = build_sonar_image(data_list, display_results, npy_save_path, jpeg_save_path)
     return sonar_img
 
