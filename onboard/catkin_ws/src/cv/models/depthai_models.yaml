@@ -8,7 +8,7 @@ gate:
   anchor_masks: {"side26": [0, 1, 2], "side13": [3, 4, 5]}
 
 gate_buoy:
-  classes: ['gate', 'buoy_gman', 'buoy_bootlegger']
+  classes: ['buoy_bootlegger', 'buoy_gman', 'gate']
   topic: cv/
   weights: yolo_v4_tiny_buoys_and_gate_6shave.blob
   input_size: [416, 416]
