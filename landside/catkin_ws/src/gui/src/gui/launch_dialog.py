@@ -19,8 +19,6 @@ class LaunchDialog(QDialog):
 
     node_launched = pyqtSignal(int, str, str, str, name='nodeLaunched')
 
-    argFormRows = []
-
     def __init__(self, p):
         super(LaunchDialog, self).__init__()
 
@@ -35,6 +33,8 @@ class LaunchDialog(QDialog):
         self.package_name_box.activated.connect(self.package_name_selected)
         self.node_name_box.activated.connect(self.node_name_selected)
         self.accept_button.clicked.connect(self.click_ok)
+
+        self.arg_form_rows = []
 
     @pyqtProperty(str)
     def default_pkg(self):
@@ -88,15 +88,16 @@ class LaunchDialog(QDialog):
         self.node_name_box.addItems(launchable_names)
 
     def node_name_selected(self, item_index):
+        for row in self.arg_form_rows:
+            self.form_layout.removeRow(row['label'])
+
         if item_index == 0:
             self.accept_button.setEnabled(False)
             return
         else:
             self.accept_button.setEnabled(True)
 
-        for row in self.argFormRows:
-            self.form_layout.removeRow(row['label'])
-        self.argFormRows = []
+        self.arg_form_rows = []
 
         selected_node = self.node_name_box.currentText()
         selected_node_file_type = selected_node.split(".")[1]
@@ -110,14 +111,14 @@ class LaunchDialog(QDialog):
             def traverse_tree(root):
                 for child in root:
                     if child.tag == 'arg' and child.get('value') is None:
-                        self.argFormRows.append(child.attrib)
+                        self.arg_form_rows.append(child.attrib)
                     traverse_tree(child)
 
             root = tree.getroot()
             traverse_tree(root)
 
-            for row in range(len(self.argFormRows)):
-                arg = self.argFormRows[row]
+            for row in range(len(self.arg_form_rows)):
+                arg = self.arg_form_rows[row]
                 if arg.get('default') is None:
                     default_value = ''
                 else:
@@ -138,7 +139,7 @@ class LaunchDialog(QDialog):
         node = self.node_name_box.currentText()
         args = self.args_input.text().split(' ') if self.args_input.text() != "" else []
 
-        for row in self.argFormRows:
+        for row in self.arg_form_rows:
             if row['lineEdit'].text() == "" and row.get('default') is None:
                 self.missing_argument_dialog(row['name'])
                 return
