@@ -6,9 +6,12 @@ import yaml
 import depthai_camera_connect
 import depthai as dai
 import numpy as np
+from utils import DetectionVisualizer
+from cv_bridge import CvBridge
 
 from custom_msgs.srv import EnableModel
 from custom_msgs.msg import CVObject
+from sensor_msgs.msg import Image
 
 
 MM_IN_METER = 1000
@@ -34,8 +37,12 @@ class DepthAISpatialDetector:
         self.connected = False
         self.current_model_name = None
         self.classes = None
+        self.detection_feed_publisher = None
+        self.detection_visualizer = None
 
         self.enable_service = f'enable_model_{self.camera}'
+
+        self.bridge = CvBridge()
 
     def build_pipeline(self, nn_blob_path, sync_nn=True):
         """
@@ -62,6 +69,8 @@ class DepthAISpatialDetector:
         feed output will be used and needs to be synced with the object detections.
         :return: depthai.Pipeline object to compute
         """
+        model = self.models[self.current_model_name]
+
         pipeline = dai.Pipeline()
 
         # Define sources and outputs
@@ -82,7 +91,7 @@ class DepthAISpatialDetector:
         xout_depth.setStreamName("depth")
 
         # Properties
-        cam_rgb.setPreviewSize(416, 416)
+        cam_rgb.setPreviewSize(model['input_size'])
         cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
         cam_rgb.setInterleaved(False)
         cam_rgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
@@ -94,6 +103,7 @@ class DepthAISpatialDetector:
 
         # setting node configs
         stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
+        stereo.setDepthAlign(dai.CameraBoardSocket.RGB)
 
         spatial_detection_network.setBlobPath(nn_blob_path)
         spatial_detection_network.setConfidenceThreshold(0.5)
@@ -103,10 +113,10 @@ class DepthAISpatialDetector:
         spatial_detection_network.setDepthUpperThreshold(5000)
 
         # Yolo specific parameters
-        spatial_detection_network.setNumClasses(5)
-        spatial_detection_network.setCoordinateSize(4)
-        spatial_detection_network.setAnchors(np.array([10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]))
-        spatial_detection_network.setAnchorMasks({"side26": [0, 1, 2], "side13": [3, 4, 5]})
+        spatial_detection_network.setNumClasses(len(model['classes']))
+        spatial_detection_network.setCoordinateSize(model['coordinate_size'])
+        spatial_detection_network.setAnchors(np.array(model['anchors']))
+        spatial_detection_network.setAnchorMasks(model['anchor_masks'])
         spatial_detection_network.setIouThreshold(0.5)
 
         # Linking
@@ -138,6 +148,10 @@ class DepthAISpatialDetector:
             classes: ['gate', 'gate_side', 'gate_tick', 'gate_top', 'start_gate']
             topic: cv/
             weights: yolo_v4_tiny_openvino_2021.3_6shave-2022-7-21_416_416.blob
+            input_size: [416, 416]
+            coordinate_size: 4
+            anchors: [10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]
+            anchor_masks: {"side26": [0, 1, 2], "side13": [3, 4, 5]}
 
         Then model name is gate.
         """
@@ -169,6 +183,8 @@ class DepthAISpatialDetector:
                                                           queue_size=10)
         self.publishers = publisher_dict
 
+        self.detection_feed_publisher = rospy.Publisher("cv/front/detections", Image, queue_size=10)
+
     def init_output_queues(self, device):
         """
         Assigns output queues from the pipeline to dictionary of queues.
@@ -185,6 +201,8 @@ class DepthAISpatialDetector:
         self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
         self.connected = True
 
+        self.detection_visualizer = DetectionVisualizer(self.classes)
+
     def detect(self):
         """
         Get current detections from output queues and publish.
@@ -194,10 +212,15 @@ class DepthAISpatialDetector:
 
         inPreview = self.output_queues["rgb"].get()
         inDet = self.output_queues["detections"].get()
-        # depth = self.output_queues["depth"].get()
 
         frame = inPreview.getCvFrame()
         detections = inDet.detections
+
+        detections_img_msg = self.bridge.cv2_to_imgmsg(
+            self.detection_visualizer.visualize_detections(frame, detections),
+            'bgr8'
+        )
+        self.detection_feed_publisher.publish(detections_img_msg)
 
         height = frame.shape[0]
         width = frame.shape[1]
