@@ -121,8 +121,8 @@ class DetectionVisualizer:
 
     def putText(self, frame, text, coords):
         """Add text to frame, such as class label or confidence value."""
-        cv2.putText(frame, text, coords, self.text_type, 1.0, self.bg_color, 3, self.line_type)
-        cv2.putText(frame, text, coords, self.text_type, 1.0, self.color, 1, self.line_type)
+        cv2.putText(frame, text, coords, self.text_type, 0.75, self.bg_color, 3, self.line_type)
+        cv2.putText(frame, text, coords, self.text_type, 0.75, self.color, 1, self.line_type)
 
     def rectangle(self, frame, bbox):
         """Add a rectangle to frame, such as a bounding box."""
