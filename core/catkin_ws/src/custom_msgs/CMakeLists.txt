@@ -37,6 +37,9 @@ add_action_files(
   AcousticsWrapper.action
   Saleae.action
   AcousticsData.action
+  ControlsDesiredPose.action
+  ControlsDesiredTwist.action
+  ControlsDesiredPower.action
 )
 
 generate_messages(

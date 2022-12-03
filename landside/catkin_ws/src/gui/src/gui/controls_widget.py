@@ -251,10 +251,10 @@ class ControlsWidget(QWidget):
             for k in range(3):
                 if ppid[i][k] > 1:
                     ppid_scal[k] = 10**(math.floor(math.log10(ppid[i][k])) + 1)
-                    ppid[i][k] = ppid[i][k]/ppid_scal[k]
+                    ppid[i][k] = ppid[i][k] / ppid_scal[k]
                 if vpid[i][k] > 1:
                     vpid_scal[k] = 10**(math.floor(math.log10(vpid[i][k])) + 1)
-                    vpid[i][k] = vpid[i][k]/vpid_scal[k]
+                    vpid[i][k] = vpid[i][k] / vpid_scal[k]
 
             pos_client.update_configuration({'Kp': ppid[i][0],
                                              'Ki': ppid[i][1],

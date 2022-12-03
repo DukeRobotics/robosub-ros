@@ -1,4 +1,5 @@
 from task_state import TaskState
+from custom_msgs.msg import ControlsDesiredPoseGoal, ControlsDesiredTwistGoal, ControlsDesiredPowerGoal
 import dependency_injector.providers as providers
 import smach
 
@@ -43,10 +44,10 @@ class Task(smach.State):
         return self.run(userdata)
 
     def publish_desired_pose_global(self, pose):
-        self.task_state.desired_pose_global_publisher.publish(pose)
+        self.task_state.desired_pose_global_client.send_goal(ControlsDesiredPoseGoal(pose=pose))
 
     def publish_desired_power(self, twist_power):
-        self.task_state.desired_twist_power_publisher.publish(twist_power)
+        self.task_state.desired_twist_power_client.send_goal(ControlsDesiredPowerGoal(power=twist_power))
 
     def publish_desired_twist(self, twist_velocity):
-        self.task_state.desired_twist_velocity_publisher.publish(twist_velocity)
+        self.task_state.desired_twist_velocity_client.send_goal(ControlsDesiredTwistGoal(twist=twist_velocity))
