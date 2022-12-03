@@ -180,24 +180,3 @@ def mask_sonar_image(img, display_results=False):
 
     return mask
 
-
-def increase_brightness(img, value=20):
-    """ Increase the brightness of an input image
-
-    Args:
-        img (ndarray): Image
-        value (int, optional): How much to increase the value of the image. Defaults to 20.
-
-    Returns:
-        ndarray: Image with increased brightness
-    """
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    h, s, v = cv2.split(hsv)
-
-    lim = 255 - value
-    v[v > lim] = 255
-    v[v <= lim] += value
-
-    final_hsv = cv2.merge((h, s, v))
-    img = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
-    return img
