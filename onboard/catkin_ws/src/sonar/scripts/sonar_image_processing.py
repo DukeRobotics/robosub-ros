@@ -21,7 +21,7 @@ def scan_and_build_sonar_image(sonar,
     Returns:
         ndarray: Sonar image from the scan
     """
-    data_list = sonar.get_sweep()
+    data_list = sonar.get_sweep(100, 300)
     sonar_img = build_sonar_image(data_list, display_results, npy_save_path, jpeg_save_path)
     return sonar_img
 
@@ -56,12 +56,13 @@ def build_sonar_image(data_list, display_results=False, npy_save_path=None, jpeg
         else:
             sonar_img = np.vstack((sonar_img, intarray))
 
+    sonar_img = sonar_img.astype(np.uint8)
+
     if jpeg_save_path:
         plt.imsave(jpeg_save_path, sonar_img)
     if npy_save_path:
         np.save(npy_save_path, sonar_img)
 
-    # TODO: test if this works
     if display_results:
         cv2.imshow("sonar_img", sonar_img)
         cv2.waitKey(0)
