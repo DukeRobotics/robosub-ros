@@ -90,6 +90,7 @@ class LaunchDialog(QDialog):
     def node_name_selected(self, item_index):
         if item_index == 0:
             self.accept_button.setEnabled(False)
+            return
         else:
             self.accept_button.setEnabled(True)
 
