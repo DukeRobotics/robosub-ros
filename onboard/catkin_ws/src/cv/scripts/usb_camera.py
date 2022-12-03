@@ -6,11 +6,12 @@ import cv2
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
+
 class USBCamera:
     """
     Object to stream any camera at /dev/video* and publishes the image feed at the device framerate
                                     (currently used for the deepwater exploration usb mono cameras)
-    
+
     Launch using: roslaunch cv usb_camera.launch
     :param topic: rostopic to publish the image feed to; default is set to camera/image_raw
     :param channel: which device channel to read the stream from (e.g., dev/video0)
@@ -48,7 +49,7 @@ class USBCamera:
 
             # Set publisher rate (framerate) to custom framerate if specified, otherwise, set to default
             loop_rate = None
-            if self.framerate == None:
+            if self.framerate is None:
                 loop_rate = rospy.Rate(cap.get(cv2.CAP_PROP_FPS))
             else:
                 loop_rate = rospy.Rate(self.framerate)
@@ -65,8 +66,9 @@ class USBCamera:
                 success, img = cap.read()
                 # Sleep loop to maintain frame rate
                 loop_rate.sleep()
-        except:
+        except Exception:
             rospy.loginfo("Camera not found at channel {self.channel}")
+
 
 if __name__ == '__main__':
     try:
