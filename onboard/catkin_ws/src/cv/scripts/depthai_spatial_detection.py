@@ -38,6 +38,7 @@ class DepthAISpatialDetector:
         self.current_model_name = None
         self.classes = None
         self.detection_feed_publisher = None
+        self.rgb_preview_publisher = None
         self.detection_visualizer = None
 
         self.enable_service = f'enable_model_{self.camera}'
@@ -183,6 +184,7 @@ class DepthAISpatialDetector:
                                                           queue_size=10)
         self.publishers = publisher_dict
 
+        self.rgb_preview_publisher = rospy.Publisher("camera/front/rgb/preview/stream_raw", Image, queue_size=10)
         self.detection_feed_publisher = rospy.Publisher("cv/front/detections", Image, queue_size=10)
 
     def init_output_queues(self, device):
@@ -215,6 +217,9 @@ class DepthAISpatialDetector:
 
         frame = inPreview.getCvFrame()
         detections = inDet.detections
+
+        frame_img_msg = self.bridge.cv2_to_imgmsg(frame, 'bgr8')
+        self.rgb_preview_publisher.publish(frame_img_msg)
 
         detections_img_msg = self.bridge.cv2_to_imgmsg(
             self.detection_visualizer.visualize_detections(frame, detections),
