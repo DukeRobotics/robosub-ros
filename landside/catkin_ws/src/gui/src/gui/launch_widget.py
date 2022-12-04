@@ -1,5 +1,5 @@
 from python_qt_binding import loadUi
-from python_qt_binding.QtWidgets import QWidget, QAbstractItemView, QTableWidgetItem
+from python_qt_binding.QtWidgets import QWidget, QAbstractItemView, QTableWidgetItem, QHeaderView
 from python_qt_binding.QtCore import QTimer, pyqtProperty
 import python_qt_binding.QtCore as QtCore
 
@@ -23,6 +23,7 @@ class LaunchWidget(QWidget):
         self.default_package = ''
 
         self.table_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
 
         self.launch_dialog.node_launched.connect(self.append_to_table)
 

@@ -3,6 +3,7 @@
 import subprocess
 import os
 import rosgraph
+import rospy
 
 
 class BagRecord():
@@ -34,6 +35,7 @@ class BagRecord():
                                 directory of the path must exist.")
 
         self.proc = None
+        self.attempted_stop = True
 
     def record(self, optional_args=""):
         """
@@ -44,6 +46,8 @@ class BagRecord():
         bag_command = ['rosbag', 'record']
         bag_command.extend(self.topics)
         bag_command.extend(["-O", self.bag_file_path])
+
+        self.attempted_stop = False
 
         if optional_args:
             bag_command.extend(optional_args.split(" "))
@@ -56,12 +60,18 @@ class BagRecord():
         Stops recording the bag file.
         """
 
-        if self.proc and self.proc.poll() is None:
-            self.proc.terminate()
-            self.proc.wait()
-            return {'success': True}
+        if not self.attempted_stop:
+            self.attempted_stop = True
 
-        return {'success': False}
+            if self.proc and self.proc.poll() is None:
+                self.proc.terminate()
+                self.proc.wait()
+                rospy.loginfo("Successfully terminated recording of bag file: " + self.bag_file_path)
+                return {'success': True}
+
+            rospy.logwarn("Could not confirm terminate recording of the following bag file. It may still be recording: "
+                          + self.bag_file_path)
+            return {'success': False}
 
     def __del__(self):
         self.stop()
