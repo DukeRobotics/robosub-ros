@@ -75,8 +75,7 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
         self.listener = listener
 
     def run(self, userdata):
-        if 'base_link' in self.listener.getFrameStrings():
-            self.desired_pose = task_utils.transform_pose(self.listener, 'base_link', 'odom', self.desired_pose)
+        self.desired_pose = task_utils.transform_pose(self.listener, 'base_link', 'odom', self.desired_pose)
         return super(MoveToPoseLocalTask, self).run(userdata)
 
 

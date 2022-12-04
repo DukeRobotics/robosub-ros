@@ -16,6 +16,7 @@ class PIDManager:
     pub_vel_enable = {}
     pub_control_effort = {}
     pub_power = {}
+    halted = True
 
     def __init__(self):
         for d in utils.get_axes():
@@ -34,6 +35,7 @@ class PIDManager:
         utils.publish_data_dictionary(self.pub_pos, utils.parse_pose(Pose()))
         utils.publish_data_dictionary(self.pub_vel, utils.parse_twist(Twist()))
         utils.publish_data_constant(self.pub_control_effort, 0)
+        self.halted = True
 
     def position_control(self, pose):
         """Enables position control, which is a nested PID system. Input should be transformed to the
@@ -66,7 +68,7 @@ class PIDManager:
             powers: A dictionary mapping direction to desired local power ranging from [-1, 1]
         """
         self._disable_loops()
-
+        self.halted = False
         # Enable stabilization on all axes with 0 power input
         for d in powers:
             if powers[d] == 0:
@@ -80,6 +82,7 @@ class PIDManager:
         utils.publish_data_constant(self.pub_vel_enable, False)
 
     def _enable_loops(self):
+        self.halted = False
         utils.publish_data_constant(self.pub_pos_enable, True)
         utils.publish_data_constant(self.pub_vel_enable, True)
 

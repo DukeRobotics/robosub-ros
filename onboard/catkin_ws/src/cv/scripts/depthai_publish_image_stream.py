@@ -70,7 +70,7 @@ class DepthAIImageStreamPublisher:
                 camRgb.setVideoSize(1920, 1080)
 
             if self.publish_rgb_preview:
-                camRgb.setPreviewSize(300, 300)
+                camRgb.setPreviewSize(416, 416)
 
             camRgb.setInterleaved(False)
             camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)

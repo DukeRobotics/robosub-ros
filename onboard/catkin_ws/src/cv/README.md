@@ -6,25 +6,12 @@ in the frame. These objects could be the gate, buoys, etc. The package will publ
 on which classes are being detected and which cameras are being used.
 
 ## Depthai / Oak Camera
-This branch contains code for the Luxonis OAK-D PoE camera, which uses a python package called [depthai](https://docs.luxonis.com/en/latest/). This camera handles neural network and image processing on the camera's processor, which necessitates a different code structure. Because of this, we have depthai-specific scripts and launch files that can be run for any Luxonis / depthai camera. For running other cameras, see the instructions below, titled Non-Depthai Cameras.
+This package contains code for the Luxonis OAK-D PoE camera, which uses a python package called [depthai](https://docs.luxonis.com/en/latest/). This camera handles neural network and image processing on the camera's processor, which necessitates a different code structure. Because of this, we have depthai-specific scripts and launch files that can be run for any Luxonis / depthai camera. For running other cameras, see the instructions below, titled Non-Depthai Cameras.
 
 ### Running the Code
 To stream the feed or perform spatial detection using the OAK camera, use `roslaunch` with either of the following two files.
 * `depthai_publish_image_stream.launch`: Streams the live feed from the camera.
 * `depthai_spatial_detection.launch`: Runs spatial detection. Waits for a enable_model rosservice call to specify what model to activate. This requires a valid `.blob` file in `models/` and the path to this `.blob` file should be specified in the `depthai_models.yaml` file. For more information about these files, see the code structure outline below. This will publish `CVObject` messages to a topic for each class that the model detects. 
-
-## Simulating Image feeds
-`test_images.py` simulates the camera feed by constantly publishing images to a topic. It can publish still images, a folder of images, rosbag files, and video files to a topic on loop. This helps us locally test our code without needing to connect to a camera. Use `roslaunch` with the files when running.
-* `test_images.launch`: Publishes dummy images to a topic every few seconds. It has the following three parameters:
-* `feed_path`: Path to the image, video, folder, or rosbag file that you want published.
-* `topic`: Name of topic that you want to be publish the images to. Required if `feed_path` is not a rosbag file.
-* `framerate`: Number of frames published per second. Default value is set to 24. Used when `feed_path` is a folder or still image to determine rate at which to publish images.
-
-Examples:
-
-`roslaunch cv test_images.launch feed_path:=../assets/gate.mov topic:=/camera/left/image_raw`: Runs test_images by taking gate.mov file in cv/assets and publishes the simulated image feed to the topic '/camera/left/image_raw'. 
-
-`roslaunch cv test_images.launch feed_path:=../assets/buoy.jpg topic:=/camera/right/image_raw framerate:=30`: Publishes the still image buoy.jpg in cv/assets to the topic '/camera/right/image_raw' 30 times per second.
 
 ### Structure
 `scripts/`
@@ -43,6 +30,10 @@ Examples:
 * Can be used to extract footage from rosbag files. See the README file in the footage_extraction directory.
 
 # Non-Depthai Cameras
+
+## USB Camera
+This package also contains driver code to publish a camera stream from a USB-type camera in `usb_camera.py`. A USB camera can be located by `/dev/video*` on a linux computer, where `*` can be replaced by any number specifying a given camera channel (default is `0`, with the number increasing for each new camera you plug in). The script `usb_camera.py` uses OpenCV to capture a stream frame by frame from a specified USB camera channel and publishes it to a specified ros topic. Use `roslaunch cv usb_camera.launch` to start a stream once a USB camera has been plugged in. Note that the camera must be plugged in _before_ the docker container is started.
+
 ## Setup
 
 Generally, you would train a separate object detection model for each task you need computer vision for (gates, buoys, etc.). You can then load them as follows:
@@ -151,3 +142,16 @@ To simulate camera feed and then run a model on the feed from the left camera. W
 * In another new terminal, run `rosservice list` and should see the `enable_model_left` service be listed in the terminal
 * In the same terminal, run `rosservice call enable_model_left buoy true` to enable the buoy model on the feed coming from the left camera. This model should now be publishing predictions
 * To verify that the predictions are being published, you can run `rostopic list`, and you should see both `/camera/left/image_raw` and `/cv/buoy/left` be listed. Then you can run `rostopic echo /cv/buoy/left` and the model predictions should be printed to the terminal
+
+## Simulating Image feeds
+`test_images.py` simulates the camera feed by constantly publishing images to a topic. It can publish still images, a folder of images, rosbag files, and video files to a topic on loop. This helps us locally test our code without needing to connect to a camera. Use `roslaunch` with the files when running.
+* `test_images.launch`: Publishes dummy images to a topic every few seconds. It has the following three parameters:
+* `feed_path`: Path to the image, video, folder, or rosbag file that you want published.
+* `topic`: Name of topic that you want to be publish the images to. Required if `feed_path` is not a rosbag file.
+* `framerate`: Number of frames published per second. Default value is set to 24. Used when `feed_path` is a folder or still image to determine rate at which to publish images.
+
+Examples:
+
+`roslaunch cv test_images.launch feed_path:=../assets/gate.mov topic:=/camera/left/image_raw`: Runs test_images by taking gate.mov file in cv/assets and publishes the simulated image feed to the topic '/camera/left/image_raw'. 
+
+`roslaunch cv test_images.launch feed_path:=../assets/buoy.jpg topic:=/camera/right/image_raw framerate:=30`: Publishes the still image buoy.jpg in cv/assets to the topic '/camera/right/image_raw' 30 times per second.

@@ -4,7 +4,8 @@ This package provides a GUI to interact and interface with the robot. Functional
 
 ## Running
 
-To run the GUI, run
+### Task Planning
+To run the task planning GUI, run
 ```bash
 roslaunch gui gui.launch
 ```
@@ -13,32 +14,17 @@ This will run `rqt` with the perspective file `robosub_ros_gui.perspective` loca
 
 If part of a plugin is greyed out, ensure that the appropriate service is running, as listed in the dependencies in this README under each feature.
 
-### Systems Plugin
-
-#### Dependencies
-- `remote_launch.py` in system_utils
-- `system_info_publisher.py` in system_utils
-
-Run 
-```
-roslaunch system_utils remote_launch.launch
+### CV
+To run the CV GUI, run
+```bash
+roslaunch gui cv_gui.launch
 ```
 
-in the onboard container.
+This will run `rqt` with the perspective file `robosub_ros_cv_gui.perspective` located in the config folder. If new plugins need to be added, then make sure to update the perspective file to load the right plugins.
 
+If part of a plugin is greyed out, ensure that the appropriate service is running, as listed in the dependencies in this README under each feature.
 
-#### Description
-To launch any node in the onboard container, you may use the Node Launch Dialog, which opens a new dialog into which you may enter your info. 
-
-You may also use the 3 buttons and sim checkbox instead if you want to launch a commonly used file from the execute package (such as motion.launch). You may only have one file from the execute package running, so the other buttons will be disabled while a launch file is being run.
-
-The table will show you what nodes are running.
-
-To stop a node that was run using the Node Launch Dialog, you may click on the item in the table and press Delete (on your keyboard), which will stop the node.
-
-To stop a node run using the buttons, you may also click on the stop button that replaced the same button to start. This will stop that specific node. 
-
-Data is published in percentage for CPU and GB for RAM in the System Usage box.
+## Plugins
 
 ### Controls Plugin
 
@@ -58,7 +44,7 @@ To update the PID constants, click on the `Update PID constants` button, and a d
 
 ### Sensor Plugin
 
-####Dependencies
+### Dependencies
 - `fuse.launch` in sensor_fusion
 
 #### Description
@@ -86,26 +72,33 @@ The Servo Control box contains buttons to actuate each servo (setting it to angl
 
 The `Upload Arduino Code` will upload arduino code to the arduino when pressed.
 
-### CV Plugin
+### Launch Plugin
 
 #### Dependencies
 - `remote_launch.py` in system_utils
-
-Run 
-```
-roslaunch gui cv_gui.launch
-```
-
-in the landside container.
+- `system_info_publisher.py` in system_utils
 
 #### Description
 
-To launch any node in the cv package, select the node from the Node Name drop down list in the CV Launch Plugin window. Depending on the node, additional textboxes may appear, each one corresponding to a required argument. Fill in the required arguments, then click OK to launch.
+To launch any node on onboard, select the node from the Node Name drop down list in the Launch Plugin window. If a launch file with arguments is selected, additional textboxes will appear, with the default value (if any) prepopulated. Fill in all arguments, then click OK to launch.
 
 The table will show you what nodes are running.
 
-To stop a node that was run using the Node Launch Dialog, you may click on the item in the table and press Delete (on your keyboard), which will stop the node.
-
-To stop a node run using the buttons, you may also click on the stop button that replaced the same button to start. This will stop that specific node. 
+To stop a node that was run using the Launch Dialog, you may click on the item in the table and, on your keyboard, press Delete for Windows or Fn + Delete for Mac, which will stop the node.
 
 Data is published in percentage for CPU and GB for RAM in the System Usage box.
+
+### Rosbag Plugin
+
+#### Dependences
+None
+
+#### Description
+
+To record a bag file, click the green record button. In sequence, 3 dialogs will appear with prompts to select the topics to record, set the filename and filepath, and to provide any optional arguments to the rosbag record command. Then, the bag file will begin to record and it will be added to the dropdown containing all bag files being actively recorded.
+
+To see information about bag files being actively recorded, select one from the dropdown and it's information will be displayed in the text area.
+
+To stop recording a bag file, select it in the dropdown. Then, click the red stop recording button and confirm in the dialog. In a few seconds, the bag file will stop recording.
+
+When the plugin is closed, all actively recorded bag files are stopped.
