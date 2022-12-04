@@ -1,5 +1,8 @@
+#!/usr/bin/env python3
+
 import depthai as dai
 import time
+import rospy
 
 
 def connect(pipeline):
@@ -55,3 +58,9 @@ def connect(pipeline):
         # Wait two seconds before trying again
         # This ensures the script does not terminate if the camera is just temporarily unavailable
         time.sleep(2)
+
+
+if __name__ == '__main__':
+    rospy.init_node('depthai_camera_connect')
+    if connect(dai.Pipeline()):
+        rospy.loginfo("Connected to DepthAI device successfully.")

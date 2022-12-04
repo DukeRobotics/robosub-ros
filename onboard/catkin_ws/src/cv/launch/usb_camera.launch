@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <launch>
-	<arg name="topic" default="/camera/image_raw" />
+	<arg name="topic" default="/camera/usb_camera/image_raw" />
 	<arg name="channel" default="0" />
 	<arg name="framerate" default="24" />
-	<node name="deepwater_camera" pkg="cv" type="deepwater_camera.py" output="screen">
+	<node name="usb_camera" pkg="cv" type="usb_camera.py" output="screen">
 		<param name="topic" value="$(arg topic)" />
 		<param name="channel" value="$(arg channel)" />
 		<param name="framerate" value="$(arg framerate)" />

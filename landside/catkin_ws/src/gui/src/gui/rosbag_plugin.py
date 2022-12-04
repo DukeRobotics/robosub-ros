@@ -1,15 +1,15 @@
 from rqt_gui_py.plugin import Plugin
 
-from gui.system_widget import SystemWidget
+from gui.rosbag_widget import RosbagWidget
 
 
-class SystemPlugin(Plugin):
+class RosbagPlugin(Plugin):
 
     def __init__(self, context):
-        super(SystemPlugin, self).__init__(context)
-        self.widget = SystemWidget()
-        self.widget.setObjectName('SystemWidget')
-        self.widget.setWindowTitle('Systems Plugin')
+        super(RosbagPlugin, self).__init__(context)
+        self.widget = RosbagWidget()
+        self.widget.setObjectName('RosbagPlugin')
+        self.widget.setWindowTitle('Rosbag Plugin')
         if context.serial_number() > 1:
             self.widget.setWindowTitle(self.widget.windowTitle() +
                                        (' (%d)' % context.serial_number()))
@@ -22,4 +22,5 @@ class SystemPlugin(Plugin):
         pass
 
     def restore_settings(self, plugin_settings, instance_settings):
+        self.widget.default_pkg = instance_settings.value("default_pkg")
         pass

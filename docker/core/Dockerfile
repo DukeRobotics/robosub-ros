@@ -12,9 +12,16 @@ WORKDIR $WORKDIR
 
 # Update and install tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    openssh-server xvfb \
+    openssh-server \
+    xvfb \
+    bat \
     vim \
-    curl wget \
+    neovim \
+    nano \
+    tmux \
+    screen \
+    curl \
+    wget \
     usbutils apt-utils \
     ros-noetic-cv-bridge \
     ros-noetic-resource-retriever \
@@ -44,6 +51,8 @@ RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
     touch /root/.ssh/environment
 
 COPY ssh_entry.sh /root/.bash_profile
+
+COPY tmux.conf /etc/
 
 ### Final Setup ###
 

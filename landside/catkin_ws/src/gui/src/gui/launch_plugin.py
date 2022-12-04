@@ -1,15 +1,15 @@
 from rqt_gui_py.plugin import Plugin
 
-from gui.cv_launch_widget import CVLaunchWidget
+from gui.launch_widget import LaunchWidget
 
 
-class CVLaunchPlugin(Plugin):
+class LaunchPlugin(Plugin):
 
     def __init__(self, context):
-        super(CVLaunchPlugin, self).__init__(context)
-        self.widget = CVLaunchWidget()
-        self.widget.setObjectName('CVLaunchWidget')
-        self.widget.setWindowTitle('CV Launch Plugin')
+        super(LaunchPlugin, self).__init__(context)
+        self.widget = LaunchWidget()
+        self.widget.setObjectName('LaunchWidget')
+        self.widget.setWindowTitle('Launch Plugin')
         if context.serial_number() > 1:
             self.widget.setWindowTitle(self.widget.windowTitle() +
                                        (' (%d)' % context.serial_number()))
