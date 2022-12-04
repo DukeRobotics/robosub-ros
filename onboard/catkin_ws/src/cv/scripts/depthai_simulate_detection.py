@@ -37,7 +37,10 @@ class DepthAISimulateDetection:
 
         self.cv_bridge = CvBridge()
         self.publishing_topic = rospy.get_param("~publishing_topic")
-        self.publisher = rospy.Publisher(self.publishing_topic, CVObject, queue_size=10)
+        self.detection_publisher = rospy.Publisher(self.publishing_topic, CVObject, queue_size=10)
+        self.visualized_detection_publisher = rospy.Publisher(f'{self.publishing_topic}_visualized',
+                                                              Image,
+                                                              queue_size=10)
 
         self.detection_visualizer = DetectionVisualizer(self.model['classes'])
 
@@ -81,7 +84,7 @@ class DepthAISimulateDetection:
         feedOut.setStreamName("feed")
         nn.passthrough.link(feedOut.input)
 
-    def detect(self, device, input_image, show_results=False):
+    def detect(self, device, input_image):
         """ Run detection on the input image
 
         Send the still image through to the input queue (qIn) after converting it to the proper format.
@@ -125,21 +128,16 @@ class DepthAISimulateDetection:
         image_frame = passthrough_feed.getCvFrame()
         detections = detections_queue.get().detections
 
-        if show_results:
-            frame = self.detection_visualizer.visualize_detections(image_frame, detections)
-            cv2.imshow("detections", frame)
-            cv2.waitKey(0)
-
         return {
             "frame": image_frame,
             "detections": detections
         }
 
-    def _load_image(self):
+    def _load_image_from_feed_path(self):
         """ Load a still image from the feed path """
-        image_path = os.path.join(os.path.dirname(__file__), self.feed_path)
+        image_path = rr.get_filename(f"package://cv/assets/{self.feed_path}", use_protocol=False)
         image = cv2.imread(image_path, cv2.IMREAD_COLOR)
-        self.latest_img = image
+        return image
 
     def _feed_is_still_image(self):
         """ Check if the feed_path is to a still image
@@ -148,8 +146,8 @@ class DepthAISimulateDetection:
             bool: Whether the feed_path points to a still image
         """
         try:
-            self._load_image()
-            return not (self.latest_img is None or self.latest_img.size == 0)
+            img = self._load_image_from_feed_path()
+            return not (img is None or img.size == 0)
         except Exception:
             return False
 
@@ -182,7 +180,19 @@ class DepthAISimulateDetection:
             object_msg.height = frame.shape[0]
             object_msg.width = frame.shape[1]
 
-            self.publisher.publish(object_msg)
+            self.detection_publisher.publish(object_msg)
+
+    def _publish_visualized_detections(self, detection_results):
+        """ Publish the detection results visualized as an Image message
+
+        Args:
+            detection_results (dict): Output from detect()
+        """
+        visualized_detection_results = self.detection_visualizer.visualize_detections(
+                                                            detection_results['frame'],
+                                                            detection_results['detections'])
+        visualized_detection_results_msg = self.cv_bridge.cv2_to_imgmsg(visualized_detection_results, 'bgr8')
+        self.visualized_detection_publisher.publish(visualized_detection_results_msg)
 
     def _run_detection_on_image_topic(self, device):
         """ Run and publish detections on the provided topic
@@ -198,14 +208,38 @@ class DepthAISimulateDetection:
                 continue
             detection_results = self.detect(device, img)
             self._publish_detections(detection_results)
+            self._publish_visualized_detections(detection_results)
+
+    def _run_detection_on_single_image(self, device, img):
+        """ Run detection on the single image provided
+
+        Args:
+            device (_type_): _description_
+        """
+        detection_results = self.detect(device, img)
+        visualized_detection_results = self.detection_visualizer.visualize_detections(
+                                                                        detection_results['frame'],
+                                                                        detection_results['detections'])
+        self._save_visualized_detection_results(visualized_detection_results)
+
+    def _save_visualized_detection_results(self, visualized_detection_results):
+        """ Save the visualized detection results as a jpg file
+
+        Args:
+            visualized_detection_results (ndarray): Image to save
+        """
+        detection_results_filename = f'{os.path.splitext(self.feed_path)[0]}_detection_results.jpg'
+        detection_results_filepath = rr.get_filename(f"package://cv/assets/{detection_results_filename}",
+                                                     use_protocol=False)
+        cv2.imwrite(detection_results_filepath, visualized_detection_results)
 
     def run(self):
         """ Run detection on the latest img message """
         with depthai_camera_connect.connect(self.pipeline) as device:
             if self._feed_is_still_image():
                 rospy.loginfo(f'Running detection on still image provided: {self.feed_path}')
-                self.detect(device, self.latest_img, show_results=True)
-                # TODO: exit and kill process?
+                img = self._load_image_from_feed_path()
+                self._run_detection_on_single_image(device, img)
             else:
                 rospy.loginfo(f'Running detection on topic provided: {self.feed_path}')
                 self._run_detection_on_image_topic(device)
