@@ -19,7 +19,7 @@ IMAGE_PATH = os.path.join(os.path.dirname(__file__), '../assets/left384.jpg')
 class DepthAISimulateSpatialDetection:
     """
     This class is used to test a CV neural network model with a simulated image feed.
-    This class takes an image, transfers it from the host (local computer) to the camera, 
+    This class takes an image, transfers it from the host (local computer) to the camera,
     and retrieves the output of the neural network.
     """
 
