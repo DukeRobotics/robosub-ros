@@ -16,7 +16,7 @@ NN_PATH = os.path.join(os.path.dirname(__file__), '../assets/bloblol.blob')
 IMAGE_PATH = os.path.join(os.path.dirname(__file__), '../assets/left384.jpg')
 
 
-class DepthAISimulateSpatialDetection:
+class DepthAISimulateDetection:
     """
     This class is used to test a CV neural network model with a simulated image feed.
     This class takes an image, transfers it from the host (local computer) to the camera,
@@ -128,14 +128,14 @@ class DepthAISimulateSpatialDetection:
         }
 
 
-class DepthAISimulateSpatialDetectionNode(DepthAISimulateSpatialDetection):
+class DepthAISimulateDetectionNode(DepthAISimulateDetection):
     """
     This class creates a rosnode that runs detections using the depthai oak camera on a provided
     Image topic or a provided still image.
     """
     def __init__(self):
         super().__init__()
-        rospy.init_node('depthai_simulated_spatial_detection', anonymous=True)
+        rospy.init_node('depthai_simulate_detection', anonymous=True)
 
         self.publishing_topic = rospy.get_param("~publishing_topic")
         self.feed_path = rospy.get_param("~feed_path")
@@ -223,6 +223,6 @@ class DepthAISimulateSpatialDetectionNode(DepthAISimulateSpatialDetection):
 
 if __name__ == '__main__':
     try:
-        DepthAISimulateSpatialDetectionNode().run()
+        DepthAISimulateDetectionNode().run()
     except rospy.ROSInterruptException:
         pass
