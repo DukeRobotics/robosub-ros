@@ -73,21 +73,6 @@ class DepthAISimulateSpatialDetection:
         feedOut.setStreamName("feed")
         nn.passthrough.link(feedOut.input)
 
-    def connect_and_detect_single_image(self, img, show_results=True):
-        """ Connect to device and run detection on an image
-
-        Args:
-            img (ndarray): Image to run detection on
-            show_results (bool, optional): Whether to display the results. Defaults to True.
-
-        Returns:
-            dict: Dictionary with keys "frame" and "detections", where frame is the passthrough from the neural network
-            and detections is an depthai.ImgDetections object.
-        """
-        with depthai_camera_connect.connect(self.pipeline) as device:
-            out = self.detect(device, img, show_results=show_results)
-            return out
-
     def detect(self, device, input_image, show_results=False):
         """ Run detection on the input image
 
