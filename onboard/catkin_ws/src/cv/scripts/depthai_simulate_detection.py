@@ -5,32 +5,41 @@ import numpy as np
 import cv2
 import os
 import depthai_camera_connect
-from utils import visualize_detections
+from utils import DetectionVisualizer
 import rospy
+import yaml
+import resource_retriever as rr
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from custom_msgs.msg import CVObject
 
 
-NN_PATH = os.path.join(os.path.dirname(__file__), '../assets/bloblol.blob')
-IMAGE_PATH = os.path.join(os.path.dirname(__file__), '../assets/left384.jpg')
-
-
 class DepthAISimulateDetection:
     """
-    This class is used to test a CV neural network model with a simulated image feed.
-    This class takes an image, transfers it from the host (local computer) to the camera,
+    This class is used to test a depthai neural network (blob file) with a simulated image feed, either a still image
+    or an Image topic. This class takes the images, transfers them from the host (local computer) to the camera,
     and retrieves the output of the neural network.
     """
-
-    # Read in the dummy image and other misc. setup work
     def __init__(self):
-        self.nnPath = NN_PATH
+        super().__init__()
+        rospy.init_node('depthai_simulate_detection', anonymous=True)
+
+        self.feed_path = rospy.get_param("~feed_path")
+        self.latest_img = None
+
+        self.depthai_model_name = rospy.get_param("~depthai_model_name")
+        with open(rr.get_filename('package://cv/models/depthai_models.yaml', use_protocol=False)) as f:
+            models = yaml.safe_load(f)
+            self.model = models[self.depthai_model_name]
+        self.nn_path = rr.get_filename(f"package://cv/models/{self.model['weights']}", use_protocol=False)
         self.pipeline = dai.Pipeline()
         self._build_pipeline()
 
-        # Dummy still image
-        self.image = cv2.imread(IMAGE_PATH, cv2.IMREAD_COLOR)
+        self.cv_bridge = CvBridge()
+        self.publishing_topic = rospy.get_param("~publishing_topic")
+        self.publisher = rospy.Publisher(self.publishing_topic, CVObject, queue_size=10)
+
+        self.detection_visualizer = DetectionVisualizer(self.model['classes'])
 
     def _build_pipeline(self):
         """
@@ -52,14 +61,13 @@ class DepthAISimulateDetection:
 
         # Neural net / model properties
         nn.setConfidenceThreshold(0.5)
-        nn.setBlobPath(self.nnPath)
+        nn.setBlobPath(self.nn_path)
         nn.setNumInferenceThreads(2)
         nn.input.setBlocking(False)
-        nn.setNumClasses(5)
-        nn.setCoordinateSize(4)
-        nn.setAnchors(
-            np.array([10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]))
-        nn.setAnchorMasks({"side26": [0, 1, 2], "side13": [3, 4, 5]})
+        nn.setNumClasses(len(self.model['classes']))
+        nn.setCoordinateSize(self.model['coordinate_size'])
+        nn.setAnchors(np.array(self.model['anchors']))
+        nn.setAnchorMasks(self.model['anchor_masks'])
         nn.setIouThreshold(0.5)
 
         # Create a link between the neural net input and the local image stream output
@@ -108,8 +116,8 @@ class DepthAISimulateDetection:
         img = dai.ImgFrame()
         img.setType(dai.ImgFrame.Type.BGR888p)
         img.setData(to_planar(input_image, (416, 416)))
-        img.setWidth(416)
-        img.setHeight(416)
+        img.setWidth(self.model['input_size'][0])
+        img.setHeight(self.model['input_size'][1])
         input_queue.send(img)
 
         passthrough_feed = passthrough_feed_queue.get()
@@ -118,7 +126,7 @@ class DepthAISimulateDetection:
         detections = detections_queue.get().detections
 
         if show_results:
-            frame = visualize_detections(image_frame, detections)
+            frame = self.detection_visualizer.visualize_detections(image_frame, detections)
             cv2.imshow("detections", frame)
             cv2.waitKey(0)
 
@@ -126,24 +134,6 @@ class DepthAISimulateDetection:
             "frame": image_frame,
             "detections": detections
         }
-
-
-class DepthAISimulateDetectionNode(DepthAISimulateDetection):
-    """
-    This class creates a rosnode that runs detections using the depthai oak camera on a provided
-    Image topic or a provided still image.
-    """
-    def __init__(self):
-        super().__init__()
-        rospy.init_node('depthai_simulate_detection', anonymous=True)
-
-        self.publishing_topic = rospy.get_param("~publishing_topic")
-        self.feed_path = rospy.get_param("~feed_path")
-
-        self.cv_bridge = CvBridge()
-        self.publisher = rospy.Publisher(self.publishing_topic, CVObject, queue_size=10)
-
-        self.latest_img = None
 
     def _load_image(self):
         """ Load a still image from the feed path """
@@ -182,7 +172,7 @@ class DepthAISimulateDetectionNode(DepthAISimulateDetection):
             object_msg = CVObject()
 
             object_msg.score = detection.confidence
-            object_msg.label = str(detection.label)  # TODO: get actual label instead of index
+            object_msg.label = self.model['classes'][detection.label]
 
             object_msg.xmin = detection.xmin
             object_msg.ymin = detection.ymin
@@ -223,6 +213,6 @@ class DepthAISimulateDetectionNode(DepthAISimulateDetection):
 
 if __name__ == '__main__':
     try:
-        DepthAISimulateDetectionNode().run()
+        DepthAISimulateDetection().run()
     except rospy.ROSInterruptException:
         pass
