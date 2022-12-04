@@ -2,6 +2,7 @@
 
 import numpy as np
 import torch
+import cv2
 
 
 def nms(labels, dets, scores, thresh=0.01, conf_thresh=0.7):

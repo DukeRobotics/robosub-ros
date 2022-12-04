@@ -12,9 +12,6 @@ from cv_bridge import CvBridge
 from custom_msgs.msg import CVObject
 
 
-IMAGE_STREAM_TOPIC = '/cv/camera/raw_image'
-DETECTION_RESULTS_TOPIC = '/cv/sim_cam/detections'
-
 NN_PATH = os.path.join(os.path.dirname(__file__), '../assets/bloblol.blob')
 IMAGE_PATH = os.path.join(os.path.dirname(__file__), '../assets/left384.jpg')
 
@@ -76,26 +73,22 @@ class DepthAISimulateSpatialDetection:
         feedOut.setStreamName("feed")
         nn.passthrough.link(feedOut.input)
 
-    def connect_and_detect_single_image(self, img, show=True):
+    def connect_and_detect_single_image(self, img, show_results=True):
         """ Connect to device and run detection on an image
 
         Args:
             img (ndarray): Image to run detection on
-            show (bool, optional): Whether to display the results. Defaults to True.
+            show_results (bool, optional): Whether to display the results. Defaults to True.
 
         Returns:
             dict: Dictionary with keys "frame" and "detections", where frame is the passthrough from the neural network
             and detections is an depthai.ImgDetections object.
         """
         with depthai_camera_connect.connect(self.pipeline) as device:
-            out = self.detect(device, img)
-            if show:
-                frame = visualize_detections(out["frame"], out["detections"])
-                cv2.imshow("detections", frame)
-                cv2.waitKey(-1)
+            out = self.detect(device, img, show_results=show_results)
             return out
 
-    def detect(self, device, input_image):
+    def detect(self, device, input_image, show_results=False):
         """ Run detection on the input image
 
         Send the still image through to the input queue (qIn) after converting it to the proper format.
@@ -106,6 +99,7 @@ class DepthAISimulateSpatialDetection:
         Args:
             device (depthai.Device): _description_
             input_image (ndarray): Image to run detection on
+            show_results (bool): Whether to display results of detection. Defaults to True.
 
         Returns:
             dict: Dictionary with keys "frame" and "detections", where frame is the passthrough from the neural network
@@ -138,6 +132,11 @@ class DepthAISimulateSpatialDetection:
         image_frame = passthrough_feed.getCvFrame()
         detections = detections_queue.get().detections
 
+        if show_results:
+            frame = visualize_detections(image_frame, detections)
+            cv2.imshow("detections", frame)
+            cv2.waitKey(0)
+
         return {
             "frame": image_frame,
             "detections": detections
@@ -145,40 +144,60 @@ class DepthAISimulateSpatialDetection:
 
 
 class DepthAISimulateSpatialDetectionNode(DepthAISimulateSpatialDetection):
+    """
+    This class creates a rosnode that runs detections using the depthai oak camera on a provided
+    Image topic or a provided still image.
+    """
     def __init__(self):
         super().__init__()
         rospy.init_node('depthai_simulated_spatial_detection', anonymous=True)
 
+        self.publishing_topic = rospy.get_param("~publishing_topic")
+        self.feed_path = rospy.get_param("~feed_path")
+
         self.cv_bridge = CvBridge()
-        self.publisher = rospy.Publisher(DETECTION_RESULTS_TOPIC, Image, queue_size=10)
-        rospy.Subscriber(IMAGE_STREAM_TOPIC, Image, self._update_latest_img_msg)
+        self.publisher = rospy.Publisher(self.publishing_topic, CVObject, queue_size=10)
 
-        self.latest_img_msg = None
+        self.latest_img = None
 
-    def _update_latest_img_msg(self, img_msg):
+    def _load_image(self):
+        """ Load a still image from the feed path """
+        image_path = os.path.join(os.path.dirname(__file__), self.feed_path)
+        image = cv2.imread(image_path, cv2.IMREAD_COLOR)
+        self.latest_img = image
+
+    def _feed_is_still_image(self):
+        """ Check if the feed_path is to a still image
+
+        Returns:
+            bool: Whether the feed_path points to a still image
+        """
+        try:
+            self._load_image()
+            return not (self.latest_img is None or self.latest_img.size == 0)
+        except Exception:
+            return False
+
+    def _update_latest_img(self, img_msg):
         """ Store latest image """
-        self.latest_img_msg = img_msg
+        self.latest_img = self.cv_bridge.imgmsg_to_cv2(img_msg, 'bgr8')
 
-    def _publish_detections_on_img_msg(self, img_msg, device):
-        """ Run detection on an image message and publish the predictions
+    def _publish_detections(self, detection_results):
+        """ Run detection on an image and publish the predictions
 
         Args:
-            img_msg (Image): Image message to run detection on
-            device (depthai.Device): Depthai device to use for computation
+            detection_results (dict): Output from detect()
         """
-        image = self.bridge.imgmsg_to_cv2(img_msg, 'rgb8')
 
-        out = self.detect(device, image)
-
-        frame = out["frame"]
-        detections = out["detections"]
+        frame = detection_results["frame"]
+        detections = detection_results["detections"]
 
         for detection in detections:
 
             object_msg = CVObject()
 
-            object_msg.label = "object"
             object_msg.score = detection.confidence
+            object_msg.label = str(detection.label)  # TODO: get actual label instead of index
 
             object_msg.xmin = detection.xmin
             object_msg.ymin = detection.ymin
@@ -190,19 +209,35 @@ class DepthAISimulateSpatialDetectionNode(DepthAISimulateSpatialDetection):
 
             self.publisher.publish(object_msg)
 
+    def _run_detection_on_image_topic(self, device):
+        """ Run and publish detections on the provided topic
+
+        Args:
+            device (depthai.Device): Depthai device being used
+        """
+        rospy.Subscriber(self.feed_path, Image, self._update_latest_img)
+
+        while not rospy.is_shutdown():
+            img = self.latest_img
+            if img is None:
+                continue
+            detection_results = self.detect(device, img)
+            self._publish_detections(detection_results)
+
     def run(self):
         """ Run detection on the latest img message """
         with depthai_camera_connect.connect(self.pipeline) as device:
-            while not rospy.is_shutdown():
-                img_msg = self.latest_img_msg
-                self._publish_detections_on_img_msg(img_msg, device)
+            if self._feed_is_still_image():
+                rospy.loginfo(f'Running detection on still image provided: {self.feed_path}')
+                self.detect(device, self.latest_img, show_results=True)
+                # TODO: exit and kill process?
+            else:
+                rospy.loginfo(f'Running detection on topic provided: {self.feed_path}')
+                self._run_detection_on_image_topic(device)
 
 
 if __name__ == '__main__':
-    d = DepthAISimulateSpatialDetection()
-    out = d.connect_and_detect_single_image(d.image)
-
-    # try:
-    #     DepthAISimulateSpatialDetectionNode().run()
-    # except rospy.ROSInterruptException:
-    #     pass
+    try:
+        DepthAISimulateSpatialDetectionNode().run()
+    except rospy.ROSInterruptException:
+        pass
