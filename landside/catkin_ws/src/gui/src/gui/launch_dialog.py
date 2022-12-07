@@ -88,9 +88,10 @@ class LaunchDialog(QDialog):
         self.node_name_box.addItems(launchable_names)
 
     def node_name_selected(self, item_index):
-        self.arg_form_rows = []
         for row in self.arg_form_rows:
             self.form_layout.removeRow(row['label'])
+
+        self.arg_form_rows = []
 
         if item_index == 0:
             self.accept_button.setEnabled(False)

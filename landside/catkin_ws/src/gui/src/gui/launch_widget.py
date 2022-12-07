@@ -7,7 +7,7 @@ import rospy
 import resource_retriever as rr
 import rosservice
 
-from custom_msgs.srv import StartLaunch, StopLaunch
+from custom_msgs.srv import StopLaunch
 
 
 class LaunchWidget(QWidget):
@@ -17,8 +17,6 @@ class LaunchWidget(QWidget):
 
         ui_file = rr.get_filename('package://gui/resource/LaunchWidget.ui', use_protocol=False)
         loadUi(ui_file, self)
-
-        self.current_launch = None
 
         self.default_package = ''
 
@@ -53,15 +51,6 @@ class LaunchWidget(QWidget):
         enabled = '/start_node' in rosservice.get_service_list()
         self.launch_dialog.setEnabled(enabled)
         self.table_widget.setEnabled(enabled)
-
-    def launch_node_dialog(self):
-        self.launch_dialog.reset()
-
-    def launch_file(self, launchfile):
-        args = ['sim:=true'] if self.simulation else ['sim:=false']
-        start_launch = rospy.ServiceProxy('start_node', StartLaunch)
-        resp = start_launch('execute', launchfile, args, True)
-        return self.append_to_table(resp.pid, 'execute', launchfile, args[0])
 
     def delete_launch(self, row_value):
         stop_launch = rospy.ServiceProxy('stop_node', StopLaunch)
