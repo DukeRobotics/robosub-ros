@@ -6,7 +6,7 @@ import re
 from brping import PingParser, PingMessage
 from dataclasses import dataclass
 from typing import IO, Any, Set
-from sonar_image_processing import build_sonar_image, find_gate_posts
+from sonar_image_processing import build_sonar_image, find_gate_posts, find_buoy
 import os
 
 
@@ -297,6 +297,21 @@ def test_finding_gate_from_log_file():
     posts = find_gate_posts(sonar_img, display_results=True)
     print(posts)
 
+import numpy as np
+def test_gate_from_npy_file(file):
+    img = np.load(file)
+    img = img[:,150:]
+    print(img)
+    posts = find_gate_posts(img, display_results=True)
+    print(posts)
+
+def test_buoy_from_npy_file(file):
+    img = np.load(file)
+    print(img)
+    posts = find_buoy(img, display_results=True)
+    print(posts)
 
 if __name__ == "__main__":
-    test_finding_gate_from_log_file()
+    #test_buoy_from_npy_file(os.path.join(os.path.dirname(__file__), 'sampleData', 'buoy.npy'))
+    test_gate_from_npy_file(os.path.join(os.path.dirname(__file__), 'sampleData', 'gate.npy'))
+
