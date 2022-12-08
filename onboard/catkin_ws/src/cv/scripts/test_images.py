@@ -20,7 +20,7 @@ class DummyImagePublisher:
         self.topic = rospy.get_param("~topic")
         self.framerate = rospy.get_param("~framerate")
         self.feed_path = os.path.join(os.path.dirname(__file__), rospy.get_param("~feed_path"))
-        
+
         # No feed path is passed in -- throw an expcetion
         if rospy.get_param("~feed_path") == "":
             rospy.logerr("No feed path variable given")
