@@ -24,14 +24,15 @@ class ControlsInterface:
         self.desired_pose_client.wait_for_server()
         self.desired_twist_client.wait_for_server()
 
-    def move_to_pose_global(self, pose):
+    def move_to_pose(self, pose):
         self.desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose=pose))
-
-    def move_to_pose_local(self, pose):
-        self.move_to_pose_global(task_utils.transform_pose(self.listener, 'base_link', 'odom', pose))
 
     def move_with_velocity(self, twist):
         self.desired_twist_client.send_goal(ControlsDesiredTwistGoal(twist=twist))
+
+    def cancel_movement(self):
+        self.desired_pose_client.cancel_goal()
+        self.desired_twist_client.cancel_goal()
 
     def _on_receive_state(self, state):
         self.state = state

@@ -10,8 +10,8 @@ import smach
 class MoveToPoseGlobalTask(smach.State):
     """Move to pose given in global coordinates."""
 
-    def __init__(self, controls, x, y, z, roll, pitch, yaw):
-        super(MoveToPoseGlobalTask, self).__init__(outcomes=['done'])
+    def __init__(self, x, y, z, roll, pitch, yaw, controls):
+        super(MoveToPoseGlobalTask, self).__init__(outcomes=['done', 'continue'])
 
         self.controls = controls
         self.last_pose = None
@@ -43,102 +43,61 @@ class MoveToPoseGlobalTask(smach.State):
             self.controls.get_state().pose.pose,
             new_pose,
             self.controls.get_state().twist.twist):
-            # TODO self.controls.cancel_movement()
-            return "done"
+            self.controls.cancel_movement()
+            return 'done'
 
-        return "continue"
+        return 'continue'
 
     def getPose(self):
         return self.desired_pose
 
 
-class MoveToMutablePoseGlobalTask(MoveToPoseGlobalTask):
-    """Move to MutablePose given in local coordinates."""
-
-    def __init__(self, mutable_pose: task_utils.MutablePose):
-        self.mutable_pose = mutable_pose
-        super(MoveToMutablePoseGlobalTask, self).__init__(0, 0, 0, 0, 0, 0)
-
-    def run(self, userdata):
-        rate = rospy.Rate(15)
-        while self.mutable_pose.getPose() is None:
-            rate.sleep()
-        return super(MoveToMutablePoseGlobalTask, self).run(userdata)
-
-    def getPose(self):
-        return self.mutable_pose.getPose()
-
-
+# FIXME what the local position is will change as we move, so if we're looping through this it'll keep recalculating where it's going
 class MoveToPoseLocalTask(MoveToPoseGlobalTask):
     """Move to pose given in local coordinates."""
 
-    def __init__(self, x, y, z, roll, pitch, yaw, listener):
-        super(MoveToPoseLocalTask, self).__init__(x, y, z, roll, pitch, yaw)
+    def __init__(self, x, y, z, roll, pitch, yaw, controls, listener):
+        super(MoveToPoseLocalTask, self).__init__(x, y, z, roll, pitch, yaw, controls)
         self.listener = listener
 
-    def run(self, userdata):
-        self.desired_pose = task_utils.transform_pose(self.listener, 'base_link', 'odom', self.desired_pose)
-        return super(MoveToPoseLocalTask, self).run(userdata)
-
-
-class AllocatePowerTask(Task):
-    """Allocate specified power amount in a direction"""
-
-    def __init__(self, x, y, z, roll, pitch, yaw):
-        """
-        Parameters:
-            x (float): x-component of linear velocity
-            y (float): y-component of linear velocity
-            z (float): z-component of linear velocity
-            roll (float): roll-component of angular velocity;
-            pitch (float): pitch-component of angular velocity
-            yaw (float): yaw-component of angular velocity
-        """
-        super(AllocatePowerTask, self).__init__()
-        linear = Vector3(x=x, y=y, z=z)
-        angular = Vector3(x=roll, y=pitch, z=yaw)
-        self.twist_power = Twist(linear=linear, angular=angular)  # Twist representing six components of power
-
-    def _on_task_run(self):
-        self.publish_desired_twist_power(self.twist_power)
+    def getPose(self):
+        return task_utils.transform_pose(self.listener, 'base_link', 'odom', self.desired_pose)
 
 
 class AllocateVelocityLocalTask(Task):
-    def __init__(self, x, y, z, roll, pitch, yaw):
-        super(AllocateVelocityLocalTask, self).__init__(outcomes=["done"])
-        linear = Vector3(x=x, y=y, z=z)
-        angular = Vector3(x=roll, y=pitch, z=yaw)
-        self.desired_twist = Twist(linear=linear, angular=angular)
+    def __init__(self, x, y, z, roll, pitch, yaw, controls):
+        super(AllocateVelocityLocalTask, self).__init__(outcomes=['done'])
+        self.controls = controls
+        self.coords = [x, y, z, roll, pitch, yaw]
+        self.last_twist = None
 
     def run(self, userdata):
-        # rospy.loginfo("publishing desired twist...")
-        self.publish_desired_twist(self.desired_twist)
-        return "done"
+        # Get pose from userdata if supplied
+        arg_names = ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
+        for i in range(len(arg_names)):
+            if arg_names[i] in userdata:
+                self.coords[i] = userdata[arg_names[i]]
 
-
-class AllocateVelocityLocalForeverTask(Task):
-    def __init__(self, x, y, z, roll, pitch, yaw):
-        super(AllocateVelocityLocalForeverTask, self).__init__(outcomes=["preempted"])
-        linear = Vector3(x=x, y=y, z=z)
-        angular = Vector3(x=roll, y=pitch, z=yaw)
+        linear = Vector3(x=self.coords[0], y=self.coords[1], z=self.coords[2])
+        angular = Vector3(x=self.coords[3], y=self.coords[4], z=self.coords[5])
         self.desired_twist = Twist(linear=linear, angular=angular)
 
-    def run(self, userdata):
-        # rospy.loginfo("publishing desired twist...")
-        rate = rospy.Rate(15)
-        self.publish_desired_twist(self.desired_twist)
-        while True:
-            if self.preempt_requested():
-                self.task_state.desired_twist_velocity_client.cancel_goal()
-                self.service_preempt()
-                return 'preempted'
-            rate.sleep()
+        new_twist = self.getPose()
+        # Only resend the movement goal if our desired pose has changed
+        if self.last_pose is None or not task_utils.at_vel(self.last_twist, new_twist, 0.0001, 0.0001):
+            self.last_pose = new_twist
+            self.controls.move_with_velocity(new_twist)
+
+        return 'done'
+
+    def getTwist(self):
+        return self.desired_twist
 
 
 class AllocateVelocityGlobalTask(AllocateVelocityLocalTask):
     """Allocate specified velocity in a direction"""
 
-    def __init__(self, x, y, z, roll, pitch, yaw):
+    def __init__(self, x, y, z, roll, pitch, yaw, controls, listener):
         """
         Parameters:
             x (float): x-component of linear velocity
@@ -148,12 +107,11 @@ class AllocateVelocityGlobalTask(AllocateVelocityLocalTask):
             pitch (float): pitch-component of angular velocity
             yaw (float): yaw-component of angular velocity
         """
-        super(AllocateVelocityGlobalTask, self).__init__(x, y, z, roll, pitch, yaw)
-        # Removed self.first_start check...not sure what it's used for? - EJ 04/13/21
-        odom_global = Odometry()
-        odom_global.twist.twist = self.desired_twist
-        odom_local = task_utils.transform('odom', 'base_link', odom_global)
-        self.desired_twist = odom_local.twist.twist
+        super(AllocateVelocityGlobalTask, self).__init__(x, y, z, roll, pitch, yaw, controls)
+        self.listener = listener
+
+    def getTwist(self):
+        return task_utils.transform_pose(self.listener, 'odom', 'base_link', self.desired_twist)
 
 
 class HoldPositionTask(Task):
