@@ -74,4 +74,5 @@ if __name__ == '__main__':
     try:
         USBCamera().run()
     except Exception:
+        rospy.logerr("USB camera run failed!")
         exit()
