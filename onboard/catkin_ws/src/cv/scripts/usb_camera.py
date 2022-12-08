@@ -27,7 +27,10 @@ class USBCamera:
         self.topic = rospy.get_param("~topic")
         self.channel = rospy.get_param("~channel")
         # If no custom framerate is passed in, set self.framerate to None to trigger default framerate
-        self.framerate = rospy.get_param("~framerate", None)
+        self.framerate = rospy.get_param("~framerate")
+
+        if self.framerate == -1:
+            self.framerate = None
 
         # Connect to usb camera
         self.cv_bridge = CvBridge()
