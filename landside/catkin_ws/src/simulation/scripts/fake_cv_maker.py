@@ -26,7 +26,7 @@ def initialize_publishers(cv_object_labels):
     publishers = {}
     for label in cv_object_labels:
         publishers[label] = rospy.Publisher(
-            f'cv/simulation/{label.strip().lower()}/left',
+            f'cv/{label.strip().lower()}/left',
             CVObject,
             queue_size=10
         )
