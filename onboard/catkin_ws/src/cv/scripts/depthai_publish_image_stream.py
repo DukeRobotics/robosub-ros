@@ -220,7 +220,7 @@ class DepthAIImageStreamPublisher:
                     image_msg_depth = self.bridge.cv2_to_imgmsg(img_depth, 'mono16')
                     self.stream_publisher_depth.publish(image_msg_depth)
 
-            loop_rate.sleep()
+                loop_rate.sleep()
 
 
 if __name__ == '__main__':
