@@ -27,6 +27,10 @@ class DepthAISimulateDetection:
         self.feed_path = rospy.get_param("~feed_path")
         self.latest_img = None
 
+        # No feed path is passed in -- throw an expcetion
+        if self.feed_path == "":
+            raise rospy.exceptions.ROSInitException("No feed path variable given")
+
         self.depthai_model_name = rospy.get_param("~depthai_model_name")
         with open(rr.get_filename('package://cv/models/depthai_models.yaml', use_protocol=False)) as f:
             models = yaml.safe_load(f)
