@@ -44,7 +44,7 @@ To update the PID constants, click on the `Update PID constants` button, and a d
 
 ### Sensor Plugin
 
-### Dependencies
+#### Dependencies
 - `fuse.launch` in sensor_fusion
 
 #### Description
