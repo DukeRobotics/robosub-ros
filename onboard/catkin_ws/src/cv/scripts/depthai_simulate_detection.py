@@ -29,12 +29,14 @@ class DepthAISimulateDetection:
 
         # No feed path is passed in -- throw an expcetion
         if self.feed_path == "":
-            raise rospy.exceptions.ROSInitException("No feed path variable given")
+            rospy.logerr("No feed path variable given")
+            rospy.spin()
 
         self.depthai_model_name = rospy.get_param("~depthai_model_name")
         # No model name is passed in -- throw an expcetion
         if self.depthai_model_name == "":
-            raise rospy.exceptions.ROSInitException("No model name variable given")
+            rospy.logerr("No model name variable given")
+            rospy.spin()
         with open(rr.get_filename('package://cv/models/depthai_models.yaml', use_protocol=False)) as f:
             models = yaml.safe_load(f)
             self.model = models[self.depthai_model_name]
