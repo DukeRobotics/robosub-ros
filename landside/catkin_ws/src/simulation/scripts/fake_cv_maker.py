@@ -48,9 +48,39 @@ class BoundingBox:
         rospy.Subscriber("/sim/object_points", SimObjectArray, self.callback)
         rospy.spin()
 
+    def test_point_rel_to_base_link(self, point):
+        poses = PoseStamped()
+        poses.pose = Pose(position=point, orientation=Quaternion(w=1, x=0, y=0, z=0))
+        poses.header.frame_id = "odom"
+        transformed = self.listener.transformPose("base_link", poses).pose.position
+        return transformed
+
     def callback(self, data):
         object_data = {}
         for obj in data.objects:
+            print(obj.label)
+            # average = [0, 0, 0]
+            # for pt in obj.points:
+            #     transformed = self.point_rel_to_bot(pt)
+            #     average[0] += transformed.x
+            #     average[1] += transformed.y
+            #     average[2] += transformed.z
+            # average[0] /= len(obj.points)
+            # average[1] /= len(obj.points)
+            # average[2] /= len(obj.points)
+            # print(obj.label, len(obj.points), average)
+
+            # average = [0, 0, 0]
+            # for pt in obj.points:
+            #     transformed = self.test_point_rel_to_base_link(pt)
+            #     average[0] += transformed.x
+            #     average[1] += transformed.y
+            #     average[2] += transformed.z
+            # average[0] /= len(obj.points)
+            # average[1] /= len(obj.points)
+            # average[2] /= len(obj.points)
+            # print("Base link", obj.label, average)
+
             object_data[obj.label] = {
                 'bounding_box': self.get_bounding_box(obj.points),
                 'distance': obj.distance
@@ -79,15 +109,21 @@ class BoundingBox:
         return clip(min(xs), 0, 1), clip(max(xs), 0, 1), clip(min(ys), 0, 1), clip(max(ys), 0, 1)
 
     def get_grid_point(self, point):
+        print("raw_point", point.x, point.y, point.z)
         rel_point = self.point_rel_to_bot(point)
         # FOV - field of view
         if rel_point.x < 0:
             return (-1, -1)
+        print("rel_point", rel_point.x, rel_point.y, rel_point.z)
+        # note, since this uses the x value only, the "FOV" isn't completely accurate to a curved camera view
         xFOV = 0.933 * rel_point.x
         yFOV = 0.586 * rel_point.x
+        # print(xFOV, yFOV)
+        # 0,0 is top-left
         xPix = (xFOV / 2 - rel_point.y) / xFOV
         yPix = (yFOV / 2 - rel_point.z) / yFOV
-        return clip(xPix, 0, 1), clip(yPix, 0, 1)
+        # print(xPix, yPix)
+        return xPix, yPix  # clip(xPix, 0, 1), clip(yPix, 0, 1)
 
     def point_rel_to_bot(self, point):
         poses = PoseStamped()

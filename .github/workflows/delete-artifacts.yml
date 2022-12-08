@@ -1,0 +1,16 @@
+name: delete-artifacts
+
+on:
+  # Run at 0900 UTC (4am EST) everyday
+  schedule:
+    - cron: "0 9 * * *"
+
+jobs:
+  cleanup-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Cleanup old artifacts
+        uses: c-hive/gha-remove-artifacts@v1
+        with:
+          age: '1 day'

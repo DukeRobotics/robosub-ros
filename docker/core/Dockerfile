@@ -10,19 +10,23 @@ WORKDIR $WORKDIR
 
 ### Basic Setup ###
 
-# Workaround for https://github.com/osrf/docker_images/issues/535
-# Remove this when that is fixed
-RUN apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-
 # Update and install tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    openssh-server xvfb \
+    openssh-server \
+    xvfb \
+    bat \
     vim \
-    curl wget \
+    neovim \
+    nano \
+    tmux \
+    screen \
+    curl \
+    wget \
     usbutils apt-utils \
     ros-noetic-cv-bridge \
     ros-noetic-resource-retriever \
     ros-noetic-actionlib-tools \
+    ros-noetic-robot-localization \
     python-dev-is-python3 \
     python3-pip \
     python3-catkin-tools python3-osrf-pycommon \
@@ -47,6 +51,8 @@ RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
     touch /root/.ssh/environment
 
 COPY ssh_entry.sh /root/.bash_profile
+
+COPY tmux.conf /etc/
 
 ### Final Setup ###
 

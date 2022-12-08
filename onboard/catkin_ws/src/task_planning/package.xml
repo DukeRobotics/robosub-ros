@@ -8,6 +8,17 @@
 
   <license>MIT</license>
 
+  <depend>rospy</depend>
+  <depend>custom_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>tf</depend>
+  <depend>tf2</depend>
+  <depend>smach</depend>
+
+  <exec_depend>python-numpy</exec_depend>
+
   <buildtool_depend>catkin</buildtool_depend>
 
 </package>

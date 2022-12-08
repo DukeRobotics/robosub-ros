@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 import rospy
-
-from competition_task import CompetitionTask
+import smach
+import tf
+from gate_task import create_gate_task_sm
 
 
 class TaskRunner:
@@ -10,14 +11,30 @@ class TaskRunner:
 
     def __init__(self):
         rospy.init_node("task_planning")
-        self.competition_task = CompetitionTask()
+        self.listener = tf.TransformListener()
 
     def start(self):
-        rate = rospy.Rate(self.RATE)
+        sm_top = smach.StateMachine(outcomes=['task_runner_succeeded', 'task_runner_failed'])
 
-        while not self.competition_task.finished:
-            self.competition_task.run()
-            rate.sleep()
+        with sm_top:
+            sm_gate = create_gate_task_sm(self.listener)
+            smach.StateMachine.add('GATE_STATE', sm_gate,
+                                   transitions={
+                                       'succeeded': 'task_runner_succeeded',
+                                       'failed': 'task_runner_failed'})
+
+        rospy.loginfo("Waiting for transform listener")
+        self.listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(15))
+
+        sm_top.execute()
 
 
-TaskRunner().start()
+def main():
+    try:
+        TaskRunner().start()
+    except rospy.ROSInterruptException:
+        pass
+
+
+if __name__ == '__main__':
+    main()
