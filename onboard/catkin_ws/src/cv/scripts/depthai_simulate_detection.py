@@ -208,6 +208,7 @@ class DepthAISimulateDetection:
             device (depthai.Device): Depthai device being used
         """
         rospy.Subscriber(self.feed_path, Image, self._update_latest_img)
+        loop_rate = rospy.Rate(1)
 
         while not rospy.is_shutdown():
             img = self.latest_img
@@ -216,6 +217,7 @@ class DepthAISimulateDetection:
             detection_results = self.detect(device, img)
             self._publish_detections(detection_results)
             self._publish_visualized_detections(detection_results)
+            loop_rate.sleep()
 
     def _run_detection_on_single_image(self, device, img):
         """ Run detection on the single image provided
