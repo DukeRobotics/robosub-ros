@@ -268,9 +268,11 @@ class ImageTools(object):
             cv2.IMREAD_LOAD_GDAL 8            cv2.IMREAD_UNCHANGED -1
             cv2.IMREAD_REDUCED_COLOR_2 17
         """
+        img = None
         if cv2_imread_mode is not None:
             img = cv2.imread(file_path, cv2_imread_mode)
-        img = cv2.imread(file_path)
+        else:
+            img = cv2.imread(file_path)
         if img is None:
             raise RuntimeError("No image found to load at " + str(file_path))
         return img
