@@ -70,6 +70,26 @@ def build_sonar_image(data_list, display_results=False, npy_save_path=None, jpeg
     return sonar_img
 
 
+def arcity(c):
+    t = tuple(c[c[:, :, 1].argmin()][0])
+    b = tuple(c[c[:, :, 1].argmax()][0])
+    l = tuple(c[c[:, :, 0].argmin()][0])
+    r = tuple(c[c[:, :, 0].argmax()][0])
+    bob = [t,b,l,r]
+
+    max = -1
+    for i in bob:
+        for j in bob:
+            if i == j:
+                continue
+            dist = ((i[0]  - j[0])**2 + (i[1]  - j[1])**2  )**0.5
+            if dist > max:
+                max = dist
+
+    ac = cv2.arcLength(c, True) / 2.0
+    return max / ac
+
+
 def find_gate_posts(img, display_results=False):
     """ Find gate posts from a sonar scan image
 
@@ -84,29 +104,42 @@ def find_gate_posts(img, display_results=False):
     greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
     cm_image = cv2.applyColorMap(greyscale_image, cv2.COLORMAP_VIRIDIS)
 
+    kernel = np.ones((5, 5), np.uint8)
+
+    # cm_image = cv2.erode(cm_image, kernel, iterations=1)
+    kernel = np.ones((5, 5), np.uint8)
+    cm_image = cv2.dilate(cm_image, kernel, iterations=3)
+    kernel = np.ones((4, 4), np.uint8)
+    cm_image = cv2.erode(cm_image, kernel, iterations=1)
+
+    cm_image = cv2.medianBlur(cm_image, 5)  # Removes salt and pepper noise
+
     cm_copy_image = cm_image
     cv2.copyTo(cm_image, cm_copy_image)
-    cm_image = cv2.medianBlur(cm_image, 5)  # Removes salt and pepper noise
 
     mask = mask_sonar_image(cm_image, display_results)
 
     cm_circles = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[-2]
-    cm_circles = sorted(cm_circles, key=cv2.contourArea, reverse=True)
-    cm_circles = list(filter(lambda x: (cv2.contourArea(x) > 200), cm_circles))
-    cm_circles = list(filter(lambda x: (cv2.arcLength(x, True)**2/(4*math.pi*cv2.contourArea(x)) < 5.4), cm_circles))
+
+    cm_circles = list(filter(lambda x: (cv2.contourArea(x) > 200 and cv2.contourArea(x) < 5000), cm_circles))
+    cm_circles = sorted(cm_circles,
+                        key=lambda x: (arcity(x)),
+                        reverse=False)
+
+    cm_circles = list(filter(lambda x: (cv2.arcLength(x, True)**2/(4*math.pi*cv2.contourArea(x)) > 2.5), cm_circles))
 
     if len(cm_circles) < 1:
         print("Not enough circles found")
         return None
 
-    filtered_circles = cm_circles[0:2]
+    filtered_circles = cm_circles[0:1]
 
     circle_positions = []
     for circle in filtered_circles:  # find center of circle code
         M = cv2.moments(circle)
         cX = int(M["m10"] / M["m00"])
         cY = int(M["m01"] / M["m00"])
-        circle_positions.append((cX, cY))
+        circle_positions.append((cX, cY, arcity(circle), cv2.arcLength(circle, True)**2/(4*math.pi*cv2.contourArea(circle))   ))
 
     if display_results:
         cv2.drawContours(cm_copy_image, filtered_circles, -1, (0, 255, 0), 2)
@@ -116,7 +149,7 @@ def find_gate_posts(img, display_results=False):
     return circle_positions
 
 
-def find_bouy(img, display_results=False):
+def find_buoy(img, display_results=False):
     """ Find buoys from a sonar scan image
 
     Args:
@@ -137,11 +170,11 @@ def find_bouy(img, display_results=False):
     mask = mask_sonar_image(cm_image, display_results)
 
     cm_circles = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[-2]
-    cm_circles = list(filter(lambda x: (cv2.contourArea(x) > 100), cm_circles))
+    cm_circles = list(filter(lambda x: (cv2.contourArea(x) > 250), cm_circles))
 
     cm_circles = sorted(cm_circles,
                         key=lambda x: (cv2.arcLength(x, True)**2/(4*math.pi*cv2.contourArea(x))),
-                        reverse=True)
+                        reverse=False)
 
     filtered_circles = cm_circles[0:1]
 
@@ -150,7 +183,7 @@ def find_bouy(img, display_results=False):
         M = cv2.moments(circle)
         cX = int(M["m10"] / M["m00"])
         cY = int(M["m01"] / M["m00"])
-        circle_positions.append((cX, cY))
+        circle_positions.append((cX, cY, (cv2.arcLength(circle, True)**2/(4*math.pi*cv2.contourArea(circle))), cv2.contourArea(circle)    ))
 
     if display_results:
         cv2.drawContours(cm_copy_image, filtered_circles, -1, (0, 255, 0), 2)
