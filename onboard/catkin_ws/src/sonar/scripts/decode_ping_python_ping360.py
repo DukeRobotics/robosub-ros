@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
 
-import math
-import struct, sys, re
-import numpy as np
-from PIL import ImageFilter
-import matplotlib.pyplot as plt
-from scipy import signal
-import cv2
+import struct
+import sys
+import re
+from brping import PingParser, PingMessage
+from dataclasses import dataclass
+from typing import IO, Any, Set
+from sonar_image_processing import build_sonar_image, find_gate_posts
+import os
+
+
 # 3.7 for dataclasses, 3.8 for walrus (:=) in recovery
 assert (sys.version_info.major >= 3 and sys.version_info.minor >= 8), \
     "Python version should be at least 3.8."
 
-from brping import PingParser, PingMessage
-from dataclasses import dataclass
-from typing import IO, Any, Set
-from localSonar import Sonar
 
 def indent(obj, by=' '*4):
     return by + str(obj).replace('\n', f'\n{by}')
@@ -84,8 +83,7 @@ class PingViewerLogReader:
     MAX_ARRAY_LENGTH = 1220*2
     # timestamp format for recovery hh:mm:ss.xxx
     # includes optional \x00 (null byte) before every character because Windows
-    TIMESTAMP_FORMAT = re.compile(
-        b'(\x00?\d){2}(\x00?:\x00?[0-5]\x00?\d){2}\x00?\.(\x00?\d){3}')
+    TIMESTAMP_FORMAT = re.compile(rb'(\x00?\d){2}(\x00?:\x00?[0-5]\x00?\d){2}\x00?\.(\x00?\d){3}')
     MAX_TIMESTAMP_LENGTH = 12 * 2
 
     def __init__(self, filename: str):
@@ -140,7 +138,7 @@ class PingViewerLogReader:
             prev_ = next_
             next_ = file.read(cls.MAX_ARRAY_LENGTH)
             if not next_:
-                break # run out of file
+                break  # run out of file
             amount_read += cls.MAX_ARRAY_LENGTH
             if start == 0 and prev_:
                 # onto the second read
@@ -186,7 +184,7 @@ class PingViewerLogReader:
                 try:
                     yield self.unpack_message(file)
                 except struct.error:
-                    break # reading complete
+                    break  # reading complete
 
     def parser(self, message_ids: Set[int] = {1300, 2300, 2301}):
         """ Returns a generator that parses and decodes this log's messages.
@@ -210,16 +208,16 @@ class PingViewerLogReader:
                     decoded_message = self._parser.rx_msg
                     if decoded_message.message_id in message_ids:
                         yield timestamp, decoded_message
-                        break # this message is (should be?) over, get next one
+                        break  # this message is (should be?) over, get next one
                 # else message is still being parsed
 
 
 @dataclass(init=False, order=True)
 class Ping1DSettings:
-    transmit_duration : int # [us]
-    scan_start        : int # [mm] from transducer
-    scan_length       : int # [mm]
-    gain_setting      : int # [0-6 -> 0.6-144]
+    transmit_duration: int  # [us]
+    scan_start: int  # [mm] from transducer
+    scan_length: int  # [mm]
+    gain_setting: int  # [0-6 -> 0.6-144]
 
     def __init__(self, profile: PingMessage):
         for attr in self.__annotations__:
@@ -227,9 +225,8 @@ class Ping1DSettings:
 
     @property
     def gain(self):
-        """ Returns device receiver 'gain', as specified by 
+        """ Returns device receiver 'gain', as specified by
         https://docs.bluerobotics.com/ping-protocol/pingmessage-ping1d/#1300-profile.
-        
         """
         assert 0 <= self.gain_setting <= 6, "Invalid gain value."
         return (0.6, 1.8, 5.5, 12.9, 30.2, 66.1, 144)[self.gain_setting]
@@ -237,12 +234,12 @@ class Ping1DSettings:
 
 @dataclass(init=False, order=True)
 class Ping360Settings:
-    mode               : int # Ping360 = 1
-    gain_setting       : int # 0-2 (low,normal,high)
-    transmit_duration  : int # 1-1000 [us]
-    sample_period      : int # 80-40_000 [25ns]
-    transmit_frequency : int # [kHz]
-    number_of_samples  : int # per ping
+    mode: int  # Ping360 = 1
+    gain_setting: int  # 0-2 (low,normal,high)
+    transmit_duration: int  # 1-1000 [us]
+    sample_period: int  # 80-40_000 [25ns]
+    transmit_frequency: int  # [kHz]
+    number_of_samples: int  # per ping
 
     def __init__(self, device_data: PingMessage):
         for attr in self.__annotations__:
@@ -258,7 +255,7 @@ class Ping360Settings:
         """ Returns device sample period in microseconds. """
         assert 80 <= self.sample_period <= 40_000, "Invalid sample period."
         return self.sample_period * 25e-3
-    
+
     def meters_per_sample(self, v_sound):
         """ Returns the distance [m] covered by each sample of a ping.
 
@@ -270,146 +267,36 @@ class Ping360Settings:
         return v_sound * self.sample_period_us * 1e-6 / 2
 
 
-def increase_brightness(img, value=20):
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    h, s, v = cv2.split(hsv)
+def get_bin_file_parser(local_filename):
+    """ Get parser for saved sonar data binary file
 
-    lim = 255 - value
-    v[v > lim] = 255
-    v[v <= lim] += value
+    Args:
+        local_filename (str): Name of the binary file in sampleData
 
-    final_hsv = cv2.merge((h, s, v))
-    img = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
-    return img
-
-def find_gate_posts(img): 
-    
-    greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
-    cm_image = cv2.applyColorMap(greyscale_image, cv2.COLORMAP_VIRIDIS)
-
-    cm_image = cv2.imread('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image2.jpeg', cv2.IMREAD_COLOR)
-
-    cm_copy_image = cm_image
-    cv2.copyTo(cm_image, cm_copy_image)
-    cm_image = cv2.medianBlur(cm_image,5) # blur image
-
-    lower_color_bounds = (40,80,0) # filter out lower values (ie blue)
-    upper_color_bounds = (230,250,255) #filter out too high values
-    mask = cv2.inRange(cm_image,lower_color_bounds,upper_color_bounds)
-
-    cm_circles = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[-2]
-    cm_circles = sorted(cm_circles, key=cv2.contourArea, reverse=True)
-    cm_circles = list(filter(lambda x: (cv2.contourArea(x) > 200), cm_circles)) 
-    cm_circles = list(filter(lambda x: (cv2.arcLength(x, True)**2/(4*math.pi*cv2.contourArea(x)) < 5.4), cm_circles)) 
-
-    #return if not both goal posts found 
-    if(len(cm_circles) < 1):
-        print("not enough circles found")
-        return None
-
-    filtered_circles = cm_circles[0:2]
-
-    circle_positions = []
-    for circle in filtered_circles:  #find center of circle code
-        M = cv2.moments(circle)
-        cX = int(M["m10"] / M["m00"])
-        cY = int(M["m01"] / M["m00"])
-        circle_positions.append((cX,cY))
-        #print("object at " + "x: " + str(cX) + "  Y: " + str(cY)  +  " has circularity : " + str(perimeter**2/ (4*math.pi*area) ) )
-        #cv2.circle(cm_copy_image, (cX, cY), 3, (255, 255, 255), -1)
-
-    cv2.drawContours(cm_copy_image, filtered_circles, -1, (0,255,0), 2)
-    cv2.imshow("image", cm_copy_image)
-    cv2.waitKey(0)
-
-    return circle_positions
-
-
-def find_bouy(img): 
-    
-    greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
-    cm_image = cv2.applyColorMap(greyscale_image, cv2.COLORMAP_VIRIDIS)
-
-    cm_image = cv2.imread('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image3.jpeg', cv2.IMREAD_COLOR)
-
-    cm_copy_image = cm_image
-    cv2.copyTo(cm_image, cm_copy_image)
-    cm_image = cv2.medianBlur(cm_image,5) # blur image
-
-    lower_color_bounds = (40,80,0) # filter out lower values (ie blue)
-    upper_color_bounds = (230,250,255) #filter out too high values
-    mask = cv2.inRange(cm_image,lower_color_bounds,upper_color_bounds)
-
-    cv2.imshow("image", mask)
-    cv2.waitKey(0)
-
-
-
-
-    cm_circles = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[-2]
-    cm_circles = list(filter(lambda x: (cv2.contourArea(x) > 100), cm_circles)) 
-
-    cm_circles = sorted(cm_circles, key=lambda x: (cv2.arcLength(x, True)**2/(4*math.pi*cv2.contourArea(x))), reverse=True)
-    #cm_circles = list(filter(lambda x: (cv2.arcLength(x, True)**2/(4*math.pi*cv2.contourArea(x)) < 5.4), cm_circles)) 
-
-
-
-    filtered_circles = cm_circles[0:1]
-
-    circle_positions = []
-    for circle in filtered_circles:  #find center of circle code
-        M = cv2.moments(circle)
-        cX = int(M["m10"] / M["m00"])
-        cY = int(M["m01"] / M["m00"])
-        circle_positions.append((cX,cY))
-        #print("object at " + "x: " + str(cX) + "  Y: " + str(cY)  +  " has circularity : " + str(perimeter**2/ (4*math.pi*area) ) )
-        #cv2.circle(cm_copy_image, (cX, cY), 3, (255, 255, 255), -1)
-
-    cv2.drawContours(cm_copy_image, filtered_circles, -1, (0,255,0), 2)
-    cv2.imshow("image", cm_copy_image)
-    cv2.waitKey(0)
-
-def getdecodedfile(localfilename):
-    import os
+    Returns:
+        PingParser() iterable: Iterable to get the decoded messages from a .bin file
+    """
     dirname = os.path.dirname(__file__)
-    
-    filename =  dirname + localfilename
-
-    # Open log and begin processing
-    log = PingViewerLogReader("\\sampleData\\"+filename)
-
+    filepath = os.path.join(dirname, "sampleData", local_filename)
+    log = PingViewerLogReader(filepath)
     return log.parser()
 
+
+def test_finding_gate_from_log_file():
+    """ Test for finding gate from SampleTylerData.bin """
+    parser = get_bin_file_parser('SampleTylerData.bin')
+
+    data_list = []
+    for index, (timestamp, decoded_message) in enumerate(parser):
+        if index >= 49 and index <= 149:
+            data_list.append(decoded_message.data)
+
+    JPEG_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'sampleData', 'Sonar_Image.jpeg')
+
+    sonar_img = build_sonar_image(data_list, display_results=True, jpeg_save_path=JPEG_SAVE_PATH)
+    posts = find_gate_posts(sonar_img, display_results=True)
+    print(posts)
+
+
 if __name__ == "__main__":
-
-    import os
-    dirname = os.path.dirname(__file__)
-    
-    filename =  dirname + '\\sampleData\\SampleTylerData.bin'
-
-    # Open log and begin processing
-    log = PingViewerLogReader(filename)
-
-    for index, (timestamp, decoded_message) in enumerate(log.parser()):
-        
-        if(index >= 49 and index <= 149):
-            split_bytes = [decoded_message.data[i:i+1] for i in range(len(decoded_message.data))]
-            split_bytes = split_bytes[100:]
-            byte_from_int = int.from_bytes(split_bytes[0], "big")
-            intarray = np.array([byte_from_int])
-            for i in range(len(split_bytes) -1):
-                byte_from_int = int.from_bytes(split_bytes[i+1], "big")
-                #if(byte_from_int <= 90):
-                    #byte_from_int = 0
-                intarray = np.append(intarray, [byte_from_int])
-            if(index == 49):
-                sonar_matrix = np.asarray(intarray)
-            else:
-                sonar_matrix = np.vstack((sonar_matrix, intarray))
-
-    print("finding posts")
-    found_posts = find_gate_posts(sonar_matrix)
-    print(found_posts)
-    plt.imsave('onboard\\catkin_ws\\src\\sonar\\scripts\\sampleData\\Sonar_Image.jpeg', sonar_matrix)
-
-        
+    test_finding_gate_from_log_file()
