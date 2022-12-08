@@ -1,5 +1,5 @@
 <launch>
-	<arg name="feed_path" />
+	<arg name="feed_path" default="" />
 	<arg name="topic" default="" />
 	<arg name="framerate" default="24" />
 	<node name="test_images" pkg="cv" type="test_images.py" output="screen">
