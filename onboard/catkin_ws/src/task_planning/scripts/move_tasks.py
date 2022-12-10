@@ -40,7 +40,7 @@ class MoveToPoseGlobalTask(smach.State):
                 self.coords[4],
                 self.coords[5]))
 
-        new_pose = self.getPose()
+        new_pose = self._get_pose()
         # Only resend the movement goal if our desired pose has changed
         if self.last_pose is None or not task_utils.at_pose(self.last_pose, new_pose, 0.0001, 0.0001):
             self.last_pose = new_pose
@@ -55,7 +55,7 @@ class MoveToPoseGlobalTask(smach.State):
 
         return 'continue'
 
-    def getPose(self):
+    def _get_pose(self):
         return self.desired_pose
 
 
@@ -78,7 +78,7 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
         self.listener = listener
         self.first_pose = True
 
-    def getPose(self):
+    def _get_pose(self):
         if self.firstPose:
             self.local_pose = task_utils.transform_pose(self.listener, 'base_link', 'odom', self.desired_pose)
             self.first_pose = False
@@ -115,7 +115,7 @@ class AllocateVelocityLocalTask(smach.State):
         angular = Vector3(x=self.coords[3], y=self.coords[4], z=self.coords[5])
         self.desired_twist = Twist(linear=linear, angular=angular)
 
-        new_twist = self.getPose()
+        new_twist = self._get_twist()
 
         # Only resend the movement goal if our desired pose has changed
         if self.last_pose is None or not task_utils.at_vel(self.last_twist, new_twist, 0.0001, 0.0001):
@@ -124,7 +124,7 @@ class AllocateVelocityLocalTask(smach.State):
 
         return 'done'
 
-    def getTwist(self):
+    def _get_twist(self):
         return self.desired_twist
 
 
@@ -147,7 +147,7 @@ class AllocateVelocityGlobalTask(AllocateVelocityLocalTask):
         self.listener = listener
         self.first_twist = True
 
-    def getTwist(self):
+    def _get_twist(self):
         if self.first_twist:
             self.global_twist = task_utils.transform_pose(self.listener, 'odom', 'base_link', self.desired_twist)
             self.first_twist = False
