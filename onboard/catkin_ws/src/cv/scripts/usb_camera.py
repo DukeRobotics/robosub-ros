@@ -25,6 +25,7 @@ class USBCamera:
 
         # Read custom camera configs from launch command
         self.topic = rospy.get_param("~topic")
+        self.topic = f'/camera/{self.topic}/image_raw'
         self.channel = rospy.get_param("~channel")
         # If no custom framerate is passed in, set self.framerate to None to trigger default framerate
         self.framerate = rospy.get_param("~framerate")

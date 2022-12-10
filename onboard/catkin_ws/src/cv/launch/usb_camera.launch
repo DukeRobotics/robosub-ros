@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-	<arg name="topic" default="/camera/usb_camera/image_raw" />
+	<arg name="topic" default="usb_camera" />
 	<arg name="channel" default="0" />
 	<arg name="framerate" default="-1" />
 	<node name="usb_camera" pkg="cv" type="usb_camera.py" output="screen">
