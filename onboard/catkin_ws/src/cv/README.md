@@ -9,21 +9,23 @@ on which classes are being detected and which cameras are being used.
 This package contains code for the Luxonis OAK-D PoE camera, which uses a python package called [depthai](https://docs.luxonis.com/en/latest/). This camera handles neural network and image processing on the camera's processor, which necessitates a different code structure. Because of this, we have depthai-specific scripts and launch files that can be run for any Luxonis / depthai camera. For running other cameras, see the instructions below, titled Non-Depthai Cameras.
 
 ### Running the Code
-To stream the feed or perform spatial detection using the OAK camera, use `roslaunch` with either of the following two files.
-* `depthai_camera_connext.launch`: Connects to the OAK camera and uploads the image pipeline.
+To stream the feed or perform spatial detection using the OAK camera, use `roslaunch` with the following three files.
 * `depthai_publish_image_stream.launch`: Streams the live feed from the camera. You can choose what to publish from the camera (rgb video, disparity map .etc) by setting the appropriate boolean parameters.
 * `depthai_spatial_detection.launch`: Runs spatial detection. Waits for a enable_model rosservice call to specify what model to activate. This requires a valid `.blob` file in `models/` and the path to this `.blob` file should be specified in the `depthai_models.yaml` file. For more information about these files, see the code structure outline below. This will publish `CVObject` messages to a topic for each class that the model detects. 
-* `depthai_simulate_detection.launch`: Listens to an image stream launched by running `test_images.py` (via `roslaunch cv test_images.launch`) and runs spatial detection on said stream. Note that this input stream can also be a still image. This will publish both `CVObject` messages to a topic for each class that the model detects as well as a live feed of the images with bounding boxes overlaid on the detections.
+* `depthai_simulate_detection.launch`: Listens to an image stream launched by running `test_images.py` (via `roslaunch cv test_images.launch`) and runs spatial detection on said stream on the model provided through `<depthai_model_name>`. Note that this input stream can also be a still image. This will publish both `CVObject` messages to a topic for each class that the model detects as well as a live feed of the images with bounding boxes overlaid on the detections.
 
 ### Structure
 `scripts/`
-* `depthai_spatial_detection.py`: Waits for an enable_model rosservice call, and then publishes spatial detections using the model specified in the service call and in depthai_models.yaml.
+* `depthai_camera_connext.py`: Connects to the OAK camera and uploads the image pipeline.
 * `depthai_publish_image_stream.py`: Publishes a preview of the image feed from the OAK camera. This can be used to verify connection to the camera and to check if there are any issues with the camera feed.
-* `depthai_mock_camera_feed.py`: Simulates the camera feed by sending a still image to the camera, passing it through a neural network, and retrieving the output. It is meant for testing the object detection model, since we can feed test data to the camera without needing to have a live feed of our targets. This can be run outside of the Docker container.
+* `depthai_spatial_detection.py`: Waits for an enable_model rosservice call, and then publishes spatial detections using the model specified in the service call and in depthai_models.yaml.
+* `depthai_simulate_detection.launch`: Listens to an image stream launched by running `test_images.py` and runs spatial detection with a user specified depthai model on said stream.
 
 `launch/`
-* `depthai_publish_image_stream.launch`: Runs the image stream script
-* `depthai_spatial_detection.launch`: Runs the spatial detection script
+* `depthai_camera_connext.launch`: Connects to the OAK camera and uploads the image pipeline.
+* `depthai_publish_image_stream.launch`: Runs the image stream script.
+* `depthai_spatial_detection.launch`: Runs the spatial detection script.
+* `depthai_spatial_detection.launch`: Runs the simulated spatial detection script.
 
 `models/`
 * `depthai_models.yaml`: contains models for object detection. A model is specified by a name, what classes it predicts, and the path to a .blob file. This file format is specific to the processors that the OAK cameras use.
