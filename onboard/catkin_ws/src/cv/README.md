@@ -10,8 +10,10 @@ This package contains code for the Luxonis OAK-D PoE camera, which uses a python
 
 ### Running the Code
 To stream the feed or perform spatial detection using the OAK camera, use `roslaunch` with either of the following two files.
-* `depthai_publish_image_stream.launch`: Streams the live feed from the camera.
+* `depthai_camera_connext.launch`: Connects to the OAK camera and uploads the image pipeline.
+* `depthai_publish_image_stream.launch`: Streams the live feed from the camera. You can choose what to publish from the camera (rgb video, disparity map .etc) by setting the appropriate boolean parameters.
 * `depthai_spatial_detection.launch`: Runs spatial detection. Waits for a enable_model rosservice call to specify what model to activate. This requires a valid `.blob` file in `models/` and the path to this `.blob` file should be specified in the `depthai_models.yaml` file. For more information about these files, see the code structure outline below. This will publish `CVObject` messages to a topic for each class that the model detects. 
+* `depthai_simulate_detection.launch`: Listens to an image stream launched by running `test_images.py` (via `roslaunch cv test_images.launch`) and runs spatial detection on said stream. Note that this input stream can also be a still image. This will publish both `CVObject` messages to a topic for each class that the model detects as well as a live feed of the images with bounding boxes overlaid on the detections.
 
 ### Structure
 `scripts/`
