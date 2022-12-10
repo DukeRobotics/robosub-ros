@@ -1,6 +1,7 @@
 from cmath import nan
 import numpy as np
 import rospy
+import smach
 import tf2_geometry_msgs
 import tf2_ros
 from geometry_msgs.msg import Vector3, Pose, PoseStamped, PoseWithCovariance, \
@@ -10,7 +11,6 @@ from tf.transformations import euler_from_quaternion, quaternion_multiply
 from std_msgs.msg import Header
 from tf.transformations import quaternion_from_euler
 from copy import deepcopy
-from task import Task
 
 
 def linear_distance(point1, point2):
@@ -251,7 +251,7 @@ def cv_object_position(cv_obj_data):
     return [cv_obj_data.x, cv_obj_data.y, cv_obj_data.z]
 
 
-class ObjectVisibleTask(Task):
+class ObjectVisibleTask(smach.State):
     def __init__(self, image_name, timeout):
         super(ObjectVisibleTask, self).__init__(["undetected", "detected"],
                                                 input_keys=['image_name'],
@@ -271,7 +271,7 @@ class ObjectVisibleTask(Task):
         return "undetected"
 
 
-class MutatePoseTask(Task):
+class MutatePoseTask(smach.State):
     def __init__(self, mutablePose):
         super().__init__(['done'], input_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'])
         self.mutablePose = mutablePose

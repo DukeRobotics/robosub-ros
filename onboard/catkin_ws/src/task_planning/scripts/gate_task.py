@@ -6,7 +6,6 @@ from numpy import array_equal
 from task_utils import cv_object_position, object_vector, ObjectVisibleTask
 import smach
 import rospy
-from task import Task
 from move_tasks import MoveToPoseLocalTask, MoveToPoseGlobalTask
 import tf
 
@@ -47,14 +46,14 @@ def main():
 # Check if we actually want this later
 
 
-def create_gate_task_sm(listener):
-    return create_gate_task_sm_DEFUNCT(listener, 1)
+def create_gate_task_sm(controls, listener):
+    return create_gate_task_sm_DEFUNCT(controls, listener, 1)
 
 # Rotate direction is +1 or -1 depending on how we should rotate
 
 
-def create_gate_task_sm_DEFUNCT(listener, rotate_direction):
-    sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
+def create_gate_task_sm_DEFUNCT(controls, listener, rotate_direction):
+    sm = smach.StateMachine(outcomes=['done'])
     gate_euler_position = [0, 0, 0, 0, 0, 0]
     image_name = "bootleggerbuoy"
     with sm:
@@ -64,9 +63,10 @@ def create_gate_task_sm_DEFUNCT(listener, rotate_direction):
             'detected': 'SURVEY_GATE'
         })
 
-        smach.StateMachine.add('ROTATE_TO_GATE', MoveToPoseLocalTask(0, 0, 0, 0, 0, 0.25 * rotate_direction, listener),
+        smach.StateMachine.add('ROTATE_TO_GATE', MoveToPoseLocalTask(0, 0, 0, 0, 0, 0.25 * rotate_direction, controls, listener),
                                transitions={
-            'done': 'CHECK_IMAGE_VISIBLE'
+            'done': 'CHECK_IMAGE_VISIBLE',
+            'continue': 'ROTATE_TO_GATE'
         })
 
         smach.StateMachine.add('SURVEY_GATE', SurveyGateTask(image_name, 20, gate_euler_position),
@@ -74,9 +74,10 @@ def create_gate_task_sm_DEFUNCT(listener, rotate_direction):
             'done': 'MOVE_THROUGH_GATE'
         })
 
-        smach.StateMachine.add('MOVE_THROUGH_GATE', MoveToPoseLocalTask(*gate_euler_position, listener),
+        smach.StateMachine.add('MOVE_THROUGH_GATE', MoveToPoseLocalTask(*gate_euler_position, controls, listener),
                                transitions={
-            'done': 'succeeded'
+            'done': 'done',
+            'continue': 'MOVE_THROUGH_GATE'
         })
     return sm
 
@@ -127,14 +128,14 @@ def create_simplest_gate_task_sm(listener):
     return sm
 
 
-class SurveyGateImage(Task):
+class SurveyGateImage(smach.State):
     def __init__(self, object_name, time, global_object_position):
         super(SurveyGateTask, self).__init__(["undetected", "detected"])
         self.object_name = object_name
         self.time = time
         self.global_object_position = global_object_position
 
-    def run(self):
+    def execute(self, userdata):
         millis = 200  # for 5 times per second
         rate = rospy.Rate(millis)
         total = 0
@@ -159,14 +160,14 @@ class SurveyGateImage(Task):
         return "undetected"
 
 
-class SurveyGateTask(Task):
+class SurveyGateTask(smach.State):
     def __init__(self, object_name, time, output_euler_position):
         super(SurveyGateTask, self).__init__(["done"])
         self.object_name = object_name
         self.time = time
         self.output_euler_position = output_euler_position
 
-    def run(self, userdata):
+    def execute(self, userdata):
         millis = 10
         rate = rospy.Rate(millis)
         total = 0

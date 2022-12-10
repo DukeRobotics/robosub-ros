@@ -8,6 +8,7 @@ from custom_msgs.msg import ControlsDesiredPoseAction, ControlsDesiredTwistActio
 
 
 class ControlsInterface:
+    STATE_TOPIC = 'state'
     DESIRED_POSE_ACTION = 'controls/desired_pose'
     DESIRED_TWIST_ACTION = 'controls/desired_twist'
 

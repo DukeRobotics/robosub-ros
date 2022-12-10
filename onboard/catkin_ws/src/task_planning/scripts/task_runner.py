@@ -4,34 +4,32 @@ import rospy
 import smach
 import tf
 from gate_task import create_gate_task_sm
+from interface.controls import ControlsInterface
 
 
-class TaskRunner:
+class TaskRunner(smach.StateMachine):
     RATE = 30  # Hz
 
     def __init__(self):
+        super(TaskRunner, self).__init__(outcomes=['done'])
         rospy.init_node("task_planning")
         self.listener = tf.TransformListener()
+        self.controls = ControlsInterface(self.listener)
 
-    def start(self):
-        sm_top = smach.StateMachine(outcomes=['task_runner_succeeded', 'task_runner_failed'])
-
-        with sm_top:
-            sm_gate = create_gate_task_sm(self.listener)
-            smach.StateMachine.add('GATE_STATE', sm_gate,
+        with self:
+            smach.StateMachine.add('GATE_TASK', create_gate_task_sm(self.controls, self.listener),
                                    transitions={
-                                       'succeeded': 'task_runner_succeeded',
-                                       'failed': 'task_runner_failed'})
+                                       'done': 'done'})
 
+    def execute(self):
         rospy.loginfo("Waiting for transform listener")
         self.listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(15))
-
-        sm_top.execute()
+        super(TaskRunner, self).execute()
 
 
 def main():
     try:
-        TaskRunner().start()
+        TaskRunner().execute()
     except rospy.ROSInterruptException:
         pass
 
