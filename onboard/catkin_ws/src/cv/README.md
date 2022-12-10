@@ -32,7 +32,13 @@ To stream the feed or perform spatial detection using the OAK camera, use `rosla
 # Non-Depthai Cameras
 
 ## USB Camera
-This package also contains driver code to publish a camera stream from a USB-type camera in `usb_camera.py`. A USB camera can be located by `/dev/video*` on a linux computer, where `*` can be replaced by any number specifying a given camera channel (default is `0`, with the number increasing for each new camera you plug in). The script `usb_camera.py` uses OpenCV to capture a stream frame by frame from a specified USB camera channel and publishes it to a specified ros topic. Use `roslaunch cv usb_camera.launch` to start a stream once a USB camera has been plugged in. Note that the camera must be plugged in _before_ the docker container is started.
+This package also contains driver code to publish a camera stream from a USB-type camera in `usb_camera.py`. A USB camera can be located by `/dev/video*` on a linux computer, where `*` can be replaced by any number specifying a given camera channel (default is `0`, with the number increasing for each new camera you plug in). The script `usb_camera.py` uses OpenCV to capture a stream frame by frame from a specified USB camera channel and publishes it to a specified ros topic. Use `roslaunch cv usb_camera.launch` to start a stream once a USB camera has been plugged in. You can specify the ros topic which the usb camera feed is published to via
+
+```bash
+roslaunch cv usb_camera.launch topic:=<topic>
+```
+
+By default, `<topic>` is set to `/camera/usb_camera/image_raw`. Note that the camera must be plugged in _before_ the docker container is started.
 
 ## Setup
 
@@ -73,10 +79,10 @@ container under the directory `/root/.cache/torch/checkpoints/` (do not rename t
 To start up a CV node, run the following command:
 
 ```bash
-roslaunch cv cv_<camera>.launch
+roslaunch cv cv.launch camera:=<camera>
 ```
 
-Where `<camera>` is one of `left`, `right`, or `down`. 
+where `<camera>` refers to the topic which the camera feed is published to. For usb cameras and local simulated streams (i.e., a stream launched via `test_images.py`), this refers to the `<topic>` parameter passed in when you launched those files.
 
 After starting up a CV node, all models are initially disabled. You can select which model(s) you
 want to enable for this camera by using the following service (where `<camera>` is the value you
