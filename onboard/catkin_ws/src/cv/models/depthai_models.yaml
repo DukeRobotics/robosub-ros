@@ -1,0 +1,17 @@
+gate:
+  classes: ['gate', 'gate_side', 'gate_tick', 'gate_top', 'start_gate']
+  topic: cv/
+  weights: yolo_v4_tiny_gate_openvino_2021.3_6shave-2022-7-21_416_416.blob
+  input_size: [416, 416]
+  coordinate_size: 4
+  anchors: [10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]
+  anchor_masks: {"side26": [0, 1, 2], "side13": [3, 4, 5]}
+
+gate_buoy:
+  classes: ['buoy_bootlegger', 'buoy_gman', 'gate']
+  topic: cv/
+  weights: yolo_v4_tiny_buoys_and_gate_6shave.blob
+  input_size: [416, 416]
+  coordinate_size: 4
+  anchors: [10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]
+  anchor_masks: {"side26": [0, 1, 2], "side13": [3, 4, 5]}
