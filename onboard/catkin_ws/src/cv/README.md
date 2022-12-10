@@ -1,25 +1,26 @@
 # Computer Vision
 
-The computer vision package listens for images/frames coming from 3 different cameras: left, right, and down. The package 
-will then run pre-trained machine learning models on each frame and output bounding boxes for the various objects 
-in the frame. These objects could be the gate, buoys, etc. The package will publish to different topics depending 
+The computer vision package listens for images/frames coming from multiple cameras. The package 
+will then run pre-trained machine learning models frames from each camera and output bounding boxes for the various objects 
+in the frames. These objects could be the gate, buoys, etc. The package will publish to different topics depending 
 on which classes are being detected and which cameras are being used.
 
-## Depthai / Oak Camera
-This package contains code for the Luxonis OAK-D PoE camera, which uses a python package called [depthai](https://docs.luxonis.com/en/latest/). This camera handles neural network and image processing on the camera's processor, which necessitates a different code structure. Because of this, we have depthai-specific scripts and launch files that can be run for any Luxonis / depthai camera. For running other cameras, see the instructions below, titled Non-Depthai Cameras.
+## DepthAI Camera
+This package contains code for the Luxonis OAK-D PoE camera, which uses a python package called [depthai](https://docs.luxonis.com/en/latest/). This camera handles neural network and image processing on the camera's processor, which necessitates a different code structure. Because of this, we have DepthAI-specific scripts and launch files that can be run for any Luxonis / DepthAI camera. For running other cameras, see the instructions below, titled [Non-DepthAI Cameras](#non-depthai-cameras).
 
 ### Running the Code
 To stream the feed or perform spatial detection using the OAK camera, use `roslaunch` with the following three files.
-* `depthai_publish_image_stream.launch`: Streams the live feed from the camera. You can choose what to publish from the camera (rgb video, disparity map .etc) by setting the appropriate boolean parameters.
-* `depthai_spatial_detection.launch`: Runs spatial detection. Waits for a enable_model rosservice call to specify what model to activate. This requires a valid `.blob` file in `models/` and the path to this `.blob` file should be specified in the `depthai_models.yaml` file. For more information about these files, see the code structure outline below. This will publish `CVObject` messages to a topic for each class that the model detects. 
-* `depthai_simulate_detection.launch`: Listens to an image stream launched by running `test_images.py` (via `roslaunch cv test_images.launch`) and runs spatial detection on said stream on the model provided through `<depthai_model_name>`. Note that this input stream can also be a still image. This will publish both `CVObject` messages to a topic for each class that the model detects as well as a live feed of the images with bounding boxes overlaid on the detections.
+* `depthai_camera_connect.launch`: Connects to the DepthAI camera. If connection is successful, prints a success message to console. If connection is unsucessful, an error is raised.
+* `depthai_publish_image_stream.launch`: Streams the live feed from the camera. You can choose what to publish from the camera (rgb video, rgb preview, left mono, right mono, disparity map, and depth map) by setting the appropriate boolean parameters.
+* `depthai_spatial_detection.launch`: Runs spatial detection. Waits for a enable_model rosservice call to specify what model to activate. This requires a valid `.blob` file in `models/` and the path to this `.blob` file should be specified in the `depthai_models.yaml` file. For more information about these files, see the code structure outline below. This will publish `CVObject` messages to a topic for each class that the model detects, unaltered rgb preview frames that were input to the neural netowrk, and rgb preview frames with bounding boxes, classes, and confidence values overlaid.
+* `depthai_simulate_detection.launch`: Runs spatial detection on a still image, or on a image stream launched by running `test_images.py` [(see Simulating Image Feeds)](#simulating-image-feeds), on the DepthAI camera. Uses the model specified in arguments. If a still image is input, a JPEG file will be created that is the original image with detections visualized. If an image stream is input, CVObject messages will be published to the topic provided (all classes are published to a single topic), and a live feed of images with detections visualized is also published.
 
 ### Structure
 `scripts/`
-* `depthai_camera_connext.py`: Connects to the OAK camera and uploads the image pipeline.
+* `depthai_camera_connect.py`: Connects to the OAK camera and uploads the image pipeline. Used by all other DepthAI scripts.
 * `depthai_publish_image_stream.py`: Publishes a preview of the image feed from the OAK camera. This can be used to verify connection to the camera and to check if there are any issues with the camera feed.
 * `depthai_spatial_detection.py`: Waits for an enable_model rosservice call, and then publishes spatial detections using the model specified in the service call and in depthai_models.yaml.
-* `depthai_simulate_detection.launch`: Listens to an image stream launched by running `test_images.py` and runs spatial detection with a user specified depthai model on said stream.
+* `depthai_simulate_detection.launch`: Runs spatial detection on a user-specified DepthAI model using a still image or image feed as input.
 
 `launch/`
 * `depthai_camera_connext.launch`: Connects to the OAK camera and uploads the image pipeline.
@@ -28,12 +29,12 @@ To stream the feed or perform spatial detection using the OAK camera, use `rosla
 * `depthai_spatial_detection.launch`: Runs the simulated spatial detection script.
 
 `models/`
-* `depthai_models.yaml`: contains models for object detection. A model is specified by a name, what classes it predicts, and the path to a .blob file. This file format is specific to the processors that the OAK cameras use.
+* `depthai_models.yaml`: contains models for object detection. A model is specified by a name, what classes it predicts, and the path to a .blob file, as well as other configuration parameters. `input_size` is [width, height]. The blob file format is specific to the processors that the OAK cameras use.
 
 `footage_extraction`
 * Can be used to extract footage from rosbag files. See the README file in the footage_extraction directory.
 
-# Non-Depthai Cameras
+# Non-DepthAI Cameras
 
 ## USB Camera
 This package also contains driver code to publish a camera stream from a USB-type camera in `usb_camera.py`. A USB camera can be located by `/dev/video*` on a linux computer, where `*` can be replaced by any number specifying a given camera channel (default is `0`, with the number increasing for each new camera you plug in). The script `usb_camera.py` uses OpenCV to capture a stream frame by frame from a specified USB camera channel and publishes it to a specified ros topic. Use `roslaunch cv usb_camera.launch` to start a stream once a USB camera has been plugged in. You can specify the ros topic which the usb camera feed is published to via
@@ -117,9 +118,7 @@ Once 1+ models are enabled for a specific node, they listen and publish to topic
     (e.g. the example `bat` class above will publish to `/cv/left/bat`)
   * For each detected object in a frame, the model will publish the `xmin`, `ymin`, `xmax`, and `ymax` 
     coordinates (normalized to \[0, 1\], with (0, 0) being the top-left corner), `label` of the object, `score` (a confidence value in the range
-    of \[0, 1\]), and the `width` and `height` of the frame. 
-        * We apply nms to the model predictions before publishing. This removes predictions below a confidence threshold 
-      and will remove overlapping predictions for the same class
+    of \[0, 1\]), and the `width` and `height` of the frame.
   * If a model is enabled but detects no objects in a frame, it will not publish any messages to any topic
   * Type: custom_msgs/CVObject
 
