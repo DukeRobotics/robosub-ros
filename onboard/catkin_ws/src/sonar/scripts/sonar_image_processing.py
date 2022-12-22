@@ -2,6 +2,8 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+from decode_ping_python_ping360 import get_bin_file_parser
+import os
 
 
 def scan_and_build_sonar_image(sonar,
@@ -23,6 +25,23 @@ def scan_and_build_sonar_image(sonar,
     """
     data_list = sonar.get_sweep(100, 300)
     sonar_img = build_sonar_image(data_list, display_results, npy_save_path, jpeg_save_path)
+    return sonar_img
+
+
+def build_sonar_img_from_log_file(filename, start_index=49, end_index=149):
+    """ Builds a sonar image from a log file """
+    assert filename.endswith('.bin'), 'filename must be a .bin file'
+
+    parser = get_bin_file_parser(filename)
+
+    data_list = []
+    for index, (timestamp, decoded_message) in enumerate(parser):
+        if index >= start_index and index <= end_index:
+            data_list.append(decoded_message.data)
+
+    JPEG_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'sampleData', 'Sonar_Image.jpeg')
+
+    sonar_img = build_sonar_image(data_list, display_results=True, jpeg_save_path=JPEG_SAVE_PATH)
     return sonar_img
 
 
@@ -75,14 +94,14 @@ def arcity(c):
     b = tuple(c[c[:, :, 1].argmax()][0])
     l = tuple(c[c[:, :, 0].argmin()][0])
     r = tuple(c[c[:, :, 0].argmax()][0])
-    bob = [t,b,l,r]
+    bob = [t, b, l, r]
 
     max = -1
     for i in bob:
         for j in bob:
             if i == j:
                 continue
-            dist = ((i[0]  - j[0])**2 + (i[1]  - j[1])**2  )**0.5
+            dist = ((i[0] - j[0])**2 + (i[1] - j[1])**2)**0.5
             if dist > max:
                 max = dist
 
@@ -183,7 +202,8 @@ def find_buoy(img, display_results=False):
         M = cv2.moments(circle)
         cX = int(M["m10"] / M["m00"])
         cY = int(M["m01"] / M["m00"])
-        circle_positions.append((cX, cY, (cv2.arcLength(circle, True)**2/(4*math.pi*cv2.contourArea(circle))), cv2.contourArea(circle)    ))
+        circle_positions.append((cX, cY, (cv2.arcLength(circle, True)**2/(4*math.pi*cv2.contourArea(circle))),
+                                 cv2.contourArea(circle)))
 
     if display_results:
         cv2.drawContours(cm_copy_image, filtered_circles, -1, (0, 255, 0), 2)
@@ -203,7 +223,6 @@ def mask_sonar_image(img, display_results=False):
     Returns:
         ndarray: Mask image
     """
-    # TODO: this should probably be done with hue
     lower_color_bounds = (40, 80, 0)  # Filter out lower values (ie blue)
     upper_color_bounds = (230, 250, 255)  # Filter out too high values
     mask = cv2.inRange(img, lower_color_bounds, upper_color_bounds)
@@ -213,3 +232,22 @@ def mask_sonar_image(img, display_results=False):
         cv2.waitKey(0)
 
     return mask
+
+
+def test_img_proc(img, func=find_buoy):
+    if isinstance(img, np.ndarray):
+        sonar_img = img
+    elif isinstance(img, str):
+        if img.endswith('.bin'):
+            sonar_img = build_sonar_img_from_log_file('SampleTylerData.bin')
+        elif img.endswith('.npy'):
+            sonar_img = np.load(img)
+
+    locations = func(sonar_img, display_results=True)
+    print(locations)
+
+
+if __name__ == "__main__":
+    # test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData', 'SampleTylerData.bin'), find_buoy)
+    # test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData', 'buoy.npy'), find_buoy)
+    test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData', 'gate.npy'), find_gate_posts)
