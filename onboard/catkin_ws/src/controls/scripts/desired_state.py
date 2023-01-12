@@ -74,7 +74,7 @@ class DesiredStateHandler:
         self.power_server.preempt_request = True
 
         self._publish_control(self.pose_server, self.pid_manager.position_control,
-                                lambda: utils.parse_pose(utils.transform_pose(self.listener, 'odom', 'base_link', goal.pose)))
+                            lambda: utils.parse_pose(utils.transform_pose(self.listener, 'odom', 'base_link', goal.pose)))
 
     def _on_twist_received(self, goal):
         """Handler for receiving desired twists. Received desired twists are assumed to be defined in the
