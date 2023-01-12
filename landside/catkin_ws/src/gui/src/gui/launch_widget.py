@@ -29,6 +29,8 @@ class LaunchWidget(QWidget):
         self.remote_launch_timer.timeout.connect(self.check_remote_launch)
         self.remote_launch_timer.start(100)
 
+        self.collapse_button.clicked.connect(self.collapse_table)
+
         rospy.loginfo('Launch Widget successfully initialized')
 
     @pyqtProperty(str)
@@ -57,6 +59,14 @@ class LaunchWidget(QWidget):
         resp = stop_launch(int(self.table_widget.item(row_value, 0).text()))
         self.table_widget.removeRow(row_value)
         return resp.success
+
+    def collapse_table(self):
+        if self.table_widget.isHidden():
+            self.table_widget.show()
+            self.collapse_button.setArrowType(QtCore.Qt.UpArrow)
+        else:
+            self.table_widget.hide()
+            self.collapse_button.setArrowType(QtCore.Qt.DownArrow)
 
     def append_to_table(self, pid, package, name, args):
         self.table_widget.insertRow(self.table_widget.rowCount())
