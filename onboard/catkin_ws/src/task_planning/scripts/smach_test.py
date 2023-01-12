@@ -3,13 +3,13 @@
 import rospy
 import smach
 import random
-from task import Task
-from move_tasks import MoveToPoseGlobalTask, MoveToMutablePoseGlobalTask
+from move_tasks import MoveToPoseGlobalTask
 from time import sleep
 from geometry_msgs.msg import Vector3
 from tf import TransformListener
 import task_utils
 import gate_task
+from interface.controls import ControlsInterface
 
 # define state Foo
 
@@ -17,11 +17,10 @@ import gate_task
 def main():
     rospy.init_node('smach_test')
     listener = TransformListener()
-    print("before sleep")
-    sleep(2)
+    controls = ControlsInterface(listener)
     # print("before ctor")
     # move = AllocateVelocityLocalTask(0, 0, -10, 0, 0, 0)
-    MoveToPoseGlobalTask(5, 0, 0, 0, 0, 0)
+    # MoveToPoseGlobalTask(5, 0, 0, 0, 0, 0)
     # move.execute({})
     # return
     # rate = rospy.Rate(15)
@@ -45,7 +44,10 @@ def main():
     # while(True):
     #     t.run()
 
-    sm = gate_task_is_broken_test(listener)
+    sm = simple_move_test(controls)
+
+    rospy.loginfo("Waiting for transform listener")
+    listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(15))
 
     # Execute SMACH plan
     sm.execute()
@@ -101,7 +103,7 @@ def mutable_pose_test():
     return move_to_gate_cc
 
 
-class RandomizeOutputPose(Task):
+class RandomizeOutputPose(smach.State):
     def __init__(self):
         super(RandomizeOutputPose, self).__init__(["done"], output_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'])
 
@@ -215,8 +217,19 @@ def decision_making():
 
     return sm
 
+def simple_move_test(controls):
+    sm = smach.StateMachine(outcomes=['finish'])
 
-class OutputVector3Task(Task):
+    with sm:
+        smach.StateMachine.add("Move", MoveToPoseGlobalTask(5, 0, 0, 0, 0, 0, controls),
+                               transitions={
+                                    'continue': 'Move',
+                                    'done': 'finish'
+                                })
+
+    return sm
+
+class OutputVector3Task(smach.State):
     def __init__(self, vec):
         super().__init__(["done"], output_keys=['vec'])
         self.vec = vec
@@ -226,7 +239,7 @@ class OutputVector3Task(Task):
         return "done"
 
 
-class PrintVector3Task(Task):
+class PrintVector3Task(smach.State):
     def __init__(self):
         super().__init__(["done"], input_keys=['vec'])
 
@@ -237,7 +250,7 @@ class PrintVector3Task(Task):
         return "done"
 
 
-class RandomChoice(Task):
+class RandomChoice(smach.State):
     """Randomly chooses a number"""
 
     def __init__(self, options):
@@ -251,7 +264,7 @@ class RandomChoice(Task):
         return res
 
 
-class LogSomethingUseful(Task):
+class LogSomethingUseful(smach.State):
     """Logs Stuff"""
 
     def __init__(self):

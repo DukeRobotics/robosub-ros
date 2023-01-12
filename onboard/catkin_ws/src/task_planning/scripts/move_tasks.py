@@ -79,7 +79,7 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
         self.first_pose = True
 
     def _get_pose(self):
-        if self.firstPose:
+        if self.first_pose:
             self.local_pose = task_utils.transform_pose(self.listener, 'base_link', 'odom', self.desired_pose)
             self.first_pose = False
         return self.local_pose

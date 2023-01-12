@@ -25,7 +25,7 @@ class ControlsInterface:
         self.desired_pose_client.wait_for_server()
         self.desired_twist_client.wait_for_server()
 
-    def move_to_pose(self, pose):
+    def move_to_pose_global(self, pose):
         self.desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose=pose))
 
     def move_with_velocity(self, twist):
