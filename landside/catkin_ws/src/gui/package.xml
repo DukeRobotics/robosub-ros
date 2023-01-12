@@ -34,5 +34,6 @@
     <rqt_gui plugin="${prefix}/plugins/controls_plugin.xml"/>
     <rqt_gui plugin="${prefix}/plugins/launch_plugin.xml"/>
     <rqt_gui plugin="${prefix}/plugins/rosbag_plugin.xml"/>
+    <rqt_gui plugin="${prefix}/plugins/camera_status_plugin.xml"/>
   </export>
 </package>
