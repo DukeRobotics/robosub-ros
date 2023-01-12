@@ -1,0 +1,12 @@
+<library path="src">
+  <class name="Camera Status Plugin" type="gui.camera_status_plugin.CameraStatusPlugin" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      GUI interface for monitoring the status of cameras connected to the robot.
+    </description>
+    <qtgui>
+      <label>RoboSub Launch</label>
+      <icon type="theme">system-help</icon>
+      <statustip>GUI interface for monitoring the status of cameras connected to the robot.</statustip>
+    </qtgui>
+  </class>
+</library>
