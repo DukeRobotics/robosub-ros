@@ -18,31 +18,6 @@ def main():
     rospy.init_node('smach_test')
     listener = TransformListener()
     controls = ControlsInterface(listener)
-    # print("before ctor")
-    # move = AllocateVelocityLocalTask(0, 0, -10, 0, 0, 0)
-    # MoveToPoseGlobalTask(5, 0, 0, 0, 0, 0)
-    # move.execute({})
-    # return
-    # rate = rospy.Rate(15)
-    # while True:
-    #    move.execute({})
-    #    rate.sleep()
-    # move = MoveToPoseLocalTask(2, 0, 0, 0, 0, 0, listener)
-
-    # move.run(None)
-    # print("first move")
-    # move = MoveToPoseGlobalTask(2, 0, 0, 0, 0, 0)
-    # move.run(None)
-    # move = MoveToPoseGlobalTask(2, 2, 0, 0, 0, 0)
-    # move.run(None)
-    # move = MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0)
-    # move.run(None)
-    # print("AAAAAAAAAAAAAAAAAA")
-    # return
-
-    # t = AllocateVelocityGlobalTask(0.2, 0, 0, 0, 0, 0)
-    # while(True):
-    #     t.run()
 
     sm = simple_move_test(controls)
 
@@ -53,61 +28,11 @@ def main():
     sm.execute()
 
 
-def gate_task_is_broken_test(listener):
-    gate_calc_sm = smach.StateMachine(outcomes=['done'])
-    gate_start_mutable_pose = task_utils.MutablePose()
-    with gate_calc_sm:
-        smach.StateMachine.add('CALC_GATE_POSE', gate_task.CalcGatePoseTask(listener),
-                               transitions={
-            'done': 'CALC_DESIRED_ROBOT_GATE_POSE'
-        })
-
-        smach.StateMachine.add('CALC_DESIRED_ROBOT_GATE_POSE', gate_task.PoseFromVectorsTask(1, 3, 1),
-                               transitions={
-            'done': 'SET_MUTABLE_POSE'
-        })
-
-        smach.StateMachine.add('SET_MUTABLE_POSE', task_utils.MutatePoseTask(gate_start_mutable_pose),
-                               transitions={
-            'done': 'CALC_GATE_POSE'
-        })
-
-    return gate_calc_sm
-
-
-def mutable_pose_test():
-    def concurrence_term_calc_loop_cb(outcome_map):
-        return outcome_map['MOVE_IN_FRONT_OF_GATE'] == 'done'
-
-    gate_calc_sm = smach.StateMachine(outcomes=['done'])
-    gate_start_mutable_pose = task_utils.MutablePose()
-    with gate_calc_sm:
-        smach.StateMachine.add('RANDOM_OUTPUT_POSE', RandomizeOutputPose(),
-                               transitions={
-            'done': 'SET_MUTABLE_POSE'
-        })
-
-        smach.StateMachine.add('SET_MUTABLE_POSE', task_utils.MutatePoseTask(gate_start_mutable_pose),
-                               transitions={
-            'done': 'RANDOM_OUTPUT_POSE'
-        })
-
-    move_to_gate_cc = smach.Concurrence(outcomes=['done'],
-                                        default_outcome='done',
-                                        child_termination_cb=concurrence_term_calc_loop_cb,
-                                        outcome_map={'done': {'MOVE_IN_FRONT_OF_GATE': 'done'}})
-    with move_to_gate_cc:
-        smach.Concurrence.add('MOVE_IN_FRONT_OF_GATE', MoveToMutablePoseGlobalTask(gate_start_mutable_pose))
-        smach.Concurrence.add('CALC_FRONT_OF_GATE', gate_calc_sm)
-
-    return move_to_gate_cc
-
-
 class RandomizeOutputPose(smach.State):
     def __init__(self):
-        super(RandomizeOutputPose, self).__init__(["done"], output_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'])
+        super(RandomizeOutputPose, self).__init__(outcomes=["done"], output_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'])
 
-    def run(self, userdata):
+    def execute(self, userdata):
         sleep(1)
         if self.preempt_requested():
             self.service_preempt()
@@ -136,84 +61,84 @@ def object_passing():
     return sm
 
 
-def controls_testing():
+def controls_testing(controls):
     # Create a SMACH state machine
     sm = smach.StateMachine(outcomes=['finish'])
 
     # Open the container
     with sm:
         # Add states to the container
-        smach.StateMachine.add('Move1', MoveToPoseGlobalTask(0, 2, 0, 0, 0, 0),
-                               transitions={'done': 'Move1'})
+        smach.StateMachine.add('Move1', MoveToPoseGlobalTask(0, 2, 0, 0, 0, 0, controls),
+                               transitions={'done': 'Move1', 'continue': 'Move1'})
         # left square
-        smach.StateMachine.add('MoveLeft2', MoveToPoseGlobalTask(2, 2, 0, 0, 0, 0),
-                               transitions={'done': 'MoveLeft3'})
-        smach.StateMachine.add('MoveLeft3', MoveToPoseGlobalTask(0, 2, 0, 0, 0, 0),
-                               transitions={'done': 'MoveLeft4'})
-        smach.StateMachine.add('MoveLeft4', MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0),
-                               transitions={'done': 'finish'})
+        smach.StateMachine.add('MoveLeft2', MoveToPoseGlobalTask(2, 2, 0, 0, 0, 0, controls),
+                               transitions={'done': 'MoveLeft3', 'continue': 'MoveLeft2'})
+        smach.StateMachine.add('MoveLeft3', MoveToPoseGlobalTask(0, 2, 0, 0, 0, 0, controls),
+                               transitions={'done': 'MoveLeft4', 'continue': 'MoveLeft3'})
+        smach.StateMachine.add('MoveLeft4', MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0, controls),
+                               transitions={'done': 'finish', 'continue': 'MoveLeft4'})
         # right square
-        smach.StateMachine.add('MoveRight2', MoveToPoseGlobalTask(2, -2, 0, 0, 0, 0),
-                               transitions={'done': 'MoveRight3'})
-        smach.StateMachine.add('MoveRight3', MoveToPoseGlobalTask(0, -2, 0, 0, 0, 0),
-                               transitions={'done': 'MoveRight4'})
-        smach.StateMachine.add('MoveRight4', MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0),
-                               transitions={'done': 'finish'})
+        smach.StateMachine.add('MoveRight2', MoveToPoseGlobalTask(2, -2, 0, 0, 0, 0, controls),
+                               transitions={'done': 'MoveRight3', 'continue': 'MoveRight2'})
+        smach.StateMachine.add('MoveRight3', MoveToPoseGlobalTask(0, -2, 0, 0, 0, 0, controls),
+                               transitions={'done': 'MoveRight4', 'continue': 'MoveRight3'})
+        smach.StateMachine.add('MoveRight4', MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0, controls),
+                               transitions={'done': 'finish', 'continue': 'MoveRight4'})
 
     return sm
 
 
-def concurrency():
+def concurrency(controls):
     # Create a SMACH state machine
     sm = smach.StateMachine(outcomes=['finish'])
 
     # Open the container
     with sm:
         # Add states to the container
-        smach.StateMachine.add('Move1', MoveToPoseGlobalTask(2, 0, 0, 0, 0, 0),
-                               transitions={'done': 'ConcurrentMove2'})
+        smach.StateMachine.add('Move1', MoveToPoseGlobalTask(2, 0, 0, 0, 0, 0, controls),
+                               transitions={'done': 'ConcurrentMove2', 'continue': 'Move1'})
         cc = smach.Concurrence(outcomes=['done'],
                                default_outcome='done',
                                outcome_map={'done': {'Move2': 'done', 'Log': 'done'}})
         with cc:
-            smach.Concurrence.add('Move2', MoveToPoseGlobalTask(2, 2, 0, 0, 0, 0))
+            smach.Concurrence.add('Move2', MoveToPoseGlobalTask(2, 2, 0, 0, 0, 0, controls))
             smach.Concurrence.add('Log', LogSomethingUseful())
 
         smach.StateMachine.add('ConcurrentMove2', cc, transitions={'done': 'Move3'})
 
-        smach.StateMachine.add('Move3', MoveToPoseGlobalTask(0, 2, 0, 0, 0, 0),
-                               transitions={'done': 'Move4'})
-        smach.StateMachine.add('Move4', MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0),
-                               transitions={'done': 'finish'})
+        smach.StateMachine.add('Move3', MoveToPoseGlobalTask(0, 2, 0, 0, 0, 0, controls),
+                               transitions={'done': 'Move4', 'continue': 'Move3'})
+        smach.StateMachine.add('Move4', MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0, controls),
+                               transitions={'done': 'finish', 'continue': 'Move4'})
 
     return sm
 
 
-def decision_making():
+def decision_making(controls):
     # Create a SMACH state machine
     sm = smach.StateMachine(outcomes=['finish'])
 
     # Open the container
     with sm:
         # Add states to the container
-        smach.StateMachine.add('Move1', MoveToPoseGlobalTask(2, 0, 0, 0, 0, 0),
-                               transitions={'done': 'choice'})
+        smach.StateMachine.add('Move1', MoveToPoseGlobalTask(2, 0, 0, 0, 0, 0, controls),
+                               transitions={'done': 'choice', 'continue': 'Move1'})
         smach.StateMachine.add("choice", RandomChoice(2),
                                transitions={'0': 'MoveLeft2', '1': 'MoveRight2'})
         # left square
-        smach.StateMachine.add('MoveLeft2', MoveToPoseGlobalTask(2, 2, 0, 0, 0, 0),
-                               transitions={'done': 'MoveLeft3'})
-        smach.StateMachine.add('MoveLeft3', MoveToPoseGlobalTask(0, 2, 0, 0, 0, 0),
-                               transitions={'done': 'MoveLeft4'})
-        smach.StateMachine.add('MoveLeft4', MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0),
-                               transitions={'done': 'finish'})
+        smach.StateMachine.add('MoveLeft2', MoveToPoseGlobalTask(2, 2, 0, 0, 0, 0, controls),
+                               transitions={'done': 'MoveLeft3', 'continue': 'MoveLeft2'})
+        smach.StateMachine.add('MoveLeft3', MoveToPoseGlobalTask(0, 2, 0, 0, 0, 0, controls),
+                               transitions={'done': 'MoveLeft4', 'continue': 'MoveLeft3'})
+        smach.StateMachine.add('MoveLeft4', MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0, controls),
+                               transitions={'done': 'finish', 'continue': 'MoveLeft4'})
         # right square
-        smach.StateMachine.add('MoveRight2', MoveToPoseGlobalTask(2, -2, 0, 0, 0, 0),
-                               transitions={'done': 'MoveRight3'})
-        smach.StateMachine.add('MoveRight3', MoveToPoseGlobalTask(0, -2, 0, 0, 0, 0),
-                               transitions={'done': 'MoveRight4'})
-        smach.StateMachine.add('MoveRight4', MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0),
-                               transitions={'done': 'finish'})
+        smach.StateMachine.add('MoveRight2', MoveToPoseGlobalTask(2, -2, 0, 0, 0, 0, controls),
+                               transitions={'done': 'MoveRight3', 'continue': 'MoveRight2'})
+        smach.StateMachine.add('MoveRight3', MoveToPoseGlobalTask(0, -2, 0, 0, 0, 0, controls),
+                               transitions={'done': 'MoveRight4', 'continue': 'MoveRight3'})
+        smach.StateMachine.add('MoveRight4', MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0, controls),
+                               transitions={'done': 'finish', 'continue': 'MoveRight4'})
 
     return sm
 
@@ -231,19 +156,19 @@ def simple_move_test(controls):
 
 class OutputVector3Task(smach.State):
     def __init__(self, vec):
-        super().__init__(["done"], output_keys=['vec'])
+        super().__init__(outcomes=["done"], output_keys=['vec'])
         self.vec = vec
 
-    def run(self, userdata):
+    def execute(self, userdata):
         userdata.vec = self.vec
         return "done"
 
 
 class PrintVector3Task(smach.State):
     def __init__(self):
-        super().__init__(["done"], input_keys=['vec'])
+        super().__init__(outcomes=["done"], input_keys=['vec'])
 
-    def run(self, userdata):
+    def execute(self, userdata):
         print(userdata.vec)
         userdata.vec.z = 2
         print(userdata.vec)
@@ -258,7 +183,7 @@ class RandomChoice(smach.State):
 
         self.options = options
 
-    def run(self, userdata):
+    def execute(self, userdata):
         res = str(random.randint(0, self.options))
         rospy.loginfo(res)
         return res
@@ -270,7 +195,7 @@ class LogSomethingUseful(smach.State):
     def __init__(self):
         super(LogSomethingUseful, self).__init__(outcomes=["done"])
 
-    def run(self, userdata):
+    def execute(self, userdata):
         rate = rospy.Rate(1)
         for i in range(40):
             rospy.loginfo("something important")

@@ -252,7 +252,7 @@ def cv_object_position(cv_obj_data):
 
 
 class ObjectVisibleTask(smach.State):
-    def __init__(self, image_name, timeout):
+    def __init__(self, image_name, timeout=0):
         super(ObjectVisibleTask, self).__init__(["undetected", "detected"],
                                                 input_keys=['image_name'],
                                                 output_keys=['image_name'])
@@ -263,7 +263,7 @@ class ObjectVisibleTask(smach.State):
         cycles_per_second = 10
         rate = rospy.Rate(cycles_per_second)
         total = 0
-        while total < self.timeout * cycles_per_second:
+        while total <= self.timeout * cycles_per_second:
             if object_vector(self.cv_data[self.image_name]) is not None:
                 return "detected"
             total += 1
