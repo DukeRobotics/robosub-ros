@@ -3,7 +3,7 @@ import glob
 
 from python_qt_binding import loadUi, QtWidgets
 from python_qt_binding.QtWidgets import QDialog, QMessageBox
-from python_qt_binding.QtCore import pyqtSignal, pyqtProperty
+from python_qt_binding.QtCore import Qt, pyqtSignal, pyqtProperty
 
 import rospy
 import resource_retriever as rr
@@ -33,6 +33,8 @@ class LaunchDialog(QDialog):
         self.package_name_box.activated.connect(self.package_name_selected)
         self.node_name_box.activated.connect(self.node_name_selected)
         self.accept_button.clicked.connect(self.click_ok)
+
+        self.collapse_button.clicked.connect(self.collapse)
 
         self.arg_form_rows = []
 
@@ -152,7 +154,7 @@ class LaunchDialog(QDialog):
             self.node_launched.emit(resp.pid, package, node, " ".join(args))
         except rospy.ServiceException as exc:
             rospy.logerr(f'Service did not process request: {str(exc)}')
-
+    
     def missing_argument_dialog(self, missing_arg):
         msg = QMessageBox()
 
@@ -165,6 +167,16 @@ class LaunchDialog(QDialog):
         msg.setStandardButtons(QMessageBox.Close)
 
         msg.exec_()
+
+    def collapse(self):
+        if self.form.isHidden():
+            self.form.show()
+            self.accept_button.show()
+            self.collapse_button.setArrowType(Qt.UpArrow)
+        else:
+            self.form.hide()
+            self.accept_button.hide()
+            self.collapse_button.setArrowType(Qt.DownArrow)
 
     def reject(self):
         pass
