@@ -1,6 +1,6 @@
-from cmath import nan
 import numpy as np
 import rospy
+import smach
 import tf2_geometry_msgs
 import tf2_ros
 from geometry_msgs.msg import Vector3, Pose, PoseStamped, PoseWithCovariance, \
@@ -8,9 +8,6 @@ from geometry_msgs.msg import Vector3, Pose, PoseStamped, PoseWithCovariance, \
 from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_quaternion, quaternion_multiply
 from std_msgs.msg import Header
-from tf.transformations import quaternion_from_euler
-from copy import deepcopy
-from task import Task
 
 
 def linear_distance(point1, point2):
@@ -251,59 +248,21 @@ def cv_object_position(cv_obj_data):
     return [cv_obj_data.x, cv_obj_data.y, cv_obj_data.z]
 
 
-class ObjectVisibleTask(Task):
-    def __init__(self, image_name, timeout):
+class ObjectVisibleTask(smach.State):
+    def __init__(self, image_name, timeout=0):
         super(ObjectVisibleTask, self).__init__(["undetected", "detected"],
                                                 input_keys=['image_name'],
                                                 output_keys=['image_name'])
         self.image_name = image_name
-        self.timeout = timeout
+        self.timeout = timeout  # in seconds
 
-    def run(self, userdata):
-        millis = 10
-        rate = rospy.Rate(millis)
+    def execute(self, userdata):
+        cycles_per_second = 10
+        rate = rospy.Rate(cycles_per_second)
         total = 0
-        while total < self.timeout * 1000:
+        while total <= self.timeout * cycles_per_second:
             if object_vector(self.cv_data[self.image_name]) is not None:
                 return "detected"
-            total += millis
+            total += 1
             rate.sleep()
         return "undetected"
-
-
-class MutatePoseTask(Task):
-    def __init__(self, mutablePose):
-        super().__init__(['done'], input_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'])
-        self.mutablePose = mutablePose
-
-    def run(self, userdata):
-        if userdata.x != nan and userdata.y != nan and userdata.z != nan:
-            self.mutablePose.setPoseCoords(
-                userdata.x,
-                userdata.y,
-                userdata.z,
-                userdata.roll,
-                userdata.pitch,
-                userdata.yaw)
-        if self.preempt_requested():
-            self.service_preempt()
-        return "done"
-
-
-class MutablePose:
-    def __init__(self):
-        self.pose = None
-
-    def setPoseCoords(self, x, y, z, roll, pitch, yaw):
-        quaternion = Quaternion(*quaternion_from_euler(roll, pitch, yaw))
-        point = Point(x, y, z)
-        self.pose = Pose(point, quaternion)
-
-    def setPose(self, newPose):
-        self.pose = deepcopy(newPose)
-
-    def getPose(self):
-        return self.pose
-
-    def getPoseEuler(self):
-        return parse_pose(self.pose)
