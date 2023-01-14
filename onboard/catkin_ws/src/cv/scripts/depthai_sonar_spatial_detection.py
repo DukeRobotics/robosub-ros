@@ -8,6 +8,7 @@ import depthai as dai
 import numpy as np
 from utils import DetectionVisualizer
 from cv_bridge import CvBridge
+from sonar_action_client import SonarClient
 
 from custom_msgs.srv import EnableModel
 from custom_msgs.msg import CVObject
@@ -44,6 +45,7 @@ class DepthAISpatialDetector:
         self.enable_service = f'enable_model_{self.camera}'
 
         self.bridge = CvBridge()
+        self.sonar = SonarClient()
 
     def build_pipeline(self, nn_blob_path, sync_nn=True):
         """
@@ -342,6 +344,19 @@ def camera_frame_to_robot_frame(cam_x, cam_y, cam_z):
     robot_x = cam_z
     return robot_x, robot_y, robot_z
 
+
+def coords_to_angle(min_x, min_y, max_x, max_y):
+    """
+    Takes in a detected bounding box from the camera and returns the angle range to sonar sweep.
+    :param min_x: minimum x coordinate of camera bounding box (robot y)
+    :param min_y: minimum y coordiante of camera bounding box (robot z)
+    :param max_x: maximum x coordinate of camera bounding box (robot y)
+    :param max_y: maximum y coordiante of camera bounding box (robot z)
+    """
+
+    # Camera FOV 120 degrees diagonal (top left to bottom right)
+
+    pass
 
 if __name__ == '__main__':
     DepthAISpatialDetector().run()
