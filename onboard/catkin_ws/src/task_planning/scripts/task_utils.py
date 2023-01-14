@@ -257,15 +257,15 @@ class ObjectVisibleTask(smach.State):
                                                 input_keys=['image_name'],
                                                 output_keys=['image_name'])
         self.image_name = image_name
-        self.timeout = timeout
+        self.timeout = timeout #in seconds
 
-    def run(self, userdata):
-        millis = 10
-        rate = rospy.Rate(millis)
+    def execute(self, userdata):
+        cycles_per_second = 10
+        rate = rospy.Rate(cycles_per_second)
         total = 0
-        while total < self.timeout * 1000:
+        while total < self.timeout * cycles_per_second:
             if object_vector(self.cv_data[self.image_name]) is not None:
                 return "detected"
-            total += millis
+            total += 1
             rate.sleep()
         return "undetected"
