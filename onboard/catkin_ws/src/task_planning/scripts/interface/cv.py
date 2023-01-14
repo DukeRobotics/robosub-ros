@@ -13,7 +13,7 @@ class CVInterface:
                       "/cv/simulation/octagon/left",
                       "/cv/simulation/pole/left",
                       "/cv/simulation/straightpathmarker/left"]
-    
+
     def __init__(self):
         self.cv_data = {}
         for topic in self.CV_DATA_TOPICS:

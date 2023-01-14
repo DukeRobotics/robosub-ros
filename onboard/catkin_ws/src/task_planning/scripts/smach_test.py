@@ -7,8 +7,6 @@ from move_tasks import MoveToPoseGlobalTask
 from time import sleep
 from geometry_msgs.msg import Vector3
 from tf import TransformListener
-import task_utils
-import gate_task
 from interface.controls import ControlsInterface
 
 # define state Foo
@@ -30,7 +28,9 @@ def main():
 
 class RandomizeOutputPose(smach.State):
     def __init__(self):
-        super(RandomizeOutputPose, self).__init__(outcomes=["done"], output_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'])
+        super(RandomizeOutputPose, self).__init__(
+            outcomes=["done"],
+            output_keys=['x', 'y', 'z', 'roll', 'pitch', 'yaw'])
 
     def execute(self, userdata):
         sleep(1)
@@ -142,6 +142,7 @@ def decision_making(controls):
 
     return sm
 
+
 def simple_move_test(controls):
     sm = smach.StateMachine(outcomes=['finish'])
 
@@ -153,6 +154,7 @@ def simple_move_test(controls):
                                 })
 
     return sm
+
 
 class OutputVector3Task(smach.State):
     def __init__(self, vec):

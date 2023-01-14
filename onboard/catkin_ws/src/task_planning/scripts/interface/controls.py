@@ -1,5 +1,4 @@
 import rospy
-import task_utils
 import actionlib
 
 from nav_msgs.msg import Odometry
@@ -14,7 +13,7 @@ class ControlsInterface:
 
     def __init__(self, listener):
         self.listener = listener
-        
+
         rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state)
         self.desired_pose_client = actionlib.SimpleActionClient(
             self.DESIRED_POSE_ACTION, ControlsDesiredPoseAction)

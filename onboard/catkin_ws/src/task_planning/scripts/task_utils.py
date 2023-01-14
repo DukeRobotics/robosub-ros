@@ -1,4 +1,3 @@
-from cmath import nan
 import numpy as np
 import rospy
 import smach
@@ -9,8 +8,6 @@ from geometry_msgs.msg import Vector3, Pose, PoseStamped, PoseWithCovariance, \
 from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_quaternion, quaternion_multiply
 from std_msgs.msg import Header
-from tf.transformations import quaternion_from_euler
-from copy import deepcopy
 
 
 def linear_distance(point1, point2):
@@ -257,7 +254,7 @@ class ObjectVisibleTask(smach.State):
                                                 input_keys=['image_name'],
                                                 output_keys=['image_name'])
         self.image_name = image_name
-        self.timeout = timeout #in seconds
+        self.timeout = timeout  # in seconds
 
     def execute(self, userdata):
         cycles_per_second = 10

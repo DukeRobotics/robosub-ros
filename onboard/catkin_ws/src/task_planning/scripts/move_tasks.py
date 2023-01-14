@@ -47,9 +47,9 @@ class MoveToPoseGlobalTask(smach.State):
             self.controls.move_to_pose_global(new_pose)
 
         if task_utils.stopped_at_pose(
-            self.controls.get_state().pose.pose,
-            new_pose,
-            self.controls.get_state().twist.twist):
+                self.controls.get_state().pose.pose,
+                new_pose,
+                self.controls.get_state().twist.twist):
             self.controls.cancel_movement()
             return 'done'
 
