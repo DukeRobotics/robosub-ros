@@ -21,6 +21,10 @@ class CameraStatusWidget(QWidget):
         self.stereo_connection_log_button.clicked.connect(self.stereo_open_conection_log)
         self.stereo_check_connection_button.clicked.connect(self.stereo_check_connection)
 
+        self.mono_connection_log = ""
+        self.stereo_ping_log = ""
+        self.stereo_connection_log = ""
+
         self.init_gui()
 
         rospy.loginfo('Camera Status Widget successfully initialized')
@@ -32,7 +36,7 @@ class CameraStatusWidget(QWidget):
     def mono_open_conection_log(self):
         log_message_box = QMessageBox()
         log_message_box.setWindowTitle('Mono Connection Log')
-        log_message_box.setText("Lorem ipsum dolor sit amet. " * 20)
+        log_message_box.setText(self.mono_connection_log)
 
         close_button = QPushButton()
         close_button.setText("Close")
@@ -43,7 +47,7 @@ class CameraStatusWidget(QWidget):
     def stereo_open_ping_log(self):
         log_message_box = QMessageBox()
         log_message_box.setWindowTitle('Stereo Ping Log')
-        log_message_box.setText("Lorem ipsum dolor sit amet. " * 20)
+        log_message_box.setText(self.stereo_ping_log)
 
         close_button = QPushButton()
         close_button.setText("Close")
@@ -54,18 +58,22 @@ class CameraStatusWidget(QWidget):
     def stereo_open_conection_log(self):
         log_message_box = QMessageBox()
         log_message_box.setWindowTitle('Stereo Connection Log')
-        log_message_box.setText("Lorem ipsum dolor sit amet. " * 20)
+        log_message_box.setText(self.stereo_connection_log)
 
         close_button = QPushButton()
         close_button.setText("Close")
         log_message_box.addButton(close_button, QMessageBox.AcceptRole)
 
         log_message_box.exec_()
-        
+
     def mono_check_connection():
         pass
 
     def stereo_start_ping(self):
+        button = self.stereo_ping_button
+
+        button.setText("Stop Ping" if button.text == "Start Ping" else "Start Ping")
+
         pass
 
     def stereo_check_connection(self):
