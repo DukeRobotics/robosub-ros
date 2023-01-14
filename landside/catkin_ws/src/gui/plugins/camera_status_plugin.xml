@@ -4,7 +4,7 @@
       GUI interface for monitoring the status of cameras connected to the robot.
     </description>
     <qtgui>
-      <label>RoboSub Launch</label>
+      <label>RoboSub Camera Status</label>
       <icon type="theme">system-help</icon>
       <statustip>GUI interface for monitoring the status of cameras connected to the robot.</statustip>
     </qtgui>
