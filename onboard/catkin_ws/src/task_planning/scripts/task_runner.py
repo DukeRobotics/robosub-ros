@@ -3,7 +3,6 @@
 import rospy
 import smach
 import tf
-#from gate_task import create_gate_task_sm
 from smach_test import simple_move_test
 from interface.controls import ControlsInterface
 
