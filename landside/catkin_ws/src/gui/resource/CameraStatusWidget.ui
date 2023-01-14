@@ -60,11 +60,6 @@
      <height>81</height>
     </rect>
    </property>
-   <property name="font">
-    <font>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
    <property name="readOnly">
     <bool>true</bool>
    </property>
@@ -77,11 +72,6 @@
      <width>221</width>
      <height>81</height>
     </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>12</pointsize>
-    </font>
    </property>
    <property name="readOnly">
     <bool>true</bool>
