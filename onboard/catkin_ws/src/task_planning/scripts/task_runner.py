@@ -3,7 +3,8 @@
 import rospy
 import smach
 import tf
-from gate_task import create_gate_task_sm
+#from gate_task import create_gate_task_sm
+from smach_test import simple_move_test
 from interface.controls import ControlsInterface
 
 
@@ -17,7 +18,7 @@ class TaskRunner(smach.StateMachine):
         self.controls = ControlsInterface(self.listener)
 
         with self:
-            smach.StateMachine.add('GATE_TASK', create_gate_task_sm(self.controls, self.listener),
+            smach.StateMachine.add('SIMPLE_MOVE_TEST', simple_move_test(self.controls),
                                    transitions={
                                        'done': 'done'})
 

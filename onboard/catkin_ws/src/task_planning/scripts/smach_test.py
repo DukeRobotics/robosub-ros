@@ -144,13 +144,13 @@ def decision_making(controls):
 
 
 def simple_move_test(controls):
-    sm = smach.StateMachine(outcomes=['finish'])
+    sm = smach.StateMachine(outcomes=['done'])
 
     with sm:
         smach.StateMachine.add("Move", MoveToPoseGlobalTask(5, 0, 0, 0, 0, 0, controls),
                                transitions={
                                     'continue': 'Move',
-                                    'done': 'finish'
+                                    'done': 'done'
                                 })
 
     return sm
