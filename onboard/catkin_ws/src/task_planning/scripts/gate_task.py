@@ -66,9 +66,9 @@ def create_gate_task_sm_DEFUNCT(controls, listener, rotate_direction):
         smach.StateMachine.add('ROTATE_TO_GATE',
                                MoveToPoseLocalTask(0, 0, 0, 0, 0, 0.25 * rotate_direction, controls, listener),
                                transitions={
-            'done': 'CHECK_IMAGE_VISIBLE',
-            'continue': 'ROTATE_TO_GATE'
-        })
+                                    'done': 'CHECK_IMAGE_VISIBLE',
+                                    'continue': 'ROTATE_TO_GATE'
+                                })
 
         smach.StateMachine.add('SURVEY_GATE', SurveyGateTask(image_name, 20, gate_euler_position),
                                transitions={
