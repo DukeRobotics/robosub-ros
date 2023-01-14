@@ -74,14 +74,14 @@
        <widget class="QComboBox" name="node_name_box"/>
       </item>
       <item row="2" column="0">
-       <widget class="QLabel" name="args_label">
+       <widget class="QLabel" name="other_args_label">
         <property name="text">
-         <string>Args</string>
+         <string>Other Args</string>
         </property>
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QLineEdit" name="args_input"/>
+       <widget class="QLineEdit" name="other_args_input"/>
       </item>
      </layout>
     </widget>

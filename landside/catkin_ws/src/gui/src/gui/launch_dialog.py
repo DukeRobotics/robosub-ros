@@ -11,6 +11,7 @@ import resource_retriever as rr
 from custom_msgs.srv import StartLaunch
 
 import xml.etree.ElementTree as ET
+import json
 
 
 class LaunchDialog(QDialog):
@@ -61,7 +62,7 @@ class LaunchDialog(QDialog):
         self.package_name_box.setEnabled(True)
         self.node_name_box.clear()
         self.node_name_box.setEnabled(False)
-        self.args_input.clear()
+        self.other_args_input.clear()
         self.accept_button.setEnabled(False)
 
     def get_launchables(self, package_name):
@@ -127,26 +128,48 @@ class LaunchDialog(QDialog):
                     default_value = arg['default']
 
                 label = QtWidgets.QLabel(arg['name'])
+
                 input = QtWidgets.QLineEdit()
                 input.setText(default_value)
+
+                if arg.get("doc") is not None:
+                    doc_dict = json.loads(arg["doc"])
+
+                    if doc_dict["type"] == "bool":
+                        input = QtWidgets.QCheckBox()
+                        if default_value.lower() == "true":
+                            input.setChecked(True)
+
+                    if doc_dict["help"] is not None:
+                        label.setText(label.text() + " (?)")
+                        label.setToolTip(doc_dict["help"])
 
                 # row inserted at position row+2, after the Package and Node Name rows
                 self.form_layout.insertRow(row + 2, label, input)
 
                 arg['label'] = label
-                arg['lineEdit'] = input
+                arg['input'] = input
 
     def click_ok(self):
         package = self.package_name_box.currentText()
         node = self.node_name_box.currentText()
-        args = self.args_input.text().split(' ') if self.args_input.text() != "" else []
+        args = []
 
         for row in self.arg_form_rows:
-            if row['lineEdit'].text() == "" and row.get('default') is None:
-                self.missing_argument_dialog(row['name'])
-                return
-            arg = row['name'] + ":=" + row['lineEdit'].text()
+            arg = ""
+
+            if type(row['input']) is QtWidgets.QLineEdit:
+                if row['input'].text() == "" and row.get('default') is None:
+                    self.missing_argument_dialog(row['name'])
+                    return
+                arg = row['name'] + ":=" + row['input'].text()
+
+            if type(row['input']) is QtWidgets.QCheckBox:
+                arg = row['name'] + ":=" + str(row['input'].isChecked())
+
             args.append(arg)
+
+        args.extend(self.other_args_input.text().split(' ') if self.other_args_input.text() != "" else [])
 
         start_launch = rospy.ServiceProxy('start_node', StartLaunch)
         try:
@@ -154,7 +177,7 @@ class LaunchDialog(QDialog):
             self.node_launched.emit(resp.pid, package, node, " ".join(args))
         except rospy.ServiceException as exc:
             rospy.logerr(f'Service did not process request: {str(exc)}')
-    
+
     def missing_argument_dialog(self, missing_arg):
         msg = QMessageBox()
 
