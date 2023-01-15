@@ -17,9 +17,8 @@ class TaskRunner(smach.StateMachine):
         self.controls = ControlsInterface(self.listener)
 
         with self:
-            smach.StateMachine.add('SIMPLE_MOVE_TEST', controls_testing(self.controls, self.listener),
-                                   transitions={
-                                       'finish': 'done'})
+            smach.StateMachine.add('TEST', controls_testing(self.controls, self.listener),
+                                   transitions={'done': 'done'})
 
     def execute(self):
         rospy.loginfo("Waiting for transform listener")
