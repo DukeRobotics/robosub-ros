@@ -3,7 +3,7 @@
 import rospy
 import smach
 import tf
-from smach_test import simple_move_test
+from smach_test import simple_move_test, controls_testing
 from interface.controls import ControlsInterface
 
 
@@ -17,9 +17,9 @@ class TaskRunner(smach.StateMachine):
         self.controls = ControlsInterface(self.listener)
 
         with self:
-            smach.StateMachine.add('SIMPLE_MOVE_TEST', simple_move_test(self.controls),
+            smach.StateMachine.add('SIMPLE_MOVE_TEST', controls_testing(self.controls, self.listener),
                                    transitions={
-                                       'done': 'done'})
+                                       'finish': 'done'})
 
     def execute(self):
         rospy.loginfo("Waiting for transform listener")
