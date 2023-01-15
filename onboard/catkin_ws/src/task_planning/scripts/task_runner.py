@@ -3,7 +3,7 @@
 import rospy
 import smach
 import tf
-from smach_test import simple_move_test, controls_testing
+from smach_test import controls_testing
 from interface.controls import ControlsInterface
 
 

@@ -153,8 +153,8 @@ def simple_move_test(controls, listener):
                                     'done': 'Surface'
                                 })
         smach.StateMachine.add("Surface", AllocateVelocityLocalTask(0, 0, 1, 0, 0, 0, controls),
-                                transitions={
-                                    'done':'Surface'
+                               transitions={
+                                    'done': 'Surface'
                                 })
 
     return sm
