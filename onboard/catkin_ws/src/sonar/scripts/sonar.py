@@ -122,7 +122,21 @@ class Sonar:
         last_sample_index = self.number_of_samples - 1
         return self.get_distance_of_sample(last_sample_index)
 
-    def sweep_biggest_byte(self, start_angle, end_angle):
+    def get_depth_of_object_sweep(self, start_angle, end_angle):
+        """ Gets the depth of the sweep of a detected object. For now uses mean value
+
+        Args:
+            start_angle (int): Angle to start sweep in gradians
+            end_angle (int): Angle to end sweep in gradians
+
+        Returns:
+            float: Average value for object sweep
+        """
+        max_byte_array = self.get_max_bytes_along_sweep(start_angle, end_angle)
+        mean_value = sum(max_byte_array, key=lambda tup: tup[1]) / len(max_byte_array)
+        return mean_value
+
+    def get_max_byte_in_sweep(self, start_angle, end_angle):
         """ Get the index of the biggest value and angle value out of all angles in a sweep
 
         Args:
@@ -132,14 +146,28 @@ class Sonar:
         Returns:
             Tuple: index within angle, biggest value (byte), angle of biggest value
         """
-        biggest_byte_array = []
-        for theta in range(start_angle, end_angle):
-            biggest_byte = self.get_biggest_byte(theta)
-            biggest_byte_array.append(biggest_byte + (theta,))
-        max_tup = max(biggest_byte_array, key=lambda tup: tup[1])
+        max_byte_array = self.get_max_bytes_along_sweep(start_angle, end_angle)
+        max_tup = max(max_byte_array, key=lambda tup: tup[1])
         return max_tup
 
-    def get_biggest_byte(self, angle):
+    def get_max_bytes_along_sweep(self, start_angle, end_angle):
+        """ Execute a sweep and get the largest activation for each angle
+
+        Args:
+            start_angle (int): _description_
+            end_angle (int): _description_
+
+        Returns:
+            Array: Array of tuples with (biggest value index, biggest value, theta) 
+        """
+
+        max_byte_array = []
+        for theta in range(start_angle, end_angle):
+            max_byte = self.get_max_byte(theta)
+            max_byte_array.append(max_byte + (theta,))
+        return max_byte_array
+
+    def get_max_byte(self, angle):
         """ Get the biggest value of the byte array of data scanned at input angle
 
         Args:
