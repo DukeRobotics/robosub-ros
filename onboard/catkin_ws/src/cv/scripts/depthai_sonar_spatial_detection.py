@@ -264,7 +264,7 @@ class DepthAISpatialDetector:
             breadth = math.abs(center - left_end)
 
             try:
-                self.sonar_client.execute_sweep(center, breadth, SONAR_DEPTH)
+                self.sonar_client.sweep_at_center_angle(center, breadth, SONAR_DEPTH)
                 self.publish_prediction(bbox, det_coords_robot_mm, label, confidence, (height, width))
 
             except:
