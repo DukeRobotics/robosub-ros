@@ -14,7 +14,16 @@ class SonarClient:
         self._client.wait_for_result()
         return self._client.get_result()
 
+    #takes angle in degrees
+    def sweep_at_center_angle(self, center, radius, range = 5):
 
+        center = center + 180
+
+        left = max(center - radius, 0)
+        right = min(center+radius, 400)
+        left = int((400/360) * left)
+        right = int((400/360) * right)
+        return self.execute_sweep(left, right, range)
 if __name__ == '__main__':
     try:
         # Initializes a rospy node so that the SimpleActionClient can
