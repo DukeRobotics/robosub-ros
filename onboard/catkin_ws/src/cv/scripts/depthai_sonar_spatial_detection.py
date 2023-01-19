@@ -20,6 +20,7 @@ MM_IN_METER = 1000
 DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH = 'package://cv/models/depthai_models.yaml'
 HORIZONTAL_FOV = 95
 CAMERA_PIXEL_WIDTH = 416
+SONAR_DEPTH = 5
 
 
 # Compute detections on live camera feed and publish spatial coordinates for detected objects
@@ -260,9 +261,9 @@ class DepthAISpatialDetector:
             # Get sonar sweep range
             (left_sweep, right_sweep) = coords_to_angle(detection.xmin, detection.xmax)
             try:
-                self.sonar_client.execute_sweep(left_sweep, right_sweep, 5)
+                self.sonar_client.execute_sweep(left_sweep, right_sweep, SONAR_DEPTH)
             except:
-                rospy.spin()
+                rospy.loginfo("Sonar sweep failed, defaulting to stereo")
 
             x_cam_meters = mm_to_meters(x_cam_mm)
             y_cam_meters = mm_to_meters(y_cam_mm)
