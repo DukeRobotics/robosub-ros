@@ -1,9 +1,9 @@
 import os
 import glob
 
-from python_qt_binding import loadUi, QtWidgets
+from python_qt_binding import loadUi, QtWidgets, QtGui
 from python_qt_binding.QtWidgets import QDialog, QMessageBox
-from python_qt_binding.QtCore import Qt, pyqtSignal, pyqtProperty
+from python_qt_binding.QtCore import Qt, QRegExp, pyqtSignal, pyqtProperty
 
 import rospy
 import resource_retriever as rr
@@ -122,27 +122,78 @@ class LaunchDialog(QDialog):
 
             for row in range(len(self.arg_form_rows)):
                 arg = self.arg_form_rows[row]
+                arg['allow_empty'] = False
+
                 if arg.get('default') is None:
                     default_value = ''
                 else:
                     default_value = arg['default']
+                    if default_value.strip():
+                        arg['allow_empty'] = True
 
                 label = QtWidgets.QLabel(arg['name'])
 
                 input = QtWidgets.QLineEdit()
                 input.setText(default_value)
+                input.setPlaceholderText(f"Default: `{default_value}`")
+
+                toolTip = ""
 
                 if arg.get("doc") is not None:
                     doc_dict = json.loads(arg["doc"])
 
-                    if doc_dict["type"] == "bool":
-                        input = QtWidgets.QCheckBox()
-                        if default_value.lower() == "true":
-                            input.setChecked(True)
+                    if doc_dict.get("options") is not None:
+                        if doc_dict["options"] and all(isinstance(e, str) for e in doc_dict["options"]):
+                            input = QtWidgets.QComboBox()
+                            input.addItems(doc_dict["options"])
+                        else:
+                            rospy.logwarn(f"Options list for argument `{arg['name']}` in `{selected_node}` is not a "
+                                          f"list of strings. Defaulting to unrestricted string input.")
 
-                    if doc_dict["help"] is not None:
-                        label.setText(label.text() + " (?)")
-                        label.setToolTip(doc_dict["help"])
+                    elif doc_dict.get("regex") is not None:
+                        try:
+                            regex = QRegExp(doc_dict["regex"])
+                            input.setValidator(QtGui.QRegExpValidator(regex))
+                            toolTip += f"Regex: {doc_dict['regex']}"
+                        except Exception:
+                            rospy.logwarn(f"Regex for argument `{arg['name']}` in `{selected_node}` is not valid. "
+                                          f"Defaulting to unrestricted string input.")
+
+                    elif doc_dict.get("type") is not None:
+                        if doc_dict["type"] == "bool":
+                            input = QtWidgets.QCheckBox()
+                            if default_value.lower() == "true":
+                                input.setChecked(True)
+                        elif doc_dict["type"] == "int":
+                            input.setValidator(QtGui.QIntValidator())
+                        elif doc_dict["type"] == "double":
+                            input.setValidator(QtGui.QDoubleValidator())
+                        elif doc_dict["type"] == "str":
+                            pass
+                        else:
+                            rospy.logwarn(f"Type `{doc_dict['type']}` for argument `{arg['name']}` in `{selected_node}`"
+                                          f" is not valid. Type must be `bool`, `int`, `double`, or `str`. Defaulting "
+                                          f"to unrestricted string input.")
+
+                        toolTip += f"Type: {doc_dict['type']}"
+
+                    if doc_dict.get("help") is not None:
+                        if toolTip:
+                            toolTip += " | Help: "
+                        toolTip += doc_dict["help"]
+
+                    if doc_dict.get("allowEmpty") is not None:
+                        if type(doc_dict["allowEmpty"]) == bool:
+                            if not doc_dict["allowEmpty"]:
+                                arg['allow_empty'] = False
+                        else:
+                            rospy.logwarn(f"The property allowEmpty for argument `{arg['name']}` in `{selected_node}` "
+                                          f"is not a valid boolean. Defaulting to allow empty input.")
+
+                toolTip += (" | " if toolTip else "") + "Can be empty: " + ("Yes" if arg['allow_empty'] else "No")
+
+                label.setText(label.text() + " (?)")
+                label.setToolTip(toolTip)
 
                 # row inserted at position row+2, after the Package and Node Name rows
                 self.form_layout.insertRow(row + 2, label, input)
@@ -158,13 +209,20 @@ class LaunchDialog(QDialog):
         for row in self.arg_form_rows:
             arg = ""
 
-            if type(row['input']) is QtWidgets.QLineEdit:
-                if row['input'].text() == "" and row.get('default') is None:
-                    self.missing_argument_dialog(row['name'])
-                    return
+            if type(row['input']) is QtWidgets.QComboBox:
+                arg = row['name'] + ":=" + row['input'].currentText()
+
+            elif type(row['input']) is QtWidgets.QLineEdit:
+                if not row['input'].text().strip() and not row['allow_empty']:
+                    if row.get('default') is None:
+                        self.argument_required_dialog(row['name'])
+                        return
+                    else:
+                        self.argument_default_dialog(row['name'], row['default'])
+
                 arg = row['name'] + ":=" + row['input'].text()
 
-            if type(row['input']) is QtWidgets.QCheckBox:
+            elif type(row['input']) is QtWidgets.QCheckBox:
                 arg = row['name'] + ":=" + str(row['input'].isChecked())
 
             args.append(arg)
@@ -178,14 +236,28 @@ class LaunchDialog(QDialog):
         except rospy.ServiceException as exc:
             rospy.logerr(f'Service did not process request: {str(exc)}')
 
-    def missing_argument_dialog(self, missing_arg):
+    def argument_default_dialog(self, default_arg, default_value):
+        msg = QMessageBox()
+
+        msg.setIcon(QMessageBox.Warning)
+
+        msg.setWindowTitle("Warning")
+        msg.setText("Missing argument")
+        msg.setInformativeText(f"The value of {default_arg} will be the default value of `{default_value}`."
+                               f"Is that ok?")
+
+        msg.setStandardButtons(QMessageBox.Close)
+
+        msg.exec_()
+
+    def argument_required_dialog(self, required_arg):
         msg = QMessageBox()
 
         msg.setIcon(QMessageBox.Warning)
 
         msg.setWindowTitle("Error")
-        msg.setText("Missing argument")
-        msg.setInformativeText("You must specify a value for " + missing_arg)
+        msg.setText("Required argument")
+        msg.setInformativeText("You must specify a value for " + required_arg)
 
         msg.setStandardButtons(QMessageBox.Close)
 
