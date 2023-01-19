@@ -1,6 +1,7 @@
 import rospy
 import actionlib
 from custom_msgs.msg import sweepAction, sweepGoal
+from sonar_utils import degrees_to_centered_gradians
 
 
 class SonarClient:
@@ -8,22 +9,24 @@ class SonarClient:
         self._client = actionlib.SimpleActionClient('sonar_sweep', sweepAction)
         self._client.wait_for_server()
 
-    def execute_sweep(self, sangle, eangle, range):
-        goal = sweepGoal(start_angle=sangle, end_angle=eangle, distance_of_scan=range)
+    def execute_sweep(self, sangle, eangle, scan_distance):
+        goal = sweepGoal(start_angle=sangle, end_angle=eangle, distance_of_scan=scan_distance)
         self._client.send_goal(goal)
         self._client.wait_for_result()
         return self._client.get_result()
 
-    #takes angle in degrees
-    def sweep_at_center_angle(self, center, radius, range = 5):
+    # takes angle in degrees
+    def sweep_at_center_angle(self, center_degrees, breadth_degrees, scan_distance=5):
 
-        center = center + 180
+        center_gradians = degrees_to_centered_gradians(center_degrees)
+        breadth_gradians = degrees_to_centered_gradians(breadth_degrees)
 
-        left = max(center - radius, 0)
-        right = min(center+radius, 400)
-        left = int((400/360) * left)
-        right = int((400/360) * right)
-        return self.execute_sweep(left, right, range)
+        left = max(center_gradians - breadth_gradians, 0)
+        right = min(center_gradians + breadth_gradians, 400)
+
+        return self.execute_sweep(left, right, scan_distance)
+
+
 if __name__ == '__main__':
     try:
         # Initializes a rospy node so that the SimpleActionClient can

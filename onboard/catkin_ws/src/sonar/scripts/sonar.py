@@ -2,7 +2,7 @@
 
 from brping import Ping360
 import numpy as np
-# import sonar_utils
+# from sonar_utils import centered_gradians_to_radians, transform_pose
 # from geometry_msgs.msg import Pose
 from sonar_image_processing import scan_and_build_sonar_image, find_gate_posts, find_buoy
 import os
@@ -154,18 +154,6 @@ class Sonar:
         best = np.argmax(filteredbytes)
         return (best+self.FILTER_INDEX, filteredbytes[best])
 
-    def gradians_to_radians(self, angle_gradians):
-        """ Converts gradians to radians
-
-        Args:
-            angle_gradians (float): Angle in gradians
-
-        Returns:
-            float: Angle in radians
-        """
-        angle_radians = (angle_gradians-200)*np.pi/200
-        return angle_radians
-
     # def to_robot_position(self, angle, index):
     #     """ Converts a point in sonar space a robot global position
 
@@ -177,8 +165,8 @@ class Sonar:
     #         Pose: Pose in robot reference frame
     #     """
     #     # Need to change the static transform for where the sonar is on the robot
-    #     x_pos = self.get_distance_of_sample(index) * np.cos(self.gradians_to_radians(angle))
-    #     y_pos = self.get_distance_of_sample(index) * np.sin(self.gradians_to_radians(angle))
+    #     x_pos = self.get_distance_of_sample(index) * np.cos(centered_gradians_to_radians(angle))
+    #     y_pos = self.get_distance_of_sample(index) * np.sin(centered_gradians_to_radians(angle))
     #     pos_of_point = Pose()
     #     pos_of_point.position.x = x_pos
     #     pos_of_point.position.y = y_pos
@@ -188,7 +176,7 @@ class Sonar:
     #     pos_of_point.orientation.z = 0
     #     pos_of_point.orientation.w = 1
 
-    #     global_pose = sonar_utils.transform_pose(self.listener, "sonar_link", "odom", pos_of_point)
+    #     global_pose = transform_pose(self.listener, "sonar_link", "odom", pos_of_point)
 
     #     return global_pose
 
