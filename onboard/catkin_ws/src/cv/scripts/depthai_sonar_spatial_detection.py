@@ -9,6 +9,7 @@ import numpy as np
 from utils import DetectionVisualizer
 from cv_bridge import CvBridge
 from sonar_action_client import SonarClient
+import math
 
 from custom_msgs.srv import EnableModel
 from custom_msgs.msg import CVObject
@@ -17,6 +18,8 @@ from sensor_msgs.msg import Image
 
 MM_IN_METER = 1000
 DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH = 'package://cv/models/depthai_models.yaml'
+HORIZONTAL_FOV = 95
+CAMERA_PIXEL_WIDTH = 416
 
 
 # Compute detections on live camera feed and publish spatial coordinates for detected objects
@@ -358,10 +361,11 @@ def coords_to_angle(min_x, max_x):
     :param min_x: minimum x coordinate of camera bounding box (robot y)
     :param max_x: maximum x coordinate of camera bounding box (robot y)
     """
+    distance_to_screen = CAMERA_PIXEL_WIDTH/2 * 1/math.tan(math.rad(HORIZONTAL_FOV/2))
+    min_angle = math.degrees(np.arctan(min_x/distance_to_screen))
+    max_angle = math.degrees(np.arctan(max_x/distance_to_screen))
+    return min_angle, max_angle
 
-    # Camera FOV 120 degrees diagonal (top left to bottom right)
-
-    pass
 
 if __name__ == '__main__':
     DepthAISpatialDetector().run()
