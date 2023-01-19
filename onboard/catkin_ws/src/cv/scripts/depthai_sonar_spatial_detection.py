@@ -254,6 +254,13 @@ class DepthAISpatialDetector:
             y_cam_mm = detection.spatialCoordinates.y
             z_cam_mm = detection.spatialCoordinates.z
 
+            # Get sonar sweep range
+            (left_sweep, right_sweep) = coords_to_angle(detection.xmin, detection.xmax)
+            try:
+                self.sonar_client.execute_sweep(left_sweep, right_sweep, 5)
+            except:
+                rospy.spin()
+
             x_cam_meters = mm_to_meters(x_cam_mm)
             y_cam_meters = mm_to_meters(y_cam_mm)
             z_cam_meters = mm_to_meters(z_cam_mm)
