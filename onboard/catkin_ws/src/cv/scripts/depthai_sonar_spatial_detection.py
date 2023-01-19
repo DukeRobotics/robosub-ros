@@ -9,6 +9,7 @@ import numpy as np
 from utils import DetectionVisualizer
 from cv_bridge import CvBridge
 from sonar_action_client import SonarClient
+import math
 
 from custom_msgs.srv import EnableModel
 from custom_msgs.msg import CVObject
@@ -17,6 +18,9 @@ from sensor_msgs.msg import Image
 
 MM_IN_METER = 1000
 DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH = 'package://cv/models/depthai_models.yaml'
+HORIZONTAL_FOV = 95
+CAMERA_PIXEL_WIDTH = 416
+SONAR_DEPTH = 5
 
 
 # Compute detections on live camera feed and publish spatial coordinates for detected objects
@@ -254,6 +258,13 @@ class DepthAISpatialDetector:
             y_cam_mm = detection.spatialCoordinates.y
             z_cam_mm = detection.spatialCoordinates.z
 
+            # Get sonar sweep range
+            (left_sweep, right_sweep) = coords_to_angle(detection.xmin, detection.xmax)
+            try:
+                self.sonar_client.execute_sweep(left_sweep, right_sweep, SONAR_DEPTH)
+            except:
+                rospy.loginfo("Sonar sweep failed, defaulting to stereo")
+
             x_cam_meters = mm_to_meters(x_cam_mm)
             y_cam_meters = mm_to_meters(y_cam_mm)
             z_cam_meters = mm_to_meters(z_cam_mm)
@@ -358,10 +369,11 @@ def coords_to_angle(min_x, max_x):
     :param min_x: minimum x coordinate of camera bounding box (robot y)
     :param max_x: maximum x coordinate of camera bounding box (robot y)
     """
+    distance_to_screen = CAMERA_PIXEL_WIDTH/2 * 1/math.tan(math.rad(HORIZONTAL_FOV/2))
+    min_angle = math.degrees(np.arctan(min_x/distance_to_screen))
+    max_angle = math.degrees(np.arctan(max_x/distance_to_screen))
+    return min_angle, max_angle
 
-    # Camera FOV 120 degrees diagonal (top left to bottom right)
-
-    pass
 
 if __name__ == '__main__':
     DepthAISpatialDetector().run()
