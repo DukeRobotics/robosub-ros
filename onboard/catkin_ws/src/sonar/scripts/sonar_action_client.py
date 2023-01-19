@@ -18,7 +18,7 @@ class SonarClient:
 if __name__ == '__main__':
     try:
         # Initializes a rospy node so that the SimpleActionClient can
-        # publ`ish and subscribe over ROS.
+        # publish and subscribe over ROS.
         rospy.init_node('sonar_sweep_client_py')
         client = SonarClient()
         result = client.execute_sweep(150, 250, 5)

@@ -45,7 +45,14 @@ class DepthAISpatialDetector:
         self.enable_service = f'enable_model_{self.camera}'
 
         self.bridge = CvBridge()
-        self.sonar = SonarClient()
+
+        try:
+            # Initializes a rospy node so that the SimpleActionClient can
+            # publish and subscribe over ROS.
+            rospy.init_node('sonar_sweep_client_py')
+            self.sonar_client = SonarClient()
+        except rospy.ROSInterruptException:
+            print("Node instantiation interrupted")
 
     def build_pipeline(self, nn_blob_path, sync_nn=True):
         """
@@ -345,13 +352,11 @@ def camera_frame_to_robot_frame(cam_x, cam_y, cam_z):
     return robot_x, robot_y, robot_z
 
 
-def coords_to_angle(min_x, min_y, max_x, max_y):
+def coords_to_angle(min_x, max_x):
     """
     Takes in a detected bounding box from the camera and returns the angle range to sonar sweep.
     :param min_x: minimum x coordinate of camera bounding box (robot y)
-    :param min_y: minimum y coordiante of camera bounding box (robot z)
     :param max_x: maximum x coordinate of camera bounding box (robot y)
-    :param max_y: maximum y coordiante of camera bounding box (robot z)
     """
 
     # Camera FOV 120 degrees diagonal (top left to bottom right)
