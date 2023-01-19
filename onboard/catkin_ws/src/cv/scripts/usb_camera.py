@@ -71,7 +71,7 @@ class USBCamera:
                 # Sleep loop to maintain frame rate
                 loop_rate.sleep()
         except Exception:
-            rospy.loginfo("Camera not found at channel {self.channel}")
+            rospy.logerr(f"Camera not found at channel {self.channel}")
 
 
 if __name__ == '__main__':
