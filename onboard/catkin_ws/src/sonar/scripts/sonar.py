@@ -7,7 +7,7 @@ from geometry_msgs.msg import Pose
 from sonar_image_processing import scan_and_build_sonar_image, find_gate_posts, find_buoy
 import os
 from tf import TransformListener
-
+from time import sleep
 
 class Sonar:
     """Class to interface with the Sonar device.
@@ -247,4 +247,5 @@ if __name__ == "__main__":
     # test_buoy_from_npy_file(os.path.join(os.path.dirname(__file__), 'sampleData', 'gate.npy'))
 
     sonar = Sonar(5)
+    sleep(3)
     print(sonar.to_robot_position(240, 4))
