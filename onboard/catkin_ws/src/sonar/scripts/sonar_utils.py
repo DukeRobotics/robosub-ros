@@ -1,7 +1,7 @@
 from geometry_msgs.msg import PoseStamped
 
 
-def transform_pose(listener, base_frame, target_frame, pose):
+def transform_pose(listener, pose):
     """ Transform pose from base reference frame to target reference frame frame
 
     Args:
@@ -15,6 +15,6 @@ def transform_pose(listener, base_frame, target_frame, pose):
     """
     pose_stamped = PoseStamped()
     pose_stamped.pose = pose
-    pose_stamped.header.frame_id = base_frame
+    pose_stamped.header.frame_id = "sonar_link"
 
-    return listener.transformPose(target_frame, pose_stamped).pose
+    return listener.transformPose("base_link", pose_stamped).pose

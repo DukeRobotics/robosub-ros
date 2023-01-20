@@ -177,8 +177,9 @@ class Sonar:
             Pose: Pose in robot reference frame
         """
         # Need to change the static transform for where the sonar is on the robot
-        x_pos = self.get_distance_of_sample(index) * np.cos(self.gradians_to_radians(angle))
-        y_pos = self.get_distance_of_sample(index) * np.sin(self.gradians_to_radians(angle))
+        x_pos = self.get_distance_of_sample(index) * np.cos(self.gradians_to_radians(200-angle))
+        y_pos = self.get_distance_of_sample(index) * np.sin(self.gradians_to_radians(200-angle))
+        print(f"{x_pos} {y_pos}")
         pos_of_point = Pose()
         pos_of_point.position.x = x_pos
         pos_of_point.position.y = y_pos
@@ -188,7 +189,7 @@ class Sonar:
         pos_of_point.orientation.z = 0
         pos_of_point.orientation.w = 1
 
-        global_pose = sonar_utils.transform_pose(self.listener, "sonar_link", "odom", pos_of_point)
+        global_pose = sonar_utils.transform_pose(self.listener, pos_of_point)
 
         return global_pose
 
