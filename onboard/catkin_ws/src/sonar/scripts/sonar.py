@@ -13,6 +13,8 @@ class Sonar:
     """Class to interface with the Sonar device.
     """
 
+    IF_LOCAL_TEST = True #only for local testing with the sonar script
+
     SERIAL_PORT_NAME = "/dev/ttyUSB2"  # PORT of the salea is ttyUSB2 for testing
     BAUD_RATE = 2000000  # hz
     SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
@@ -20,6 +22,9 @@ class Sonar:
     FILTER_INDEX = 100  # number of values to filter TODO figure out where the noise starts
 
     def __init__(self, range, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
+        if(self.IF_LOCAL_TEST):
+            import rospy
+            rospy.init_node('sonar')
         self.ping360 = Ping360()
         self.ping360.connect_serial(serial_port_name, baud_rate)  # TODO: Add try except for connecting to device
         # self.ping360.connect_udp(self.ETHERNET_PORT_NAME)
