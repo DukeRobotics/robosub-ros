@@ -25,9 +25,8 @@ class PingIP:
 
             msg_status = DiagnosticStatus()
             msg_status.level = 0 if response == 0 else 2
-            msg_status.name = "ping"
+            msg_status.name = self.hostname
             msg_status.message = stdout.decode('ASCII')
-            msg_status.hardware_id = self.hostname
 
             msg_array = DiagnosticArray()
             msg_array.header.stamp = rospy.Time.now()
