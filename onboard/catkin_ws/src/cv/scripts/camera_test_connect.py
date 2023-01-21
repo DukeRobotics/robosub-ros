@@ -9,7 +9,8 @@ from custom_msgs.srv import ConnectDepthAICamera, ConnectUSBCamera
 import depthai_camera_connect
 
 
-class CameraStatus:
+class CameraTestConnect:
+
     def __init__(self):
         rospy.init_node('camera_status')
 
@@ -45,4 +46,4 @@ class CameraStatus:
 
 
 if __name__ == '__main__':
-    CameraStatus().run()
+    CameraTestConnect().run()
