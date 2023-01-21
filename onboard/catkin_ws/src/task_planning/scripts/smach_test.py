@@ -17,7 +17,7 @@ def main():
     listener = TransformListener()
     controls = ControlsInterface(listener)
 
-    sm = simple_move_test(controls)
+    sm = userdata_passthrough()
 
     rospy.loginfo("Waiting for transform listener")
     listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(15))
@@ -150,6 +150,26 @@ def simple_move_test(controls):
         smach.StateMachine.add("Move", MoveToPoseGlobalTask(5, 0, 0, 0, 0, 0, controls),
                                transitions={
                                     'continue': 'Move',
+                                    'done': 'done'
+                                })
+
+    return sm
+
+# Test if userdata output by a task can be accessed even with another task in between
+def userdata_passthrough():
+    sm = smach.StateMachine(outcomes=['done'])
+
+    with sm:
+        smach.StateMachine.add("Output", OutputVector3Task(Vector3(1, 2, 3)),
+                               transitions={
+                                    'done': 'Print'
+                                })
+        smach.StateMachine.add("Print", PrintVector3Task(),
+                               transitions={
+                                    'done': 'Print2'
+                                })
+        smach.StateMachine.add("Print2", PrintVector3Task(),
+                               transitions={
                                     'done': 'done'
                                 })
 
