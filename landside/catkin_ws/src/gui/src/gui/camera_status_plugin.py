@@ -16,7 +16,7 @@ class CameraStatusPlugin(Plugin):
         context.add_widget(self.widget)
 
     def shutdown_plugin(self):
-        self.widget.closeWidget()
+        pass
 
     def save_settings(self, plugin_settings, instance_settings):
         pass
