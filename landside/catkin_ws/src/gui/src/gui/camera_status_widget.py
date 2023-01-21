@@ -6,7 +6,6 @@ from python_qt_binding.QtWidgets import (
     QHeaderView,
     QTabWidget,
     QDialog,
-    QLabel,
     QGridLayout,
 )
 from python_qt_binding.QtCore import QTimer, pyqtProperty
@@ -69,17 +68,16 @@ class CameraStatusWidget(QWidget):
         dialog = QDialog()
 
         layout = QGridLayout()
-        label1 = QLabel("Widget in Tab 1.")
-        label2 = QLabel("Widget in Tab 2.")
+
         tabwidget = QTabWidget()
-        tabwidget.addTab(label1, "Tab 1")
-        tabwidget.addTab(label2, "Tab 2")
+        tabwidget.addTab(self.ping_log_table, "Ping")
+        tabwidget.addTab(self.stereo_log_table, "Stereo")
+        tabwidget.addTab(self.mono_log_table, "Mono")
         layout.addWidget(tabwidget, 0, 0)
 
         dialog.setLayout(layout)
-        dialog.setModal(True)
 
-        dialog.show()
+        dialog.exec_()
 
     def mono_check_connection(self):
         # Call mono test connection service
@@ -90,7 +88,7 @@ class CameraStatusWidget(QWidget):
         self.update_table("Mono", status, datetime.now().strftime("%H:%M:%S"))
 
         # TODO: Add row at top of mono_log_table with result
-        self.update_mono_table((status, datetime.now().strftime("%H:%M:%S")))
+        self.update_mono_table(status, datetime.now().strftime("%H:%M:%S"))
 
     def stereo_check_connection(self):
         # Call stereo test connection service
@@ -101,7 +99,7 @@ class CameraStatusWidget(QWidget):
         self.update_table("Stereo", status, datetime.now().strftime("%H:%M:%S"))
 
         # TODO: Add row at top of stereo_log_table with result
-        self.update_stereo_table((status, datetime.now().strftime("%H:%M:%S")))
+        self.update_stereo_table(status, datetime.now().strftime("%H:%M:%S"))
 
     def ping_response(self, response):
         # This method is called when a new message is published to the /ping_ip topic
@@ -113,11 +111,14 @@ class CameraStatusWidget(QWidget):
 
         status = response.status[0].level == 0
 
+        timestamp = datetime.fromtimestamp(response.header.stamp.secs).strftime("%H:%M:%S")
+
         # Update ping row in status_table with result
         # TODO: Format time
-        self.update_table("Ping", status, str(response.header.stamp))
+        self.update_table("Ping", status, timestamp)
 
         # TODO: Add row at top of ping_log_table with result
+        self.update_ping_table(status, timestamp)
 
     # SAMPLE ONLY
     def populate_table(self):
@@ -175,29 +176,55 @@ class CameraStatusWidget(QWidget):
         status_msg = "Successful" if status else "Failed"
         color = "green" if status else "red"
 
-        self.mono_log_table.insertRow(0)
-
         status_item = QTableWidgetItem(status_msg)
         status_item.setForeground(QColor(color))
 
-        table = self.status_table
-        table.setItem(0, 0, QTableWidgetItem("Mono"))
-        table.setItem(0, 1, status_item)
-        table.setItem(0, 2, QTableWidgetItem(timestamp))
+        table = self.mono_log_table
+
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table.setColumnCount(2)
+
+        rowPosition = table.rowCount()
+        table.insertRow(rowPosition)
+
+        table.setItem(rowPosition, 0, status_item)
+        table.setItem(rowPosition, 1, QTableWidgetItem(timestamp))
 
     def update_stereo_table(self, status, timestamp):
         status_msg = "Successful" if status else "Failed"
         color = "green" if status else "red"
 
-        self.stereo_log_table.insertRow(0)
+        status_item = QTableWidgetItem(status_msg)
+        status_item.setForeground(QColor(color))
+
+        table = self.stereo_log_table
+
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table.setColumnCount(2)
+
+        rowPosition = table.rowCount()
+        table.insertRow(rowPosition)
+
+        table.setItem(rowPosition, 0, status_item)
+        table.setItem(rowPosition, 1, QTableWidgetItem(timestamp))
+
+    def update_ping_table(self, status, timestamp):
+        status_msg = "Successful" if status else "Failed"
+        color = "green" if status else "red"
 
         status_item = QTableWidgetItem(status_msg)
         status_item.setForeground(QColor(color))
 
-        table = self.status_table
-        table.setItem(0, 0, QTableWidgetItem("Stereo"))
-        table.setItem(0, 1, status_item)
-        table.setItem(0, 2, QTableWidgetItem(timestamp))
+        table = self.ping_log_table
+
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table.setColumnCount(2)
+
+        rowPosition = 0
+        table.insertRow(rowPosition)
+
+        table.setItem(rowPosition, 0, status_item)
+        table.setItem(rowPosition, 1, QTableWidgetItem(timestamp))
 
     # DEPRECATED
     def populate_text_area(self):
@@ -236,16 +263,3 @@ class CameraStatusWidget(QWidget):
         text_area.append('<br> <u>Mono</u>')
         for content in mono_contents:
             text_area.append('<b>{}</b>: {}'.format(content[0], content[1]))
-
-
-class TabbedWidget(QWidget):
-    def __init__(self):
-        QWidget.__init__(self)
-        layout = QGridLayout()
-        self.setLayout(layout)
-        label1 = QLabel("Widget in Tab 1.")
-        label2 = QLabel("Widget in Tab 2.")
-        tabwidget = QTabWidget()
-        tabwidget.addTab(label1, "Tab 1")
-        tabwidget.addTab(label2, "Tab 2")
-        layout.addWidget(tabwidget, 0, 0)
