@@ -22,4 +22,5 @@ class CameraStatusPlugin(Plugin):
         pass
 
     def restore_settings(self, plugin_settings, instance_settings):
+        self.widget.hostname = instance_settings.value("hostname")
         pass
