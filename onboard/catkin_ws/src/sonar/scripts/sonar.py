@@ -13,7 +13,7 @@ class Sonar:
     """Class to interface with the Sonar device.
     """
 
-    IF_LOCAL_TEST = True #only for local testing with the sonar script
+    IF_LOCAL_TEST = False #only for local testing with the sonar script
 
     SERIAL_PORT_NAME = "/dev/ttyUSB2"  # PORT of the salea is ttyUSB2 for testing
     BAUD_RATE = 2000000  # hz
