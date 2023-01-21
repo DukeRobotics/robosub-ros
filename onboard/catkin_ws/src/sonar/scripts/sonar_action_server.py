@@ -13,12 +13,12 @@ roslib.load_manifest('sonar')
     sweepActionFeedback.msg
 
     sweepGoal.msg                   #the parameters passed from the client
-        int32 start_angle
-        int32 end_angle
-        int32 distance_of_scan
+        float64 start_angle
+        float64 end_angle
+        float64 distance_of_scan
     sweepResult.msg                 #whats returned from to the client
-        int32 angle_found
-        int32 distance_to_sample
+        float64 x_pos
+        float64 y_pos
     sweepFeedback.msg               #sent as continuous feedback to the robot (not implimented)
         int32 current_angle
 """
