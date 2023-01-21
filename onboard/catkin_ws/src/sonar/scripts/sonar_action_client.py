@@ -31,9 +31,9 @@ if __name__ == '__main__':
     try:
         # Initializes a rospy node so that the SimpleActionClient can
         # publish and subscribe over ROS.
-        rospy.init_node('sonar_sweep_client_py')
+        rospy.init_node('sonar_sweep_client')
         client = SonarClient()
-        result = client.execute_sweep(150, 250, 5)
+        result = client.sweep_at_center_angle(15, 2, 5)
         print(result)
     except rospy.ROSInterruptException:
         print("program interrupted before completion")
