@@ -39,7 +39,7 @@ class SonarServer:
         # 5m range
         self._sonar = Sonar()
 
-        rospy.init_node(self.NODE_NAME)
+        #rospy.init_node(self.NODE_NAME)
         self._server = actionlib.SimpleActionServer(self.ACTION_NAME, sweepAction, self.execute, auto_start=False)
         self._server.start()
         rospy.spin()
