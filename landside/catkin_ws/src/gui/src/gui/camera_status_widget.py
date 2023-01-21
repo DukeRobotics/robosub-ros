@@ -1,5 +1,14 @@
 from python_qt_binding import loadUi
-from python_qt_binding.QtWidgets import QWidget, QMessageBox, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView
+from python_qt_binding.QtWidgets import (
+    QWidget,
+    QTableWidget,
+    QTableWidgetItem,
+    QHeaderView,
+    QTabWidget,
+    QDialog,
+    QLabel,
+    QGridLayout,
+)
 from python_qt_binding.QtCore import QTimer, pyqtProperty
 from python_qt_binding.QtGui import QColor
 
@@ -7,7 +16,10 @@ import rospy
 import resource_retriever as rr
 import rosservice
 
+from custom_msgs.srv import ConnectUSBCamera, ConnectDepthAICamera
 from diagnostic_msgs.msg import DiagnosticArray
+
+from datetime import datetime
 
 
 class CameraStatusWidget(QWidget):
@@ -54,33 +66,58 @@ class CameraStatusWidget(QWidget):
         # TODO: Replace below with QDialog and tabbed widget, with each tab displaying one log table
         # See here for how to get started with tab widget: https://pythonbasics.org/pyqt-tabwidget/
 
-        log_message_box = QMessageBox()
-        log_message_box.setWindowTitle('Connection Log')
+        dialog = QDialog()
 
-        close_button = QPushButton()
-        close_button.setText("Close")
-        log_message_box.addButton(close_button, QMessageBox.AcceptRole)
+        layout = QGridLayout()
+        label1 = QLabel("Widget in Tab 1.")
+        label2 = QLabel("Widget in Tab 2.")
+        tabwidget = QTabWidget()
+        tabwidget.addTab(label1, "Tab 1")
+        tabwidget.addTab(label2, "Tab 2")
+        layout.addWidget(tabwidget, 0, 0)
 
-        log_message_box.exec_()
+        dialog.setLayout(layout)
+        dialog.setModal(True)
+
+        dialog.show()
 
     def mono_check_connection(self):
-        # TODO: Call mono test connection service
-        # TODO: Update mono row in status_table with result
+        # Call mono test connection service
+        connect_usb_camera = rospy.ServiceProxy('connect_usb_camera', ConnectUSBCamera)
+        status = connect_usb_camera(0).success
+
+        # Update mono row in status_table with result
+        self.update_table("Mono", status, datetime.now().strftime("%H:%M:%S"))
+
         # TODO: Add row at top of mono_log_table with result
-        pass
+        self.update_mono_table((status, datetime.now().strftime("%H:%M:%S")))
 
     def stereo_check_connection(self):
-        # TODO: Call stereo test connection service
-        # TODO: Update stereo row in status_table with result
+        # Call stereo test connection service
+        connect_depthai_camera = rospy.ServiceProxy('connect_depthai_camera', ConnectDepthAICamera)
+        status = connect_depthai_camera().success
+
+        # Update stereo row in status_table with result
+        self.update_table("Stereo", status, datetime.now().strftime("%H:%M:%S"))
+
         # TODO: Add row at top of stereo_log_table with result
-        pass
+        self.update_stereo_table((status, datetime.now().strftime("%H:%M:%S")))
 
     def ping_response(self, response):
         # This method is called when a new message is published to the /ping_ip topic
-        # TODO: Make sure response hostname matches self.ping_hostname before proceeding
-        # TODO: Update ping row in status_table with result
+
+        # TODO: Uncomment once self.ping_hostname has a value
+        # Make sure response hostname matches self.ping_hostname before proceeding
+        # if response.status[0].name != self.ping_hostname:
+        #     return
+
+        status = response.status[0].level == 0
+
+        # Update ping row in status_table with result
+        # TODO: Format time
+        self.update_table("Ping", status, str(response.header.stamp))
+
         # TODO: Add row at top of ping_log_table with result
-        pass
 
     # SAMPLE ONLY
     def populate_table(self):
@@ -114,6 +151,53 @@ class CameraStatusWidget(QWidget):
         table.setItem(2, 1, mono_status)
         table.setItem(2, 2, QTableWidgetItem("11:24:67"))
         table.setRowHeight(2, 10)
+
+    def update_table(self, item, status, timestamp):
+        row_dictionary = {
+            "Ping": 0,
+            "Stereo": 1,
+            "Mono": 2
+        }
+        row = row_dictionary[item]
+
+        status_msg = "Successful" if status else "Failed"
+        color = "green" if status else "red"
+
+        status_item = QTableWidgetItem(status_msg)
+        status_item.setForeground(QColor(color))
+
+        table = self.status_table
+        table.setItem(row, 0, QTableWidgetItem(item))
+        table.setItem(row, 1, status_item)
+        table.setItem(row, 2, QTableWidgetItem(timestamp))
+
+    def update_mono_table(self, status, timestamp):
+        status_msg = "Successful" if status else "Failed"
+        color = "green" if status else "red"
+
+        self.mono_log_table.insertRow(0)
+
+        status_item = QTableWidgetItem(status_msg)
+        status_item.setForeground(QColor(color))
+
+        table = self.status_table
+        table.setItem(0, 0, QTableWidgetItem("Mono"))
+        table.setItem(0, 1, status_item)
+        table.setItem(0, 2, QTableWidgetItem(timestamp))
+
+    def update_stereo_table(self, status, timestamp):
+        status_msg = "Successful" if status else "Failed"
+        color = "green" if status else "red"
+
+        self.stereo_log_table.insertRow(0)
+
+        status_item = QTableWidgetItem(status_msg)
+        status_item.setForeground(QColor(color))
+
+        table = self.status_table
+        table.setItem(0, 0, QTableWidgetItem("Stereo"))
+        table.setItem(0, 1, status_item)
+        table.setItem(0, 2, QTableWidgetItem(timestamp))
 
     # DEPRECATED
     def populate_text_area(self):
@@ -152,3 +236,16 @@ class CameraStatusWidget(QWidget):
         text_area.append('<br> <u>Mono</u>')
         for content in mono_contents:
             text_area.append('<b>{}</b>: {}'.format(content[0], content[1]))
+
+
+class TabbedWidget(QWidget):
+    def __init__(self):
+        QWidget.__init__(self)
+        layout = QGridLayout()
+        self.setLayout(layout)
+        label1 = QLabel("Widget in Tab 1.")
+        label2 = QLabel("Widget in Tab 2.")
+        tabwidget = QTabWidget()
+        tabwidget.addTab(label1, "Tab 1")
+        tabwidget.addTab(label2, "Tab 2")
+        layout.addWidget(tabwidget, 0, 0)
