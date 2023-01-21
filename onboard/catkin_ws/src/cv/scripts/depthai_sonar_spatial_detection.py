@@ -288,8 +288,8 @@ class DepthAISpatialDetector:
                 # Request sonar to sweep within bounded angle range; read center of mass of detected object from sonar
                 result = self.sonar_client.sweep_at_center_angle(
                     center, breadth, SONAR_DEPTH)
-                x_cam_meters = result.xpos
-                y_cam_meters = result.ypos
+                x_cam_meters = result.x_pos
+                y_cam_meters = result.y_pos
                 using_sonar = True
             except:
                 rospy.loginfo("Sonar sweep failed, defaulting to stereo")
