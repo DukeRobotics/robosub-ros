@@ -14,6 +14,6 @@ def transform_pose(listener, pose):
     """
     pose_stamped = PoseStamped()
     pose_stamped.pose = pose
-    pose_stamped.header.frame_id = "base_link"
+    pose_stamped.header.frame_id = "corner_link"
 
-    return listener.transformPose("odom", pose_stamped).pose
+    return listener.transformPose("base_link", pose_stamped).pose
