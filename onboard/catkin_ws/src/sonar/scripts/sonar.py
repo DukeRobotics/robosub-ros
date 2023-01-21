@@ -140,9 +140,9 @@ class Sonar:
             float: Average value for object sweep
         """
         max_byte_array = self.get_max_bytes_along_sweep(int(start_angle), int(end_angle))
-        mean_index = sum(max_byte_array, key=lambda tup: tup[0]) / len(max_byte_array)
+        #mean_index = sum(max_byte_array, key=lambda tup: tup[0]) / len(max_byte_array) TODO fix mean angle code
         center_angle = (start_angle + end_angle) / 2
-        pose = self.to_robot_position(center_angle, mean_index)
+        pose = self.to_robot_position(center_angle, max_byte_array[0])
         return pose.position.x, pose.position.y
 
     def get_max_byte_in_sweep(self, start_angle, end_angle):
