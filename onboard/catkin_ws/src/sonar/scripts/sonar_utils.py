@@ -25,7 +25,7 @@ def transform_pose(listener, pose):
 
     return listener.transformPose("base_link", pose_stamped).pose
 
-def centered_gradians_to_radians(self, angle_gradians):
+def centered_gradians_to_radians(angle_gradians):
     """ Converts gradians centered at 200 to radians centered at 0
 
     Args:
@@ -34,11 +34,11 @@ def centered_gradians_to_radians(self, angle_gradians):
     Returns:
         float: Angle in radians
     """
-    angle_radians = (angle_gradians - self.SONAR_CENTER_GRADIANS) * RADIANS_PER_GRADIAN
+    angle_radians = (angle_gradians - SONAR_CENTER_GRADIANS) * RADIANS_PER_GRADIAN
     return angle_radians
 
 
-def degrees_to_centered_gradians(self, angle_degrees):
+def degrees_to_centered_gradians(angle_degrees):
     """ Converts degrees centered at 0 to gradians centered at 200
 
     Args:
@@ -49,5 +49,5 @@ def degrees_to_centered_gradians(self, angle_degrees):
     """
 
     angle_gradians = int(angle_degrees * GRADIANS_PER_DEGREE)
-    angle_gradians_centered = angle_gradians + self.SONAR_CENTER_GRADIANS
+    angle_gradians_centered = angle_gradians + SONAR_CENTER_GRADIANS
     return angle_gradians_centered
