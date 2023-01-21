@@ -201,7 +201,7 @@ class CameraStatusWidget(QWidget):
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         table.setColumnCount(2)
 
-        rowPosition = table.rowCount()
+        rowPosition = 0
         table.insertRow(rowPosition)
 
         table.setItem(rowPosition, 0, status_item)
@@ -219,7 +219,7 @@ class CameraStatusWidget(QWidget):
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         table.setColumnCount(2)
 
-        rowPosition = table.rowCount()
+        rowPosition = 0
         table.insertRow(rowPosition)
 
         table.setItem(rowPosition, 0, status_item)
