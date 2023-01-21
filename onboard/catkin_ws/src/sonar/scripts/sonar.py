@@ -109,7 +109,7 @@ class Sonar:
         Computes distance using formula from https://bluerobotics.com/learn/understanding-and-using-scanning-sonars/
 
         Args:
-            sample_index (int): Index of the sample in the data array, from 0 to N-1, where N = number of samples.
+            sample_index (int | float): Index of the sample in the data array, from 0 to N-1, where N = number of samples.
 
         Returns:
             float: Distance in meters of the sample from the sonar device.
@@ -139,8 +139,10 @@ class Sonar:
             float: Average value for object sweep
         """
         max_byte_array = self.get_max_bytes_along_sweep(start_angle, end_angle)
-        mean_value = sum(max_byte_array, key=lambda tup: tup[1]) / len(max_byte_array)
-        return mean_value
+        mean_index = sum(max_byte_array, key=lambda tup: tup[0]) / len(max_byte_array)
+        center_angle = (start_angle + end_angle) / 2
+        pose = self.to_robot_position(center_angle, mean_index)
+        return pose.position.x, pose.position.y
 
     def get_max_byte_in_sweep(self, start_angle, end_angle):
         """ Get the index of the biggest value and angle value out of all angles in a sweep
@@ -193,14 +195,14 @@ class Sonar:
 
         Args:
             angle (float): Angle in gradians of the point relative to in front of the sonar device
-            index (int): Index of the data in the sonar response
+            index (int | float): Index of the data in the sonar response
 
         Returns:
-            Pose: Pose in robot reference frame
+            Pose: Pose in robot reference frame containing x and y position of angle/index item
         """
         # Need to change the static transform for where the sonar is on the robot
-        x_pos = self.get_distance_of_sample(index) * np.cos(self.gradians_to_radians(200-angle))
-        y_pos = self.get_distance_of_sample(index) * np.sin(self.gradians_to_radians(200-angle))
+        x_pos = self.get_distance_of_sample(index) * np.cos(sonar_utils.centered_gradians_to_radians(angle))
+        y_pos = self.get_distance_of_sample(index) * np.sin(sonar_utils.centered_gradians_to_radians(angle))
         print(f"{x_pos} {y_pos}")
         pos_of_point = Pose()
         pos_of_point.position.x = x_pos
