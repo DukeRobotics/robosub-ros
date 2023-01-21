@@ -129,20 +129,17 @@ class LaunchDialog(QDialog):
 
             for row in range(len(self.arg_form_rows)):
                 arg = self.arg_form_rows[row]
-                arg['allow_empty'] = False
+                arg['allow_empty'] = True
 
                 if arg.get('default') is None:
                     default_value = ''
                 else:
                     default_value = arg['default']
-                    if default_value.strip():
-                        arg['allow_empty'] = True
 
                 label = QtWidgets.QLabel(arg['name'])
 
                 input = QtWidgets.QLineEdit()
                 input.setText(default_value)
-                input.setPlaceholderText(f"Default: `{default_value}`")
 
                 toolTip = ""
 
@@ -191,16 +188,14 @@ class LaunchDialog(QDialog):
 
                     if doc_dict.get("allowEmpty") is not None:
                         if type(doc_dict["allowEmpty"]) == bool:
-                            if not doc_dict["allowEmpty"]:
-                                arg['allow_empty'] = False
+                            arg['allow_empty'] = doc_dict["allowEmpty"]
                         else:
                             rospy.logwarn(f"The property allowEmpty for argument `{arg['name']}` in `{selected_node}` "
                                           f"is not a valid boolean. Defaulting to allow empty input.")
 
-                toolTip += (" | " if toolTip else "") + "Can be empty: " + ("Yes" if arg['allow_empty'] else "No")
-
-                label.setText(label.text() + " (?)")
-                label.setToolTip(toolTip)
+                if toolTip:
+                    label.setText(label.text() + " (?)")
+                    label.setToolTip(toolTip)
 
                 # row inserted at position row+2, after the Package and Node Name rows
                 self.form_layout.insertRow(row + 2, label, input)
@@ -220,12 +215,14 @@ class LaunchDialog(QDialog):
                 arg = row['name'] + ":=" + row['input'].currentText()
 
             elif type(row['input']) is QtWidgets.QLineEdit:
-                if not row['input'].text().strip() and not row['allow_empty']:
-                    if row.get('default') is None:
+
+                if not row['input'].text().strip():
+                    if not row['allow_empty'] or row.get('default') is None:
                         self.argument_required_dialog(row['name'])
                         return
-                    else:
-                        self.argument_default_dialog(row['name'], row['default'])
+                    elif row.get('default') != "":
+                        if not self.argument_default_dialog(row['name'], row['default']):
+                            return
 
                 arg = row['name'] + ":=" + row['input'].text()
 
@@ -246,16 +243,16 @@ class LaunchDialog(QDialog):
     def argument_default_dialog(self, default_arg, default_value):
         msg = QMessageBox()
 
-        msg.setIcon(QMessageBox.Warning)
+        msg.setIcon(QMessageBox.Information)
 
         msg.setWindowTitle("Warning")
         msg.setText("Missing argument")
         msg.setInformativeText(f"The value of {default_arg} will be the default value of `{default_value}`."
                                f"Is that ok?")
 
-        msg.setStandardButtons(QMessageBox.Close)
+        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
 
-        msg.exec_()
+        return msg.exec_() == QMessageBox.Ok
 
     def argument_required_dialog(self, required_arg):
         msg = QMessageBox()
