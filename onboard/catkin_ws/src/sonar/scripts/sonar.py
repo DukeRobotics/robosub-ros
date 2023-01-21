@@ -187,31 +187,6 @@ class Sonar:
         best = np.argmax(filteredbytes)
         return (best+self.FILTER_INDEX, filteredbytes[best])
 
-
-
-    def to_robot_position(self, angle, index):
-        """ Converts a point in sonar space a robot global position
-
-        Args:
-            angle (float): Angle in gradians of the point relative to in front of the sonar device
-            index (int): Index of the data in the sonar response
-
-        Returns:
-            Pose: Pose in robot reference frame
-        """
-        # Need to change the static transform for where the sonar is on the robot
-        # angle-200 to convert to center angle
-        x_pos = self.get_distance_of_sample(index) * np.cos(self.gradians_to_radians(angle-200))
-        y_pos = self.get_distance_of_sample(index) * np.sin(self.gradians_to_radians(angle-200))
-        pos_of_point = Pose()
-        pos_of_point.position.x = x_pos
-        pos_of_point.position.y = y_pos
-        pos_of_point.position.z = 0  # z cord isnt 0 as gate is a line
-        pos_of_point.orientation.x = 0
-        pos_of_point.orientation.y = 0
-        pos_of_point.orientation.z = 0
-        pos_of_point.orientation.w = 1
-
     def to_robot_position(self, angle, index):
         """ Converts a point in sonar space a robot global position
 
@@ -235,9 +210,9 @@ class Sonar:
         pos_of_point.orientation.z = 0
         pos_of_point.orientation.w = 1
 
-        global_pose = sonar_utils.transform_pose(self.listener, pos_of_point)
+        transformed_pose = sonar_utils.transform_pose(self.listener, pos_of_point)
 
-        return global_pose
+        return transformed_pose
 
 
 def test_scan_and_finding_gate_posts():
