@@ -263,20 +263,20 @@ class DepthAISpatialDetector:
             center = (left_end + right_end) / 2.0
             breadth = math.abs(center - left_end)
 
-            try:
-                self.sonar_client.sweep_at_center_angle(center, breadth, SONAR_DEPTH)
-                self.publish_prediction(bbox, det_coords_robot_mm, label, confidence, (height, width))
+            x_cam_meters = mm_to_meters(x_cam_mm)
+            y_cam_meters = mm_to_meters(y_cam_mm)
+            z_cam_meters = mm_to_meters(z_cam_mm)
 
+            # Try calling sonar on detected bounding box
+            # if sonar responds, then override existing robot-frame x, y info; else, keep default
+            try:
+                # Request sonar to sweep within bounded angle range; read center of mass of detected object from sonar
+                (x_cam_meters, y_cam_meters) = self.sonar_client.sweep_at_center_angle(center, breadth, SONAR_DEPTH)
             except:
                 rospy.loginfo("Sonar sweep failed, defaulting to stereo")
-
-                x_cam_meters = mm_to_meters(x_cam_mm)
-                y_cam_meters = mm_to_meters(y_cam_mm)
-                z_cam_meters = mm_to_meters(z_cam_mm)
-
-                det_coords_robot_mm = camera_frame_to_robot_frame(x_cam_meters, y_cam_meters, z_cam_meters)
-
-                self.publish_prediction(bbox, det_coords_robot_mm, label, confidence, (height, width))
+                
+            det_coords_robot_mm = camera_frame_to_robot_frame(x_cam_meters, y_cam_meters, z_cam_meters)
+            self.publish_prediction(bbox, det_coords_robot_mm, label, confidence, (height, width))
 
     def publish_prediction(self, bbox, det_coords, label, confidence, shape):
         """
