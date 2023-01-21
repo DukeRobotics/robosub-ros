@@ -1,11 +1,11 @@
 #goal definition
-int32 start_angle
-int32 end_angle
-int32 distance_of_scan
+float64 start_angle
+float64 end_angle
+float64 distance_of_scan
 ---
 #result definition
-int32 angle_found
-float64 distance_to_sample
+int32 x_pos
+int32 y_pos
 ---
 #feedback
 int32 current_angle
