@@ -121,11 +121,11 @@ Use these instructions to test code on your computer by simulating the robot's e
 
 1. To run the containers, clone this repo. In the newly-created directory (`robosub-ros`), execute
     ```bash
-    docker-compose up -d
+    docker compose up -d
     ```
     This will pull the images if you don't have them, create a new network that simulates the network we use on our robot, mount the code, and start the containers.
 
-    To update the images, or to just pull them without running them, use `docker-compose pull`.
+    To update the images, or to just pull them without running them, use `docker compose pull`.
 
 1. SSH into the onboard container. Password is `robotics`.
     ```bash
@@ -138,7 +138,7 @@ Use these instructions to test code on your computer by simulating the robot's e
 1. Now go to [Running Our Code](#running-our-code). Also set up our [simulation](landside/catkin_ws/src/simulation).
 1. To stop and delete both containers and their network, in the `robosub-ros` directory, execute
     ```bash
-    docker-compose down
+    docker compose down
     ```
 
 
