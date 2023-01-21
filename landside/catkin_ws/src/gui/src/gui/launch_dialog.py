@@ -90,6 +90,13 @@ class LaunchDialog(QDialog):
         launchable_names = [os.path.split(f)[1] for f in launchables]
         self.node_name_box.addItems(launchable_names)
 
+        try:
+            index_of_first_script_file = next(i for i, v in enumerate(launchable_names) if v.endswith('.py'))
+            if index_of_first_script_file > 0 and index_of_first_script_file < len(launchable_names):
+                self.node_name_box.insertSeparator(index_of_first_script_file)
+        except Exception:
+            pass
+
     def node_name_selected(self, item_index):
         for row in self.arg_form_rows:
             self.form_layout.removeRow(row['label'])
