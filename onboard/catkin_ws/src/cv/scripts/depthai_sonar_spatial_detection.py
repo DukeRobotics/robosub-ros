@@ -89,7 +89,8 @@ class DepthAISpatialDetector:
 
         # Define sources and outputs
         cam_rgb = pipeline.create(dai.node.ColorCamera)
-        spatial_detection_network = pipeline.create(dai.node.YoloSpatialDetectionNetwork)
+        spatial_detection_network = pipeline.create(
+            dai.node.YoloSpatialDetectionNetwork)
         mono_left = pipeline.create(dai.node.MonoCamera)
         mono_right = pipeline.create(dai.node.MonoCamera)
         stereo = pipeline.create(dai.node.StereoDepth)
@@ -101,22 +102,27 @@ class DepthAISpatialDetector:
 
         xout_rgb.setStreamName("rgb")
         xout_nn.setStreamName("detections")
-        xout_bounding_box_depth_mapping.setStreamName("boundingBoxDepthMapping")
+        xout_bounding_box_depth_mapping.setStreamName(
+            "boundingBoxDepthMapping")
         xout_depth.setStreamName("depth")
 
         # Properties
         cam_rgb.setPreviewSize(model['input_size'])
-        cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
+        cam_rgb.setResolution(
+            dai.ColorCameraProperties.SensorResolution.THE_1080_P)
         cam_rgb.setInterleaved(False)
         cam_rgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
 
-        mono_left.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
+        mono_left.setResolution(
+            dai.MonoCameraProperties.SensorResolution.THE_400_P)
         mono_left.setBoardSocket(dai.CameraBoardSocket.LEFT)
-        mono_right.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
+        mono_right.setResolution(
+            dai.MonoCameraProperties.SensorResolution.THE_400_P)
         mono_right.setBoardSocket(dai.CameraBoardSocket.RIGHT)
 
         # setting node configs
-        stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
+        stereo.setDefaultProfilePreset(
+            dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
         stereo.setDepthAlign(dai.CameraBoardSocket.RGB)
 
         spatial_detection_network.setBlobPath(nn_blob_path)
@@ -144,7 +150,8 @@ class DepthAISpatialDetector:
             cam_rgb.preview.link(xout_rgb.input)
 
         spatial_detection_network.out.link(xout_nn.input)
-        spatial_detection_network.boundingBoxMapping.link(xout_bounding_box_depth_mapping.input)
+        spatial_detection_network.boundingBoxMapping.link(
+            xout_bounding_box_depth_mapping.input)
 
         stereo.depth.link(spatial_detection_network.inputDepth)
         spatial_detection_network.passthroughDepth.link(xout_depth.input)
@@ -197,8 +204,10 @@ class DepthAISpatialDetector:
                                                           queue_size=10)
         self.publishers = publisher_dict
 
-        self.rgb_preview_publisher = rospy.Publisher("camera/front/rgb/preview/stream_raw", Image, queue_size=10)
-        self.detection_feed_publisher = rospy.Publisher("cv/front/detections", Image, queue_size=10)
+        self.rgb_preview_publisher = rospy.Publisher(
+            "camera/front/rgb/preview/stream_raw", Image, queue_size=10)
+        self.detection_feed_publisher = rospy.Publisher(
+            "cv/front/detections", Image, queue_size=10)
 
     def init_output_queues(self, device):
         """
@@ -209,11 +218,14 @@ class DepthAISpatialDetector:
         if self.connected:
             return
 
-        self.output_queues["rgb"] = device.getOutputQueue(name="rgb", maxSize=1, blocking=False)
-        self.output_queues["detections"] = device.getOutputQueue(name="detections", maxSize=1, blocking=False)
+        self.output_queues["rgb"] = device.getOutputQueue(
+            name="rgb", maxSize=1, blocking=False)
+        self.output_queues["detections"] = device.getOutputQueue(
+            name="detections", maxSize=1, blocking=False)
         self.output_queues["boundingBoxDepthMapping"] = device.getOutputQueue(name="boundingBoxDepthMapping", maxSize=1,
                                                                               blocking=False)
-        self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
+        self.output_queues["depth"] = device.getOutputQueue(
+            name="depth", maxSize=1, blocking=False)
         self.connected = True
 
         self.detection_visualizer = DetectionVisualizer(self.classes)
@@ -244,7 +256,8 @@ class DepthAISpatialDetector:
         width = frame.shape[1]
         for detection in detections:
 
-            bbox = (detection.xmin, detection.ymin, detection.xmax, detection.ymax)
+            bbox = (detection.xmin, detection.ymin,
+                    detection.xmax, detection.ymax)
 
             label_idx = detection.label
             label = self.classes[label_idx]
@@ -259,26 +272,34 @@ class DepthAISpatialDetector:
             z_cam_mm = detection.spatialCoordinates.z
 
             # Get sonar sweep range
-            (left_end, right_end) = coords_to_angle(detection.xmin, detection.xmax)
+            (left_end, right_end) = coords_to_angle(
+                detection.xmin, detection.xmax)
             center = (left_end + right_end) / 2.0
             breadth = math.abs(center - left_end)
 
             x_cam_meters = mm_to_meters(x_cam_mm)
             y_cam_meters = mm_to_meters(y_cam_mm)
             z_cam_meters = mm_to_meters(z_cam_mm)
+            using_sonar = False
 
             # Try calling sonar on detected bounding box
             # if sonar responds, then override existing robot-frame x, y info; else, keep default
             try:
                 # Request sonar to sweep within bounded angle range; read center of mass of detected object from sonar
-                (x_cam_meters, y_cam_meters) = self.sonar_client.sweep_at_center_angle(center, breadth, SONAR_DEPTH)
+                result = self.sonar_client.sweep_at_center_angle(
+                    center, breadth, SONAR_DEPTH)
+                x_cam_meters = result.xpos
+                y_cam_meters = result.ypos
+                using_sonar = True
             except:
                 rospy.loginfo("Sonar sweep failed, defaulting to stereo")
-                
-            det_coords_robot_mm = camera_frame_to_robot_frame(x_cam_meters, y_cam_meters, z_cam_meters)
-            self.publish_prediction(bbox, det_coords_robot_mm, label, confidence, (height, width))
 
-    def publish_prediction(self, bbox, det_coords, label, confidence, shape):
+            det_coords_robot_mm = camera_frame_to_robot_frame(
+                x_cam_meters, y_cam_meters, z_cam_meters)
+            self.publish_prediction(
+                bbox, det_coords_robot_mm, label, confidence, (height, width), using_sonar)
+
+    def publish_prediction(self, bbox, det_coords, label, confidence, shape, using_sonar):
         """
         Publish predictions to label-specific topic. Publishes to /cv/[camera]/[label].
 
@@ -287,6 +308,7 @@ class DepthAISpatialDetector:
         :param label: Predicted label for the detection.
         :param confidence: Confidence for the detection, from 0 to 1.
         :param shape: Tuple with the (height, width) of the image.
+        :param using_sonar: Boolean representing whether or not data was retrieved from sonar.
         """
         object_msg = CVObject()
         object_msg.label = label
@@ -303,6 +325,8 @@ class DepthAISpatialDetector:
 
         object_msg.height = shape[0]
         object_msg.width = shape[1]
+
+        object_msg.sonar = using_sonar
 
         if self.publishers:
             self.publishers[label].publish(object_msg)
@@ -374,7 +398,8 @@ def coords_to_angle(min_x, max_x):
     :param min_x: minimum x coordinate of camera bounding box (robot y)
     :param max_x: maximum x coordinate of camera bounding box (robot y)
     """
-    distance_to_screen = CAMERA_PIXEL_WIDTH/2 * 1/math.tan(math.rad(HORIZONTAL_FOV/2))
+    distance_to_screen = CAMERA_PIXEL_WIDTH/2 * \
+        1/math.tan(math.rad(HORIZONTAL_FOV/2))
     min_angle = math.degrees(np.arctan(min_x/distance_to_screen))
     max_angle = math.degrees(np.arctan(max_x/distance_to_screen))
     return min_angle, max_angle
