@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="hostname" default="169.254.1.222" />
+	<arg name="rate" default="1" />
+	<node name="ping_ip" pkg="cv" type="ping_ip.py" output="screen">
+		<param name="hostname" value="$(arg hostname)" />
+		<param name="rate" value="$(arg rate)" />
+	</node>
+</launch>
