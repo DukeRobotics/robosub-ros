@@ -6,8 +6,7 @@ SONAR_CENTER_GRADIANS = 200
 RADIANS_PER_GRADIAN = np.pi / 200
 GRADIANS_PER_DEGREE = 400 / 360
 
-
-def transform_pose(listener, base_frame, target_frame, pose):
+def transform_pose(listener, pose):
     """ Transform pose from base reference frame to target reference frame frame
 
     Args:
@@ -22,10 +21,9 @@ def transform_pose(listener, base_frame, target_frame, pose):
     
     pose_stamped = PoseStamped()
     pose_stamped.pose = pose
-    pose_stamped.header.frame_id = base_frame
+    pose_stamped.header.frame_id = "sonar_link"
 
-    return listener.transformPose(target_frame, pose_stamped).pose
-
+    return listener.transformPose("base_link", pose_stamped).pose
 
 def centered_gradians_to_radians(self, angle_gradians):
     """ Converts gradians centered at 200 to radians centered at 0
@@ -49,6 +47,7 @@ def degrees_to_centered_gradians(self, angle_degrees):
     Returns:
         int: Angle in gradians where 200 (Sonar.SONAR_CENTER_GRADIANS) is forward
     """
+
     angle_gradians = int(angle_degrees * GRADIANS_PER_DEGREE)
     angle_gradians_centered = angle_gradians + self.SONAR_CENTER_GRADIANS
     return angle_gradians_centered
