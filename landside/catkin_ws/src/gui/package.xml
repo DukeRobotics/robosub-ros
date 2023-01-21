@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>gui</name>
+  <version>0.0.0</version>
+  <description>Provides a GUI to interact with the robot</description>
+
+  <maintainer email="hello@duke-robotics.com">Duke Robotics Club</maintainer>
+
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>geometry_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>nav_msgs</depend>
+  <depend>resource_retriever</depend>
+  <depend>rosservice</depend>
+  <depend>tf</depend>
+  <depend>dynamic_reconfigure</depend>
+  <depend>custom_msgs</depend>
+  <depend>robot_localization</depend>
+
+  <build_export_depend>rospy</build_export_depend>
+  <build_export_depend>rqt_gui</build_export_depend>
+  <build_export_depend>rqt_gui_py</build_export_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>rqt_gui</exec_depend>
+  <exec_depend>rqt_gui_py</exec_depend>
+  <exec_depend>python-numpy</exec_depend>
+
+  <export>
+    <rqt_gui plugin="${prefix}/plugins/offboard_plugin.xml"/>
+    <rqt_gui plugin="${prefix}/plugins/sensor_plugin.xml"/>
+    <rqt_gui plugin="${prefix}/plugins/controls_plugin.xml"/>
+    <rqt_gui plugin="${prefix}/plugins/launch_plugin.xml"/>
+    <rqt_gui plugin="${prefix}/plugins/rosbag_plugin.xml"/>
+  </export>
+</package>

@@ -26,6 +26,8 @@ add_service_files(
   FILES
   SetServo.srv
   EnableModel.srv
+  StartLaunch.srv
+  StopLaunch.srv
 )
 
 add_action_files(
@@ -35,6 +37,9 @@ add_action_files(
   AcousticsWrapper.action
   Saleae.action
   AcousticsData.action
+  ControlsDesiredPose.action
+  ControlsDesiredTwist.action
+  ControlsDesiredPower.action
   sweep.action
 )
 

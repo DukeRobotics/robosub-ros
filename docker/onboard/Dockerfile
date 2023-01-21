@@ -27,15 +27,19 @@ ENV NVIDIA_DRIVER_CAPABILITIES ${CUDA:+all}
 ### Basic Setup ###
 
 # Update and install tools
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    xauth pciutils \
-    libusb-dev libqt5x11extras5 \
-    unzip zip util-linux \
-    ros-noetic-tf \ 
-    ros-noetic-robot-localization \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    xauth \
+    pciutils \
+    libusb-dev \
+    libqt5x11extras5 \
+    unzip \
+    zip \
+    util-linux \
     ros-noetic-pid \
     ros-noetic-smach-ros \
-    ros-noetic-rosserial ros-noetic-rosserial-arduino \
+    ros-noetic-rosserial \
+    ros-noetic-rosserial-arduino \
     python3-pandas && \
     apt-get clean && \
     # Clear apt caches to reduce image size

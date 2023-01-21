@@ -7,7 +7,7 @@ Thruster information is read from `*.config` files, which are written in YAML. T
 
 `controls.launch` takes in a `sim` argument to indicate whether it is running in the simulation or on the robot.
 
-Only the most recently updated Desired State Topic will be used in movement. Therefore any updates will override the current movement of the robot. Controls will warn you if more than one Desired State Topic is being published to at any given time to prevent such issues. If Controls stops receiving Desired State messages at a high enough rate (at the moment, 10 Hz), it will warn you and will output zero power for safety purposes.
+Only the most recently sent goal received by a Desired State Action Server will be used in movement. Therefore any new goals will preempt existing goals for any of the three control actions and override the current movement of the robot.
 
 The controls algorithm will output all 0's unless it is enabled with a call to rosservice as detailed in the setup. Sending the disable call to the service acts as a software emergency stop that cuts off all power to the thrusters.
 
@@ -61,25 +61,29 @@ roslaunch controls controls.launch sim:=true
 `test_state_publisher.py` is where we specify the desired state of the robot. Alternatively, you can publish to any of the desired state topics directly using your own code. The second command launches the entire controls node in simulation mode.
 
 
-## Topics
+## Interface
 
 ### Listening
 
-Desired State Topics:
+Desired State Action Servers:
 
   - ```controls/desired_pose```
-    + A point and quaternion representing the robot's desired global xyz position and rpy orientation.
-    + Type: geometry_msgs/Pose
+    + Type: ```custom_msgs/ControlsDesiredPoseAction```
+    + Goal: ```custom_msgs/ControlsDesiredPoseGoal```
+      - Contains a ```geometry_msgs/Pose```
+      - Pose has fields for a point and quaternion representing the robot's desired global xyz position and rpy orientation.
 
   - ```controls/desired_twist```
-    + A twist with values corresponding to linear and angular velocities.
-    + These values are considered as global inputs. If local velocity input is desired, then call ```rosservice call /enable_local_control true```.
-    + Type: geometry_msgs/Twist
+    + Type: ```custom_msgs/ControlsDesiredTwistAction```
+    + Goal: ```custom_msgs/ControlsDesiredTwistGoal```
+      - Contains a ```geometry_msgs/Twist``` which has fields for the robot's desired local linear and angular velocities.
 
   - ```controls/desired_power```
-    + A twist with values [-1,1] corresponding to relative linear and angular velocities. 1 is full speed in a positive direction, -1 is full speed in the negative direction.
-    + This option completely ignores all PID loops, and offers no stabilization. It is mainly for use with joysticks.
-    + Type: geometry_msgs/Twist
+    + Type: ```custom_msgs/ControlsDesiredPowerAction```
+    + Goal: ```custom_msgs/ControlsDesiredPowerGoal```
+      - Contains a ```geometry_msgs/Twist``` with values [-1,1] corresponding to effort the robot should exert in each local axis. 1 is full speed in a positive direction, -1 is full speed in the negative direction.
+      - This option stabilizes velocity on all axes with values of 0. It is mainly for use with joysticks (velocity control should be used in almost every other case).
+      - For instance, a `desired_power` goal of [1, 0, -0.5, 0, 0, 0], the robot will move full speed in the +x direction, half speed in the -z direction, and stabilize velocities on all other axes.
 
 Current State Topics:
 
@@ -111,7 +115,7 @@ This package has the following launch files:
 * `controls.launch` is the entrypoint to the package. It takes in a `sim` argument to indicate whether we are publishing for the simulation or the Arduino. It includes the `pid.launch` file to launch the PID for position loops. It then starts the three nodes above.
 * `position_pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for position control on x, y, z, roll, pitch, and yaw. It defines the PID parameters at the top, depending on the `sim` argument passed in.
 
-* `velocity_pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for velocity control on x, y, z, roll, pitch, and yaw. For ease of tuning via dynamic reconfiguration, this file accepts PID simulation constants as parameters which are used if the `sim` argument is asserted. 
+* `velocity_pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for velocity control on x, y, z, roll, pitch, and yaw. 
 
 ### Flow
 
@@ -164,7 +168,8 @@ A thruster's starting orientation when aligned with robot frame is defined as th
 ### Scripts
 
 * `state_republisher.py` - listens to Current State Topics and republishes relevant components to their own `/controls/state/...` topics for use in all of the other parts of this controls package.
-* `desired_state.py` - listens to Desired State Topics, warns the user via the console if none or more than one are received, and outputs setpoints to PID loops if desiring position or velocity, or outputs powers directly to `thruster_controls`.
+* `desired_state.py` - listens to Desired State Topics, warns the user via the console if none or more than one are received, and uses an instance of `PIDManager` to run position, velocity, or power control.
+* `pid_manager.py` - Defines the `PIDManager` class, which has methods for running position, velocity, and power control. Handles publishing to all PID topics, which includes set-points and enabling/disabling loops. Publishes directly to control effort topics listened to by `thruster_controls` if power control is selected.
 * `thruster_controls.py` - listens to control efforts from PID or `desired_state`, uses an instance of `ThrusterManager` to calculate thruster allocations from the them, scales outputs so that the maximum is 1 or -1 in any direction, and publishes to Arduino or simulation movement topics.
 * `thruster_manager.py` - Defines the `ThrusterManager` class, which reads in config file, creates `Thruster` array from it, and has math for calculating thruster allocations.
 * `thruster.py` - Defines the `Thruster` class, which takes in a position and orientation of a thruster relative to the center of the robot, and then calculates and stores the force and torque it exerts on the robot.

@@ -14,6 +14,7 @@
 
 # ROS_Serial
 ros_lib/
+ros_lib.zip
 
 # Acoustics
 *.csv
@@ -21,6 +22,7 @@ ros_lib/
 # Video and Bags
 *.avi
 *.bag
+*.MOV
 
 # PyCharm/IntelliJ
 .idea

@@ -12,13 +12,21 @@ WORKDIR $WORKDIR
 
 # Update and install tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    openssh-server xvfb \
+    openssh-server \
+    xvfb \
+    bat \
     vim \
-    curl wget \
+    neovim \
+    nano \
+    tmux \
+    screen \
+    curl \
+    wget \
     usbutils apt-utils \
     ros-noetic-cv-bridge \
     ros-noetic-resource-retriever \
     ros-noetic-actionlib-tools \
+    ros-noetic-robot-localization \
     python-dev-is-python3 \
     python3-pip \
     python3-catkin-tools python3-osrf-pycommon \
@@ -43,6 +51,8 @@ RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
     touch /root/.ssh/environment
 
 COPY ssh_entry.sh /root/.bash_profile
+
+COPY tmux.conf /etc/
 
 ### Final Setup ###
 

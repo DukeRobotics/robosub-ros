@@ -37,13 +37,22 @@ class MoveToPoseGlobalTask(Task):
     def run(self, userdata):
         print("moving to ", self.desired_pose)
         rate = rospy.Rate(15)
+        lastPose = self.getPose()
+        self.publish_desired_pose_global(lastPose)
         while not(
             self.state and task_utils.stopped_at_pose(
                 self.state.pose.pose,
                 self.getPose(),
                 self.state.twist.twist)):
-            self.publish_desired_pose_global(self.getPose())
+            # Resend the goal pose only if the target pose has changed
+            newPose = self.getPose()
+            if not task_utils.at_pose(lastPose, newPose, 0.0001, 0.0001):
+                lastPose = newPose
+                self.publish_desired_pose_global(lastPose)
+
             rate.sleep()
+
+        self.task_state.desired_pose_global_client.cancel_goal()
         return "done"
 
     def getPose(self):
@@ -75,8 +84,7 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
         self.listener = listener
 
     def run(self, userdata):
-        if 'base_link' in self.listener.getFrameStrings():
-            self.desired_pose = task_utils.transform_pose(self.listener, 'base_link', 'odom', self.desired_pose)
+        self.desired_pose = task_utils.transform_pose(self.listener, 'base_link', 'odom', self.desired_pose)
         return super(MoveToPoseLocalTask, self).run(userdata)
 
 
@@ -125,11 +133,12 @@ class AllocateVelocityLocalForeverTask(Task):
     def run(self, userdata):
         # rospy.loginfo("publishing desired twist...")
         rate = rospy.Rate(15)
+        self.publish_desired_twist(self.desired_twist)
         while True:
             if self.preempt_requested():
+                self.task_state.desired_twist_velocity_client.cancel_goal()
                 self.service_preempt()
                 return 'preempted'
-            self.publish_desired_twist(self.desired_twist)
             rate.sleep()
 
 

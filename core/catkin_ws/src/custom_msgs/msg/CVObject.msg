@@ -6,6 +6,9 @@ float64 ymin
 float64 xmax
 float64 ymax
 
+# Object coordinates
+geometry_msgs/Point coords
+
 int32 height
 int32 width
 

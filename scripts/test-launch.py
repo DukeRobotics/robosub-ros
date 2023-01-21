@@ -5,10 +5,13 @@ import rospy
 import os
 import sys
 import psutil
+import subprocess
 
 IGNORE_LIST = []
 BLOCK_LIST = [
     'cv/launch/cv.launch',
+    'cv/launch/depthai_service_model_gate.launch',
+    'cv/launch/depthai_service_model_gate_buoy.launch',
     'joystick/launch/pub_joy.launch',
     'simulation/launch/base_sim.launch',
     'simulation/launch/test_sim_comm.launch',
@@ -53,6 +56,8 @@ def test_launch():
 
     if ws == 'landside':
         del os.environ['ROS_MASTER_URI']
+        _ = subprocess.Popen(['Xvfb', ':99'])
+        os.environ["DISPLAY"] = ":99"
 
     launchfiles = get_launchfiles(f'{ws}/catkin_ws/src/')
     print(len(launchfiles))

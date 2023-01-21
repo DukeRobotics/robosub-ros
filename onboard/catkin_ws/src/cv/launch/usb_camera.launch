@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="topic" default="usb_camera" />
+	<arg name="channel" default="0" />
+	<arg name="framerate" default="-1" />
+	<node name="usb_camera" pkg="cv" type="usb_camera.py" output="screen">
+		<param name="topic" value="$(arg topic)" />
+		<param name="channel" value="$(arg channel)" />
+		<param name="framerate" value="$(arg framerate)" />
+	</node>
+</launch>

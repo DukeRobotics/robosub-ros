@@ -8,8 +8,7 @@ import smach
 import rospy
 from task import Task
 from move_tasks import MoveToPoseLocalTask, MoveToPoseGlobalTask
-from tf import TransformListener
-from time import sleep
+import tf
 
 
 SIDE_THRESHOLD = 0.1  # means gate post is within 1 tenth of the side of the frame
@@ -34,20 +33,30 @@ INPUT FROM CMD copper or bootlegger, direction to rotate, time to wait and movin
 def main():
     rospy.init_node('gate_task')
 
+    listener = tf.TransformListener()
+
     # needs direction to work
-    sm = create_simple_gate_task_sm()
-    sleep(2)
+    sm = create_simple_gate_task_sm(listener)
+
+    listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(10))
+
     # Execute SMACH plan
     sm.execute()
+
+# Here to appease automatic testing
+# Check if we actually want this later
+
+
+def create_gate_task_sm(listener):
+    return create_gate_task_sm_DEFUNCT(listener, 1)
 
 # Rotate direction is +1 or -1 depending on how we should rotate
 
 
-def create_gate_task_sm_DEFUNCT(rotate_direction):
+def create_gate_task_sm_DEFUNCT(listener, rotate_direction):
     sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
-    listener = TransformListener()
     gate_euler_position = [0, 0, 0, 0, 0, 0]
-    image_name = "bootlegger"
+    image_name = "bootleggerbuoy"
     with sm:
         smach.StateMachine.add('CHECK_IMAGE_VISIBLE', ObjectVisibleTask(image_name, 3),
                                transitions={
@@ -74,9 +83,8 @@ def create_gate_task_sm_DEFUNCT(rotate_direction):
 # SIMPLE version below
 
 
-def create_simple_gate_task_sm(rotate_direction, image_name):
+def create_simple_gate_task_sm(listener, rotate_direction, image_name):
     sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
-    listener = TransformListener()
     global_object_position = [0, 0, 0, 0, 0, 0]
     with sm:
         smach.StateMachine.add('DIVE_TO_GATE', MoveToPoseGlobalTask(0, 0, -2, 0, 0, 0, listener),
@@ -103,9 +111,8 @@ def create_simple_gate_task_sm(rotate_direction, image_name):
     return sm
 
 
-def create_simplest_gate_task_sm():
+def create_simplest_gate_task_sm(listener):
     sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
-    listener = TransformListener()
     with sm:
         smach.StateMachine.add('MOVE_1', MoveToPoseLocalTask(2.5, 0, -2, 0, 0, 0, listener),
                                transitions={
