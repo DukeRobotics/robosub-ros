@@ -4,8 +4,8 @@ float64 end_angle
 float64 distance_of_scan
 ---
 #result definition
-int32 x_pos
-int32 y_pos
+float64 x_pos
+float64 y_pos
 ---
 #feedback
 int32 current_angle
