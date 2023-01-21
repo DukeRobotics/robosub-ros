@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>300</width>
+    <width>316</width>
     <height>145</height>
    </rect>
   </property>
@@ -57,7 +57,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <property name="spacing">
-      <number>5</number>
+      <number>1</number>
      </property>
      <item>
       <widget class="QPushButton" name="logs_button">
@@ -69,20 +69,6 @@
        </property>
        <property name="text">
         <string>Logs</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="Line" name="line">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Check:</string>
        </property>
       </widget>
      </item>
