@@ -1,17 +1,24 @@
 from python_qt_binding.QtWidgets import (
+    QTableWidget,
+    QTableWidgetItem,
+    QHeaderView,
     QTabWidget,
     QDialog,
     QGridLayout,
 )
 
-from gui.camera_status_widget import CameraStatusDataUpdateType
+from python_qt_binding.QtGui import QColor
 
 
 class CameraStatusLog(QDialog):
     def __init__(self, parent):
+        self.mono_log_table = QTableWidget()
+        self.stereo_log_table = QTableWidget()
+        self.ping_log_table = QTableWidget()
+
         dialog = QDialog()
 
-        parent.data_updated.connect(update)
+        parent.data_updated.connect(self.update)
 
         layout = QGridLayout()
 
@@ -26,4 +33,63 @@ class CameraStatusLog(QDialog):
         dialog.exec_()
 
     def update(self, type, status, timestamp):
-        CameraStatusDataUpdateType , bool, str
+        if type == 1:
+            self.update_ping_table(status, timestamp)
+        elif type == 2:
+            self.update_stereo_table(status, timestamp)
+        elif type == 3:
+            self.update_mono_table(status, timestamp)
+
+    def update_mono_table(self, status, timestamp):
+        status_msg = "Successful" if status else "Failed"
+        color = "green" if status else "red"
+
+        status_item = QTableWidgetItem(status_msg)
+        status_item.setForeground(QColor(color))
+
+        table = self.mono_log_table
+
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table.setColumnCount(2)
+
+        rowPosition = 0
+        table.insertRow(rowPosition)
+
+        table.setItem(rowPosition, 0, status_item)
+        table.setItem(rowPosition, 1, QTableWidgetItem(timestamp))
+
+    def update_stereo_table(self, status, timestamp):
+        status_msg = "Successful" if status else "Failed"
+        color = "green" if status else "red"
+
+        status_item = QTableWidgetItem(status_msg)
+        status_item.setForeground(QColor(color))
+
+        table = self.stereo_log_table
+
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table.setColumnCount(2)
+
+        rowPosition = 0
+        table.insertRow(rowPosition)
+
+        table.setItem(rowPosition, 0, status_item)
+        table.setItem(rowPosition, 1, QTableWidgetItem(timestamp))
+
+    def update_ping_table(self, status, timestamp):
+        status_msg = "Successful" if status else "Failed"
+        color = "green" if status else "red"
+
+        status_item = QTableWidgetItem(status_msg)
+        status_item.setForeground(QColor(color))
+
+        table = self.ping_log_table
+
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table.setColumnCount(2)
+
+        rowPosition = 0
+        table.insertRow(rowPosition)
+
+        table.setItem(rowPosition, 0, status_item)
+        table.setItem(rowPosition, 1, QTableWidgetItem(timestamp))
