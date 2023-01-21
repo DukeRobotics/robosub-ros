@@ -8,6 +8,7 @@ from python_qt_binding.QtWidgets import (
 )
 
 from python_qt_binding.QtGui import QColor
+from gui.camera_status_widget import CameraStatusDataUpdateType
 
 
 class CameraStatusLog(QDialog):
@@ -33,11 +34,11 @@ class CameraStatusLog(QDialog):
         dialog.exec_()
 
     def update(self, type, status, timestamp):
-        if type == 1:
+        if type == CameraStatusDataUpdateType.PING:
             self.update_ping_table(status, timestamp)
-        elif type == 2:
+        elif type == CameraStatusDataUpdateType.STEREO:
             self.update_stereo_table(status, timestamp)
-        elif type == 3:
+        elif type == CameraStatusDataUpdateType.MONO:
             self.update_mono_table(status, timestamp)
 
     def update_mono_table(self, status, timestamp):
