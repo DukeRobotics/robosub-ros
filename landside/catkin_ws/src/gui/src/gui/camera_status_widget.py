@@ -8,7 +8,7 @@ from python_qt_binding.QtWidgets import (
     QDialog,
     QGridLayout,
 )
-from python_qt_binding.QtCore import QTimer, pyqtProperty
+from python_qt_binding.QtCore import QTimer, pyqtProperty, pyqtSignal
 from python_qt_binding.QtGui import QColor
 
 import rospy
@@ -19,9 +19,18 @@ from custom_msgs.srv import ConnectUSBCamera, ConnectDepthAICamera
 from diagnostic_msgs.msg import DiagnosticArray
 
 from datetime import datetime
+from enum import Enum
+
+
+class CameraStatusDataUpdateType(Enum):
+    PING = 1
+    STEREO = 2
+    MONO = 3
 
 
 class CameraStatusWidget(QWidget):
+
+    data_updated = pyqtSignal(CameraStatusDataUpdateType, bool, str, name='dataUpdated')
 
     def __init__(self):
         super(CameraStatusWidget, self).__init__()
@@ -83,23 +92,29 @@ class CameraStatusWidget(QWidget):
         # Call mono test connection service
         connect_usb_camera = rospy.ServiceProxy('connect_usb_camera', ConnectUSBCamera)
         status = connect_usb_camera(0).success
+        timestamp = datetime.now().strftime("%H:%M:%S")
+
+        self.data_updated.emit(CameraStatusDataUpdateType.MONO, status, timestamp)
 
         # Update mono row in status_table with result
-        self.update_table("Mono", status, datetime.now().strftime("%H:%M:%S"))
+        self.update_table("Mono", status, timestamp)
 
         # TODO: Add row at top of mono_log_table with result
-        self.update_mono_table(status, datetime.now().strftime("%H:%M:%S"))
+        # self.update_mono_table(status, datetime.now().strftime("%H:%M:%S"))
 
     def stereo_check_connection(self):
         # Call stereo test connection service
         connect_depthai_camera = rospy.ServiceProxy('connect_depthai_camera', ConnectDepthAICamera)
         status = connect_depthai_camera().success
+        timestamp = datetime.now().strftime("%H:%M:%S")
+
+        self.data_updated.emit(CameraStatusDataUpdateType.STEREO, status, timestamp)
 
         # Update stereo row in status_table with result
-        self.update_table("Stereo", status, datetime.now().strftime("%H:%M:%S"))
+        self.update_table("Stereo", status, timestamp)
 
         # TODO: Add row at top of stereo_log_table with result
-        self.update_stereo_table(status, datetime.now().strftime("%H:%M:%S"))
+        # self.update_stereo_table(status, datetime.now().strftime("%H:%M:%S"))
 
     def ping_response(self, response):
         # This method is called when a new message is published to the /ping_ip topic
@@ -113,12 +128,14 @@ class CameraStatusWidget(QWidget):
 
         timestamp = datetime.fromtimestamp(response.header.stamp.secs).strftime("%H:%M:%S")
 
+        self.data_updated.emit(CameraStatusDataUpdateType.PING, status, timestamp)
+
         # Update ping row in status_table with result
         # TODO: Format time
         self.update_table("Ping", status, timestamp)
 
         # TODO: Add row at top of ping_log_table with result
-        self.update_ping_table(status, timestamp)
+        # self.update_ping_table(status, timestamp)
 
     # SAMPLE ONLY
     def populate_table(self):
