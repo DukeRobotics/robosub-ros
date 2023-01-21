@@ -46,11 +46,11 @@ class SonarServer:
 
     def execute(self, goal):
         self._sonar.set_new_range(goal.distance_of_scan)
-        max_tuple = self._sonar.sweep_biggest_byte(goal.start_angle, goal.end_angle)
+        pos_tuple = self._sonar.get_depth_of_object_sweep(goal.start_angle, goal.end_angle)
 
         # Sends everything as a result to the client
-        self._result.angle_found = max_tuple[2]
-        self._result.distance_to_sample = self._sonar.get_distance_of_sample(max_tuple[0])
+        self._result.x_pos = pos_tuple[0]
+        self._result.y_pos = pos_tuple[1]
         self._server.set_succeeded(self._result)
 
 
