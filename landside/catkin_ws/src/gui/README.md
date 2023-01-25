@@ -1,6 +1,6 @@
-# System utils
+# GUI
 
-This package provides a GUI to interact and interface with the robot. Functionality is described below
+This package provides a GUI to interact and interface with the robot. Functionality is described below.
 
 ## Running
 
@@ -76,7 +76,6 @@ The `Upload Arduino Code` will upload arduino code to the arduino when pressed.
 
 #### Dependencies
 - `remote_launch.py` in system_utils
-- `system_info_publisher.py` in system_utils
 
 #### Description
 
@@ -85,8 +84,6 @@ To launch any node on onboard, select the node from the Node Name drop down list
 The table will show you what nodes are running.
 
 To stop a node that was run using the Launch Dialog, you may click on the item in the table and, on your keyboard, press Delete for Windows or Fn + Delete for Mac, which will stop the node.
-
-Data is published in percentage for CPU and GB for RAM in the System Usage box.
 
 ### Rosbag Plugin
 
@@ -102,3 +99,12 @@ To see information about bag files being actively recorded, select one from the 
 To stop recording a bag file, select it in the dropdown. Then, click the red stop recording button and confirm in the dialog. In a few seconds, the bag file will stop recording.
 
 When the plugin is closed, all actively recorded bag files are stopped.
+
+### System Usage Plugin
+
+#### Dependencies
+- `system_info_publisher.py` in system_utils
+
+#### Description
+
+The System Usage box displays percent CPU usage and amount of RAM used in GB.
