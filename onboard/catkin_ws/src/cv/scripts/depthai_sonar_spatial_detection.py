@@ -29,7 +29,7 @@ class DepthAISpatialDetector:
         """
         Initializes the ROS node and service. Loads the yaml file at cv/models/depthai_models.yaml
         """
-        rospy.init_node('depthai_spatial_detection', anonymous=True)
+        rospy.init_node('depthai_sonar_spatial_detection', anonymous=True)
 
         with open(rr.get_filename(DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH,
                                   use_protocol=False)) as f:
