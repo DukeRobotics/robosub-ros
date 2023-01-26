@@ -99,7 +99,7 @@ class CameraStatusWidget(QWidget):
 
         timestamp = datetime.now().strftime("%H:%M:%S")
 
-        self.mono_log.insert(0, {"status": status, "timestamp": timestamp})
+        self.mono_log.append({"status": status, "timestamp": timestamp})
 
         self.data_updated.emit(CameraStatusDataUpdateType.MONO, status, timestamp)
 
@@ -113,7 +113,7 @@ class CameraStatusWidget(QWidget):
         status = connect_depthai_camera().success
         timestamp = datetime.now().strftime("%H:%M:%S")
 
-        self.stereo_log.insert(0, {"status": status, "timestamp": timestamp})
+        self.stereo_log.append({"status": status, "timestamp": timestamp})
 
         self.data_updated.emit(CameraStatusDataUpdateType.STEREO, status, timestamp)
 
@@ -131,7 +131,7 @@ class CameraStatusWidget(QWidget):
         status = response.status[0].level == 0
         timestamp = datetime.fromtimestamp(response.header.stamp.secs).strftime("%H:%M:%S")
 
-        self.ping_log.insert(0, {"status": status, "timestamp": timestamp})
+        self.ping_log.append({"status": status, "timestamp": timestamp})
 
         self.data_updated.emit(CameraStatusDataUpdateType.PING, status, timestamp)
 
