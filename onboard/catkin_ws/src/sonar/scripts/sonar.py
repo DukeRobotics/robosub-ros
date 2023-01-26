@@ -14,7 +14,7 @@ class Sonar:
     """Class to interface with the Sonar device.
     """
 
-    IF_LOCAL_TEST = True  #only for local testing with the sonar script
+    IF_LOCAL_TEST = True  # only for local testing with the sonar script
 
     SERIAL_PORT_NAME = "/dev/ttyUSB2"  # PORT of the salea is ttyUSB2 for testing
     BAUD_RATE = 2000000  # hz
@@ -24,7 +24,7 @@ class Sonar:
     DEFAULT_RANGE = 5
 
     def __init__(self, range=DEFAULT_RANGE, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
-        if(self.IF_LOCAL_TEST):
+        if self.IF_LOCAL_TEST:
             import rospy
             rospy.init_node('sonar')
         self.ping360 = Ping360()
@@ -140,10 +140,12 @@ class Sonar:
             float: Average value for object sweep
         """
         max_byte_array = self.get_max_bytes_along_sweep(int(start_angle), int(end_angle))
-        #mean_index = sum(max_byte_array, key=lambda tup: tup[0]) / len(max_byte_array) TODO fix mean angle code
+ 
+        indices = [sample[0] for sample in max_byte_array]
+        mean_index = sum(indices) / len(indices)
         center_angle = (start_angle + end_angle) / 2
-        print(f"{center_angle} {max_byte_array[0]}")
-        pose = self.to_robot_position(center_angle, max_byte_array[0][0]) #temp fix
+
+        pose = self.to_robot_position(center_angle, mean_index)
         return pose.position.x, pose.position.y
 
     def get_max_byte_in_sweep(self, start_angle, end_angle):
