@@ -282,20 +282,22 @@ class DepthAISpatialDetector:
             z_cam_meters = mm_to_meters(z_cam_mm)
             using_sonar = False
 
+            det_coords_robot_mm = camera_frame_to_robot_frame(
+                    x_cam_meters, y_cam_meters, z_cam_meters)
+
             # Try calling sonar on detected bounding box
             # if sonar responds, then override existing robot-frame x, y info; else, keep default
             try:
                 # Request sonar to sweep within bounded angle range; read center of mass of detected object from sonar
                 result = self.sonar_client.sweep_at_center_angle(
                     center, breadth, SONAR_DEPTH)
-                x_cam_meters = result.x_pos
-                y_cam_meters = result.y_pos
+                # Sonar gives robot x,y; camera gives camera y, which is robot z
+                # Override det_coords_robot_mm with updated sonar data
+                det_coords_robot_mm = (result.x_pos, result.y_pos, y_cam_meters)
                 using_sonar = True
             except:
                 rospy.loginfo("Sonar sweep failed, defaulting to stereo")
 
-            det_coords_robot_mm = camera_frame_to_robot_frame(
-                x_cam_meters, y_cam_meters, z_cam_meters)
             self.publish_prediction(
                 bbox, det_coords_robot_mm, label, confidence, (height, width), using_sonar)
 
