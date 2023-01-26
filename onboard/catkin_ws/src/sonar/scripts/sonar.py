@@ -14,7 +14,7 @@ class Sonar:
     """Class to interface with the Sonar device.
     """
 
-    IF_LOCAL_TEST = True  #only for local testing with the sonar script
+    IF_LOCAL_TEST = True  # only for local testing with the sonar script
 
     SERIAL_PORT_NAME = "/dev/ttyUSB2"  # PORT of the salea is ttyUSB2 for testing
     BAUD_RATE = 2000000  # hz
@@ -24,7 +24,7 @@ class Sonar:
     DEFAULT_RANGE = 5
 
     def __init__(self, range=DEFAULT_RANGE, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
-        if(self.IF_LOCAL_TEST):
+        if self.IF_LOCAL_TEST:
             import rospy
             rospy.init_node('sonar')
         self.ping360 = Ping360()
@@ -129,7 +129,7 @@ class Sonar:
         last_sample_index = self.number_of_samples - 1
         return self.get_distance_of_sample(last_sample_index)
 
-    def get_depth_of_object_sweep(self, start_angle, end_angle):
+    def get_xy_of_object_in_sweep(self, start_angle, end_angle):
         """ Gets the depth of the sweep of a detected object. For now uses mean value
 
         Args:
@@ -140,25 +140,13 @@ class Sonar:
             float: Average value for object sweep
         """
         max_byte_array = self.get_max_bytes_along_sweep(int(start_angle), int(end_angle))
-        #mean_index = sum(max_byte_array, key=lambda tup: tup[0]) / len(max_byte_array) TODO fix mean angle code
+
+        indices = [sample[0] for sample in max_byte_array]
+        mean_index = sum(indices) / len(indices)
         center_angle = (start_angle + end_angle) / 2
-        print(f"{center_angle} {max_byte_array[0]}")
-        pose = self.to_robot_position(center_angle, max_byte_array[0][0]) #temp fix
+
+        pose = self.to_robot_position(center_angle, mean_index)
         return pose.position.x, pose.position.y
-
-    def get_max_byte_in_sweep(self, start_angle, end_angle):
-        """ Get the index of the biggest value and angle value out of all angles in a sweep
-
-        Args:
-            start_angle (int): Angle to start sweep in gradians
-            end_angle (int): Angle to end sweep in gradians
-
-        Returns:
-            Tuple: index within angle, biggest value (byte), angle of biggest value
-        """
-        max_byte_array = self.get_max_bytes_along_sweep(start_angle, end_angle)
-        max_tup = max(max_byte_array, key=lambda tup: tup[1])
-        return max_tup
 
     def get_max_bytes_along_sweep(self, start_angle, end_angle):
         """ Execute a sweep and get the largest activation for each angle
@@ -168,13 +156,13 @@ class Sonar:
             end_angle (int): _description_
 
         Returns:
-            Array: Array of tuples with (biggest value index, biggest value, theta) 
+            Array: Array of tuples with (biggest value index, biggest value, theta)
         """
 
         max_byte_array = []
         for theta in range(start_angle, end_angle):
             max_byte = self.get_max_byte(theta)
-            max_byte_array.append(max_byte + (theta,))
+            max_byte_array.append(max_byte)
         return max_byte_array
 
     def get_max_byte(self, angle):
@@ -190,7 +178,7 @@ class Sonar:
         split_bytes = [data[i:i+1] for i in range(len(data))]
         filteredbytes = split_bytes[self.FILTER_INDEX:]
         best = np.argmax(filteredbytes)
-        return (best+self.FILTER_INDEX, filteredbytes[best])
+        return best+self.FILTER_INDEX, filteredbytes[best]
 
     def to_robot_position(self, angle, index):
         """ Converts a point in sonar space a robot global position

@@ -39,14 +39,14 @@ class SonarServer:
         # 5m range
         self._sonar = Sonar()
 
-        #rospy.init_node(self.NODE_NAME)
+        # rospy.init_node(self.NODE_NAME)
         self._server = actionlib.SimpleActionServer(self.ACTION_NAME, sweepAction, self.execute, auto_start=False)
         self._server.start()
         rospy.spin()
 
     def execute(self, goal):
         self._sonar.set_new_range(goal.distance_of_scan)
-        pos_tuple = self._sonar.get_depth_of_object_sweep(goal.start_angle, goal.end_angle)
+        pos_tuple = self._sonar.get_xy_of_object_in_sweep(goal.start_angle, goal.end_angle)
 
         # Sends everything as a result to the client
         self._result.x_pos = pos_tuple[0]
