@@ -16,7 +16,7 @@
 
 	<!-- Start Sonar -->
 	<group unless="$(arg sim)">
-		<include file="$(find sonar)/launch/serial.launch" />
+		<include file="$(find sonar)/launch/sonar.launch" />
 	</group>
 
 	<!-- Start Arduino I/O -->
