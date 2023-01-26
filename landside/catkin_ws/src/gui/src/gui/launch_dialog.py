@@ -3,7 +3,7 @@ import glob
 
 from python_qt_binding import loadUi, QtWidgets, QtGui
 from python_qt_binding.QtWidgets import QDialog, QMessageBox
-from python_qt_binding.QtCore import Qt, QRegExp, pyqtSignal, pyqtProperty
+from python_qt_binding.QtCore import Qt, QRegularExpression, pyqtSignal, pyqtProperty
 
 import rospy
 import resource_retriever as rr
@@ -156,8 +156,8 @@ class LaunchDialog(QDialog):
 
                     elif doc_dict.get("regex") is not None:
                         try:
-                            regex = QRegExp(doc_dict["regex"])
-                            input.setValidator(QtGui.QRegExpValidator(regex))
+                            regex = QRegularExpression(doc_dict["regex"])
+                            input.setValidator(QtGui.QRegularExpressionValidator(regex))
                             toolTip += f"Regex: {doc_dict['regex']}"
                         except Exception:
                             rospy.logwarn(f"Regex for argument `{arg['name']}` in `{selected_node}` is not valid. "
