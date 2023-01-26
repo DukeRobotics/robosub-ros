@@ -14,7 +14,7 @@ class Sonar:
     """Class to interface with the Sonar device.
     """
 
-    IF_LOCAL_TEST = True  #only for local testing with the sonar script
+    IF_LOCAL_TEST = True  # only for local testing with the sonar script
 
     SERIAL_PORT_NAME = "/dev/ttyUSB2"  # PORT of the salea is ttyUSB2 for testing
     BAUD_RATE = 2000000  # hz
@@ -24,7 +24,7 @@ class Sonar:
     DEFAULT_RANGE = 5
 
     def __init__(self, range=DEFAULT_RANGE, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
-        if(self.IF_LOCAL_TEST):
+        if self.IF_LOCAL_TEST:
             import rospy
             rospy.init_node('sonar')
         self.ping360 = Ping360()
