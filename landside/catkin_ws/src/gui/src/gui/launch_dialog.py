@@ -144,10 +144,16 @@ class LaunchDialog(QDialog):
                 toolTip = ""
 
                 if arg.get("doc") is not None:
-                    doc_dict = json.loads(arg["doc"])
+                    doc_dict = {}
+                    try:
+                        doc_dict = json.loads(arg["doc"])
+                    except Exception:
+                        rospy.logwarn(f"Could not JSON parse doc string for argument `{arg['name']}` in "
+                                      f"`{selected_node}`. Defaulting to unrestricted string input.")
 
                     if doc_dict.get("options") is not None:
-                        if doc_dict["options"] and all(isinstance(e, str) for e in doc_dict["options"]):
+                        if (isinstance(doc_dict["options"], list) and doc_dict["options"] and
+                                all(isinstance(e, str) for e in doc_dict["options"])):
                             input = QtWidgets.QComboBox()
                             input.addItems(doc_dict["options"])
                         else:
@@ -164,6 +170,7 @@ class LaunchDialog(QDialog):
                                           f"Defaulting to unrestricted string input.")
 
                     elif doc_dict.get("type") is not None:
+                        add_tooltip = True
                         if doc_dict["type"] == "bool":
                             input = QtWidgets.QCheckBox()
                             if default_value.lower() == "true":
@@ -175,16 +182,19 @@ class LaunchDialog(QDialog):
                         elif doc_dict["type"] == "str":
                             pass
                         else:
+                            add_tooltip = False
                             rospy.logwarn(f"Type `{doc_dict['type']}` for argument `{arg['name']}` in `{selected_node}`"
                                           f" is not valid. Type must be `bool`, `int`, `double`, or `str`. Defaulting "
                                           f"to unrestricted string input.")
 
-                        toolTip += f"Type: {doc_dict['type']}"
+                        if add_tooltip:
+                            toolTip += f"Type: {doc_dict['type']}"
 
                     if doc_dict.get("help") is not None:
-                        if toolTip:
-                            toolTip += " | Help: "
-                        toolTip += doc_dict["help"]
+                        if isinstance(doc_dict["help"], str) and doc_dict["help"].strip():
+                            if toolTip:
+                                toolTip += " | Help: "
+                            toolTip += doc_dict["help"]
 
                     if doc_dict.get("allowEmpty") is not None:
                         if type(doc_dict["allowEmpty"]) == bool:
