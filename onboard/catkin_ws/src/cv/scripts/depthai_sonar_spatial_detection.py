@@ -295,7 +295,7 @@ class DepthAISpatialDetector:
                 # Override det_coords_robot_mm with updated sonar data
                 det_coords_robot_mm = (result.x_pos, result.y_pos, y_cam_meters)
                 using_sonar = True
-            except:
+            except rospy.ROSInterruptException:
                 rospy.loginfo("Sonar sweep failed, defaulting to stereo")
 
             self.publish_prediction(
