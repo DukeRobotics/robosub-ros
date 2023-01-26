@@ -102,3 +102,19 @@ To see information about bag files being actively recorded, select one from the 
 To stop recording a bag file, select it in the dropdown. Then, click the red stop recording button and confirm in the dialog. In a few seconds, the bag file will stop recording.
 
 When the plugin is closed, all actively recorded bag files are stopped.
+
+### Camera Status Plugin
+
+#### Dependences
+- `camera_test_connect.launch` in cv
+- `ping_ip.launch` in cv
+
+#### Description
+If `ping_ip.launch` is running this plugin shows whether the ping to the stereo camera was successful.
+
+To check whether the mono camera is connected, click the mono button.
+To check whether the stereo camera is connected, click the stereo button.
+
+To view all recorded ping, mono, and stereo connections, click the logs button. A dialog will appear with tabs along the top that allow you to view the history of ping, stereo, and mono connections.
+
+From the perspective file, you can control the hostname whose ping messages are displayed and the channel that is checked for the mono camera.
