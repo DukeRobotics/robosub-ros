@@ -178,6 +178,6 @@ There are two arguments.
 
 The `DianosticArray` that is pubished returns several values.
 * `.header.stamp` contains the time of ping as a `rospy.Time` instance.
-* `.status[].level` is `0` if the ping was successful, 2 otherwise.
+* `.status[].level` is 0 if the ping was successful, 2 otherwise.
 * `.status[].name` is the `hostname` specified in the launch command.
 * `.status[].stdout` is the full standard output log from the ping command.
