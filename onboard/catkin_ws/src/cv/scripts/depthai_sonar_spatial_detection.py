@@ -8,7 +8,7 @@ import depthai as dai
 import numpy as np
 from utils import DetectionVisualizer
 from cv_bridge import CvBridge
-from sonar import sonar_action_client
+from sonar.scripts import sonar_action_client
 import math
 
 from custom_msgs.srv import EnableModel
