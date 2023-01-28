@@ -221,7 +221,7 @@ def rainbows(img):
     img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)  
     img = cv2.applyColorMap(img, cv2.COLORMAP_VIRIDIS)
     return img
-
+'''
 from wand.image import Image
 from wand.display import display
 
@@ -244,7 +244,7 @@ def the_polar_express(notpolar, display_results = False):
     height = int(arr.shape[0] * scale_percent / 100)
     dim = (width, height)
   
-# resize image
+    # resize image
     resized = cv2.resize(arr, dim, interpolation = cv2.INTER_AREA)
     lemme_see_it(resized)
 
@@ -255,7 +255,7 @@ def the_polar_express(notpolar, display_results = False):
     
     # polar_image = polar_image.astype(np.uint8)
     # lemme_see_it(polar_image)
-
+'''
 
 def mask_sonar_image(img, display_results=False):
     """ Get mask of potential objects in a sonar image
