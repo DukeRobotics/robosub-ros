@@ -11,6 +11,7 @@ GRADIANS_PER_DEGREE = 400 / 360
 
 class SonarClient:
     def __init__(self):
+        rospy.init_node('sonar_sweep_client_py')
         self._client = actionlib.SimpleActionClient('sonar_sweep', sweepAction)
         self._client.wait_for_server()
 
