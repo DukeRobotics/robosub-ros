@@ -275,7 +275,7 @@ class DepthAISpatialDetector:
             (left_end, right_end) = coords_to_angle(
                 detection.xmin, detection.xmax)
             center = (left_end + right_end) / 2.0
-            breadth = math.abs(center - left_end)
+            breadth = abs(center - left_end)
 
             x_cam_meters = mm_to_meters(x_cam_mm)
             y_cam_meters = mm_to_meters(y_cam_mm)
@@ -401,7 +401,7 @@ def coords_to_angle(min_x, max_x):
     :param max_x: maximum x coordinate of camera bounding box (robot y)
     """
     distance_to_screen = CAMERA_PIXEL_WIDTH/2 * \
-        1/math.tan(math.rad(HORIZONTAL_FOV/2))
+        1/math.tan(math.radians(HORIZONTAL_FOV/2))
     min_angle = math.degrees(np.arctan(min_x/distance_to_screen))
     max_angle = math.degrees(np.arctan(max_x/distance_to_screen))
     return min_angle, max_angle
