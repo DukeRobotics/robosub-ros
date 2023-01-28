@@ -8,7 +8,7 @@ import depthai as dai
 import numpy as np
 from utils import DetectionVisualizer
 from cv_bridge import CvBridge
-from sonar.scripts import sonar_action_client
+from sonar_action_client import SonarClient
 import math
 
 from custom_msgs.srv import EnableModel
@@ -54,7 +54,7 @@ class DepthAISpatialDetector:
             # Initializes a rospy node so that the SimpleActionClient can
             # publish and subscribe over ROS.
             rospy.init_node('sonar_sweep_client_py')
-            self.sonar_client = sonar_action_client.SonarClient()
+            self.sonar_client = SonarClient()
         except rospy.ROSInterruptException:
             print("Node instantiation interrupted")
 
