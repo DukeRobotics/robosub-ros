@@ -73,6 +73,8 @@ class USBCamera:
         except Exception:
             rospy.logerr(f"Camera not found at channel {self.channel}")
 
+        rospy.spin()
+
 
 if __name__ == '__main__':
     try:
