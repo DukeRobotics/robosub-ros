@@ -54,6 +54,7 @@ class DepthAISpatialDetector:
             # Initializes a rospy node so that the SimpleActionClient can
             # publish and subscribe over ROS.
             self.sonar_client = SonarClient()
+            self.sonar_client.sweep_at_center_angle(200, 2)
         except rospy.ROSInterruptException:
             print("Node instantiation interrupted")
 
