@@ -213,6 +213,50 @@ def find_buoy(img, display_results=False):
     return circle_positions
 
 
+def lemme_see_it(img, tag = 'yeet'):
+    cv2.imshow(tag, img)
+    cv2.waitKey(0) 
+
+def rainbows(img):
+    img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)  
+    img = cv2.applyColorMap(img, cv2.COLORMAP_VIRIDIS)
+    return img
+'''
+from wand.image import Image
+from wand.display import display
+
+def the_polar_express(notpolar, display_results = False):
+    notpolar = rainbows(notpolar)
+
+    lemme_see_it(notpolar)
+
+    img_rgb = cv2.cvtColor(notpolar, cv2.COLOR_BGR2RGB)
+
+    img = Image.from_array(notpolar)
+    img.resize(140, 92)
+    img.virtual_pixel = 'black'
+    img.distort('polar', (0,))
+    #display(img)
+    
+    arr = np.array(img)
+    scale_percent = 300 # percent of original size
+    width = int(arr.shape[1] * scale_percent / 100)
+    height = int(arr.shape[0] * scale_percent / 100)
+    dim = (width, height)
+  
+    # resize image
+    resized = cv2.resize(arr, dim, interpolation = cv2.INTER_AREA)
+    lemme_see_it(resized)
+
+    # img = notpolar.astype(np.float32)
+    # value = np.sqrt(((img.shape[0]/2.0)**2.0)+((img.shape[1]/2.0)**2.0))
+    
+    # polar_image = cv2.linearPolar(img,(img.shape[0]/2, img.shape[1]/2), value, cv2.WARP_FILL_OUTLIERS)
+    
+    # polar_image = polar_image.astype(np.uint8)
+    # lemme_see_it(polar_image)
+'''
+
 def mask_sonar_image(img, display_results=False):
     """ Get mask of potential objects in a sonar image
 
@@ -250,4 +294,4 @@ def test_img_proc(img, func=find_buoy):
 if __name__ == "__main__":
     # test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData', 'SampleTylerData.bin'), find_buoy)
     # test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData', 'buoy.npy'), find_buoy)
-    test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData', 'gate.npy'), find_gate_posts)
+    test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData', 'gate.npy'), the_polar_express)

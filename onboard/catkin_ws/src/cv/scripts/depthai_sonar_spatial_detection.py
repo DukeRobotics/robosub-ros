@@ -53,8 +53,8 @@ class DepthAISpatialDetector:
         try:
             # Initializes a rospy node so that the SimpleActionClient can
             # publish and subscribe over ROS.
-            rospy.init_node('sonar_sweep_client_py')
             self.sonar_client = SonarClient()
+            self.sonar_client.sweep_at_center_angle(200, 2)
         except rospy.ROSInterruptException:
             print("Node instantiation interrupted")
 
@@ -295,7 +295,7 @@ class DepthAISpatialDetector:
                 # Override det_coords_robot_mm with updated sonar data
                 det_coords_robot_mm = (result.x_pos, result.y_pos, y_cam_meters)
                 using_sonar = True
-            except:
+            except rospy.ROSInterruptException:
                 rospy.loginfo("Sonar sweep failed, defaulting to stereo")
 
             self.publish_prediction(
