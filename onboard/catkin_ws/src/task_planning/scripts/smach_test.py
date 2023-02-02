@@ -3,12 +3,12 @@
 import rospy
 import smach
 import random
-from move_tasks import MoveToPoseGlobalTask
+from move_tasks import MoveToPoseGlobalTask, MoveToPoseLocalTask, AllocateVelocityLocalTask
 import cv_tasks
 from time import sleep
 from geometry_msgs.msg import Vector3
 from tf import TransformListener
-from interface.controls import ControlsInterface
+#from interface.controls import ControlsInterface
 from interface.cv import CVInterface
 
 # define state Foo
