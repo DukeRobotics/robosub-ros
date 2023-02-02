@@ -81,21 +81,21 @@ def object_passing():
     return sm
 
 
-def controls_testing(controls):
+def controls_testing(controls, listener):
     # Create a SMACH state machine
-    sm = smach.StateMachine(outcomes=['finish'])
+    sm = smach.StateMachine(outcomes=['done'])
 
     # Open the container
     with sm:
         # Add states to the container
-        smach.StateMachine.add('Move1', MoveToPoseGlobalTask(0, 2, 0, 0, 0, 0, controls),
-                               transitions={'done': 'Move1', 'continue': 'Move1'})
+        smach.StateMachine.add('Move1', MoveToPoseLocalTask(-2, 0, 0, 0, 0, 0, controls, listener),
+                               transitions={'done': 'MoveLeft2', 'continue': 'Move1'})
         # left square
-        smach.StateMachine.add('MoveLeft2', MoveToPoseGlobalTask(2, 2, 0, 0, 0, 0, controls),
+        smach.StateMachine.add('MoveLeft2', MoveToPoseLocalTask(0, -1.5, 0, 0, 0, 0, controls, listener),
                                transitions={'done': 'MoveLeft3', 'continue': 'MoveLeft2'})
-        smach.StateMachine.add('MoveLeft3', MoveToPoseGlobalTask(0, 2, 0, 0, 0, 0, controls),
+        smach.StateMachine.add('MoveLeft3', MoveToPoseLocalTask(1.5, 0, 0, 0, 0, 0, controls, listener),
                                transitions={'done': 'MoveLeft4', 'continue': 'MoveLeft3'})
-        smach.StateMachine.add('MoveLeft4', MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0, controls),
+        smach.StateMachine.add('MoveLeft4', MoveToPoseLocalTask(0, 1.5, 0, 0, 0, 0, controls, listener),
                                transitions={'done': 'finish', 'continue': 'MoveLeft4'})
         # right square
         smach.StateMachine.add('MoveRight2', MoveToPoseGlobalTask(2, -2, 0, 0, 0, 0, controls),
@@ -163,14 +163,18 @@ def decision_making(controls):
     return sm
 
 
-def simple_move_test(controls):
+def simple_move_test(controls, listener):
     sm = smach.StateMachine(outcomes=['done'])
 
     with sm:
-        smach.StateMachine.add("Move", MoveToPoseGlobalTask(5, 0, 0, 0, 0, 0, controls),
+        smach.StateMachine.add("Move", MoveToPoseLocalTask(-2, 0, 0, 0, 0, 0, controls, listener),
                                transitions={
                                     'continue': 'Move',
-                                    'done': 'done'
+                                    'done': 'Surface'
+                                })
+        smach.StateMachine.add("Surface", AllocateVelocityLocalTask(0, 0, 1, 0, 0, 0, controls),
+                               transitions={
+                                    'done': 'Surface'
                                 })
 
     return sm

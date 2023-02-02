@@ -145,8 +145,8 @@ class AllocateVelocityLocalTask(smach.State):
         new_twist = self._get_twist()
 
         # Only resend the movement goal if our desired pose has changed
-        if self.last_pose is None or not task_utils.at_vel(self.last_twist, new_twist, 0.0001, 0.0001):
-            self.last_pose = new_twist
+        if self.last_twist is None or not task_utils.at_vel(self.last_twist, new_twist, 0.0001, 0.0001):
+            self.last_twist = new_twist
             self.controls.move_with_velocity(new_twist)
 
         return 'done'
