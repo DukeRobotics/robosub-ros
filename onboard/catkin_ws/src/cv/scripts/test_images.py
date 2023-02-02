@@ -4,8 +4,9 @@ import rospy
 import cv2
 import os
 import subprocess
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge
+from utils import ImageTools
 
 
 class DummyImagePublisher:
@@ -35,7 +36,7 @@ class DummyImagePublisher:
         if file_extension != ".bag":
             # Only create the publisher if feed_path is not a bagfile and self.topic exists
             if self.topic:
-                self.image_publisher = rospy.Publisher(self.topic, Image, queue_size=10)
+                self.image_publisher = rospy.Publisher(self.topic, CompressedImage, queue_size=10)
             # Raise an exception if self.topic is not specified and the feed_path is not a bagfile
             else:
                 raise ValueError("A non-empty value for the topic argument must be provided \
@@ -73,6 +74,7 @@ class DummyImagePublisher:
         loop_rate = rospy.Rate(self.framerate)
 
         while not rospy.is_shutdown():
+            image_msg = ImageTools().convert_to_ros_compressed_msg(image_msg)
             self.image_publisher.publish(image_msg)
             loop_rate.sleep()
 

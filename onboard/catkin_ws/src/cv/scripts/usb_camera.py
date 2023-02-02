@@ -3,8 +3,9 @@
 import rospy
 import cv2
 
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge
+from utils import ImageTools
 
 
 class USBCamera:
@@ -13,7 +14,7 @@ class USBCamera:
                                     (currently used for the deepwater exploration usb mono cameras)
 
     Launch using: roslaunch cv usb_camera.launch
-    :param topic: rostopic to publish the image feed to; default is set to camera/image_raw
+    :param topic: rostopic to publish the image feed to; default is set to camera/image_raw/compressed
     :param channel: which device channel to read the stream from (e.g., dev/video0)
     :param framerate: custom framerate to stream the camera at; default is set to device default
     """
@@ -25,7 +26,7 @@ class USBCamera:
 
         # Read custom camera configs from launch command
         self.topic = rospy.get_param("~topic")
-        self.topic = f'/camera/{self.topic}/image_raw'
+        self.topic = f'/camera/{self.topic}/image_raw/compressed'
         self.channel = rospy.get_param("~channel")
         # If no custom framerate is passed in, set self.framerate to None to trigger default framerate
         self.framerate = rospy.get_param("~framerate")
@@ -35,8 +36,8 @@ class USBCamera:
 
         # Connect to usb camera
         self.cv_bridge = CvBridge()
-        # Create image publisher at given topic (default /camera/image_raw)
-        self.publisher = rospy.Publisher(self.topic, Image, queue_size=10)
+        # Create image publisher at given topic (default /camera/image_raw/compressed)
+        self.publisher = rospy.Publisher(self.topic, CompressedImage, queue_size=10)
 
     def run(self):
         """
@@ -63,6 +64,7 @@ class USBCamera:
             while not rospy.is_shutdown() and success:
                 # Convert image read from cv2.videoCapture to image message to be published
                 image_msg = self.cv_bridge.cv2_to_imgmsg(img, 'bgr8')
+                image_msg = ImageTools().convert_to_ros_compressed_msg(image_msg)  # Compress image
                 # Publish the image
                 self.publisher.publish(image_msg)
 

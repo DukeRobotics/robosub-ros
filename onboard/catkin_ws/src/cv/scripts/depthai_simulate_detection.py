@@ -9,9 +9,10 @@ from utils import DetectionVisualizer
 import rospy
 import yaml
 import resource_retriever as rr
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CompressedImage
 from cv_bridge import CvBridge
 from custom_msgs.msg import CVObject
+from utils import ImageTools
 
 
 class DepthAISimulateDetection:
@@ -47,8 +48,8 @@ class DepthAISimulateDetection:
         self.cv_bridge = CvBridge()
         self.publishing_topic = rospy.get_param("~publishing_topic")
         self.detection_publisher = rospy.Publisher(self.publishing_topic, CVObject, queue_size=10)
-        self.visualized_detection_publisher = rospy.Publisher(f'{self.publishing_topic}_visualized',
-                                                              Image,
+        self.visualized_detection_publisher = rospy.Publisher(f'{self.publishing_topic}_visualized/compressed',
+                                                              CompressedImage,
                                                               queue_size=10)
 
         self.detection_visualizer = DetectionVisualizer(self.model['classes'])
@@ -189,6 +190,7 @@ class DepthAISimulateDetection:
             object_msg.height = frame.shape[0]
             object_msg.width = frame.shape[1]
 
+            object_msg = ImageTools().convert_to_ros_compressed_msg(object_msg)
             self.detection_publisher.publish(object_msg)
 
     def _publish_visualized_detections(self, detection_results):

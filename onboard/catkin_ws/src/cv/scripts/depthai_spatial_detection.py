@@ -6,12 +6,12 @@ import yaml
 import depthai_camera_connect
 import depthai as dai
 import numpy as np
-from utils import DetectionVisualizer
+from utils import DetectionVisualizer, ImageTools
 from cv_bridge import CvBridge
 
 from custom_msgs.srv import EnableModel
 from custom_msgs.msg import CVObject
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import CompressedImage
 
 
 MM_IN_METER = 1000
@@ -184,8 +184,8 @@ class DepthAISpatialDetector:
                                                           queue_size=10)
         self.publishers = publisher_dict
 
-        self.rgb_preview_publisher = rospy.Publisher("camera/front/rgb/preview/stream_raw", Image, queue_size=10)
-        self.detection_feed_publisher = rospy.Publisher("cv/front/detections", Image, queue_size=10)
+        self.rgb_preview_publisher = rospy.Publisher("camera/front/rgb/preview/stream_raw", CompressedImage, queue_size=10)
+        self.detection_feed_publisher = rospy.Publisher("cv/front/detections", CompressedImage, queue_size=10)
 
     def init_output_queues(self, device):
         """
@@ -219,12 +219,14 @@ class DepthAISpatialDetector:
         detections = inDet.detections
 
         frame_img_msg = self.bridge.cv2_to_imgmsg(frame, 'bgr8')
+        frame_img_msg = ImageTools().convert_to_ros_compressed_msg(frame_img_msg)
         self.rgb_preview_publisher.publish(frame_img_msg)
 
         detections_img_msg = self.bridge.cv2_to_imgmsg(
             self.detection_visualizer.visualize_detections(frame, detections),
             'bgr8'
         )
+        frame_img_msg = ImageTools().convert_to_ros_compressed_msg(frame_img_msg)
         self.detection_feed_publisher.publish(detections_img_msg)
 
         height = frame.shape[0]
