@@ -17,7 +17,7 @@ from interface.cv import CVInterface
 def main():
     rospy.init_node('smach_test')
     listener = TransformListener()
-    controls = ControlsInterface(listener)
+    #controls = ControlsInterface(listener)
     cv = CVInterface(listener)
 
     sm = buoy_cv_test(cv)

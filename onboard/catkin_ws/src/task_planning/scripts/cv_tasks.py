@@ -1,5 +1,6 @@
 import smach
 
+
 # Says where to spin to center a given CV object in the frame
 class SpinDirectionTask(smach.State):
     def __init__(self, name, tolerance, cv):
@@ -15,6 +16,7 @@ class SpinDirectionTask(smach.State):
         if cv_data.xmax < 0.5 - self.tolerance:
             return "right"
         return "center"
+
 
 # TODO maybe delete in favor of always using ObjectCoordsTask
 class ObjectCoordsValidTask(smach.State):

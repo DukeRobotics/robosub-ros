@@ -2,6 +2,7 @@ import smach
 import cv_tasks
 from move_tasks import AllocateVelocityLocalTask, HoldPositionTask, MoveToUserDataPoseLocalTask
 
+
 class BuoyTask(smach.StateMachine):
     CENTER_TOLERANCE = 0.05
     ROTATE_SPEED = 1
@@ -10,18 +11,21 @@ class BuoyTask(smach.StateMachine):
         super().__init__(outcomes=['done'])
 
         with self:
-            smach.StateMachine.add('CHOOSE_ROTATE_DIR', cv_tasks.SpinDirectionTask('bootleggerbuoy', self.CENTER_TOLERANCE, cv),
+            smach.StateMachine.add('CHOOSE_ROTATE_DIR',
+                                   cv_tasks.SpinDirectionTask('bootleggerbuoy', self.CENTER_TOLERANCE, cv),
                                    transitions={
                                         'left': 'ROTATE_LEFT',
                                         'right': 'ROTATE_RIGHT',
                                         'center': 'BUOY_CENTERED'
                                     })
 
-            smach.StateMachine.add('ROTATE_LEFT', AllocateVelocityLocalTask(0, 0, 0, 0, 0, self.ROTATE_SPEED, controls),
+            smach.StateMachine.add('ROTATE_LEFT',
+                                   AllocateVelocityLocalTask(0, 0, 0, 0, 0, self.ROTATE_SPEED, controls),
                                    transitions={
                                         'done': 'CHOOSE_ROTATE_DIR'
                                     })
-            smach.StateMachine.add('ROTATE_RIGHT', AllocateVelocityLocalTask(0, 0, 0, 0, 0, -self.ROTATE_SPEED, controls),
+            smach.StateMachine.add('ROTATE_RIGHT',
+                                   AllocateVelocityLocalTask(0, 0, 0, 0, 0, -self.ROTATE_SPEED, controls),
                                    transitions={
                                         'done': 'CHOOSE_ROTATE_DIR'
                                     })
