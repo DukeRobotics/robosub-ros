@@ -4,10 +4,12 @@ import rospy
 import smach
 import random
 from move_tasks import MoveToPoseGlobalTask
+import cv_tasks
 from time import sleep
 from geometry_msgs.msg import Vector3
 from tf import TransformListener
 from interface.controls import ControlsInterface
+from interface.cv import CVInterface
 
 # define state Foo
 
@@ -16,14 +18,32 @@ def main():
     rospy.init_node('smach_test')
     listener = TransformListener()
     controls = ControlsInterface(listener)
+    cv = CVInterface(listener)
 
-    sm = userdata_passthrough()
+    sm = buoy_cv_test(cv)
 
     rospy.loginfo("Waiting for transform listener")
     listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(15))
 
     # Execute SMACH plan
     sm.execute()
+
+
+def buoy_cv_test(cv):
+    sm = smach.StateMachine(outcomes=['done'])
+
+    with sm:
+        smach.StateMachine.add('FindBuoy', cv_tasks.ObjectCoordsTask('bootleggerbuoy', cv),
+                               transitions={
+                                    'invalid': 'FindBuoy',
+                                    'valid': 'PrintBuoy'
+                                })
+        smach.StateMachine.add('PrintBuoy', PrintUserDataTask("coords"),
+                               transitions={
+                                    'done': 'done'
+                                })
+
+    return sm
 
 
 class RandomizeOutputPose(smach.State):
@@ -55,7 +75,7 @@ def object_passing():
         smach.StateMachine.add('calc', OutputVector3Task(Vector3(3, 5, 3)),
                                transitions={'done': 'print'})
 
-        smach.StateMachine.add('print', PrintVector3Task(),
+        smach.StateMachine.add('print', PrintUserDataTask(),
                                transitions={'done': 'done'})
 
     return sm
@@ -164,11 +184,11 @@ def userdata_passthrough():
                                transitions={
                                     'done': 'Print'
                                 })
-        smach.StateMachine.add("Print", PrintVector3Task(),
+        smach.StateMachine.add("Print", PrintUserDataTask(),
                                transitions={
                                     'done': 'Print2'
                                 })
-        smach.StateMachine.add("Print2", PrintVector3Task(),
+        smach.StateMachine.add("Print2", PrintUserDataTask(),
                                transitions={
                                     'done': 'done'
                                 })
@@ -186,14 +206,13 @@ class OutputVector3Task(smach.State):
         return "done"
 
 
-class PrintVector3Task(smach.State):
-    def __init__(self):
-        super().__init__(outcomes=["done"], input_keys=['vec'])
+class PrintUserDataTask(smach.State):
+    def __init__(self, key='vec'):
+        super().__init__(outcomes=["done"], input_keys=[key])
+        self.key = key
 
     def execute(self, userdata):
-        print(userdata.vec)
-        userdata.vec.z = 2
-        print(userdata.vec)
+        print(userdata[self.key])
         return "done"
 
 

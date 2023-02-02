@@ -16,6 +16,7 @@ class SpinDirectionTask(smach.State):
             return "right"
         return "center"
 
+# TODO maybe delete in favor of always using ObjectCoordsTask
 class ObjectCoordsValidTask(smach.State):
     def __init__(self, name, cv):
         super().__init__(outcomes=["valid", "invalid"])
@@ -26,4 +27,18 @@ class ObjectCoordsValidTask(smach.State):
         cv_data = self.cv.get_data(self.name)
         if cv_data is None or not cv_data.sonar:
             return "invalid"
+        return "valid"
+
+
+class ObjectCoordsTask(smach.State):
+    def __init__(self, name, cv):
+        super().__init__(outcomes=["valid", "invalid"], output_keys=["coords"])
+        self.name = name
+        self.cv = cv
+
+    def execute(self, userdata):
+        cv_data = self.cv.get_data(self.name)
+        if cv_data is None or not cv_data.sonar:
+            return "invalid"
+        userdata.coords = cv_data.coords
         return "valid"
