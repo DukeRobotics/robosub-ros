@@ -93,77 +93,117 @@ To use this capability, add the `doc` attribute to `<arg>` tag in your launch fi
 
 Example:
 ```xml
-<arg name="count" default="" doc='{"type":"int","allowEmpty"=false,"help":"Help for count"}'>
+<arg name="count" default="" doc='{"type":"int","allowEmpty"=false,"help":"The number of messages to publish"}'>
 ```
 **There must NOT be anything other than the JSON object in the `doc` attribute for the validation to work.**
 
-If there is an error in parsing the JSON, the user will be presented with an unrestricted textbox.
+If there is an error in parsing the JSON, the user will be presented with an unrestricted text input.
 
-The following attributes are supported in the JSON object. Any other attributes will be ignored.
+The following table lists all attributes and values that can be part of the JSON object that are interpreted by this plugin. For each combination of attribute and possible value, the "Impact" column describes the change in the plugin's UI or behavior that will result from the combination being part of the JSON object. This "Impact" will materialize _if and only if_ the argument's default value is either not set or is part of the "Accepted Defaults" for the combination of attribute and possible value. For combinations that have a listed tooltip, the tooltip will be displayed when the user hovers over the argument name.
 
-- `type`
-    
-    Possible Values: `int`, `double`, `bool`, `str`
-    
-    If `type` is `int` or `double`, the user will be presented with a textbox in which they can enter only integers or floating point values, respectively.
+<table>
+<thead>
+  <tr>
+    <th>Attribute</th>
+    <th>Possible Values</th>
+    <th>Impact</th>
+    <th>Accepted Defaults</th>
+    <th>Tooltip</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td rowspan="4">type</td>
+    <td>"int"</td>
+    <td>Text input restricted to integers only</td>
+    <td>Any integer or empty string</td>
+    <td>"Type: int"</td>
+  </tr>
+  <tr>
+    <td>"double"</td>
+    <td>Text input restricted to floating point values only</td>
+    <td>Any floating point value or empty string</td>
+    <td>"Type: double"</td>
+  </tr>
+  <tr>
+    <td>"bool"</td>
+    <td>Checkbox</td>
+    <td>"true" or "false" (case-insensitive)</td>
+    <td>"Type: bool"</td>
+  </tr>
+  <tr>
+    <td>"str"</td>
+    <td>Text input unrestricted</td>
+    <td>Any string</td>
+    <td>"Type: str"</td>
+  </tr>
+  <tr>
+    <td>regex</td>
+    <td>Any valid regex in a string*</td>
+    <td>Text input restricted to match regex</td>
+    <td>Any string matching the regex or empty string</td>
+    <td>"Regex: [provided_regex]"</td>
+  </tr>
+  <tr>
+    <td>options</td>
+    <td>Any non-empty list of strings</td>
+    <td>Dropdown only containing values from list</td>
+    <td>Any value in the list**</td>
+    <td>None</td>
+  </tr>
+  <tr>
+    <td>help</td>
+    <td>Any non-empty string</td>
+    <td>See Tooltip</td>
+    <td>N/A</td>
+    <td>"Help: [provided_help_text]"</td>
+  </tr>
+  <tr>
+    <td rowspan="2">allowEmpty</td>
+    <td>true (no quotes, case-sensitive)</td>
+    <td>Plugin allows argument value to be empty string†</td>
+    <td>Empty string†</td>
+    <td>None</td>
+  </tr>
+  <tr>
+    <td>false (no quotes, case-sensitive)</td>
+    <td>Plugin requires argument value to be a empty string</td>
+    <td>Any string</td>
+    <td>None</td>
+  </tr>
+</tbody>
+</table>
 
-    If `type` is `bool`, the user will be presented with a checkbox.
+\* See [this page in the PyQt documentation](https://www.riverbankcomputing.com/static/Docs/PyQt5/api/qtcore/qregularexpression.html) for more information on what is a valid regex. The regex must be in a string. Additionally, any backslashes `\` in the regex must be escaped by adding another backslash in front of it so it can be read by the JSON parser. For example, if you want to validate the input is an IPv4 address uisng the regex
+```re
+^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$
+```
+the regex attribute in the JSON object would be
 
-    If `type` is `str` the user will be presented with a textbox in which any value can be entered (no restrictions).
+```json
+doc='{"regex":"^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"}'
+```
 
-    If `type` is any one of the possible values, the argument name will have a `(?)` symbol next to it and the value of `type` will be displayed in a tool tip if the user hovers over the argument name. 
+\** If the default value is not in the list, it will be added as the first item of the list.
 
-    If `type` is not one of the possible values, or the `type` attribute is not provided, the user will be presented with an unrestricted textbox.
+† If `allowEmpty` is set to `true`, then the plugin does _not_ automatically allow the node to be launched with the empty argument. Instead, the plugin's behavior depends on the argument's default value
+- If no default value is specified, the plugin shows an error message and requires the user to specify a value for the argument. This is because ROS does not allow nodes to be launched with no value specified for arguments without a default value.
+- If a default value is specified but is an empty string (whitespace-only strings are also considered empty), then the node is launched as normal, as ROS allows such arguments to be launched with empty values.
+- If a default value is specified and is NOT an empty string, then a warning message is displayed asking the user to confirm they want to proceed with the launch as the value of the argument will not be empty but will rather be the default value. This is beause ROS uses the argument's default value when the argument's value is left empty in the `roslaunch` command.
+- TLDR: The only scenario in which an argument's value is truly empty when the node is launched is if `allowEmpty` is `true`, the user has left the argument empty, _AND_ the argument has an empty default value.**
 
-    **NOTE: The `type` attribute is only applied if the `regex` and `options` attributes are not specified.**
+A few more notes about the table:
+- An "empty string" is a string that either:
+    - Contains no characters OR
+    - Contains only whitespace
+- For a given attribute, its value is "valid" if the value is one of the Possible Values associated with the attribute in the table.
+- An attribute is "specified" if it is set to some value, regardless of if the value is valid or if the default is part of the accepted defaults.
+- Out of these three attributes – `options`, `regex`, and `type` – only one attribute should be present in the JSON object.
+- If the `options` attribute is specified, the `regex` and `type` attributes are ignored. If the `options` attribute is not specified and the `regex` attribute is specified, the `type` attribute is ignored.
+- If none of these attributes – `options`, `regex`, and `type` – are specified, then an unrestricted text input is displayed. 
+- If `allowEmpty` is not specified, the plugin behaves as if it were set to `true`.
+- If an argument has one or more tooltips, the argument name will have a `(?)` symbol displayed next to it. If the user hovers over the argument name, all tooltips will be displayed together. Ex. "Type: bool | Help: The publishing rate."
 
-- `regex`
-
-    Possible Values: Any valid regex
-
-    If a valid `regex` is specified, the user will be presented with a textbox in which only values matching the regex can be entered. Additionally, the argument name will have the `(?)` symbol next to it and if the user hovers over the argument name, the value of `regex` will be displayed.
-
-    If `regex` is specified but is not valid, the regex will be ignored and an unrestricted textbox will be presented to the user.
-
-    See [this link from the PyQt documentation](https://www.riverbankcomputing.com/static/Docs/PyQt5/api/qtcore/qregularexpression.html) for more information on what is a valid regex.
-
-    **NOTE: Any backslashes `\` in the regex must be escaped by adding another backslash in front of it so it can be read by the JSON parser.**
-
-    **NOTE: If any value for `regex` is specified, `type` is ignored. If any value for `options` is specified, `regex` is ignored.**
-
-- `options`
-
-    Possible Values: Any non-empty list of strings
-
-    If a non-empty list of strings is specified for `options`, the user will be presented with a dropdown in which only values present in the list will be available for the user to select. No value other than the ones in the `options` list can be provided to the argument from this plugin.
-
-    If an empty list, list containing one or more non-string values, or something other than a list is provided to `options`, the user will be presented with an unrestricted textbox.
-
-    **NOTE: If any value for `options` is specified, `regex` and `type` are ignored.**
-
-- `help`
-
-    Possible Values: Any non-empty string
-
-    If a non-empty string is specified for `help`, the argument name will have a `(?)` symbol displayed next to it. If the user hovers over the argument name, a tool tip will be displayed containing the text in `help`.
-
-    If the `help` string contains only whitespace characters (considered empty), if `help` is not a string, or if `help` is not specified at all, no help text will be displayed in the tool tip.
-
-- `allowEmpty`
-
-    Possible Values: `true` or `false` (case sensitive)
-
-    If `allowEmpty` is `false`, the plugin does not allow the node to be launched with the argument empty. Empty means no value was specified for the argument or the value only contained whitespace. An error message will be shown if `allowEmpty` is `false` and the argument is empty.
-
-    If `allowEmpty` is `true`, an empty value was specified for the argument, and the user clicks the button to launch the node, then the plugin's behavior depends on the argument's default value.
-    - If no default value is specified, the plugin shows an error message and requires the user to specify a value for the argument. This is because ROS does not allow nodes to be launched with no value specified for arguments without a default value.
-    - If a default value is specified but is an empty string (whitespace-only strings are also considered empty), then the node is launched as normal, as ROS allows such arguments to be launched with empty values.
-    - If a default value is specified and is NOT an empty string, then a warning message is displayed asking the user to confirm they want to proceed with the launch as the value of the argument will not be empty but will rather be the default value. This is beause ROS uses the argument's default value when the argument's value is left empty in the `roslaunch` command.
-    
-    If `allowEmpty` is not one of the possible values, or is not specified at all, the plugin behaves as if `allowEmpty` is set to `true`.
-
-    **NOTE: The only scenario in which an argument's value is truly empty when the node is launched is when the user has left the argument empty, `allowEmpty` is `true`, _AND_ the argument has an empty default value.**
-    
 
 ### Rosbag Plugin
 
