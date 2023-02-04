@@ -3,6 +3,7 @@
 import rospy
 import resource_retriever as rr
 import yaml
+import cv2
 import depthai_camera_connect
 import depthai as dai
 import numpy as np
@@ -42,7 +43,7 @@ class DepthAISpatialDetector:
         if self.feed_path == "":
             rospy.logerr("No feed path variable given")
             rospy.spin()
-            self.img = _load_image_from_feed_path
+            self.img = self._load_image_from_feed_path()
 
         self.camera = 'front'
         self.pipeline = None
@@ -109,7 +110,7 @@ class DepthAISpatialDetector:
         xout_bounding_box_depth_mapping = pipeline.create(dai.node.XLinkOut)
         xout_depth = pipeline.create(dai.node.XLinkOut)
 
-        if self.feed_path not == "":
+        if self.feed_path != "":
             # Point xIn to still image
             xout_rgb.setStreamName("stillImg")
         else:
@@ -258,9 +259,9 @@ class DepthAISpatialDetector:
         inPreview = None
         inDet = None
 
-        if self.feed_path not == "":
+        if self.feed_path != "":
 
-            inPreview = device.getInputQueue("stillImg")
+            inPreview = self.device.getInputQueue("stillImg")
             inDet = self.output_queues["detections"].get()
 
             iimg = dai.ImgFrame()
@@ -381,6 +382,7 @@ class DepthAISpatialDetector:
         self.init_publishers(req.model_name)
 
         with depthai_camera_connect.connect(self.pipeline) as device:
+            self.device = device
             self.init_output_queues(device)
 
             loop_rate = rospy.Rate(1)
