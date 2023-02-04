@@ -1,9 +1,11 @@
 version: "3.3"
 
 services:
-  onboard:
+  onboard-oogway:
     image: dukerobotics/robosub-ros:onboard
-    container_name: onboard
+    container_name: onboard-oogway
+    environment:
+      - ROBOT_NAME=oogway
     privileged: true
     ports: 
       - 2200:2200
