@@ -3,11 +3,13 @@
 import rospy
 import smach
 import random
-from move_tasks import MoveToPoseGlobalTask
+from move_tasks import MoveToPoseGlobalTask, MoveToPoseLocalTask, AllocateVelocityLocalTask
+import cv_tasks
 from time import sleep
 from geometry_msgs.msg import Vector3
 from tf import TransformListener
-from interface.controls import ControlsInterface
+# from interface.controls import ControlsInterface
+from interface.cv import CVInterface
 
 # define state Foo
 
@@ -15,15 +17,33 @@ from interface.controls import ControlsInterface
 def main():
     rospy.init_node('smach_test')
     listener = TransformListener()
-    controls = ControlsInterface(listener)
+    # controls = ControlsInterface(listener)
+    cv = CVInterface(listener)
 
-    sm = simple_move_test(controls)
+    sm = buoy_cv_test(cv)
 
     rospy.loginfo("Waiting for transform listener")
     listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(15))
 
     # Execute SMACH plan
     sm.execute()
+
+
+def buoy_cv_test(cv):
+    sm = smach.StateMachine(outcomes=['done'])
+
+    with sm:
+        smach.StateMachine.add('FindBuoy', cv_tasks.ObjectCoordsTask('bootleggerbuoy', cv),
+                               transitions={
+                                    'invalid': 'FindBuoy',
+                                    'valid': 'PrintBuoy'
+                                })
+        smach.StateMachine.add('PrintBuoy', PrintUserDataTask("coords"),
+                               transitions={
+                                    'done': 'done'
+                                })
+
+    return sm
 
 
 class RandomizeOutputPose(smach.State):
@@ -55,27 +75,27 @@ def object_passing():
         smach.StateMachine.add('calc', OutputVector3Task(Vector3(3, 5, 3)),
                                transitions={'done': 'print'})
 
-        smach.StateMachine.add('print', PrintVector3Task(),
+        smach.StateMachine.add('print', PrintUserDataTask(),
                                transitions={'done': 'done'})
 
     return sm
 
 
-def controls_testing(controls):
+def controls_testing(controls, listener):
     # Create a SMACH state machine
-    sm = smach.StateMachine(outcomes=['finish'])
+    sm = smach.StateMachine(outcomes=['done'])
 
     # Open the container
     with sm:
         # Add states to the container
-        smach.StateMachine.add('Move1', MoveToPoseGlobalTask(0, 2, 0, 0, 0, 0, controls),
-                               transitions={'done': 'Move1', 'continue': 'Move1'})
+        smach.StateMachine.add('Move1', MoveToPoseLocalTask(-2, 0, 0, 0, 0, 0, controls, listener),
+                               transitions={'done': 'MoveLeft2', 'continue': 'Move1'})
         # left square
-        smach.StateMachine.add('MoveLeft2', MoveToPoseGlobalTask(2, 2, 0, 0, 0, 0, controls),
+        smach.StateMachine.add('MoveLeft2', MoveToPoseLocalTask(0, -1.5, 0, 0, 0, 0, controls, listener),
                                transitions={'done': 'MoveLeft3', 'continue': 'MoveLeft2'})
-        smach.StateMachine.add('MoveLeft3', MoveToPoseGlobalTask(0, 2, 0, 0, 0, 0, controls),
+        smach.StateMachine.add('MoveLeft3', MoveToPoseLocalTask(1.5, 0, 0, 0, 0, 0, controls, listener),
                                transitions={'done': 'MoveLeft4', 'continue': 'MoveLeft3'})
-        smach.StateMachine.add('MoveLeft4', MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0, controls),
+        smach.StateMachine.add('MoveLeft4', MoveToPoseLocalTask(0, 1.5, 0, 0, 0, 0, controls, listener),
                                transitions={'done': 'finish', 'continue': 'MoveLeft4'})
         # right square
         smach.StateMachine.add('MoveRight2', MoveToPoseGlobalTask(2, -2, 0, 0, 0, 0, controls),
@@ -143,13 +163,38 @@ def decision_making(controls):
     return sm
 
 
-def simple_move_test(controls):
+def simple_move_test(controls, listener):
     sm = smach.StateMachine(outcomes=['done'])
 
     with sm:
-        smach.StateMachine.add("Move", MoveToPoseGlobalTask(5, 0, 0, 0, 0, 0, controls),
+        smach.StateMachine.add("Move", MoveToPoseLocalTask(-2, 0, 0, 0, 0, 0, controls, listener),
                                transitions={
                                     'continue': 'Move',
+                                    'done': 'Surface'
+                                })
+        smach.StateMachine.add("Surface", AllocateVelocityLocalTask(0, 0, 1, 0, 0, 0, controls),
+                               transitions={
+                                    'done': 'Surface'
+                                })
+
+    return sm
+
+
+# Test if userdata output by a task can be accessed even with another task in between
+def userdata_passthrough():
+    sm = smach.StateMachine(outcomes=['done'])
+
+    with sm:
+        smach.StateMachine.add("Output", OutputVector3Task(Vector3(1, 2, 3)),
+                               transitions={
+                                    'done': 'Print'
+                                })
+        smach.StateMachine.add("Print", PrintUserDataTask(),
+                               transitions={
+                                    'done': 'Print2'
+                                })
+        smach.StateMachine.add("Print2", PrintUserDataTask(),
+                               transitions={
                                     'done': 'done'
                                 })
 
@@ -166,14 +211,13 @@ class OutputVector3Task(smach.State):
         return "done"
 
 
-class PrintVector3Task(smach.State):
-    def __init__(self):
-        super().__init__(outcomes=["done"], input_keys=['vec'])
+class PrintUserDataTask(smach.State):
+    def __init__(self, key='vec'):
+        super().__init__(outcomes=["done"], input_keys=[key])
+        self.key = key
 
     def execute(self, userdata):
-        print(userdata.vec)
-        userdata.vec.z = 2
-        print(userdata.vec)
+        print(userdata[self.key])
         return "done"
 
 
