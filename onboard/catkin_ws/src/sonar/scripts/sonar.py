@@ -236,10 +236,10 @@ def test_buoy_from_npy_file(file):
     posts = find_buoy(img, display_results=True)
     print(posts)
 
-def test_polar_express(file):
-    img = np.load(file)
-    print(img)
-    the_polar_express(img)
+# def test_polar_express(file):
+#     img = np.load(file)
+#     print(img)
+#     the_polar_express(img)
 
 if __name__ == "__main__":
     # Settings for a 10m scan:
