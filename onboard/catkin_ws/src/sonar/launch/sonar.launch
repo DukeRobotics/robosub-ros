@@ -1,3 +1,3 @@
 <launch>
-	<node name="sonar" pkg="sonar" type="sonar_action_server.py" />
+	<node pkg="sonar" name="sonar_action_server" type="sonar_action_server.py" />
 </launch>
