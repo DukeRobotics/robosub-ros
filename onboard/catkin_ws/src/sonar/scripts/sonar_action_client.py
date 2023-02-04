@@ -33,7 +33,7 @@ if __name__ == '__main__':
         # publish and subscribe over ROS.
         rospy.init_node('sonar_sweep_client')
         client = SonarClient()
-        result = client.sweep_at_center_angle(15, 2, 5)
+        result = client.sweep_at_center_angle(0, 0)
         print(result)
     except rospy.ROSInterruptException:
         print("program interrupted before completion")
