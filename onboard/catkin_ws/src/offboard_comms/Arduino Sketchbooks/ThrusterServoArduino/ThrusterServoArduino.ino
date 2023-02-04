@@ -25,6 +25,8 @@ MultiplexedServo servos[NUM_SERVOS];
 
 MS5837 pressure_sensor;
 
+bool has_pressure = true;
+
 // Reusing ESC library code
 void thruster_speeds_callback(const custom_msgs::ThrusterSpeeds &ts_msg){
     // Copy the contents of the speed message to the local array
@@ -64,11 +66,16 @@ void setup(){
     memset(servo_angles, 0, sizeof(servo_angles));
 
     Wire.begin();
+    int pressure_attempts = 0;
     while(!pressure_sensor.init()){
       nh.logerror("Failed to initialize pressure sensor.");
+      if(++pressure_attempts > 3){
+         has_pressure = false;
+         break;
+      }
       delay(2000);
     }
-    pressure_sensor.setModel(MS5837::MS5837_30BA);
+    if(has_pressure) pressure_sensor.setModel(MS5837::MS5837_30BA);
 
     // Wait for motors to fully initialise
     delay(2000);
@@ -77,16 +84,20 @@ void setup(){
 
 void loop(){
     // Check if last version of data has timed out, if so, reset the speeds
-    if (last_cmd_ms_ts + THRUSTER_TIMEOUT_MS < millis())
+    if (last_cmd_ms_ts + THRUSTER_TIMEOUT_MS < millis()){
         memset(thruster_speeds, 0, sizeof(thruster_speeds));
+    }
     for (uint8_t i = 0; i < NUM_THRUSTERS; ++i){
         thrusters[i].write(thruster_speeds[i]);
     }
     for(uint8_t i = 0; i < NUM_SERVOS; ++i){
         servos[i].write(servo_angles[i]);
     }
-    pressure_sensor.read();
-    pressure_msg.fluid_pressure = pressure_sensor.pressure(100.0f);
-    pressure_pub.publish(&pressure_msg);
+    if(has_pressure){
+      pressure_sensor.read();
+      pressure_msg.fluid_pressure = pressure_sensor.pressure(100.0f);
+      pressure_pub.publish(&pressure_msg);
+    }
     nh.spinOnce();
+    
 }

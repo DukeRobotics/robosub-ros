@@ -14,7 +14,7 @@ class IMURawPublisher:
     IMU_DEST_TOPIC_QUAT = 'sensors/imu/imu'
     IMU_DEST_TOPIC_MAG = 'sensors/imu/mag'
 
-    FTDI_STR = 'FT1WDFQ2'
+    FTDI_STR ='AU04PK1Q'#FT1WDFQ2'
     BAUDRATE = 115200
     NODE_NAME = 'imu_pub'
     LINE_DELIM = b','
@@ -67,8 +67,11 @@ class IMURawPublisher:
 
     def _parse_orient(self, items):
         untransformed_orient = [float(items[1]), float(items[2]), float(items[3]), float(items[4])]
-        # Transform quaternion from NED to ENU coordinates
-        updated_quat = quaternion_multiply([0.707, 0.707, 0, 0], untransformed_orient)
+        # Transform quaternion from NED to ENU coordinates	
+	#updated_quat = quaternion_multiply([-1, 0, 0, 0], untransformed_orient)
+        #updated_quat = quaternion_multiply([0.707, 0.707, 0, 0], untransformed_orient)
+        updated_quat1 = quaternion_multiply([-1, 0, 0, 0], untransformed_orient)
+        updated_quat = quaternion_multiply([0, 0, -0.3826, 0.9239],updated_quat1) #axis = 0, 0, -1; cos(45/2) = 0.9239
 
         self._current_imu_msg.orientation.x = updated_quat[0]
         self._current_imu_msg.orientation.y = updated_quat[1]

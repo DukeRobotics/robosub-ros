@@ -10,7 +10,7 @@ from custom_msgs.msg import DVLRaw
 
 class DvlRawPublisher:
 
-    FTDI_STR = '7006fIP'
+    FTDI_STR = 'D309SFWS' #'7006fIP'
     BAUDRATE = 115200
     TOPIC_NAME = 'sensors/dvl/raw'
     NODE_NAME = 'dvl_raw_publisher'
@@ -30,7 +30,8 @@ class DvlRawPublisher:
             'BI': self._parse_BI,
             'BS': self._parse_BS,
             'BE': self._parse_BE,
-            'BD': self._parse_BD
+            'BD': self._parse_BD,
+            'RA': self._parse_RA
         }
 
     def connect(self):
@@ -71,7 +72,7 @@ class DvlRawPublisher:
 
     def _parse_SA(self, line):
         fields = self._extract_floats(line, 0, None)
-        self._current_msg.sa_roll = fields[0]
+        self._current_msg.sa_roll = fields[-1]
         self._current_msg.sa_pitch = fields[1]
         self._current_msg.sa_heading = fields[2]
 
@@ -93,6 +94,11 @@ class DvlRawPublisher:
 
     def _parse_BS(self, line):
         fields = self._extract_floats(line, 0, 3)
+	
+	#Filter out error values
+        if abs(fields[0]) > 32000 or abs(fields[1]) > 32000 or abs(fields[2]) > 32000:
+            return
+
         self._current_msg.bs_transverse = fields[0]
         self._current_msg.bs_longitudinal = fields[1]
         self._current_msg.bs_normal = fields[2]
@@ -116,6 +122,10 @@ class DvlRawPublisher:
         # BD type is the last message received, so publish
         self._publish_current_msg()
 
+    # Pressure and range to bottom data, currently being ignored
+    def _parse_RA(self, line):
+        pass
+
     def _extract_floats(self, num_string, start, stop):
         """Return a list of floats from a given string,
         using LINE_DELIM and going from start to stop
@@ -126,7 +136,7 @@ class DvlRawPublisher:
         """Publish the current DVL message and set the message to empty
         """
         self._pub.publish(self._current_msg)
-        self._current_msg = DVLRaw()
+        #self._current_msg = DVLRaw()
 
 
 if __name__ == '__main__':
