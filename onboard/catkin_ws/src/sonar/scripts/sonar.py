@@ -262,3 +262,5 @@ if __name__ == "__main__":
 
     sonar = Sonar(5)
     print(sonar.to_robot_position(200, 100))
+    print(sonar.to_robot_position(200, 200))
+    print(sonar.to_robot_position(200, 300))
