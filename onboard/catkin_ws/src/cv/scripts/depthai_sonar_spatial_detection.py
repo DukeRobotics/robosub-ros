@@ -115,7 +115,7 @@ class DepthAISpatialDetector:
             xout_rgb.setStreamName("stillImg")
         else:
             xout_rgb.setStreamName("rgb")
-        
+
         xout_nn.setStreamName("detections")
         xout_bounding_box_depth_mapping.setStreamName(
             "boundingBoxDepthMapping")
@@ -274,7 +274,7 @@ class DepthAISpatialDetector:
         else:
             inPreview = self.output_queues["rgb"].get()
             inDet = self.output_queues["detections"].get()
-        
+
         frame = inPreview.getCvFrame()
         detections = inDet.detections
 
