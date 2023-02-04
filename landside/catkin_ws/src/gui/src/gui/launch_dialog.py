@@ -112,161 +112,185 @@ class LaunchDialog(QDialog):
         selected_node = self.node_name_box.currentText()
         selected_node_file_type = selected_node.split(".")[1]
 
-        if selected_node_file_type == "launch":
-            package_dir = os.path.join(self.ROOT_PATH, self.package_name_box.currentText())
-            launch_file_path = os.path.join(package_dir, 'launch/' + self.node_name_box.currentText())
+        if selected_node_file_type != "launch":
+            return
 
-            tree = ET.parse(launch_file_path)
+        # Selected node file is a launch file
 
-            def traverse_tree(root):
-                for child in root:
-                    if child.tag == 'arg' and child.get('value') is None:
-                        self.arg_form_rows.append(child.attrib)
-                    traverse_tree(child)
+        package_dir = os.path.join(self.ROOT_PATH, self.package_name_box.currentText())
+        launch_file_path = os.path.join(package_dir, 'launch/' + self.node_name_box.currentText())
 
-            root = tree.getroot()
-            traverse_tree(root)
+        tree = ET.parse(launch_file_path)
 
-            for row in range(len(self.arg_form_rows)):
-                arg = self.arg_form_rows[row]
-                arg['allow_empty'] = True
+        def traverse_tree(root):
+            for child in root:
+                if child.tag == 'arg' and child.get('value') is None:
+                    self.arg_form_rows.append(child.attrib)
+                traverse_tree(child)
 
-                if arg.get('default') is None:
-                    default_value = ''
-                else:
-                    default_value = arg['default']
+        root = tree.getroot()
+        traverse_tree(root)
 
-                label = QtWidgets.QLabel(arg['name'])
+        for row, arg in enumerate(self.arg_form_rows):
+            arg['allow_empty'] = True
 
-                input = QtWidgets.QLineEdit()
-                input.setText(default_value)
+            if arg.get('default') is None:
+                default_value = ''
+            else:
+                default_value = arg['default']
 
-                toolTip = ""
+            label = QtWidgets.QLabel(arg['name'])
 
-                if arg.get("doc") is not None:
-                    doc_dict = {}
+            input = QtWidgets.QLineEdit()
+            input.setText(default_value)
+
+            toolTip = ""
+
+            if arg.get("doc") is not None:
+                doc_dict = {}
+                try:
+                    doc_dict = json.loads(arg["doc"])
+                except Exception:
+                    rospy.logwarn(f"Could not parse JSON doc string for argument `{arg['name']}` in "
+                                  f"`{selected_node}`. Defaulting to unrestricted string input.")
+
+                if doc_dict.get("options") is not None:
+                    self.interpret_options(selected_node, arg, doc_dict)
+                    # if (isinstance(doc_dict["options"], list) and doc_dict["options"] and
+                    #         all(isinstance(e, str) for e in doc_dict["options"])):
+
+                    #     input = QtWidgets.QComboBox()
+                    #     input.addItems(doc_dict["options"])
+
+                    #     if arg.get("default") is not None:
+                    #         if arg["default"] in doc_dict["options"]:
+                    #             input.setCurrentText(arg["default"])
+                    #         else:
+                    #             input.insertItem(0, arg["default"])
+                    #             input.setCurrentIndex(0)
+                    #             rospy.loginfo(f"Default value for argument `{arg['name']}` in `{selected_node}` "
+                    #                           f"is not in options list. It has been added as the first option.")
+
+                    # else:
+                    #     rospy.logwarn(f"Options list for argument `{arg['name']}` in `{selected_node}` is not a "
+                    #                   f"list of strings. Defaulting to unrestricted string input.")
+
+                elif doc_dict.get("regex") is not None:
                     try:
-                        doc_dict = json.loads(arg["doc"])
-                    except Exception:
-                        rospy.logwarn(f"Could not parse JSON doc string for argument `{arg['name']}` in "
-                                      f"`{selected_node}`. Defaulting to unrestricted string input.")
-
-                    if doc_dict.get("options") is not None:
-                        if (isinstance(doc_dict["options"], list) and doc_dict["options"] and
-                                all(isinstance(e, str) for e in doc_dict["options"])):
-
-                            input = QtWidgets.QComboBox()
-                            input.addItems(doc_dict["options"])
-
-                            if arg.get("default") is not None:
-                                if arg["default"] in doc_dict["options"]:
-                                    input.setCurrentText(arg["default"])
-                                else:
-                                    input.insertItem(0, arg["default"])
-                                    input.setCurrentIndex(0)
-                                    rospy.loginfo(f"Default value for argument `{arg['name']}` in `{selected_node}` "
-                                                  f"is not in options list. It has been added as the first option.")
-
-                        else:
-                            rospy.logwarn(f"Options list for argument `{arg['name']}` in `{selected_node}` is not a "
-                                          f"list of strings. Defaulting to unrestricted string input.")
-
-                    elif doc_dict.get("regex") is not None:
-                        try:
-                            regex = QRegularExpression(doc_dict["regex"])
-                            regex_validator = QtGui.QRegularExpressionValidator(regex)
-                            if arg.get("default") is not None:
-                                if regex.match(arg["default"]).hasMatch() or arg["default"] == "":
-                                    input.setValidator(regex_validator)
-                                    toolTip += f"Regex: {doc_dict['regex']}"
-                                else:
-                                    rospy.logwarn(f"Default value for argument `{arg['name']}` in `{selected_node}` "
-                                                  f"does not match regex. Defaulting to unrestricted string input.")
-                            else:
+                        regex = QRegularExpression(doc_dict["regex"])
+                        regex_validator = QtGui.QRegularExpressionValidator(regex)
+                        if arg.get("default") is not None:
+                            if regex.match(arg["default"]).hasMatch() or arg["default"] == "":
                                 input.setValidator(regex_validator)
                                 toolTip += f"Regex: {doc_dict['regex']}"
-
-                        except Exception:
-                            rospy.logwarn(f"Regex for argument `{arg['name']}` in `{selected_node}` is not valid. "
-                                          f"Defaulting to unrestricted string input.")
-
-                    elif doc_dict.get("type") is not None:
-                        add_tooltip = True
-                        if doc_dict["type"] == "bool":
-                            if arg.get("default") is not None:
-                                if arg["default"].lower() == "true":
-                                    input = QtWidgets.QCheckBox()
-                                    input.setChecked(True)
-                                elif arg["default"].lower() == "false":
-                                    input = QtWidgets.QCheckBox()
-                                    input.setChecked(False)
-                                else:
-                                    rospy.logwarn(f"Default value for argument `{arg['name']}` in `{selected_node}` is "
-                                                  f"not a valid boolean. Defaulting to unrestricted string input.")
-                                    add_tooltip = False
                             else:
+                                rospy.logwarn(f"Default value for argument `{arg['name']}` in `{selected_node}` "
+                                              f"does not match regex. Defaulting to unrestricted string input.")
+                        else:
+                            input.setValidator(regex_validator)
+                            toolTip += f"Regex: {doc_dict['regex']}"
+
+                    except Exception:
+                        rospy.logwarn(f"Regex for argument `{arg['name']}` in `{selected_node}` is not valid. "
+                                      f"Defaulting to unrestricted string input.")
+
+                elif doc_dict.get("type") is not None:
+                    add_tooltip = True
+                    if doc_dict["type"] == "bool":
+                        if arg.get("default") is not None:
+                            if arg["default"].lower() == "true":
+                                input = QtWidgets.QCheckBox()
+                                input.setChecked(True)
+                            elif arg["default"].lower() == "false":
                                 input = QtWidgets.QCheckBox()
                                 input.setChecked(False)
-
-                        elif doc_dict["type"] == "int":
-                            int_validator = QtGui.QIntValidator()
-                            if arg.get("default") is not None:
-                                if (int_validator.validate(arg.get("default"), 0)[0] == QtGui.QValidator.Acceptable or
-                                        arg.get("default") == ""):
-                                    input.setValidator(int_validator)
-                                else:
-                                    rospy.logwarn(f"Default value for argument `{arg['name']}` in `{selected_node}` is "
-                                                  f"not a valid integer. Defaulting to unrestricted string input.")
-                                    add_tooltip = False
                             else:
+                                rospy.logwarn(f"Default value for argument `{arg['name']}` in `{selected_node}` is "
+                                              f"not a valid boolean. Defaulting to unrestricted string input.")
+                                add_tooltip = False
+                        else:
+                            input = QtWidgets.QCheckBox()
+                            input.setChecked(False)
+
+                    elif doc_dict["type"] == "int":
+                        int_validator = QtGui.QIntValidator()
+                        if arg.get("default") is not None:
+                            if (int_validator.validate(arg.get("default"), 0)[0] == QtGui.QValidator.Acceptable or
+                                    arg.get("default") == ""):
                                 input.setValidator(int_validator)
-
-                        elif doc_dict["type"] == "double":
-                            double_validator = QtGui.QDoubleValidator()
-                            if arg.get("default") is not None:
-                                if (double_validator.validate(arg.get("default"), 0)[0] == QtGui.QValidator.Acceptable
-                                        or arg.get("default") == ""):
-                                    input.setValidator(double_validator)
-                                else:
-                                    rospy.logwarn(f"Default value for argument `{arg['name']}` in `{selected_node}` is "
-                                                  f"not a valid double. Defaulting to unrestricted string input.")
-                                    add_tooltip = False
                             else:
+                                rospy.logwarn(f"Default value for argument `{arg['name']}` in `{selected_node}` is "
+                                              f"not a valid integer. Defaulting to unrestricted string input.")
+                                add_tooltip = False
+                        else:
+                            input.setValidator(int_validator)
+
+                    elif doc_dict["type"] == "double":
+                        double_validator = QtGui.QDoubleValidator()
+                        if arg.get("default") is not None:
+                            if (double_validator.validate(arg.get("default"), 0)[0] == QtGui.QValidator.Acceptable
+                                    or arg.get("default") == ""):
                                 input.setValidator(double_validator)
-
-                        elif doc_dict["type"] == "str":
-                            pass
+                            else:
+                                rospy.logwarn(f"Default value for argument `{arg['name']}` in `{selected_node}` is "
+                                              f"not a valid double. Defaulting to unrestricted string input.")
+                                add_tooltip = False
                         else:
-                            add_tooltip = False
-                            rospy.logwarn(f"Type `{doc_dict['type']}` for argument `{arg['name']}` in `{selected_node}`"
-                                          f" is not valid. Type must be `bool`, `int`, `double`, or `str`. Defaulting "
-                                          f"to unrestricted string input.")
+                            input.setValidator(double_validator)
 
-                        if add_tooltip:
-                            toolTip += f"Type: {doc_dict['type']}"
+                    elif doc_dict["type"] == "str":
+                        pass
+                    else:
+                        add_tooltip = False
+                        rospy.logwarn(f"Type `{doc_dict['type']}` for argument `{arg['name']}` in `{selected_node}`"
+                                      f" is not valid. Type must be `bool`, `int`, `double`, or `str`. Defaulting "
+                                      f"to unrestricted string input.")
 
-                    if doc_dict.get("help") is not None:
-                        if isinstance(doc_dict["help"], str) and doc_dict["help"].strip():
-                            if toolTip:
-                                toolTip += " | Help: "
-                            toolTip += doc_dict["help"]
+                    if add_tooltip:
+                        toolTip += f"Type: {doc_dict['type']}"
 
-                    if doc_dict.get("allowEmpty") is not None:
-                        if type(doc_dict["allowEmpty"]) == bool:
-                            arg['allow_empty'] = doc_dict["allowEmpty"]
-                        else:
-                            rospy.logwarn(f"The property allowEmpty for argument `{arg['name']}` in `{selected_node}` "
-                                          f"is not a valid boolean. Defaulting to allow empty input.")
+                if doc_dict.get("help") is not None:
+                    if isinstance(doc_dict["help"], str) and doc_dict["help"].strip():
+                        if toolTip:
+                            toolTip += " | Help: "
+                        toolTip += doc_dict["help"]
 
-                if toolTip:
-                    label.setText(label.text() + " (?)")
-                    label.setToolTip(toolTip)
+                if doc_dict.get("allowEmpty") is not None:
+                    if type(doc_dict["allowEmpty"]) == bool:
+                        arg['allow_empty'] = doc_dict["allowEmpty"]
+                    else:
+                        rospy.logwarn(f"The property allowEmpty for argument `{arg['name']}` in `{selected_node}` "
+                                      f"is not a valid boolean. Defaulting to allow empty input.")
 
-                # row inserted at position row+2, after the Package and Node Name rows
-                self.form_layout.insertRow(row + 2, label, input)
+            if toolTip:
+                label.setText(label.text() + " (?)")
+                label.setToolTip(toolTip)
 
-                arg['label'] = label
-                arg['input'] = input
+            # row inserted at position row+2, after the Package and Node Name rows
+            self.form_layout.insertRow(row + 2, label, input)
+
+            arg['label'] = label
+            arg['input'] = input
+
+    def interpret_options(selected_node, arg, doc_dict):
+        if (isinstance(doc_dict["options"], list) and doc_dict["options"] and
+                all(isinstance(e, str) for e in doc_dict["options"])):
+
+            input = QtWidgets.QComboBox()
+            input.addItems(doc_dict["options"])
+
+            if arg.get("default") is not None:
+                if arg["default"] in doc_dict["options"]:
+                    input.setCurrentText(arg["default"])
+                else:
+                    input.insertItem(0, arg["default"])
+                    input.setCurrentIndex(0)
+                    rospy.loginfo(f"Default value for argument `{arg['name']}` in `{selected_node}` "
+                                  f"is not in options list. It has been added as the first option.")
+
+        else:
+            rospy.logwarn(f"Options list for argument `{arg['name']}` in `{selected_node}` is not a "
+                          f"list of strings. Defaulting to unrestricted string input.")
 
     def click_ok(self):
         package = self.package_name_box.currentText()
