@@ -66,7 +66,9 @@ class DepthAISpatialDetector:
             self.sonar_client = SonarClient()
             self.sonar_client.sweep_at_center_angle(200, 2)
         except rospy.ROSInterruptException:
-            print("Node instantiation interrupted")
+            rospy.loginfo("Node instantiation interrupted")
+
+        rospy.loginfo("debug 1")
 
     def build_pipeline(self, nn_blob_path, sync_nn=True):
         """
