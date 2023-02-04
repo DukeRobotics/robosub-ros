@@ -43,7 +43,7 @@ class DepthAISpatialDetector:
         if self.feed_path == "":
             rospy.logerr("No feed path variable given")
             rospy.spin()
-            self.img = _load_image_from_feed_path
+            self.img = self._load_image_from_feed_path()
 
         self.camera = 'front'
         self.pipeline = None
