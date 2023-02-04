@@ -3,6 +3,8 @@
 import rospy
 import serial
 import serial.tools.list_ports as list_ports
+import yaml
+import resource_retriever as rr
 import traceback
 
 from sensor_msgs.msg import Imu, MagneticField
@@ -13,13 +15,16 @@ class IMURawPublisher:
 
     IMU_DEST_TOPIC_QUAT = 'sensors/imu/imu'
     IMU_DEST_TOPIC_MAG = 'sensors/imu/mag'
+    FTDI_FILE_PATH = 'package://data_pub/config/imu_ftdi.yaml'
 
-    FTDI_STR ='AU04PK1Q'#FT1WDFQ2'
     BAUDRATE = 115200
     NODE_NAME = 'imu_pub'
     LINE_DELIM = b','
 
     def __init__(self):
+        with open(rr.get_filename(self.FTDI_FILE_PATH, use_protocol=False)) as f:
+            self._ftdi_strings = yaml.safe_load(f)
+
         self._pub_imu = rospy.Publisher(self.IMU_DEST_TOPIC_QUAT, Imu, queue_size=50)
         self._pub_mag = rospy.Publisher(self.IMU_DEST_TOPIC_MAG, MagneticField, queue_size=50)
 
@@ -32,7 +37,7 @@ class IMURawPublisher:
     def connect(self):
         while self._serial_port is None and not rospy.is_shutdown():
             try:
-                self._serial_port = next(list_ports.grep(self.FTDI_STR)).device
+                self._serial_port = next(list_ports.grep('|'.join(self._ftdi_strings))).device
                 self._serial = serial.Serial(self._serial_port, self.BAUDRATE,
                                              timeout=None, write_timeout=None,
                                              bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
