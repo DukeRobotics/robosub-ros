@@ -20,7 +20,7 @@ class Sonar:
     BAUD_RATE = 2000000  # hz
     SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
     SPEED_OF_SOUND_IN_WATER = 1480  # m/s
-    FILTER_INDEX = 200  # number of values to filter TODO figure out where the noise starts
+    FILTER_INDEX = 100  # number of values to filter TODO figure out where the noise starts
     DEFAULT_RANGE = 5
 
     def __init__(self, range=DEFAULT_RANGE, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
@@ -258,4 +258,7 @@ if __name__ == "__main__":
     # print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
 
     # FOR STARTING A WEB SERVER IN FOLDER::: RUN "python -m http.server 8000"
-    test_buoy_from_npy_file(os.path.join(os.path.dirname(__file__), 'sampleData', 'gate.npy'))
+    #test_buoy_from_npy_file(os.path.join(os.path.dirname(__file__), 'sampleData', 'gate.npy'))
+
+    sonar = Sonar(5)
+    print(sonar.to_robot_position(200, 100))
