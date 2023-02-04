@@ -8,6 +8,7 @@ from sonar_image_processing import scan_and_build_sonar_image, find_gate_posts, 
 import os
 from tf import TransformListener
 from time import sleep
+import rospy
 
 
 class Sonar:
@@ -24,9 +25,7 @@ class Sonar:
     DEFAULT_RANGE = 5
 
     def __init__(self, range=DEFAULT_RANGE, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
-        if self.IF_LOCAL_TEST:
-            import rospy
-            rospy.init_node('sonar')
+        rospy.init_node('sonar')
         self.ping360 = Ping360()
         self.ping360.connect_serial(serial_port_name, baud_rate)  # TODO: Add try except for connecting to device
         # self.ping360.connect_udp(self.ETHERNET_PORT_NAME)
