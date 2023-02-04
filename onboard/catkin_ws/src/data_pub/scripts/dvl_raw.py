@@ -78,7 +78,7 @@ class DvlRawPublisher:
 
     def _parse_SA(self, line):
         fields = self._extract_floats(line, 0, None)
-        self._current_msg.sa_roll = fields[-1]
+        self._current_msg.sa_roll = fields[0]
         self._current_msg.sa_pitch = fields[1]
         self._current_msg.sa_heading = fields[2]
 
@@ -101,7 +101,7 @@ class DvlRawPublisher:
     def _parse_BS(self, line):
         fields = self._extract_floats(line, 0, 3)
 	
-	#Filter out error values
+	    # Filter out error values
         if abs(fields[0]) > 32000 or abs(fields[1]) > 32000 or abs(fields[2]) > 32000:
             return
 
@@ -142,7 +142,9 @@ class DvlRawPublisher:
         """Publish the current DVL message and set the message to empty
         """
         self._pub.publish(self._current_msg)
-        #self._current_msg = DVLRaw()
+        # We stopped resetting the current message because we want to use the past value in case of an error
+        # See _parse_BS for relevant code
+        # self._current_msg = DVLRaw()
 
 
 if __name__ == '__main__':
