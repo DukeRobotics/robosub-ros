@@ -5,7 +5,6 @@ import cv2
 import os
 import subprocess
 from sensor_msgs.msg import CompressedImage
-from cv_bridge import CvBridge
 from utils import ImageTools
 
 
@@ -26,8 +25,6 @@ class DummyImagePublisher:
         if rospy.get_param("~feed_path") == "":
             rospy.logerr("No feed path variable given")
             rospy.spin()
-
-        self.cv_bridge = CvBridge()
 
     def run(self):
         """Check arguments for errors and run the appropriate function based on the type of feed_path."""
@@ -70,11 +67,9 @@ class DummyImagePublisher:
         """Publish a still image to topic with the specified framerate."""
 
         image = cv2.imread(self.feed_path, cv2.IMREAD_COLOR)
-        image_msg = self.cv_bridge.cv2_to_imgmsg(image, 'bgr8')
         loop_rate = rospy.Rate(self.framerate)
-
         while not rospy.is_shutdown():
-            image_msg = ImageTools().convert_to_ros_compressed_msg(image_msg)
+            image_msg = ImageTools().convert_to_ros_compressed_msg(image)
             self.image_publisher.publish(image_msg)
             loop_rate.sleep()
 
@@ -126,7 +121,7 @@ class DummyImagePublisher:
 
         while not rospy.is_shutdown():
             for image in images:
-                image_msg = self.cv_bridge.cv2_to_imgmsg(image, 'bgr8')
+                image_msg = ImageTools().convert_to_ros_compressed_msg(image)
                 self.image_publisher.publish(image_msg)
 
                 loop_rate.sleep()
@@ -155,7 +150,7 @@ class DummyImagePublisher:
             # Including 'not rospy.is_shutdown()' in the loop condition here to ensure if this script is exited
             # while this loop is running, the script quits without escalating to SIGTERM or SIGKILL
             while not rospy.is_shutdown() and success:
-                image_msg = self.cv_bridge.cv2_to_imgmsg(img, 'bgr8')
+                image_msg = ImageTools().convert_to_ros_compressed_msg(img)
                 self.image_publisher.publish(image_msg)
 
                 success, img = cap.read()
