@@ -7,7 +7,6 @@ import depthai_camera_connect
 import depthai as dai
 import numpy as np
 from utils import DetectionVisualizer, ImageTools
-from cv_bridge import CvBridge
 
 from custom_msgs.srv import EnableModel
 from custom_msgs.msg import CVObject
@@ -42,8 +41,6 @@ class DepthAISpatialDetector:
         self.detection_visualizer = None
 
         self.enable_service = f'enable_model_{self.camera}'
-
-        self.bridge = CvBridge()
 
     def build_pipeline(self, nn_blob_path, sync_nn=True):
         """
@@ -218,15 +215,14 @@ class DepthAISpatialDetector:
         frame = inPreview.getCvFrame()
         detections = inDet.detections
 
-        frame_img_msg = self.bridge.cv2_to_imgmsg(frame, 'bgr8')
-        frame_img_msg = ImageTools().convert_to_ros_compressed_msg(frame_img_msg)
+        frame_img_msg = ImageTools().convert_to_ros_compressed_msg(frame)
         self.rgb_preview_publisher.publish(frame_img_msg)
 
-        detections_img_msg = self.bridge.cv2_to_imgmsg(
+        detections_img_msg = ImageTools().convert_to_ros_compressed_msg(
             self.detection_visualizer.visualize_detections(frame, detections),
             'bgr8'
         )
-        frame_img_msg = ImageTools().convert_to_ros_compressed_msg(frame_img_msg)
+        
         self.detection_feed_publisher.publish(detections_img_msg)
 
         height = frame.shape[0]
