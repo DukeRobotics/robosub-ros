@@ -11,7 +11,7 @@ from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
 from tf.transformations import quaternion_from_euler
 
-CONFIG_FILE_PATH = 'package://data_pub/config/dvl_%s.yaml'
+CONFIG_FILE_PATH = 'package://data_pub/config/%s/dvl.yaml'
 
 NODE_NAME = 'dvl_odom_pub'
 DVL_RAW_TOPIC = 'sensors/dvl/raw'
