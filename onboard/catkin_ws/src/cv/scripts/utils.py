@@ -183,7 +183,7 @@ class ImageTools(object):
             # extracted from a real image from a robot
             # The code that does it in C++ is this:
             # https://github.com/ros-perception/image_transport_plugins/blob/indigo-devel/compressed_depth_image_transport/src/codec.cpp
-            ros_cmp.data = "\x00\x00\x00\x00\x88\x9c\x5c\xaa\x00\x40\x4b\xb7" + ros_cmp.data
+            # ros_cmp.data = "\x00\x00\x00\x00\x88\x9c\x5c\xaa\x00\x40\x4b\xb7" + ros_cmp.data
         elif image._type == 'sensor_msgs/Image':
             image.encoding = "mono16"
             ros_cmp = self.convert_ros_msg_to_ros_compressed_msg(

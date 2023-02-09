@@ -3,8 +3,8 @@
 import rospy
 import depthai as dai
 import cv2
-from sensor_msgs.msg import Image
-from cv_bridge import CvBridge
+from sensor_msgs.msg import CompressedImage
+from utils import ImageTools
 import depthai_camera_connect
 import numpy as np
 
@@ -15,12 +15,12 @@ class DepthAIImageStreamPublisher:
     """
 
     CAMERA = 'front'
-    STREAM_TOPIC_RGB_VIDEO = f'/camera/{CAMERA}/rgb/video/stream_raw'
-    STREAM_TOPIC_RGB_PREVIEW = f'/camera/{CAMERA}/rgb/preview/stream_raw'
-    STREAM_TOPIC_LEFT = f'/camera/{CAMERA}/left/stream_raw'
-    STREAM_TOPIC_RIGHT = f'/camera/{CAMERA}/right/stream_raw'
-    STREAM_TOPIC_DISPARITY = f'/camera/{CAMERA}/disparity/stream_raw'
-    STREAM_TOPIC_DEPTH = f'/camera/{CAMERA}/depth/stream_raw'
+    STREAM_TOPIC_RGB_VIDEO = f'/camera/{CAMERA}/rgb/video/compressed'
+    STREAM_TOPIC_RGB_PREVIEW = f'/camera/{CAMERA}/rgb/preview/compressed'
+    STREAM_TOPIC_LEFT = f'/camera/{CAMERA}/left/compressed'
+    STREAM_TOPIC_RIGHT = f'/camera/{CAMERA}/right/compressed'
+    STREAM_TOPIC_DISPARITY = f'/camera/{CAMERA}/disparity/compressed'
+    STREAM_TOPIC_DEPTH = f'/camera/{CAMERA}/depth/compressed'
 
     def __init__(self):
         """
@@ -35,24 +35,24 @@ class DepthAIImageStreamPublisher:
         self.publish_depth = rospy.get_param('~depth')
 
         if self.publish_rgb_video:
-            self.stream_publisher_rgb_video = rospy.Publisher(self.STREAM_TOPIC_RGB_VIDEO, Image, queue_size=10)
+            self.stream_publisher_rgb_video = rospy.Publisher(self.STREAM_TOPIC_RGB_VIDEO, CompressedImage, queue_size=10)
 
         if self.publish_rgb_preview:
-            self.stream_publisher_rgb_preview = rospy.Publisher(self.STREAM_TOPIC_RGB_PREVIEW, Image, queue_size=10)
+            self.stream_publisher_rgb_preview = rospy.Publisher(self.STREAM_TOPIC_RGB_PREVIEW, CompressedImage, queue_size=10)
 
         if self.publish_left:
-            self.stream_publisher_left = rospy.Publisher(self.STREAM_TOPIC_LEFT, Image, queue_size=10)
+            self.stream_publisher_left = rospy.Publisher(self.STREAM_TOPIC_LEFT, CompressedImage, queue_size=10)
 
         if self.publish_right:
-            self.stream_publisher_right = rospy.Publisher(self.STREAM_TOPIC_RIGHT, Image, queue_size=10)
+            self.stream_publisher_right = rospy.Publisher(self.STREAM_TOPIC_RIGHT, CompressedImage, queue_size=10)
 
         if self.publish_disparity:
-            self.stream_publisher_disparity = rospy.Publisher(self.STREAM_TOPIC_DISPARITY, Image, queue_size=10)
+            self.stream_publisher_disparity = rospy.Publisher(self.STREAM_TOPIC_DISPARITY, CompressedImage, queue_size=10)
 
         if self.publish_depth:
-            self.stream_publisher_depth = rospy.Publisher(self.STREAM_TOPIC_DEPTH, Image, queue_size=10)
+            self.stream_publisher_depth = rospy.Publisher(self.STREAM_TOPIC_DEPTH, CompressedImage, queue_size=10)
 
-        self.bridge = CvBridge()
+        self.image_tools = ImageTools()
         self.pipeline = dai.Pipeline()
         self.build_pipeline()
 
@@ -184,26 +184,26 @@ class DepthAIImageStreamPublisher:
                 if self.publish_rgb_video:
                     raw_img_rgb_video = rgbVideoQueue.get()
                     img_rgb_video = raw_img_rgb_video.getCvFrame()
-                    image_msg_rgb_video = self.bridge.cv2_to_imgmsg(img_rgb_video, 'bgr8')
+                    image_msg_rgb_video = self.image_tools.convert_to_ros_compressed_msg(img_rgb_video)
                     self.stream_publisher_rgb_video.publish(image_msg_rgb_video)
 
                 if self.publish_rgb_preview:
                     raw_img_rgb_preview = rgbPreviewQueue.get()
                     img_rgb_preview = raw_img_rgb_preview.getCvFrame()
-                    image_msg_rgb_preview = self.bridge.cv2_to_imgmsg(img_rgb_preview, 'bgr8')
+                    image_msg_rgb_preview = self.image_tools.convert_to_ros_compressed_msg(img_rgb_preview)
                     self.stream_publisher_rgb_preview.publish(image_msg_rgb_preview)
 
-                if self.publish_left:
-                    raw_img_left = leftQueue.get()
-                    img_left = raw_img_left.getCvFrame()
-                    image_msg_left = self.bridge.cv2_to_imgmsg(img_left, 'mono8')
-                    self.stream_publisher_left.publish(image_msg_left)
+                # if self.publish_left:
+                #     raw_img_left = leftQueue.get()
+                #     img_left = raw_img_left.getCvFrame()
+                #     image_msg_left = self.bridge.cv2_to_imgmsg(img_left, 'mono8')
+                #     self.stream_publisher_left.publish(image_msg_left)
 
-                if self.publish_right:
-                    raw_img_right = rightQueue.get()
-                    img_right = raw_img_right.getCvFrame()
-                    image_msg_right = self.bridge.cv2_to_imgmsg(img_right, 'mono8')
-                    self.stream_publisher_right.publish(image_msg_right)
+                # if self.publish_right:
+                #     raw_img_right = rightQueue.get()
+                #     img_right = raw_img_right.getCvFrame()
+                #     image_msg_right = self.bridge.cv2_to_imgmsg(img_right, 'mono8')
+                #     self.stream_publisher_right.publish(image_msg_right)
 
                 if self.publish_disparity:
                     # Normalize and apply color map to disparity image
@@ -211,13 +211,13 @@ class DepthAIImageStreamPublisher:
                     img_disparity = raw_img_disparity.getFrame()
                     img_disparity = (img_disparity * (255 / self.stereoMaxDisparity)).astype(np.uint8)
                     img_disparity = cv2.applyColorMap(img_disparity, cv2.COLORMAP_AUTUMN)
-                    image_msg_disparity = self.bridge.cv2_to_imgmsg(img_disparity, 'bgr8')
+                    image_msg_disparity = self.image_tools.convert_to_ros_compressed_msg(img_disparity)
                     self.stream_publisher_disparity.publish(image_msg_disparity)
 
                 if self.publish_depth:
                     raw_img_depth = depthQueue.get()
                     img_depth = raw_img_depth.getCvFrame()
-                    image_msg_depth = self.bridge.cv2_to_imgmsg(img_depth, 'mono16')
+                    image_msg_depth = self.image_tools.convert_depth_to_ros_compressed_msg(img_depth)
                     self.stream_publisher_depth.publish(image_msg_depth)
 
                 loop_rate.sleep()
