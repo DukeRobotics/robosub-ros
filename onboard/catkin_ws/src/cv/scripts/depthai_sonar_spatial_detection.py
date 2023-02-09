@@ -61,7 +61,7 @@ class DepthAISpatialDetector:
             print("Node instantiation interrupted")
 
         self.sonar_requests_publisher = rospy.Publisher("sonar/requests", SonarRequest, queue_size=10)
-        self.sonar_response_subscriber = rospy.Subscriber()
+        self.sonar_response_subscriber = rospy.Subscriber("sonar/cv/responses", SonarResponse, queue_size=10)
 
     def build_pipeline(self, nn_blob_path, sync_nn=True):
         """
