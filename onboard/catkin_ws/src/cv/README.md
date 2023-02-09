@@ -156,7 +156,7 @@ To simulate camera feed and then run a model on the feed from the left camera. W
 `test_images.py` simulates the camera feed by constantly publishing images to a topic. It can publish still images, a folder of images, rosbag files, and video files to a topic on loop. This helps us locally test our code without needing to connect to a camera. Use `roslaunch` with the files when running.
 * `test_images.launch`: Publishes dummy images to a topic every few seconds. It has the following three parameters:
 * `feed_path`: Path to the image, video, folder, or rosbag file that you want published.
-* `topic`: Name of topic that you want to be publish the images to. Required if `feed_path` is not a rosbag file.
+* `topic`: Name of topic that you want to publish the images to. Required if `feed_path` is not a rosbag file. Since we are using compressed images, topic must end with ".../compressed".
 * `framerate`: Number of frames published per second. Default value is set to 24. Used when `feed_path` is a folder or still image to determine rate at which to publish images.
 
 Examples:
