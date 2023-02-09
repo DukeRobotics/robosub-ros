@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 import rospy
+import rostopic
 import yaml
 import resource_retriever as rr
 
 from custom_msgs.msg import CVObject
 from custom_msgs.srv import EnableModel
-from sensor_msgs.msg import Image
-from cv_bridge import CvBridge
+from utils import ImageTools
 from detecto.core import Model
 
 
@@ -18,7 +18,7 @@ class Detector:
     def __init__(self):
         rospy.init_node('cv', anonymous=True)
 
-        self.bridge = CvBridge()
+        self.image_tools = ImageTools()
         self.camera = rospy.get_param('~camera')
 
         # Load in model configurations
@@ -80,7 +80,7 @@ class Detector:
         :param img_msg: ROS Image message to compute predictions on.
         """
 
-        image = self.bridge.imgmsg_to_cv2(img_msg, 'rgb8')
+        image = self.image_tools.convert_ros_msg_to_cv2(img_msg, 'rgb8')
 
         for model_name in self.models:
             model = self.models[model_name]
@@ -156,7 +156,8 @@ class Detector:
 
     def run(self):
         """Initialize node and set up Subscriber to generate and publish predictions at every camera frame received."""
-        rospy.Subscriber(self.camera_feed_topic, Image, self.detect)
+        TopicType, _, _ = rostopic.get_topic_class(self.camera_feed_topic)
+        rospy.Subscriber(self.camera_feed_topic, TopicType, self.detect)
 
         # Allow service for toggling of models
         rospy.Service(self.enable_service, EnableModel, self.enable_model)
