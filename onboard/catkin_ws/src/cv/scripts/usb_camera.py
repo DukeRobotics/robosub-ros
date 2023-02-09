@@ -4,7 +4,6 @@ import rospy
 import cv2
 
 from sensor_msgs.msg import CompressedImage
-from cv_bridge import CvBridge
 from utils import ImageTools
 
 
@@ -26,17 +25,17 @@ class USBCamera:
 
         # Read custom camera configs from launch command
         self.topic = rospy.get_param("~topic")
-        self.topic = f'/camera/{self.topic}/image_raw/compressed'
+        self.topic = f'/camera/{self.topic}/compressed'
+
         self.channel = rospy.get_param("~channel")
+
         # If no custom framerate is passed in, set self.framerate to None to trigger default framerate
         self.framerate = rospy.get_param("~framerate")
 
         if self.framerate == -1:
             self.framerate = None
 
-        # Connect to usb camera
-        self.cv_bridge = CvBridge()
-        # Create image publisher at given topic (default /camera/image_raw/compressed)
+        # Create image publisher at given topic
         self.publisher = rospy.Publisher(self.topic, CompressedImage, queue_size=10)
 
     def run(self):
