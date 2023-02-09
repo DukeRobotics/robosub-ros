@@ -3,7 +3,6 @@
 import rospy
 import resource_retriever as rr
 import yaml
-import cv2
 import depthai_camera_connect
 import depthai as dai
 import numpy as np
@@ -36,15 +35,6 @@ class DepthAISpatialDetector:
                                   use_protocol=False)) as f:
             self.models = yaml.safe_load(f)
 
-        self.feed_path = rospy.get_param("~feed_path")
-        self.latest_img = None
-
-        # No feed path is passed in -- throw an expcetion
-        if self.feed_path == "":
-            rospy.logerr("No feed path variable given")
-            rospy.spin()
-            self.img = self._load_image_from_feed_path()
-
         self.camera = 'front'
         self.pipeline = None
         self.publishers = None
@@ -66,9 +56,7 @@ class DepthAISpatialDetector:
             self.sonar_client = SonarClient()
             self.sonar_client.sweep_at_center_angle(200, 2)
         except rospy.ROSInterruptException:
-            rospy.loginfo("Node instantiation interrupted")
-
-        rospy.loginfo("debug 1")
+            print("Node instantiation interrupted")
 
     def build_pipeline(self, nn_blob_path, sync_nn=True):
         """
@@ -112,12 +100,7 @@ class DepthAISpatialDetector:
         xout_bounding_box_depth_mapping = pipeline.create(dai.node.XLinkOut)
         xout_depth = pipeline.create(dai.node.XLinkOut)
 
-        if self.feed_path != "":
-            # Point xIn to still image
-            xout_rgb.setStreamName("stillImg")
-        else:
-            xout_rgb.setStreamName("rgb")
-        
+        xout_rgb.setStreamName("rgb")
         xout_nn.setStreamName("detections")
         xout_bounding_box_depth_mapping.setStreamName(
             "boundingBoxDepthMapping")
@@ -251,39 +234,17 @@ class DepthAISpatialDetector:
         """
         Get current detections from output queues and publish.
         """
-        # Upload the pipeline to the device
-        def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
-            return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
-
         if not self.connected:
             return
 
-        inPreview = None
-        inDet = None
+        inPreview = self.output_queues["rgb"].get()
+        inDet = self.output_queues["detections"].get()
 
-        if self.feed_path != "":
-
-            inPreview = self.device.getInputQueue("stillImg")
-            inDet = self.output_queues["detections"].get()
-
-            iimg = dai.ImgFrame()
-            iimg.setType(dai.ImgFrame.Type.BGR888p)
-            iimg.setData(to_planar(self.img, (416, 416)))
-            iimg.setWidth(self.model['input_size'][0])
-            iimg.setHeight(self.model['input_size'][1])
-            inPreview.send(iimg)
-
-        else:
-            inPreview = self.output_queues["rgb"].get()
-            inDet = self.output_queues["detections"].get()
-        
         frame = inPreview.getCvFrame()
         detections = inDet.detections
 
         frame_img_msg = self.bridge.cv2_to_imgmsg(frame, 'bgr8')
         self.rgb_preview_publisher.publish(frame_img_msg)
-
-        rospy.loginfo("debug")
 
         detections_img_msg = self.bridge.cv2_to_imgmsg(
             self.detection_visualizer.visualize_detections(frame, detections),
@@ -386,7 +347,6 @@ class DepthAISpatialDetector:
         self.init_publishers(req.model_name)
 
         with depthai_camera_connect.connect(self.pipeline) as device:
-            self.device = device
             self.init_output_queues(device)
 
             loop_rate = rospy.Rate(1)
@@ -408,28 +368,6 @@ class DepthAISpatialDetector:
         """
         rospy.Service(self.enable_service, EnableModel, self.run_model)
         rospy.spin()
-
-    def _load_image_from_feed_path(self):
-        """ Load a still image from the feed path """
-        image_path = rr.get_filename(f"package://cv/assets/{self.feed_path}", use_protocol=False)
-        image = cv2.imread(image_path, cv2.IMREAD_COLOR)
-        return image
-
-    def _feed_is_still_image(self):
-        """ Check if the feed_path is to a still image
-
-        Returns:
-            bool: Whether the feed_path points to a still image
-        """
-        try:
-            img = self._load_image_from_feed_path()
-            return not (img is None or img.size == 0)
-        except Exception:
-            return False
-
-    def _update_latest_img(self, img_msg):
-        """ Store latest image """
-        self.latest_img = self.cv_bridge.imgmsg_to_cv2(img_msg, 'bgr8')
 
 
 def mm_to_meters(val_mm):
