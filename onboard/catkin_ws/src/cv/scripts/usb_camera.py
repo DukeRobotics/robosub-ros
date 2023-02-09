@@ -63,8 +63,7 @@ class USBCamera:
             # while this loop is running, the script quits without escalating to SIGTERM or SIGKILL
             while not rospy.is_shutdown() and success:
                 # Convert image read from cv2.videoCapture to image message to be published
-                image_msg = self.cv_bridge.cv2_to_imgmsg(img, 'bgr8')
-                image_msg = ImageTools().convert_to_ros_compressed_msg(image_msg)  # Compress image
+                image_msg = ImageTools().convert_to_ros_compressed_msg(img)  # Compress image
                 # Publish the image
                 self.publisher.publish(image_msg)
 
