@@ -8,6 +8,7 @@ from sonar_image_processing import scan_and_build_sonar_image, find_gate_posts, 
 import os
 from tf import TransformListener
 from time import sleep
+import rospy
 
 
 class Sonar:
@@ -20,13 +21,11 @@ class Sonar:
     BAUD_RATE = 2000000  # hz
     SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
     SPEED_OF_SOUND_IN_WATER = 1480  # m/s
-    FILTER_INDEX = 200  # number of values to filter TODO figure out where the noise starts
+    FILTER_INDEX = 100  # number of values to filter TODO figure out where the noise starts
     DEFAULT_RANGE = 5
 
     def __init__(self, range=DEFAULT_RANGE, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
-        if self.IF_LOCAL_TEST:
-            import rospy
-            rospy.init_node('sonar')
+        rospy.init_node('sonar')
         self.ping360 = Ping360()
         self.ping360.connect_serial(serial_port_name, baud_rate)  # TODO: Add try except for connecting to device
         # self.ping360.connect_udp(self.ETHERNET_PORT_NAME)
@@ -258,4 +257,9 @@ if __name__ == "__main__":
     # print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
 
     # FOR STARTING A WEB SERVER IN FOLDER::: RUN "python -m http.server 8000"
-    test_buoy_from_npy_file(os.path.join(os.path.dirname(__file__), 'sampleData', 'gate.npy'))
+    #test_buoy_from_npy_file(os.path.join(os.path.dirname(__file__), 'sampleData', 'gate.npy'))
+
+    sonar = Sonar(5)
+    print(sonar.to_robot_position(200, 100))
+    print(sonar.to_robot_position(200, 200))
+    print(sonar.to_robot_position(200, 300))

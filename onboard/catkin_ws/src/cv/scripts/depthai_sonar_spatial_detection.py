@@ -66,7 +66,9 @@ class DepthAISpatialDetector:
             self.sonar_client = SonarClient()
             self.sonar_client.sweep_at_center_angle(200, 2)
         except rospy.ROSInterruptException:
-            print("Node instantiation interrupted")
+            rospy.loginfo("Node instantiation interrupted")
+
+        rospy.loginfo("debug 1")
 
     def build_pipeline(self, nn_blob_path, sync_nn=True):
         """
@@ -280,6 +282,8 @@ class DepthAISpatialDetector:
 
         frame_img_msg = self.bridge.cv2_to_imgmsg(frame, 'bgr8')
         self.rgb_preview_publisher.publish(frame_img_msg)
+
+        rospy.loginfo("debug")
 
         detections_img_msg = self.bridge.cv2_to_imgmsg(
             self.detection_visualizer.visualize_detections(frame, detections),
