@@ -212,7 +212,7 @@ class DepthAISimulateDetection:
             device (depthai.Device): Depthai device being used
         """
         TopicType, _, _ = rostopic.get_topic_class(self.feed_path)
-        rospy.Subscriber(self.feed_path, Image, self._update_latest_img)
+        rospy.Subscriber(self.feed_path, TopicType, self._update_latest_img)
         loop_rate = rospy.Rate(1)
 
         while not rospy.is_shutdown():
