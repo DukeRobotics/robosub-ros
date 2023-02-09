@@ -9,7 +9,7 @@ from utils import DetectionVisualizer
 import rospy
 import yaml
 import resource_retriever as rr
-from sensor_msgs.msg import Image, CompressedImage
+from sensor_msgs.msg import CompressedImage
 from custom_msgs.msg import CVObject
 from utils import ImageTools
 import rostopic
@@ -45,6 +45,7 @@ class DepthAISimulateDetection:
         self.pipeline = dai.Pipeline()
         self._build_pipeline()
 
+        self.image_tools = ImageTools()
         self.publishing_topic = rospy.get_param("~publishing_topic")
         self.detection_publisher = rospy.Publisher(self.publishing_topic, CVObject, queue_size=10)
         self.visualized_detection_publisher = rospy.Publisher(f'{self.publishing_topic}_visualized/compressed',
@@ -162,8 +163,7 @@ class DepthAISimulateDetection:
 
     def _update_latest_img(self, img_msg):
         """ Store latest image """
-        # TODO: Replace with image tools
-        self.latest_img = self.cv_bridge.imgmsg_to_cv2(img_msg, 'bgr8')
+        self.latest_img = self.image_tools.convert_ros_msg_to_cv2(img_msg, 'bgr8')
 
     def _publish_detections(self, detection_results):
         """ Run detection on an image and publish the predictions
@@ -201,7 +201,7 @@ class DepthAISimulateDetection:
         visualized_detection_results = self.detection_visualizer.visualize_detections(
                                                             detection_results['frame'],
                                                             detection_results['detections'])
-        visualized_detection_results_msg = ImageTools().convert_to_ros_compressed_msg(visualized_detection_results)
+        visualized_detection_results_msg = self.image_tools.convert_to_ros_compressed_msg(visualized_detection_results)
 
         self.visualized_detection_publisher.publish(visualized_detection_results_msg)
 
