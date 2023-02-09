@@ -100,12 +100,7 @@ class DepthAISpatialDetector:
         xout_bounding_box_depth_mapping = pipeline.create(dai.node.XLinkOut)
         xout_depth = pipeline.create(dai.node.XLinkOut)
 
-        if self.feed_path != "":
-            # Point xIn to still image
-            xout_rgb.setStreamName("stillImg")
-        else:
-            xout_rgb.setStreamName("rgb")
-        
+        xout_rgb.setStreamName("rgb")
         xout_nn.setStreamName("detections")
         xout_bounding_box_depth_mapping.setStreamName(
             "boundingBoxDepthMapping")
@@ -242,25 +237,9 @@ class DepthAISpatialDetector:
         if not self.connected:
             return
 
-        inPreview = None
-        inDet = None
+        inPreview = self.output_queues["rgb"].get()
+        inDet = self.output_queues["detections"].get()
 
-        if self.feed_path != "":
-
-            inPreview = self.device.getInputQueue("stillImg")
-            inDet = self.output_queues["detections"].get()
-
-            iimg = dai.ImgFrame()
-            iimg.setType(dai.ImgFrame.Type.BGR888p)
-            iimg.setData(to_planar(self.img, (416, 416)))
-            iimg.setWidth(self.model['input_size'][0])
-            iimg.setHeight(self.model['input_size'][1])
-            inPreview.send(iimg)
-
-        else:
-            inPreview = self.output_queues["rgb"].get()
-            inDet = self.output_queues["detections"].get()
-        
         frame = inPreview.getCvFrame()
         detections = inDet.detections
 
