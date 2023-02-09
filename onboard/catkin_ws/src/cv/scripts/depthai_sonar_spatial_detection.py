@@ -13,6 +13,8 @@ import math
 
 from custom_msgs.srv import EnableModel
 from custom_msgs.msg import CVObject
+from custom_msgs.msg import SonarRequest
+from custom_msgs.msg import SonarResponse
 from sensor_msgs.msg import Image
 
 
@@ -57,6 +59,9 @@ class DepthAISpatialDetector:
             self.sonar_client.sweep_at_center_angle(200, 2)
         except rospy.ROSInterruptException:
             print("Node instantiation interrupted")
+
+        self.sonar_requests_publisher = rospy.Publisher("sonar/requests", SonarRequest, queue_size=10)
+        self.sonar_response_subscriber = rospy.Subscriber()
 
     def build_pipeline(self, nn_blob_path, sync_nn=True):
         """

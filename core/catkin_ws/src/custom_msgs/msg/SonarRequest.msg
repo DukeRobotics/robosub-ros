@@ -1,0 +1,8 @@
+std_msgs/Header header
+
+# What type of object is the sonar scanning (buoy or fate)
+string type
+
+float64 center
+float64 breadth
+float64 depth
