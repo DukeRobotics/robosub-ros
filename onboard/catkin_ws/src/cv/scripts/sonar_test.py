@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+
+import rospy
+import resource_retriever as rr
+import yaml
+import depthai_camera_connect
+import depthai as dai
+import numpy as np
+from utils import DetectionVisualizer
+from cv_bridge import CvBridge
+from sonar_action_client import SonarClient
+import math
+
+from custom_msgs.srv import EnableModel
+from custom_msgs.msg import CVObject
+from custom_msgs.msg import SonarRequest
+from custom_msgs.msg import SonarResponse
+from sensor_msgs.msg import Image
+
+class SonarTest:
+
+    def __init__(self):
+        """
+        Initializes the ROS node and service. Loads the yaml file at cv/models/depthai_models.yaml
+        """
+        rospy.init_node('depthai_sonar_spatial_detection', anonymous=True)
+        self.sonar_requests_publisher = rospy.Publisher("sonar/request", SonarRequest, queue_size=10)
+
+    def request_sonar(self):
+        sonar_request_msg = SonarRequest()
+        sonar_request_msg.type = "buoy"
+        sonar_request_msg.center_degrees = 0
+        sonar_request_msg.breadth_degrees = 200
+        sonar_request_msg.depth_degrees = 150
+        self.sonar_requests_publisher.publish(sonar_request_msg)
+
+        result = rospy.wait_for_message("sonar/cv/response", SonarResponse)
+        rospy.loginfo(result)
+
+    def run(self):
+        rospy.spin()
+
+if __name__ == '__main__':
+    SonarTest().run()
