@@ -9,7 +9,9 @@ import os
 def scan_and_build_sonar_image(sonar,
                                display_results=False,
                                npy_save_path=None,
-                               jpeg_save_path=None):
+                               jpeg_save_path=None,
+                               start_angle=100,
+                               end_angle=300):
     """ Execute a sweep with the sonar device and then build a sonar image out of the results
 
     Args:
@@ -23,7 +25,7 @@ def scan_and_build_sonar_image(sonar,
     Returns:
         ndarray: Sonar image from the scan
     """
-    data_list = sonar.get_sweep(100, 300)
+    data_list = sonar.get_sweep(start_angle, end_angle)
     sonar_img = build_sonar_image(data_list, display_results, npy_save_path, jpeg_save_path)
     return sonar_img
 
@@ -293,5 +295,5 @@ def test_img_proc(img, func=find_buoy):
 
 if __name__ == "__main__":
     # test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData', 'SampleTylerData.bin'), find_buoy)
-    # test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData', 'buoy.npy'), find_buoy)
-    test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData', 'gate.npy'), the_polar_express)
+    test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData', 'buoy.npy'), find_buoy)
+    # test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData', 'gate.npy'), the_polar_express)
