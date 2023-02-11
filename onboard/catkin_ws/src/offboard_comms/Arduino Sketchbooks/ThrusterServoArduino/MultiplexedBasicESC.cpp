@@ -14,6 +14,6 @@ bool MultiplexedBasicESC::attached(){return driver.attached();}
 
 void MultiplexedBasicESC::detach(){driver.detach();}
 
-void MultiplexedBasicESC::write(int8_t speed){writeMicroseconds(map(speed, -128, 128, 1100, 1900)+31);}
+void MultiplexedBasicESC::write(int8_t speed){writeMicroseconds(map(speed, -128, 128, 1100, 1900));}
 
 void MultiplexedBasicESC::writeMicroseconds(uint16_t uS){driver.writeMicroseconds(uS);}
