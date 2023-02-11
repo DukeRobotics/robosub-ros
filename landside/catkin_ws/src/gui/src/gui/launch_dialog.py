@@ -157,7 +157,7 @@ class LaunchDialog(QDialog):
                         toolTip += doc_dict["help"]
 
                 if "allowEmpty" in doc_dict:
-                    if type(doc_dict["allowEmpty"]) == bool:
+                    if isinstance(doc_dict["allowEmpty"], bool):
                         arg['allow_empty'] = doc_dict["allowEmpty"]
                     else:
                         rospy.logwarn(f"The property allowEmpty for argument `{arg['name']}` in `{selected_node}` "
