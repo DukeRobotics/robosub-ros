@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <launch>
-	<arg name="topic" default="usb_camera" />
-	<arg name="channel" default="0"  doc='{"type":"int","help":"If the desired USB camera is publishing at /dev/video/[num], this value is [num]."}' />
-	<arg name="framerate" default="-1" doc='{"type":"int","help":"Publishing framerate of USB camera."}' />
+	<arg name="topic" default="usb_camera" doc='{"type":"str","help":"The feed from the USB camera will be published to /camera/[topic]/image_raw."}'/>
+	<arg name="channel" default="0"  doc='{"type":"int","help":"If the desired USB camera is publishing at the path /dev/video/[channel], this value is [channel]."}' />
+	<arg name="framerate" default="-1" doc='{"type":"int","help":"Publishing framerate of USB camera. If this value is -1, the default framerate of the camera will be used."}' />
 	<node name="usb_camera" pkg="cv" type="usb_camera.py" output="screen">
 		<param name="topic" value="$(arg topic)" />
 		<param name="channel" value="$(arg channel)" />
