@@ -1,21 +1,10 @@
 #!/usr/bin/env python3
 
 import rospy
-import resource_retriever as rr
-import yaml
-import depthai_camera_connect
-import depthai as dai
-import numpy as np
-from utils import DetectionVisualizer
-from cv_bridge import CvBridge
-from sonar_action_client import SonarClient
-import math
 
-from custom_msgs.srv import EnableModel
 from custom_msgs.msg import CVObject
-from custom_msgs.msg import SonarRequest
-from custom_msgs.msg import SonarResponse
-from sensor_msgs.msg import Image
+# from custom_msgs.msg import SonarRequest
+# from custom_msgs.msg import SonarResponse
 
 class SonarTest:
 
