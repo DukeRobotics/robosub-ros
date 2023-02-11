@@ -10,8 +10,7 @@ import subprocess
 IGNORE_LIST = []
 BLOCK_LIST = [
     'cv/launch/cv.launch',
-    'cv/launch/depthai_service_model_gate.launch',
-    'cv/launch/depthai_service_model_gate_buoy.launch',
+    'cv/launch/depthai_service_model.launch',
     'joystick/launch/pub_joy.launch',
     'simulation/launch/base_sim.launch',
     'simulation/launch/test_sim_comm.launch',
