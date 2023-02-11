@@ -50,10 +50,5 @@ catkin build
 source devel/setup.bash
 cd ../..
 
-echo ""
-sudo apt-get update
-sudo apt-get install iputils-ping
-echo ""
-
 echo "If you did not source this scipt, please run"
 echo "source ${COMPUTER_TYPE}/catkin_ws/devel/setup.bash"
