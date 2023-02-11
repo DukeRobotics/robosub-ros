@@ -3,8 +3,8 @@
 import rospy
 
 from custom_msgs.msg import CVObject
-# from custom_msgs.msg import SonarRequest
-# from custom_msgs.msg import SonarResponse
+from custom_msgs.msg import SonarRequest
+from custom_msgs.msg import SonarResponse
 
 class SonarTest:
 
