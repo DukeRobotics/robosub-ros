@@ -23,7 +23,7 @@ class SonarTest:
         """
         Initializes the ROS node and service. Loads the yaml file at cv/models/depthai_models.yaml
         """
-        rospy.init_node('depthai_sonar_spatial_detection', anonymous=True)
+        rospy.init_node('sonar_test', anonymous=True)
         self.sonar_requests_publisher = rospy.Publisher("sonar/request", SonarRequest, queue_size=10)
 
     def request_sonar(self):
