@@ -286,7 +286,7 @@ class DepthAISpatialDetector:
             sonar_request_msg.type = "buoy"
             sonar_request_msg.center_degrees = center
             sonar_request_msg.breadth_degrees = breadth
-            sonar_request_msg.depth_degrees = SONAR_DEPTH
+            sonar_request_msg.depth = SONAR_DEPTH
             self.sonar_requests_publisher.publish(sonar_request_msg)
 
             # Try calling sonar on detected bounding box

@@ -5,4 +5,4 @@ string type
 
 float64 center_degrees
 float64 breadth_degrees
-float64 depth_degrees
+float64 depth

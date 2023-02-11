@@ -30,8 +30,8 @@ class SonarTest:
         sonar_request_msg = SonarRequest()
         sonar_request_msg.type = "buoy"
         sonar_request_msg.center_degrees = 0
-        sonar_request_msg.breadth_degrees = 200
-        sonar_request_msg.depth_degrees = 150
+        sonar_request_msg.breadth_degrees = 10
+        sonar_request_msg.depth = 5
         self.sonar_requests_publisher.publish(sonar_request_msg)
 
         result = rospy.wait_for_message("sonar/cv/response", SonarResponse)
