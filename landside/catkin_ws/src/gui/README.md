@@ -93,7 +93,7 @@ To use this capability, add the `doc` attribute to `<arg>` tag in your launch fi
 
 Example:
 ```xml
-<arg name="count" default="" doc='{"type":"int","allowEmpty"=false,"help":"The number of messages to publish"}'>
+<arg name="count" default="" doc='{"type":"int","allowEmpty"=false,"help":"The number of messages to publish"}' />
 ```
 **There must NOT be anything other than the JSON object in the `doc` attribute for the validation to work.**
 
