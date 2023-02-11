@@ -13,8 +13,9 @@ import math
 
 from custom_msgs.srv import EnableModel
 from custom_msgs.msg import CVObject
-from custom_msgs.msg import SonarRequest
-from custom_msgs.msg import SonarResponse
+from custom_msgs.msg import sweepResult, sweepGoal
+# from custom_msgs.msg import SonarRequest
+# from custom_msgs.msg import SonarResponse
 from sensor_msgs.msg import Image
 
 
@@ -52,7 +53,7 @@ class DepthAISpatialDetector:
 
         self.bridge = CvBridge()
 
-        self.sonar_requests_publisher = rospy.Publisher("sonar/request", SonarRequest, queue_size=10)
+        self.sonar_requests_publisher = rospy.Publisher("sonar/request", sweepGoal, queue_size=10)
 
     def build_pipeline(self, nn_blob_path, sync_nn=True):
         """
@@ -282,7 +283,7 @@ class DepthAISpatialDetector:
                     x_cam_meters, y_cam_meters, z_cam_meters)
 
             # Create a new sonar request msg object
-            sonar_request_msg = SonarRequest()
+            sonar_request_msg = sweepGoal()
             sonar_request_msg.type = "buoy"
             sonar_request_msg.center_degrees = center
             sonar_request_msg.breadth_degrees = breadth
@@ -293,10 +294,10 @@ class DepthAISpatialDetector:
             # if sonar responds, then override existing robot-frame x, y info; else, keep default
             try:
                 # Request sonar to sweep within bounded angle range; read center of mass of detected object from sonar
-                result = rospy.wait_for_message("sonar/cv/response", SonarResponse)
+                result = rospy.wait_for_message("sonar/cv/response", sweepResult)
                 # Sonar gives robot x,y; camera gives camera y, which is robot z
                 # Override det_coords_robot_mm with updated sonar data
-                det_coords_robot_mm = (result.x, result.y, y_cam_meters)
+                det_coords_robot_mm = (result.x_pos, result.y_pos, y_cam_meters)
                 using_sonar = True
             except rospy.ROSInterruptException:
                 rospy.loginfo("Sonar sweep failed, defaulting to stereo")
