@@ -4,11 +4,15 @@ import rospy
 import serial
 import serial.tools.list_ports as list_ports
 import yaml
+import os
 import resource_retriever as rr
 import traceback
 
 from sensor_msgs.msg import Imu, MagneticField
 from tf.transformations import quaternion_multiply
+
+CONFIG_FILE_PATH = 'package://data_pub/config/%s/imu.yaml'
+config_data = None
 
 
 class IMURawPublisher:
@@ -72,11 +76,9 @@ class IMURawPublisher:
 
     def _parse_orient(self, items):
         untransformed_orient = [float(items[1]), float(items[2]), float(items[3]), float(items[4])]
-        # Transform quaternion from NED to ENU coordinates	
-	#updated_quat = quaternion_multiply([-1, 0, 0, 0], untransformed_orient)
-        #updated_quat = quaternion_multiply([0.707, 0.707, 0, 0], untransformed_orient)
-        updated_quat1 = quaternion_multiply([-1, 0, 0, 0], untransformed_orient)
-        updated_quat = quaternion_multiply([0, 0, -0.3826, 0.9239],updated_quat1) #axis = 0, 0, -1; cos(45/2) = 0.9239
+        # For Cthulhu, transform quaternion from NED to ENU coordinates	
+        # For Oogway, rotate upside down and about z axis by 45 degrees clockwise (negative)
+        updated_quat = quaternion_multiply([config_data[i] for i in 'xyzw'], untransformed_orient)
 
         self._current_imu_msg.orientation.x = updated_quat[0]
         self._current_imu_msg.orientation.y = updated_quat[1]
@@ -112,6 +114,9 @@ class IMURawPublisher:
 
 
 if __name__ == '__main__':
+    with open(rr.get_filename(CONFIG_FILE_PATH % os.getenv("ROBOT_NAME", "oogway"), use_protocol=False)) as f:
+        config_data = yaml.safe_load(f)
+
     try:
         IMURawPublisher().run()
     except rospy.ROSInterruptException:
