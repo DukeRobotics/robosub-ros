@@ -52,16 +52,7 @@ class DepthAISpatialDetector:
 
         self.bridge = CvBridge()
 
-        try:
-            # Initializes a rospy node so that the SimpleActionClient can
-            # publish and subscribe over ROS.
-            self.sonar_client = SonarClient()
-            self.sonar_client.sweep_at_center_angle(200, 2)
-        except rospy.ROSInterruptException:
-            print("Node instantiation interrupted")
-
-        self.sonar_requests_publisher = rospy.Publisher("sonar/requests", SonarRequest, queue_size=10)
-        self.sonar_response_subscriber = rospy.Subscriber("sonar/cv/responses", SonarResponse, queue_size=10)
+        self.sonar_requests_publisher = rospy.Publisher("sonar/request", SonarRequest, queue_size=10)
 
     def build_pipeline(self, nn_blob_path, sync_nn=True):
         """
@@ -290,15 +281,22 @@ class DepthAISpatialDetector:
             det_coords_robot_mm = camera_frame_to_robot_frame(
                     x_cam_meters, y_cam_meters, z_cam_meters)
 
+            # Create a new sonar request msg object
+            sonar_request_msg = SonarRequest()
+            sonar_request_msg.type = "buoy"
+            sonar_request_msg.center_degrees = center
+            sonar_request_msg.breadth_degrees = breadth
+            sonar_request_msg.depth_degrees = SONAR_DEPTH
+            self.sonar_requests_publisher.publish(sonar_request_msg)
+
             # Try calling sonar on detected bounding box
             # if sonar responds, then override existing robot-frame x, y info; else, keep default
             try:
                 # Request sonar to sweep within bounded angle range; read center of mass of detected object from sonar
-                result = self.sonar_client.sweep_at_center_angle(
-                    center, breadth, SONAR_DEPTH)
+                result = rospy.wait_for_message("sonar/cv/response", SonarResponse)
                 # Sonar gives robot x,y; camera gives camera y, which is robot z
                 # Override det_coords_robot_mm with updated sonar data
-                det_coords_robot_mm = (result.x_pos, result.y_pos, y_cam_meters)
+                det_coords_robot_mm = (result.x, result.y, y_cam_meters)
                 using_sonar = True
             except rospy.ROSInterruptException:
                 rospy.loginfo("Sonar sweep failed, defaulting to stereo")
