@@ -92,12 +92,10 @@ class LaunchDialog(QDialog):
         launchable_names = [os.path.split(f)[1] for f in launchables]
         self.node_name_box.addItems(launchable_names)
 
-        try:
-            index_of_first_script_file = next(i for i, v in enumerate(launchable_names) if v.endswith('.py'))
-            if (index_of_first_script_file > 1) and (index_of_first_script_file < len(launchable_names)):
-                self.node_name_box.insertSeparator(index_of_first_script_file)
-        except Exception:
-            pass
+        index_of_first_script_file = next((i for i, v in enumerate(launchable_names) if v.endswith('.py')), None)
+        if index_of_first_script_file and (index_of_first_script_file > 1) and \
+           (index_of_first_script_file < len(launchable_names)):
+            self.node_name_box.insertSeparator(index_of_first_script_file)
 
     def clear_arg_form_rows(self):
         for row in self.arg_form_rows:
@@ -126,7 +124,7 @@ class LaunchDialog(QDialog):
         for row, arg in enumerate(self.arg_form_rows):
             arg['allow_empty'] = True
 
-            default_value = '' if arg.get('default') is None else arg['default']
+            default_value = arg.get('default', '')
 
             label = QtWidgets.QLabel(arg['name'])
 
@@ -135,7 +133,7 @@ class LaunchDialog(QDialog):
 
             toolTip = ""
 
-            if arg.get("doc") is not None:
+            if "doc" in arg:
                 doc_dict = {}
                 try:
                     doc_dict = json.loads(arg["doc"])
@@ -143,22 +141,22 @@ class LaunchDialog(QDialog):
                     rospy.logwarn(f"Could not parse JSON doc string for argument `{arg['name']}` in "
                                   f"`{selected_node}`. Defaulting to unrestricted string input.")
 
-                if doc_dict.get("options") is not None:
+                if "options" in doc_dict:
                     input = self.interpret_options(selected_node, arg, doc_dict, input)
 
-                elif doc_dict.get("regex") is not None:
+                elif "regex" in doc_dict:
                     input, toolTip = self.interpret_regex(selected_node, arg, doc_dict, input, toolTip)
 
-                elif doc_dict.get("type") is not None:
+                elif "type" in doc_dict:
                     input, toolTip = self.interpret_type(selected_node, arg, doc_dict, input, toolTip)
 
-                if doc_dict.get("help") is not None:
+                if "help" in doc_dict:
                     if isinstance(doc_dict["help"], str) and doc_dict["help"].strip():
                         if toolTip:
                             toolTip += " | Help: "
                         toolTip += doc_dict["help"]
 
-                if doc_dict.get("allowEmpty") is not None:
+                if "allowEmpty" in doc_dict:
                     if type(doc_dict["allowEmpty"]) == bool:
                         arg['allow_empty'] = doc_dict["allowEmpty"]
                     else:
@@ -183,7 +181,7 @@ class LaunchDialog(QDialog):
 
         def traverse_tree(root):
             for child in root:
-                if child.tag == 'arg' and child.get('value') is None:
+                if child.tag == 'arg' and "value" not in child:
                     self.arg_form_rows.append(child.attrib)
                 traverse_tree(child)
 
@@ -197,7 +195,7 @@ class LaunchDialog(QDialog):
             input = QtWidgets.QComboBox()
             input.addItems(doc_dict["options"])
 
-            if arg.get("default") is not None:
+            if "default" in arg:
                 if arg["default"] in doc_dict["options"]:
                     input.setCurrentText(arg["default"])
                 else:
@@ -213,10 +211,10 @@ class LaunchDialog(QDialog):
         return input
 
     def interpret_regex(self, selected_node, arg, doc_dict, input, toolTip):
-        try:
-            regex = QRegularExpression(doc_dict["regex"])
+        regex = QRegularExpression(doc_dict["regex"])
+        if regex.isValid():
             regex_validator = QtGui.QRegularExpressionValidator(regex)
-            if arg.get("default") is not None:
+            if "default" in arg:
                 if regex.match(arg["default"]).hasMatch() or arg["default"] == "":
                     input.setValidator(regex_validator)
                     toolTip += f"Regex: {doc_dict['regex']}"
@@ -226,8 +224,7 @@ class LaunchDialog(QDialog):
             else:
                 input.setValidator(regex_validator)
                 toolTip += f"Regex: {doc_dict['regex']}"
-
-        except Exception:
+        else:
             rospy.logwarn(f"Regex for argument `{arg['name']}` in `{selected_node}` is not valid. "
                           f"Defaulting to unrestricted string input.")
 
@@ -236,7 +233,7 @@ class LaunchDialog(QDialog):
     def interpret_type(self, selected_node, arg, doc_dict, input, toolTip):
         add_tooltip = True
         if doc_dict["type"] == "bool":
-            if arg.get("default") is not None:
+            if "default" in arg:
                 if arg["default"].lower() == "true":
                     input = QtWidgets.QCheckBox()
                     input.setChecked(True)
@@ -253,9 +250,9 @@ class LaunchDialog(QDialog):
 
         elif doc_dict["type"] == "int":
             int_validator = QtGui.QIntValidator()
-            if arg.get("default") is not None:
-                if (int_validator.validate(arg.get("default"), 0)[0] == QtGui.QValidator.Acceptable or
-                        arg.get("default") == ""):
+            if "default" in arg:
+                if (arg["default"] == "" or
+                        int_validator.validate(arg["default"], 0)[0] == QtGui.QValidator.Acceptable):
                     input.setValidator(int_validator)
                 else:
                     rospy.logwarn(f"Default value for argument `{arg['name']}` in `{selected_node}` is "
@@ -266,9 +263,9 @@ class LaunchDialog(QDialog):
 
         elif doc_dict["type"] == "double":
             double_validator = QtGui.QDoubleValidator()
-            if arg.get("default") is not None:
-                if (double_validator.validate(arg.get("default"), 0)[0] == QtGui.QValidator.Acceptable
-                        or arg.get("default") == ""):
+            if "default" in arg:
+                if (arg["default"] == "" or
+                        double_validator.validate(arg["default"], 0)[0] == QtGui.QValidator.Acceptable):
                     input.setValidator(double_validator)
                 else:
                     rospy.logwarn(f"Default value for argument `{arg['name']}` in `{selected_node}` is "
@@ -320,7 +317,7 @@ class LaunchDialog(QDialog):
             rospy.logerr(f'Service did not process request: {str(exc)}')
 
     def handle_empty_arg_value(self, row):
-        if not row['allow_empty'] or row.get('default') is None:
+        if not row['allow_empty'] or "default" not in row:
             self.argument_required_dialog(row['name'])
             return False
         elif row.get('default') != "":
