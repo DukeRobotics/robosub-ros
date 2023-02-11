@@ -66,10 +66,7 @@ def connect(pipeline):
 
         # Wait two seconds before trying again
         # This ensures the script does not terminate if the camera is just temporarily unavailable
-        wait_secs = 2
-        start = time.time()
-        while time.time() - start < wait_secs and not rospy.is_shutdown():
-            pass
+        rospy.sleep(2)
 
     raise RuntimeError(f"{i} attempts were made to connect to the DepthAI camera using "
                        f"autodiscovery and manual IP address specification. All attempts failed.")
