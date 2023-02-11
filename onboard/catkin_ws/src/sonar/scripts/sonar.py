@@ -25,7 +25,7 @@ class Sonar:
     DEFAULT_RANGE = 5
 
     def __init__(self, range=DEFAULT_RANGE, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
-        rospy.init_node('sonar')
+        #rospy.init_node('sonar') #need to test this
         self.ping360 = Ping360()
         self.ping360.connect_serial(serial_port_name, baud_rate)  # TODO: Add try except for connecting to device
         # self.ping360.connect_udp(self.ETHERNET_PORT_NAME)
@@ -189,7 +189,8 @@ class Sonar:
         Returns:
             Pose: Pose in robot reference frame containing x and y position of angle/index item
         """
-        # Need to change the static transform for where the sonar is on the robot
+        index = index + self.FILTER_INDEX
+
         x_pos = self.get_distance_of_sample(index) * np.cos(sonar_utils.centered_gradians_to_radians(angle))
         y_pos = self.get_distance_of_sample(index) * np.sin(sonar_utils.centered_gradians_to_radians(angle))
         print(f"{x_pos} {y_pos}")
@@ -260,6 +261,5 @@ if __name__ == "__main__":
     #test_buoy_from_npy_file(os.path.join(os.path.dirname(__file__), 'sampleData', 'gate.npy'))
 
     sonar = Sonar(5)
-    print(sonar.to_robot_position(200, 100))
-    print(sonar.to_robot_position(200, 200))
-    print(sonar.to_robot_position(200, 300))
+
+    rospy.Subscriber("/controls/x_pos/setpoint", Float64, self._on_receive_data_x)
