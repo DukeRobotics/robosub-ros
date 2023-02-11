@@ -76,6 +76,8 @@ class LaunchDialog(QDialog):
             return []
 
     def package_name_selected(self, item_index):
+        self.clear_arg_form_rows()
+
         if item_index == 0:
             self.node_name_box.setEnabled(False)
             return
@@ -97,11 +99,14 @@ class LaunchDialog(QDialog):
         except Exception:
             pass
 
-    def node_name_selected(self, item_index):
+    def clear_arg_form_rows(self):
         for row in self.arg_form_rows:
             self.form_layout.removeRow(row['label'])
 
         self.arg_form_rows = []
+
+    def node_name_selected(self, item_index):
+        self.clear_arg_form_rows()
 
         if item_index == 0:
             self.accept_button.setEnabled(False)
