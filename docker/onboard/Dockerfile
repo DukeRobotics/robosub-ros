@@ -40,8 +40,8 @@ RUN apt-get update && \
     ros-noetic-smach-ros \
     ros-noetic-rosserial \
     ros-noetic-rosserial-arduino \
+    iputils-ping \
     python3-pandas && \
-    iputils-ping && \
     apt-get clean && \
     # Clear apt caches to reduce image size
     rm -rf /var/lib/apt/lists/*
