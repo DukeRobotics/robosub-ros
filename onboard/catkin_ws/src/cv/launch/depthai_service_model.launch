@@ -1,4 +1,4 @@
 <launch>
-    <arg name="model" default="" doc='{"options":["gate","gate_buoy"],"allowEmpty":false,"help":"The DepthAI model to use from depthai_models.yaml"}'/>
+    <arg name="model" default="" doc='{"options":["","gate","gate_buoy"],"allowEmpty":false,"help":"The DepthAI model to use from depthai_models.yaml"}'/>
     <node pkg="rosservice" type="rosservice" name="global_loc" args="call /enable_model_front $(arg model) True" />
 </launch>
