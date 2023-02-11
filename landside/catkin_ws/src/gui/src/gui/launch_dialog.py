@@ -94,7 +94,7 @@ class LaunchDialog(QDialog):
 
         try:
             index_of_first_script_file = next(i for i, v in enumerate(launchable_names) if v.endswith('.py'))
-            if index_of_first_script_file > 1 and index_of_first_script_file < len(launchable_names):
+            if (index_of_first_script_file > 1) and (index_of_first_script_file < len(launchable_names)):
                 self.node_name_box.insertSeparator(index_of_first_script_file)
         except Exception:
             pass
