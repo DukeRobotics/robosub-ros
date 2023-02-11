@@ -27,7 +27,7 @@ class Detector:
             self.models = yaml.safe_load(f)
 
         # The topic that the camera publishes its feed to
-        self.camera_feed_topic = f'/camera/{self.camera}/image_raw'
+        self.camera_feed_topic = f'/camera/{self.camera}/compressed'
 
         # Toggle model service name
         self.enable_service = f'enable_model_{self.camera}'

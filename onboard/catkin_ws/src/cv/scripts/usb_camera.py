@@ -13,7 +13,7 @@ class USBCamera:
                                     (currently used for the deepwater exploration usb mono cameras)
 
     Launch using: roslaunch cv usb_camera.launch
-    :param topic: rostopic to publish the image feed to; default is set to camera/image_raw/compressed
+    :param topic: rostopic to publish the image feed to; default is set to camera/usb_camera/compressed
     :param channel: which device channel to read the stream from (e.g., dev/video0)
     :param framerate: custom framerate to stream the camera at; default is set to device default
     """

@@ -181,8 +181,10 @@ class DepthAISpatialDetector:
                                                           queue_size=10)
         self.publishers = publisher_dict
 
-        self.rgb_preview_publisher = rospy.Publisher("camera/front/rgb/preview/stream_raw", CompressedImage, queue_size=10)
-        self.detection_feed_publisher = rospy.Publisher("cv/front/detections", CompressedImage, queue_size=10)
+        self.rgb_preview_publisher = rospy.Publisher("camera/front/rgb/preview/compressed", CompressedImage,
+                                                     queue_size=10)
+        self.detection_feed_publisher = rospy.Publisher("cv/front/detections/compressed", CompressedImage,
+                                                        queue_size=10)
 
     def init_output_queues(self, device):
         """
