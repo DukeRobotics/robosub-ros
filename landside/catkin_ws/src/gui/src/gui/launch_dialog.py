@@ -233,20 +233,16 @@ class LaunchDialog(QDialog):
     def interpret_type(self, selected_node, arg, doc_dict, input, toolTip):
         add_tooltip = True
         if doc_dict["type"] == "bool":
-            if "default" in arg:
-                if arg["default"].lower() == "true":
-                    input = QtWidgets.QCheckBox()
-                    input.setChecked(True)
-                elif arg["default"].lower() == "false":
-                    input = QtWidgets.QCheckBox()
-                    input.setChecked(False)
-                else:
-                    rospy.logwarn(f"Default value for argument `{arg['name']}` in `{selected_node}` is "
-                                  f"not a valid boolean. Defaulting to unrestricted string input.")
-                    add_tooltip = False
-            else:
+            if "default" not in arg or arg["default"].lower() == "false":
                 input = QtWidgets.QCheckBox()
                 input.setChecked(False)
+            elif arg["default"].lower() == "true":
+                input = QtWidgets.QCheckBox()
+                input.setChecked(True)
+            else:
+                rospy.logwarn(f"Default value for argument `{arg['name']}` in `{selected_node}` is "
+                              f"not a valid boolean. Defaulting to unrestricted string input.")
+                add_tooltip = False
 
         elif doc_dict["type"] == "int":
             int_validator = QtGui.QIntValidator()
