@@ -172,26 +172,32 @@ class ImageTools(object):
             raise TypeError("Cannot convert type: " + str(type(image)))
         return ros_msg
 
-    def convert_depth_to_ros_compressed_msg(self, image):
+    def convert_depth_to_ros_compressed_msg(self, image, encoding):
         ros_cmp = None
         if type(image) == np.ndarray:
             ros_cmp = self.convert_cv2_to_ros_compressed_msg(image,
                                                              compressed_format='png')
-            ros_cmp.format = '16UC1; compressedDepth'
-            # This is a header ROS depth CompressedImage have, necessary
-            # for viewer tools to see the image
-            # extracted from a real image from a robot
-            # The code that does it in C++ is this:
-            # https://github.com/ros-perception/image_transport_plugins/blob/indigo-devel/compressed_depth_image_transport/src/codec.cpp
-            # ros_cmp.data = "\x00\x00\x00\x00\x88\x9c\x5c\xaa\x00\x40\x4b\xb7" + ros_cmp.data
+            if encoding == 'mono16':
+                ros_cmp.format = '16UC1; compressedDepth'
+            elif encoding == 'mono8':
+                ros_cmp.format = '8UC1; compressedDepth'
+            else:
+                raise TypeError("Cannot compress image with encoding: " + encoding)
+
         elif image._type == 'sensor_msgs/Image':
-            image.encoding = "mono16"
+            image.encoding = encoding
             ros_cmp = self.convert_ros_msg_to_ros_compressed_msg(
                 image,
-                image_encoding='mono16',
+                image_encoding=encoding,
                 compressed_format='png')
-            ros_cmp.format = '16UC1; compressedDepth'
-            ros_cmp.data = "\x00\x00\x00\x00\x88\x9c\x5c\xaa\x00\x40\x4b\xb7" + ros_cmp.data
+
+            if encoding == 'mono16':
+                ros_cmp.format = '16UC1; compressedDepth'
+            elif encoding == 'mono8':
+                ros_cmp.format = '8UC1; compressedDepth'
+            else:
+                raise TypeError("Cannot compress image with encoding: " + encoding)
+
         elif image._type == 'sensor_msgs/CompressedImage':
             ros_cmp = image
         else:
@@ -204,8 +210,22 @@ class ImageTools(object):
             cv2_img = image
         elif image._type == 'sensor_msgs/Image':
             image.encoding = 'mono16'
+
+            encoding = image.encoding.split(";")[0]
+
+            if not encoding:
+                raise TypeError("Cannot convert compressedDepth image with encoding: " + image.encoding)
+
+            cv_encoding = ""
+            if encoding == "16UC1":
+                cv_encoding = "mono16"
+            elif encoding == "8UC1":
+                cv_encoding = "mono8"
+            else:
+                raise TypeError("Cannot convert compressedDepth image with encoding: " + encoding)
+
             cv2_img = self.convert_ros_msg_to_cv2(image,
-                                                  image_encoding='mono16')
+                                                  image_encoding=cv_encoding)
         elif image._type == 'sensor_msgs/CompressedImage':
             cv2_img = self.convert_compressedDepth_to_cv2(image)
         else:
@@ -219,10 +239,23 @@ class ImageTools(object):
         as it's encoded in PNG
         Code from: https://answers.ros.org/question/249775/display-compresseddepth-image-python-cv2/
         """
+        encoding = compressed_image.format.split(";")[0]
+
+        if not encoding:
+            raise TypeError("Cannot convert compressedDepth image with format: " + compressed_image.format)
+
+        cv_encoding = ""
+        if encoding == "16UC1":
+            cv_encoding = "mono16"
+        elif encoding == "8UC1":
+            cv_encoding = "mono8"
+        else:
+            raise TypeError("Cannot convert compressedDepth image with encoding: " + encoding)
+
         depth_img_raw = self.convert_compressedDepth_to_cv2(compressed_image)
-        img_msg = self._cv_bridge.cv2_to_imgmsg(depth_img_raw, "mono16")
+        img_msg = self._cv_bridge.cv2_to_imgmsg(depth_img_raw, cv_encoding)
         img_msg.header = compressed_image.header
-        img_msg.encoding = "16UC1"
+        img_msg.encoding = encoding
         return img_msg
 
     def convert_compressedDepth_to_cv2(self, compressed_depth):
