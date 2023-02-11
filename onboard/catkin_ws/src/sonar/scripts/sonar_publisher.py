@@ -36,6 +36,7 @@ class SonarPublisher:
     def run(self):
         rospy.init_node(self.NODE_NAME)
         rospy.Subscriber(self.SONAR_REQUEST_TOPIC, sweepGoal, self.on_request)
+        rospy.spin()
 
 
 if __name__ == '__main__':

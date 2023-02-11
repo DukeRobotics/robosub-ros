@@ -28,7 +28,6 @@ class Sonar:
         #rospy.init_node('sonar') #need to test this
         self.ping360 = Ping360()
         self.ping360.connect_serial(serial_port_name, baud_rate)  # TODO: Add try except for connecting to device
-        # self.ping360.connect_udp(self.ETHERNET_PORT_NAME)
         self.ping360.initialize()
         period_and_duration = self.range_to_period_and_duration(range)
 

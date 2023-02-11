@@ -13,9 +13,9 @@ class SonarTest:
 
     def request_sonar(self):
         sonar_request_msg = sweepGoal()
-        sonar_request_msg.type = "buoy"
-        sonar_request_msg.start_angle = 0
-        sonar_request_msg.end_angle = 10
+        # sonar_request_msg.type = "buoy"
+        sonar_request_msg.start_angle = 195
+        sonar_request_msg.end_angle = 205
         sonar_request_msg.distance_of_scan = 5
         self.sonar_requests_publisher.publish(sonar_request_msg)
 
