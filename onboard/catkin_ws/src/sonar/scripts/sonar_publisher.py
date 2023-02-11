@@ -1,7 +1,7 @@
 
 import rospy
 from sonar import Sonar
-from custom_msgs.msg import sonarRequest, sonarResponse
+from custom_msgs.msg import sweepResult, sweepGoal
 from sonar_utils import degrees_to_centered_gradians
 
 class SonarPublisher:
@@ -15,7 +15,7 @@ class SonarPublisher:
 
     def __init__(self):
         self.sonar = Sonar(5)
-        self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC, sonarResponse, queue_size=10)
+        self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC, sweepGoal, queue_size=10)
 
     def on_request(self, request):
         self.sonar.set_new_range(request.depth)
@@ -27,15 +27,15 @@ class SonarPublisher:
 
         sonar_xy_result = self.sonar.get_xy_of_object_in_sweep(left,right)
 
-        response = sonarResponse()
-        response.x = sonar_xy_result[0]
-        response.y = sonar_xy_result[1]
+        response = sweepResult()
+        response.x_pos = sonar_xy_result[0]
+        response.y_pos = sonar_xy_result[1]
         self._pub_request.publish(response)
         
 
     def run(self):
         rospy.init_node(self.NODE_NAME)
-        rospy.Subscriber(self.SONAR_REQUEST_TOPIC, sonarRequest, self.on_request)
+        rospy.Subscriber(self.SONAR_REQUEST_TOPIC, sweepGoal, self.on_request)
 
 
 if __name__ == '__main__':
