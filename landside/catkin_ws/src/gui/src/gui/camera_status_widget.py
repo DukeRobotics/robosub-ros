@@ -121,7 +121,7 @@ class CameraStatusWidget(QWidget):
         self.check_buttons_enabled_timer.start(100)
 
         rospy.Subscriber(
-            CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING],
+            CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"],
             DiagnosticArray,
             self.ping_response
         )
@@ -156,7 +156,7 @@ class CameraStatusWidget(QWidget):
 
     def open_conection_log(self):
         log = CameraStatusLog(self.data_updated, self.status_logs)
-        log.show()
+        log.exec()
 
     def check_camera_connection(self, camera_type):
         call_connect_camera_service = CallConnectCameraService(camera_type)
