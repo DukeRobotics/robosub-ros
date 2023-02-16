@@ -24,11 +24,15 @@ class SonarTest:
         self.sonar_requests_publisher.publish(sonar_request_msg)
         rospy.loginfo("published request")
 
-        result = rospy.wait_for_message("sonar/cv/response", sweepResult)
+        try:
+            result = rospy.wait_for_message("sonar/cv/response", sweepResult)
+            rospy.loginfo(result)
+        except rospy.ROSInterruptException:
+            pass
+
         end_time = time.perf_counter()
         delta_time = end_time - start_time
         rospy.loginfo(delta_time)
-        rospy.loginfo(result)
 
     def run(self):
         rospy.spin()
