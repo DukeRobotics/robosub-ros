@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import time
 
 from custom_msgs.msg import CVObject
 from custom_msgs.msg import sweepGoal, sweepResult
@@ -12,6 +13,7 @@ class SonarTest:
         self.sonar_requests_publisher = rospy.Publisher("sonar/request", sweepGoal, queue_size=10)
 
     def request_sonar(self):
+        start_time = time.perf_counter()
         rospy.loginfo("hello")
         sonar_request_msg = sweepGoal()
         # sonar_request_msg.type = "buoy"
@@ -21,6 +23,9 @@ class SonarTest:
         self.sonar_requests_publisher.publish(sonar_request_msg)
 
         result = rospy.wait_for_message("sonar/cv/response", sweepResult)
+        end_time = time.perf_counter()
+        delta_time = end_time - start_time
+        rospy.loginfo(delta_time)
         rospy.loginfo(result)
 
     def run(self):
