@@ -92,7 +92,12 @@ class LaunchDialog(QDialog):
         launchable_names = [os.path.split(f)[1] for f in launchables]
         self.node_name_box.addItems(launchable_names)
 
-        index_of_first_script_file = next((i for i, v in enumerate(launchable_names) if v.endswith('.py')), None)
+        index_of_first_script_file = None
+        for index, launchable_name in enumerate(launchable_names):
+            if launchable_name.endswith('.py'):
+                index_of_first_script_file = index
+                break
+
         if index_of_first_script_file and (index_of_first_script_file > 1) and \
            (index_of_first_script_file < len(launchable_names)):
             self.node_name_box.insertSeparator(index_of_first_script_file)
