@@ -26,4 +26,4 @@ class SonarTest:
         rospy.spin()
 
 if __name__ == '__main__':
-    SonarTest().run()
+    SonarTest().request_sonar()
