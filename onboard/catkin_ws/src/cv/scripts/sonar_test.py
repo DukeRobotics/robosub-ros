@@ -13,14 +13,16 @@ class SonarTest:
         self.sonar_requests_publisher = rospy.Publisher("sonar/request", sweepGoal, queue_size=10)
 
     def request_sonar(self):
-        start_time = time.perf_counter()
-        rospy.loginfo("hello")
         sonar_request_msg = sweepGoal()
         # sonar_request_msg.type = "buoy"
         sonar_request_msg.start_angle = 195
         sonar_request_msg.end_angle = 205
         sonar_request_msg.distance_of_scan = 5
+
+        start_time = time.perf_counter()
+        rospy.loginfo("hello")
         self.sonar_requests_publisher.publish(sonar_request_msg)
+        rospy.loginfo("published request")
 
         result = rospy.wait_for_message("sonar/cv/response", sweepResult)
         end_time = time.perf_counter()
