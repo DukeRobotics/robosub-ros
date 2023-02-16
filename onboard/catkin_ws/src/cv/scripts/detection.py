@@ -80,7 +80,7 @@ class Detector:
         :param img_msg: ROS Image message to compute predictions on.
         """
 
-        image = self.image_tools.convert_ros_msg_to_cv2(img_msg, 'rgb8')
+        image = self.image_tools.convert_to_cv2(img_msg)
 
         for model_name in self.models:
             model = self.models[model_name]
