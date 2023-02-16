@@ -14,7 +14,7 @@ class SonarPublisher:
     SONAR_DEFAULT_RANGE = 5
 
     def __init__(self):
-        self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC, sweepGoal, queue_size=10)
+        self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC, sweepResult, queue_size=10)
 
     def on_request(self, request):
         self.sonar.set_new_range(request.distance_of_scan)
