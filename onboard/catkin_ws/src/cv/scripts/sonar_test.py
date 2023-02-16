@@ -12,6 +12,7 @@ class SonarTest:
         self.sonar_requests_publisher = rospy.Publisher("sonar/request", sweepGoal, queue_size=10)
 
     def request_sonar(self):
+        rospy.loginfo("hello")
         sonar_request_msg = sweepGoal()
         # sonar_request_msg.type = "buoy"
         sonar_request_msg.start_angle = 195
