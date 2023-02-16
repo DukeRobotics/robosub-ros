@@ -164,3 +164,11 @@ Examples:
 `roslaunch cv test_images.launch feed_path:=../assets/gate.mov topic:=/camera/left/compressed`: Runs test_images by taking gate.mov file in cv/assets and publishes the simulated image feed to the topic '/camera/left/compressed'. 
 
 `roslaunch cv test_images.launch feed_path:=../assets/buoy.jpg topic:=/camera/right/compressed framerate:=30`: Publishes the still image buoy.jpg in cv/assets to the topic '/camera/right/compressed' 30 times per second.
+
+# Utils
+
+The `utils.py` file has two classes that are used by many other files in this package.
+
+`DetectionVisualizer` provides functions to draw bounding boxes and their labels onto images. It is used by DepthAI files when publishing visualized detections.
+
+`ImageTools` provides functions to convert between OpenCV, ROS Image, and ROS CompressedImage formats. All scripts in this package use `ImageTools` to perform converstions between these types. `cv_bridge` is not used by any file or class in this package other than `ImageTools` itself.
