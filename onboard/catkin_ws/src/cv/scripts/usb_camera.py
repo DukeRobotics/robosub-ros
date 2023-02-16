@@ -38,6 +38,8 @@ class USBCamera:
         # Create image publisher at given topic
         self.publisher = rospy.Publisher(self.topic, CompressedImage, queue_size=10)
 
+        self.image_tools = ImageTools()
+
     def run(self):
         """
         Connect to camera found at self.channel using cv2.VideoCaptures
@@ -62,7 +64,7 @@ class USBCamera:
             # while this loop is running, the script quits without escalating to SIGTERM or SIGKILL
             while not rospy.is_shutdown() and success:
                 # Convert image read from cv2.videoCapture to image message to be published
-                image_msg = ImageTools().convert_to_ros_compressed_msg(img)  # Compress image
+                image_msg = self.image_tools.convert_to_ros_compressed_msg(img)  # Compress image
                 # Publish the image
                 self.publisher.publish(image_msg)
 
