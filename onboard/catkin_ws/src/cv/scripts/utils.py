@@ -67,7 +67,7 @@ class ImageTools(object):
         try:
             return self._cv_bridge.imgmsg_to_cv2(ros_data, image_encoding)
         except CvBridgeError as e:
-            if "[16UC1] is not a color format" in str(e):
+            if "[16UC1] is not a color format" in str(e) or "[8UC1] is not a color format" in str(e):
                 raise CvBridgeError(
                     "You may be trying to use a Image method " +
                     "(Subscriber, Publisher, conversion) on a depth image" +
