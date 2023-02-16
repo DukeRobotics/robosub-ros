@@ -35,8 +35,21 @@ class SonarTest:
 
 if __name__ == '__main__':
     st = SonarTest()
-    st.request_sonar()
-    time.sleep(2)
-    st.request_sonar()
-    time.sleep(2)
-    st.request_sonar()
+
+    while True:
+        pub = rospy.Publisher("sonar/request", sweepGoal, queue_size=10)
+        sonar_request_msg = sweepGoal()
+        # sonar_request_msg.type = "buoy"
+        sonar_request_msg.start_angle = 195
+        sonar_request_msg.end_angle = 205
+        sonar_request_msg.distance_of_scan = 5
+
+        start_time = time.perf_counter()
+        rospy.loginfo("hello")
+        pub.publish(sonar_request_msg)
+        time.sleep(1)
+    # st.request_sonar()
+    # time.sleep(2)
+    # st.request_sonar()
+    # time.sleep(2)
+    # st.request_sonar()
