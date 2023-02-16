@@ -105,10 +105,10 @@ Once 1+ models are enabled for a specific node, they listen and publish to topic
 
 #### Listening:
 
- * `/camera/<camera>/image_raw`
+ * `/camera/<camera>/compressed`
    * The topic that the camera publishes each frame to
    * If no actual camera feed is available, you can simulate one using `test_images.py`. See Simulating image feeds above for more information.
-   * Type: sensor_msgs/Image
+   * Type: sensor_msgs/CompressedImage
 
 #### Publishing:
 
