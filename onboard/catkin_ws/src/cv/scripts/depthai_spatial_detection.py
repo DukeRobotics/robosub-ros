@@ -220,11 +220,8 @@ class DepthAISpatialDetector:
         frame_img_msg = ImageTools().convert_to_ros_compressed_msg(frame)
         self.rgb_preview_publisher.publish(frame_img_msg)
 
-        detections_img_msg = ImageTools().convert_to_ros_compressed_msg(
-            self.detection_visualizer.visualize_detections(frame, detections),
-            'bgr8'
-        )
-        
+        detections_visualized = self.detection_visualizer.visualize_detections(frame, detections)
+        detections_img_msg = ImageTools().convert_to_ros_compressed_msg(detections_visualized)
         self.detection_feed_publisher.publish(detections_img_msg)
 
         height = frame.shape[0]
