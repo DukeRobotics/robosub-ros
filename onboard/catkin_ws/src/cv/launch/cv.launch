@@ -1,5 +1,5 @@
 <launch>
-	<arg name="camera" />
+	<arg name="camera" doc='{"type":"str","allowEmpty":false,"help":"The topic that detection.py should use as the camera feed must be /camera/[camera]/image_raw."}'/>
 	<node name="$(anon cv)" pkg="cv" type="detection.py" output="screen">
 		<param name="camera" value="$(arg camera)" />
 	</node>
