@@ -47,11 +47,11 @@ def callback(msg):
     vy = np.float64(msg.bs_transverse) / 1000
     vz = np.float64(msg.bs_normal) / 1000
 
-    if config_data.negate_x_vel:
+    if config_data["negate_x_vel"]:
         vx = -vx
-    if config_data.negate_y_vel:
+    if config_data["negate_y_vel"]:
         vy = -vy
-    if config_data.negate_z_vel:
+    if config_data["negate_z_vel"]:
         vz = -vz
 
     # quat
