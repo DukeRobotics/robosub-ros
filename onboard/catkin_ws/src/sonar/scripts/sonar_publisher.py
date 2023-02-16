@@ -17,6 +17,7 @@ class SonarPublisher:
         self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC, sweepResult, queue_size=10)
 
     def on_request(self, request):
+        rospy.loginfo("fuck yes request recieved")
         self.sonar.set_new_range(request.distance_of_scan)
         # center_gradians = degrees_to_centered_gradians(request.center_degrees)
         # breadth_gradians = degrees_to_centered_gradians(request.breadth_degrees)
@@ -29,6 +30,7 @@ class SonarPublisher:
         response = sweepResult()
         response.x_pos = sonar_xy_result[0]
         response.y_pos = sonar_xy_result[1]
+        rospy.loginfo("publishing")
         self._pub_request.publish(response)
         
 
@@ -36,6 +38,7 @@ class SonarPublisher:
         rospy.init_node(self.NODE_NAME)
         self.sonar = Sonar(5)
         rospy.Subscriber(self.SONAR_REQUEST_TOPIC, sweepGoal, self.on_request)
+        rospy.loginfo("spinning...")
         rospy.spin()
 
 
