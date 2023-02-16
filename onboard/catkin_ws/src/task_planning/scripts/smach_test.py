@@ -89,7 +89,7 @@ def controls_testing(controls, listener):
     with sm:
         # Add states to the container
         smach.StateMachine.add('Move1', MoveToPoseLocalTask(2, 0, 0, 0, 0, 0, controls, listener),
-                               transitions={'done': 'finish', 'continue': 'Move1'})
+                               transitions={'done': 'done', 'continue': 'Move1'})
         # left square
         #smach.StateMachine.add('MoveLeft2', MoveToPoseLocalTask(0, -1.5, 0, 0, 0, 0, controls, listener),
         #                       transitions={'done': 'MoveLeft3', 'continue': 'MoveLeft2'})
