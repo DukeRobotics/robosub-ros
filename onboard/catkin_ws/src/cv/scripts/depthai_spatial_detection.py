@@ -40,6 +40,8 @@ class DepthAISpatialDetector:
         self.rgb_preview_publisher = None
         self.detection_visualizer = None
 
+        self.image_tools = ImageTools()
+
         self.enable_service = f'enable_model_{self.camera}'
 
     def build_pipeline(self, nn_blob_path, sync_nn=True):
@@ -217,11 +219,11 @@ class DepthAISpatialDetector:
         frame = inPreview.getCvFrame()
         detections = inDet.detections
 
-        frame_img_msg = ImageTools().convert_to_ros_compressed_msg(frame)
+        frame_img_msg = self.image_tools.convert_to_ros_compressed_msg(frame)
         self.rgb_preview_publisher.publish(frame_img_msg)
 
         detections_visualized = self.detection_visualizer.visualize_detections(frame, detections)
-        detections_img_msg = ImageTools().convert_to_ros_compressed_msg(detections_visualized)
+        detections_img_msg = self.image_tools.convert_to_ros_compressed_msg(detections_visualized)
         self.detection_feed_publisher.publish(detections_img_msg)
 
         height = frame.shape[0]
