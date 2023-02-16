@@ -26,6 +26,8 @@ class DummyImagePublisher:
             rospy.logerr("No feed path variable given")
             rospy.spin()
 
+        self.image_tools = ImageTools()
+
     def run(self):
         """Check arguments for errors and run the appropriate function based on the type of feed_path."""
         file_extension = os.path.splitext(self.feed_path)[1]
@@ -69,7 +71,7 @@ class DummyImagePublisher:
         image = cv2.imread(self.feed_path, cv2.IMREAD_COLOR)
         loop_rate = rospy.Rate(self.framerate)
         while not rospy.is_shutdown():
-            image_msg = ImageTools().convert_to_ros_compressed_msg(image)
+            image_msg = self.image_tools.convert_to_ros_compressed_msg(image)
             self.image_publisher.publish(image_msg)
             loop_rate.sleep()
 
@@ -121,7 +123,7 @@ class DummyImagePublisher:
 
         while not rospy.is_shutdown():
             for image in images:
-                image_msg = ImageTools().convert_to_ros_compressed_msg(image)
+                image_msg = self.image_tools.convert_to_ros_compressed_msg(image)
                 self.image_publisher.publish(image_msg)
 
                 loop_rate.sleep()
@@ -150,7 +152,7 @@ class DummyImagePublisher:
             # Including 'not rospy.is_shutdown()' in the loop condition here to ensure if this script is exited
             # while this loop is running, the script quits without escalating to SIGTERM or SIGKILL
             while not rospy.is_shutdown() and success:
-                image_msg = ImageTools().convert_to_ros_compressed_msg(img)
+                image_msg = self.image_tools.convert_to_ros_compressed_msg(img)
                 self.image_publisher.publish(image_msg)
 
                 success, img = cap.read()
