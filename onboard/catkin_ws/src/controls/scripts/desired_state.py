@@ -73,10 +73,9 @@ class DesiredStateHandler:
         self.twist_server.preempt_request = True
         self.power_server.preempt_request = True
 
-        pose = utils.parse_pose(utils.transform_pose(
-            self.listener, 'odom', 'base_link', goal.pose))
-
-        self._publish_control(self.pose_server, self.pid_manager.position_control, pose)
+        self._publish_control(self.pose_server, self.pid_manager.position_control,
+                              lambda: utils.parse_pose(utils.transform_pose(
+                                self.listener, 'odom', 'base_link', goal.pose)))
 
     def _on_twist_received(self, goal):
         """Handler for receiving desired twists. Received desired twists are assumed to be defined in the
@@ -94,7 +93,7 @@ class DesiredStateHandler:
             self.twist_server.set_aborted()
             return
 
-        self._publish_control(self.twist_server, self.pid_manager.velocity_control, twist)
+        self._publish_control(self.twist_server, self.pid_manager.velocity_control, lambda: twist)
 
     def _on_power_received(self, goal):
         """Handler for receiving desired powers. A desired power in a given axis represents the control
@@ -113,7 +112,7 @@ class DesiredStateHandler:
             self.power_server.set_aborted()
             return
 
-        self._publish_control(self.power_server, self.pid_manager.power_control, power)
+        self._publish_control(self.power_server, self.pid_manager.power_control, lambda: power)
 
     def _power_state_safety(self, power):
         # Compares power with controller limits
@@ -137,10 +136,10 @@ class DesiredStateHandler:
                 return_status = False
         return return_status
 
-    def _publish_control(self, server, publish_func, data):
+    def _publish_control(self, server, publish_func, get_data):
         rate = rospy.Rate(self.REFRESH_HZ)
         while not server.is_preempt_requested():
-            publish_func(data)
+            publish_func(get_data())
             rate.sleep()
         self.pid_manager.soft_estop()
         server.set_preempted()
