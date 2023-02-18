@@ -14,7 +14,6 @@ class SonarPublisher:
     SONAR_DEFAULT_RANGE = 5
 
     def __init__(self):
-        rospy.init_node('sonar_publisher', anonymous=True)
         self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC, sweepResult, queue_size=10)
 
     def on_request(self, request):
