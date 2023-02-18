@@ -35,4 +35,6 @@ class SystemUsageWidget(QWidget):
         self.ram_value.display(system_usage.ram.used)
 
     def check_system_sub(self):
-        self.system_usage_box.setEnabled(rospy.Time.now() - self.last_system_time < rospy.Duration(2))
+        enabled = rospy.Time.now() - self.last_system_time < rospy.Duration(2)
+        self.cpu_value.setEnabled(enabled)
+        self.ram_value.setEnabled(enabled)
