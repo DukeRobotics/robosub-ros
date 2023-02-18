@@ -54,6 +54,7 @@ class DepthAISpatialDetector:
         self.bridge = CvBridge()
 
         self.sonar_requests_publisher = rospy.Publisher("sonar/request", sweepGoal, queue_size=10)
+        self.sonar_response_subscriber = rospy.Subscriber("sonar/cv/response", sweepResult, update_sonar)
 
     def build_pipeline(self, nn_blob_path, sync_nn=True):
         """
@@ -294,12 +295,12 @@ class DepthAISpatialDetector:
             # if sonar responds, then override existing robot-frame x, y info; else, keep default
             try:
                 # Request sonar to sweep within bounded angle range; read center of mass of detected object from sonar
-                result = rospy.wait_for_message("sonar/cv/response", sweepResult)
+                result = rospy.wait_for_message("sonar/cv/response", sweepResult, timeout=0.5)
                 # Sonar gives robot x,y; camera gives camera y, which is robot z
                 # Override det_coords_robot_mm with updated sonar data
                 det_coords_robot_mm = (result.x_pos, result.y_pos, y_cam_meters)
                 using_sonar = True
-            except rospy.ROSInterruptException:
+            except rospy.ROSException:
                 rospy.loginfo("Sonar sweep failed, defaulting to stereo")
 
             self.publish_prediction(
@@ -359,6 +360,9 @@ class DepthAISpatialDetector:
                 loop_rate.sleep()
 
         return True
+    
+    def update_sonar(self, sonar_results):
+        pass
 
     def run(self):
         """
@@ -372,7 +376,6 @@ class DepthAISpatialDetector:
         """
         rospy.Service(self.enable_service, EnableModel, self.run_model)
         rospy.spin()
-
 
 def mm_to_meters(val_mm):
     """
