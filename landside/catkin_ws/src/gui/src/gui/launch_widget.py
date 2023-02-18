@@ -8,6 +8,7 @@ import resource_retriever as rr
 import rosservice
 
 from custom_msgs.srv import StopLaunch
+from std_msgs.msg import String
 
 
 class LaunchWidget(QWidget):
@@ -19,6 +20,7 @@ class LaunchWidget(QWidget):
         loadUi(ui_file, self)
 
         self.default_package = ''
+        self.pid_rows = {}
 
         self.table_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
@@ -28,6 +30,8 @@ class LaunchWidget(QWidget):
         self.remote_launch_timer = QTimer(self)
         self.remote_launch_timer.timeout.connect(self.check_remote_launch)
         self.remote_launch_timer.start(100)
+
+        rospy.Subscriber(self.camera_feed_topic, String, self.check_for_termination)
 
         rospy.loginfo('Launch Widget successfully initialized')
 
@@ -52,6 +56,12 @@ class LaunchWidget(QWidget):
         self.launch_dialog.setEnabled(enabled)
         self.table_widget.setEnabled(enabled)
 
+    def check_for_termination(self, str_msg):
+        msg_type, pid = str_msg.split(" ")[:1]
+        if msg_type == "Terminating":
+            if self.pid_rows.get(pid) is not None:
+                self.table_widget.removeRow(self.pid_rows[pid])
+
     def delete_launch(self, row_value):
         stop_launch = rospy.ServiceProxy('stop_node', StopLaunch)
         resp = stop_launch(int(self.table_widget.item(row_value, 0).text()))
@@ -64,6 +74,7 @@ class LaunchWidget(QWidget):
         self.table_widget.setItem(self.table_widget.rowCount() - 1, 1, QTableWidgetItem(package))
         self.table_widget.setItem(self.table_widget.rowCount() - 1, 2, QTableWidgetItem(name))
         self.table_widget.setItem(self.table_widget.rowCount() - 1, 3, QTableWidgetItem(args))
+        self.pid_rows[str(pid)] = self.table_widget.rowCount() - 1
         return self.table_widget.rowCount() - 1
 
     def closeEvent(self, event):

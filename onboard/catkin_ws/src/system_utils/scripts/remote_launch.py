@@ -3,6 +3,7 @@
 import rospy
 from custom_msgs.srv import StartLaunch, StopLaunch
 import subprocess
+import multiprocessing
 
 
 class RemoteLaunchNode:
@@ -18,6 +19,11 @@ class RemoteLaunchNode:
         rospy.spin()
 
     def start_launch(self, req):
+        process = multiprocessing.Process(target=self.launch_with_callback, args=(req,))
+        process.start()
+        process.join()
+
+    def launch_with_callback(self, req):
         exe = 'roslaunch' if req.is_launch_file else 'rosrun'
         rospy.loginfo(f'Executing {exe} {req.package} {req.file} {req.args}')
         if req.args == ['']:  # No arguments provided
@@ -25,7 +31,10 @@ class RemoteLaunchNode:
         else:
             proc = subprocess.Popen([exe, req.package, req.file] + req.args)
         self.processes[int(proc.pid)] = proc
-        return {'pid': int(proc.pid)}
+        proc.wait()
+        rospy.loginfo(f'Terminating {int(proc.pid)} {req.package} {req.file} {req.args}')
+        return
+        # return {'pid': int(proc.pid)}
 
     def stop_launch(self, req):
         if req.pid not in self.processes:
@@ -37,6 +46,9 @@ class RemoteLaunchNode:
             self.processes.pop(req.pid)
             return {'success': True}
         return {'success': False}
+
+    # def log_status(self, req):
+    #     rospy.loginfo(f'Terminating {req.pid} {req.package} {req.file} {req.args}')
 
 
 if __name__ == '__main__':
