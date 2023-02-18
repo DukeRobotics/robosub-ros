@@ -29,7 +29,7 @@ class ThrusterController:
         tm: The ThrusterManager object used to calculate thruster allocations
     """
 
-    CONFIG_FILE_PATH = 'package://controls/config/%s.config'
+    CONFIG_FILE_PATH = 'package://controls/config/%s/thrusters.config'
     ROBOT_PUB_TOPIC = '/offboard/thruster_speeds'
     RUN_LOOP_RATE = 10  # 10 Hz
     MAX_THRUSTER_POWER = 127  # Some nuance, max neg power is -128. Ignoring that for now
