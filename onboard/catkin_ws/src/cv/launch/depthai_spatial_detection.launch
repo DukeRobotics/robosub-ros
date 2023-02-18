@@ -1,3 +1,11 @@
 <launch>
-    <node name="depthai_spatial_detection" pkg="cv" type="depthai_spatial_detection.py" output="screen"/>
+    <arg name="bounding_box_depth_mapping" default="True"/>
+    <arg name="rgb" default="True"/>
+    <arg name="depth" default="True"/>
+
+    <node name="depthai_spatial_detection" pkg="cv" type="depthai_spatial_detection.py" output="screen">
+        <param name="bounding_box_depth_mapping" value="$(arg bounding_box_depth_mapping)" />
+        <param name="rgb" value="$(arg rgb)" />
+        <param name="depth" value="$(arg depth)" />
+    </node>
 </launch>

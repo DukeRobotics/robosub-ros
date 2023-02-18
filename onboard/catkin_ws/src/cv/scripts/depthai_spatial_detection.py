@@ -25,6 +25,9 @@ class DepthAISpatialDetector:
         Initializes the ROS node and service. Loads the yaml file at cv/models/depthai_models.yaml
         """
         rospy.init_node('depthai_spatial_detection', anonymous=True)
+        self.queue_bounding_box_depth_mapping = rospy.get_param("~bounding_box_depth_mapping")
+        self.queue_rgb = rospy.get_param("~rgb")
+        self.queue_depth = rospy.get_param("~depth")
 
         with open(rr.get_filename(DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH,
                                   use_protocol=False)) as f:
@@ -81,15 +84,20 @@ class DepthAISpatialDetector:
         mono_right = pipeline.create(dai.node.MonoCamera)
         stereo = pipeline.create(dai.node.StereoDepth)
 
-        xout_rgb = pipeline.create(dai.node.XLinkOut)
         xout_nn = pipeline.create(dai.node.XLinkOut)
-        xout_bounding_box_depth_mapping = pipeline.create(dai.node.XLinkOut)
-        xout_depth = pipeline.create(dai.node.XLinkOut)
-
-        xout_rgb.setStreamName("rgb")
         xout_nn.setStreamName("detections")
-        xout_bounding_box_depth_mapping.setStreamName("boundingBoxDepthMapping")
-        xout_depth.setStreamName("depth")
+
+        if self.queue_rgb:
+            xout_rgb = pipeline.create(dai.node.XLinkOut)
+            xout_rgb.setStreamName("rgb")
+
+        if self.queue_bounding_box_depth_mapping:
+            xout_bounding_box_depth_mapping = pipeline.create(dai.node.XLinkOut)
+            xout_bounding_box_depth_mapping.setStreamName("boundingBoxDepthMapping")
+
+        if self.queue_depth:
+            xout_depth = pipeline.create(dai.node.XLinkOut)
+            xout_depth.setStreamName("depth")
 
         # Properties
         cam_rgb.setPreviewSize(model['input_size'])
@@ -125,16 +133,22 @@ class DepthAISpatialDetector:
         mono_right.out.link(stereo.right)
 
         cam_rgb.preview.link(spatial_detection_network.input)
-        if sync_nn:
-            spatial_detection_network.passthrough.link(xout_rgb.input)
-        else:
-            cam_rgb.preview.link(xout_rgb.input)
+
+        if self.queue_rgb:
+            if sync_nn:
+                spatial_detection_network.passthrough.link(xout_rgb.input)
+            else:
+                cam_rgb.preview.link(xout_rgb.input)
 
         spatial_detection_network.out.link(xout_nn.input)
-        spatial_detection_network.boundingBoxMapping.link(xout_bounding_box_depth_mapping.input)
+
+        if self.queue_bounding_box_depth_mapping:
+            spatial_detection_network.boundingBoxMapping.link(xout_bounding_box_depth_mapping.input)
+
+        if self.queue_depth:
+            spatial_detection_network.passthroughDepth.link(xout_depth.input)
 
         stereo.depth.link(spatial_detection_network.inputDepth)
-        spatial_detection_network.passthroughDepth.link(xout_depth.input)
 
         return pipeline
 
@@ -196,11 +210,17 @@ class DepthAISpatialDetector:
         if self.connected:
             return
 
-        self.output_queues["rgb"] = device.getOutputQueue(name="rgb", maxSize=1, blocking=False)
+        if self.queue_rgb:
+            self.output_queues["rgb"] = device.getOutputQueue(name="rgb", maxSize=1, blocking=False)
+
+        if self.queue_bounding_box_depth_mapping:
+            self.output_queues["boundingBoxDepthMapping"] = device.getOutputQueue(name="boundingBoxDepthMapping",
+                                                                                  maxSize=1, blocking=False)
+        if self.queue_depth:
+            self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
+
         self.output_queues["detections"] = device.getOutputQueue(name="detections", maxSize=1, blocking=False)
-        self.output_queues["boundingBoxDepthMapping"] = device.getOutputQueue(name="boundingBoxDepthMapping", maxSize=1,
-                                                                              blocking=False)
-        self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
+
         self.connected = True
 
         self.detection_visualizer = DetectionVisualizer(self.classes)
@@ -212,23 +232,24 @@ class DepthAISpatialDetector:
         if not self.connected:
             return
 
-        inPreview = self.output_queues["rgb"].get()
         inDet = self.output_queues["detections"].get()
-
-        frame = inPreview.getCvFrame()
         detections = inDet.detections
+        if self.queue_rgb:
+            inPreview = self.output_queues["rgb"].get()
+            frame = inPreview.getCvFrame()
+            frame_img_msg = self.bridge.cv2_to_imgmsg(frame, 'bgr8')
+            self.rgb_preview_publisher.publish(frame_img_msg)
 
-        frame_img_msg = self.bridge.cv2_to_imgmsg(frame, 'bgr8')
-        self.rgb_preview_publisher.publish(frame_img_msg)
+            detections_img_msg = self.bridge.cv2_to_imgmsg(
+                self.detection_visualizer.visualize_detections(frame, detections),
+                'bgr8'
+            )
+            self.detection_feed_publisher.publish(detections_img_msg)
 
-        detections_img_msg = self.bridge.cv2_to_imgmsg(
-            self.detection_visualizer.visualize_detections(frame, detections),
-            'bgr8'
-        )
-        self.detection_feed_publisher.publish(detections_img_msg)
+        model = self.models[self.current_model_name]
+        height = model['input_size'][0]
+        width = model['input_size'][1]
 
-        height = frame.shape[0]
-        width = frame.shape[1]
         for detection in detections:
 
             bbox = (detection.xmin, detection.ymin, detection.xmax, detection.ymax)
@@ -298,10 +319,8 @@ class DepthAISpatialDetector:
         with depthai_camera_connect.connect(self.pipeline) as device:
             self.init_output_queues(device)
 
-            loop_rate = rospy.Rate(1)
             while not rospy.is_shutdown():
                 self.detect()
-                loop_rate.sleep()
 
         return True
 
