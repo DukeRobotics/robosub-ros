@@ -246,6 +246,14 @@ class DepthAISpatialDetector:
             )
             self.detection_feed_publisher.publish(detections_img_msg)
 
+        if self.queue_bounding_box_depth_mapping:
+            pass
+            # TODO: Publish bounding_box_depth_mapping
+
+        if self.queue_depth:
+            pass
+            # TODO: Publish queue_depth
+
         model = self.models[self.current_model_name]
         height = model['input_size'][0]
         width = model['input_size'][1]
