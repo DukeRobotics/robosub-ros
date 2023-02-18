@@ -58,7 +58,7 @@ class CallConnectCameraServiceSignals(QObject):
 
 class CallConnectCameraService(QRunnable):
 
-    def __init__(self, camera_type):
+    def __init__(self, camera_type, *service_args):
         super(CallConnectCameraService, self).__init__()
 
         if camera_type not in CAMERA_STATUS_CAMERA_TYPES:
@@ -68,13 +68,14 @@ class CallConnectCameraService(QRunnable):
         self.service_type = CAMERA_STATUS_DATA_TYPE_INFORMATION[camera_type]['service_type']
         self.camera_type = camera_type
         self.signals = CallConnectCameraServiceSignals()
+        self.service_args = service_args
 
     @pyqtSlot()
     def run(self):
         try:
             rospy.wait_for_service(self.service_name, timeout=1)
             connect_camera_service = rospy.ServiceProxy(self.service_name, self.service_type)
-            status = connect_camera_service().success
+            status = connect_camera_service(*self.service_args).success
             timestamp = datetime.now().strftime("%H:%M:%S")
             self.signals.connected_signal.emit(self.camera_type, status, timestamp)
         except Exception:
@@ -159,7 +160,11 @@ class CameraStatusWidget(QWidget):
         log.exec()
 
     def check_camera_connection(self, camera_type):
-        call_connect_camera_service = CallConnectCameraService(camera_type)
+        if camera_type == CameraStatusDataType.MONO:
+            call_connect_camera_service = CallConnectCameraService(camera_type, self.channel)
+        else:
+            call_connect_camera_service = CallConnectCameraService(camera_type)
+
         call_connect_camera_service.signals.connected_signal.connect(self.connected_camera)
         self.threadpool.start(call_connect_camera_service)
 
@@ -185,10 +190,9 @@ class CameraStatusWidget(QWidget):
     def ping_response(self, response):
         # This method is called when a new message is published to the ping topic
 
-        # TODO: Uncomment once this widget is put into a perspective
         # Make sure response hostname matches self.ping_hostname before proceeding
-        # if response.status[0].name != self.ping_hostname:
-        #     return
+        if response.status[0].name != self.ping_hostname:
+            return
 
         data_type = CameraStatusDataType.PING
         status = response.status[0].level == 0

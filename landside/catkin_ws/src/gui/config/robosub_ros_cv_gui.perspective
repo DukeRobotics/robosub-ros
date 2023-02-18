@@ -53,6 +53,19 @@
                 }
               },
               "groups": {}
+            },
+            "plugin": {
+              "keys": {
+                "hostname": {
+                  "repr": "'169.254.1.222'",
+                  "type": "repr"
+                },
+                "channel": {
+                  "repr": "0",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
             }
           }
         },
