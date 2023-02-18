@@ -2,7 +2,7 @@
 <launch>
 	<arg name="hostname" default="169.254.1.222" />
 	<arg name="rate" default="1" />
-	<node name="ping_ip" pkg="cv" type="ping_ip.py" output="screen">
+	<node name="ping_host" pkg="cv" type="ping_host.py" output="screen">
 		<param name="hostname" value="$(arg hostname)" />
 		<param name="rate" value="$(arg rate)" />
 	</node>

@@ -35,7 +35,7 @@ CAMERA_STATUS_DATA_TYPE_INFORMATION = {
     CameraStatusDataType.PING: {
         'name': 'Ping',
         'index': 0,
-        'topic_name': 'ping_ip'
+        'topic_name': 'ping_host'
     },
     CameraStatusDataType.STEREO: {
         'name': 'Stereo',
@@ -183,7 +183,7 @@ class CameraStatusWidget(QWidget):
             alert.exec_()
 
     def ping_response(self, response):
-        # This method is called when a new message is published to the /ping_ip topic
+        # This method is called when a new message is published to the ping topic
 
         # TODO: Uncomment once this widget is put into a perspective
         # Make sure response hostname matches self.ping_hostname before proceeding

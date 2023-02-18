@@ -242,10 +242,10 @@ The System Usage box displays percent CPU usage and amount of RAM used in GB.
 
 #### Dependences
 - `camera_test_connect.launch` in cv
-- `ping_ip.launch` in cv
+- `ping_host.launch` in cv
 
 #### Description
-If `ping_ip.launch` is running this plugin shows whether the ping to the stereo camera was successful.
+If `ping_host.launch` is running this plugin shows whether the ping to the stereo camera was successful.
 
 To check whether the mono camera is connected, click the mono button.
 To check whether the stereo camera is connected, click the stereo button.

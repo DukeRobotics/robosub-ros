@@ -6,11 +6,11 @@ import subprocess
 from diagnostic_msgs.msg import DiagnosticStatus, DiagnosticArray
 
 
-class PingIP:
+class PingHost:
     def __init__(self):
-        rospy.init_node('ping_ip')
+        rospy.init_node('ping_host')
 
-        self.publisher = rospy.Publisher("ping_ip", DiagnosticArray, queue_size=10)
+        self.publisher = rospy.Publisher("ping_host", DiagnosticArray, queue_size=10)
         self.hostname = rospy.get_param("~hostname")
         self.rate = rospy.get_param("~rate")
         if not (isinstance(self.rate, int) and self.rate > 0):
@@ -44,4 +44,4 @@ class PingIP:
 
 
 if __name__ == '__main__':
-    PingIP().ping()
+    PingHost().ping()

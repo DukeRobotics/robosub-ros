@@ -170,7 +170,7 @@ Examples:
 * The `connect_depthai_camera` service has no arguments. A boolean `success` is returned indicating whether the connection was successful.
 * The `connect_usb_camera` service requires a channel argument which is used to connect to the mono camera. A boolean `success` is returned indicating whether the connection was successful.
 
-`ping_ip.launch` starts the `ping_ip` rosnode which regularly publishes a `DiagnosticArray` that contains log information from an attempted ping.
+`ping_host.launch` starts the `ping_host` rosnode which regularly publishes a `DiagnosticArray` that contains log information from an attempted ping.
 
 There are two arguments.
 * `hostname` is the IP address of the host you want to ping. By default, hostname is `169.254.1.222` (the stereo camera IP address)
