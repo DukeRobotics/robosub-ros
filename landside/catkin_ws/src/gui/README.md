@@ -229,15 +229,6 @@ When the plugin is closed, all actively recorded bag files are stopped.
 
 The System Usage box displays percent CPU usage and amount of RAM used in GB.
 
-### System Usage Plugin
-
-#### Dependencies
-- `system_info_publisher.py` in system_utils
-
-#### Description
-
-The System Usage box displays percent CPU usage and amount of RAM used in GB.
-
 ### Camera Status Plugin
 
 #### Dependences
