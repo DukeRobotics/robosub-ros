@@ -14,6 +14,8 @@ class SonarPublisher:
     SONAR_DEFAULT_RANGE = 5
 
     def __init__(self):
+        rospy.init_node(self.NODE_NAME)
+        self.sonar = Sonar(5)
         self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC, sweepResult, queue_size=10)
 
     def on_request(self, request):
@@ -35,8 +37,6 @@ class SonarPublisher:
         
 
     def run(self):
-        rospy.init_node(self.NODE_NAME)
-        self.sonar = Sonar(5)
         rospy.Subscriber(self.SONAR_REQUEST_TOPIC, sweepGoal, self.on_request)
         rospy.loginfo("spinning...")
         rospy.spin()
