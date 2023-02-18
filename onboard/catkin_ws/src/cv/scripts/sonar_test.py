@@ -55,7 +55,7 @@ if __name__ == '__main__':
         pub.publish(sonar_request_msg)
 
         try:
-            result = rospy.wait_for_message("sonar/cv/response", sweepResult, timeout=0.5)
+            result = rospy.wait_for_message("sonar/cv/response", sweepResult)
             rospy.loginfo(result)
         except rospy.ROSException:
             rospy.loginfo("No response received")
