@@ -11,7 +11,12 @@ class SonarTest:
     def __init__(self):
         rospy.init_node('sonar_test', anonymous=True)
         self.sonar_requests_publisher = rospy.Publisher("sonar/request", sweepGoal, queue_size=10)
-        self.sonar_requests_subscriber = rospy.Subsciber("sonar/cv/response", sweepResult, updatePos)
+        sonar_request_msg = sweepGoal()
+        sonar_request_msg.distance_of_scan = -1
+        self.sonar_requests_publisher.publish(sonar_request_msg)
+        self.x_pos = 0
+        self.y_pos = 0
+        self.sonar_requests_subscriber = rospy.Subscriber("sonar/cv/response", sweepResult, self.updatePos)
 
     def request_sonar(self):
         sonar_request_msg = sweepGoal()
@@ -24,15 +29,7 @@ class SonarTest:
         rospy.loginfo("hello")
         self.sonar_requests_publisher.publish(sonar_request_msg)
         rospy.loginfo("published request")
-
-        result = []
-
-        try:
-            result = rospy.wait_for_message("sonar/cv/response", sweepResult, timeout=0.5)
-            rospy.loginfo(result)
-        except rospy.ROSException:
-            result = (self.x_pos, self.y_pos)
-            rospy.loginfo("No response received")
+        result = (self.x_pos, self.y_pos)
 
         end_time = time.perf_counter()
         delta_time = end_time - start_time
@@ -47,34 +44,11 @@ class SonarTest:
 
 if __name__ == '__main__':
     st = SonarTest()
-
     i = 0
-
     while True:
-        pub = rospy.Publisher("sonar/request", sweepGoal, queue_size=10)
-        sonar_request_msg = sweepGoal()
-        # sonar_request_msg.type = "buoy"
-        sonar_request_msg.start_angle = i
-        sonar_request_msg.end_angle = 205
-        sonar_request_msg.distance_of_scan = 5
-
-        rospy.loginfo("hello")
-        start_time = time.perf_counter()
-        pub.publish(sonar_request_msg)
-
-        try:
-            result = rospy.wait_for_message("sonar/cv/response", sweepResult)
-            rospy.loginfo(result)
-        except rospy.ROSException:
-            rospy.loginfo("No response received")
-
-        end_time = time.perf_counter()
-        delta_time = end_time - start_time
-        rospy.loginfo(delta_time)
-
-        # st.request_sonar()
-        # time.sleep(1)
-        # i+=1
+        st.request_sonar()
+        time.sleep(1)
+        i+=1
     # st.request_sonar()
     # time.sleep(2)
     # st.request_sonar()
