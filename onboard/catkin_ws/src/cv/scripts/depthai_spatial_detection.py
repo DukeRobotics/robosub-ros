@@ -28,6 +28,7 @@ class DepthAISpatialDetector:
         self.queue_bounding_box_depth_mapping = rospy.get_param("~bounding_box_depth_mapping")
         self.queue_rgb = rospy.get_param("~rgb")
         self.queue_depth = rospy.get_param("~depth")
+        self.sync_nn = rospy.get_param("~sync_nn")
 
         with open(rr.get_filename(DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH,
                                   use_protocol=False)) as f:
@@ -48,7 +49,7 @@ class DepthAISpatialDetector:
 
         self.bridge = CvBridge()
 
-    def build_pipeline(self, nn_blob_path, sync_nn=True):
+    def build_pipeline(self, nn_blob_path, sync_nn):
         """
         Get the DepthAI Pipeline for 3D object localization. Inspiration taken from
         https://docs.luxonis.com/projects/api/en/latest/samples/SpatialDetection/spatial_tiny_yolo/.
@@ -181,7 +182,7 @@ class DepthAISpatialDetector:
 
         blob_path = rr.get_filename(f"package://cv/models/{model['weights']}",
                                     use_protocol=False)
-        self.pipeline = self.build_pipeline(blob_path)
+        self.pipeline = self.build_pipeline(blob_path, self.sync_nn)
 
     def init_publishers(self, model_name):
         """
@@ -198,7 +199,14 @@ class DepthAISpatialDetector:
                                                           queue_size=10)
         self.publishers = publisher_dict
 
-        self.rgb_preview_publisher = rospy.Publisher("camera/front/rgb/preview/stream_raw", Image, queue_size=10)
+        if self.queue_rgb:
+            self.rgb_preview_publisher = rospy.Publisher("camera/front/rgb/preview/stream_raw", Image, queue_size=10)
+        if self.queue_depth:
+            self.depth_publisher = rospy.Publisher("/camera/front/depth/stream_raw", Image, queue_size=10)
+        if self.queue_depth:  # TODO
+            self.bounding_box_depth_mapping_publisher = rospy.Publisher(
+                                                                        "/camera/front/bounding_box_depth/stream_raw",
+                                                                        Image, queue_size=10)
         self.detection_feed_publisher = rospy.Publisher("cv/front/detections", Image, queue_size=10)
 
     def init_output_queues(self, device):
@@ -234,6 +242,7 @@ class DepthAISpatialDetector:
 
         inDet = self.output_queues["detections"].get()
         detections = inDet.detections
+
         if self.queue_rgb:
             inPreview = self.output_queues["rgb"].get()
             frame = inPreview.getCvFrame()
@@ -246,13 +255,31 @@ class DepthAISpatialDetector:
             )
             self.detection_feed_publisher.publish(detections_img_msg)
 
-        if self.queue_bounding_box_depth_mapping:
-            pass
-            # TODO: Publish bounding_box_depth_mapping
+        if self.queue_bounding_box_depth_mapping:  # TODO
+            raw_map = self.output_queues["boundingBoxDepthMapping"].get()
+            img_map = raw_map.getConfigData()
+
+            data = img_map[0]
+            roi = data.roi
+            rospy.loginfo("height: {}, width: {}, x: {}, y: {}".format(roi.height, roi.width, roi.x, roi.y))
+            
+            # calculation_algorithm = data.calculationAlgorithm
+            # rospy.loginfo("average: {}, min: {}, max: {}".format(calculation_algorithm.AVERAGE, calculation_algorithm.MIN, calculation_algorithm.MAX))
+
+            # depth_threshold = data.depthThreshold
+            # rospy.loginfo("")
+
+            rospy.loginfo(img_map[0].calculationAlgorithm)
+            # rospy.loginfo(img_map[0].depthThresholds)
+            # rospy.loginfo(img_map[0].roi)
+            # image_msg_depth = self.bridge.cv2_to_imgmsg(img_depth, 'mono16')
+            # self.bounding_box_depth_mapping_publisher.publish(image_msg_depth)
 
         if self.queue_depth:
-            pass
-            # TODO: Publish queue_depth
+            raw_img_depth = self.output_queues["depth"].get()
+            img_depth = raw_img_depth.getCvFrame()
+            image_msg_depth = self.bridge.cv2_to_imgmsg(img_depth, 'mono16')
+            self.depth_publisher.publish(image_msg_depth)
 
         model = self.models[self.current_model_name]
         height = model['input_size'][0]
