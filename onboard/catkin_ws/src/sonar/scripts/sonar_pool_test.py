@@ -3,7 +3,7 @@ from sonar_image_processing import *
 import rospy
 
 # COMMAND TO SETUP SERVER:
-# python3 -m http.server 
+# python -m http.server 
 # Search 192.161.1.1:8000 in google :)
 
 if __name__ == "__main__":
