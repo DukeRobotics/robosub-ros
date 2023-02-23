@@ -1,10 +1,16 @@
 <launch>
 	<arg name="rgb_video" default="True" />
+	<arg name="rgb_video_filename" default="" />
 	<arg name="rgb_preview" default="True" />
+	<arg name="rgb_preview_filename" default="" />
 	<arg name="left" default="True" />
+	<arg name="left_filename" default="" />
 	<arg name="right" default="True" />
+	<arg name="right_filename" default="" />
 	<arg name="disparity" default="True" />
+	<arg name="disparity_filename" default="" />
 	<arg name="depth" default="True" />
+	<arg name="depth_filename" default="" />
 	<node name="depthai_publish_image_stream" pkg="cv" type="depthai_publish_image_stream.py" output="screen">
 		<param name="rgb_video" value="$(arg rgb_video)" />
 		<param name="rgb_preview" value="$(arg rgb_preview)" />
