@@ -203,7 +203,8 @@ class Sonar:
         pos_of_point.orientation.z = 0
         pos_of_point.orientation.w = 1
 
-        transformed_pose = sonar_utils.transform_pose(self.listener, pos_of_point)
+        #transformed_pose = sonar_utils.transform_pose(self.listener, pos_of_point)
+        transformed_pose = pos_of_point
 
         return transformed_pose
 
