@@ -52,9 +52,7 @@ class DepthAISpatialDetector:
         self.enable_service = f'enable_model_{self.camera}'
 
         self.bridge = CvBridge()
-        self.x_pos = 0
-        self.y_pos = 0
-        self.sonar_response = (self.x_pos, self.y_pos)
+        self.sonar_response = (0, 0)
 
         self.sonar_requests_publisher = rospy.Publisher("sonar/request", sweepGoal, queue_size=10)
         self.sonar_response_subscriber = rospy.Subscriber("sonar/cv/response", sweepResult, self.update_sonar)
@@ -296,8 +294,9 @@ class DepthAISpatialDetector:
 
             # Try calling sonar on detected bounding box
             # if sonar responds, then override existing robot-frame x, y info; else, keep default
-            det_coords_robot_mm = (self.sonar_response[0], self.sonar_response[1], y_cam_meters)
-            using_sonar = True
+            if self.sonar_response is not (0, 0):
+                det_coords_robot_mm = (self.sonar_response[0], self.sonar_response[1], y_cam_meters)
+                using_sonar = True
 
             self.publish_prediction(
                 bbox, det_coords_robot_mm, label, confidence, (height, width), using_sonar)
@@ -358,9 +357,7 @@ class DepthAISpatialDetector:
         return True
     
     def update_sonar(self, sonar_results):
-        self.x_pos = sonar_results[0]
-        self.y_pos = sonar_results[1]
-        self.sonar_response = (self.x_pos, self.y_pos)
+        self.sonar_response = (sonar_results.x_pos, sonar_results.y_pos)
 
     def run(self):
         """
