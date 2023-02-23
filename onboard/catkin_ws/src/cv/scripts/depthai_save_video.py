@@ -15,12 +15,14 @@ class DepthAIVideoSaver:
 
     def __init__(self):
         rospy.init_node('depthai_save_video')
-        self.save_rgb_video = rospy.get_param('~rgb_video')
-        self.save_left = rospy.get_param('~left')
-        self.save_right = rospy.get_param('~right')
+
         self.rgb_video_file_name = os.path.join(os.path.dirname(__file__), rospy.get_param('~rgb_video_file_name'))
         self.left_file_name = os.path.join(os.path.dirname(__file__), rospy.get_param('~left_file_name'))
         self.right_file_name = os.path.join(os.path.dirname(__file__), rospy.get_param('~right_file_name'))
+
+        self.save_rgb_video = rospy.get_param('~rgb_video_file_name') != ""
+        self.save_left = rospy.get_param('~left_file_name') != ""
+        self.save_right = rospy.get_param('~right_file_name') != ""
 
         if self.save_rgb_video and not self.check_file_writable(self.rgb_video_file_name):
             raise ValueError(f'Cannot write to {self.rgb_video_file_name}')
@@ -59,6 +61,8 @@ class DepthAIVideoSaver:
         and retrieves it using an XLinkOut
         """
 
+        framerate = 30
+
         if self.save_rgb_video:
             camRgb = self.pipeline.create(dai.node.ColorCamera)
             camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
@@ -68,7 +72,7 @@ class DepthAIVideoSaver:
             camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)
 
             veRgb = self.pipeline.create(dai.node.VideoEncoder)
-            veRgb.setDefaultProfilePreset(25, dai.VideoEncoderProperties.Profile.H265_MAIN)
+            veRgb.setDefaultProfilePreset(framerate, dai.VideoEncoderProperties.Profile.H265_MAIN)
 
             veRgbOut = self.pipeline.create(dai.node.XLinkOut)
             veRgbOut.setStreamName('veRgbOut')
@@ -82,7 +86,7 @@ class DepthAIVideoSaver:
             camLeft.setBoardSocket(dai.CameraBoardSocket.LEFT)
 
             veLeft = self.pipeline.create(dai.node.VideoEncoder)
-            veLeft.setDefaultProfilePreset(25, dai.VideoEncoderProperties.Profile.H264_MAIN)
+            veLeft.setDefaultProfilePreset(framerate, dai.VideoEncoderProperties.Profile.H264_MAIN)
 
             veLeftOut = self.pipeline.create(dai.node.XLinkOut)
             veLeftOut.setStreamName('veLeftOut')
@@ -96,7 +100,7 @@ class DepthAIVideoSaver:
             camRight.setBoardSocket(dai.CameraBoardSocket.RIGHT)
 
             veRight = self.pipeline.create(dai.node.VideoEncoder)
-            veRight.setDefaultProfilePreset(25, dai.VideoEncoderProperties.Profile.H264_MAIN)
+            veRight.setDefaultProfilePreset(framerate, dai.VideoEncoderProperties.Profile.H264_MAIN)
 
             veRightOut = self.pipeline.create(dai.node.XLinkOut)
             veRightOut.setStreamName('veRightOut')
