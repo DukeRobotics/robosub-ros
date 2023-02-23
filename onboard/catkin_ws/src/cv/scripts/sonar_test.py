@@ -34,7 +34,8 @@ class SonarTest:
         end_time = time.perf_counter()
         delta_time = end_time - start_time
         rospy.loginfo(delta_time)
-        rospy.loginfo(result)
+        if result is not (0, 0):
+            rospy.loginfo(result)
 
     def updatePos(self, result):
         self.x_pos = result.x_pos
@@ -45,7 +46,11 @@ class SonarTest:
 
 if __name__ == '__main__':
     st = SonarTest()
-    st.request_sonar()
+    i = 0
+    while True:
+        st.request_sonar()
+        time.sleep(1)
+        i+=1
     # st.request_sonar()
     # time.sleep(2)
     # st.request_sonar()
