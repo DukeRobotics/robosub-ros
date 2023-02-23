@@ -193,7 +193,7 @@ class Sonar:
 
         x_pos = self.get_distance_of_sample(index) * np.cos(sonar_utils.centered_gradians_to_radians(angle))
         y_pos = self.get_distance_of_sample(index) * np.sin(sonar_utils.centered_gradians_to_radians(angle))
-        print(f"{x_pos} {y_pos}")
+        #print(f"{x_pos} {y_pos}")
         pos_of_point = Pose()
         pos_of_point.position.x = x_pos
         pos_of_point.position.y = y_pos
