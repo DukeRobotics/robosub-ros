@@ -19,7 +19,7 @@ class SonarPublisher:
         self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC, sweepResult, queue_size=10)
 
     def on_request(self, request):
-        rospy.loginfo(" yes request recieved")
+        #rospy.loginfo(" yes request recieved")
         if(request.distance_of_scan == -1):
             return
         self.sonar.set_new_range(request.distance_of_scan)
@@ -35,13 +35,13 @@ class SonarPublisher:
         response = sweepResult()
         response.x_pos = sonar_xy_result[0]
         response.y_pos = sonar_xy_result[1]
-        rospy.loginfo("publishing")
+        #rospy.loginfo("publishing")
         self._pub_request.publish(response)
         
 
     def run(self):
         rospy.Subscriber(self.SONAR_REQUEST_TOPIC, sweepGoal, self.on_request)
-        rospy.loginfo("spinning...")
+        rospy.loginfo("starting sonar_publisher...")
         rospy.spin()
 
 
