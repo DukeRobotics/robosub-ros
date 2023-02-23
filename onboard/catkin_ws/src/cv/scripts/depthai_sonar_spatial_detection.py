@@ -294,7 +294,7 @@ class DepthAISpatialDetector:
 
             # Try calling sonar on detected bounding box
             # if sonar responds, then override existing robot-frame x, y info; else, keep default
-            if self.sonar_response is not (0, 0):
+            if not (self.sonar_response == (0, 0)):
                 det_coords_robot_mm = (self.sonar_response[0], self.sonar_response[1], y_cam_meters)
                 using_sonar = True
 
