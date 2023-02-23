@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import depthai as dai
-import time
 import rospy
 
 
@@ -29,6 +28,9 @@ def connect(pipeline):
     totalTries = 5
 
     for i in range(totalTries):
+        if rospy.is_shutdown():
+            break
+
         try:
             # Try connecting with autodiscovery
             device = dai.Device(pipeline)
@@ -39,6 +41,9 @@ def connect(pipeline):
 
         except RuntimeError:
             pass
+
+        if rospy.is_shutdown():
+            break
 
         try:
             # Try connecting with manual IP address
@@ -55,9 +60,15 @@ def connect(pipeline):
                 raise RuntimeError((f"{totalTries} attempts were made to connect to the DepthAI camera using "
                                     "autodiscovery and manual IP address specification. All attempts failed.")) from e
 
+        if rospy.is_shutdown():
+            break
+
         # Wait two seconds before trying again
         # This ensures the script does not terminate if the camera is just temporarily unavailable
-        time.sleep(2)
+        rospy.sleep(2)
+
+    raise RuntimeError(f"{i} attempts were made to connect to the DepthAI camera using "
+                       f"autodiscovery and manual IP address specification. All attempts failed.")
 
 
 if __name__ == '__main__':

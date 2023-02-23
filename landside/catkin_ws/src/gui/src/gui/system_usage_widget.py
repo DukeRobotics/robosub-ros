@@ -10,7 +10,7 @@ from custom_msgs.msg import SystemUsage
 
 class SystemUsageWidget(QWidget):
 
-    def __init__(self, parent):
+    def __init__(self):
         super(SystemUsageWidget, self).__init__()
 
         ui_file = rr.get_filename('package://gui/resource/SystemUsageWidget.ui', use_protocol=False)

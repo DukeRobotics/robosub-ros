@@ -4,6 +4,8 @@ FROM ros:noetic
 ARG BUILD_DIR_NAME=docker-build
 ARG DEBIAN_FRONTEND=noninteractive
 ENV WORKDIR=/root/$BUILD_DIR_NAME
+ENV LIBGL_ALWAYS_INDIRECT=1
+ENV XDG_RUNTIME_DIR=/tmp/runtime-root
 
 # Set the workdir
 WORKDIR $WORKDIR

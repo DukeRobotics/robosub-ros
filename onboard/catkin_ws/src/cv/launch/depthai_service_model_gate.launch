@@ -1,3 +1,0 @@
-<launch>
-    <node pkg="rosservice" type="rosservice" name="global_loc" args="call /enable_model_front gate True" />
-</launch>
