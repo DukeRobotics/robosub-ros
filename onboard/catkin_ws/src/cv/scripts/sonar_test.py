@@ -13,6 +13,8 @@ class SonarTest:
         self.sonar_requests_publisher = rospy.Publisher("sonar/request", sweepGoal, queue_size=10)
         sonar_request_msg = sweepGoal()
         self.sonar_requests_publisher.publish(sonar_request_msg)
+        self.x_pos = 0
+        self.y_pos = 0
         self.sonar_requests_subscriber = rospy.Subscriber("sonar/cv/response", sweepResult, self.updatePos)
 
     def request_sonar(self):
@@ -26,15 +28,7 @@ class SonarTest:
         rospy.loginfo("hello")
         self.sonar_requests_publisher.publish(sonar_request_msg)
         rospy.loginfo("published request")
-
-        result = []
-
-        try:
-            result = rospy.wait_for_message("sonar/cv/response", sweepResult, timeout=0.5)
-            rospy.loginfo(result)
-        except rospy.ROSException:
-            result = (self.x_pos, self.y_pos)
-            rospy.loginfo("No response received")
+        result = (self.x_pos, self.y_pos)
 
         end_time = time.perf_counter()
         delta_time = end_time - start_time
