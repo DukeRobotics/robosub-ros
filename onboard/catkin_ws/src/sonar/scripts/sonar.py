@@ -21,7 +21,7 @@ class Sonar:
     BAUD_RATE = 2000000  # hz
     SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
     SPEED_OF_SOUND_IN_WATER = 1480  # m/s
-    FILTER_INDEX = 100  # number of values to filter TODO figure out where the noise starts
+    FILTER_INDEX = 0  # number of values to filter TODO figure out where the noise starts
     DEFAULT_RANGE = 5
 
     def __init__(self, range=DEFAULT_RANGE, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
