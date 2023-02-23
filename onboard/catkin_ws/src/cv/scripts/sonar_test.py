@@ -11,7 +11,7 @@ class SonarTest:
     def __init__(self):
         rospy.init_node('sonar_test', anonymous=True)
         self.sonar_requests_publisher = rospy.Publisher("sonar/request", sweepGoal, queue_size=10)
-        self.sonar_requests_subscriber = rospy.Subsciber("sonar/cv/response", sweepResult, self.updatePos)
+        self.sonar_requests_subscriber = rospy.Subscriber("sonar/cv/response", sweepResult, self.updatePos)
 
     def request_sonar(self):
         sonar_request_msg = sweepGoal()
