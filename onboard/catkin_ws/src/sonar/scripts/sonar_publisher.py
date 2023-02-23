@@ -20,6 +20,8 @@ class SonarPublisher:
 
     def on_request(self, request):
         rospy.loginfo(" yes request recieved")
+        if(request.distance_of_scan == -1):
+            return
         self.sonar.set_new_range(request.distance_of_scan)
         # center_gradians = degrees_to_centered_gradians(request.center_degrees)
         # breadth_gradians = degrees_to_centered_gradians(request.breadth_degrees)
