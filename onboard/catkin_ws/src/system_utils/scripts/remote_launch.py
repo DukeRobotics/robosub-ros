@@ -66,7 +66,7 @@ class RemoteLaunchNode:
         rli_msg = RemoteLaunchInfo()
 
         rli_msg.msg_type = "Terminating"
-        rli_msg.pid = shared_dict['pid']
+        rli_msg.pid = proc.pid
         rli_msg.package = req.package
         rli_msg.file = req.file
         rli_msg.args = req.args
