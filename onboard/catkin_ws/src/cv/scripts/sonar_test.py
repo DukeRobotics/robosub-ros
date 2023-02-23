@@ -45,7 +45,11 @@ class SonarTest:
 
 if __name__ == '__main__':
     st = SonarTest()
-    st.request_sonar()
+    i = 0
+    while True:
+        st.request_sonar()
+        time.sleep(1)
+        i+=1
     # st.request_sonar()
     # time.sleep(2)
     # st.request_sonar()
