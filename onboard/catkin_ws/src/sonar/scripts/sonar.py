@@ -190,6 +190,7 @@ class Sonar:
             Pose: Pose in robot reference frame containing x and y position of angle/index item
         """
         index = index + self.FILTER_INDEX
+        print(index)
 
         x_pos = self.get_distance_of_sample(index) * np.cos(sonar_utils.centered_gradians_to_radians(angle))
         y_pos = self.get_distance_of_sample(index) * np.sin(sonar_utils.centered_gradians_to_radians(angle))
