@@ -21,7 +21,7 @@ class Sonar:
     BAUD_RATE = 2000000  # hz
     SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
     SPEED_OF_SOUND_IN_WATER = 1480  # m/s
-    FILTER_INDEX = 0  # number of values to filter TODO figure out where the noise starts
+    FILTER_INDEX = 100  # number of values to filter TODO figure out where the noise starts
     DEFAULT_RANGE = 5
 
     def __init__(self, range=DEFAULT_RANGE, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
@@ -189,15 +189,12 @@ class Sonar:
         Returns:
             Pose: Pose in robot reference frame containing x and y position of angle/index item
         """
-        index = index + self.FILTER_INDEX
-
-        index = 100
-
         print(index)
-        
+        updated_index = index + self.FILTER_INDEX
+        print(updated_index)
 
-        x_pos = self.get_distance_of_sample(index) * np.cos(sonar_utils.centered_gradians_to_radians(angle))
-        y_pos = self.get_distance_of_sample(index) * np.sin(sonar_utils.centered_gradians_to_radians(angle))
+        x_pos = self.get_distance_of_sample(updated_index) * np.cos(sonar_utils.centered_gradians_to_radians(angle))
+        y_pos = self.get_distance_of_sample(updated_index) * np.sin(sonar_utils.centered_gradians_to_radians(angle))
         #print(f"{x_pos} {y_pos}")
         pos_of_point = Pose()
         pos_of_point.position.x = x_pos
