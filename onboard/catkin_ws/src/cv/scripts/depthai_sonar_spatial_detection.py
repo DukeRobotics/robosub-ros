@@ -52,9 +52,12 @@ class DepthAISpatialDetector:
         self.enable_service = f'enable_model_{self.camera}'
 
         self.bridge = CvBridge()
+        self.x_pos = 0
+        self.y_pos = 0
+        self.sonar_response = (self.x_pos, self.y_pos)
 
         self.sonar_requests_publisher = rospy.Publisher("sonar/request", sweepGoal, queue_size=10)
-        self.sonar_response_subscriber = rospy.Subscriber("sonar/cv/response", sweepResult, update_sonar)
+        self.sonar_response_subscriber = rospy.Subscriber("sonar/cv/response", sweepResult, self.update_sonar)
 
     def build_pipeline(self, nn_blob_path, sync_nn=True):
         """
@@ -293,15 +296,8 @@ class DepthAISpatialDetector:
 
             # Try calling sonar on detected bounding box
             # if sonar responds, then override existing robot-frame x, y info; else, keep default
-            try:
-                # Request sonar to sweep within bounded angle range; read center of mass of detected object from sonar
-                result = rospy.wait_for_message("sonar/cv/response", sweepResult, timeout=0.5)
-                # Sonar gives robot x,y; camera gives camera y, which is robot z
-                # Override det_coords_robot_mm with updated sonar data
-                det_coords_robot_mm = (result.x_pos, result.y_pos, y_cam_meters)
-                using_sonar = True
-            except rospy.ROSException:
-                rospy.loginfo("Sonar sweep failed, defaulting to stereo")
+            det_coords_robot_mm = (self.sonar_response[0], self.sonar_response[1], y_cam_meters)
+            using_sonar = True
 
             self.publish_prediction(
                 bbox, det_coords_robot_mm, label, confidence, (height, width), using_sonar)
@@ -362,7 +358,9 @@ class DepthAISpatialDetector:
         return True
     
     def update_sonar(self, sonar_results):
-        pass
+        self.x_pos = sonar_results[0]
+        self.y_pos = sonar_results[1]
+        self.sonar_response = (self.x_pos, self.y_pos)
 
     def run(self):
         """
