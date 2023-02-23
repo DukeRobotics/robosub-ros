@@ -142,17 +142,16 @@ This package has the following launch files:
 
 ### PID Flow
 
-This package uses nested PID Loops. When using Position Control, the desired state input is used as the setpoint for the position loop and the output of the position loops is used as a setpoint for the velocity loops. When using Velocity Control, the position loop is bypassed and the desired state input is used as a setpoint for the velocity loops. When using Power Control both of the PID loops are bypassed and the input is directly published to thruster_controls. 
-```
+This package uses two PID Loops. When using Position Control, the desired state input is used as the setpoint for the position loop. When using Velocity Control, the desired state input is used as a setpoint for the velocity loops. When using Power Control both of the PID loops are bypassed and the input is directly published to thruster_controls. 
 
-                      Velocity Control
-      +-----------------------------------------------+
-      |                                               |
-      |                                               v
-desired_state ---------------> position_pid ---> velocity_pid ---> thruster_controls
-              Position Control
 ```
+                    Position Control
+desired_state -------> position_pid -------> thruster_controls
 
+
+                    Velocity Control
+desired_state -------> velocity_pid -------> thruster_controls        
+```
 
 ### Configuration
 
