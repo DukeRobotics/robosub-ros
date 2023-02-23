@@ -196,7 +196,7 @@ class Sonar:
         y_pos = self.get_distance_of_sample(index) * np.sin(sonar_utils.centered_gradians_to_radians(angle))
         #print(f"{x_pos} {y_pos}")
         pos_of_point = Pose()
-        pos_of_point.position.x = x_pos
+        pos_of_point.position.x = 100
         pos_of_point.position.y = y_pos
         pos_of_point.position.z = 0  # z cord isnt 0 as gate is a line
         pos_of_point.orientation.x = 0
