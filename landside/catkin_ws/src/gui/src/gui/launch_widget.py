@@ -8,7 +8,7 @@ import resource_retriever as rr
 import rosservice
 
 from custom_msgs.srv import StopLaunch
-from std_msgs.msg import String
+from custom_msgs.msg import RemoteLaunchInfo
 
 
 class LaunchWidget(QWidget):
@@ -31,7 +31,7 @@ class LaunchWidget(QWidget):
         self.remote_launch_timer.timeout.connect(self.check_remote_launch)
         self.remote_launch_timer.start(100)
 
-        rospy.Subscriber(self.camera_feed_topic, String, self.check_for_termination)
+        rospy.Subscriber(self.camera_feed_topic, RemoteLaunchInfo, self.check_for_termination)
 
         rospy.loginfo('Launch Widget successfully initialized')
 
@@ -56,11 +56,11 @@ class LaunchWidget(QWidget):
         self.launch_dialog.setEnabled(enabled)
         self.table_widget.setEnabled(enabled)
 
-    def check_for_termination(self, str_msg):
-        msg_type, pid = str_msg.split(" ")[:1]
-        if msg_type == "Terminating":
-            if self.pid_rows.get(pid) is not None:
-                self.table_widget.removeRow(self.pid_rows[pid])
+    def check_for_termination(self, rli_msg):
+        if rli_msg.msg_type == "Terminating":
+            if self.pid_rows.get(rli_msg.pid) is not None:
+                self.table_widget.removeRow(self.pid_rows[rli_msg.pid])
+                self.pid_rows.pop(rli_msg.pid)
 
     def delete_launch(self, row_value):
         stop_launch = rospy.ServiceProxy('stop_node', StopLaunch)
