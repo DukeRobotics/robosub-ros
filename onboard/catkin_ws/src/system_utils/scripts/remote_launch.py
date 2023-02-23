@@ -2,6 +2,7 @@
 
 import rospy
 from custom_msgs.srv import StartLaunch, StopLaunch
+from custom_msgs.msg import RemoteLaunchInfo
 import subprocess
 import multiprocessing
 
@@ -14,9 +15,9 @@ class RemoteLaunchNode:
         rospy.init_node('remote_launch')
 
         self.processes = {}
-        self.terminated_processes = {}
+        self.terminated_processes = []
 
-        # TODO: Initialize a publisher to publish when node is launched and terminated using the message type defined above
+        self.publisher = rospy.Publisher('remote_launch', RemoteLaunchInfo, queue_size=10)
 
         rospy.Service('start_node', StartLaunch, self.start_launch)
         rospy.Service('stop_node', StopLaunch, self.stop_launch)
@@ -33,6 +34,17 @@ class RemoteLaunchNode:
                 continue
 
             # TODO: Publish node launched, including the pid, package, file, and arguments
+            rli_msg = RemoteLaunchInfo()
+
+            exe = 'roslaunch' if req.is_launch_file else 'rosrun'
+            rli_msg.msg_type = 'Executing' + exe
+
+            rli_msg.pid = shared_dict['pid']
+            rli_msg.package = req.package
+            rli_msg.file = req.file
+            rli_msg.args = req.args
+
+            self.publisher.publish(rli_msg)
 
             return {'pid': shared_dict['pid']}
 
@@ -45,10 +57,22 @@ class RemoteLaunchNode:
             proc = subprocess.Popen([exe, req.package, req.file] + req.args)
         shared_dict['pid'] = proc.pid
         self.processes[int(proc.pid)] = proc
+
         proc.wait()
         self.terminated_processes.append(proc.pid)
         rospy.loginfo(f'Terminating {int(proc.pid)} {req.package} {req.file} {req.args}')
+
         # TODO: Publish node terminated, including the pid, package, file, and arguments
+        rli_msg = RemoteLaunchInfo()
+
+        rli_msg.msg_type = "Terminating"
+        rli_msg.pid = shared_dict['pid']
+        rli_msg.package = req.package
+        rli_msg.file = req.file
+        rli_msg.args = req.args
+
+        self.publisher.publish(rli_msg)
+
         return
 
     def stop_launch(self, req):

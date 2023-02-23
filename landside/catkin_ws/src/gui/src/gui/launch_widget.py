@@ -31,7 +31,7 @@ class LaunchWidget(QWidget):
         self.remote_launch_timer.timeout.connect(self.check_remote_launch)
         self.remote_launch_timer.start(100)
 
-        rospy.Subscriber(self.camera_feed_topic, RemoteLaunchInfo, self.check_for_termination)
+        rospy.Subscriber('remote_launch', RemoteLaunchInfo, self.check_for_termination)
 
         rospy.loginfo('Launch Widget successfully initialized')
 

@@ -20,6 +20,7 @@ add_message_files(
   SystemUsage.msg
   SimObject.msg
   SimObjectArray.msg
+  RemoteLaunchInfo.msg
 )
 
 add_service_files(
