@@ -12,6 +12,7 @@ class SonarTest:
         rospy.init_node('sonar_test', anonymous=True)
         self.sonar_requests_publisher = rospy.Publisher("sonar/request", sweepGoal, queue_size=10)
         sonar_request_msg = sweepGoal()
+        sonar_request_msg.distance_of_scan = -1
         self.sonar_requests_publisher.publish(sonar_request_msg)
         self.x_pos = 0
         self.y_pos = 0
