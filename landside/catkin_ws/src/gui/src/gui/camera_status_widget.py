@@ -232,6 +232,18 @@ class CameraStatusWidget(QWidget):
         self.status_table.setItem(type_info["index"], 1, status_item)
         self.status_table.setItem(type_info["index"], 2, timestamp_item)
 
+    def help(self):
+        # Show alert with help information
+        alert = QMessageBox()
+        alert.setWindowTitle("Camera Status Widget Help")
+        alert.setIcon(QMessageBox.Information)
+        alert.setText("This widget allows you to check the status of the cameras on the robot. " +
+                        "You can check the status of the cameras by clicking the buttons below. " +
+                        "You can also ping the robot to check if it is connected to the network. " +
+                        "The status of the cameras and the ping will be displayed in the table below. " +
+                        "You can also view the logs of the status of the cameras and the ping by clicking the 'View Logs' button.")
+        alert.exec_()
+
     def close(self):
         self.check_buttons_enabled_timer.stop()
 

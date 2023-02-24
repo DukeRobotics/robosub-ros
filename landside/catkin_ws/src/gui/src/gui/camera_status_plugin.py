@@ -14,6 +14,10 @@ class CameraStatusPlugin(Plugin):
             self.widget.setWindowTitle(self.widget.windowTitle() +
                                        (' (%d)' % context.serial_number()))
         context.add_widget(self.widget)
+        context._handler.help_signal.connect(self.help)
+
+    def help(self, plugin_instance_id_str):
+        self.widget.help()
 
     def shutdown_plugin(self):
         self.widget.close()
