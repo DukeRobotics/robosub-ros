@@ -10,7 +10,8 @@ from python_qt_binding.QtWidgets import (
     QTabWidget,
     QDialog,
     QGridLayout,
-    QMessageBox
+    QMessageBox,
+    QAbstractItemView
 )
 from python_qt_binding.QtCore import QTimer, QObject, QRunnable, QThreadPool, pyqtProperty, pyqtSignal, pyqtSlot
 from python_qt_binding.QtGui import QColor
@@ -84,7 +85,7 @@ class CallConnectCameraService(QRunnable):
 
 class CameraStatusWidget(QWidget):
 
-    data_updated = pyqtSignal(CameraStatusDataType, bool, str, name='dataUpdated')
+    data_updated = pyqtSignal(CameraStatusDataType, bool, str, str, name='data_updated')
 
     def __init__(self):
         super(CameraStatusWidget, self).__init__()
@@ -94,6 +95,8 @@ class CameraStatusWidget(QWidget):
 
         self.ping_hostname = ''
         self.usb_channel = -1
+
+        self.log = None
 
         self.threadpool = QThreadPool()
 
@@ -121,7 +124,7 @@ class CameraStatusWidget(QWidget):
         self.check_buttons_enabled_timer.timeout.connect(self.check_buttons_enabled)
         self.check_buttons_enabled_timer.start(100)
 
-        rospy.Subscriber(
+        self.subscriber = rospy.Subscriber(
             CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"],
             DiagnosticArray,
             self.ping_response
@@ -156,8 +159,8 @@ class CameraStatusWidget(QWidget):
             )
 
     def open_conection_log(self):
-        log = CameraStatusLog(self.data_updated, self.status_logs)
-        log.exec()
+        self.log = CameraStatusLog(self.data_updated, self.status_logs)
+        self.log.exec()
 
     def check_camera_connection(self, camera_type):
         if camera_type == CameraStatusDataType.MONO:
@@ -176,8 +179,8 @@ class CameraStatusWidget(QWidget):
         self.check_camera_buttons[camera_type].setText(CAMERA_STATUS_DATA_TYPE_INFORMATION[camera_type]['name'])
 
         if timestamp:
-            self.status_logs[camera_type].append({"status": status, "timestamp": timestamp})
-            self.data_updated.emit(camera_type, status, timestamp)
+            self.status_logs[camera_type].append({"status": status, "timestamp": timestamp, "message": None})
+            self.data_updated.emit(camera_type, status, timestamp, None)
             self.update_table(camera_type, status, timestamp)
         else:
             # Display an alert indicating that the service call failed
@@ -195,12 +198,14 @@ class CameraStatusWidget(QWidget):
             return
 
         data_type = CameraStatusDataType.PING
-        status = response.status[0].level == 0
-        timestamp = datetime.fromtimestamp(response.header.stamp.secs).strftime("%H:%M:%S")
+        status_info = {}
+        status_info["status"] = response.status[0].level == 0
+        status_info["message"] = response.status[0].message
+        status_info["timestamp"] = datetime.fromtimestamp(response.header.stamp.secs).strftime("%H:%M:%S")
 
-        self.status_logs[data_type].append({"status": status, "timestamp": timestamp})
-        self.data_updated.emit(data_type, status, timestamp)
-        self.update_table(data_type, status, timestamp)
+        self.status_logs[data_type].append(status_info)
+        self.data_updated.emit(data_type, status_info["status"], status_info["timestamp"], status_info["message"])
+        self.update_table(data_type, status_info["status"], status_info["timestamp"])
 
     def init_table(self):
         for _, data_dict in CAMERA_STATUS_DATA_TYPE_INFORMATION.items():
@@ -227,6 +232,29 @@ class CameraStatusWidget(QWidget):
         self.status_table.setItem(type_info["index"], 1, status_item)
         self.status_table.setItem(type_info["index"], 2, timestamp_item)
 
+    def close(self):
+        self.check_buttons_enabled_timer.stop()
+
+        if self.log and self.log.isVisible():
+            self.log.close()
+        self.subscriber.unregister()
+
+        self.threadpool.clear()
+        if self.threadpool.activeThreadCount() > 0:
+            message = f"Camera Status Widget waiting for {self.threadpool.activeThreadCount()} threads to finish. " + \
+                      "It will close automatically when all threads are finished."
+            rospy.loginfo(message)
+
+            alert = QMessageBox()
+            alert.setWindowTitle("Waiting for Threads to Finish")
+            alert.setIcon(QMessageBox.Information)
+            alert.setText(message)
+            alert.exec_()
+
+            self.threadpool.waitForDone()
+
+            rospy.loginfo("Camera Status Widget has finished all threads and is successfully closed.")
+
 
 class CameraStatusLog(QDialog):
     def __init__(self, data_updated_signal, init_data):
@@ -237,13 +265,20 @@ class CameraStatusLog(QDialog):
         layout = QGridLayout()
         tab_widget = QTabWidget()
 
+        self.data = {}
+
         self.log_tables = {}
         for data_type in init_data:
+            self.data[data_type] = []
+
             table = QTableWidget()
             table.horizontalHeader().setVisible(False)
             table.verticalHeader().setVisible(False)
             table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
             table.setColumnCount(2)
+            table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+            if data_type == CameraStatusDataType.PING:
+                table.cellDoubleClicked.connect(self.table_clicked)
 
             tab_widget.addTab(table, CAMERA_STATUS_DATA_TYPE_INFORMATION[data_type]["name"])
             self.log_tables[data_type] = table
@@ -253,9 +288,9 @@ class CameraStatusLog(QDialog):
 
         for type, data in init_data.items():
             for row in data:
-                self.update(type, row["status"], row["timestamp"])
+                self.update(type, row["status"], row["timestamp"], row["message"])
 
-    def update(self, type, status, timestamp):
+    def update(self, type, status, timestamp, message):
         table = self.log_tables[type]
 
         status_msg = "Successful" if status else "Failed"
@@ -270,3 +305,14 @@ class CameraStatusLog(QDialog):
         table.insertRow(rowPosition)
         table.setItem(rowPosition, 0, status_item)
         table.setItem(rowPosition, 1, timestamp_item)
+
+        self.data[type].insert(0, {"status": status, "timestamp": timestamp, "message": message})
+
+    def table_clicked(self, index):
+        message = self.data[CameraStatusDataType.PING][index]["message"]
+
+        alert = QMessageBox()
+        alert.setWindowTitle("Ping Message")
+        alert.setIcon(QMessageBox.Information)
+        alert.setText(message)
+        alert.exec_()
