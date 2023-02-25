@@ -11,7 +11,11 @@ from python_qt_binding.QtWidgets import (
     QDialog,
     QGridLayout,
     QMessageBox,
-    QAbstractItemView
+    QAbstractItemView,
+    QLineEdit,
+    QDialogButtonBox,
+    QFormLayout
+
 )
 from python_qt_binding.QtCore import QTimer, QObject, QRunnable, QThreadPool, pyqtProperty, pyqtSignal, pyqtSlot
 from python_qt_binding.QtGui import QColor
@@ -161,7 +165,7 @@ class CameraStatusWidget(QWidget):
         pubs, _ = rostopic.get_topic_list(master=master)
         for topic_name, _, publishing_nodes in pubs:
             if topic_name == CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"] and \
-                len(publishing_nodes) > 0:
+                    len(publishing_nodes) > 0:
                 if self.subscriber is None:
                     self.subscriber = rospy.Subscriber(
                         CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"],
@@ -257,16 +261,24 @@ class CameraStatusWidget(QWidget):
         self.status_table.setItem(type_info["index"], 2, timestamp_item)
 
     def help(self):
-        # Show alert with help information
+        text = "This widget allows you to check the status of the cameras on the robot.\n" + \
+            "To check if the stereo camera can be pinged, launch cv/ping_host.launch. This plugin will only " + \
+            f"display the ping status for {self.ping_hostname}.\n" + \
+            "To check if the mono and stereo cameras are connected, launch cv/camera_test_connect.launch and click " + \
+            "the 'Mono' and 'Stereo' buttons. If camera_test_connect.launch is not running, the buttons will be " + \
+            f"disabled. The channel used for the mono camera is {self.usb_channel}.\n" + \
+            "To change the ping hostname or mono camera channel, click the settings icon."
+
         alert = QMessageBox()
         alert.setWindowTitle("Camera Status Widget Help")
         alert.setIcon(QMessageBox.Information)
-        alert.setText("This widget allows you to check the status of the cameras on the robot. " +
-                        "You can check the status of the cameras by clicking the buttons below. " +
-                        "You can also ping the robot to check if it is connected to the network. " +
-                        "The status of the cameras and the ping will be displayed in the table below. " +
-                        "You can also view the logs of the status of the cameras and the ping by clicking the 'View Logs' button.")
+        alert.setText(text)
         alert.exec_()
+
+    def settings(self):
+        settings = CameraStatusWidgetSettings(self.ping_hostname, self.usb_channel)
+        if settings.exec():
+            self.ping_hostname, self.usb_channel = settings.values()
 
     def close(self):
         self.timer.stop()
@@ -354,3 +366,27 @@ class CameraStatusLog(QDialog):
         alert.setIcon(QMessageBox.Information)
         alert.setText(message)
         alert.exec_()
+
+
+class CameraStatusWidgetSettings(QDialog):
+    def __init__(self, parent, ping_hostname, usb_channel):
+        super().__init__(parent)
+
+        self.ping_hostname_line_edit = QLineEdit(self)
+        self.ping_hostname_line_edit.setValue(ping_hostname)
+
+        self.usb_channel_line_edit = QLineEdit(self)
+        self.usb_channel_line_edit.setValue(usb_channel)
+
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
+
+        layout = QFormLayout(self)
+        layout.addRow("Ping Hostname", self.first)
+        layout.addRow("USB Channel", self.second)
+        layout.addWidget(buttonBox)
+
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+
+    def get_values(self):
+        return (self.ping_hostname_line_edit.text(), self.usb_channel_line_edit.text())

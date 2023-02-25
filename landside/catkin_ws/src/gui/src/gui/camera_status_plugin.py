@@ -29,3 +29,6 @@ class CameraStatusPlugin(Plugin):
         self.widget.hostname = instance_settings.value("hostname")
         self.widget.channel = instance_settings.value("channel")
         pass
+
+    def trigger_configuration(self):
+        self.widget.settings()
