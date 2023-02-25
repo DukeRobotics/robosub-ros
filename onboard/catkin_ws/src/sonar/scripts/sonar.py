@@ -17,7 +17,7 @@ class Sonar:
 
     IF_LOCAL_TEST = True  # only for local testing with the sonar script
 
-    SERIAL_PORT_NAME = "/dev/ttyUSB1"  # PORT of the salea is ttyUSB2 for testing
+    SERIAL_PORT_NAME = "/dev/ttyUSB2"  # PORT of the salea is ttyUSB2 for testing
     BAUD_RATE = 2000000  # hz
     SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
     SPEED_OF_SOUND_IN_WATER = 1480  # m/s
