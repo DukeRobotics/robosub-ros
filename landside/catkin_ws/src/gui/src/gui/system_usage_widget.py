@@ -62,4 +62,5 @@ class SystemUsageWidget(QWidget):
 
     def close(self):
         self.system_sub_timer.stop()
-        self.system_sub.unregister()
+        if self.system_sub:
+            self.system_sub.unregister()
