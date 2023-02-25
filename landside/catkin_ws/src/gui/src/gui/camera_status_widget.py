@@ -17,6 +17,8 @@ from python_qt_binding.QtCore import QTimer, QObject, QRunnable, QThreadPool, py
 from python_qt_binding.QtGui import QColor
 
 import rospy
+import rosgraph
+import rostopic
 import resource_retriever as rr
 import rosservice
 
@@ -36,7 +38,7 @@ CAMERA_STATUS_DATA_TYPE_INFORMATION = {
     CameraStatusDataType.PING: {
         'name': 'Ping',
         'index': 0,
-        'topic_name': 'ping_host'
+        'topic_name': '/ping_host'
     },
     CameraStatusDataType.STEREO: {
         'name': 'Stereo',
@@ -120,9 +122,9 @@ class CameraStatusWidget(QWidget):
 
         self.status_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
-        self.check_buttons_enabled_timer = QTimer(self)
-        self.check_buttons_enabled_timer.timeout.connect(self.check_buttons_enabled)
-        self.check_buttons_enabled_timer.start(100)
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.timer_check)
+        self.timer.start(100)
 
         self.subscriber = rospy.Subscriber(
             CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"],
@@ -149,6 +151,28 @@ class CameraStatusWidget(QWidget):
     @channel.setter
     def channel(self, value):
         self.usb_channel = value
+
+    def timer_check(self):
+        self.check_buttons_enabled()
+        self.check_ping_publisher()
+
+    def check_ping_publisher(self):
+        master = rosgraph.Master('/rostopic')
+        pubs, _ = rostopic.get_topic_list(master=master)
+        for topic_name, _, publishing_nodes in pubs:
+            if topic_name == CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"] and \
+                len(publishing_nodes) > 0:
+                if self.subscriber is None:
+                    self.subscriber = rospy.Subscriber(
+                        CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"],
+                        DiagnosticArray,
+                        self.ping_response
+                    )
+                return
+
+        if self.subscriber is not None:
+            self.subscriber.unregister()
+            self.subscriber = None
 
     def check_buttons_enabled(self):
         service_list = rosservice.get_service_list()
@@ -245,11 +269,13 @@ class CameraStatusWidget(QWidget):
         alert.exec_()
 
     def close(self):
-        self.check_buttons_enabled_timer.stop()
+        self.timer.stop()
 
         if self.log and self.log.isVisible():
             self.log.close()
-        self.subscriber.unregister()
+
+        if self.subscriber:
+            self.subscriber.unregister()
 
         self.threadpool.clear()
         if self.threadpool.activeThreadCount() > 0:
