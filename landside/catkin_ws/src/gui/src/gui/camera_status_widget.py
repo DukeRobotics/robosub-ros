@@ -19,7 +19,7 @@ from python_qt_binding.QtWidgets import (
     QLabel
 )
 from python_qt_binding.QtCore import QTimer, QObject, QRunnable, QThreadPool, pyqtProperty, pyqtSignal, pyqtSlot
-from python_qt_binding.QtGui import QColor
+from python_qt_binding.QtGui import QColor, QIntValidator
 
 import rospy
 import rosgraph
@@ -226,7 +226,6 @@ class CameraStatusWidget(QWidget):
             alert.exec_()
 
     def ping_response(self, response):
-        rospy.loginfo(f"ping response {response.status[0].name}")
         # This method is called when a new message is published to the ping topic
 
         # Make sure response hostname matches self.ping_hostname before proceeding
@@ -275,7 +274,8 @@ class CameraStatusWidget(QWidget):
             "To check if the mono and stereo cameras are connected, launch cv/camera_test_connect.launch and click " + \
             "the 'Mono' and 'Stereo' buttons. If camera_test_connect.launch is not running, the buttons will be " + \
             f"disabled. The channel used for the mono camera is {self.usb_channel}.\n\n" + \
-            "To change the ping hostname or mono camera channel, click the settings icon."
+            "To change the ping hostname or mono camera channel, click the settings icon. If the plugin appears to " + \
+            "be unresponsive to publishing ping messages, you can restart the ping subscriber from settings."
 
         alert = QMessageBox()
         alert.setWindowTitle("Camera Status Widget Help")
@@ -389,9 +389,13 @@ class CameraStatusWidgetSettings(QDialog):
         self.usb_channel_line_edit = QLineEdit(self)
         self.usb_channel_line_edit.setText(str(usb_channel))
 
+        validator = QIntValidator(self)
+        validator.setBottom(0)
+        self.usb_channel_line_edit.setValidator(validator)
+
         self.restart_ping_subscriber_checkbox = QCheckBox(self)
         self.restart_ping_subscriber_label = QLabel("Restart Ping Subscriber (?)", self)
-        self.restart_ping_subscriber_label.setToolTip("If checked, the ping subscriber will be restarted when the" + \
+        self.restart_ping_subscriber_label.setToolTip("If checked, the ping subscriber will be restarted when the " + \
                                                       "settings are saved. This is useful if the ping hostname has " + \
                                                       "changed, ping_host.launch has been recently restarted, or " + \
                                                       "if the plugin does not appear to receive ping messages even" + \
@@ -409,5 +413,5 @@ class CameraStatusWidgetSettings(QDialog):
         buttonBox.rejected.connect(self.reject)
 
     def get_values(self):
-        return (self.ping_hostname_line_edit.text(), self.usb_channel_line_edit.text(),
+        return (self.ping_hostname_line_edit.text(), int(self.usb_channel_line_edit.text()),
                 self.restart_ping_subscriber_checkbox.isChecked())
