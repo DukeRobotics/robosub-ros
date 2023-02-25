@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import time
 import actionlib
 from custom_msgs.msg import ControlsDesiredPoseAction, ControlsDesiredTwistAction, ControlsDesiredPowerAction, \
     ControlsDesiredPoseGoal, ControlsDesiredTwistGoal, ControlsDesiredPowerGoal
@@ -28,6 +29,7 @@ class TestStatePublisher:
         rospy.Subscriber("/controls/y_pos/setpoint", Float64, self._on_receive_data_y)
         rospy.Subscriber("/controls/z_pos/setpoint", Float64, self._on_receive_data_z)
         rospy.Subscriber("/controls/yaw_pos/setpoint", Float64, self._on_receive_data_yaw)
+        rospy.Subscriber("/cv/pose", Pose, self.on_cv_get)
 
         self.current_setpoint = [100.0, 100.0, 100.0]  # x,y,z
         self.MOVE_OFFSET_CONSTANT = 1
@@ -237,12 +239,20 @@ class TestStatePublisher:
     def _on_receive_data_yaw(self, data):
         self.current_yaw = data.data
 
+    def on_cv_get(self, data):
+        self.desired_pose_local = data.data
+        self.recalculate_local_pose()
 
 def main():
     # TestStatePublisher().publish_desired_pose_global()
-    TestStatePublisher().publish_desired_pose_local()
+    #TestStatePublisher().publish_desired_pose_local()
     # TestStatePublisher().publish_desired_twist()
     # TestStatePublisher().publish_desired_power()
+    #TestStatePublisher().publish_desired_pose_local()
+    while not rospy.isshutdown:
+        TestStatePublisher().publish_desired_pose_local()
+        time.sleep(1)
+
 
 
 if __name__ == '__main__':
