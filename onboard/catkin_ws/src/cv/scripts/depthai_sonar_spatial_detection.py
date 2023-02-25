@@ -96,14 +96,14 @@ class DepthAISpatialDetector:
 
         xout_rgb = pipeline.create(dai.node.XLinkOut)
         xout_nn = pipeline.create(dai.node.XLinkOut)
-        xout_bounding_box_depth_mapping = pipeline.create(dai.node.XLinkOut)
-        xout_depth = pipeline.create(dai.node.XLinkOut)
+        # xout_bounding_box_depth_mapping = pipeline.create(dai.node.XLinkOut)
+        # xout_depth = pipeline.create(dai.node.XLinkOut)
 
         xout_rgb.setStreamName("rgb")
         xout_nn.setStreamName("detections")
-        xout_bounding_box_depth_mapping.setStreamName(
-            "boundingBoxDepthMapping")
-        xout_depth.setStreamName("depth")
+        # xout_bounding_box_depth_mapping.setStreamName(
+        #     "boundingBoxDepthMapping")
+        # xout_depth.setStreamName("depth")
 
         # Properties
         cam_rgb.setPreviewSize(model['input_size'])
@@ -149,11 +149,11 @@ class DepthAISpatialDetector:
             cam_rgb.preview.link(xout_rgb.input)
 
         spatial_detection_network.out.link(xout_nn.input)
-        spatial_detection_network.boundingBoxMapping.link(
-            xout_bounding_box_depth_mapping.input)
+        # spatial_detection_network.boundingBoxMapping.link(
+        #     xout_bounding_box_depth_mapping.input)
 
         stereo.depth.link(spatial_detection_network.inputDepth)
-        spatial_detection_network.passthroughDepth.link(xout_depth.input)
+        # spatial_detection_network.passthroughDepth.link(xout_depth.input)
 
         return pipeline
 
@@ -221,10 +221,10 @@ class DepthAISpatialDetector:
             name="rgb", maxSize=1, blocking=False)
         self.output_queues["detections"] = device.getOutputQueue(
             name="detections", maxSize=1, blocking=False)
-        self.output_queues["boundingBoxDepthMapping"] = device.getOutputQueue(name="boundingBoxDepthMapping", maxSize=1,
-                                                                              blocking=False)
-        self.output_queues["depth"] = device.getOutputQueue(
-            name="depth", maxSize=1, blocking=False)
+        # self.output_queues["boundingBoxDepthMapping"] = device.getOutputQueue(name="boundingBoxDepthMapping", maxSize=1,
+        #                                                                       blocking=False)
+        # self.output_queues["depth"] = device.getOutputQueue(
+        #     name="depth", maxSize=1, blocking=False)
         self.connected = True
 
         self.detection_visualizer = DetectionVisualizer(self.classes)
