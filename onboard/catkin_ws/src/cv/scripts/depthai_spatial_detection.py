@@ -25,7 +25,6 @@ class DepthAISpatialDetector:
         Initializes the ROS node and service. Loads the yaml file at cv/models/depthai_models.yaml
         """
         rospy.init_node('depthai_spatial_detection', anonymous=True)
-        self.queue_bounding_box_depth_mapping = rospy.get_param("~bounding_box_depth_mapping")
         self.queue_rgb = rospy.get_param("~rgb")
         self.queue_depth = rospy.get_param("~depth")
         self.sync_nn = rospy.get_param("~sync_nn")
@@ -66,6 +65,7 @@ class DepthAISpatialDetector:
             detections as well as XYZ coordinates of the detected objects.
             - "boundingBoxDepthMapping": contains SpatialLocationCalculatorConfig messages, which provide a mapping
                                          between the RGB feed from which bounding boxes are computed and the depth map.
+                                         This pipeline does not currently use boundingBoxDepthMapping.
             - "depth": contains ImgFrame messages with UINT16 values representing the depth in millimeters by default.
                        See the depth of https://docs.luxonis.com/projects/api/en/latest/components/nodes/stereo_depth/
 
@@ -91,10 +91,6 @@ class DepthAISpatialDetector:
         if self.queue_rgb:
             xout_rgb = pipeline.create(dai.node.XLinkOut)
             xout_rgb.setStreamName("rgb")
-
-        if self.queue_bounding_box_depth_mapping:
-            xout_bounding_box_depth_mapping = pipeline.create(dai.node.XLinkOut)
-            xout_bounding_box_depth_mapping.setStreamName("boundingBoxDepthMapping")
 
         if self.queue_depth:
             xout_depth = pipeline.create(dai.node.XLinkOut)
@@ -142,9 +138,6 @@ class DepthAISpatialDetector:
                 cam_rgb.preview.link(xout_rgb.input)
 
         spatial_detection_network.out.link(xout_nn.input)
-
-        if self.queue_bounding_box_depth_mapping:
-            spatial_detection_network.boundingBoxMapping.link(xout_bounding_box_depth_mapping.input)
 
         if self.queue_depth:
             spatial_detection_network.passthroughDepth.link(xout_depth.input)
@@ -203,10 +196,6 @@ class DepthAISpatialDetector:
             self.rgb_preview_publisher = rospy.Publisher("camera/front/rgb/preview/stream_raw", Image, queue_size=10)
         if self.queue_depth:
             self.depth_publisher = rospy.Publisher("/camera/front/depth/stream_raw", Image, queue_size=10)
-        if self.queue_depth:  # TODO
-            self.bounding_box_depth_mapping_publisher = rospy.Publisher(
-                                                                        "/camera/front/bounding_box_depth/stream_raw",
-                                                                        Image, queue_size=10)
         self.detection_feed_publisher = rospy.Publisher("cv/front/detections", Image, queue_size=10)
 
     def init_output_queues(self, device):
@@ -221,9 +210,6 @@ class DepthAISpatialDetector:
         if self.queue_rgb:
             self.output_queues["rgb"] = device.getOutputQueue(name="rgb", maxSize=1, blocking=False)
 
-        if self.queue_bounding_box_depth_mapping:
-            self.output_queues["boundingBoxDepthMapping"] = device.getOutputQueue(name="boundingBoxDepthMapping",
-                                                                                  maxSize=1, blocking=False)
         if self.queue_depth:
             self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
 
@@ -254,26 +240,6 @@ class DepthAISpatialDetector:
                 'bgr8'
             )
             self.detection_feed_publisher.publish(detections_img_msg)
-
-        if self.queue_bounding_box_depth_mapping:  # TODO
-            raw_map = self.output_queues["boundingBoxDepthMapping"].get()
-            img_map = raw_map.getConfigData()
-
-            data = img_map[0]
-            roi = data.roi
-            rospy.loginfo("height: {}, width: {}, x: {}, y: {}".format(roi.height, roi.width, roi.x, roi.y))
-            
-            # calculation_algorithm = data.calculationAlgorithm
-            # rospy.loginfo("average: {}, min: {}, max: {}".format(calculation_algorithm.AVERAGE, calculation_algorithm.MIN, calculation_algorithm.MAX))
-
-            # depth_threshold = data.depthThreshold
-            # rospy.loginfo("")
-
-            rospy.loginfo(img_map[0].calculationAlgorithm)
-            # rospy.loginfo(img_map[0].depthThresholds)
-            # rospy.loginfo(img_map[0].roi)
-            # image_msg_depth = self.bridge.cv2_to_imgmsg(img_depth, 'mono16')
-            # self.bounding_box_depth_mapping_publisher.publish(image_msg_depth)
 
         if self.queue_depth:
             raw_img_depth = self.output_queues["depth"].get()
