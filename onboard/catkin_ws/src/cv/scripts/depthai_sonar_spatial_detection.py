@@ -226,16 +226,12 @@ class DepthAISpatialDetector:
         #                                                                       blocking=False)
         # self.output_queues["depth"] = device.getOutputQueue(
         #     name="depth", maxSize=1, blocking=False)
-        self.connected = True
-
         self.detection_visualizer = DetectionVisualizer(self.classes)
 
     def detect(self):
         """
         Get current detections from output queues and publish.
         """
-        if not self.connected:
-            return
 
         inPreview = self.output_queues["rgb"].get()
         inDet = self.output_queues["detections"].get()
