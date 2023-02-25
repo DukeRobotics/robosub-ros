@@ -14,8 +14,9 @@ from python_qt_binding.QtWidgets import (
     QAbstractItemView,
     QLineEdit,
     QDialogButtonBox,
-    QFormLayout
-
+    QFormLayout,
+    QCheckBox,
+    QLabel
 )
 from python_qt_binding.QtCore import QTimer, QObject, QRunnable, QThreadPool, pyqtProperty, pyqtSignal, pyqtSlot
 from python_qt_binding.QtGui import QColor
@@ -167,16 +168,22 @@ class CameraStatusWidget(QWidget):
             if topic_name == CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"] and \
                     len(publishing_nodes) > 0:
                 if self.subscriber is None:
-                    self.subscriber = rospy.Subscriber(
-                        CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"],
-                        DiagnosticArray,
-                        self.ping_response
-                    )
+                    self.create_new_subscriber()
                 return
 
         if self.subscriber is not None:
-            self.subscriber.unregister()
-            self.subscriber = None
+            self.remove_subscriber()
+
+    def create_new_subscriber(self):
+        self.subscriber = rospy.Subscriber(
+            CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"],
+            DiagnosticArray,
+            self.ping_response
+        )
+
+    def remove_subscriber(self):
+        self.subscriber.unregister()
+        self.subscriber = None
 
     def check_buttons_enabled(self):
         service_list = rosservice.get_service_list()
@@ -219,6 +226,7 @@ class CameraStatusWidget(QWidget):
             alert.exec_()
 
     def ping_response(self, response):
+        rospy.loginfo(f"ping response {response.status[0].name}")
         # This method is called when a new message is published to the ping topic
 
         # Make sure response hostname matches self.ping_hostname before proceeding
@@ -261,12 +269,12 @@ class CameraStatusWidget(QWidget):
         self.status_table.setItem(type_info["index"], 2, timestamp_item)
 
     def help(self):
-        text = "This widget allows you to check the status of the cameras on the robot.\n" + \
+        text = "This widget allows you to check the status of the cameras on the robot.\n\n" + \
             "To check if the stereo camera can be pinged, launch cv/ping_host.launch. This plugin will only " + \
-            f"display the ping status for {self.ping_hostname}.\n" + \
+            f"display the ping status for {self.ping_hostname}.\n\n" + \
             "To check if the mono and stereo cameras are connected, launch cv/camera_test_connect.launch and click " + \
             "the 'Mono' and 'Stereo' buttons. If camera_test_connect.launch is not running, the buttons will be " + \
-            f"disabled. The channel used for the mono camera is {self.usb_channel}.\n" + \
+            f"disabled. The channel used for the mono camera is {self.usb_channel}.\n\n" + \
             "To change the ping hostname or mono camera channel, click the settings icon."
 
         alert = QMessageBox()
@@ -276,9 +284,12 @@ class CameraStatusWidget(QWidget):
         alert.exec_()
 
     def settings(self):
-        settings = CameraStatusWidgetSettings(self.ping_hostname, self.usb_channel)
-        if settings.exec():
-            self.ping_hostname, self.usb_channel = settings.values()
+        settings = CameraStatusWidgetSettings(self, self.ping_hostname, self.usb_channel)
+        if settings.exec_():
+            self.hostname, self.channel, restart_ping = settings.get_values()
+            if restart_ping and self.subscriber is not None:
+                self.remove_subscriber()
+                self.create_new_subscriber()
 
     def close(self):
         self.timer.stop()
@@ -286,8 +297,8 @@ class CameraStatusWidget(QWidget):
         if self.log and self.log.isVisible():
             self.log.close()
 
-        if self.subscriber:
-            self.subscriber.unregister()
+        if self.subscriber is not None:
+            self.remove_subscriber()
 
         self.threadpool.clear()
         if self.threadpool.activeThreadCount() > 0:
@@ -373,20 +384,30 @@ class CameraStatusWidgetSettings(QDialog):
         super().__init__(parent)
 
         self.ping_hostname_line_edit = QLineEdit(self)
-        self.ping_hostname_line_edit.setValue(ping_hostname)
+        self.ping_hostname_line_edit.setText(str(ping_hostname))
 
         self.usb_channel_line_edit = QLineEdit(self)
-        self.usb_channel_line_edit.setValue(usb_channel)
+        self.usb_channel_line_edit.setText(str(usb_channel))
+
+        self.restart_ping_subscriber_checkbox = QCheckBox(self)
+        self.restart_ping_subscriber_label = QLabel("Restart Ping Subscriber (?)", self)
+        self.restart_ping_subscriber_label.setToolTip("If checked, the ping subscriber will be restarted when the" + \
+                                                      "settings are saved. This is useful if the ping hostname has " + \
+                                                      "changed, ping_host.launch has been recently restarted, or " + \
+                                                      "if the plugin does not appear to receive ping messages even" + \
+                                                      "though ping_host.launch is running.")
 
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
 
         layout = QFormLayout(self)
-        layout.addRow("Ping Hostname", self.first)
-        layout.addRow("USB Channel", self.second)
+        layout.addRow("Ping Hostname", self.ping_hostname_line_edit)
+        layout.addRow("USB Channel", self.usb_channel_line_edit)
+        layout.addRow(self.restart_ping_subscriber_label, self.restart_ping_subscriber_checkbox)
         layout.addWidget(buttonBox)
 
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
 
     def get_values(self):
-        return (self.ping_hostname_line_edit.text(), self.usb_channel_line_edit.text())
+        return (self.ping_hostname_line_edit.text(), self.usb_channel_line_edit.text(),
+                self.restart_ping_subscriber_checkbox.isChecked())
