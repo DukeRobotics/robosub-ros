@@ -339,7 +339,6 @@ class DepthAISpatialDetector:
         published_pose.orientation.y = 0
         published_pose.orientation.z = 0
         published_pose.orientation.w = 1
-
         self.pose_publisher.publish(published_pose)
 
         if self.publishers:
