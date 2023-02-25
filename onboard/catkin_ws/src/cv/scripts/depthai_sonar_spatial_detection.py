@@ -226,7 +226,6 @@ class DepthAISpatialDetector:
         #                                                                       blocking=False)
         # self.output_queues["depth"] = device.getOutputQueue(
         #     name="depth", maxSize=1, blocking=False)
-        self.connected = True
 
         self.detection_visualizer = DetectionVisualizer(self.classes)
 
@@ -234,8 +233,6 @@ class DepthAISpatialDetector:
         """
         Get current detections from output queues and publish.
         """
-        if not self.connected:
-            return
 
         inPreview = self.output_queues["rgb"].get()
         inDet = self.output_queues["detections"].get()
@@ -273,9 +270,12 @@ class DepthAISpatialDetector:
 
             # Get sonar sweep range
             (left_end, right_end) = coords_to_angle(
-                detection.xmin, detection.xmax)
-            center = (left_end + right_end) / 2.0
-            breadth = abs(center - left_end)
+                (detection.xmin - 0.5)*416*0.5, (detection.xmax - 0.5)*416*0.5)
+
+            rospy.loginfo("LEFT")
+            rospy.loginfo(left_end)
+            rospy.loginfo("RIGHT")
+            rospy.loginfo(right_end)
 
             x_cam_meters = mm_to_meters(x_cam_mm)
             y_cam_meters = mm_to_meters(y_cam_mm)
@@ -287,7 +287,6 @@ class DepthAISpatialDetector:
 
             # Create a new sonar request msg object
             sonar_request_msg = sweepGoal()
-            sonar_request_msg.type = "buoy"
             sonar_request_msg.start_angle = left_end
             sonar_request_msg.end_angle = right_end
             sonar_request_msg.distance_of_scan = SONAR_DEPTH
@@ -340,11 +339,11 @@ class DepthAISpatialDetector:
         published_pose.orientation.z = 0
         published_pose.orientation.w = 1
 
-        self.pose_publisher.publish()
+        self.pose_publisher.publish(published_pose)
 
         if self.publishers:
             self.publishers[label].publish(object_msg)
-        
+
 
     def run_model(self, req):
         """
@@ -368,7 +367,7 @@ class DepthAISpatialDetector:
                 # loop_rate.sleep()
 
         return True
-    
+
     def update_sonar(self, sonar_results):
         self.sonar_response = (sonar_results.x_pos, sonar_results.y_pos)
 

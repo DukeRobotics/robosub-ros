@@ -3,6 +3,7 @@ import rospy
 from sonar import Sonar
 from custom_msgs.msg import sweepResult, sweepGoal
 from sonar_utils import degrees_to_centered_gradians
+from sonar_image_processing import *
 
 class SonarPublisher:
 
@@ -26,10 +27,14 @@ class SonarPublisher:
         # center_gradians = degrees_to_centered_gradians(request.center_degrees)
         # breadth_gradians = degrees_to_centered_gradians(request.breadth_degrees)
 
+        left_gradians = degrees_to_centered_gradians(request.start_angle)
+        right_gradians = degrees_to_centered_gradians(request.end_angle)
+
         # left = max(center_gradians - breadth_gradians, 0)
         # right = min(center_gradians + breadth_gradians, 400)
 
-        sonar_xy_result = self.sonar.get_xy_of_object_in_sweep(request.start_angle,request.end_angle)
+        sonar_xy_result = self.sonar.get_xy_of_object_in_sweep(left_gradians, right_gradians)
+        scan_and_build_sonar_image(self.sonar, False, jpeg_save_path="Sonar_Image.jpeg", start_angle=left_gradians, end_angle=right_gradians)
         #sonar_xy_result = (resp, 200)
 
         response = sweepResult()
@@ -37,7 +42,7 @@ class SonarPublisher:
         response.y_pos = sonar_xy_result[1]
         #rospy.loginfo("publishing")
         self._pub_request.publish(response)
-        
+
 
     def run(self):
         rospy.Subscriber(self.SONAR_REQUEST_TOPIC, sweepGoal, self.on_request)

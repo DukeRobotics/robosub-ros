@@ -25,16 +25,16 @@ class TestStatePublisher:
     def __init__(self):
         rospy.init_node('test_state_publisher')
         self.listener = TransformListener()
-        rospy.Subscriber("/controls/x_pos/setpoint", Float64, self._on_receive_data_x)
-        rospy.Subscriber("/controls/y_pos/setpoint", Float64, self._on_receive_data_y)
-        rospy.Subscriber("/controls/z_pos/setpoint", Float64, self._on_receive_data_z)
-        rospy.Subscriber("/controls/yaw_pos/setpoint", Float64, self._on_receive_data_yaw)
+        # rospy.Subscriber("/controls/x_pos/setpoint", Float64, self._on_receive_data_x)
+        # rospy.Subscriber("/controls/y_pos/setpoint", Float64, self._on_receive_data_y)
+        # rospy.Subscriber("/controls/z_pos/setpoint", Float64, self._on_receive_data_z)
+        # rospy.Subscriber("/controls/yaw_pos/setpoint", Float64, self._on_receive_data_yaw)
         rospy.Subscriber("/cv/pose", Pose, self.on_cv_get)
 
-        self.current_setpoint = [100.0, 100.0, 100.0]  # x,y,z
-        self.MOVE_OFFSET_CONSTANT = 1
-        self.current_yaw = 100.0
-        self.MOVE_OFFSET_CONSTANT_ANGULAR = 0.2
+        # self.current_setpoint = [100.0, 100.0, 100.0]  # x,y,z
+        # self.MOVE_OFFSET_CONSTANT = 1
+        # self.current_yaw = 100.0
+        # self.MOVE_OFFSET_CONSTANT_ANGULAR = 0.2
 
         self.listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(10))
 
@@ -48,25 +48,25 @@ class TestStatePublisher:
         self._desired_power_client.wait_for_server()
 
         # These values correspond to the desired global pose of the robot
-        self.desired_pose_global = Pose()
-        self.desired_pose_global.position.x = 0
-        self.desired_pose_global.position.y = 0
-        self.desired_pose_global.position.z = 0
-        self.desired_pose_global.orientation.x = 0
-        self.desired_pose_global.orientation.y = 0
-        self.desired_pose_global.orientation.z = 0
-        self.desired_pose_global.orientation.w = 1
+        # self.desired_pose_global = Pose()
+        # self.desired_pose_global.position.x = 0
+        # self.desired_pose_global.position.y = 0
+        # self.desired_pose_global.position.z = 0
+        # self.desired_pose_global.orientation.x = 0
+        # self.desired_pose_global.orientation.y = 0
+        # self.desired_pose_global.orientation.z = 0
+        # self.desired_pose_global.orientation.w = 1
 
         # These values correspond to the desired local pose of the robot
-        self.desired_pose_local = Pose()
-        self.desired_pose_local.position.x = 0
-        self.desired_pose_local.position.y = 0
-        self.desired_pose_local.position.z = 0
-        self.desired_pose_local.orientation.x = 0
-        self.desired_pose_local.orientation.y = 0
-        self.desired_pose_local.orientation.z = 0
-        self.desired_pose_local.orientation.w = 1
-        self.recalculate_local_pose()
+        # self.desired_pose_local = Pose()
+        # self.desired_pose_local.position.x = 0
+        # self.desired_pose_local.position.y = 0
+        # self.desired_pose_local.position.z = 0
+        # self.desired_pose_local.orientation.x = 0
+        # self.desired_pose_local.orientation.y = 0
+        # self.desired_pose_local.orientation.z = 0
+        # self.desired_pose_local.orientation.w = 1
+        # self.recalculate_local_pose()
 
         # These values correspond to the desired local twist for the robot
         # Max linear z speed is ~ -0.26 -- ignore (for different mass)
@@ -240,7 +240,7 @@ class TestStatePublisher:
         self.current_yaw = data.data
 
     def on_cv_get(self, data):
-        self.desired_pose_local = data.data
+        self.desired_pose_local = data
         self.recalculate_local_pose()
 
 def main():
@@ -249,7 +249,7 @@ def main():
     # TestStatePublisher().publish_desired_twist()
     # TestStatePublisher().publish_desired_power()
     #TestStatePublisher().publish_desired_pose_local()
-    while not rospy.isshutdown:
+    while not rospy.is_shutdown():
         TestStatePublisher().publish_desired_pose_local()
         time.sleep(1)
 

@@ -30,7 +30,7 @@ class SonarTest:
 
         end_time = time.perf_counter()
         delta_time = end_time - start_time
-        rospy.loginfo("Delta time: ", delta_time)
+        # rospy.loginfo("Delta time: ", delta_time)
 
         if not (result == (0, 0)):
             rospy.loginfo(result)
