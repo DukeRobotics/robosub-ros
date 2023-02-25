@@ -395,10 +395,10 @@ class CameraStatusWidgetSettings(QDialog):
 
         self.restart_ping_subscriber_checkbox = QCheckBox(self)
         self.restart_ping_subscriber_label = QLabel("Restart Ping Subscriber (?)", self)
-        self.restart_ping_subscriber_label.setToolTip("If checked, the ping subscriber will be restarted when the " + \
-                                                      "settings are saved. This is useful if the ping hostname has " + \
-                                                      "changed, ping_host.launch has been recently restarted, or " + \
-                                                      "if the plugin does not appear to receive ping messages even" + \
+        self.restart_ping_subscriber_label.setToolTip("If checked, the ping subscriber will be restarted when the " +
+                                                      "settings are saved. This is useful if the ping hostname has " +
+                                                      "changed, ping_host.launch has been recently restarted, or " +
+                                                      "if the plugin does not appear to receive ping messages even" +
                                                       "though ping_host.launch is running.")
 
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
