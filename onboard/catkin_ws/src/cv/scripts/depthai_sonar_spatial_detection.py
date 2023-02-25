@@ -14,9 +14,8 @@ import math
 from custom_msgs.srv import EnableModel
 from custom_msgs.msg import CVObject
 from custom_msgs.msg import sweepResult, sweepGoal
-# from custom_msgs.msg import SonarRequest
-# from custom_msgs.msg import SonarResponse
 from sensor_msgs.msg import Image
+from geometry_msgs.msg import Pose
 
 
 MM_IN_METER = 1000
@@ -56,6 +55,8 @@ class DepthAISpatialDetector:
 
         self.sonar_requests_publisher = rospy.Publisher("sonar/request", sweepGoal, queue_size=10)
         self.sonar_response_subscriber = rospy.Subscriber("sonar/cv/response", sweepResult, self.update_sonar)
+
+        self.pose_publisher = rospy.Publisher("cv/pose", Pose, queue_size = 10)
 
     def build_pipeline(self, nn_blob_path, sync_nn=True):
         """
@@ -330,8 +331,20 @@ class DepthAISpatialDetector:
 
         object_msg.sonar = using_sonar
 
+        published_pose = Pose()
+        published_pose.position.x = object_msg.coords.x
+        published_pose.position.y = object_msg.coords.y
+        published_pose.position.z = object_msg.coords.z
+        published_pose.orientation.x = 0
+        published_pose.orientation.y = 0
+        published_pose.orientation.z = 0
+        published_pose.orientation.w = 1
+
+        self.pose_publisher.publish(published_pose)
+
         if self.publishers:
             self.publishers[label].publish(object_msg)
+        
 
     def run_model(self, req):
         """
