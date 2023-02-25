@@ -339,7 +339,8 @@ class DepthAISpatialDetector:
         published_pose.orientation.y = 0
         published_pose.orientation.z = 0
         published_pose.orientation.w = 1
-        self.pose_publisher.publish(published_pose)
+
+        self.pose_publisher.publish()
 
         if self.publishers:
             self.publishers[label].publish(object_msg)
@@ -361,10 +362,10 @@ class DepthAISpatialDetector:
         with depthai_camera_connect.connect(self.pipeline) as device:
             self.init_output_queues(device)
 
-            loop_rate = rospy.Rate(1)
+            # loop_rate = rospy.Rate(1)
             while not rospy.is_shutdown():
                 self.detect()
-                loop_rate.sleep()
+                # loop_rate.sleep()
 
         return True
     
