@@ -38,3 +38,7 @@ class SystemUsageWidget(QWidget):
         enabled = rospy.Time.now() - self.last_system_time < rospy.Duration(2)
         self.cpu_value.setEnabled(enabled)
         self.ram_value.setEnabled(enabled)
+
+    def close(self):
+        self.system_sub_timer.stop()
+        self.system_sub.unregister()
