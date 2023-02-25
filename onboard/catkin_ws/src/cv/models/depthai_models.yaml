@@ -6,6 +6,8 @@ gate:
   coordinate_size: 4
   anchors: [10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]
   anchor_masks: {"side26": [0, 1, 2], "side13": [3, 4, 5]}
+  iou_threshold: 0.5
+  confidence_threshold: 0.5
 
 gate_buoy:
   classes: ['buoy_bootlegger', 'buoy_gman', 'gate']
@@ -15,3 +17,38 @@ gate_buoy:
   coordinate_size: 4
   anchors: [10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]
   anchor_masks: {"side26": [0, 1, 2], "side13": [3, 4, 5]}
+  iou_threshold: 0.5
+  confidence_threshold: 0.5
+
+yolov8s-incorrect:
+  classes: ['buoy_bootlegger', 'buoy_gman', 'gate']
+  topic: cv/
+  weights: best_openvino_2021.4_6shave.blob
+  input_size: [640, 640]
+  coordinate_size: 4
+  anchors: []
+  anchor_masks: {}
+  iou_threshold: 0.7
+  confidence_threshold: 0.001
+
+yolov8s-correct:
+  classes: ['buoy_bootlegger', 'buoy_gman', 'gate']
+  topic: cv/
+  weights: correctsizeweights_openvino_2021.4_6shave.blob
+  input_size: [416, 416]
+  coordinate_size: 4
+  anchors: []
+  anchor_masks: {}
+  iou_threshold: 0.7
+  confidence_threshold: 0.001
+
+yolov8n:
+  classes: ['buoy_bootlegger', 'buoy_gman', 'gate']
+  topic: cv/
+  weights: weights_openvino_2021.4_6shave.blob
+  input_size: [416, 416]
+  coordinate_size: 4
+  anchors: []
+  anchor_masks: {}
+  iou_threshold: 0.7
+  confidence_threshold: 0.001

@@ -83,13 +83,13 @@ class DepthAISpatialDetector:
 
         xout_rgb = pipeline.create(dai.node.XLinkOut)
         xout_nn = pipeline.create(dai.node.XLinkOut)
-        xout_bounding_box_depth_mapping = pipeline.create(dai.node.XLinkOut)
-        xout_depth = pipeline.create(dai.node.XLinkOut)
+        # xout_bounding_box_depth_mapping = pipeline.create(dai.node.XLinkOut)
+        # xout_depth = pipeline.create(dai.node.XLinkOut)
 
         xout_rgb.setStreamName("rgb")
         xout_nn.setStreamName("detections")
-        xout_bounding_box_depth_mapping.setStreamName("boundingBoxDepthMapping")
-        xout_depth.setStreamName("depth")
+        # xout_bounding_box_depth_mapping.setStreamName("boundingBoxDepthMapping")
+        # xout_depth.setStreamName("depth")
 
         # Properties
         cam_rgb.setPreviewSize(model['input_size'])
@@ -107,7 +107,7 @@ class DepthAISpatialDetector:
         stereo.setDepthAlign(dai.CameraBoardSocket.RGB)
 
         spatial_detection_network.setBlobPath(nn_blob_path)
-        spatial_detection_network.setConfidenceThreshold(0.5)
+        spatial_detection_network.setConfidenceThreshold(model['confidence_threshold'])
         spatial_detection_network.input.setBlocking(False)
         spatial_detection_network.setBoundingBoxScaleFactor(0.5)
         spatial_detection_network.setDepthLowerThreshold(100)
@@ -118,7 +118,7 @@ class DepthAISpatialDetector:
         spatial_detection_network.setCoordinateSize(model['coordinate_size'])
         spatial_detection_network.setAnchors(np.array(model['anchors']))
         spatial_detection_network.setAnchorMasks(model['anchor_masks'])
-        spatial_detection_network.setIouThreshold(0.5)
+        spatial_detection_network.setIouThreshold(model['iou_threshold'])
 
         # Linking
         mono_left.out.link(stereo.left)
@@ -131,10 +131,10 @@ class DepthAISpatialDetector:
             cam_rgb.preview.link(xout_rgb.input)
 
         spatial_detection_network.out.link(xout_nn.input)
-        spatial_detection_network.boundingBoxMapping.link(xout_bounding_box_depth_mapping.input)
+        # spatial_detection_network.boundingBoxMapping.link(xout_bounding_box_depth_mapping.input)
 
         stereo.depth.link(spatial_detection_network.inputDepth)
-        spatial_detection_network.passthroughDepth.link(xout_depth.input)
+        # spatial_detection_network.passthroughDepth.link(xout_depth.input)
 
         return pipeline
 
@@ -198,9 +198,9 @@ class DepthAISpatialDetector:
 
         self.output_queues["rgb"] = device.getOutputQueue(name="rgb", maxSize=1, blocking=False)
         self.output_queues["detections"] = device.getOutputQueue(name="detections", maxSize=1, blocking=False)
-        self.output_queues["boundingBoxDepthMapping"] = device.getOutputQueue(name="boundingBoxDepthMapping", maxSize=1,
-                                                                              blocking=False)
-        self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
+        # self.output_queues["boundingBoxDepthMapping"] = device.getOutputQueue(name="boundingBoxDepthMapping", maxSize=1,
+        #                                                                      blocking=False)
+        # self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
         self.connected = True
 
         self.detection_visualizer = DetectionVisualizer(self.classes)
@@ -217,6 +217,11 @@ class DepthAISpatialDetector:
 
         frame = inPreview.getCvFrame()
         detections = inDet.detections
+
+        # detections = []
+        # for detection in pre_detections:
+        #     if detection.confidence >= 0.8:
+        #         detections.append(detection)
 
         frame_img_msg = self.bridge.cv2_to_imgmsg(frame, 'bgr8')
         self.rgb_preview_publisher.publish(frame_img_msg)
@@ -298,10 +303,8 @@ class DepthAISpatialDetector:
         with depthai_camera_connect.connect(self.pipeline) as device:
             self.init_output_queues(device)
 
-            loop_rate = rospy.Rate(1)
             while not rospy.is_shutdown():
                 self.detect()
-                loop_rate.sleep()
 
         return True
 
