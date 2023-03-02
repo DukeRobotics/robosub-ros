@@ -378,11 +378,8 @@ class DepthAISpatialDetector:
 
         with depthai_camera_connect.connect(self.pipeline) as device:
             self.init_output_queues(device)
-
-            # loop_rate = rospy.Rate(1)
             while not rospy.is_shutdown():
                 self.detect()
-                # loop_rate.sleep()
 
         return True
 
