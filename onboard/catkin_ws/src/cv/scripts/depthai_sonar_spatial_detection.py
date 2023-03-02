@@ -73,9 +73,9 @@ class DepthAISpatialDetector:
         https://docs.luxonis.com/projects/api/en/latest/.
         This pipeline computes the depth map using the two mono cameras. This
         depth map and the RGB feed are fed into the YoloSpatialDetection Node,
-        which detects objects and computes the average depth within the 
-        bounding box for any detected object. The object detection model for 
-        this node is loaded from the nnBlobPath. For info about the 
+        which detects objects and computes the average depth within the
+        bounding box for any detected object. The object detection model for
+        this node is loaded from the nnBlobPath. For info about the
         YoloSpatialDetection Node, see
         https://docs.luxonis.com/projects/api/en/latest/components/nodes/yolo_spatial_detection_network/.
         The output queues available from this pipeline are:
@@ -264,7 +264,7 @@ class DepthAISpatialDetector:
             label = self.classes[label_idx]
 
             confidence = detection.confidence
-            # x is left/right axis, where 0 is in middle of the frame, 
+            # x is left/right axis, where 0 is in middle of the frame,
             #   to the left is negative x, and to the right is positive x
             # y is down/up axis, where 0 is in the middle of the frame,
             # down is negative y, and up is positive y z is distance of
@@ -403,7 +403,7 @@ class DepthAISpatialDetector:
         """
         Wait for the EnableModel rosservice call. If this call is made,
             the model specified will be run.
-        For information about EnableModel, 
+        For information about EnableModel,
             see robosub-ros/core/catkin_ws/src/custom_msgs/srv/EnableModel.srv
 
         Example ros commands to run this node and activate the model:
