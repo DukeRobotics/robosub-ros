@@ -18,7 +18,7 @@ def transform_pose(listener, pose):
     Returns:
         Pose: Pose in target reference frame
     """
-    
+
     pose_stamped = PoseStamped()
     pose_stamped.pose = pose
     pose_stamped.header.frame_id = "sonar_link"
