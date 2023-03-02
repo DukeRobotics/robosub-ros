@@ -10,7 +10,7 @@ from custom_msgs.msg import sweepAction, sweepResult
 roslib.load_manifest('sonar')
 
 
-""" The  following messages are created by the .action file
+The  following messages are created by the .action file
     sweepAction.msg
     sweepActionGoal.msg
     sweepActionResult.msg
@@ -26,7 +26,6 @@ roslib.load_manifest('sonar')
     sweepFeedback.msg               #sent as continuous feedback to the robot
                                     (not implimented)
         int32 current_angle
-"""
 
 
 class SonarServer:
@@ -36,11 +35,10 @@ class SonarServer:
     ACTION_NAME = "sonar_sweep"
 
     def __init__(self):
-        """ Creates action server with the sweepAction
+        Creates action server with the sweepAction
 
         Callback: Runs the execute method
 
-        """
         # 5m range
         self._sonar = Sonar()
 
