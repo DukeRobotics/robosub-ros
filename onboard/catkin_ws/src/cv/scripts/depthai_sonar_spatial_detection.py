@@ -275,6 +275,8 @@ class DepthAISpatialDetector:
             # Get sonar sweep range
             (left_end, right_end) = coords_to_angle(
                 detection.xmin, detection.xmax)
+                (detection.xmin - 0.5)*416*0.5, (detection.xmax - 0.5)*416*0.5))
+
 
             x_cam_meters = mm_to_meters(x_cam_mm)
             y_cam_meters = mm_to_meters(y_cam_mm)
@@ -285,7 +287,6 @@ class DepthAISpatialDetector:
 
             # Create a new sonar request msg object
             sonar_request_msg = sweepGoal()
-            sonar_request_msg.type = "buoy"
             sonar_request_msg.start_angle = left_end
             sonar_request_msg.end_angle = right_end
             sonar_request_msg.distance_of_scan = SONAR_DEPTH
@@ -348,6 +349,17 @@ class DepthAISpatialDetector:
 
         object_msg.sonar = using_sonar
 
+        published_pose = Pose()
+        published_pose.position.x = object_msg.coords.x
+        published_pose.position.y = object_msg.coords.y
+        published_pose.position.z = object_msg.coords.z
+        published_pose.orientation.x = 0
+        published_pose.orientation.y = 0
+        published_pose.orientation.z = 0
+        published_pose.orientation.w = 1
+
+        self.pose_publisher.publish()
+
         if self.publishers:
             self.publishers[label].publish(object_msg)
 
@@ -373,7 +385,7 @@ class DepthAISpatialDetector:
                 # loop_rate.sleep()
 
         return True
-    
+
     def update_sonar(self, sonar_results):
         """
         Callback function for listenting to sonar response
