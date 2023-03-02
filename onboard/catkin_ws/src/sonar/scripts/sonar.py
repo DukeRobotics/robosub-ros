@@ -221,7 +221,7 @@ class Sonar:
 
         transformed_pose = sonar_utils.transform_pose(
             self.listener, pos_of_point)
-        
+
         return transformed_pose
 
 
