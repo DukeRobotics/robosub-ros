@@ -274,9 +274,7 @@ class DepthAISpatialDetector:
 
             # Get sonar sweep range
             (left_end, right_end) = coords_to_angle(
-                detection.xmin, detection.xmax)
-                (detection.xmin - 0.5)*416*0.5, (detection.xmax - 0.5)*416*0.5))
-
+                (detection.xmin - 0.5)*416*0.5, (detection.xmax - 0.5)*416*0.5)
 
             x_cam_meters = mm_to_meters(x_cam_mm)
             y_cam_meters = mm_to_meters(y_cam_mm)
