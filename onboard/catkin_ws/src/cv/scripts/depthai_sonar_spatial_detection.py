@@ -80,8 +80,8 @@ class DepthAISpatialDetector:
         https://docs.luxonis.com/projects/api/en/latest/components/nodes/yolo_spatial_detection_network/.
         The output queues available from this pipeline are:
             - "rgb": contains the 400x400 RGB preview of the camera feed.
-            - "detections": contains SpatialImgDetections messages (https://docs.luxonis.com/projects/api/en/latest/
-            components/messages/spatial_img_detections/#spatialimgdetections),
+            - "detections": contains SpatialImgDetections messages
+            (https://docs.luxonis.com/projects/api/en/latest/components/messages/spatial_img_detections/#spatialimgdetections),
             which includes bounding boxes for
             detections as well as XYZ coordinates of the detected objects.
             - "boundingBoxDepthMapping": contains
@@ -90,7 +90,8 @@ class DepthAISpatialDetector:
             boxes are computed and the depth map.
             - "depth": contains ImgFrame messages with UINT16 values
             representing the depth in millimeters by default.
-                       See the depth of https://docs.luxonis.com/projects/api/en/latest/components/nodes/stereo_depth/
+                       See the depth of
+                       https://docs.luxonis.com/projects/api/en/latest/components/nodes/stereo_depth/
 
         :param nn_blob_path: Path to blob file used for object detection.
         :param sync_nn: If True, sync the RGB output feed with the detection
@@ -274,7 +275,8 @@ class DepthAISpatialDetector:
 
             # Get sonar sweep range
             (left_end, right_end) = coords_to_angle(
-                (detection.xmin - 0.5)*416*0.5, (detection.xmax - 0.5)*416*0.5)
+                (detection.xmin - 0.5) * CAMERA_PIXEL_WIDTH,
+                (detection.xmax - 0.5) * CAMERA_PIXEL_WIDTH)
 
             x_cam_meters = mm_to_meters(x_cam_mm)
             y_cam_meters = mm_to_meters(y_cam_mm)
