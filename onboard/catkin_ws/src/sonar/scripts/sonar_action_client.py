@@ -1,3 +1,6 @@
+"""
+DEPRECATED CODE
+
 import rospy
 import actionlib
 from custom_msgs.msg import sweepAction, sweepGoal
@@ -39,3 +42,4 @@ if __name__ == '__main__':
         print(result)
     except rospy.ROSInterruptException:
         print("program interrupted before completion")
+"""

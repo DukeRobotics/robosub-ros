@@ -1,3 +1,5 @@
+"""
+DEPRECATED CODE
 #!/usr/bin/env python3
 
 import roslib
@@ -62,3 +64,4 @@ class SonarServer:
 
 if __name__ == '__main__':
     SonarServer()
+"""
