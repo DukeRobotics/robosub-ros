@@ -12,8 +12,6 @@ def transform_pose(listener, pose):
 
     Args:
         listener (TransformListener): Transform listener
-        base_frame (str): Name of the base frame
-        target_frame (str): Name of the target frame
         pose (Pose): Pose in base reference frame to transform
                      into target frame
 
@@ -25,7 +23,7 @@ def transform_pose(listener, pose):
     pose_stamped.pose = pose
     pose_stamped.header.frame_id = "sonar_link"
 
-    return listener.transformPose("base_link", pose_stamped).pose
+    return listener.transformPose("cameras_link", pose_stamped).pose
 
 
 def centered_gradians_to_radians(angle_gradians):
