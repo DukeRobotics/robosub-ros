@@ -1,6 +1,5 @@
 <launch>
     <arg name="feed_path" default="" />
     <node name="depthai_sonar_spatial_detection" pkg="cv" type="depthai_sonar_spatial_detection.py" output="screen">
-        <param name="feed_path" value="$(arg feed_path)" />
     </node>
 </launch>
