@@ -1,3 +1,0 @@
-<launch>
-    <node name="sonar_test" pkg="cv" type="sonar_test.py" output="screen"/>
-</launch>

@@ -176,7 +176,7 @@ class DepthAISpatialDetector:
 
         gate:
             classes: ['gate', 'gate_side', 'gate_tick', 'gate_top',
-                        'start_gate']
+                      'start_gate']
             topic: cv/
             weights: yolo_v4_tiny_openvino_2021.3_6shave-2022-7-21_416_416.blob
             input_size: [416, 416]
@@ -322,14 +322,14 @@ class DepthAISpatialDetector:
                 /cv/[camera]/[label].
 
         :param bbox: Tuple for the bounding box. Values are from 0-1,
-                where X increases left to right and Y increases.
+                     where X increases left to right and Y increases.
         :param det_coords: Tuple with the X, Y, and Z values in meters,
-                and in the robot rotational reference frame.
+                            and in the robot rotational reference frame.
         :param label: Predicted label for the detection.
         :param confidence: Confidence for the detection, from 0 to 1.
         :param shape: Tuple with the (height, width) of the image.
         :param using_sonar: Boolean representing whether or not data
-                was retrieved from sonar.
+                            was retrieved from sonar.
         """
         object_msg = CVObject()
         object_msg.label = label

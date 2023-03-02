@@ -6,6 +6,9 @@ from sonar_utils import degrees_to_centered_gradians
 from sonar_image_processing import scan_and_build_sonar_image
 
 
+DEBUG_MODE = False
+
+
 class SonarPublisher:
 
     SONAR_REQUEST_TOPIC = 'sonar/request'
@@ -31,10 +34,12 @@ class SonarPublisher:
 
         sonar_xy_result = self.sonar.get_xy_of_object_in_sweep(left_gradians,
                                                                right_gradians)
-        scan_and_build_sonar_image(self.sonar, False,
-                                   jpeg_save_path="Sonar_Image.jpeg",
-                                   start_angle=left_gradians, 
-                                   end_angle=right_gradians)
+        
+        if DEBUG_MODE:
+            scan_and_build_sonar_image(self.sonar, False,
+                                       jpeg_save_path="Sonar_Image.jpeg",
+                                       start_angle=left_gradians,
+                                       end_angle=right_gradians)
 
         response = sweepResult()
         response.x_pos = sonar_xy_result[0]
