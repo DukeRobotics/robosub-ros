@@ -1,8 +1,8 @@
 # Computer Vision
 
-The computer vision package listens for images/frames coming from multiple cameras. The package 
-will then run pre-trained machine learning models frames from each camera and output bounding boxes for the various objects 
-in the frames. These objects could be the gate, buoys, etc. The package will publish to different topics depending 
+The computer vision package listens for images/frames coming from multiple cameras. The package
+will then run pre-trained machine learning models frames from each camera and output bounding boxes for the various objects
+in the frames. These objects could be the gate, buoys, etc. The package will publish to different topics depending
 on which classes are being detected and which cameras are being used.
 
 ## DepthAI Camera
@@ -11,20 +11,20 @@ This package contains code for the Luxonis OAK-D PoE camera, which uses a python
 ### Running the Code
 To stream the feed or perform spatial detection using the OAK camera, use `roslaunch` with the following three files.
 * `depthai_camera_connect.launch`: Connects to the DepthAI camera. If connection is successful, prints a success message to console. If connection is unsucessful, an error is raised.
-* `depthai_publish_image_stream.launch`: Streams the live feed from the camera. You can choose what to publish from the camera (rgb video, rgb preview, left mono, right mono, disparity map, and depth map) by setting the appropriate boolean parameters.
+* `depthai_publish_save_video.launch`: Streams the live feed from the camera. You can choose what to publish from the camera (rgb video, rgb preview, left mono, right mono, disparity map, and depth map) by setting the appropriate boolean parameters.
 * `depthai_spatial_detection.launch`: Runs spatial detection. Waits for a enable_model rosservice call to specify what model to activate. This requires a valid `.blob` file in `models/` and the path to this `.blob` file should be specified in the `depthai_models.yaml` file. For more information about these files, see the code structure outline below. This will publish `CVObject` messages to a topic for each class that the model detects, unaltered rgb preview frames that were input to the neural netowrk, and rgb preview frames with bounding boxes, classes, and confidence values overlaid.
 * `depthai_simulate_detection.launch`: Runs spatial detection on a still image, or on a image stream launched by running `test_images.py` [(see Simulating Image Feeds)](#simulating-image-feeds), on the DepthAI camera. Uses the model specified in arguments. If a still image is input, a JPEG file will be created that is the original image with detections visualized. If an image stream is input, CVObject messages will be published to the topic provided (all classes are published to a single topic), and a live feed of images with detections visualized is also published.
 
 ### Structure
 `scripts/`
 * `depthai_camera_connect.py`: Connects to the OAK camera and uploads the image pipeline. Used by all other DepthAI scripts.
-* `depthai_publish_image_stream.py`: Publishes a preview of the image feed from the OAK camera. This can be used to verify connection to the camera and to check if there are any issues with the camera feed.
+* `depthai_publish_save_video.py`: Publishes a preview of the image feed from the OAK camera. This can be used to verify connection to the camera and to check if there are any issues with the camera feed.
 * `depthai_spatial_detection.py`: Waits for an enable_model rosservice call, and then publishes spatial detections using the model specified in the service call and in depthai_models.yaml.
 * `depthai_simulate_detection.launch`: Runs spatial detection on a user-specified DepthAI model using a still image or image feed as input.
 
 `launch/`
 * `depthai_camera_connext.launch`: Connects to the OAK camera and uploads the image pipeline.
-* `depthai_publish_image_stream.launch`: Runs the image stream script.
+* `depthai_publish_save_video.launch`: Runs the image stream script.
 * `depthai_spatial_detection.launch`: Runs the spatial detection script.
 * `depthai_spatial_detection.launch`: Runs the simulated spatial detection script.
 
@@ -70,13 +70,13 @@ buoy:
   weights: buoy_model.pth
 ```
 
-Note: To get the model files onto the docker container, you may have to use `scp`. Also, if you come across the following error: 
+Note: To get the model files onto the docker container, you may have to use `scp`. Also, if you come across the following error:
 
 `URLError: <urlopen error [Errno -3] Temporary failure in name resolution>`
 
-Navigate to [this url](https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth) 
+Navigate to [this url](https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth)
 to manually download the default model file used by the Detecto package. Move this file onto the Docker
-container under the directory `/root/.cache/torch/checkpoints/` (do not rename the file). 
+container under the directory `/root/.cache/torch/checkpoints/` (do not rename the file).
 
 
 ## Running
@@ -91,14 +91,14 @@ where `<camera>` refers to the topic which the camera feed is published to. For 
 
 After starting up a CV node, all models are initially disabled. You can select which model(s) you
 want to enable for this camera by using the following service (where `<camera>` is the value you
-chose above): 
+chose above):
 
 * `enable_model_<camera>`
   * Takes in the model name (string) and a boolean flag to specify whether to turn the model on or off
   * Returns a boolean indicating whether the attempt was successful
   * Type: custom_msgs/EnableModel
   * E.g. `rosservice call enable_model_left buoy true` would enable the buoy model on the camera launched with `<camera>` set to `"left"`
-  
+
 Once 1+ models are enabled for a specific node, they listen and publish to topics as described below in topics.
 
 ## Topics
@@ -113,18 +113,18 @@ Once 1+ models are enabled for a specific node, they listen and publish to topic
 #### Publishing:
 
 * `cv/<camera>/<class_name>`
-  * For each camera frame feed that a model processes, it will publish predictions to this topic  
+  * For each camera frame feed that a model processes, it will publish predictions to this topic
   * `<class_name>` corresponds to one specific `class` under the `models.yaml` file for the enabled model
     (e.g. the example `bat` class above will publish to `/cv/left/bat`)
-  * For each detected object in a frame, the model will publish the `xmin`, `ymin`, `xmax`, and `ymax` 
+  * For each detected object in a frame, the model will publish the `xmin`, `ymin`, `xmax`, and `ymax`
     coordinates (normalized to \[0, 1\], with (0, 0) being the top-left corner), `label` of the object, `score` (a confidence value in the range
     of \[0, 1\]), and the `width` and `height` of the frame.
   * If a model is enabled but detects no objects in a frame, it will not publish any messages to any topic
   * Type: custom_msgs/CVObject
 
-Note that the camera feed frame rate will likely be greater than the rate at which predictions can 
+Note that the camera feed frame rate will likely be greater than the rate at which predictions can
 be generated (especially if more than one model is enabled at the same time), so the publishing rate
-could be anywhere from like 0.2 to 10 FPS depending on computing power/the GPU/other factors.  
+could be anywhere from like 0.2 to 10 FPS depending on computing power/the GPU/other factors.
 
 ## Structure
 
@@ -161,6 +161,6 @@ To simulate camera feed and then run a model on the feed from the left camera. W
 
 Examples:
 
-`roslaunch cv test_images.launch feed_path:=../assets/gate.mov topic:=/camera/left/image_raw`: Runs test_images by taking gate.mov file in cv/assets and publishes the simulated image feed to the topic '/camera/left/image_raw'. 
+`roslaunch cv test_images.launch feed_path:=../assets/gate.mov topic:=/camera/left/image_raw`: Runs test_images by taking gate.mov file in cv/assets and publishes the simulated image feed to the topic '/camera/left/image_raw'.
 
 `roslaunch cv test_images.launch feed_path:=../assets/buoy.jpg topic:=/camera/right/image_raw framerate:=30`: Publishes the still image buoy.jpg in cv/assets to the topic '/camera/right/image_raw' 30 times per second.

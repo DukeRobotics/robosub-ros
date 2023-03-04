@@ -9,7 +9,7 @@ import depthai_camera_connect
 import numpy as np
 
 
-class DepthAIImageStreamPublisher:
+class DepthAIVideoPublisherAndSaver:
     """
     Class to stream the RGB image feed from the depthai camera and publish the raw feed to STREAM_TOPIC.
     """
@@ -26,13 +26,30 @@ class DepthAIImageStreamPublisher:
         """
         Set up publisher and camera node pipeline.
         """
-        rospy.init_node('depthai_publish_image_stream')
+        rospy.init_node('depthai_publish_save_video')
+
         self.publish_rgb_video = rospy.get_param('~rgb_video')
         self.publish_rgb_preview = rospy.get_param('~rgb_preview')
         self.publish_left = rospy.get_param('~left')
         self.publish_right = rospy.get_param('~right')
         self.publish_disparity = rospy.get_param('~disparity')
         self.publish_depth = rospy.get_param('~depth')
+
+        self.rgb_video_file_path = rospy.get_param('~rgb_video_file_path')
+        self.rgb_preview_file_path = rospy.get_param('~rgb_preview_file_path')
+        self.left_file_path = rospy.get_param('~left_file_path')
+        self.right_file_path = rospy.get_param('~right_file_path')
+        self.disparity_file_path = rospy.get_param('~disparity_file_path')
+        self.depth_file_path = rospy.get_param('~depth_file_path')
+
+        self.save_rgb_video = self.rgb_video_file_path != ''
+        self.save_rgb_preview = self.rgb_preview_file_path != ''
+        self.save_left = self.left_file_path != ''
+        self.save_right = self.right_file_path != ''
+        self.save_disparity = self.disparity_file_path != ''
+        self.save_depth = self.depth_file_path != ''
+
+        self.framerate = 30
 
         if self.publish_rgb_video:
             self.stream_publisher_rgb_video = rospy.Publisher(self.STREAM_TOPIC_RGB_VIDEO, Image, queue_size=10)
@@ -61,7 +78,7 @@ class DepthAIImageStreamPublisher:
         Build the DepthAI.Pipeline, which takes the RGB camera feed and retrieves it using an XLinkOut.
         """
 
-        if self.publish_rgb_video or self.publish_rgb_preview:
+        if self.publish_rgb_video or self.publish_rgb_preview or self.save_rgb_video or self.save_rgb_preview:
             camRgb = self.pipeline.create(dai.node.ColorCamera)
             camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
             camRgb.setBoardSocket(dai.CameraBoardSocket.RGB)
@@ -74,21 +91,74 @@ class DepthAIImageStreamPublisher:
 
             camRgb.setInterleaved(False)
             camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)
+            camRgb.setFps(self.framerate)
 
-        if self.publish_left or self.publish_disparity or self.publish_depth:
+        if self.save_rgb_video:
+            veRgbVideo = self.pipeline.create(dai.node.VideoEncoder)
+            veRgbVideo.setDefaultProfilePreset(self.framerate, dai.VideoEncoderProperties.Profile.H265_MAIN)
+
+            xoutVeRgbVideo = self.pipeline.create(dai.node.XLinkOut)
+            xoutVeRgbVideo.setStreamName("veRgbVideo")
+
+        if self.save_rgb_preview:
+            # Must convert rgb preview to NV12 for video encoder
+            manipRgbPreview = self.pipeline.create(dai.node.ImageManip)
+            manipRgbPreview.initialConfig.setFrameType(dai.ImgFrame.Type.NV12)
+
+            veRgbPreview = self.pipeline.create(dai.node.VideoEncoder)
+            veRgbPreview.setDefaultProfilePreset(416, 416, 30, dai.VideoEncoderProperties.Profile.MJPEG)
+
+            xoutVeRgbPreview = self.pipeline.create(dai.node.XLinkOut)
+            xoutVeRgbPreview.setStreamName("veRgbPreview")
+
+        if (self.publish_left or self.publish_disparity or self.publish_depth or self.save_left or self.save_disparity
+                or self.save_depth):
             camLeft = self.pipeline.create(dai.node.MonoCamera)
             camLeft.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
             camLeft.setBoardSocket(dai.CameraBoardSocket.LEFT)
 
-        if self.publish_right or self.publish_disparity or self.publish_depth:
+        if self.save_left:
+            veLeft = self.pipeline.create(dai.node.VideoEncoder)
+            veLeft.setDefaultProfilePreset(30, dai.VideoEncoderProperties.Profile.H264_MAIN)
+
+            xoutVeLeft = self.pipeline.create(dai.node.XLinkOut)
+            xoutVeLeft.setStreamName("veLeft")
+
+        if (self.publish_right or self.publish_disparity or self.publish_depth or self.save_right or self.save_disparity
+                or self.save_depth):
             camRight = self.pipeline.create(dai.node.MonoCamera)
             camRight.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
             camRight.setBoardSocket(dai.CameraBoardSocket.RIGHT)
 
-        if self.publish_disparity or self.publish_depth:
+        if self.save_right:
+            veRight = self.pipeline.create(dai.node.VideoEncoder)
+            veRight.setDefaultProfilePreset(30, dai.VideoEncoderProperties.Profile.H264_MAIN)
+
+            xoutVeRight = self.pipeline.create(dai.node.XLinkOut)
+            xoutVeRight.setStreamName("veRight")
+
+        if self.publish_disparity or self.publish_depth or self.save_disparity or self.save_depth:
             stereo = self.pipeline.create(dai.node.StereoDepth)
             stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
             self.stereoMaxDisparity = stereo.initialConfig.getMaxDisparity()
+
+        if self.save_disparity:
+            veDisparity = self.pipeline.create(dai.node.VideoEncoder)
+            veDisparity.setDefaultProfilePreset(30, dai.VideoEncoderProperties.Profile.H265_MAIN)
+
+            xoutVeDisparity = self.pipeline.create(dai.node.XLinkOut)
+            xoutVeDisparity.setStreamName("veDisparity")
+
+        if self.save_depth:
+            # Must convert depth to NV12 for video encoder
+            manipDepth = self.pipeline.create(dai.node.ImageManip)
+            manipDepth.initialConfig.setFrameType(dai.ImgFrame.Type.GRAY8)
+
+            veDepth = self.pipeline.create(dai.node.VideoEncoder)
+            veDepth.setDefaultProfilePreset(30, dai.VideoEncoderProperties.Profile.H264_MAIN)
+
+            xoutVeDepth = self.pipeline.create(dai.node.XLinkOut)
+            xoutVeDepth.setStreamName("veDepth")
 
         if self.publish_rgb_video:
             xoutRgbVideo = self.pipeline.create(dai.node.XLinkOut)
@@ -126,7 +196,7 @@ class DepthAIImageStreamPublisher:
             xoutDepth.input.setBlocking(False)
             xoutDepth.input.setQueueSize(1)
 
-        if self.publish_disparity or self.publish_depth:
+        if self.publish_disparity or self.publish_depth or self.save_disparity or self.save_depth:
             camLeft.out.link(stereo.left)
             camRight.out.link(stereo.right)
 
@@ -148,12 +218,39 @@ class DepthAIImageStreamPublisher:
         if self.publish_depth:
             stereo.depth.link(xoutDepth.input)
 
+        if self.save_rgb_video:
+            camRgb.video.link(veRgbVideo.input)
+            veRgbVideo.bitstream.link(xoutVeRgbVideo.input)
+
+        if self.save_rgb_preview:
+            camRgb.preview.link(manipRgbPreview.inputImage)
+            manipRgbPreview.out.link(veRgbPreview.input)
+            veRgbPreview.bitstream.link(xoutVeRgbPreview.input)
+
+        if self.save_left:
+            camLeft.out.link(veLeft.input)
+            veLeft.bitstream.link(xoutVeLeft.input)
+
+        if self.save_right:
+            camRight.out.link(veRight.input)
+            veRight.bitstream.link(xoutVeRight.input)
+
+        if self.save_disparity:
+            stereo.disparity.link(veDisparity.input)
+            veDisparity.bitstream.link(xoutVeDisparity.input)
+
+        if self.save_depth:
+            stereo.depth.link(manipDepth.inputImage)
+            manipDepth.out.link(veDepth.input)
+            veDepth.bitstream.link(xoutVeDepth.input)
+            # stereo.depth.link(veDepth.input)
+            # veDepth.bitstream.link(xoutVeDepth.input)
+
     # Publish newest image off queue to topic every few seconds
     def run(self):
         """
         Get rgb images from the camera and publish them to STREAM_TOPIC.
         """
-        loop_rate = rospy.Rate(1)
 
         with depthai_camera_connect.connect(self.pipeline) as device:
 
@@ -177,6 +274,30 @@ class DepthAIImageStreamPublisher:
 
             if self.publish_depth:
                 depthQueue = device.getOutputQueue(name="depth", maxSize=4, blocking=False)
+
+            if self.save_rgb_video:
+                veRgbVideoQueue = device.getOutputQueue(name="veRgbVideo", maxSize=4, blocking=False)
+                rgb_video_file = open(self.rgb_video_file_path + ".h265", 'wb')
+
+            if self.save_rgb_preview:
+                veRgbPreviewQueue = device.getOutputQueue(name="veRgbPreview", maxSize=4, blocking=False)
+                rgb_preview_file = open(self.rgb_preview_file_path + ".h265", 'wb')
+
+            if self.save_left:
+                veLeftQueue = device.getOutputQueue(name="veLeft", maxSize=4, blocking=False)
+                left_file = open(self.left_file_path + ".h264", 'wb')
+
+            if self.save_right:
+                veRightQueue = device.getOutputQueue(name="veRight", maxSize=4, blocking=False)
+                right_file = open(self.right_file_path + ".h264", 'wb')
+
+            if self.save_disparity:
+                veDisparityQueue = device.getOutputQueue(name="veDisparity", maxSize=4, blocking=False)
+                disparity_file = open(self.disparity_file_path + ".h265", 'wb')
+
+            if self.save_depth:
+                veDepthQueue = device.getOutputQueue(name="veDepth", maxSize=4, blocking=False)
+                depth_file = open(self.depth_file_path + ".h264", 'wb')
 
             while not rospy.is_shutdown():
 
@@ -220,11 +341,47 @@ class DepthAIImageStreamPublisher:
                     image_msg_depth = self.bridge.cv2_to_imgmsg(img_depth, 'mono16')
                     self.stream_publisher_depth.publish(image_msg_depth)
 
-                loop_rate.sleep()
+                while self.save_rgb_video and veRgbVideoQueue.has() and not rospy.is_shutdown():
+                    veRgbVideoQueue.get().getData().tofile(rgb_video_file)
+
+                while self.save_rgb_preview and veRgbPreviewQueue.has() and not rospy.is_shutdown():
+                    veRgbPreviewQueue.get().getData().tofile(rgb_preview_file)
+
+                while self.save_left and veLeftQueue.has() and not rospy.is_shutdown():
+                    veLeftQueue.get().getData().tofile(left_file)
+
+                while self.save_right and veRightQueue.has() and not rospy.is_shutdown():
+                    veRightQueue.get().getData().tofile(right_file)
+
+                while self.save_disparity and veDisparityQueue.has() and not rospy.is_shutdown():
+                    veDisparityQueue.get().getData().tofile(disparity_file)
+
+                while self.save_depth and veDepthQueue.has() and not rospy.is_shutdown():
+                    veDepthQueue.get().getData().tofile(depth_file)
+
+            rospy.loginfo("To convert the encoded video files to a playable videos, run the following commands:")
+            if self.save_rgb_video:
+                rospy.loginfo("ffmpeg -framerate 30 -i " + self.rgb_video_file_path + ".h265 -c copy " +
+                              self.rgb_video_file_path + ".mp4")
+            if self.save_rgb_preview:
+                rospy.loginfo("ffmpeg -framerate 30 -i " + self.rgb_preview_file_path + ".h265 -c copy " +
+                              self.rgb_preview_file_path + ".mp4")
+            if self.save_left:
+                rospy.loginfo("ffmpeg -framerate 30 -i " + self.left_file_path + ".h264 -c copy " +
+                              self.left_file_path + ".mp4")
+            if self.save_right:
+                rospy.loginfo("ffmpeg -framerate 30 -i " + self.right_file_path + ".h264 -c copy " +
+                              self.right_file_path + ".mp4")
+            if self.save_disparity:
+                rospy.loginfo("ffmpeg -framerate 30 -i " + self.disparity_file_path + ".h265 -c copy " +
+                              self.disparity_file_path + ".mp4")
+            if self.save_depth:
+                rospy.loginfo("ffmpeg -framerate 30 -i " + self.depth_file_path + ".h264 -c copy " +
+                              self.depth_file_path + ".mp4")
 
 
 if __name__ == '__main__':
     try:
-        DepthAIImageStreamPublisher().run()
+        DepthAIVideoPublisherAndSaver().run()
     except rospy.ROSInterruptException:
         pass
