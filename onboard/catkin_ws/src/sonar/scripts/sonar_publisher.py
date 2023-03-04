@@ -3,7 +3,11 @@ import rospy
 from sonar import Sonar
 from custom_msgs.msg import sweepResult, sweepGoal
 from sonar_utils import degrees_to_centered_gradians
-from sonar_image_processing import *
+from sonar_image_processing import scan_and_build_sonar_image
+
+
+DEBUG_MODE = False
+
 
 class SonarPublisher:
 
@@ -17,32 +21,30 @@ class SonarPublisher:
     def __init__(self):
         rospy.init_node(self.NODE_NAME)
         self.sonar = Sonar(5)
-        self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC, sweepResult, queue_size=10)
+        self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC,
+                                            sweepResult, queue_size=10)
 
     def on_request(self, request):
-        #rospy.loginfo(" yes request recieved")
         if(request.distance_of_scan == -1):
             return
         self.sonar.set_new_range(request.distance_of_scan)
-        # center_gradians = degrees_to_centered_gradians(request.center_degrees)
-        # breadth_gradians = degrees_to_centered_gradians(request.breadth_degrees)
 
         left_gradians = degrees_to_centered_gradians(request.start_angle)
         right_gradians = degrees_to_centered_gradians(request.end_angle)
 
-        # left = max(center_gradians - breadth_gradians, 0)
-        # right = min(center_gradians + breadth_gradians, 400)
-
-        sonar_xy_result = self.sonar.get_xy_of_object_in_sweep(left_gradians, right_gradians)
-        scan_and_build_sonar_image(self.sonar, False, jpeg_save_path="Sonar_Image.jpeg", start_angle=left_gradians, end_angle=right_gradians)
-        #sonar_xy_result = (resp, 200)
+        sonar_xy_result = self.sonar.get_xy_of_object_in_sweep(left_gradians,
+                                                               right_gradians)
+        
+        if DEBUG_MODE:
+            scan_and_build_sonar_image(self.sonar, False,
+                                       jpeg_save_path="Sonar_Image.jpeg",
+                                       start_angle=left_gradians,
+                                       end_angle=right_gradians)
 
         response = sweepResult()
         response.x_pos = sonar_xy_result[0]
         response.y_pos = sonar_xy_result[1]
-        #rospy.loginfo("publishing")
         self._pub_request.publish(response)
-
 
     def run(self):
         rospy.Subscriber(self.SONAR_REQUEST_TOPIC, sweepGoal, self.on_request)

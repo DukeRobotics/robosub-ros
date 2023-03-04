@@ -1,3 +1,6 @@
+"""
+DEPRECATED CODE
+
 import rospy
 import actionlib
 from custom_msgs.msg import sweepAction, sweepGoal
@@ -10,13 +13,15 @@ class SonarClient:
         self._client.wait_for_server()
 
     def execute_sweep(self, sangle, eangle, scan_distance):
-        goal = sweepGoal(start_angle=sangle, end_angle=eangle, distance_of_scan=scan_distance)
+        goal = sweepGoal(start_angle=sangle, end_angle=eangle,
+                         distance_of_scan=scan_distance)
         self._client.send_goal(goal)
         self._client.wait_for_result()
         return self._client.get_result()
 
     # takes angle in degrees
-    def sweep_at_center_angle(self, center_degrees, breadth_degrees, scan_distance=5):
+    def sweep_at_center_angle(self, center_degrees, breadth_degrees,
+                              scan_distance=5):
 
         center_gradians = degrees_to_centered_gradians(center_degrees)
         breadth_gradians = degrees_to_centered_gradians(breadth_degrees)
@@ -37,3 +42,4 @@ if __name__ == '__main__':
         print(result)
     except rospy.ROSInterruptException:
         print("program interrupted before completion")
+"""

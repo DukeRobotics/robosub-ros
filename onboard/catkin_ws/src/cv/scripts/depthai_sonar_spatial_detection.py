@@ -3,13 +3,12 @@
 import rospy
 import resource_retriever as rr
 import yaml
+import math
 import depthai_camera_connect
 import depthai as dai
 import numpy as np
 from utils import DetectionVisualizer
 from cv_bridge import CvBridge
-from sonar_action_client import SonarClient
-import math
 
 from custom_msgs.srv import EnableModel
 from custom_msgs.msg import CVObject
@@ -19,21 +18,26 @@ from geometry_msgs.msg import Pose
 
 
 MM_IN_METER = 1000
-DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH = 'package://cv/models/depthai_models.yaml'
+DEPTHAI_OD_MODELS_FILEPATH = 'package://cv/models/depthai_models.yaml'
 HORIZONTAL_FOV = 95
 CAMERA_PIXEL_WIDTH = 416
 SONAR_DEPTH = 5
+SONAR_REQUESTS_PATH = 'sonar/request'
+SONAR_RESPONSES_PATH = 'sonar/cv/response'
+POSE_PUBLISHER_PATH = 'cv/pose'
 
 
-# Compute detections on live camera feed and publish spatial coordinates for detected objects
+# Compute detections on live camera feed and publish spatial
+# coordinates for detected objects by aggregating sonar and stereo vision
 class DepthAISpatialDetector:
     def __init__(self):
         """
-        Initializes the ROS node and service. Loads the yaml file at cv/models/depthai_models.yaml
+        Initializes the ROS node and service. Loads the yaml file
+        at cv/models/depthai_models.yaml
         """
         rospy.init_node('depthai_sonar_spatial_detection', anonymous=True)
 
-        with open(rr.get_filename(DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH,
+        with open(rr.get_filename(DEPTHAI_OD_MODELS_FILEPATH,
                                   use_protocol=False)) as f:
             self.models = yaml.safe_load(f)
 
@@ -41,7 +45,6 @@ class DepthAISpatialDetector:
         self.pipeline = None
         self.publishers = None
         self.output_queues = {}
-        self.connected = False
         self.current_model_name = None
         self.classes = None
         self.detection_feed_publisher = None
@@ -52,35 +55,49 @@ class DepthAISpatialDetector:
 
         self.bridge = CvBridge()
         self.sonar_response = (0, 0)
+        self.in_sonar_range = True
 
-        self.sonar_requests_publisher = rospy.Publisher("sonar/request", sweepGoal, queue_size=10)
-        self.sonar_response_subscriber = rospy.Subscriber("sonar/cv/response", sweepResult, self.update_sonar)
+        self.sonar_requests_publisher = rospy.Publisher(
+            SONAR_REQUESTS_PATH, sweepGoal, queue_size=10)
+        self.sonar_response_subscriber = rospy.Subscriber(
+            SONAR_RESPONSES_PATH, sweepResult, self.update_sonar)
 
-        self.pose_publisher = rospy.Publisher("cv/pose", Pose, queue_size = 10)
+        self.pose_publisher = rospy.Publisher(POSE_PUBLISHER_PATH,
+                                              Pose, queue_size=10)
 
     def build_pipeline(self, nn_blob_path, sync_nn=True):
         """
-        Get the DepthAI Pipeline for 3D object localization. Inspiration taken from
+        Get the DepthAI Pipeline for 3D object localization; taken from:
         https://docs.luxonis.com/projects/api/en/latest/samples/SpatialDetection/spatial_tiny_yolo/.
-        To understand the DepthAI pipeline structure, please see https://docs.luxonis.com/projects/api/en/latest/.
-        This pipeline computes the depth map using the two mono cameras. This depth map and the RGB feed are fed into
-        the YoloSpatialDetection Node, which detects objects and computes the average depth within the bounding box
-        for any detected object. The object detection model for this node is loaded from the nnBlobPath. For info
-        about the YoloSpatialDetection Node, see
+        To understand the DepthAI pipeline structure, please see
+        https://docs.luxonis.com/projects/api/en/latest/.
+        This pipeline computes the depth map using the two mono cameras. This
+        depth map and the RGB feed are fed into the YoloSpatialDetection Node,
+        which detects objects and computes the average depth within the
+        bounding box for any detected object. The object detection model for
+        this node is loaded from the nnBlobPath. For info about the
+        YoloSpatialDetection Node, see
         https://docs.luxonis.com/projects/api/en/latest/components/nodes/yolo_spatial_detection_network/.
         The output queues available from this pipeline are:
             - "rgb": contains the 400x400 RGB preview of the camera feed.
-            - "detections": contains SpatialImgDetections messages (https://docs.luxonis.com/projects/api/en/latest/
-            components/messages/spatial_img_detections/#spatialimgdetections), which includes bounding boxes for
+            - "detections": contains SpatialImgDetections messages
+            (https://docs.luxonis.com/projects/api/en/latest/components/messages/spatial_img_detections/#spatialimgdetections),
+            which includes bounding boxes for
             detections as well as XYZ coordinates of the detected objects.
-            - "boundingBoxDepthMapping": contains SpatialLocationCalculatorConfig messages, which provide a mapping
-                                         between the RGB feed from which bounding boxes are computed and the depth map.
-            - "depth": contains ImgFrame messages with UINT16 values representing the depth in millimeters by default.
-                       See the depth of https://docs.luxonis.com/projects/api/en/latest/components/nodes/stereo_depth/
+            - "boundingBoxDepthMapping": contains
+            SpatialLocationCalculatorConfig messages,
+            which provide a mapping between the RGB feed from which bounding
+            boxes are computed and the depth map.
+            - "depth": contains ImgFrame messages with UINT16 values
+            representing the depth in millimeters by default.
+                       See the depth of
+                       https://docs.luxonis.com/projects/api/en/latest/components/nodes/stereo_depth/
 
         :param nn_blob_path: Path to blob file used for object detection.
-        :param sync_nn: If True, sync the RGB output feed with the detection from the neural network. Needed if the RGB
-        feed output will be used and needs to be synced with the object detections.
+        :param sync_nn: If True, sync the RGB output feed with the detection
+            from the neural network. Needed if the RGB
+        feed output will be used and needs to be synced with the object
+            detections.
         :return: depthai.Pipeline object to compute
         """
         model = self.models[self.current_model_name]
@@ -97,14 +114,9 @@ class DepthAISpatialDetector:
 
         xout_rgb = pipeline.create(dai.node.XLinkOut)
         xout_nn = pipeline.create(dai.node.XLinkOut)
-        # xout_bounding_box_depth_mapping = pipeline.create(dai.node.XLinkOut)
-        # xout_depth = pipeline.create(dai.node.XLinkOut)
 
         xout_rgb.setStreamName("rgb")
         xout_nn.setStreamName("detections")
-        # xout_bounding_box_depth_mapping.setStreamName(
-        #     "boundingBoxDepthMapping")
-        # xout_depth.setStreamName("depth")
 
         # Properties
         cam_rgb.setPreviewSize(model['input_size'])
@@ -150,11 +162,7 @@ class DepthAISpatialDetector:
             cam_rgb.preview.link(xout_rgb.input)
 
         spatial_detection_network.out.link(xout_nn.input)
-        # spatial_detection_network.boundingBoxMapping.link(
-        #     xout_bounding_box_depth_mapping.input)
-
         stereo.depth.link(spatial_detection_network.inputDepth)
-        # spatial_detection_network.passthroughDepth.link(xout_depth.input)
 
         return pipeline
 
@@ -162,11 +170,13 @@ class DepthAISpatialDetector:
         """
         Creates and assigns the pipeline and sets the current model name.
 
-        :param model_name: Name of the model. The model name should match a key in cv/models/depthai_models.yaml.
+        :param model_name: Name of the model. The model name should match a
+        key in cv/models/depthai_models.yaml.
         For example, if depthai_models.yaml is:
 
         gate:
-            classes: ['gate', 'gate_side', 'gate_tick', 'gate_top', 'start_gate']
+            classes: ['gate', 'gate_side', 'gate_tick', 'gate_top',
+                      'start_gate']
             topic: cv/
             weights: yolo_v4_tiny_openvino_2021.3_6shave-2022-7-21_416_416.blob
             input_size: [416, 416]
@@ -191,7 +201,8 @@ class DepthAISpatialDetector:
 
     def init_publishers(self, model_name):
         """
-        Initialize the publishers for the node. A publisher is created for each class that the model predicts.
+        Initialize the publishers for the node. A publisher is created for
+        each class that the model predicts.
         The publishers are created in format: "cv/camera/model_name".
         :param model_name: Name of the model that is being used.
         """
@@ -215,18 +226,11 @@ class DepthAISpatialDetector:
         :param device: DepthAI.Device object for the connected device.
         See https://docs.luxonis.com/projects/api/en/latest/components/device/
         """
-        if self.connected:
-            return
 
         self.output_queues["rgb"] = device.getOutputQueue(
             name="rgb", maxSize=1, blocking=False)
         self.output_queues["detections"] = device.getOutputQueue(
             name="detections", maxSize=1, blocking=False)
-        # self.output_queues["boundingBoxDepthMapping"] = device.getOutputQueue(name="boundingBoxDepthMapping", maxSize=1,
-        #                                                                       blocking=False)
-        # self.output_queues["depth"] = device.getOutputQueue(
-        #     name="depth", maxSize=1, blocking=False)
-
         self.detection_visualizer = DetectionVisualizer(self.classes)
 
     def detect(self):
@@ -260,27 +264,23 @@ class DepthAISpatialDetector:
             label = self.classes[label_idx]
 
             confidence = detection.confidence
-            # x is left/right axis, where 0 is in middle of the frame, to the left is negative x,
-            # and to the right is positive x
-            # y is down/up axis, where 0 is in the middle of the frame, down is negative y, and up is positive y
-            # z is distance of object from camera in mm
+            # x is left/right axis, where 0 is in middle of the frame,
+            #   to the left is negative x, and to the right is positive x
+            # y is down/up axis, where 0 is in the middle of the frame,
+            # down is negative y, and up is positive y z is distance of
+            #   object from camera in mm
             x_cam_mm = detection.spatialCoordinates.x
             y_cam_mm = detection.spatialCoordinates.y
             z_cam_mm = detection.spatialCoordinates.z
 
             # Get sonar sweep range
             (left_end, right_end) = coords_to_angle(
-                (detection.xmin - 0.5)*416*0.5, (detection.xmax - 0.5)*416*0.5)
-
-            rospy.loginfo("LEFT")
-            rospy.loginfo(left_end)
-            rospy.loginfo("RIGHT")
-            rospy.loginfo(right_end)
+                (detection.xmin - 0.5) * CAMERA_PIXEL_WIDTH,
+                (detection.xmax - 0.5) * CAMERA_PIXEL_WIDTH)
 
             x_cam_meters = mm_to_meters(x_cam_mm)
             y_cam_meters = mm_to_meters(y_cam_mm)
             z_cam_meters = mm_to_meters(z_cam_mm)
-            using_sonar = False
 
             det_coords_robot_mm = camera_frame_to_robot_frame(
                     x_cam_meters, y_cam_meters, z_cam_meters)
@@ -293,24 +293,43 @@ class DepthAISpatialDetector:
             self.sonar_requests_publisher.publish(sonar_request_msg)
 
             # Try calling sonar on detected bounding box
-            # if sonar responds, then override existing robot-frame x, y info; else, keep default
-            if not (self.sonar_response == (0, 0)):
-                det_coords_robot_mm = (self.sonar_response[0], self.sonar_response[1], y_cam_meters)
-                using_sonar = True
+            # if sonar responds, then override existing robot-frame x, y info;
+            # else, keep default
+            if not (self.sonar_response == (0, 0)) and self.in_sonar_range:
+                det_coords_robot_mm = (self.sonar_response[0],
+                                       self.sonar_response[1], y_cam_meters)
 
+                # Publish Pose to task planning directly; based on
+                # latest sonar update
+                published_pose = Pose()
+                published_pose.position.x = det_coords_robot_mm[0]
+                published_pose.position.y = det_coords_robot_mm[1]
+                published_pose.position.z = det_coords_robot_mm[2]
+                published_pose.orientation.x = 0
+                published_pose.orientation.y = 0
+                published_pose.orientation.z = 0
+                published_pose.orientation.w = 1
+
+            self.pose_publisher.publish()
             self.publish_prediction(
-                bbox, det_coords_robot_mm, label, confidence, (height, width), using_sonar)
+                bbox, det_coords_robot_mm, label, confidence,
+                (height, width), self.in_sonar_range)
 
-    def publish_prediction(self, bbox, det_coords, label, confidence, shape, using_sonar):
+    def publish_prediction(self, bbox, det_coords, label, confidence,
+                           shape, using_sonar):
         """
-        Publish predictions to label-specific topic. Publishes to /cv/[camera]/[label].
+        Publish predictions to label-specific topic. Publishes to
+                /cv/[camera]/[label].
 
-        :param bbox: Tuple for the bounding box. Values are from 0-1, where X increases left to right and Y increases.
-        :param det_coords: Tuple with the X, Y, and Z values in meters, and in the robot rotational reference frame.
+        :param bbox: Tuple for the bounding box. Values are from 0-1,
+                     where X increases left to right and Y increases.
+        :param det_coords: Tuple with the X, Y, and Z values in meters,
+                            and in the robot rotational reference frame.
         :param label: Predicted label for the detection.
         :param confidence: Confidence for the detection, from 0 to 1.
         :param shape: Tuple with the (height, width) of the image.
-        :param using_sonar: Boolean representing whether or not data was retrieved from sonar.
+        :param using_sonar: Boolean representing whether or not data
+                            was retrieved from sonar.
         """
         object_msg = CVObject()
         object_msg.label = label
@@ -339,11 +358,10 @@ class DepthAISpatialDetector:
         published_pose.orientation.z = 0
         published_pose.orientation.w = 1
 
-        self.pose_publisher.publish(published_pose)
+        self.pose_publisher.publish()
 
         if self.publishers:
             self.publishers[label].publish(object_msg)
-
 
     def run_model(self, req):
         """
@@ -360,21 +378,30 @@ class DepthAISpatialDetector:
 
         with depthai_camera_connect.connect(self.pipeline) as device:
             self.init_output_queues(device)
-
-            # loop_rate = rospy.Rate(1)
             while not rospy.is_shutdown():
                 self.detect()
-                # loop_rate.sleep()
 
         return True
 
     def update_sonar(self, sonar_results):
-        self.sonar_response = (sonar_results.x_pos, sonar_results.y_pos)
+        """
+        Callback function for listenting to sonar response
+        Updates instance variable self.sonar_response based on
+        what sonar throws back if it is in range (> 1.5m)
+        """
+        # Check to see if the sonar is in range - are results from sonar valid?
+        if sonar_results.y_pos > 1.75:
+            self.in_sonar_range = True
+            self.sonar_response = (sonar_results.x_pos, sonar_results.y_pos)
+        else:
+            self.in_sonar_range = False
 
     def run(self):
         """
-        Wait for the EnableModel rosservice call. If this call is made, the model specified will be run.
-        For information about EnableModel, see robosub-ros/core/catkin_ws/src/custom_msgs/srv/EnableModel.srv
+        Wait for the EnableModel rosservice call. If this call is made,
+            the model specified will be run.
+        For information about EnableModel,
+            see robosub-ros/core/catkin_ws/src/custom_msgs/srv/EnableModel.srv
 
         Example ros commands to run this node and activate the model:
             roslaunch cv spatial_detection_front.launch
@@ -383,6 +410,7 @@ class DepthAISpatialDetector:
         """
         rospy.Service(self.enable_service, EnableModel, self.run_model)
         rospy.spin()
+
 
 def mm_to_meters(val_mm):
     """
@@ -395,8 +423,10 @@ def mm_to_meters(val_mm):
 
 def camera_frame_to_robot_frame(cam_x, cam_y, cam_z):
     """
-    Convert coordinates in camera reference frame to coordinates in robot reference frame.
-    This ONLY ACCOUNTS FOR THE ROTATION BETWEEN COORDINATE FRAMES, and DOES NOT ACCOUNT FOR THE TRANSLATION.
+    Convert coordinates in camera reference frame to coordinates in robot
+        reference frame.
+    This ONLY ACCOUNTS FOR THE ROTATION BETWEEN COORDINATE FRAMES, and
+        DOES NOT ACCOUNT FOR THE TRANSLATION.
     :param cam_x: X coordinate of object in camera reference frame.
     :param cam_y: Y coordinate of object in camera reference frame.
     :param cam_z: Z coordinate of object in camera reference frame.
@@ -410,7 +440,8 @@ def camera_frame_to_robot_frame(cam_x, cam_y, cam_z):
 
 def coords_to_angle(min_x, max_x):
     """
-    Takes in a detected bounding box from the camera and returns the angle range to sonar sweep.
+    Takes in a detected bounding box from the camera and returns the angle
+            range to sonar sweep.
     :param min_x: minimum x coordinate of camera bounding box (robot y)
     :param max_x: maximum x coordinate of camera bounding box (robot y)
     """

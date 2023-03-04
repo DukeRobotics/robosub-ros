@@ -4,31 +4,34 @@ from brping import Ping360
 import numpy as np
 import sonar_utils
 from geometry_msgs.msg import Pose
-from sonar_image_processing import scan_and_build_sonar_image, find_gate_posts, find_buoy
+from sonar_image_processing import scan_and_build_sonar_image
+from sonar_image_processing import find_gate_posts, find_buoy
 import os
 from tf import TransformListener
-from time import sleep
-import rospy
 
 
 class Sonar:
-    """Class to interface with the Sonar device.
+    """
+    Class to interface with the Sonar device.
     """
 
-    IF_LOCAL_TEST = True  # only for local testing with the sonar script
+    # only for local testing with the sonar script
+    IF_LOCAL_TEST = True
 
-    SERIAL_PORT_NAME = "/dev/ttyUSB2"  # PORT of the salea is ttyUSB2 for testing
+    # PORT of the salea is ttyUSB2 for testing
+    SERIAL_PORT_NAME = "/dev/ttyUSB2"
     BAUD_RATE = 2000000  # hz
     SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
     SPEED_OF_SOUND_IN_WATER = 1480  # m/s
-    FILTER_INDEX = 100  # number of values to filter TODO figure out where the noise starts
+    # number of values to filter TODO figure out where the noise starts
+    FILTER_INDEX = 100
     DEFAULT_RANGE = 5
 
-    def __init__(self, range=DEFAULT_RANGE, number_of_samples=1200, serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
-        #rospy.init_node('sonar') #need to test this
+    def __init__(self, range=DEFAULT_RANGE, number_of_samples=1200,
+                 serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
         self.ping360 = Ping360()
-        self.ping360.connect_serial(serial_port_name, baud_rate)  # TODO: Add try except for connecting to device
-        # self.ping360.connect_udp(self.ETHERNET_PORT_NAME)
+        # TODO: Add try except for connecting to device
+        self.ping360.connect_serial(serial_port_name, baud_rate)
         self.ping360.initialize()
         period_and_duration = self.range_to_period_and_duration(range)
 
@@ -44,10 +47,12 @@ class Sonar:
     def range_to_period_and_duration(self, range):
         """From a given range determines the sample_period and transmit_duration
 
-        Based off of sample data, the period and duration have the following relationship with the range:
+        Based off of sample data, the period and duration have the following
+        relationship with the range:
             44.4*range = sample_period
             5.3*range = transmit_duration
-        These were calculated using the pingviewer application from bluerobotics
+        These were calculated using the pingviewer application from
+        bluerobotics
 
         Args:
             range (int): max range in meters of the sonar scan
@@ -80,9 +85,9 @@ class Sonar:
             angle_in_gradians (float): Angle
 
         Returns:
-            dictionary: Response from the device.
-            See https://docs.bluerobotics.com/ping-protocol/pingmessage-ping360/#get for information about the
-            dictionary response.
+            dictionary: Response from the device. See
+            https://docs.bluerobotics.com/ping-protocol/pingmessage-ping360/#get
+            for information about the dictionary response.
         """
         response = self.ping360.transmitAngle(angle_in_gradians)
         return response
@@ -91,8 +96,10 @@ class Sonar:
         """ Get data along a range of angles
 
         Args:
-            range_start (int, optional): Angle to start sweep in gradians. Defaults to 100.
-            range_end (int, optional): Angle to end sweep in gradians. Defaults to 300.
+            range_start (int, optional): Angle to start sweep in gradians.
+                    Defaults to 100.
+            range_end (int, optional): Angle to end sweep in gradians.
+                    Defaults to 300.
 
         Returns:
             List: List of data messages from the Sonar device
@@ -104,19 +111,23 @@ class Sonar:
         return data_list
 
     def get_distance_of_sample(self, sample_index):
-        """Get the distance in meters of a sample given its index in the data array returned from the device.
+        """Get the distance in meters of a sample given its index in the data
+                array returned from the device.
 
-        Computes distance using formula from https://bluerobotics.com/learn/understanding-and-using-scanning-sonars/
+        Computes distance using formula from
+                https://bluerobotics.com/learn/understanding-and-using-scanning-sonars/
 
         Args:
-            sample_index (int | float): Index of the sample in the data array, from 0 to N-1, where N = number of samples.
+            sample_index (int | float): Index of the sample in the data array,
+                from 0 to N-1, where N = number of samples.
 
         Returns:
             float: Distance in meters of the sample from the sonar device.
         """
         sample_number = sample_index + 1
         distance = self.SPEED_OF_SOUND_IN_WATER * \
-            ((self.sample_period * self.SAMPLE_PERIOD_TICK_DURATION) * sample_number) / 2.0
+            ((self.sample_period * self.SAMPLE_PERIOD_TICK_DURATION)
+             * sample_number) / 2.0
         return distance
 
     def get_range(self):
@@ -138,7 +149,8 @@ class Sonar:
         Returns:
             float: Average value for object sweep
         """
-        max_byte_array = self.get_max_bytes_along_sweep(int(start_angle), int(end_angle))
+        max_byte_array = self.get_max_bytes_along_sweep(int(start_angle),
+                                                        int(end_angle))
 
         indices = [sample[0] for sample in max_byte_array]
         mean_index = sum(indices) / len(indices)
@@ -155,7 +167,8 @@ class Sonar:
             end_angle (int): _description_
 
         Returns:
-            Array: Array of tuples with (biggest value index, biggest value, theta)
+            Array: Array of tuples with
+                (biggest value index, biggest value, theta)
         """
 
         max_byte_array = []
@@ -183,17 +196,20 @@ class Sonar:
         """ Converts a point in sonar space a robot global position
 
         Args:
-            angle (float): Angle in gradians of the point relative to in front of the sonar device
+            angle (float): Angle in gradians of the point relative to in front
+                    of the sonar device
             index (int | float): Index of the data in the sonar response
 
         Returns:
-            Pose: Pose in robot reference frame containing x and y position of angle/index item
+            Pose: Pose in robot reference frame containing x and y position
+                    of angle/index item
         """
         updated_index = index + self.FILTER_INDEX
 
-        x_pos = self.get_distance_of_sample(updated_index) * np.cos(sonar_utils.centered_gradians_to_radians(angle))
-        y_pos = self.get_distance_of_sample(updated_index) * np.sin(sonar_utils.centered_gradians_to_radians(angle))
-        #print(f"{x_pos} {y_pos}")
+        x_pos = self.get_distance_of_sample(updated_index)*np.cos(
+            sonar_utils.centered_gradians_to_radians(angle))
+        y_pos = self.get_distance_of_sample(updated_index)*np.sin(
+            sonar_utils.centered_gradians_to_radians(angle))
         pos_of_point = Pose()
         pos_of_point.position.x = x_pos
         pos_of_point.position.y = y_pos
@@ -203,17 +219,21 @@ class Sonar:
         pos_of_point.orientation.z = 0
         pos_of_point.orientation.w = 1
 
-        transformed_pose = sonar_utils.transform_pose(self.listener, pos_of_point)
-        #transformed_pose = pos_of_point
+        transformed_pose = sonar_utils.transform_pose(
+            self.listener, pos_of_point)
 
         return transformed_pose
 
 
 def test_scan_and_finding_gate_posts():
-    """ Test to do a scan with the sonar device and find gate posts from the resulting image """
+    """ Test to do a scan with the sonar device and find gate posts
+        from the resulting image
+    """
     sonar = Sonar(range=5)
-    JPEG_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'sampleData', 'Sonar_Image_robot.jpeg')
-    NPY_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'sampleData', 'Sonar_Image_robot.npy')
+    JPEG_SAVE_PATH = os.path.join(os.path.dirname(__file__),
+                                  'sampleData', 'Sonar_Image_robot.jpeg')
+    NPY_SAVE_PATH = os.path.join(os.path.dirname(__file__),
+                                 'sampleData', 'Sonar_Image_robot.npy')
 
     sonar_img = scan_and_build_sonar_image(sonar,
                                            display_results=False,
@@ -223,13 +243,14 @@ def test_scan_and_finding_gate_posts():
     posts = find_gate_posts(sonar_img, display_results=False)
     print(posts)
 
-import numpy as np
+
 def test_gate_from_npy_file(file):
     img = np.load(file)
-    img = img[:,150:]
+    img = img[:, 150:]
     print(img)
     posts = find_gate_posts(img, display_results=True)
     print(posts)
+
 
 def test_buoy_from_npy_file(file):
     img = np.load(file)
@@ -237,30 +258,25 @@ def test_buoy_from_npy_file(file):
     posts = find_buoy(img, display_results=True)
     print(posts)
 
-# def test_polar_express(file):
-#     img = np.load(file)
-#     print(img)
-#     the_polar_express(img)
 
-if __name__ == "__main__":
-    # Settings for a 10m scan:
-    #   transmit_duration = 53
-    #   sample_period = 444
-    #   transmit_frequency = 750
-    #   BAUD_RATE = 2000000
+"""
+    Settings for a 10m scan:
+    transmit_duration = 53
+    sample_period = 444
+    transmit_frequency = 750
+    BAUD_RATE = 2000000
 
-    # Settings for 5m scan:
-    #   transmit_duration = 27
-    #   sample_period = 222
-    #   transmit_frequency = 750
-    #   BAUD_RATE = 2000000
+    Settings for 5m scan:
+    transmit_duration = 27
+    sample_period = 222
+    transmit_frequency = 750
+    BAUD_RATE = 2000000
 
-    # sweep_data = sonar.sweep_biggest_byte(100, 300)  #180deg in front
-    # print(f"Distance to object: {sonar.get_distance_of_sample(sweep_data[0])} | Angle: {sweep_data[2]}")
+    sweep_data = sonar.sweep_biggest_byte(100, 300)  #180deg in front
+    print(f"Distance to object: {sonar.get_distance_of_sample(
+                                sweep_data[0])} | Angle: {sweep_data[2]}")
 
-    # FOR STARTING A WEB SERVER IN FOLDER::: RUN "python -m http.server 8000"
-    #test_buoy_from_npy_file(os.path.join(os.path.dirname(__file__), 'sampleData', 'gate.npy'))
-
-    sonar = Sonar(5)
-
-    rospy.Subscriber("/controls/x_pos/setpoint", Float64, self._on_receive_data_x)
+    FOR STARTING A WEB SERVER IN FOLDER::: RUN "python -m http.server 8000"
+    test_buoy_from_npy_file(os.path.join(os.path.dirname(__file__),
+    'sampleData', 'gate.npy'))
+"""
