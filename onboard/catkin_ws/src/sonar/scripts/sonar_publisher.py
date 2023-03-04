@@ -6,7 +6,7 @@ from sonar_utils import degrees_to_centered_gradians
 from sonar_image_processing import scan_and_build_sonar_image
 
 
-DEBUG_MODE = False
+DEBUG_MODE = True
 
 
 class SonarPublisher:
@@ -16,11 +16,11 @@ class SonarPublisher:
 
     NODE_NAME = "sonar_pub"
 
-    SONAR_DEFAULT_RANGE = 5
+    SONAR_DEFAULT_RANGE = 10
 
     def __init__(self):
         rospy.init_node(self.NODE_NAME)
-        self.sonar = Sonar(5)
+        self.sonar = Sonar(10)
         self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC,
                                             sweepResult, queue_size=10)
 
@@ -34,12 +34,12 @@ class SonarPublisher:
 
         sonar_xy_result = self.sonar.get_xy_of_object_in_sweep(left_gradians,
                                                                right_gradians)
-        
-        if DEBUG_MODE:
-            scan_and_build_sonar_image(self.sonar, False,
-                                       jpeg_save_path="Sonar_Image.jpeg",
-                                       start_angle=left_gradians,
-                                       end_angle=right_gradians)
+
+        # if DEBUG_MODE:
+        scan_and_build_sonar_image(self.sonar, False,
+                                    jpeg_save_path="Sonar_Image.jpeg",
+                                    start_angle=left_gradians,
+                                    end_angle=right_gradians)
 
         response = sweepResult()
         response.x_pos = sonar_xy_result[0]

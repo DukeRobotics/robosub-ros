@@ -21,7 +21,7 @@ MM_IN_METER = 1000
 DEPTHAI_OD_MODELS_FILEPATH = 'package://cv/models/depthai_models.yaml'
 HORIZONTAL_FOV = 95
 CAMERA_PIXEL_WIDTH = 416
-SONAR_DEPTH = 5
+SONAR_DEPTH = 10
 SONAR_REQUESTS_PATH = 'sonar/request'
 SONAR_RESPONSES_PATH = 'sonar/cv/response'
 POSE_PUBLISHER_PATH = 'cv/pose'
@@ -278,9 +278,29 @@ class DepthAISpatialDetector:
                 (detection.xmin - 0.5) * CAMERA_PIXEL_WIDTH,
                 (detection.xmax - 0.5) * CAMERA_PIXEL_WIDTH)
 
+            left_end = float(left_end)
+            right_end = float(right_end)
+
+            left_end = left_end * 0.5 + 5
+            right_end = right_end * 0.5 + 5
+
             x_cam_meters = mm_to_meters(x_cam_mm)
             y_cam_meters = mm_to_meters(y_cam_mm)
             z_cam_meters = mm_to_meters(z_cam_mm)
+
+            rospy.loginfo("Stereo x")
+            rospy.loginfo(x_cam_meters)
+
+            rospy.loginfo("Stereo y")
+            rospy.loginfo(y_cam_meters)
+
+            rospy.loginfo("Stereo z")
+            rospy.loginfo(z_cam_meters)
+
+            # rospy.loginfo("Left end")
+            # rospy.loginfo(left_end)
+            # rospy.loginfo("Right end")
+            # rospy.loginfo(right_end)
 
             det_coords_robot_mm = camera_frame_to_robot_frame(
                     x_cam_meters, y_cam_meters, z_cam_meters)
