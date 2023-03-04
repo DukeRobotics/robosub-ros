@@ -12,7 +12,7 @@ import subprocess
 import os
 
 
-class DepthAIVideoPublisherAndSaver:
+class DepthAIStreamsPublisherAndSaver:
     """
     Class to publish the RGB video, preview, mono left, mono right, disparity, and depth streams to respective topics.
     Also saves the RGB video, preview, mono left, mono right, and disparity streams to respective files.
@@ -32,7 +32,7 @@ class DepthAIVideoPublisherAndSaver:
         """
         Set up publisher and camera node pipeline.
         """
-        rospy.init_node('depthai_publish_save_video')
+        rospy.init_node('depthai_publish_save_streams')
 
         self.framerate = rospy.get_param('~framerate')
 
@@ -450,6 +450,6 @@ class DepthAIVideoPublisherAndSaver:
 
 if __name__ == '__main__':
     try:
-        DepthAIVideoPublisherAndSaver().run()
+        DepthAIStreamsPublisherAndSaver().run()
     except rospy.ROSInterruptException:
         pass
