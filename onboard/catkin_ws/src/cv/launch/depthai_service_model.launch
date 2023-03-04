@@ -1,4 +1,4 @@
 <launch>
-    <arg name="model" default="yolov8n" doc='{"options":["yolov8n","yolov8s-correct","yolov8s-incorrect","gate_buoy","gate"],"allowEmpty":false,"help":"The DepthAI model to use from depthai_models.yaml"}'/>
+    <arg name="model" default="yolov5n-v7" doc='{"options":["yolov5n-v7","yolov7-tiny","yolov7","yolov8n","yolov8s-correct","yolov8s-incorrect","yolov8s-coco","gate_buoy","gate"],"allowEmpty":false,"help":"The DepthAI model to use from depthai_models.yaml"}'/>
     <node pkg="rosservice" type="rosservice" name="global_loc" args="call /enable_model_front $(arg model) True" />
 </launch>
