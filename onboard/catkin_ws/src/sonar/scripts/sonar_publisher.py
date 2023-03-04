@@ -25,7 +25,7 @@ class SonarPublisher:
                                             sweepResult, queue_size=10)
 
     def on_request(self, request):
-        if(request.distance_of_scan == -1):
+        if (request.distance_of_scan == -1):
             return
         self.sonar.set_new_range(request.distance_of_scan)
 

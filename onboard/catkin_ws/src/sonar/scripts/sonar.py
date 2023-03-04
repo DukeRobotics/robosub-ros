@@ -45,7 +45,8 @@ class Sonar:
         self.listener = TransformListener()
 
     def range_to_period_and_duration(self, range):
-        """From a given range determines the sample_period and transmit_duration
+        """From a given range determines the sample_period and
+           transmit_duration
 
         Based off of sample data, the period and duration have the following
         relationship with the range:
@@ -140,7 +141,8 @@ class Sonar:
         return self.get_distance_of_sample(last_sample_index)
 
     def get_xy_of_object_in_sweep(self, start_angle, end_angle):
-        """ Gets the depth of the sweep of a detected object. For now uses mean value
+        """ Gets the depth of the sweep of a detected object. For now uses
+            mean value
 
         Args:
             start_angle (int): Angle to start sweep in gradians
@@ -178,7 +180,8 @@ class Sonar:
         return max_byte_array
 
     def get_max_byte(self, angle):
-        """ Get the biggest value of the byte array of data scanned at input angle
+        """ Get the biggest value of the byte array of data scanned at input
+            angle
 
         Args:
             angle (int): Angle in gradians for where to measure with the sonar.

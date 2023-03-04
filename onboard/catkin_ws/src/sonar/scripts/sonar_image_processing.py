@@ -275,7 +275,7 @@ def test_img_proc(img, func=find_buoy):
 
 
 if __name__ == "__main__":
-    # test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData', 
+    # test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData',
     # 'SampleTylerData.bin'), find_buoy)
     test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData',
                                'buoy.npy'), find_buoy)
