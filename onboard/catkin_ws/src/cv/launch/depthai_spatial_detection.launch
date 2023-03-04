@@ -1,12 +1,12 @@
 <launch>
-    <arg name="bounding_box_depth_mapping" default="True"/>
-    <arg name="rgb" default="True"/>
-    <arg name="depth" default="True"/>
-    <arg name="sync_nn" default="True"/>
+    <arg name="rgb_raw" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the raw rgb stream (no detections)."}'/>
+    <arg name="rgb_detections" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the rgb stream with detections overlaid."}'/>
+    <arg name="depth" default="False" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the depth map."}'/>
+    <arg name="sync_nn" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to sync the RGB frames with the detections so the latest published detections correspond to the latest published RGB frame."}'/>
 
     <node name="depthai_spatial_detection" pkg="cv" type="depthai_spatial_detection.py" output="screen">
-        <param name="bounding_box_depth_mapping" value="$(arg bounding_box_depth_mapping)" />
-        <param name="rgb" value="$(arg rgb)" />
+        <param name="rgb_raw" value="$(arg rgb_raw)" />
+        <param name="rgb_detections" value="$(arg rgb_detections)" />
         <param name="depth" value="$(arg depth)" />
         <param name="sync_nn" value="$(arg sync_nn)" />
     </node>

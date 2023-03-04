@@ -25,7 +25,9 @@ class DepthAISpatialDetector:
         Initializes the ROS node and service. Loads the yaml file at cv/models/depthai_models.yaml
         """
         rospy.init_node('depthai_spatial_detection', anonymous=True)
-        self.queue_rgb = rospy.get_param("~rgb")
+        self.rgb_raw = rospy.get_param("~rgb_raw")
+        self.rgb_detections = rospy.get_param("~rgb_detections")
+        self.queue_rgb = self.rgb_raw or self.rgb_detections
         self.queue_depth = rospy.get_param("~depth")
         self.sync_nn = rospy.get_param("~sync_nn")
 
@@ -63,9 +65,6 @@ class DepthAISpatialDetector:
             - "detections": contains SpatialImgDetections messages (https://docs.luxonis.com/projects/api/en/latest/
             components/messages/spatial_img_detections/#spatialimgdetections), which includes bounding boxes for
             detections as well as XYZ coordinates of the detected objects.
-            - "boundingBoxDepthMapping": contains SpatialLocationCalculatorConfig messages, which provide a mapping
-                                         between the RGB feed from which bounding boxes are computed and the depth map.
-                                         This pipeline does not currently use boundingBoxDepthMapping.
             - "depth": contains ImgFrame messages with UINT16 values representing the depth in millimeters by default.
                        See the depth of https://docs.luxonis.com/projects/api/en/latest/components/nodes/stereo_depth/
 
@@ -192,11 +191,14 @@ class DepthAISpatialDetector:
                                                           queue_size=10)
         self.publishers = publisher_dict
 
-        if self.queue_rgb:
+        if self.rgb_raw:
             self.rgb_preview_publisher = rospy.Publisher("camera/front/rgb/preview/stream_raw", Image, queue_size=10)
+
+        if self.rgb_detections:
+            self.detection_feed_publisher = rospy.Publisher("cv/front/detections", Image, queue_size=10)
+
         if self.queue_depth:
             self.depth_publisher = rospy.Publisher("/camera/front/depth/stream_raw", Image, queue_size=10)
-        self.detection_feed_publisher = rospy.Publisher("cv/front/detections", Image, queue_size=10)
 
     def init_output_queues(self, device):
         """
@@ -232,14 +234,17 @@ class DepthAISpatialDetector:
         if self.queue_rgb:
             inPreview = self.output_queues["rgb"].get()
             frame = inPreview.getCvFrame()
-            frame_img_msg = self.bridge.cv2_to_imgmsg(frame, 'bgr8')
-            self.rgb_preview_publisher.publish(frame_img_msg)
 
-            detections_img_msg = self.bridge.cv2_to_imgmsg(
-                self.detection_visualizer.visualize_detections(frame, detections),
-                'bgr8'
-            )
-            self.detection_feed_publisher.publish(detections_img_msg)
+            if self.rgb_raw:
+                frame_img_msg = self.bridge.cv2_to_imgmsg(frame, 'bgr8')
+                self.rgb_preview_publisher.publish(frame_img_msg)
+
+            if self.rgb_detections:
+                detections_img_msg = self.bridge.cv2_to_imgmsg(
+                    self.detection_visualizer.visualize_detections(frame, detections),
+                    'bgr8'
+                )
+                self.detection_feed_publisher.publish(detections_img_msg)
 
         if self.queue_depth:
             raw_img_depth = self.output_queues["depth"].get()
