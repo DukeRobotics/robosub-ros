@@ -37,9 +37,9 @@ class SonarPublisher:
 
         # if DEBUG_MODE:
         scan_and_build_sonar_image(self.sonar, False,
-                                    jpeg_save_path="Sonar_Image.jpeg",
-                                    start_angle=left_gradians,
-                                    end_angle=right_gradians)
+                                   jpeg_save_path="Sonar_Image.jpeg",
+                                   start_angle=left_gradians,
+                                   end_angle=right_gradians)
 
         response = sweepResult()
         response.x_pos = sonar_xy_result[0]
