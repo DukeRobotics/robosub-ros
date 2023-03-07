@@ -40,6 +40,7 @@ RUN apt-get update && \
     ros-noetic-smach-ros \
     ros-noetic-rosserial \
     ros-noetic-rosserial-arduino \
+    ffmpeg \
     python3-pandas && \
     apt-get clean && \
     # Clear apt caches to reduce image size
