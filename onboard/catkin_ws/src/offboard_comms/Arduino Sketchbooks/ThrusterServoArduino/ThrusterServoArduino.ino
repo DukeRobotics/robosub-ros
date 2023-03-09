@@ -6,6 +6,7 @@
 #include <custom_msgs/ThrusterSpeeds.h>
 #include <custom_msgs/ServoAngleArray.h>
 #include <sensor_msgs/FluidPressure.h>
+#include <std_msgs/Bool.h>
 #include <Arduino.h>
 
 Adafruit_PWMServoDriver pwm_multiplexer(0x40);
@@ -58,6 +59,7 @@ void setup(){
     nh.initNode();
     nh.subscribe(ts_sub);
     nh.subscribe(sa_sub);
+    nh.subscribe(relay_sub);
     nh.advertise(pressure_pub);
 
     // Set up relay

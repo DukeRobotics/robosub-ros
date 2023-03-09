@@ -3,8 +3,4 @@
 	<node name="$(anon cv)" pkg="cv" type="detection.py" output="screen">
 		<param name="camera" value="$(arg camera)" />
 	</node>
-
-	<!-- Start node that enables and disables  -->
-	<node pkg="cv" name="camera_hard_reset" type="camera_hard_reset.py" output="screen" />
-
 </launch>

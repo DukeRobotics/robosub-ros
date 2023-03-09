@@ -38,7 +38,7 @@ class CameraRelayController:
             req: The request data sent in the service call. In this case, a boolean denoting whether to enable.
 
         Returns:
-            A message relaying the enablement status of controls.
+            A message relaying the enablement status of the camera.
         """
         self.enabled = req.data
         return {'success': True, 'message': 'Successfully set enabled to ' + str(req.data)}
