@@ -25,6 +25,9 @@ MultiplexedServo servos[NUM_SERVOS];
 
 MS5837 pressure_sensor;
 
+//Variable for relay to hard reset camera
+int relay = 2;
+
 // Reusing ESC library code
 void thruster_speeds_callback(const custom_msgs::ThrusterSpeeds &ts_msg){
     // Copy the contents of the speed message to the local array
@@ -36,6 +39,10 @@ void servo_control_callback(const custom_msgs::ServoAngleArray &sa_msg){
     memcpy(servo_angles, sa_msg.angles, sizeof(servo_angles));
 }
 
+void relay_callback(const std_msgs::Bool &relay_msg){
+    digitalWrite(relay, relay_msg.data);
+}
+
 //Message to use with the pressure sensor
 sensor_msgs::FluidPressure pressure_msg;
 
@@ -43,6 +50,7 @@ sensor_msgs::FluidPressure pressure_msg;
 ros::NodeHandle_<ArduinoHardware,2,1,128,128> nh;
 ros::Subscriber<custom_msgs::ThrusterSpeeds> ts_sub("/offboard/thruster_speeds", &thruster_speeds_callback);
 ros::Subscriber<custom_msgs::ServoAngleArray> sa_sub("/offboard/servo_angles", &servo_control_callback);
+ros::Subscriber<std_msgs::Bool> relay_sub("/offboard/camera_relay", &relay_callback);
 ros::Publisher pressure_pub("/offboard/pressure", &pressure_msg);
 
 void setup(){
@@ -51,6 +59,10 @@ void setup(){
     nh.subscribe(ts_sub);
     nh.subscribe(sa_sub);
     nh.advertise(pressure_pub);
+
+    // Set up relay
+    pinMode(relay, OUTPUT);
+    digitalWrite(relay, HIGH);
 
     pwm_multiplexer.begin();
     for (uint8_t i = 0; i < NUM_THRUSTERS; ++i){
