@@ -6,6 +6,7 @@ import yaml
 import sys
 import shutil
 from datetime import datetime
+import roboflow
 
 
 FOOTAGE_EXTRACTION_DIR = '/root/dev/robosub-ros/onboard/catkin_ws/src/cv/footage_extraction'
@@ -117,7 +118,10 @@ class FootageExtractor:
     # The documentation for the roboflow package is available here: https://docs.roboflow.com/python
     # You may also find the GitHub repo for the package useful: https://github.com/roboflow/roboflow-python
     def upload_images_to_roboflow(self, rf_project, directory, batch_name):
-        pass
+        images = os.listdir(directory)
+        for image in images:
+            image_path = os.join(directory, image)
+            rf_project.upload(image_path, batch_name=batch_name)
 
     # Function to prepare a config file for the footage extractor
     # Input: directory and list of files in directory
@@ -304,6 +308,13 @@ class FootageExtractor:
     # Use the function upload_images_to_roboflow developed above. For each directory, ask the user to confirm they want
     # to upload the images in that directory before doing so. Use the API key and project ID 
     # specified in ROBOFLOW_PROJECT_CONFIG_FILE when creating the project instance to pass to upload_images_to_roboflow.
+    def upload_images_to_roboflow_with_config(self, directory, config_file):
+        with open(config_file, 'r') as file:
+            configs = yaml.safe_load(file)
+
+        rf = roboflow.Roboflow(api_key=configs['api_key'])
+        project = rf.project(configs['project_id'])
+
 
 
 if __name__ == '__main__':
