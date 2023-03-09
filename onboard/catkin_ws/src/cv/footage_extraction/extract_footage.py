@@ -4,6 +4,8 @@ import image_tools
 import os
 import yaml
 import sys
+import shutil
+from datetime import datetime
 
 
 FOOTAGE_EXTRACTION_DIR = '/root/dev/robosub-ros/onboard/catkin_ws/src/cv/footage_extraction'
@@ -12,6 +14,7 @@ EXTRACTED_FOOTAGE_DIR = os.path.join(FOOTAGE_EXTRACTION_DIR, 'extracted_footage'
 EXTRACTED_FILES_DIR = os.path.join(FOOTAGE_EXTRACTION_DIR, 'extracted_files')
 FOOTAGE_EXTRACTION_CONFIG_FILE = os.path.join(FOOTAGE_EXTRACTION_DIR, 'footage_extraction_config.yaml')
 ROBOFLOW_UPLOAD_CONFIG_FILE = os.path.join(FOOTAGE_EXTRACTION_DIR, 'roboflow_upload_config.yaml')
+ROBOFLOW_PROJECT_CONFIG_FILE = os.path.join(FOOTAGE_EXTRACTION_DIR, 'roboflow_project_config.yaml')
 
 
 # Extracts footage from rosbag files
@@ -28,7 +31,7 @@ class FootageExtractor:
         os.system("rosbag info " + footage_path)
         print()
 
-    def extract_frames_from_bag(self, footage_path, topic_name, output_dir, step_size=10):
+    def extract_frames_from_bag(self, topic_name, topic_use_name, footage_path, output_dir, step_size=10):
         """
         Extract frames from the rosbag file and saves them into self.output_dir
 
@@ -40,7 +43,7 @@ class FootageExtractor:
         :param step_size: Will extract a frame every step_size number of frames.
         """
 
-        file_basename = os.path.basename(footage_path).replace(".", "_")
+        # file_basename = os.path.basename(footage_path).replace(".", "_")
 
         bag = rosbag.Bag(footage_path)
 
@@ -59,7 +62,7 @@ class FootageExtractor:
                     current_frame_str = current_frame_str.rjust(num_digits, '0')
                     cv_img = img_tools.convert_to_cv2(msg)
 
-                    file_save_path = os.path.join(output_dir, f"{file_basename}_frame_{current_frame_str}.jpg")
+                    file_save_path = os.path.join(output_dir, f"{topic_use_name}_frame_{current_frame_str}.jpg")
                     success = cv2.imwrite(file_save_path, cv_img)
 
                     if success:
@@ -70,15 +73,18 @@ class FootageExtractor:
         bag.close()
 
         # TODO: Print filename and the number of frames read, extracted, and skipped
+        print(f"Read {num_frames}, extracted {num_frames_saved}, skipped {num_frames-num_frames_saved} \
+              from file {os.path.basename(footage_path)}")
 
     # Function to extract frames from a video file
-    # For each frame in the video at videop_path, save the frame to output_dir
+    # For each frame in the video at video_path, save the frame to output_dir
     # Only take a frame every step_size frames
     # Filenames should be output_dir/filename_frame_number.jpg (replace any '.' in filename with '_')
-    def extract_frames_from_video(self, video_filename, video_path, output_dir, step_size=10):
+    def extract_frames_from_video(self, use_name, video_path, output_dir, step_size=10):
         cam = cv2.VideoCapture(video_path)
         num_frames = int(cam.get(cv2.CAP_PROP_FRAME_COUNT))
         num_digits = len(str(num_frames))
+        num_frames_saved = 0
 
         current_frame = 0
         ret, frame = cam.read()
@@ -90,9 +96,10 @@ class FootageExtractor:
 
                 current_frame_str = str(current_frame)
                 current_frame_str = current_frame_str.rjust(num_digits, '0')
-                converted_video_filename = video_filename.replace('.', '_')
-                name = os.path.join(output_dir, f"{converted_video_filename}_frame_{current_frame_str}.jpg")
+                # converted_video_filename = use_name.replace('.', '_')
+                name = os.path.join(output_dir, f"{use_name}_frame_{current_frame_str}.jpg")
                 cv2.imwrite(name, frame)
+                num_frames_saved += 1
 
             # iterate to the next frame in the video
             current_frame += 1
@@ -103,11 +110,13 @@ class FootageExtractor:
         cv2.destroyAllWindows()
 
         # TODO: Print filename and the number of frames read, extracted, and skipped
+        print(f"Read {num_frames}, extracted {num_frames_saved}, skipped {num_frames-num_frames_saved} \
+              from file {os.path.basename(video_path)}")
 
-    # TODO: Develop a function that uploads all images in given directory to Roboflow under batch_name
+    # TODO: Develop a function that uploads all images in given directory to the rf_project under batch_name
     # The documentation for the roboflow package is available here: https://docs.roboflow.com/python
     # You may also find the GitHub repo for the package useful: https://github.com/roboflow/roboflow-python
-    def upload_images_to_roboflow(self, directory, batch_name):
+    def upload_images_to_roboflow(self, rf_project, directory, batch_name):
         pass
 
     # Function to prepare a config file for the footage extractor
@@ -141,51 +150,64 @@ class FootageExtractor:
     #
     # bag_filename_1:
     #   enabled: False
-    #   use_name: "bag_filename_1"
+    #   use_name: bag_filename_1
     #   image_topic_name_1:
     #       enabled: False
-    #       use_name: "image_topic_name_1"
+    #       use_name: image_topic_name_1
     #       step_size: 10
     #   image_topic_name_2:
     #       enabled: False
-    #       use_name: "image_topic_name_2"
+    #       use_name: image_topic_name_2
     #       step_size: 10
     #   ...
     # bag_filename_2:
     #   enabled: False
-    #   use_name: "bag_filename_2"
+    #   use_name: bag_filename_2
     #   image_topic_name_1:
     #       enabled: False
-    #       use_name: "image_topic_name_1"
+    #       use_name: image_topic_name_1
     #       step_size: 10
     #   image_topic_name_2:
     #       enabled: False
-    #       use_name: "image_topic_name_2"
+    #       use_name: image_topic_name_2
     #       step_size: 10
     #   ...
     # video_filename_1:
     #   enabled: False
-    #   use_name: "video_filename_1"
+    #   use_name: video_filename_1
     #   step_size: 10
     # video_filename_2:
     #   enabled: False
-    #   use_name: "video_filename_2"
+    #   use_name: video_filename_2
     #   step_size: 10
     # ...
-    def create_config_file(self, directory):
+    # TODO: Modify name of this function to create_footage_extraction_config_file
+    def create_footage_extraction_config_file(self, directory, enabled=False, step_size=10):
         config_dict = {}
         files = os.listdir(directory)
 
         for file in files:
+            if file.startswith("."):  # Skip over hidden files
+                continue
+
             converted_file_name = file.replace(".", "_")
-            file_dict = {'enabled': False}
+            file_dict = {'enabled': enabled, 'use_name': converted_file_name}
 
             if file.endswith("bag"):
                 path = os.path.join(directory, file)
                 bag = rosbag.Bag(path, "r")
                 topics = bag.get_type_and_topic_info()[1].keys()
                 for topic in topics:
-                    file_dict[topic] = False
+                    use_name = topic.replace("/", "_")[1:]
+                    topic_dict = {
+                        'enabled': enabled,
+                        'use_name': use_name,
+                        'step_size': step_size
+                    }
+
+                    file_dict[topic] = topic_dict
+            else:
+                file_dict['step_size'] = step_size
 
             config_dict[converted_file_name] = file_dict
 
@@ -214,38 +236,44 @@ class FootageExtractor:
             configs = yaml.safe_load(file)
 
         for file in configs:
-            config_dict = configs[file]
-            if config_dict['enabled']:
+            file_dict = configs[file]
+            if file_dict['enabled']:
+                # Use the value of use_name as the name of the directory
+                output_dir = os.path.join(EXTRACTED_FOOTAGE_DIR, file_dict['use_name'])
 
-                # TODO: Use the value of use_name as the name of the directory
-
-                # TODO: Check if the directory already exists. If it does, do not extract footage
+                # Check if the directory already exists. If it does, do not extract footage
                 # and print a message notifying the user the file was skipped.
+                if os.path.isdir(output_dir):
+                    print(f"{output_dir} already exists! This file was skipped.")
+                    continue
 
-                # creating output directory
-                output_dir = os.path.join(EXTRACTED_FOOTAGE_DIR, file)
                 os.mkdir(output_dir)
 
                 # extracting file_name
                 file_name = file[::-1].replace('_', '.', 1)[::-1]
                 footage_path = os.path.join(directory, file_name)
+                extracted_footage_path = os.path.join(EXTRACTED_FILES_DIR, file_name)
 
                 if file_name.endswith('bag'):
-                    for topic in config_dict:
+                    for topic in file_dict:
                         if topic == 'enabled':  # The key 'enabled' is not a topic
                             continue
 
-                        if config_dict[topic]:
+                        topic_dict = file_dict[topic]
+                        if topic_dict['enabled']:
 
                             # creating topic directory
-                            converted_topic_name = topic.replace("/", "_")[1:]
-                            topic_dir = os.path.join(output_dir, converted_topic_name)
+                            # converted_topic_name = topic.replace("/", "_")[1:]
+                            topic_dir = os.path.join(output_dir, topic_dict['use_name'])
                             os.mkdir(topic_dir)
 
-                            self.extract_frames_from_bag(footage_path, topic, topic_dir)
+                            self.extract_frames_from_bag(topic, footage_path, topic_dir, topic_dict['step_size'])
 
                 else:  # if file is video
-                    self.extract_frames_from_video(file_name, footage_path, output_dir)
+                    self.extract_frames_from_video(file_name, footage_path, output_dir, file_dict['step_size'])
+
+                # move extracted file to EXTRACTED_FILES_DIR
+                shutil.move(footage_path, extracted_footage_path)
 
     # TODO: Develop function that generates a roboflow upload config file
     #
@@ -258,26 +286,39 @@ class FootageExtractor:
     # extracted_footage_dir_1: False
     # extracted_footage_dir_2: False
     # ...
+    def create_roboflow_config_file(self, directory):
+        now = datetime.now()
+        now_time = now.strftime("%m/%d/%y at %I:%M %p")
+        batch_dict = {'batch_name': f"Uploaded on {now_time}"}
+        extracted_directories = os.listdir(directory)
+
+        for directory in extracted_directories:
+            batch_dict[directory] = False
+
+        yaml_string = yaml.dump(batch_dict)
+
+        with open(ROBOFLOW_UPLOAD_CONFIG_FILE, "w") as yaml_file:
+            yaml_file.write(yaml_string)   
 
     # TODO: Develop function that takes a roboflow upload config file and uploads the desired images to Roboflow
     # Use the function upload_images_to_roboflow developed above. For each directory, ask the user to confirm they want
-    # to upload the images in that directory before doing so.
+    # to upload the images in that directory before doing so. Use the API key and project ID 
+    # specified in ROBOFLOW_PROJECT_CONFIG_FILE when creating the project instance to pass to upload_images_to_roboflow.
 
 
 if __name__ == '__main__':
 
     # Using command line arguments, check if the --generate_config flag is set
-    # If it is, call the create_config_file function
+    # If it is, call the create_footage_extraction_config_file function
     # If it is not, ask the user to confirm they want to extract footage on the command line
     # If user confirms, call the extract_footage_with_config function
-
-    # TODO: Change --generate_config to --generate-config
 
     # TODO: Change type of config file generated based on value of --generate-config <str_value>
     # If value is "footage", then generate a footage extraction config
     # If value is "roboflow", then generate a roboflow upload config
+    # If no value is given for the --generate-config flag, then generate a footage extraction config
 
-    # TODO: Check if the --defaults <bool_value> flag is set. (Only used when --generate-config is also set)
+    # TODO: Check if the --default-bools <bool_value> flag is set. (Only used when --generate-config is also set)
     # If -defaults is set to True, generate a config file with all boolean values set to true
     # If -defaults is set to False or not specified, generate a config file with all boolean values set to false
 
@@ -287,9 +328,6 @@ if __name__ == '__main__':
 
     # TODO: Check if the --upload-to-roboflow flag is present. If so, use the roboflow config file to upload footage
 
-    # TODO: Add the FOOTAGE_DIR, EXTRACTED_FOOTAGE_DIR, EXTRACTED_FILES_DIR, and all yaml files within
-    # the footage_extraction folder to gitignore
-
     # TODO: Add comments to all functions explaining what they do (use first two functions as examples)
     # TODO: Remove all unncessary comments (TOODs, directions, examples, etc.)
 
@@ -298,12 +336,24 @@ if __name__ == '__main__':
     arg_list = sys.argv[1:]
 
     generate_config_flag = False
-    for arg in arg_list:
-        if arg.startswith('--generate_config'):
+    default_bools_flag = False
+
+    roboflow_found = False
+    for index, arg in enumerate(arg_list):
+        if arg == '--generate-config':
             generate_config_flag = True
+            if index+1 < len(arg_list) and arg_list[index+1].startswith("roboflow"):
+                roboflowFound = True
+        if arg == '--default-bools':
+            if index+1 < len(arg_list):
+                if arg_list[index+1].lower() == "true":
+                    default_bools_flag = True
 
     if generate_config_flag:
-        footage_extractor.create_config_file(FOOTAGE_DIR)
+        if roboflow_found:
+            footage_extractor.create_roboflow_config_file(EXTRACTED_FILES_DIR)
+        else:
+            footage_extractor.create_footage_extraction_config_file(FOOTAGE_DIR, enabled=default_bools_flag)
     else:
         inp = input("Are you sure you want to extract footage? (Y/N): ")
         if inp.lower() == "y":
