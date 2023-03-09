@@ -29,6 +29,9 @@ MS5837 pressure_sensor;
 //Variable for relay to hard reset camera
 int relay = 2;
 
+// Sets node handle to have 3 subscribers, 1 publishers, and 128 bytes for input and output buffer
+ros::NodeHandle_<ArduinoHardware,3,1,128,128> nh;
+
 // Reusing ESC library code
 void thruster_speeds_callback(const custom_msgs::ThrusterSpeeds &ts_msg){
     // Copy the contents of the speed message to the local array
@@ -41,14 +44,19 @@ void servo_control_callback(const custom_msgs::ServoAngleArray &sa_msg){
 }
 
 void relay_callback(const std_msgs::Bool &relay_msg){
-    digitalWrite(relay, relay_msg.data);
+    nh.loginfo("Toggling relay");
+    if (relay_msg.data) {
+        digitalWrite(relay, HIGH);
+    }
+    else {
+        digitalWrite(relay, LOW);
+    }
+    
 }
 
 //Message to use with the pressure sensor
 sensor_msgs::FluidPressure pressure_msg;
 
-// Sets node handle to have 2 subscribers, 1 publishers, and 128 bytes for input and output buffer
-ros::NodeHandle_<ArduinoHardware,2,1,128,128> nh;
 ros::Subscriber<custom_msgs::ThrusterSpeeds> ts_sub("/offboard/thruster_speeds", &thruster_speeds_callback);
 ros::Subscriber<custom_msgs::ServoAngleArray> sa_sub("/offboard/servo_angles", &servo_control_callback);
 ros::Subscriber<std_msgs::Bool> relay_sub("/offboard/camera_relay", &relay_callback);
