@@ -298,7 +298,7 @@ class FootageExtractor:
         yaml_string = yaml.dump(batch_dict)
 
         with open(ROBOFLOW_UPLOAD_CONFIG_FILE, "w") as yaml_file:
-            yaml_file.write(yaml_string)   
+            yaml_file.write(yaml_string)
 
     # TODO: Develop function that takes a roboflow upload config file and uploads the desired images to Roboflow
     # Use the function upload_images_to_roboflow developed above. For each directory, ask the user to confirm they want
