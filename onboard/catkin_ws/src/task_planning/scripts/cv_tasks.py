@@ -1,9 +1,22 @@
+from onboard.catkin_ws.src.task_planning.scripts.interface.cv import CVInterface
 import smach
 
 
 # Says where to spin to center a given CV object in the frame
 class SpinDirectionTask(smach.State):
-    def __init__(self, name, tolerance, cv):
+    '''Says where to spin to center a given CV object in the frame'''
+    def __init__(self, name: str, tolerance: float, cv: CVInterface):
+        '''
+        Says where to spin to center a given CV object in the frame
+        
+        Parameters
+        name : str
+            Name of the CV object to center
+        tolerance : float
+            How close to the center the object must be to be considered centered
+        cv : CVInterface
+            CV object to get data from
+        '''
         super(SpinDirectionTask, self).__init__(outcomes=["left", "right", "center"])
         self.name = name
         self.tolerance = tolerance

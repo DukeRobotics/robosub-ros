@@ -77,6 +77,8 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
 
     def __init__(self, x, y, z, roll, pitch, yaw, controls, listener):
         """
+        Move to pose given in local coordinates.
+        
         Parameters:
             x (float): x-component of position
             y (float): y-component of position
@@ -103,6 +105,8 @@ class MoveToUserDataPoseLocalTask(MoveToPoseLocalTask):
 
     def __init__(self, controls, listener):
         """
+        Move to pose passed through userdata given in local coordinates.
+        
         Parameters:
             controls (interface.ControlsInterface): interface to interact with controls
             listener (tf.TransformListener): transform listener to go from local to global
@@ -123,6 +127,8 @@ class AllocateVelocityLocalTask(smach.State):
 
     def __init__(self, x, y, z, roll, pitch, yaw, controls):
         """
+        Allocate specified velocity in a direction relative to the robot
+        
         Parameters:
             x (float): x-component of linear velocity
             y (float): y-component of linear velocity
@@ -225,6 +231,8 @@ class HoldPositionTask(smach.State):
 
     def __init__(self, controls):
         """
+        Hold position at the place the robot is at the first time this runs
+        
         Parameters:
             controls (interface.ControlsInterface): interface to interact with controls
         """

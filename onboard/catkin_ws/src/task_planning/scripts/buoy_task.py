@@ -1,3 +1,5 @@
+from onboard.catkin_ws.src.task_planning.scripts.interface.controls import ControlsInterface
+from onboard.catkin_ws.src.task_planning.scripts.interface.cv import CVInterface
 import smach
 import cv_tasks
 from move_tasks import AllocateVelocityLocalTask, HoldPositionTask, MoveToUserDataPoseLocalTask
@@ -7,7 +9,7 @@ class BuoyTask(smach.StateMachine):
     CENTER_TOLERANCE = 0.05
     ROTATE_SPEED = 1
 
-    def __init__(self, listener, controls, cv):
+    def __init__(self, listener, controls: ControlsInterface, cv: CVInterface):
         super().__init__(outcomes=['done'])
 
         with self:
