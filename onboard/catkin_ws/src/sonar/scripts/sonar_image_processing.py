@@ -274,10 +274,23 @@ def test_img_proc(img, func=find_buoy):
     print(locations)
 
 
+def to_polar_img(img, display_results=True):
+
+    img = np.pad(img.astype(np.uint8), ((80,80),(0,0)), 'constant')
+
+    greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+    cm_image = cv2.applyColorMap(greyscale_image, cv2.COLORMAP_VIRIDIS)
+    polar_img = cv2.linearPolar(cm_image, (500, 200), 200.0, cv2.WARP_INVERSE_MAP)
+    
+    if display_results:
+        cv2.imshow("Polar", polar_img)
+        cv2.waitKey(0)
+
+
 if __name__ == "__main__":
     # test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData',
     # 'SampleTylerData.bin'), find_buoy)
     test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData',
-                               'buoy.npy'), find_buoy)
+                               'gate.npy'), to_polar_img)
     # test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData',
     # 'gate.npy'), the_polar_express)
