@@ -28,8 +28,8 @@
     <!-- Position loop control efforts map to directly to control effort (no more nested loops) /-->  
     <node name="controller" pkg="pid" type="controller" ns="controls/x_pos" output="log" >
         <param name="node_name" value="global_x_pos_pid" />
-        <param name="upper_limit" value="$(arg max_control_effort)" /> 
-        <param name="lower_limit" value="-$(arg max_control_effort)" />
+        <!-- <param name="upper_limit" value="$(arg max_control_effort)" /> 
+        <param name="lower_limit" value="-$(arg max_control_effort)" /> -->
         <!-- <param name="windup_limit" value="10" /> -->
         <param name="pid_enable_topic" value="/controls/enable/x_pos" />
         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
@@ -39,8 +39,8 @@
 
     <node name="controller" pkg="pid" type="controller" ns="controls/y_pos" output="log" >
         <param name="node_name" value="global_y_pos_pid" />
-        <param name="upper_limit" value="$(arg max_control_effort)" />
-        <param name="lower_limit" value="-$(arg max_control_effort)" />
+        <!-- <param name="upper_limit" value="$(arg max_control_effort)" />
+        <param name="lower_limit" value="-$(arg max_control_effort)" /> -->
         <!-- <param name="windup_limit" value="10" /> -->
         <param name="pid_enable_topic" value="/controls/enable/y_pos" />
         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
@@ -50,8 +50,8 @@
 
     <node name="controller" pkg="pid" type="controller" ns="controls/z_pos" output="log" >
         <param name="node_name" value="global_z_pos_pid" />
-        <param name="upper_limit" value="$(arg max_control_effort)" />
-        <param name="lower_limit" value="-$(arg max_control_effort)" />
+        <!-- <param name="upper_limit" value="$(arg max_control_effort)" />
+        <param name="lower_limit" value="-$(arg max_control_effort)" /> -->
         <!-- <param name="windup_limit" value="10" /> -->
         <param name="pid_enable_topic" value="/controls/enable/z_pos" />
         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
@@ -61,8 +61,8 @@
 
     <node name="controller" pkg="pid" type="controller" ns="controls/roll_pos" output="log" >
         <param name="node_name" value="global_roll_pos_pid" />
-        <param name="upper_limit" value="$(arg orient_max)" />
-        <param name="lower_limit" value="-$(arg orient_max)" />
+        <!-- <param name="upper_limit" value="$(arg orient_max)" />
+        <param name="lower_limit" value="-$(arg orient_max)" /> -->
         <!-- <param name="windup_limit" value="10" /> -->
         <param name="pid_enable_topic" value="/controls/enable/roll_pos" />
         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
@@ -72,8 +72,8 @@
 
     <node name="controller" pkg="pid" type="controller" ns="controls/pitch_pos" output="log" >
         <param name="node_name" value="global_pitch_pos_pid" />
-        <param name="upper_limit" value="$(arg orient_max)" />
-        <param name="lower_limit" value="-$(arg orient_max)" />
+        <!-- <param name="upper_limit" value="$(arg orient_max)" />
+        <param name="lower_limit" value="-$(arg orient_max)" /> -->
         <!-- <param name="windup_limit" value="10" /> -->
         <param name="pid_enable_topic" value="/controls/enable/pitch_pos" />
         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
@@ -83,8 +83,8 @@
 
     <node name="controller" pkg="pid" type="controller" ns="controls/yaw_pos" output="log" >
         <param name="node_name" value="global_yaw_pos_pid" />
-        <param name="upper_limit" value="$(arg orient_max)" />
-        <param name="lower_limit" value="-$(arg orient_max)" />
+        <!-- <param name="upper_limit" value="$(arg orient_max)" />
+        <param name="lower_limit" value="-$(arg orient_max)" /> -->
         <!-- <param name="windup_limit" value="10" /> -->
         <param name="pid_enable_topic" value="/controls/enable/yaw_pos" />
         <param name="min_loop_frequency" value="$(arg min_loop_freq)" />
