@@ -129,8 +129,8 @@ class CameraStatusWidget(QWidget):
             self.checking[camera_type] = False
 
         self.status_logs = {}
-        for camera_type in CameraStatusDataType:
-            self.status_logs[camera_type] = []
+        for data_type in CameraStatusDataType:
+            self.status_logs[data_type] = []
 
         self.status_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
@@ -206,8 +206,6 @@ class CameraStatusWidget(QWidget):
 
     def check_camera_connection(self, camera_type):
         call_connect_camera_service = CallConnectCameraService(camera_type, self.camera_service_args[camera_type]())
-        call_connect_camera_service.signals.connected_signal.connect(self.connected_camera)
-
         call_connect_camera_service.signals.connected_signal.connect(self.connected_camera)
         self.threadpool.start(call_connect_camera_service)
 
