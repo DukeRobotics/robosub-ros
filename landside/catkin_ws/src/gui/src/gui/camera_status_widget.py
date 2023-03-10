@@ -66,7 +66,7 @@ class CallConnectCameraServiceSignals(QObject):
 
 class CallConnectCameraService(QRunnable):
 
-    def __init__(self, camera_type, *service_args):
+    def __init__(self, camera_type, service_args):
         super(CallConnectCameraService, self).__init__()
 
         if camera_type not in CAMERA_STATUS_CAMERA_TYPES:
@@ -109,16 +109,23 @@ class CameraStatusWidget(QWidget):
 
         self.logs_button.clicked.connect(self.open_conection_log)
 
-        self.check_stereo_button.clicked.connect(lambda: self.check_camera_connection(CameraStatusDataType.STEREO))
-        self.check_mono_button.clicked.connect(lambda: self.check_camera_connection(CameraStatusDataType.MONO))
-
         self.check_camera_buttons = {
             CameraStatusDataType.STEREO: self.check_stereo_button,
             CameraStatusDataType.MONO: self.check_mono_button
         }
 
+        for camera_type in self.check_camera_buttons:
+            self.check_camera_buttons[camera_type].clicked.connect(
+                lambda _, camera_type=camera_type: self.check_camera_connection(camera_type)
+            )
+
+        self.camera_service_args = {
+            CameraStatusDataType.STEREO: lambda: (),
+            CameraStatusDataType.MONO: lambda: (self.channel,)
+        }
+
         self.checking = {}
-        for camera_type in CameraStatusDataType:
+        for camera_type in CAMERA_STATUS_CAMERA_TYPES:
             self.checking[camera_type] = False
 
         self.status_logs = {}
@@ -198,10 +205,8 @@ class CameraStatusWidget(QWidget):
         self.log.exec()
 
     def check_camera_connection(self, camera_type):
-        if camera_type == CameraStatusDataType.MONO:
-            call_connect_camera_service = CallConnectCameraService(camera_type, self.channel)
-        else:
-            call_connect_camera_service = CallConnectCameraService(camera_type)
+        call_connect_camera_service = CallConnectCameraService(camera_type, self.camera_service_args[camera_type]())
+        call_connect_camera_service.signals.connected_signal.connect(self.connected_camera)
 
         call_connect_camera_service.signals.connected_signal.connect(self.connected_camera)
         self.threadpool.start(call_connect_camera_service)
@@ -383,6 +388,8 @@ class CameraStatusWidgetSettings(QDialog):
     def __init__(self, parent, ping_hostname, usb_channel):
         super().__init__(parent)
 
+        self.given_usb_channel = usb_channel
+
         self.ping_hostname_line_edit = QLineEdit(self)
         self.ping_hostname_line_edit.setText(str(ping_hostname))
 
@@ -413,5 +420,11 @@ class CameraStatusWidgetSettings(QDialog):
         buttonBox.rejected.connect(self.reject)
 
     def get_values(self):
-        return (self.ping_hostname_line_edit.text(), int(self.usb_channel_line_edit.text()),
-                self.restart_ping_subscriber_checkbox.isChecked())
+        channel = self.usb_channel_line_edit.text()
+        try:
+            channel = int(channel)
+        except Exception:
+            rospy.logwarn("Invalid USB channel (not an integer). The USB channel has not been changed.")
+            channel = self.given_usb_channel
+
+        return (self.ping_hostname_line_edit.text(), channel, self.restart_ping_subscriber_checkbox.isChecked())
