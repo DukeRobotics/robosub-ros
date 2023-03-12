@@ -13,6 +13,7 @@ FOOTAGE_EXTRACTION_DIR = '/root/dev/robosub-ros/onboard/catkin_ws/src/cv/footage
 FOOTAGE_DIR = os.path.join(FOOTAGE_EXTRACTION_DIR, 'footage')
 EXTRACTED_FOOTAGE_DIR = os.path.join(FOOTAGE_EXTRACTION_DIR, 'extracted_footage')
 EXTRACTED_FILES_DIR = os.path.join(FOOTAGE_EXTRACTION_DIR, 'extracted_files')
+UPLOADED_FOOTAGE = os.path.join(FOOTAGE_EXTRACTION_DIR, 'uploaded_fottage')
 FOOTAGE_EXTRACTION_CONFIG_FILE = os.path.join(FOOTAGE_EXTRACTION_DIR, 'footage_extraction_config.yaml')
 ROBOFLOW_UPLOAD_CONFIG_FILE = os.path.join(FOOTAGE_EXTRACTION_DIR, 'roboflow_upload_config.yaml')
 ROBOFLOW_PROJECT_CONFIG_FILE = os.path.join(FOOTAGE_EXTRACTION_DIR, 'roboflow_project_config.yaml')
@@ -34,17 +35,16 @@ class FootageExtractor:
 
     def extract_frames_from_bag(self, topic_name, topic_use_name, footage_path, output_dir, step_size=10):
         """
-        Extract frames from the rosbag file and saves them into self.output_dir
+        Extract frames from the rosbag file and saves them into output_dir
 
         :param footage_path: Path to rosbag file.
         :param topic_name: Name of the topic where the image feed is published. Can find by calling view_rosbag_info
         on the rosbag file.
+        :param topic_use_name: Topic name that is used in the extracted frame names. Can set different from topic_name.
         :param output_dir: Path for directory to save the output. Will create a subdirectory within output_dir for each
         file that is extracted.
         :param step_size: Will extract a frame every step_size number of frames.
         """
-
-        # file_basename = os.path.basename(footage_path).replace(".", "_")
 
         bag = rosbag.Bag(footage_path)
 
@@ -57,12 +57,9 @@ class FootageExtractor:
         for topic, msg, t in bag.read_messages(topics=[topic_name]):
             if topic == topic_name:
                 if frame_count % step_size == 0:
-                    # TODO: Use the value of use_name keys in place of the bag filename and topic name
-
                     current_frame_str = str(frame_count)
                     current_frame_str = current_frame_str.rjust(num_digits, '0')
                     cv_img = img_tools.convert_to_cv2(msg)
-
                     file_save_path = os.path.join(output_dir, f"{topic_use_name}_frame_{current_frame_str}.jpg")
                     success = cv2.imwrite(file_save_path, cv_img)
 
@@ -73,15 +70,23 @@ class FootageExtractor:
 
         bag.close()
 
-        # TODO: Print filename and the number of frames read, extracted, and skipped
-        print(f"Read {num_frames}, extracted {num_frames_saved}, skipped {num_frames-num_frames_saved} \
-              from file {os.path.basename(footage_path)}")
+        # print filename and the number of frames read, extracted, and skipped
+        print(f"Read {num_frames} frames, extracted {num_frames_saved} frames,",
+              f"skipped {num_frames-num_frames_saved} frames from file {os.path.basename(footage_path)}")
 
-    # Function to extract frames from a video file
-    # For each frame in the video at video_path, save the frame to output_dir
-    # Only take a frame every step_size frames
-    # Filenames should be output_dir/filename_frame_number.jpg (replace any '.' in filename with '_')
     def extract_frames_from_video(self, use_name, video_path, output_dir, step_size=10):
+        """
+        Extract frames from the video file and saves them into output_dir
+
+        :param use_name: Name that is used in the extracted frame names. Can be set different from video name.
+        :param video_path: Path to video file.
+        :param topic_name: Name of the topic where the image feed is published. Can find by calling view_rosbag_info
+        on the rosbag file.
+        :param output_dir: Path for directory to save the output. Will create a subdirectory within output_dir for each
+        file that is extracted.
+        :param step_size: Will extract a frame every step_size number of frames.
+        """
+
         cam = cv2.VideoCapture(video_path)
         num_frames = int(cam.get(cv2.CAP_PROP_FRAME_COUNT))
         num_digits = len(str(num_frames))
@@ -93,11 +98,8 @@ class FootageExtractor:
         # while there is still video left, continue creating images
         while ret:
             if current_frame % step_size == 0:
-                # TODO: Use the value of use_name key in place of the video filename
-
                 current_frame_str = str(current_frame)
                 current_frame_str = current_frame_str.rjust(num_digits, '0')
-                # converted_video_filename = use_name.replace('.', '_')
                 name = os.path.join(output_dir, f"{use_name}_frame_{current_frame_str}.jpg")
                 cv2.imwrite(name, frame)
                 num_frames_saved += 1
@@ -106,22 +108,74 @@ class FootageExtractor:
             current_frame += 1
             ret, frame = cam.read()
 
-        # Release all space and windows once done
+        # release all space and windows once done
         cam.release()
         cv2.destroyAllWindows()
 
-        # TODO: Print filename and the number of frames read, extracted, and skipped
-        print(f"Read {num_frames}, extracted {num_frames_saved}, skipped {num_frames-num_frames_saved} \
-              from file {os.path.basename(video_path)}")
+        # print filename and the number of frames read, extracted, and skipped
+        print(f"Read {num_frames} frames, extracted {num_frames_saved} frames,",
+              f"skipped {num_frames-num_frames_saved} frames from file {os.path.basename(video_path)}")
 
     # TODO: Develop a function that uploads all images in given directory to the rf_project under batch_name
     # The documentation for the roboflow package is available here: https://docs.roboflow.com/python
     # You may also find the GitHub repo for the package useful: https://github.com/roboflow/roboflow-python
-    def upload_images_to_roboflow(self, rf_project, directory, batch_name):
+    def upload_images_to_roboflow(self, rf_project, directory, batch_name, uploaded_dir):
+        """
+        Upload all images in directory to the rf_project in Roboflow under batch_name
+
+        :param rf_project: Name of Roboflow project
+        :param directory: Path for directory containing all the images to be uploaded
+        :param batch_name: Name of batch under rf_project
+        """
         images = os.listdir(directory)
+        status = {
+            'successful': [],
+            'non_successful': []
+        }
+
         for image in images:
-            image_path = os.join(directory, image)
-            rf_project.upload(image_path, batch_name=batch_name)
+            image_path = os.path.join(directory, image)
+
+            # if directory contains topic subdirectories inside, call function recursively on subdirectory
+            if os.path.isdir(image_path):
+                uploaded_topic_dir = os.path.join(uploaded_dir, image)
+                os.mkdir(uploaded_topic_dir)
+                return self.upload_images_to_roboflow(rf_project, image_path, batch_name, uploaded_topic_dir)
+            else:
+                # success = self.upload_images_to_roboflow_with_success(rf_project, image_path, batch_name)
+                rf_project.upload(image_path, batch_name)
+
+                # if success:
+                #     status['successful'].append(image)
+                #     shutil.move(image_path, uploaded_dir)
+                # else:
+                #     status['unsuccessful'].append(image)
+
+        # return status
+
+    def upload_images_to_roboflow_with_success(self, rf_project, image_path, batch_name):
+        success = False
+
+        if not os.path.isfile(image_path):
+            print(f"ERROR: The provided image path {image_path} is not a valid path.")
+
+        elif not rf_project.check_valid_image(image_path):
+            print(f"ERROR: The image at {image_path} is not a supported file format.",
+                  "Only PNG and JPEG files are supported.")
+
+        else:
+            response = rf_project._Project__image_upload(image_path, batch_name)
+            if response.json().get["duplicate"]:
+                success = True
+                print("Duplicate image not uploaded: " + image_path)
+
+            else:
+                success = response.json()["success"]
+
+        if not success:
+            print(f"ERROR: Server rejected image: {response.json()}. Image at {image_path} failed to upload!")
+
+        return success
 
     # Function to prepare a config file for the footage extractor
     # Input: directory and list of files in directory
@@ -241,6 +295,8 @@ class FootageExtractor:
 
         for file in configs:
             file_dict = configs[file]
+            file_extracted = False
+
             if file_dict['enabled']:
                 # Use the value of use_name as the name of the directory
                 output_dir = os.path.join(EXTRACTED_FOOTAGE_DIR, file_dict['use_name'])
@@ -248,7 +304,7 @@ class FootageExtractor:
                 # Check if the directory already exists. If it does, do not extract footage
                 # and print a message notifying the user the file was skipped.
                 if os.path.isdir(output_dir):
-                    print(f"{output_dir} already exists! This file was skipped.")
+                    print(f"{file_dict['use_name']} already exists! This file was skipped.")
                     continue
 
                 os.mkdir(output_dir)
@@ -260,24 +316,30 @@ class FootageExtractor:
 
                 if file_name.endswith('bag'):
                     for topic in file_dict:
-                        if topic == 'enabled':  # The key 'enabled' is not a topic
+                        if topic in ['enabled', 'use_name']:  # The keys 'enabled' and 'use_name' are not topics
                             continue
 
                         topic_dict = file_dict[topic]
                         if topic_dict['enabled']:
 
                             # creating topic directory
-                            # converted_topic_name = topic.replace("/", "_")[1:]
                             topic_dir = os.path.join(output_dir, topic_dict['use_name'])
                             os.mkdir(topic_dir)
 
-                            self.extract_frames_from_bag(topic, footage_path, topic_dir, topic_dict['step_size'])
+                            self.extract_frames_from_bag(topic, topic_dict['use_name'],
+                                                         footage_path, topic_dir, topic_dict['step_size'])
+
+                            file_extracted = True
 
                 else:  # if file is video
-                    self.extract_frames_from_video(file_name, footage_path, output_dir, file_dict['step_size'])
+                    self.extract_frames_from_video(file_dict['use_name'], footage_path,
+                                                   output_dir, file_dict['step_size'])
 
-                # move extracted file to EXTRACTED_FILES_DIR
-                shutil.move(footage_path, extracted_footage_path)
+                    file_extracted = True
+
+                # moving extracted file to EXTRACTED_FILES_DIR
+                if file_extracted:
+                    shutil.move(footage_path, extracted_footage_path)
 
     # TODO: Develop function that generates a roboflow upload config file
     #
@@ -294,7 +356,7 @@ class FootageExtractor:
         now = datetime.now()
         now_time = now.strftime("%m/%d/%y at %I:%M %p")
         batch_dict = {'batch_name': f"Uploaded on {now_time}"}
-        extracted_directories = os.listdir(directory)
+        extracted_directories = [name for name in os.listdir(directory) if os.path.isdir(os.path.join(directory, name))]
 
         for directory in extracted_directories:
             batch_dict[directory] = False
@@ -306,15 +368,31 @@ class FootageExtractor:
 
     # TODO: Develop function that takes a roboflow upload config file and uploads the desired images to Roboflow
     # Use the function upload_images_to_roboflow developed above. For each directory, ask the user to confirm they want
-    # to upload the images in that directory before doing so. Use the API key and project ID 
+    # to upload the images in that directory before doing so. Use the API key and project ID
     # specified in ROBOFLOW_PROJECT_CONFIG_FILE when creating the project instance to pass to upload_images_to_roboflow.
     def upload_images_to_roboflow_with_config(self, directory, config_file):
-        with open(config_file, 'r') as file:
-            configs = yaml.safe_load(file)
+        with open(ROBOFLOW_PROJECT_CONFIG_FILE, 'r') as project_config_file:
+            project_configs = yaml.safe_load(project_config_file)
 
-        rf = roboflow.Roboflow(api_key=configs['api_key'])
-        project = rf.project(configs['project_id'])
+        rf = roboflow.Roboflow(api_key=project_configs['api_key'])
+        project = rf.project(project_configs['project_id'])
 
+        with open(config_file, 'r') as upload_config_file:
+            upload_configs = yaml.safe_load(upload_config_file)
+
+        for extracted_directory in upload_configs:
+            if extracted_directory == 'batch_name':     # The key 'batch_name' is not an extracted directory
+                continue
+
+            if upload_configs[extracted_directory]:
+                inp = input(f"Are you sure you want to upload the images in {extracted_directory}? (Y/N): ")
+                if inp.lower() == "y":
+                    extracted_directory_path = os.path.join(directory, extracted_directory)
+
+                    # for video files, upload all images in the main extracted frames directory
+                    uploaded_dir_path = os.path.join(UPLOADED_FOOTAGE, extracted_directory)
+                    self.upload_images_to_roboflow(project, extracted_directory_path,
+                                                   upload_configs['batch_name'], uploaded_dir_path)
 
 
 if __name__ == '__main__':
@@ -348,23 +426,39 @@ if __name__ == '__main__':
 
     generate_config_flag = False
     default_bools_flag = False
-
+    step_size = 10
+    upload_to_roboflow_flag = False
     roboflow_found = False
+
     for index, arg in enumerate(arg_list):
         if arg == '--generate-config':
             generate_config_flag = True
             if index+1 < len(arg_list) and arg_list[index+1].startswith("roboflow"):
-                roboflowFound = True
+                roboflow_found = True
+
         if arg == '--default-bools':
             if index+1 < len(arg_list):
                 if arg_list[index+1].lower() == "true":
                     default_bools_flag = True
 
+        if arg == '--step-size':
+            if index+1 < len(arg_list):
+                step_size = int(arg_list[index+1])
+
+        if arg == '--upload-to-roboflow':
+            upload_to_roboflow_flag = True
+
     if generate_config_flag:
         if roboflow_found:
-            footage_extractor.create_roboflow_config_file(EXTRACTED_FILES_DIR)
+            footage_extractor.create_roboflow_config_file(EXTRACTED_FOOTAGE_DIR)
+
         else:
-            footage_extractor.create_footage_extraction_config_file(FOOTAGE_DIR, enabled=default_bools_flag)
+            footage_extractor.create_footage_extraction_config_file(FOOTAGE_DIR,
+                                                                    enabled=default_bools_flag, step_size=step_size)
+
+    elif upload_to_roboflow_flag:
+        footage_extractor.upload_images_to_roboflow_with_config(EXTRACTED_FOOTAGE_DIR, ROBOFLOW_UPLOAD_CONFIG_FILE)
+
     else:
         inp = input("Are you sure you want to extract footage? (Y/N): ")
         if inp.lower() == "y":
