@@ -345,12 +345,20 @@ class FootageExtractor:
     #
     # The config file should have the following format. Each key is the name of a directory within
     # EXTRACTED_FOOTAGE_DIR. The value of each key indicates if the images in the directory should be uploaded
-    # to Roboflow. The value of batch_name indicates the name of the batch to upload the images to. It should default
-    # to the current date and time (see below).
+    # to Roboflow. Bag files have sub-keys controlling which topics should be uploaded. The value of batch_name
+    # indicates the name of the batch to upload the images to, with default as the current date and time (see below).
     #
     # batch_name: "Uploaded on MM/DD/YYYY at HH:MM am/pm"
-    # extracted_footage_dir_1: False
-    # extracted_footage_dir_2: False
+    # file_1_bag:
+    #   image_topic_1: False
+    #   image_topic_2: False
+    #   ...
+    # file_2_bag:
+    #   image_topic_1: False
+    #   image_topic_2: False
+    #   ...
+    # file_3_mp4: False
+    # file_4_mov: False
     # ...
     def create_roboflow_config_file(self, directory):
         now = datetime.now()
