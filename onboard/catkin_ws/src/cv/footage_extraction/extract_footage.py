@@ -143,7 +143,7 @@ class FootageExtractor:
                 return self.upload_images_to_roboflow(rf_project, image_path, batch_name, uploaded_topic_dir)
             else:
                 # success = self.upload_images_to_roboflow_with_success(rf_project, image_path, batch_name)
-                rf_project.upload(image_path, batch_name)
+                rf_project.upload(image_path, batch_name=batch_name)
 
                 # if success:
                 #     status['successful'].append(image)
