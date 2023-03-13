@@ -171,4 +171,4 @@ The `utils.py` file has two classes that are used by many other files in this pa
 
 `DetectionVisualizer` provides functions to draw bounding boxes and their labels onto images. It is used by DepthAI files when publishing visualized detections.
 
-`ImageTools` provides functions to convert between OpenCV, ROS Image, and ROS CompressedImage formats. All scripts in this package use `ImageTools` to perform converstions between these types. `cv_bridge` is not used by any file or class in this package other than `ImageTools` itself.
+`ImageTools` provides functions to convert between OpenCV, ROS Image, and ROS CompressedImage formats. All scripts in this package use `ImageTools` to perform conversions between these types. `cv_bridge` is not used by any file or class in this package other than `ImageTools` itself.
