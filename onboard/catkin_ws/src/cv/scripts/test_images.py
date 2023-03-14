@@ -69,9 +69,9 @@ class DummyImagePublisher:
         """Publish a still image to topic with the specified framerate."""
 
         image = cv2.imread(self.feed_path, cv2.IMREAD_COLOR)
+        image_msg = self.image_tools.convert_to_ros_compressed_msg(image)
         loop_rate = rospy.Rate(self.framerate)
         while not rospy.is_shutdown():
-            image_msg = self.image_tools.convert_to_ros_compressed_msg(image)
             self.image_publisher.publish(image_msg)
             loop_rate.sleep()
 

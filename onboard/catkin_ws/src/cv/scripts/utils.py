@@ -101,7 +101,7 @@ class ImageTools(object):
 
     def convert_ros_msg_to_ros_compressed_msg(self, image,
                                               image_encoding='bgr8',
-                                              compressed_format="jpg"):
+                                              compressed_format='jpg'):
         """
         Convert from ROS Image message to ROS CompressedImage.
         """
@@ -209,8 +209,6 @@ class ImageTools(object):
         if type(image) == np.ndarray:
             cv2_img = image
         elif image._type == 'sensor_msgs/Image':
-            image.encoding = 'mono16'
-
             encoding = image.encoding.split(";")[0]
 
             if not encoding:
