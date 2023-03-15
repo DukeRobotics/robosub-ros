@@ -3,6 +3,7 @@
 import numpy as np
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
+from sensor_msgs.msg import Image, CompressedImage
 
 
 class DetectionVisualizer:
@@ -75,7 +76,7 @@ class ImageTools(object):
             raise e
 
     def convert_ros_compressed_to_cv2(self, compressed_msg):
-        np_arr = np.fromstring(compressed_msg.data, np.uint8)
+        np_arr = np.frombuffer(compressed_msg.data, np.uint8)
         return cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
     def convert_ros_compressed_msg_to_ros_msg(self, compressed_msg,
@@ -118,9 +119,9 @@ class ImageTools(object):
         cv2_img = None
         if type(image) == np.ndarray:
             cv2_img = image
-        elif image._type == 'sensor_msgs/Image':
+        elif type(image) == Image:
             cv2_img = self.convert_ros_msg_to_cv2(image)
-        elif image._type == 'sensor_msgs/CompressedImage':
+        elif type(image) == CompressedImage:
             cv2_img = self.convert_ros_compressed_to_cv2(image)
         else:
             raise TypeError("Cannot convert type: " + str(type(image)))
@@ -133,9 +134,9 @@ class ImageTools(object):
         ros_msg = None
         if type(image) == np.ndarray:
             ros_msg = self.convert_cv2_to_ros_msg(image)
-        elif image._type == 'sensor_msgs/Image':
+        elif type(image) == Image:
             ros_msg = image
-        elif image._type == 'sensor_msgs/CompressedImage':
+        elif type(image) == CompressedImage:
             ros_msg = self.convert_ros_compressed_msg_to_ros_msg(image)
         else:
             raise TypeError("Cannot convert type: " + str(type(image)))
@@ -149,10 +150,10 @@ class ImageTools(object):
         if type(image) == np.ndarray:
             ros_cmp = self.convert_cv2_to_ros_compressed_msg(
                 image, compressed_format=compressed_format)
-        elif image._type == 'sensor_msgs/Image':
+        elif type(image) == Image:
             ros_cmp = self.convert_ros_msg_to_ros_compressed_msg(
                 image, compressed_format=compressed_format)
-        elif image._type == 'sensor_msgs/CompressedImage':
+        elif type(image) == CompressedImage:
             ros_cmp = image
         else:
             raise TypeError("Cannot convert type: " + str(type(image)))
@@ -163,10 +164,10 @@ class ImageTools(object):
         if type(image) == np.ndarray:
             ros_msg = self.convert_cv2_to_ros_msg(image,
                                                   image_encoding='mono16')
-        elif image._type == 'sensor_msgs/Image':
+        elif type(image) == Image:
             image.encoding = '16UC1'
             ros_msg = image
-        elif image._type == 'sensor_msgs/CompressedImage':
+        elif type(image) == CompressedImage:
             ros_msg = self.convert_compressedDepth_to_image_msg(image)
         else:
             raise TypeError("Cannot convert type: " + str(type(image)))
@@ -184,7 +185,7 @@ class ImageTools(object):
             else:
                 raise TypeError("Cannot compress image with encoding: " + encoding)
 
-        elif image._type == 'sensor_msgs/Image':
+        elif type(image) == Image:
             image.encoding = encoding
             ros_cmp = self.convert_ros_msg_to_ros_compressed_msg(
                 image,
@@ -198,7 +199,7 @@ class ImageTools(object):
             else:
                 raise TypeError("Cannot compress image with encoding: " + encoding)
 
-        elif image._type == 'sensor_msgs/CompressedImage':
+        elif type(image) == CompressedImage:
             ros_cmp = image
         else:
             raise TypeError("Cannot convert type: " + str(type(image)))
@@ -208,7 +209,7 @@ class ImageTools(object):
         cv2_img = None
         if type(image) == np.ndarray:
             cv2_img = image
-        elif image._type == 'sensor_msgs/Image':
+        elif type(image) == Image:
             encoding = image.encoding.split(";")[0]
 
             if not encoding:
@@ -224,7 +225,7 @@ class ImageTools(object):
 
             cv2_img = self.convert_ros_msg_to_cv2(image,
                                                   image_encoding=cv_encoding)
-        elif image._type == 'sensor_msgs/CompressedImage':
+        elif type(image) == CompressedImage:
             cv2_img = self.convert_compressedDepth_to_cv2(image)
         else:
             raise TypeError("Cannot convert type: " + str(type(image)))
