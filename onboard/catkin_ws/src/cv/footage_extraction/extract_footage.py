@@ -13,7 +13,7 @@ FOOTAGE_EXTRACTION_DIR = '/root/dev/robosub-ros/onboard/catkin_ws/src/cv/footage
 FOOTAGE_DIR = os.path.join(FOOTAGE_EXTRACTION_DIR, 'footage')
 EXTRACTED_FOOTAGE_DIR = os.path.join(FOOTAGE_EXTRACTION_DIR, 'extracted_footage')
 EXTRACTED_FILES_DIR = os.path.join(FOOTAGE_EXTRACTION_DIR, 'extracted_files')
-UPLOADED_FOOTAGE = os.path.join(FOOTAGE_EXTRACTION_DIR, 'uploaded_fottage')
+UPLOADED_FOOTAGE = os.path.join(FOOTAGE_EXTRACTION_DIR, 'uploaded_footage')
 FOOTAGE_EXTRACTION_CONFIG_FILE = os.path.join(FOOTAGE_EXTRACTION_DIR, 'footage_extraction_config.yaml')
 ROBOFLOW_UPLOAD_CONFIG_FILE = os.path.join(FOOTAGE_EXTRACTION_DIR, 'roboflow_upload_config.yaml')
 ROBOFLOW_PROJECT_CONFIG_FILE = os.path.join(FOOTAGE_EXTRACTION_DIR, 'roboflow_project_config.yaml')
@@ -35,13 +35,13 @@ class FootageExtractor:
 
     def extract_frames_from_bag(self, topic_name, topic_use_name, footage_path, output_dir, step_size=10):
         """
-        Extract frames from the rosbag file and saves them into output_dir
+        Extract frames from the rosbag file and save them into output_dir
 
         :param footage_path: Path to rosbag file.
         :param topic_name: Name of the topic where the image feed is published. Can find by calling view_rosbag_info
         on the rosbag file.
         :param topic_use_name: Topic name that is used in the extracted frame names. Can set different from topic_name.
-        :param output_dir: Path for directory to save the output. Will create a subdirectory within output_dir for each
+        :param output_dir: Path to directory to save the output. Will create a subdirectory within output_dir for each
         file that is extracted.
         :param step_size: Will extract a frame every step_size number of frames.
         """
@@ -76,13 +76,13 @@ class FootageExtractor:
 
     def extract_frames_from_video(self, use_name, video_path, output_dir, step_size=10):
         """
-        Extract frames from the video file and saves them into output_dir
+        Extract frames from the video file and save them into output_dir
 
         :param use_name: Name that is used in the extracted frame names. Can be set different from video name.
         :param video_path: Path to video file.
         :param topic_name: Name of the topic where the image feed is published. Can find by calling view_rosbag_info
         on the rosbag file.
-        :param output_dir: Path for directory to save the output. Will create a subdirectory within output_dir for each
+        :param output_dir: Path to directory to save the output. Will create a subdirectory within output_dir for each
         file that is extracted.
         :param step_size: Will extract a frame every step_size number of frames.
         """
@@ -116,44 +116,47 @@ class FootageExtractor:
         print(f"Read {num_frames} frames, extracted {num_frames_saved} frames,",
               f"skipped {num_frames-num_frames_saved} frames from file {os.path.basename(video_path)}")
 
-    # TODO: Develop a function that uploads all images in given directory to the rf_project under batch_name
-    # The documentation for the roboflow package is available here: https://docs.roboflow.com/python
-    # You may also find the GitHub repo for the package useful: https://github.com/roboflow/roboflow-python
     def upload_images_to_roboflow(self, rf_project, directory, batch_name, uploaded_dir):
         """
-        Upload all images in directory to the rf_project in Roboflow under batch_name
+        Upload all images in directory to the Roboflow project rf_project under batch_name
+        then move all successfully uploaded images to uploaded_dir
 
         :param rf_project: Name of Roboflow project
-        :param directory: Path for directory containing all the images to be uploaded
-        :param batch_name: Name of batch under rf_project
+        :param directory: Path to directory containing all the images to be uploaded
+        :param batch_name: Name of batch under rf_project to upload the images to
+        :param uploaded_dir: Path to directory to move all successfully uploaded images to
+        :return: Dictionary containing a list of successful images and a list of unsuccessful images
         """
+
         images = os.listdir(directory)
         status = {
             'successful': [],
-            'non_successful': []
+            'unsuccessful': []
         }
 
         for image in images:
             image_path = os.path.join(directory, image)
+            success = self.upload_images_to_roboflow_with_success(rf_project, image_path, batch_name)
 
-            # if directory contains topic subdirectories inside, call function recursively on subdirectory
-            if os.path.isdir(image_path):
-                uploaded_topic_dir = os.path.join(uploaded_dir, image)
-                os.mkdir(uploaded_topic_dir)
-                return self.upload_images_to_roboflow(rf_project, image_path, batch_name, uploaded_topic_dir)
+            if success:
+                status['successful'].append(image)
+                shutil.move(image_path, uploaded_dir)
             else:
-                # success = self.upload_images_to_roboflow_with_success(rf_project, image_path, batch_name)
-                rf_project.upload(image_path, batch_name)
+                status['unsuccessful'].append(image)
 
-                # if success:
-                #     status['successful'].append(image)
-                #     shutil.move(image_path, uploaded_dir)
-                # else:
-                #     status['unsuccessful'].append(image)
-
-        # return status
+        return status
 
     def upload_images_to_roboflow_with_success(self, rf_project, image_path, batch_name):
+        """
+        Upload a single image at image_path to the Roboflow project rf_project under batch_name
+        and return a success boolean
+
+        :param rf_project: Name of Roboflow project
+        :param image_path: Path to image to be uploaded
+        :param batch_name: Name of batch under rf_project to upload the images to
+        :return: Boolean indicating whether image upload is successful
+        """
+
         success = False
 
         if not os.path.isfile(image_path):
@@ -164,10 +167,10 @@ class FootageExtractor:
                   "Only PNG and JPEG files are supported.")
 
         else:
-            response = rf_project._Project__image_upload(image_path, batch_name)
-            if response.json().get["duplicate"]:
+            response = rf_project._Project__image_upload(image_path, batch_name=batch_name)
+            if response.json().get("duplicate"):
                 success = True
-                print("Duplicate image not uploaded: " + image_path)
+                print(f"Duplicate image not uploaded: {image_path}")
 
             else:
                 success = response.json()["success"]
@@ -177,70 +180,16 @@ class FootageExtractor:
 
         return success
 
-    # Function to prepare a config file for the footage extractor
-    # Input: directory and list of files in directory
-    # Output: Save YAML file with the following format to directory/footage_extraction_config.yaml:
-    # bag_filename_1:
-    #   enabled: False
-    #   image_topic_name_1: False
-    #   image_topic_name_2: False
-    #   ...
-    # bag_filename_2:
-    #   enabled: False
-    #   image_topic_name_1: False
-    #   image_topic_name_2: False
-    #   ...
-    # video_filename_1:
-    #   enabled: False
-    # video_filename_2:
-    #   enabled: False
-    # ...
-
-    # TODO: Modify config file structure to the following (added use_name and step_size keys).
-    #
-    # The value of use_name key specifies the name of the filenames and topics to use
-    # when creating the extract directory. This is especially useful when the filenames
-    # and topic names are long and we don't want long directory and filenames or if we want to extract
-    # frames from the same file twice.
-    #
-    # The value of step_size key specifies the number of frames to skip between each frame that is extracted
-    # for each topic in bag files and each video file.
-    #
-    # bag_filename_1:
-    #   enabled: False
-    #   use_name: bag_filename_1
-    #   image_topic_name_1:
-    #       enabled: False
-    #       use_name: image_topic_name_1
-    #       step_size: 10
-    #   image_topic_name_2:
-    #       enabled: False
-    #       use_name: image_topic_name_2
-    #       step_size: 10
-    #   ...
-    # bag_filename_2:
-    #   enabled: False
-    #   use_name: bag_filename_2
-    #   image_topic_name_1:
-    #       enabled: False
-    #       use_name: image_topic_name_1
-    #       step_size: 10
-    #   image_topic_name_2:
-    #       enabled: False
-    #       use_name: image_topic_name_2
-    #       step_size: 10
-    #   ...
-    # video_filename_1:
-    #   enabled: False
-    #   use_name: video_filename_1
-    #   step_size: 10
-    # video_filename_2:
-    #   enabled: False
-    #   use_name: video_filename_2
-    #   step_size: 10
-    # ...
-    # TODO: Modify name of this function to create_footage_extraction_config_file
     def create_footage_extraction_config_file(self, directory, enabled=False, step_size=10):
+        """
+        Prepare a yaml config file for footage extraction based on the list of files in directory
+        and save the file at footage_extraction/footage_extraction_config.yaml
+
+        :param directory: Path to directory containing the files to be extracted
+        :param enabled: Default enabled attribute for every file and topic (for bag files). Set to False by default.
+        :param step_size: Default step_size attribute for every file and topic (for bag files). Set to 10 by default.
+        """
+
         config_dict = {}
         files = os.listdir(directory)
 
@@ -274,22 +223,15 @@ class FootageExtractor:
         with open(FOOTAGE_EXTRACTION_CONFIG_FILE, "w") as yaml_file:
             yaml_file.write(yaml_string)
 
-    # Function to read a config file (see above YAML) and extract footage accordingly
-    # Call the appropriate functions to extract footage from the files specified in the config file
-    # Only extract footage from files that are enabled in the config file
-    # Only extract footage from topics that are enabled in the config file
-    # For video files, extraction path should be directory/extracted_footage/filename,
-    # but replace any '.' in filename with '_'
-    # For example, for extracting pool_test_video.mp4, the output path
-    # should be directory/extracted_footage/pool_test_video_mp4
-    # For bag files, create a folder for the bag file, and within that,
-    # create a folder for each topic, replacing any '/' with '_'
-    # For example, for extracting bag_file.bag, the output path should be
-    # directory/extracted_footage/bag_file_bag/image_topic_name
-    # Make sure to create the directories first before extracting footage
-
-    # TODO: For all files whose footage was extracted, move them to EXTRACTED_FILES_DIR
     def extract_footage_with_config(self, directory, config_file):
+        """
+        Read a footage extraction yaml config_file and extract footage in directory accordingly
+        then move all extracted files into footage_extraction/extracted_files
+
+        :param directory: Path to directory containing the files to be extracted
+        :param config_file: Path to yaml config file
+        """
+
         with open(config_file, 'r') as file:
             configs = yaml.safe_load(file)
 
@@ -341,36 +283,50 @@ class FootageExtractor:
                 if file_extracted:
                     shutil.move(footage_path, extracted_footage_path)
 
-    # TODO: Develop function that generates a roboflow upload config file
-    #
-    # The config file should have the following format. Each key is the name of a directory within
-    # EXTRACTED_FOOTAGE_DIR. The value of each key indicates if the images in the directory should be uploaded
-    # to Roboflow. The value of batch_name indicates the name of the batch to upload the images to. It should default
-    # to the current date and time (see below).
-    #
-    # batch_name: "Uploaded on MM/DD/YYYY at HH:MM am/pm"
-    # extracted_footage_dir_1: False
-    # extracted_footage_dir_2: False
-    # ...
-    def create_roboflow_config_file(self, directory):
+    def create_roboflow_upload_config_file(self, directory):
+        """
+        Prepare a yaml config file for uploading to Roboflow based on the list of extracted image folders in directory
+        and save the file at footage_extraction/roboflow_upload_config.yaml
+
+        :param directory: Path to directory containing the extracted image folders
+        """
+
         now = datetime.now()
-        now_time = now.strftime("%m/%d/%y at %I:%M %p")
+        now_time = now.strftime("%m-%d-%y at %I-%M %p")
         batch_dict = {'batch_name': f"Uploaded on {now_time}"}
         extracted_directories = [name for name in os.listdir(directory) if os.path.isdir(os.path.join(directory, name))]
 
-        for directory in extracted_directories:
-            batch_dict[directory] = False
+        for extracted_directory in extracted_directories:
+            file_dict = {}
+            extracted_directory_path = os.path.join(directory, extracted_directory)
+
+            for item in os.listdir(extracted_directory_path):
+                if os.path.isdir(os.path.join(extracted_directory_path, item)):
+                    file_dict[item] = False
+
+            # if the extracted_directory_path comes from a bag file, there will be
+            # some topic directories in extracted_directory_path
+            if len(file_dict) > 0:
+                batch_dict[extracted_directory] = file_dict
+
+            # if the extracted_directory_path comes from a video file
+            else:
+                batch_dict[extracted_directory] = False
 
         yaml_string = yaml.dump(batch_dict)
 
         with open(ROBOFLOW_UPLOAD_CONFIG_FILE, "w") as yaml_file:
             yaml_file.write(yaml_string)
 
-    # TODO: Develop function that takes a roboflow upload config file and uploads the desired images to Roboflow
-    # Use the function upload_images_to_roboflow developed above. For each directory, ask the user to confirm they want
-    # to upload the images in that directory before doing so. Use the API key and project ID
-    # specified in ROBOFLOW_PROJECT_CONFIG_FILE when creating the project instance to pass to upload_images_to_roboflow.
     def upload_images_to_roboflow_with_config(self, directory, config_file):
+        """
+        Read a Roboflow upload yaml config_file and upload images in directory to Roboflow accordingly
+        then move all successfully uploaded images to footage_extraction/uploaded_footage
+
+        :param directory: Path to directory containing the extracted image folders to be uploaded
+        :param config_file: Path to yaml config file
+        """
+
         with open(ROBOFLOW_PROJECT_CONFIG_FILE, 'r') as project_config_file:
             project_configs = yaml.safe_load(project_config_file)
 
@@ -384,41 +340,53 @@ class FootageExtractor:
             if extracted_directory == 'batch_name':     # The key 'batch_name' is not an extracted directory
                 continue
 
-            if upload_configs[extracted_directory]:
-                inp = input(f"Are you sure you want to upload the images in {extracted_directory}? (Y/N): ")
-                if inp.lower() == "y":
-                    extracted_directory_path = os.path.join(directory, extracted_directory)
+            # creating directory for uploaded files
+            extracted_directory_path = os.path.join(directory, extracted_directory)
+            uploaded_dir_path = os.path.join(UPLOADED_FOOTAGE, extracted_directory)
 
-                    # for video files, upload all images in the main extracted frames directory
-                    uploaded_dir_path = os.path.join(UPLOADED_FOOTAGE, extracted_directory)
-                    self.upload_images_to_roboflow(project, extracted_directory_path,
-                                                   upload_configs['batch_name'], uploaded_dir_path)
+            # if the extracted_directory comes from a video file, there are no topic subdirectories
+            if isinstance(upload_configs[extracted_directory], bool):
+                if upload_configs[extracted_directory]:
+                    inp = input(f"Are you sure you want to upload the images in {extracted_directory}? (Y/N): ")
+                    if inp.lower() == "y":
+                        if not os.path.isdir(uploaded_dir_path):
+                            os.mkdir(uploaded_dir_path)
+
+                        self.upload_images_to_roboflow(project, extracted_directory_path,
+                                                       upload_configs['batch_name'], uploaded_dir_path)
+
+            # if the extracted_directory comes from a bag file
+            else:
+                file_dict = upload_configs[extracted_directory]
+                for topic in file_dict:
+                    extracted_topic_path = os.path.join(extracted_directory_path, topic)
+                    uploaded_topic_dir_path = os.path.join(uploaded_dir_path, topic)
+
+                    if file_dict[topic]:
+                        inp = input("Are you sure you want to upload the " +
+                                    f"images in {extracted_directory}/{topic}? (Y/N): ")
+                        if inp.lower() == "y":
+
+                            # creating directory for the file and topic subdirectories for uploaded images (if required)
+                            if not os.path.isdir(uploaded_dir_path):
+                                os.mkdir(uploaded_dir_path)
+
+                            if not os.path.isdir(uploaded_topic_dir_path):
+                                os.mkdir(uploaded_topic_dir_path)
+
+                            self.upload_images_to_roboflow(project, extracted_topic_path,
+                                                           upload_configs['batch_name'], uploaded_topic_dir_path)
 
 
 if __name__ == '__main__':
 
-    # Using command line arguments, check if the --generate_config flag is set
-    # If it is, call the create_footage_extraction_config_file function
-    # If it is not, ask the user to confirm they want to extract footage on the command line
-    # If user confirms, call the extract_footage_with_config function
-
-    # TODO: Change type of config file generated based on value of --generate-config <str_value>
-    # If value is "footage", then generate a footage extraction config
-    # If value is "roboflow", then generate a roboflow upload config
-    # If no value is given for the --generate-config flag, then generate a footage extraction config
-
-    # TODO: Check if the --default-bools <bool_value> flag is set. (Only used when --generate-config is also set)
-    # If -defaults is set to True, generate a config file with all boolean values set to true
-    # If -defaults is set to False or not specified, generate a config file with all boolean values set to false
-
-    # TODO: Check if the --step-size <int_value> flag is set. (Only used when --generate-config is also set)
-    # If --step-size is set, set the step size for all topics and video files to the specified value
-    # If --step-size is not set, set the step size for all topics and video files to 10
-
-    # TODO: Check if the --upload-to-roboflow flag is present. If so, use the roboflow config file to upload footage
-
-    # TODO: Add comments to all functions explaining what they do (use first two functions as examples)
-    # TODO: Remove all unncessary comments (TOODs, directions, examples, etc.)
+    # default: extract footage using the footage extraction config file
+    # --generate-config: default "footage"
+    #    roboflow: generate a Roboflow upload config
+    #    footage: generate a footage extraction config
+    #         --default_bools: set all boolean values to --default_bools. Default "False"
+    #         --step_size: default 10
+    # --upload-to-roboflow: upload footage to Roboflow using the Roboflow upload config file
 
     footage_extractor = FootageExtractor()
 
@@ -433,7 +401,7 @@ if __name__ == '__main__':
     for index, arg in enumerate(arg_list):
         if arg == '--generate-config':
             generate_config_flag = True
-            if index+1 < len(arg_list) and arg_list[index+1].startswith("roboflow"):
+            if index+1 < len(arg_list) and arg_list[index+1] == "roboflow":
                 roboflow_found = True
 
         if arg == '--default-bools':
@@ -450,7 +418,7 @@ if __name__ == '__main__':
 
     if generate_config_flag:
         if roboflow_found:
-            footage_extractor.create_roboflow_config_file(EXTRACTED_FOOTAGE_DIR)
+            footage_extractor.create_roboflow_upload_config_file(EXTRACTED_FOOTAGE_DIR)
 
         else:
             footage_extractor.create_footage_extraction_config_file(FOOTAGE_DIR,
