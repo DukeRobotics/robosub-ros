@@ -379,14 +379,15 @@ class FootageExtractor:
 
 
 if __name__ == '__main__':
-
-    # default: extract footage using the footage extraction config file
-    # --generate-config: default "footage"
-    #    roboflow: generate a Roboflow upload config
-    #    footage: generate a footage extraction config
-    #         --default_bools: set all boolean values to --default_bools. Default "False"
-    #         --step_size: default 10
-    # --upload-to-roboflow: upload footage to Roboflow using the Roboflow upload config file
+    """
+    default: extract footage using the footage extraction config file
+    --generate-config: default "footage"
+       roboflow: generate a Roboflow upload config
+       footage: generate a footage extraction config
+            --default_bools: set all boolean values to --default_bools. Default "False"
+            --step_size: default 10
+    --upload-to-roboflow: upload footage to Roboflow using the Roboflow upload config file
+    """
 
     footage_extractor = FootageExtractor()
 
