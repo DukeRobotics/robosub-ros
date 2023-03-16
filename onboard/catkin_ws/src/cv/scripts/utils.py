@@ -70,17 +70,15 @@ class ImageTools(object):
         except CvBridgeError as e:
             if "[16UC1] is not a color format" in str(e) or "[8UC1] is not a color format" in str(e):
                 raise CvBridgeError(
-                    "You may be trying to use a Image method " +
-                    "(Subscriber, Publisher, conversion) on a depth image" +
-                    " message. Original exception: " + str(e))
+                    "You may be trying to use a Image method (Subscriber, Publisher, conversion) on a depth image " +
+                    "message. Original exception: " + str(e))
             raise e
 
     def convert_ros_compressed_to_cv2(self, compressed_msg):
         np_arr = np.frombuffer(compressed_msg.data, np.uint8)
         return cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
-    def convert_ros_compressed_msg_to_ros_msg(self, compressed_msg,
-                                              encoding='bgr8'):
+    def convert_ros_compressed_msg_to_ros_msg(self, compressed_msg, encoding='bgr8'):
         cv2_img = self.convert_ros_compressed_to_cv2(compressed_msg)
         ros_img = self._cv_bridge.cv2_to_imgmsg(cv2_img, encoding=encoding)
         ros_img.header = compressed_msg.header
@@ -97,8 +95,7 @@ class ImageTools(object):
         """
         Convert from cv2 image to ROS CompressedImage.
         """
-        return self._cv_bridge.cv2_to_compressed_imgmsg(cv2_data,
-                                                        dst_format=compressed_format)
+        return self._cv_bridge.cv2_to_compressed_imgmsg(cv2_data, dst_format=compressed_format)
 
     def convert_ros_msg_to_ros_compressed_msg(self, image,
                                               image_encoding='bgr8',
@@ -107,8 +104,7 @@ class ImageTools(object):
         Convert from ROS Image message to ROS CompressedImage.
         """
         cv2_img = self.convert_ros_msg_to_cv2(image, image_encoding)
-        cimg_msg = self._cv_bridge.cv2_to_compressed_imgmsg(cv2_img,
-                                                            dst_format=compressed_format)
+        cimg_msg = self._cv_bridge.cv2_to_compressed_imgmsg(cv2_img, dst_format=compressed_format)
         cimg_msg.header = image.header
         return cimg_msg
 
@@ -162,8 +158,7 @@ class ImageTools(object):
     def convert_depth_to_ros_msg(self, image):
         ros_msg = None
         if type(image) == np.ndarray:
-            ros_msg = self.convert_cv2_to_ros_msg(image,
-                                                  image_encoding='mono16')
+            ros_msg = self.convert_cv2_to_ros_msg(image, image_encoding='mono16')
         elif type(image) == Image:
             image.encoding = '16UC1'
             ros_msg = image
@@ -176,8 +171,7 @@ class ImageTools(object):
     def convert_depth_to_ros_compressed_msg(self, image, encoding):
         ros_cmp = None
         if type(image) == np.ndarray:
-            ros_cmp = self.convert_cv2_to_ros_compressed_msg(image,
-                                                             compressed_format='png')
+            ros_cmp = self.convert_cv2_to_ros_compressed_msg(image, compressed_format='png')
             if encoding == 'mono16':
                 ros_cmp.format = '16UC1; compressedDepth'
             elif encoding == 'mono8':
@@ -223,8 +217,7 @@ class ImageTools(object):
             else:
                 raise TypeError("Cannot convert compressedDepth image with encoding: " + encoding)
 
-            cv2_img = self.convert_ros_msg_to_cv2(image,
-                                                  image_encoding=cv_encoding)
+            cv2_img = self.convert_ros_msg_to_cv2(image, image_encoding=cv_encoding)
         elif type(image) == CompressedImage:
             cv2_img = self.convert_compressedDepth_to_cv2(image)
         else:
@@ -269,8 +262,7 @@ class ImageTools(object):
         depth_fmt = depth_fmt.strip()
         compr_type = compr_type.strip()
         if compr_type != "compressedDepth":
-            raise Exception("Compression type is not 'compressedDepth'."
-                            "You probably subscribed to the wrong topic.")
+            raise Exception("Compression type is not 'compressedDepth'. You probably subscribed to the wrong topic.")
 
         # remove header from raw data, if necessary
         if 'PNG' in compressed_depth.data[:12]:
