@@ -30,6 +30,7 @@ bool has_pressure = true;
 
 //Variable for relay to hard reset camera
 int relay = 2;
+bool camera_enabled = false;
 
 // Sets node handle to have 3 subscribers, 1 publishers, and 128 bytes for input and output buffer
 ros::NodeHandle_<ArduinoHardware,3,1,128,128> nh;
@@ -53,6 +54,17 @@ void relay_callback(const std_msgs::Bool &relay_msg){
     else {
         digitalWrite(relay, LOW);
     }
+    //log if change
+    if (relay_msg.data != camera_enabled) {
+        if (relay_msg.data) {
+            nh.loginfo("Camera enabled");
+        }
+        else {
+            nh.loginfo("Camera disabled");
+        }
+        camera_enabled = relay_msg.data;
+    }
+
     
 }
 
