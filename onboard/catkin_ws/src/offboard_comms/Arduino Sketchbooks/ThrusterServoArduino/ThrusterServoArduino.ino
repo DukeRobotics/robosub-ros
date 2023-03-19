@@ -26,6 +26,8 @@ MultiplexedServo servos[NUM_SERVOS];
 
 MS5837 pressure_sensor;
 
+bool has_pressure = true;
+
 //Variable for relay to hard reset camera
 int relay = 2;
 
@@ -44,7 +46,7 @@ void servo_control_callback(const custom_msgs::ServoAngleArray &sa_msg){
 }
 
 void relay_callback(const std_msgs::Bool &relay_msg){
-    nh.loginfo("Toggling relay");
+    
     if (relay_msg.data) {
         digitalWrite(relay, HIGH);
     }
@@ -86,11 +88,16 @@ void setup(){
     memset(servo_angles, 0, sizeof(servo_angles));
 
     Wire.begin();
+    int pressure_attempts = 0;
     while(!pressure_sensor.init()){
       nh.logerror("Failed to initialize pressure sensor.");
+      if(++pressure_attempts > 3){
+         has_pressure = false;
+         break;
+      }
       delay(2000);
     }
-    pressure_sensor.setModel(MS5837::MS5837_30BA);
+    if(has_pressure) pressure_sensor.setModel(MS5837::MS5837_30BA);
 
     // Wait for motors to fully initialise
     delay(2000);
