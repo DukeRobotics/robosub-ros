@@ -6,7 +6,8 @@ import yaml
 import depthai_camera_connect
 import depthai as dai
 import numpy as np
-from utils import DetectionVisualizer, ImageTools
+from utils import DetectionVisualizer
+from image_tools import ImageTools
 
 from custom_msgs.srv import EnableModel
 from custom_msgs.msg import CVObject
@@ -39,6 +40,8 @@ class DepthAISpatialDetector:
         self.detection_feed_publisher = None
         self.rgb_preview_publisher = None
         self.detection_visualizer = None
+
+        self.image_tools = ImageTools()
 
         self.enable_service = f'enable_model_{self.camera}'
 
@@ -181,8 +184,10 @@ class DepthAISpatialDetector:
                                                           queue_size=10)
         self.publishers = publisher_dict
 
-        self.rgb_preview_publisher = rospy.Publisher("camera/front/rgb/preview/stream_raw", CompressedImage, queue_size=10)
-        self.detection_feed_publisher = rospy.Publisher("cv/front/detections", CompressedImage, queue_size=10)
+        self.rgb_preview_publisher = rospy.Publisher("camera/front/rgb/preview/compressed", CompressedImage,
+                                                     queue_size=10)
+        self.detection_feed_publisher = rospy.Publisher("cv/front/detections/compressed", CompressedImage,
+                                                        queue_size=10)
 
     def init_output_queues(self, device):
         """
@@ -215,14 +220,11 @@ class DepthAISpatialDetector:
         frame = inPreview.getCvFrame()
         detections = inDet.detections
 
-        frame_img_msg = ImageTools().convert_to_ros_compressed_msg(frame)
+        frame_img_msg = self.image_tools.convert_to_ros_compressed_msg(frame)
         self.rgb_preview_publisher.publish(frame_img_msg)
 
-        detections_img_msg = ImageTools().convert_to_ros_compressed_msg(
-            self.detection_visualizer.visualize_detections(frame, detections),
-            'bgr8'
-        )
-        
+        detections_visualized = self.detection_visualizer.visualize_detections(frame, detections)
+        detections_img_msg = self.image_tools.convert_to_ros_compressed_msg(detections_visualized)
         self.detection_feed_publisher.publish(detections_img_msg)
 
         height = frame.shape[0]

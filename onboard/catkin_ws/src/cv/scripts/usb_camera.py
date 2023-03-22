@@ -4,7 +4,7 @@ import rospy
 import cv2
 
 from sensor_msgs.msg import CompressedImage
-from utils import ImageTools
+from image_tools import ImageTools
 
 
 class USBCamera:
@@ -13,7 +13,7 @@ class USBCamera:
                                     (currently used for the deepwater exploration usb mono cameras)
 
     Launch using: roslaunch cv usb_camera.launch
-    :param topic: rostopic to publish the image feed to; default is set to camera/image_raw/compressed
+    :param topic: rostopic to publish the image feed to; default is set to camera/usb_camera/compressed
     :param channel: which device channel to read the stream from (e.g., dev/video0)
     :param framerate: custom framerate to stream the camera at; default is set to device default
     """
@@ -37,6 +37,8 @@ class USBCamera:
 
         # Create image publisher at given topic
         self.publisher = rospy.Publisher(self.topic, CompressedImage, queue_size=10)
+
+        self.image_tools = ImageTools()
 
     def run(self):
         """
@@ -62,7 +64,7 @@ class USBCamera:
             # while this loop is running, the script quits without escalating to SIGTERM or SIGKILL
             while not rospy.is_shutdown() and success:
                 # Convert image read from cv2.videoCapture to image message to be published
-                image_msg = ImageTools().convert_to_ros_compressed_msg(img)  # Compress image
+                image_msg = self.image_tools.convert_to_ros_compressed_msg(img)  # Compress image
                 # Publish the image
                 self.publisher.publish(image_msg)
 
@@ -71,7 +73,7 @@ class USBCamera:
                 # Sleep loop to maintain frame rate
                 loop_rate.sleep()
         except Exception:
-            rospy.loginfo("Camera not found at channel {self.channel}")
+            rospy.logerr(f"Camera not found at channel {self.channel}")
 
 
 if __name__ == '__main__':

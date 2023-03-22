@@ -1,0 +1,12 @@
+<library path="src">
+  <class name="System Usage Plugin" type="gui.system_usage_plugin.SystemUsagePlugin" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      GUI interface monitoring system usage.
+    </description>
+    <qtgui>
+      <label>RoboSub System Usage</label>
+      <icon type="theme">system-help</icon>
+      <statustip>GUI interface monitoring system usage.</statustip>
+    </qtgui>
+  </class>
+</library>

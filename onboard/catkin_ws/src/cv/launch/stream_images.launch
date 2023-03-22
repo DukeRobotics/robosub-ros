@@ -1,3 +1,0 @@
-<launch>
-	<node name="test_stream" pkg="cv" type="stream_images.py" />
-</launch>

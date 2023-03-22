@@ -11,7 +11,7 @@ import yaml
 import resource_retriever as rr
 from sensor_msgs.msg import CompressedImage
 from custom_msgs.msg import CVObject
-from utils import ImageTools
+from image_tools import ImageTools
 import rostopic
 
 
@@ -163,7 +163,7 @@ class DepthAISimulateDetection:
 
     def _update_latest_img(self, img_msg):
         """ Store latest image """
-        self.latest_img = self.image_tools.convert_ros_msg_to_cv2(img_msg, 'bgr8')
+        self.latest_img = self.image_tools.convert_to_cv2(img_msg)
 
     def _publish_detections(self, detection_results):
         """ Run detection on an image and publish the predictions

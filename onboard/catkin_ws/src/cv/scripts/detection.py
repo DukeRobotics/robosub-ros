@@ -7,7 +7,7 @@ import resource_retriever as rr
 
 from custom_msgs.msg import CVObject
 from custom_msgs.srv import EnableModel
-from utils import ImageTools
+from image_tools import ImageTools
 from detecto.core import Model
 
 
@@ -27,7 +27,7 @@ class Detector:
             self.models = yaml.safe_load(f)
 
         # The topic that the camera publishes its feed to
-        self.camera_feed_topic = f'/camera/{self.camera}/image_raw'
+        self.camera_feed_topic = f'/camera/{self.camera}/compressed'
 
         # Toggle model service name
         self.enable_service = f'enable_model_{self.camera}'
@@ -80,7 +80,7 @@ class Detector:
         :param img_msg: ROS Image message to compute predictions on.
         """
 
-        image = self.image_tools.convert_ros_msg_to_cv2(img_msg, 'rgb8')
+        image = self.image_tools.convert_to_cv2(img_msg)
 
         for model_name in self.models:
             model = self.models[model_name]

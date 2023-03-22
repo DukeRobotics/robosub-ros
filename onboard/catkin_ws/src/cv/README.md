@@ -43,7 +43,7 @@ This package also contains driver code to publish a camera stream from a USB-typ
 roslaunch cv usb_camera.launch topic:=<topic>
 ```
 
-By default, `<topic>` is set to `/camera/usb_camera/image_raw`. Note that the camera must be plugged in _before_ the docker container is started.
+By default, `<topic>` is set to `/camera/usb_camera/compressed`. Note that the camera must be plugged in _before_ the docker container is started.
 
 ## Setup
 
@@ -105,10 +105,10 @@ Once 1+ models are enabled for a specific node, they listen and publish to topic
 
 #### Listening:
 
- * `/camera/<camera>/image_raw`
+ * `/camera/<camera>/compressed`
    * The topic that the camera publishes each frame to
    * If no actual camera feed is available, you can simulate one using `test_images.py`. See Simulating image feeds above for more information.
-   * Type: sensor_msgs/Image
+   * Type: sensor_msgs/CompressedImage
 
 #### Publishing:
 
@@ -150,7 +150,7 @@ To simulate camera feed and then run a model on the feed from the left camera. W
 * In a new terminal, run `roslaunch cv cv_left.launch` to start the cv node
 * In another new terminal, run `rosservice list` and should see the `enable_model_left` service be listed in the terminal
 * In the same terminal, run `rosservice call enable_model_left buoy true` to enable the buoy model on the feed coming from the left camera. This model should now be publishing predictions
-* To verify that the predictions are being published, you can run `rostopic list`, and you should see both `/camera/left/image_raw` and `/cv/buoy/left` be listed. Then you can run `rostopic echo /cv/buoy/left` and the model predictions should be printed to the terminal
+* To verify that the predictions are being published, you can run `rostopic list`, and you should see both `/camera/left/compressed` and `/cv/buoy/left` be listed. Then you can run `rostopic echo /cv/buoy/left` and the model predictions should be printed to the terminal
 
 ## Simulating Image feeds
 `test_images.py` simulates the camera feed by constantly publishing images to a topic. It can publish still images, a folder of images, rosbag files, and video files to a topic on loop. This helps us locally test our code without needing to connect to a camera. Use `roslaunch` with the files when running.
@@ -161,6 +161,14 @@ To simulate camera feed and then run a model on the feed from the left camera. W
 
 Examples:
 
-`roslaunch cv test_images.launch feed_path:=../assets/gate.mov topic:=/camera/left/image_raw`: Runs test_images by taking gate.mov file in cv/assets and publishes the simulated image feed to the topic '/camera/left/image_raw'. 
+`roslaunch cv test_images.launch feed_path:=../assets/gate.mov topic:=/camera/left/compressed`: Runs test_images by taking gate.mov file in cv/assets and publishes the simulated image feed to the topic '/camera/left/compressed'. 
 
-`roslaunch cv test_images.launch feed_path:=../assets/buoy.jpg topic:=/camera/right/image_raw framerate:=30`: Publishes the still image buoy.jpg in cv/assets to the topic '/camera/right/image_raw' 30 times per second.
+`roslaunch cv test_images.launch feed_path:=../assets/buoy.jpg topic:=/camera/right/compressed framerate:=30`: Publishes the still image buoy.jpg in cv/assets to the topic '/camera/right/compressed' 30 times per second.
+
+# Utils
+
+The `utils.py` file has two classes that are used by many other files in this package.
+
+`DetectionVisualizer` provides functions to draw bounding boxes and their labels onto images. It is used by DepthAI files when publishing visualized detections.
+
+`ImageTools` provides functions to convert between OpenCV, ROS Image, and ROS CompressedImage formats. All scripts in this package use `ImageTools` to perform conversions between these types. `cv_bridge` is not used by any file or class in this package other than `ImageTools` itself.

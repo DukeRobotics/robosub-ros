@@ -25,3 +25,5 @@ class CVInterface:
         self.cv_data[object_type] = cv_data
 
     # TODO add useful methods for getting data
+    def get_data(self, name):
+        return self.cv_data[name]
