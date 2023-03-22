@@ -108,7 +108,7 @@ class ImageTools(object):
         cimg_msg.header = image.header
         return cimg_msg
 
-    def convert_to_cv2(self, image):
+    def convert_to_cv2(self, image, image_encoding='bgr8'):
         """
         Convert any kind of image to cv2.
         """
@@ -116,51 +116,75 @@ class ImageTools(object):
         if type(image) == np.ndarray:
             cv2_img = image
         elif type(image) == Image:
-            cv2_img = self.convert_ros_msg_to_cv2(image)
+            cv2_img = self.convert_ros_msg_to_cv2(image, image_encoding=image_encoding)
         elif type(image) == CompressedImage:
             cv2_img = self.convert_ros_compressed_to_cv2(image)
         else:
             raise TypeError("Cannot convert type: " + str(type(image)))
         return cv2_img
 
-    def convert_to_ros_msg(self, image):
+    def convert_to_ros_msg(self, image, image_encoding='bgr8'):
         """
         Convert any kind of image to ROS Image.
         """
         ros_msg = None
         if type(image) == np.ndarray:
-            ros_msg = self.convert_cv2_to_ros_msg(image)
+            ros_msg = self.convert_cv2_to_ros_msg(image, image_encoding=image_encoding)
         elif type(image) == Image:
             ros_msg = image
         elif type(image) == CompressedImage:
-            ros_msg = self.convert_ros_compressed_msg_to_ros_msg(image)
+            ros_msg = self.convert_ros_compressed_msg_to_ros_msg(image, image_encoding=image_encoding)
         else:
             raise TypeError("Cannot convert type: " + str(type(image)))
         return ros_msg
 
-    def convert_to_ros_compressed_msg(self, image, compressed_format='jpg'):
+    def convert_to_ros_compressed_msg(self, image, compressed_format='jpg', image_encoding='bgr8'):
         """
         Convert any kind of image to ROS Compressed Image.
         """
         ros_cmp = None
         if type(image) == np.ndarray:
-            ros_cmp = self.convert_cv2_to_ros_compressed_msg(
-                image, compressed_format=compressed_format)
+            ros_cmp = self.convert_cv2_to_ros_compressed_msg(image, compressed_format=compressed_format)
         elif type(image) == Image:
-            ros_cmp = self.convert_ros_msg_to_ros_compressed_msg(
-                image, compressed_format=compressed_format)
+            ros_cmp = self.convert_ros_msg_to_ros_compressed_msg(image, image_encoding=image_encoding,
+                                                                 compressed_format=compressed_format)
         elif type(image) == CompressedImage:
             ros_cmp = image
         else:
             raise TypeError("Cannot convert type: " + str(type(image)))
         return ros_cmp
 
-    def convert_depth_to_ros_msg(self, image):
+    def convert_cv_bridge_depth_encoding_to_encoding_string(self, cv_bridge_depth_encoding, compressed=False):
+        encoding_str = ""
+        if cv_bridge_depth_encoding == 'mono16':
+            encoding_str = '16UC1'
+        elif cv_bridge_depth_encoding == 'mono8':
+            encoding_str = '8UC1'
+        else:
+            raise TypeError("Cannot convert image with encoding: " + cv_bridge_depth_encoding)
+
+        if compressed:
+            encoding_str += '; compressedDepth'
+
+        return encoding_str
+
+    def convert_encoding_string_to_cv_bridge_depth_encoding(self, encoding_str):
+        cv_bridge_depth_encoding = ""
+        if encoding_str == '16UC1' or encoding_str == '16UC1; compressedDepth':
+            cv_bridge_depth_encoding = 'mono16'
+        elif encoding_str == '8UC1' or encoding_str == '8UC1; compressedDepth':
+            cv_bridge_depth_encoding = 'mono8'
+        else:
+            raise TypeError("Cannot convert image with encoding: " + encoding_str)
+
+        return cv_bridge_depth_encoding
+
+    def convert_depth_to_ros_msg(self, image, image_encoding):
         ros_msg = None
         if type(image) == np.ndarray:
-            ros_msg = self.convert_cv2_to_ros_msg(image, image_encoding='mono16')
+            ros_msg = self.convert_cv2_to_ros_msg(image, image_encoding=image_encoding)
         elif type(image) == Image:
-            image.encoding = '16UC1'
+            image.encoding = self.convert_cv_bridge_depth_encoding_to_encoding_string(image_encoding)
             ros_msg = image
         elif type(image) == CompressedImage:
             ros_msg = self.convert_compressedDepth_to_image_msg(image)
@@ -168,30 +192,17 @@ class ImageTools(object):
             raise TypeError("Cannot convert type: " + str(type(image)))
         return ros_msg
 
-    def convert_depth_to_ros_compressed_msg(self, image, encoding):
+    def convert_depth_to_ros_compressed_msg(self, image, image_encoding):
         ros_cmp = None
         if type(image) == np.ndarray:
             ros_cmp = self.convert_cv2_to_ros_compressed_msg(image, compressed_format='png')
-            if encoding == 'mono16':
-                ros_cmp.format = '16UC1; compressedDepth'
-            elif encoding == 'mono8':
-                ros_cmp.format = '8UC1; compressedDepth'
-            else:
-                raise TypeError("Cannot compress image with encoding: " + encoding)
+            ros_cmp.format = self.convert_cv_bridge_depth_encoding_to_encoding_string(image_encoding, compressed=True)
 
         elif type(image) == Image:
-            image.encoding = encoding
-            ros_cmp = self.convert_ros_msg_to_ros_compressed_msg(
-                image,
-                image_encoding=encoding,
-                compressed_format='png')
-
-            if encoding == 'mono16':
-                ros_cmp.format = '16UC1; compressedDepth'
-            elif encoding == 'mono8':
-                ros_cmp.format = '8UC1; compressedDepth'
-            else:
-                raise TypeError("Cannot compress image with encoding: " + encoding)
+            image.encoding = image_encoding
+            ros_cmp = self.convert_ros_msg_to_ros_compressed_msg(image, image_encoding=image_encoding,
+                                                                 compressed_format='png')
+            ros_cmp.format = self.convert_cv_bridge_depth_encoding_to_encoding_string(image_encoding, compressed=True)
 
         elif type(image) == CompressedImage:
             ros_cmp = image
@@ -205,18 +216,7 @@ class ImageTools(object):
             cv2_img = image
         elif type(image) == Image:
             encoding = image.encoding.split(";")[0]
-
-            if not encoding:
-                raise TypeError("Cannot convert compressedDepth image with encoding: " + image.encoding)
-
-            cv_encoding = ""
-            if encoding == "16UC1":
-                cv_encoding = "mono16"
-            elif encoding == "8UC1":
-                cv_encoding = "mono8"
-            else:
-                raise TypeError("Cannot convert compressedDepth image with encoding: " + encoding)
-
+            cv_encoding = self.convert_encoding_string_to_cv_bridge_depth_encoding(encoding)
             cv2_img = self.convert_ros_msg_to_cv2(image, image_encoding=cv_encoding)
         elif type(image) == CompressedImage:
             cv2_img = self.convert_compressedDepth_to_cv2(image)
@@ -232,17 +232,7 @@ class ImageTools(object):
         Code from: https://answers.ros.org/question/249775/display-compresseddepth-image-python-cv2/
         """
         encoding = compressed_image.format.split(";")[0]
-
-        if not encoding:
-            raise TypeError("Cannot convert compressedDepth image with format: " + compressed_image.format)
-
-        cv_encoding = ""
-        if encoding == "16UC1":
-            cv_encoding = "mono16"
-        elif encoding == "8UC1":
-            cv_encoding = "mono8"
-        else:
-            raise TypeError("Cannot convert compressedDepth image with encoding: " + encoding)
+        cv_encoding = self.convert_encoding_string_to_cv_bridge_depth_encoding(encoding)
 
         depth_img_raw = self.convert_compressedDepth_to_cv2(compressed_image)
         img_msg = self._cv_bridge.cv2_to_imgmsg(depth_img_raw, cv_encoding)
