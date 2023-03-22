@@ -6,7 +6,8 @@ import yaml
 import depthai_camera_connect
 import depthai as dai
 import numpy as np
-from utils import DetectionVisualizer, ImageTools
+from utils import DetectionVisualizer
+from image_tools import ImageTools
 
 from custom_msgs.srv import EnableModel
 from custom_msgs.msg import CVObject

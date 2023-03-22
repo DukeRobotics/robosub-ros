@@ -4,7 +4,7 @@ import rospy
 import cv2
 
 from sensor_msgs.msg import CompressedImage
-from utils import ImageTools
+from image_tools import ImageTools
 
 
 class USBCamera:

@@ -11,7 +11,7 @@ import yaml
 import resource_retriever as rr
 from sensor_msgs.msg import CompressedImage
 from custom_msgs.msg import CVObject
-from utils import ImageTools
+from image_tools import ImageTools
 import rostopic
 
 

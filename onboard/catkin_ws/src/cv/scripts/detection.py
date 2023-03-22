@@ -7,7 +7,7 @@ import resource_retriever as rr
 
 from custom_msgs.msg import CVObject
 from custom_msgs.srv import EnableModel
-from utils import ImageTools
+from image_tools import ImageTools
 from detecto.core import Model
 
 
