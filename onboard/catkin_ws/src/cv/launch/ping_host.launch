@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="hostname" default="169.254.1.222" doc='{"type":"str","allowEmpty":false,"help":"The IP address or domain name to ping."}'/>
+	<arg name="rate" default="1" doc='{"type":"int","allowEmpty":false,"help":"The ping frequency in Hz."}'/>
+	<node name="ping_host" pkg="cv" type="ping_host.py" output="screen">
+		<param name="hostname" value="$(arg hostname)" />
+		<param name="rate" value="$(arg rate)" />
+	</node>
+</launch>
