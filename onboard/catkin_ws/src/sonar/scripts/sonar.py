@@ -15,11 +15,9 @@ class Sonar:
     Class to interface with the Sonar device.
     """
 
-    # only for local testing with the sonar script
-    IF_LOCAL_TEST = True
-
     # PORT of the salea is ttyUSB2 for testing
-    SERIAL_PORT_NAME = "/dev/ttyUSB2"
+    DEFAULT_SERIAL_PORT = 2
+    SERIAL_PORT_NAME = "/dev/ttyUSB"
     BAUD_RATE = 2000000  # hz
     SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
     SPEED_OF_SOUND_IN_WATER = 1480  # m/s
@@ -28,10 +26,12 @@ class Sonar:
     DEFAULT_RANGE = 5
 
     def __init__(self, range=DEFAULT_RANGE, number_of_samples=1200,
-                 serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE):
+                 serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE,
+                 serial_port_number=DEFAULT_SERIAL_PORT):
         self.ping360 = Ping360()
         # TODO: Add try except for connecting to device
-        self.ping360.connect_serial(serial_port_name, baud_rate)
+        self.ping360.connect_serial(f'{serial_port_name}{serial_port_number}',
+                                    baud_rate)
         self.ping360.initialize()
         period_and_duration = self.range_to_period_and_duration(range)
 
@@ -93,7 +93,7 @@ class Sonar:
         response = self.ping360.transmitAngle(angle_in_gradians)
         return response
 
-    def get_sweep(self, range_start, range_end):
+    def get_sweep(self, range_start=100, range_end=300):
         """ Get data along a range of angles
 
         Args:
@@ -165,8 +165,8 @@ class Sonar:
         """ Execute a sweep and get the largest activation for each angle
 
         Args:
-            start_angle (int): _description_
-            end_angle (int): _description_
+            start_angle (int): left starting angle of sonar sweep
+            end_angle (int): right ending angle of sonar sweep
 
         Returns:
             Array: Array of tuples with
@@ -226,60 +226,3 @@ class Sonar:
             self.listener, pos_of_point)
 
         return transformed_pose
-
-
-def test_scan_and_finding_gate_posts():
-    """ Test to do a scan with the sonar device and find gate posts
-        from the resulting image
-    """
-    sonar = Sonar(range=5)
-    JPEG_SAVE_PATH = os.path.join(os.path.dirname(__file__),
-                                  'sampleData', 'Sonar_Image_robot.jpeg')
-    NPY_SAVE_PATH = os.path.join(os.path.dirname(__file__),
-                                 'sampleData', 'Sonar_Image_robot.npy')
-
-    sonar_img = scan_and_build_sonar_image(sonar,
-                                           display_results=False,
-                                           npy_save_path=NPY_SAVE_PATH,
-                                           jpeg_save_path=JPEG_SAVE_PATH)
-
-    posts = find_gate_posts(sonar_img, display_results=False)
-    print(posts)
-
-
-def test_gate_from_npy_file(file):
-    img = np.load(file)
-    img = img[:, 150:]
-    print(img)
-    posts = find_gate_posts(img, display_results=True)
-    print(posts)
-
-
-def test_buoy_from_npy_file(file):
-    img = np.load(file)
-    print(img)
-    posts = find_buoy(img, display_results=True)
-    print(posts)
-
-
-"""
-    Settings for a 10m scan:
-    transmit_duration = 53
-    sample_period = 444
-    transmit_frequency = 750
-    BAUD_RATE = 2000000
-
-    Settings for 5m scan:
-    transmit_duration = 27
-    sample_period = 222
-    transmit_frequency = 750
-    BAUD_RATE = 2000000
-
-    sweep_data = sonar.sweep_biggest_byte(100, 300)  #180deg in front
-    print(f"Distance to object: {sonar.get_distance_of_sample(
-                                sweep_data[0])} | Angle: {sweep_data[2]}")
-
-    FOR STARTING A WEB SERVER IN FOLDER::: RUN "python -m http.server 8000"
-    test_buoy_from_npy_file(os.path.join(os.path.dirname(__file__),
-    'sampleData', 'gate.npy'))
-"""
