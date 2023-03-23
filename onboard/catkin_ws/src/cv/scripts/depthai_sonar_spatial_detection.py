@@ -15,7 +15,6 @@ from custom_msgs.srv import EnableModel
 from custom_msgs.msg import CVObject
 from custom_msgs.msg import sweepResult, sweepGoal
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import Pose
 
 
 MM_IN_METER = 1000
@@ -342,15 +341,6 @@ class DepthAISonarSpatialDetector(DepthAISpatialDetector):
 
         object_msg.sonar = using_sonar
 
-        published_pose = Pose()
-        published_pose.position.x = object_msg.coords.x
-        published_pose.position.y = object_msg.coords.y
-        published_pose.position.z = object_msg.coords.z
-        published_pose.orientation.x = 0
-        published_pose.orientation.y = 0
-        published_pose.orientation.z = 0
-        published_pose.orientation.w = 1
-
         if self.publishers:
             self.publishers[label].publish(object_msg)
 
@@ -378,7 +368,7 @@ class DepthAISonarSpatialDetector(DepthAISpatialDetector):
         """
         Callback function for listenting to sonar response
         Updates instance variable self.sonar_response based on
-        what sonar throws back if it is in range (> 1.5m)
+        what sonar throws back if it is in range (> SONAR_RANGE = 1.75m)
         """
         # Check to see if the sonar is in range - are results from sonar valid?
         if sonar_results.y_pos > SONAR_RANGE:
