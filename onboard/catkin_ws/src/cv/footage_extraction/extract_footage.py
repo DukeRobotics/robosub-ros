@@ -157,8 +157,6 @@ class FootageExtractor:
         :return: Boolean indicating whether image upload is successful
         """
 
-        # success = False
-
         if not os.path.isfile(image_path):
             print(f"ERROR: The provided image path {image_path} is not a valid path. Image failed to upload!")
             return False
@@ -169,20 +167,6 @@ class FootageExtractor:
             return False
 
         return rf_project.single_upload(image_path=image_path, batch_name=batch_name)
-
-        # else:
-        #     response = rf_project._Project__image_upload(image_path, batch_name=batch_name)
-        #     if response.json().get("duplicate"):
-        #         success = True
-        #         print(f"Duplicate image not uploaded: {image_path}")
-
-        #     else:
-        #         success = response.json()["success"]
-
-        # if not success:
-        #     print(f"ERROR: Server rejected image: {response.json()}. Image at {image_path} failed to upload!")
-
-        # return success
 
     def create_footage_extraction_config_file(self, directory, enabled=False, step_size=10):
         """
