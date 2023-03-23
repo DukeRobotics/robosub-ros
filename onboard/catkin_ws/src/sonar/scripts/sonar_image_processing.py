@@ -48,11 +48,11 @@ def build_sonar_img_from_log_file(filename, start_index=49, end_index=149):
         if index >= start_index and index <= end_index:
             data_list.append(decoded_message.data)
 
-    JPEG_SAVE_PATH = os.path.join(os.path.dirname(__file__),
+    jpeg_save_path = os.path.join(os.path.dirname(__file__),
                                   'sampleData', 'Sonar_Image.jpeg')
 
     sonar_img = build_sonar_image(data_list, display_results=True,
-                                  jpeg_save_path=JPEG_SAVE_PATH)
+                                  jpeg_save_path=jpeg_save_path)
     return sonar_img
 
 
@@ -276,11 +276,12 @@ def test_img_proc(img, func=find_buoy):
 
 def to_polar_img(img, display_results=True):
 
-    img = np.pad(img.astype(np.uint8), ((80,80),(0,0)), 'constant')
+    img = np.pad(img.astype(np.uint8), ((80, 80), (0, 0)), 'constant')
 
     greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
     cm_image = cv2.applyColorMap(greyscale_image, cv2.COLORMAP_VIRIDIS)
-    polar_img = cv2.linearPolar(cm_image, (500, 200), 200.0, cv2.WARP_INVERSE_MAP)
+    polar_img = cv2.linearPolar(cm_image, (500, 200), 200.0,
+                                cv2.WARP_INVERSE_MAP)
     
     if display_results:
         cv2.imshow("Polar", polar_img)
