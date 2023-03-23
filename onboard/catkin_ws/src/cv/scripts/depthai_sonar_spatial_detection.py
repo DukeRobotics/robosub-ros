@@ -9,6 +9,7 @@ import depthai as dai
 import numpy as np
 from utils import DetectionVisualizer
 from cv_bridge import CvBridge
+from depthai_spatial_detection import DepthAISpatialDetector
 
 from custom_msgs.srv import EnableModel
 from custom_msgs.msg import CVObject
@@ -22,14 +23,14 @@ DEPTHAI_OD_MODELS_FILEPATH = 'package://cv/models/depthai_models.yaml'
 HORIZONTAL_FOV = 95
 CAMERA_PIXEL_WIDTH = 416
 SONAR_DEPTH = 10
+SONAR_RANGE = 1.75
 SONAR_REQUESTS_PATH = 'sonar/request'
 SONAR_RESPONSES_PATH = 'sonar/cv/response'
-POSE_PUBLISHER_PATH = 'cv/pose'
 
 
 # Compute detections on live camera feed and publish spatial
 # coordinates for detected objects by aggregating sonar and stereo vision
-class DepthAISpatialDetector:
+class DepthAISonarSpatialDetector(DepthAISpatialDetector):
     def __init__(self):
         """
         Initializes the ROS node and service. Loads the yaml file
@@ -61,9 +62,6 @@ class DepthAISpatialDetector:
             SONAR_REQUESTS_PATH, sweepGoal, queue_size=10)
         self.sonar_response_subscriber = rospy.Subscriber(
             SONAR_RESPONSES_PATH, sweepResult, self.update_sonar)
-
-        self.pose_publisher = rospy.Publisher(POSE_PUBLISHER_PATH,
-                                              Pose, queue_size=10)
 
     def build_pipeline(self, nn_blob_path, sync_nn=True):
         """
@@ -306,18 +304,6 @@ class DepthAISpatialDetector:
                 det_coords_robot_mm = (self.sonar_response[0],
                                        self.sonar_response[1], y_cam_meters)
 
-                # Publish Pose to task planning directly; based on
-                # latest sonar update
-                published_pose = Pose()
-                published_pose.position.x = det_coords_robot_mm[0]
-                published_pose.position.y = det_coords_robot_mm[1]
-                published_pose.position.z = det_coords_robot_mm[2]
-                published_pose.orientation.x = 0
-                published_pose.orientation.y = 0
-                published_pose.orientation.z = 0
-                published_pose.orientation.w = 1
-
-            self.pose_publisher.publish()
             self.publish_prediction(
                 bbox, det_coords_robot_mm, label, confidence,
                 (height, width), self.in_sonar_range)
@@ -365,8 +351,6 @@ class DepthAISpatialDetector:
         published_pose.orientation.z = 0
         published_pose.orientation.w = 1
 
-        self.pose_publisher.publish()
-
         if self.publishers:
             self.publishers[label].publish(object_msg)
 
@@ -397,7 +381,7 @@ class DepthAISpatialDetector:
         what sonar throws back if it is in range (> 1.5m)
         """
         # Check to see if the sonar is in range - are results from sonar valid?
-        if sonar_results.y_pos > 1.75:
+        if sonar_results.y_pos > SONAR_RANGE:
             self.in_sonar_range = True
             self.sonar_response = (sonar_results.x_pos, sonar_results.y_pos)
         else:
@@ -460,4 +444,4 @@ def coords_to_angle(min_x, max_x):
 
 
 if __name__ == '__main__':
-    DepthAISpatialDetector().run()
+    DepthAISonarSpatialDetector().run()
