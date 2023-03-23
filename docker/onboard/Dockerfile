@@ -41,6 +41,7 @@ RUN apt-get update && \
     ros-noetic-rosserial \
     ros-noetic-rosserial-arduino \
     ffmpeg \
+    iputils-ping \
     python3-pandas && \
     apt-get clean && \
     # Clear apt caches to reduce image size
@@ -49,7 +50,7 @@ RUN apt-get update && \
 # Get required python packages
 RUN pip3 install --no-cache-dir \
     numpy==1.20.3 scipy pymba python-dateutil \
-    pyserial dependency-injector \ 
+    pyserial dependency-injector \
     gputil saleae
 
 # Install PyTorch and Torchvision
