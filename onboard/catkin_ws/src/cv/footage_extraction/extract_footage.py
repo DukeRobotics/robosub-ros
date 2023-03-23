@@ -157,28 +157,32 @@ class FootageExtractor:
         :return: Boolean indicating whether image upload is successful
         """
 
-        success = False
+        # success = False
 
         if not os.path.isfile(image_path):
-            print(f"ERROR: The provided image path {image_path} is not a valid path.")
+            print(f"ERROR: The provided image path {image_path} is not a valid path. Image failed to upload!")
+            return False
 
         elif not rf_project.check_valid_image(image_path):
             print(f"ERROR: The image at {image_path} is not a supported file format.",
-                  "Only PNG and JPEG files are supported.")
+                  "Only PNG and JPEG files are supported. Image failed to upload!")
+            return False
 
-        else:
-            response = rf_project._Project__image_upload(image_path, batch_name=batch_name)
-            if response.json().get("duplicate"):
-                success = True
-                print(f"Duplicate image not uploaded: {image_path}")
+        return rf_project.single_upload(image_path=image_path, batch_name=batch_name)
 
-            else:
-                success = response.json()["success"]
+        # else:
+        #     response = rf_project._Project__image_upload(image_path, batch_name=batch_name)
+        #     if response.json().get("duplicate"):
+        #         success = True
+        #         print(f"Duplicate image not uploaded: {image_path}")
 
-        if not success:
-            print(f"ERROR: Server rejected image: {response.json()}. Image at {image_path} failed to upload!")
+        #     else:
+        #         success = response.json()["success"]
 
-        return success
+        # if not success:
+        #     print(f"ERROR: Server rejected image: {response.json()}. Image at {image_path} failed to upload!")
+
+        # return success
 
     def create_footage_extraction_config_file(self, directory, enabled=False, step_size=10):
         """
@@ -382,8 +386,8 @@ if __name__ == '__main__':
     """
     default: extract footage using the footage extraction config file
     --generate-config: default "footage"
-       roboflow: generate a Roboflow upload config
-       footage: generate a footage extraction config
+        roboflow: generate a Roboflow upload config
+        footage: generate a footage extraction config
             --default_bools: set all boolean values to --default_bools. Default "False"
             --step_size: default 10
     --upload-to-roboflow: upload footage to Roboflow using the Roboflow upload config file
