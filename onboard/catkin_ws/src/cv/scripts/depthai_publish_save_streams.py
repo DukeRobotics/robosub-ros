@@ -79,12 +79,13 @@ class DepthAIStreamsPublisherAndSaver:
         if self.save_disparity:
             encoded_pixels_per_frame += self.disparity_resolution[0] * self.disparity_resolution[1]
 
-        max_encoded_pixels_per_second = 3840 * 2160 * 30
-        max_framerate = int(max_encoded_pixels_per_second / encoded_pixels_per_frame)
-        if self.framerate > max_framerate:
-            rospy.logwarn(f'Framerate {self.framerate} goes over the encoding limit. '
-                          f'Using maximum possible framerate: {max_framerate}')
-            self.framerate = max_framerate
+        if encoded_pixels_per_frame > 0:
+            max_encoded_pixels_per_second = 3840 * 2160 * 30
+            max_framerate = int(max_encoded_pixels_per_second / encoded_pixels_per_frame)
+            if self.framerate > max_framerate:
+                rospy.logwarn(f'Framerate {self.framerate} goes over the encoding limit. '
+                              f'Using maximum possible framerate: {max_framerate}')
+                self.framerate = max_framerate
 
         if num_saved_streams > 3:
             raise ValueError('Cannot save more than 3 streams at once')
