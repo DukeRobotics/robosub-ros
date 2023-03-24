@@ -37,7 +37,7 @@ class RemoteLaunchNode:
             rli_msg = RemoteLaunchInfo()
 
             exe = 'roslaunch' if req.is_launch_file else 'rosrun'
-            rli_msg.msg_type = 'Executing' + exe
+            rli_msg.msg_type = 'Executing ' + exe
 
             rli_msg.pid = shared_dict['pid']
             rli_msg.package = req.package
