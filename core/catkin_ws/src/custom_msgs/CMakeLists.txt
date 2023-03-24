@@ -25,8 +25,10 @@ add_message_files(
 
 add_service_files(
   FILES
-  SetServo.srv
+  ConnectDepthAICamera.srv
+  ConnectUSBCamera.srv
   EnableModel.srv
+  SetServo.srv
   StartLaunch.srv
   StopLaunch.srv
 )

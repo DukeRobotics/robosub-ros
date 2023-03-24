@@ -164,3 +164,20 @@ Examples:
 `roslaunch cv test_images.launch feed_path:=../assets/gate.mov topic:=/camera/left/image_raw`: Runs test_images by taking gate.mov file in cv/assets and publishes the simulated image feed to the topic '/camera/left/image_raw'. 
 
 `roslaunch cv test_images.launch feed_path:=../assets/buoy.jpg topic:=/camera/right/image_raw framerate:=30`: Publishes the still image buoy.jpg in cv/assets to the topic '/camera/right/image_raw' 30 times per second.
+
+## Checking Camera Connection Status
+`camera_test_connect.launch` starts the `connect_depthai_camera` and `connect_usb_camera` services which determine whether the stereo and mono cameras are connected. There are no arguments to the launch command.
+* The `connect_depthai_camera` service has no arguments. A boolean `success` is returned indicating whether the connection was successful.
+* The `connect_usb_camera` service requires a channel argument which is used to connect to the mono camera. A boolean `success` is returned indicating whether the connection was successful.
+
+`ping_host.launch` starts the `ping_host` rosnode which regularly publishes a `DiagnosticArray` that contains log information from an attempted ping.
+
+There are two arguments.
+* `hostname` is the IP address of the host you want to ping. By default, hostname is `169.254.1.222` (the stereo camera IP address)
+* `rate` specifies the time between each ping request in hertz. By default, the rate is 1 hz.
+
+The `DianosticArray` that is pubished returns several values.
+* `.header.stamp` contains the time of ping as a `rospy.Time` instance.
+* `.status[].level` is 0 if the ping was successful, 2 otherwise.
+* `.status[].name` is the `hostname` specified in the launch command.
+* `.status[].stdout` is the full standard output log from the ping command.
