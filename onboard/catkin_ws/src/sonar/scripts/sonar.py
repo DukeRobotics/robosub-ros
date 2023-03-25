@@ -4,9 +4,6 @@ from brping import Ping360
 import numpy as np
 import sonar_utils
 from geometry_msgs.msg import Pose
-from sonar_image_processing import scan_and_build_sonar_image
-from sonar_image_processing import find_gate_posts, find_buoy
-import os
 from tf import TransformListener
 
 

@@ -282,7 +282,7 @@ def to_polar_img(img, display_results=True):
     cm_image = cv2.applyColorMap(greyscale_image, cv2.COLORMAP_VIRIDIS)
     polar_img = cv2.linearPolar(cm_image, (500, 200), 200.0,
                                 cv2.WARP_INVERSE_MAP)
-    
+
     if display_results:
         cv2.imshow("Polar", polar_img)
         cv2.waitKey(0)
