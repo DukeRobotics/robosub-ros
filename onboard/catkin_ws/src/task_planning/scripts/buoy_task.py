@@ -1,5 +1,5 @@
-from onboard.catkin_ws.src.task_planning.scripts.interface.controls import ControlsInterface
-from onboard.catkin_ws.src.task_planning.scripts.interface.cv import CVInterface
+from interface.controls import ControlsInterface
+from interface.cv import CVInterface
 import smach
 import cv_tasks
 from move_tasks import AllocateVelocityLocalTask, HoldPositionTask, MoveToUserDataPoseLocalTask, MoveToPoseLocalTask

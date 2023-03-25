@@ -1,4 +1,4 @@
-from onboard.catkin_ws.src.task_planning.scripts.interface.cv import CVInterface
+from interface.cv import CVInterface
 import smach
 
 
