@@ -165,6 +165,8 @@ class DepthAISpatialDetector:
 
         self.classes = model['classes']
 
+        self.colors = model['colors']
+
         blob_path = rr.get_filename(f"package://cv/models/{model['weights']}",
                                     use_protocol=False)
         self.pipeline = self.build_pipeline(blob_path)
@@ -203,7 +205,7 @@ class DepthAISpatialDetector:
         self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
         self.connected = True
 
-        self.detection_visualizer = DetectionVisualizer(self.classes)
+        self.detection_visualizer = DetectionVisualizer(self.classes, self.colors)
 
     def detect(self):
         """

@@ -10,30 +10,41 @@ class DetectionVisualizer:
     https://github.com/luxonis/depthai-experiments/blob/master/gen2-display-detections/utility.py
     """
 
-    def __init__(self, classes) -> None:
+    def __init__(self, classes, colors) -> None:
 
         # The color to outline text & bounding boxes in
-        self.bg_color = (0, 0, 0)
+        #self.bg_color = (0, 0, 0)
 
         # The color of the text & bounding boxes
-        self.color = (255, 255, 255)
+        #self.color = (255, 255, 255)
+
 
         self.text_type = cv2.FONT_HERSHEY_SIMPLEX
         self.line_type = cv2.LINE_AA
 
         # A list of classes of the model used for detection
         self.classes = classes
+        self.colors = []
+        for color in colors:
+            self.colors.append(self.hex_to_rgb(color))
 
-    def putText(self, frame, text, coords):
+    def hex_to_rgb(self, hex):
+        return tuple(int(hex[i:i+2], 16) for i in (0, 2, 4))
+
+    def putText(self, frame, text, coords, color):
         """Add text to frame, such as class label or confidence value."""
-        cv2.putText(frame, text, coords, self.text_type, 0.75, self.bg_color, 3, self.line_type)
-        cv2.putText(frame, text, coords, self.text_type, 0.75, self.color, 1, self.line_type)
-
-    def rectangle(self, frame, bbox):
+        #cv2.putText(frame, text, coords, self.text_type, 0.75, self.bg_color, 3, self.line_type)
+        (w, h), _ = cv2.getTextSize(text, self.text_type, 0.75, 2)
+        startpoint = (coords[0], coords[1]-h)
+        endpoint = (coords[0] + w, coords[1])
+        cv2.rectangle(frame, startpoint, endpoint, color, -1)
+        cv2.putText(frame, text, coords, self.text_type, 0.75, (255,255,255), 2, self.line_type)
+        
+    def rectangle(self, frame, bbox, color):
         """Add a rectangle to frame, such as a bounding box."""
         x1, y1, x2, y2 = bbox
-        cv2.rectangle(frame, (x1, y1), (x2, y2), self.bg_color, 3)
-        cv2.rectangle(frame, (x1, y1), (x2, y2), self.color, 1)
+        #cv2.rectangle(frame, (x1, y1), (x2, y2), self.bg_color, 3)
+        cv2.rectangle(frame, (x1, y1), (x2, y2), color, 3)
 
     def frame_norm(self, frame, bbox):
         """Normalize bbox locations between frame width/height."""
@@ -48,8 +59,8 @@ class DetectionVisualizer:
         for detection in detections:
             bbox = self.frame_norm(frame_copy, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
 
-            self.putText(frame_copy, self.classes[detection.label], (bbox[0] + 10, bbox[1] + 30))
-            self.putText(frame_copy, f"{int(detection.confidence * 100)}%", (bbox[0] + 10, bbox[1] + 60))
-            self.rectangle(frame_copy, bbox)
+            self.putText(frame_copy, self.classes[detection.label], (bbox[0] + 10, bbox[1] + 30), self.colors[detection.label])
+            self.putText(frame_copy, f"{int(detection.confidence * 100)}%", (bbox[0] + 10, bbox[1] + 60), self.colors[detection.label])
+            self.rectangle(frame_copy, bbox, self.colors[detection.label])
 
         return frame_copy
