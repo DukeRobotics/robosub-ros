@@ -1,5 +1,15 @@
 from python_qt_binding import loadUi
-from python_qt_binding.QtWidgets import QWidget, QAbstractItemView, QTableWidgetItem, QHeaderView
+from python_qt_binding.QtWidgets import (
+    QWidget,
+    QAbstractItemView,
+    QTableWidgetItem,
+    QHeaderView,
+    QDialog,
+    QCheckBox,
+    QLabel,
+    QDialogButtonBox,
+    QFormLayout
+)
 from python_qt_binding.QtCore import QTimer, pyqtProperty
 import python_qt_binding.QtCore as QtCore
 
@@ -19,6 +29,9 @@ class LaunchWidget(QWidget):
         ui_file = rr.get_filename('package://gui/resource/LaunchWidget.ui', use_protocol=False)
         loadUi(ui_file, self)
 
+        # TODO: Change default value to False
+        self.display_all_nodes = True
+
         self.default_package = ''
         self.pid_rows = {}
 
@@ -32,6 +45,7 @@ class LaunchWidget(QWidget):
         self.remote_launch_timer.start(100)
 
         rospy.Subscriber('remote_launch', RemoteLaunchInfo, self.check_for_termination)
+        rospy.Subscriber('remote_launch', RemoteLaunchInfo, self.check_for_new_nodes)
 
         rospy.loginfo('Launch Widget successfully initialized')
 
@@ -62,6 +76,16 @@ class LaunchWidget(QWidget):
                 self.table_widget.removeRow(self.pid_rows[rli_msg.pid])
                 self.pid_rows.pop(rli_msg.pid)
 
+    def check_for_new_nodes(self, rli_msg):
+        if self.display_all_nodes:
+            if rli_msg.msg_type.startswith("Executing"):
+                # If the new node was launched from another plugin instance
+                # TODO: Use better solution than sleep
+                rospy.sleep(1)
+                rospy.loginfo(self.pid_rows)
+                if self.pid_rows.get(str(rli_msg.pid)) is None:
+                    self.append_to_table(rli_msg.pid, rli_msg.package, rli_msg.file, " ".join(rli_msg.args))
+
     def delete_launch(self, row_value):
         stop_launch = rospy.ServiceProxy('stop_node', StopLaunch)
         resp = stop_launch(int(self.table_widget.item(row_value, 0).text()))
@@ -79,3 +103,38 @@ class LaunchWidget(QWidget):
 
     def closeEvent(self, event):
         self.launch_dialog.accept()
+
+    def settings(self):
+        settings = LaunchWidgetSettings(self, self.display_all_nodes)
+        if settings.exec_():
+            self.display_all_nodes = settings.get_values()
+
+
+class LaunchWidgetSettings(QDialog):
+    def __init__(self, parent, display_all_nodes):
+        super().__init__(parent)
+
+        self.setFixedSize(285, 70)
+
+        self.display_all_nodes_checkbox = QCheckBox(self)
+        self.display_all_nodes_checkbox.setChecked(display_all_nodes)
+        self.display_all_nodes_label = QLabel("Display all nodes (?)", self)
+        self.display_all_nodes_label.setToolTip("If checked, the plugin will display all nodes launched by "
+                                                "remote_launch (not just nodes launched by the plugin) and allow "
+                                                "the user to terminate any node that is displayed in the table. This "
+                                                "means that if there is more than one instance of the Launch Plugin "
+                                                "being used to launch nodes, then all instances will display all "
+                                                "nodes that have been launched by all instances and they all can "
+                                                "terminate each others' node as well.")
+
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
+
+        layout = QFormLayout(self)
+        layout.addRow(self.display_all_nodes_label, self.display_all_nodes_checkbox)
+        layout.addWidget(buttonBox)
+
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+
+    def get_values(self):
+        return (self.display_all_nodes_checkbox.isChecked())
