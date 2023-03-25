@@ -38,7 +38,6 @@ class RemoteLaunchNode:
 
     def start_launch(self, req):
         exe = 'roslaunch' if req.is_launch_file else 'rosrun'
-        rospy.loginfo(f'Executing {exe} {req.package} {req.file} {req.args}')
         if req.args == ['']:  # No arguments provided
             proc = subprocess.Popen([exe, req.package, req.file])
         else:
@@ -73,6 +72,9 @@ class RemoteLaunchNode:
         rli_msg.args = self.processes[pid]["args"]
 
         self.publisher.publish(rli_msg)
+        rospy.loginfo(f'{type_str} {self.processes[pid]["package"]} '
+                      f'{self.processes[pid]["file"]} {self.processes[pid]["args"]}'
+                      )
 
     def stop_launch(self, req):
         if req.pid in self.terminated_processes:
@@ -81,9 +83,9 @@ class RemoteLaunchNode:
         if req.pid not in self.processes:
             return {'success': False}
 
-        if self.processes[req.pid].poll() is None:
-            self.processes[req.pid].terminate()
-            self.processes[req.pid].wait()
+        if self.processes[req.pid]["process"].poll() is None:
+            self.processes[req.pid]["process"].terminate()
+            self.processes[req.pid]["process"].wait()
             self.processes.pop(req.pid)
             return {'success': True}
 
