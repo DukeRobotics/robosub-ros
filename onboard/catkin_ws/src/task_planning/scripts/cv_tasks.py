@@ -1,5 +1,7 @@
 from onboard.catkin_ws.src.task_planning.scripts.interface.cv import CVInterface
 import smach
+import rospy
+import task_utils
 
 
 # Says where to spin to center a given CV object in the frame
@@ -31,23 +33,9 @@ class SpinDirectionTask(smach.State):
         return "center"
 
 
-# TODO maybe delete in favor of always using ObjectCoordsTask
-class ObjectCoordsValidTask(smach.State):
-    def __init__(self, name, cv):
-        super().__init__(outcomes=["valid", "invalid"])
-        self.name = name
-        self.cv = cv
-
-    def execute(self, _):
-        cv_data = self.cv.get_data(self.name)
-        if cv_data is None or not cv_data.sonar:
-            return "invalid"
-        return "valid"
-
-
 class ObjectCoordsTask(smach.State):
     def __init__(self, name, cv):
-        super().__init__(outcomes=["valid", "invalid"], output_keys=["coords"])
+        super().__init__(outcomes=["valid", "invalid"], output_keys=["point"])
         self.name = name
         self.cv = cv
 
@@ -55,5 +43,26 @@ class ObjectCoordsTask(smach.State):
         cv_data = self.cv.get_data(self.name)
         if cv_data is None or not cv_data.sonar:
             return "invalid"
-        userdata.coords = cv_data.coords
+        userdata.point = cv_data.coords
         return "valid"
+
+
+# Might need a refactor
+class ObjectVisibleTask(smach.State):
+    def __init__(self, image_name, timeout=0):
+        super(ObjectVisibleTask, self).__init__(["undetected", "detected"],
+                                                input_keys=['image_name'],
+                                                output_keys=['image_name'])
+        self.image_name = image_name
+        self.timeout = timeout  # in seconds
+
+    def execute(self, userdata):
+        cycles_per_second = 10
+        rate = rospy.Rate(cycles_per_second)
+        total = 0
+        while total <= self.timeout * cycles_per_second:
+            if task_utils.object_vector(self.cv_data[self.image_name]) is not None:
+                return "detected"
+            total += 1
+            rate.sleep()
+        return "undetected"
