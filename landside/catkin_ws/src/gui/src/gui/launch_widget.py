@@ -97,7 +97,6 @@ class LaunchWidget(QWidget):
         self.table_widget.setItem(self.table_widget.rowCount() - 1, 0, QTableWidgetItem(str(pid)))
         self.table_widget.setItem(self.table_widget.rowCount() - 1, 1, QTableWidgetItem(package))
         self.table_widget.setItem(self.table_widget.rowCount() - 1, 2, QTableWidgetItem(name))
-        self.table_widget.setItem(self.table_widget.rowCount() - 1, 3, QTableWidgetItem(args))
         self.pid_rows[str(pid)] = self.table_widget.rowCount() - 1
         return self.table_widget.rowCount() - 1
 

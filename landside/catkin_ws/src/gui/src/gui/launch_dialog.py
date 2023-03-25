@@ -2,7 +2,7 @@ import os
 import glob
 
 from python_qt_binding import loadUi, QtWidgets, QtGui
-from python_qt_binding.QtWidgets import QDialog, QMessageBox
+from python_qt_binding.QtWidgets import QDialog, QMessageBox, QScrollArea, QFormLayout, QWidget
 from python_qt_binding.QtCore import Qt, QRegularExpression, pyqtSignal, pyqtProperty
 
 import rospy
@@ -12,6 +12,8 @@ from custom_msgs.srv import StartLaunch
 
 import xml.etree.ElementTree as ET
 import json
+
+SCROLLABLE_THRESHOLD = 1
 
 
 class LaunchDialog(QDialog):
@@ -103,13 +105,19 @@ class LaunchDialog(QDialog):
             self.node_name_box.insertSeparator(index_of_first_script_file)
 
     def clear_arg_form_rows(self):
-        for row in self.arg_form_rows:
-            self.form_layout.removeRow(row['label'])
+        if len(self.arg_form_rows) > SCROLLABLE_THRESHOLD:
+            self.form_layout.removeRow(2)
+
+        else:
+            for row in self.arg_form_rows:
+                self.form_layout.removeRow(row['label'])
 
         self.arg_form_rows = []
 
     def node_name_selected(self, item_index):
         self.clear_arg_form_rows()
+        args_form_layout = self.form_layout
+        scroll = False
 
         if item_index == 0:
             self.accept_button.setEnabled(False)
@@ -125,6 +133,10 @@ class LaunchDialog(QDialog):
 
         # Selected node file is a launch file
         self.get_args_from_launch_file()
+
+        if len(self.arg_form_rows) > SCROLLABLE_THRESHOLD:
+            args_form_layout = QFormLayout()
+            scroll = True
 
         for row, arg in enumerate(self.arg_form_rows):
             arg['allow_empty'] = True
@@ -172,11 +184,35 @@ class LaunchDialog(QDialog):
                 label.setText(label.text() + " (?)")
                 label.setToolTip(toolTip)
 
-            # row inserted at position row+2, after the Package and Node Name rows
-            self.form_layout.insertRow(row + 2, label, input)
+            # row inserted at position row + 2, after the Package and Node Name rows
+            if not scroll:
+                args_form_layout.insertRow(row + 2, label, input)
+            else:
+                args_form_layout.insertRow(row, label, input)
+                # args_form_layout.insertRow(row+1, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
+                # args_form_layout.insertRow(row+2, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
+                # args_form_layout.insertRow(row+3, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
+                # args_form_layout.insertRow(row+4, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
+                # args_form_layout.insertRow(row+5, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
+                # args_form_layout.insertRow(row+6, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
+                # args_form_layout.insertRow(row+7, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
+                # args_form_layout.insertRow(row+8, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
+                # args_form_layout.insertRow(row+9, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
+                # args_form_layout.insertRow(row+10, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
 
             arg['label'] = label
             arg['input'] = input
+
+        if scroll:
+            widget = QWidget()
+            widget.setLayout(args_form_layout)
+
+            scroll_widget = QScrollArea()
+            scroll_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+            scroll_widget.setWidgetResizable(True)
+            scroll_widget.setWidget(widget)
+
+            self.form_layout.insertRow(2, scroll_widget)
 
     def get_args_from_launch_file(self):
         package_dir = os.path.join(self.ROOT_PATH, self.package_name_box.currentText())
