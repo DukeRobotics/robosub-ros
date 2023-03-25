@@ -4,9 +4,12 @@ import rospy
 from custom_msgs.srv import StartLaunch, StopLaunch
 from custom_msgs.msg import RemoteLaunchInfo
 import subprocess
-import multiprocessing
+from enum import Enum
 
-# TODO: Define a message type to publish when a node is launched and terminated and import it here
+
+class RemoteLaunchMessageType(Enum):
+    EXECUTING = 0
+    TERMINATING = 1
 
 
 class RemoteLaunchNode:
@@ -22,58 +25,54 @@ class RemoteLaunchNode:
         rospy.Service('start_node', StartLaunch, self.start_launch)
         rospy.Service('stop_node', StopLaunch, self.stop_launch)
         rospy.loginfo('Remote Launch ready')
-        rospy.spin()
+        self.check_for_terminated_processes()
+
+    def check_for_terminated_processes(self):
+        while not rospy.is_shutdown():
+            for pid in self.processes:
+                if self.processes[pid]["process"].poll() is not None and pid not in self.terminated_processes:
+                    # Process has terminated, so add it to the list of terminated processes
+                    # and publish termination messsage
+                    self.terminated_processes.append(pid)
+                    self.publish_message(pid, RemoteLaunchMessageType.TERMINATING)
 
     def start_launch(self, req):
-        with multiprocessing.Manager() as manager:
-            shared_dict = manager.dict()
-            process = multiprocessing.Process(target=self.launch_with_callback, args=(req, shared_dict))
-            process.start()
-
-            while 'pid' not in shared_dict:
-                continue
-
-            # TODO: Publish node launched, including the pid, package, file, and arguments
-            rli_msg = RemoteLaunchInfo()
-
-            exe = 'roslaunch' if req.is_launch_file else 'rosrun'
-            rli_msg.msg_type = 'Executing ' + exe
-
-            rli_msg.pid = shared_dict['pid']
-            rli_msg.package = req.package
-            rli_msg.file = req.file
-            rli_msg.args = req.args
-
-            self.publisher.publish(rli_msg)
-
-            return {'pid': shared_dict['pid']}
-
-    def launch_with_callback(self, req, shared_dict):
         exe = 'roslaunch' if req.is_launch_file else 'rosrun'
         rospy.loginfo(f'Executing {exe} {req.package} {req.file} {req.args}')
         if req.args == ['']:  # No arguments provided
             proc = subprocess.Popen([exe, req.package, req.file])
         else:
             proc = subprocess.Popen([exe, req.package, req.file] + req.args)
-        shared_dict['pid'] = proc.pid
-        self.processes[int(proc.pid)] = proc
 
-        proc.wait()
-        self.terminated_processes.append(proc.pid)
-        rospy.loginfo(f'Terminating {int(proc.pid)} {req.package} {req.file} {req.args}')
+        # Add message to  process dictionary
+        process_dict = {}
+        process_dict["package"] = req.package
+        process_dict["file"] = req.file
+        process_dict["args"] = req.args
+        process_dict["is_launch_file"] = req.is_launch_file
+        process_dict["process"] = proc
 
-        # TODO: Publish node terminated, including the pid, package, file, and arguments
+        self.processes[int(proc.pid)] = process_dict
+
+        # Publish executing message
+        self.publish_message(proc.pid, RemoteLaunchMessageType.EXECUTING)
+
+        return {'pid': proc.pid}
+
+    def publish_message(self, pid, type):
         rli_msg = RemoteLaunchInfo()
 
-        rli_msg.msg_type = "Terminating"
-        rli_msg.pid = proc.pid
-        rli_msg.package = req.package
-        rli_msg.file = req.file
-        rli_msg.args = req.args
+        exe = "roslaunch" if self.processes[pid]["is_launch_file"] else "rosrun"
+        type_str = "Executing " + exe if type == RemoteLaunchMessageType.EXECUTING else "Terminating"
+
+        rli_msg.msg_type = type_str
+
+        rli_msg.pid = pid
+        rli_msg.package = self.processes[pid]["package"]
+        rli_msg.file = self.processes[pid]["file"]
+        rli_msg.args = self.processes[pid]["args"]
 
         self.publisher.publish(rli_msg)
-
-        return
 
     def stop_launch(self, req):
         if req.pid in self.terminated_processes:
