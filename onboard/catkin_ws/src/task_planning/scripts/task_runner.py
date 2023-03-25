@@ -5,6 +5,8 @@ import smach
 import tf
 from smach_test import controls_testing
 from interface.controls import ControlsInterface
+from buoy_task import BuoyTask
+from interface.cv import CVInterface
 
 
 class TaskRunner(smach.StateMachine):
@@ -17,8 +19,10 @@ class TaskRunner(smach.StateMachine):
         self.controls = ControlsInterface(self.listener)
 
         with self:
-            smach.StateMachine.add('TEST', controls_testing(self.controls, self.listener),
+            smach.StateMachine.add('TEST', BuoyTask(self.listener, self.controls, CVInterface()),
                                    transitions={'done': 'done'})
+            # smach.StateMachine.add('TEST', controls_testing(self.controls, self.listener),
+            #                        transitions={'done': 'done'})
 
     def execute(self):
         rospy.loginfo("Waiting for transform listener")
