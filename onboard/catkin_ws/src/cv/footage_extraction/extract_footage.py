@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
     FOOTAGE_PATH = '/root/dev/robosub-ros/footage_extraction/footage/test.bag'
     OUTPUT_DIR = '/root/dev/robosub-ros/footage_extraction/footage/'
-    TOPIC_NAME = "/camera/front/stream_raw"
+    TOPIC_NAME = "/camera/front/compressed"
 
     footage_extractor = ROSBagFootageExtractor()
 
