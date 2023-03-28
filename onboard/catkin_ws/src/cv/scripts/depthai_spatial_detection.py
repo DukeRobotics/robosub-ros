@@ -249,7 +249,7 @@ class DepthAISpatialDetector:
         if self.queue_depth:
             raw_img_depth = self.output_queues["depth"].get()
             img_depth = raw_img_depth.getCvFrame()
-            image_msg_depth = self.bridge.cv2_to_imgmsg(img_depth, 'mono16')
+            image_msg_depth = self.image_tools.convert_depth_to_ros_compressed_msg(img_depth, 'mono16')
             self.depth_publisher.publish(image_msg_depth)
 
         model = self.models[self.current_model_name]
