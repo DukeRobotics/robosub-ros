@@ -20,6 +20,8 @@ import rosservice
 from custom_msgs.srv import StopLaunch
 from custom_msgs.msg import RemoteLaunchInfo
 
+from threading import Lock
+
 
 class LaunchWidget(QWidget):
 
@@ -33,7 +35,7 @@ class LaunchWidget(QWidget):
         self.display_all_nodes = True
 
         self.default_package = ''
-        self.pid_rows = {}
+        self.table_widget_lock = Lock()
 
         self.table_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
@@ -62,7 +64,7 @@ class LaunchWidget(QWidget):
         if event.key() == QtCore.Qt.Key_Delete:
             items = self.table_widget.selectedItems()
             if items and items[0].row() != 0:
-                self.delete_launch(items[0].row())
+                self.delete_launch(items[0].text())
         super(LaunchWidget, self).keyPressEvent(event)
 
     def check_remote_launch(self):
@@ -72,32 +74,43 @@ class LaunchWidget(QWidget):
 
     def check_for_termination(self, rli_msg):
         if rli_msg.msg_type == "Terminating":
-            if self.pid_rows.get(rli_msg.pid) is not None:
-                self.table_widget.removeRow(self.pid_rows[rli_msg.pid])
-                self.pid_rows.pop(rli_msg.pid)
+            self.remove_from_table(rli_msg.pid)
 
     def check_for_new_nodes(self, rli_msg):
         if self.display_all_nodes:
             if rli_msg.msg_type.startswith("Executing"):
                 # If the new node was launched from another plugin instance
-                # TODO: Use better solution than sleep
-                rospy.sleep(1)
-                rospy.loginfo(self.pid_rows)
-                if self.pid_rows.get(str(rli_msg.pid)) is None:
-                    self.append_to_table(rli_msg.pid, rli_msg.package, rli_msg.file, " ".join(rli_msg.args))
+                self.append_to_table(rli_msg.pid, rli_msg.package, rli_msg.file, " ".join(rli_msg.args))
 
-    def delete_launch(self, row_value):
+    def delete_launch(self, pid):
         stop_launch = rospy.ServiceProxy('stop_node', StopLaunch)
-        resp = stop_launch(int(self.table_widget.item(row_value, 0).text()))
-        self.table_widget.removeRow(row_value)
+        resp = stop_launch(int(pid))
+        self.remove_from_table(pid)
         return resp.success
 
+    def get_row_with_pid(self, pid):
+        # Any function must acquire the table_widget_lock before calling this function
+        for row in range(self.table_widget.rowCount()):
+            if self.table_widget.item(row, 0).text() == str(pid):
+                return row
+        return None
+
+    def remove_from_table(self, pid):
+        self.table_widget_lock.acquire()
+        row = self.get_row_with_pid(pid)
+        if row is not None:
+            self.table_widget.removeRow(row)
+        self.table_widget_lock.release()
+
     def append_to_table(self, pid, package, name, args):
-        self.table_widget.insertRow(self.table_widget.rowCount())
-        self.table_widget.setItem(self.table_widget.rowCount() - 1, 0, QTableWidgetItem(str(pid)))
-        self.table_widget.setItem(self.table_widget.rowCount() - 1, 1, QTableWidgetItem(package))
-        self.table_widget.setItem(self.table_widget.rowCount() - 1, 2, QTableWidgetItem(name))
-        self.pid_rows[str(pid)] = self.table_widget.rowCount() - 1
+        self.table_widget_lock.acquire()
+        row = self.get_row_with_pid(pid)
+        if row is None:
+            self.table_widget.insertRow(self.table_widget.rowCount())
+            self.table_widget.setItem(self.table_widget.rowCount() - 1, 0, QTableWidgetItem(str(pid)))
+            self.table_widget.setItem(self.table_widget.rowCount() - 1, 1, QTableWidgetItem(package))
+            self.table_widget.setItem(self.table_widget.rowCount() - 1, 2, QTableWidgetItem(name))
+        self.table_widget_lock.release()
         return self.table_widget.rowCount() - 1
 
     def closeEvent(self, event):

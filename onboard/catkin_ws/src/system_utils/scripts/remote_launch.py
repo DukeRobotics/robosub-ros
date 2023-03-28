@@ -5,6 +5,7 @@ from custom_msgs.srv import StartLaunch, StopLaunch
 from custom_msgs.msg import RemoteLaunchInfo
 import subprocess
 from enum import Enum
+from threading import Lock
 
 
 class RemoteLaunchMessageType(Enum):
@@ -20,6 +21,8 @@ class RemoteLaunchNode:
         self.processes = {}
         self.terminated_processes = []
 
+        self.processes_lock = Lock()
+
         self.publisher = rospy.Publisher('remote_launch', RemoteLaunchInfo, queue_size=10)
 
         rospy.Service('start_node', StartLaunch, self.start_launch)
@@ -29,12 +32,14 @@ class RemoteLaunchNode:
 
     def check_for_terminated_processes(self):
         while not rospy.is_shutdown():
+            self.processes_lock.acquire()
             for pid in self.processes:
                 if self.processes[pid]["process"].poll() is not None and pid not in self.terminated_processes:
                     # Process has terminated, so add it to the list of terminated processes
                     # and publish termination messsage
                     self.terminated_processes.append(pid)
                     self.publish_message(pid, RemoteLaunchMessageType.TERMINATING)
+            self.processes_lock.release()
 
     def start_launch(self, req):
         exe = 'roslaunch' if req.is_launch_file else 'rosrun'
@@ -51,7 +56,9 @@ class RemoteLaunchNode:
         process_dict["is_launch_file"] = req.is_launch_file
         process_dict["process"] = proc
 
+        self.processes_lock.acquire()
         self.processes[int(proc.pid)] = process_dict
+        self.processes_lock.release()
 
         # Publish executing message
         self.publish_message(proc.pid, RemoteLaunchMessageType.EXECUTING)
@@ -86,7 +93,6 @@ class RemoteLaunchNode:
         if self.processes[req.pid]["process"].poll() is None:
             self.processes[req.pid]["process"].terminate()
             self.processes[req.pid]["process"].wait()
-            self.processes.pop(req.pid)
             return {'success': True}
 
         return {'success': False}
