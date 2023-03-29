@@ -1,7 +1,6 @@
-import rospy
-from tf import TransformListener
+import random
+import move_tasks
 
-class TestMovePublisher:
-    def __init__(self):
-        rospy.init_node('test_state_publisher')
-        self.listener = TransformListener()
+def main():
+    x, y = random.randint(-10, 10), random.randint(-10, 10)
+    move_tasks.MoveToPoseGlobalTask(x, y, 0, 0, 0, 0, None, None).execute(None)
