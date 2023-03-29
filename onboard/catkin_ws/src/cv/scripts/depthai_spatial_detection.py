@@ -9,13 +9,13 @@ import depthai as dai
 import numpy as np
 from utils import DetectionVisualizer
 from image_tools import ImageTools
-from depthai_spatial_detection import DepthAISpatialDetector
-
 
 from custom_msgs.srv import EnableModel
 from custom_msgs.msg import CVObject
 from sensor_msgs.msg import CompressedImage
 from custom_msgs.msg import sweepResult, sweepGoal
+
+
 MM_IN_METER = 1000
 DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH = 'package://cv/models/depthai_models.yaml'
 HORIZONTAL_FOV = 95
@@ -55,7 +55,6 @@ class DepthAISpatialDetector:
         self.detection_visualizer = None
 
         self.image_tools = ImageTools()
-
         self.enable_service = f'enable_model_{self.camera}'
 
         self.sonar_response = (0, 0)
@@ -66,7 +65,7 @@ class DepthAISpatialDetector:
         self.sonar_response_subscriber = rospy.Subscriber(
             SONAR_RESPONSES_PATH, sweepResult, self.update_sonar)
 
-    def build_pipeline(self, nn_blob_path, sync_nn=True):
+    def build_pipeline(self, nn_blob_path, sync_nn):
         """
         Get the DepthAI Pipeline for 3D object localization. Inspiration taken from
         https://docs.luxonis.com/projects/api/en/latest/samples/SpatialDetection/spatial_tiny_yolo/.

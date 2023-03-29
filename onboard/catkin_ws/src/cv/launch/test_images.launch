@@ -1,7 +1,7 @@
 <launch>
-	<arg name="feed_path" default="" />
-	<arg name="topic" default="" />
-	<arg name="framerate" default="24" />
+	<arg name="feed_path" default="" doc='{"type":"str","allowEmpty":false,"help":"The path to the file to use as the data for the simulated feed. Path must be relative to onboard/catkin_ws/cv/src/scripts. Ex. \"../assets/video.mp4\""}'/>
+	<arg name="topic" default="" doc='{"type":"str","allowEmpty":true,"help":"The topic to publish the simulated image feed to. If feed_path is not a bag file, the topic must not be empty and must end with \"/compressed\"."}'/>
+	<arg name="framerate" default="24" doc='{"type":"int","allowEmpty":false,"help":"The rate in Hz at which to publish the images. Used only if feed_path is a still image or folder with images."}'/>
 	<node name="test_images" pkg="cv" type="test_images.py" output="screen">
 		<param name="feed_path" value="$(arg feed_path)" />
 		<param name="topic" value="$(arg topic)" />

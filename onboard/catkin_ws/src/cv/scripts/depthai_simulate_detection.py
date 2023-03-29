@@ -9,9 +9,10 @@ from utils import DetectionVisualizer
 import rospy
 import yaml
 import resource_retriever as rr
-from sensor_msgs.msg import Image
-from cv_bridge import CvBridge
+from sensor_msgs.msg import CompressedImage
 from custom_msgs.msg import CVObject
+from image_tools import ImageTools
+import rostopic
 
 
 class DepthAISimulateDetection:
@@ -23,6 +24,8 @@ class DepthAISimulateDetection:
     def __init__(self):
         super().__init__()
         rospy.init_node('depthai_simulate_detection', anonymous=True)
+
+        self.device = None
 
         self.feed_path = rospy.get_param("~feed_path")
         self.latest_img = None
@@ -44,11 +47,11 @@ class DepthAISimulateDetection:
         self.pipeline = dai.Pipeline()
         self._build_pipeline()
 
-        self.cv_bridge = CvBridge()
+        self.image_tools = ImageTools()
         self.publishing_topic = rospy.get_param("~publishing_topic")
         self.detection_publisher = rospy.Publisher(self.publishing_topic, CVObject, queue_size=10)
-        self.visualized_detection_publisher = rospy.Publisher(f'{self.publishing_topic}_visualized',
-                                                              Image,
+        self.visualized_detection_publisher = rospy.Publisher(f'{self.publishing_topic}_visualized/compressed',
+                                                              CompressedImage,
                                                               queue_size=10)
 
         self.detection_visualizer = DetectionVisualizer(self.model['classes'])
@@ -93,7 +96,7 @@ class DepthAISimulateDetection:
         feed_out.setStreamName("feed")
         nn.passthrough.link(feed_out.input)
 
-    def detect(self, device, input_image):
+    def detect(self, device):
         """ Run detection on the input image
 
         Send the still image through to the input queue (qIn) after converting it to the proper format.
@@ -111,26 +114,11 @@ class DepthAISimulateDetection:
             and detections is an depthai.ImgDetections object.
         """
 
-        # Upload the pipeline to the device
-        def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
-            return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
-
-        # Input queue will be used to send video frames to the device.
-        input_queue = device.getInputQueue("camIn")
-
         passthrough_feed_queue = device.getOutputQueue(
             name="feed", maxSize=4, blocking=False)
 
         detections_queue = device.getOutputQueue(
             name="nn", maxSize=4, blocking=False)
-
-        # Send a message to the ColorCamera to capture a still image
-        img = dai.ImgFrame()
-        img.setType(dai.ImgFrame.Type.BGR888p)
-        img.setData(to_planar(input_image, (416, 416)))
-        img.setWidth(self.model['input_size'][0])
-        img.setHeight(self.model['input_size'][1])
-        input_queue.send(img)
 
         passthrough_feed = passthrough_feed_queue.get()
 
@@ -162,7 +150,23 @@ class DepthAISimulateDetection:
 
     def _update_latest_img(self, img_msg):
         """ Store latest image """
-        self.latest_img = self.cv_bridge.imgmsg_to_cv2(img_msg, 'bgr8')
+
+        # Upload the pipeline to the device
+        def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
+            return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
+
+        latest_img = self.image_tools.convert_to_cv2(img_msg)
+
+        # Input queue will be used to send video frames to the device.
+        input_queue = self.device.getInputQueue("camIn")
+
+        # Send a message to the ColorCamera to capture a still image
+        img = dai.ImgFrame()
+        img.setType(dai.ImgFrame.Type.BGR888p)
+        img.setData(to_planar(latest_img, (416, 416)))
+        img.setWidth(self.model['input_size'][0])
+        img.setHeight(self.model['input_size'][1])
+        input_queue.send(img)
 
     def _publish_detections(self, detection_results):
         """ Run detection on an image and publish the predictions
@@ -200,7 +204,8 @@ class DepthAISimulateDetection:
         visualized_detection_results = self.detection_visualizer.visualize_detections(
                                                             detection_results['frame'],
                                                             detection_results['detections'])
-        visualized_detection_results_msg = self.cv_bridge.cv2_to_imgmsg(visualized_detection_results, 'bgr8')
+        visualized_detection_results_msg = self.image_tools.convert_to_ros_compressed_msg(visualized_detection_results)
+
         self.visualized_detection_publisher.publish(visualized_detection_results_msg)
 
     def _run_detection_on_image_topic(self, device):
@@ -209,17 +214,13 @@ class DepthAISimulateDetection:
         Args:
             device (depthai.Device): Depthai device being used
         """
-        rospy.Subscriber(self.feed_path, Image, self._update_latest_img)
-        loop_rate = rospy.Rate(1)
+        TopicType, _, _ = rostopic.get_topic_class(self.feed_path)
+        rospy.Subscriber(self.feed_path, TopicType, self._update_latest_img)
 
         while not rospy.is_shutdown():
-            img = self.latest_img
-            if img is None:
-                continue
-            detection_results = self.detect(device, img)
+            detection_results = self.detect(device)
             self._publish_detections(detection_results)
             self._publish_visualized_detections(detection_results)
-            loop_rate.sleep()
 
     def _run_detection_on_single_image(self, device, img):
         """ Run detection on the single image provided
@@ -247,6 +248,8 @@ class DepthAISimulateDetection:
     def run(self):
         """ Run detection on the latest img message """
         with depthai_camera_connect.connect(self.pipeline) as device:
+            self.device = device
+
             if self._feed_is_still_image():
                 rospy.loginfo(f'Running detection on still image provided: {self.feed_path}')
                 img = self._load_image_from_feed_path()
