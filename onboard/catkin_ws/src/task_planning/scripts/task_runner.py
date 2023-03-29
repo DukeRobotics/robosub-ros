@@ -7,6 +7,8 @@ from smach_test import controls_testing
 from interface.controls import ControlsInterface
 from buoy_task import BuoyTask
 from interface.cv import CVInterface
+from move_tasks import MoveToPoseGlobalTask
+import random
 
 
 class TaskRunner(smach.StateMachine):
@@ -17,10 +19,14 @@ class TaskRunner(smach.StateMachine):
         rospy.init_node("task_planning")
         self.listener = tf.TransformListener()
         self.controls = ControlsInterface(self.listener)
+        
+        self.x, self.y = random.randint(-10, 10), random.randint(-10, 10)
 
         with self:
-            smach.StateMachine.add('TEST', BuoyTask(self.listener, self.controls, CVInterface()),
-                                   transitions={'done': 'done'})
+            # smach.StateMachine.add('TEST', BuoyTask(self.listener, self.controls, CVInterface()),
+            #                        transitions={'done': 'done'})
+            smach.StateMachine.add('TEST', MoveToPoseGlobalTask(self.x, self.y, 0, 0, 0, 0, None, None),
+                                   transitions={'done': 'done', 'continue': 'TEST'})
             # smach.StateMachine.add('TEST', controls_testing(self.controls, self.listener),
             #                        transitions={'done': 'done'})
 
