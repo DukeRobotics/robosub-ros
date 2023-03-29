@@ -3,11 +3,13 @@
     <arg name="rgb_detections" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the rgb stream with detections overlaid."}'/>
     <arg name="depth" default="False" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the depth map."}'/>
     <arg name="sync_nn" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to sync the RGB frames with the detections so the latest published detections correspond to the latest published RGB frame."}'/>
+    <arg name="using_sonar" default="False" doc='{"type":"bool","allowEmpty":false,"help":"Whether to use sonar to estimate depth instead of stereo."}'/>
 
     <node name="depthai_spatial_detection" pkg="cv" type="depthai_spatial_detection.py" output="screen">
         <param name="rgb_raw" value="$(arg rgb_raw)" />
         <param name="rgb_detections" value="$(arg rgb_detections)" />
         <param name="depth" value="$(arg depth)" />
         <param name="sync_nn" value="$(arg sync_nn)" />
+        <param name="using_sonar" value="$(arg using_sonar)" />
     </node>
 </launch>

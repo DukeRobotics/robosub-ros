@@ -16,3 +16,4 @@ float64 distance
 
 string label
 float64 score
+bool sonar # True = using sonar
