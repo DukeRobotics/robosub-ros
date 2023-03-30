@@ -25,6 +25,7 @@ SONAR_RANGE = 1.75
 SONAR_REQUESTS_PATH = 'sonar/request'
 SONAR_RESPONSES_PATH = 'sonar/cv/response'
 
+
 # Compute detections on live camera feed and publish spatial coordinates for detected objects
 class DepthAISpatialDetector:
     def __init__(self):
@@ -283,7 +284,7 @@ class DepthAISpatialDetector:
             # x is left/right axis, where 0 is in middle of the frame,
             # to the left is negative x, and to the right is positive x
             # y is down/up axis, where 0 is in the middle of the frame,
-            # down is negative y, and up is positive y 
+            # down is negative y, and up is positive y
             # z is distance of object from camera in mm
             x_cam_mm = detection.spatialCoordinates.x
             y_cam_mm = detection.spatialCoordinates.y
