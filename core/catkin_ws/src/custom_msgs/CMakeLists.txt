@@ -42,6 +42,7 @@ add_action_files(
   ControlsDesiredPose.action
   ControlsDesiredTwist.action
   ControlsDesiredPower.action
+  sweep.action
 )
 
 generate_messages(
