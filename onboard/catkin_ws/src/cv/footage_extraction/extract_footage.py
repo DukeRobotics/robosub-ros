@@ -134,15 +134,21 @@ class FootageExtractor:
             'unsuccessful': []
         }
 
+        img_tools = image_tools.ImageTools()
         for image in images:
-            image_path = os.path.join(directory, image)
-            success = self.upload_images_to_roboflow_with_success(rf_project, image_path, batch_name)
+            try:
+                image_path = os.path.join(directory, image)
 
-            if success:
-                status['successful'].append(image)
-                shutil.move(image_path, uploaded_dir)
-            else:
-                status['unsuccessful'].append(image)
+                img_tools.load_from_file(image_path)  # Check to see if file is actually an image
+                success = self.upload_images_to_roboflow_with_success(rf_project, image_path, batch_name)
+
+                if success:
+                    status['successful'].append(image)
+                    shutil.move(image_path, uploaded_dir)
+                else:
+                    status['unsuccessful'].append(image)
+            except RuntimeError:
+                print(f"Non-image file not uploaded: {image}")
 
         return status
 
