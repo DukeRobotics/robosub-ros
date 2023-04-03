@@ -163,28 +163,16 @@ class FootageExtractor:
         :return: Boolean indicating whether image upload is successful
         """
 
-        success = False
-
         if not os.path.isfile(image_path):
-            print(f"ERROR: The provided image path {image_path} is not a valid path.")
+            print(f"ERROR: The provided image path {image_path} is not a valid path. Image failed to upload!")
+            return False
 
         elif not rf_project.check_valid_image(image_path):
             print(f"ERROR: The image at {image_path} is not a supported file format.",
-                  "Only PNG and JPEG files are supported.")
+                  "Only PNG and JPEG files are supported. Image failed to upload!")
+            return False
 
-        else:
-            response = rf_project._Project__image_upload(image_path, batch_name=batch_name)
-            if response.json().get("duplicate"):
-                success = True
-                print(f"Duplicate image not uploaded: {image_path}")
-
-            else:
-                success = response.json()["success"]
-
-        if not success:
-            print(f"ERROR: Server rejected image: {response.json()}. Image at {image_path} failed to upload!")
-
-        return success
+        return rf_project.single_upload(image_path=image_path, batch_name=batch_name)
 
     def create_footage_extraction_config_file(self, directory, enabled=False, step_size=10):
         """
@@ -255,8 +243,6 @@ class FootageExtractor:
                     print(f"{file_dict['use_name']} already exists! This file was skipped.")
                     continue
 
-                os.mkdir(output_dir)
-
                 # extracting file_name
                 file_name = file[::-1].replace('_', '.', 1)[::-1]
                 footage_path = os.path.join(directory, file_name)
@@ -270,9 +256,13 @@ class FootageExtractor:
                         topic_dict = file_dict[topic]
                         if topic_dict['enabled']:
 
-                            # creating topic directory
+                            # creating topic directory for the first time
+                            if not os.path.isdir(output_dir):
+                                os.mkdir(output_dir)
+
                             topic_dir = os.path.join(output_dir, topic_dict['use_name'])
-                            os.mkdir(topic_dir)
+                            if not os.path.isdir(topic_dir):
+                                os.mkdir(topic_dir)
 
                             self.extract_frames_from_bag(topic, topic_dict['use_name'],
                                                          footage_path, topic_dir, topic_dict['step_size'])
@@ -280,6 +270,7 @@ class FootageExtractor:
                             file_extracted = True
 
                 else:  # if file is video
+                    os.mkdir(output_dir)
                     self.extract_frames_from_video(file_dict['use_name'], footage_path,
                                                    output_dir, file_dict['step_size'])
 
@@ -288,6 +279,8 @@ class FootageExtractor:
                 # moving extracted file to EXTRACTED_FILES_DIR
                 if file_extracted:
                     shutil.move(footage_path, extracted_footage_path)
+                else:
+                    print(f"Since no topics are enabled, the file {file_name} was not extracted.")
 
     def create_roboflow_upload_config_file(self, directory):
         """
@@ -358,8 +351,11 @@ class FootageExtractor:
                         if not os.path.isdir(uploaded_dir_path):
                             os.mkdir(uploaded_dir_path)
 
-                        self.upload_images_to_roboflow(project, extracted_directory_path,
-                                                       upload_configs['batch_name'], uploaded_dir_path)
+                        status = self.upload_images_to_roboflow(project, extracted_directory_path,
+                                                                upload_configs['batch_name'], uploaded_dir_path)
+                        print(f"Successfully uploaded {len(status['successful'])} images,",
+                              f"failed to upload {len(status['unsuccessful'])} images from {extracted_directory}",
+                              f"under batch {upload_configs['batch_name']}")
 
             # if the extracted_directory comes from a bag file
             else:
@@ -380,18 +376,26 @@ class FootageExtractor:
                             if not os.path.isdir(uploaded_topic_dir_path):
                                 os.mkdir(uploaded_topic_dir_path)
 
-                            self.upload_images_to_roboflow(project, extracted_topic_path,
-                                                           upload_configs['batch_name'], uploaded_topic_dir_path)
+                            status = self.upload_images_to_roboflow(project, extracted_topic_path,
+                                                                    upload_configs['batch_name'],
+                                                                    uploaded_topic_dir_path)
+                            print(f"Successfully uploaded {len(status['successful'])} images,",
+                                  f"failed to upload {len(status['unsuccessful'])} images",
+                                  f"from {extracted_directory}/{topic}",
+                                  f"under batch {upload_configs['batch_name']}")
+
+                if not os.path.isdir(uploaded_dir_path):
+                    print(f"Since no topics are enabled, the directory {extracted_directory} was not uploaded.")
 
 
 if __name__ == '__main__':
     """
     default: extract footage using the footage extraction config file
     --generate-config: default "footage"
-       roboflow: generate a Roboflow upload config
-       footage: generate a footage extraction config
-            --default_bools: set all boolean values to --default_bools. Default "False"
-            --step_size: default 10
+        roboflow: generate a Roboflow upload config
+        footage: generate a footage extraction config
+            --default-bools: set all boolean values to --default-bools. Default "False"
+            --step-size: default 10
     --upload-to-roboflow: upload footage to Roboflow using the Roboflow upload config file
     """
 
