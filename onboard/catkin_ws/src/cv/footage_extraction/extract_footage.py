@@ -317,6 +317,22 @@ class FootageExtractor:
         with open(ROBOFLOW_UPLOAD_CONFIG_FILE, "w") as yaml_file:
             yaml_file.write(yaml_string)
 
+    def create_roboflow_project_config_file(self):
+        """
+        Prepare a yaml config file for uploading to Roboflow and save the file at
+        footage_extraction/roboflow_project_config.yaml
+        """
+
+        dict = {
+            "api_key": None,
+            "project_id": None
+        }
+
+        yaml_string = yaml.dump(dict)
+
+        with open(ROBOFLOW_PROJECT_CONFIG_FILE, "w") as yaml_file:
+            yaml_file.write(yaml_string)
+
     def upload_images_to_roboflow_with_config(self, directory, config_file):
         """
         Read a Roboflow upload yaml config_file and upload images in directory to Roboflow accordingly
@@ -387,12 +403,22 @@ class FootageExtractor:
                 if not os.path.isdir(uploaded_dir_path):
                     print(f"Since no topics are enabled, the directory {extracted_directory} was not uploaded.")
 
+    def generate_folder_structure(self):
+        if not os.path.isdir(FOOTAGE_DIR):
+            os.mkdir(FOOTAGE_DIR)
+        if not os.path.isdir(EXTRACTED_FOOTAGE_DIR):
+            os.mkdir(EXTRACTED_FOOTAGE_DIR)
+        if not os.path.isdir(EXTRACTED_FILES_DIR):
+            os.mkdir(EXTRACTED_FILES_DIR)
+        if not os.path.isdir(UPLOADED_FOOTAGE):
+            os.mkdir(UPLOADED_FOOTAGE)
+
 
 if __name__ == '__main__':
     """
     default: extract footage using the footage extraction config file
     --generate-config: default "footage"
-        roboflow: generate a Roboflow upload config
+        roboflow: generate a Roboflow upload and project config
         footage: generate a footage extraction config
             --default-bools: set all boolean values to --default-bools. Default "False"
             --step-size: default 10
@@ -400,6 +426,8 @@ if __name__ == '__main__':
     """
 
     footage_extractor = FootageExtractor()
+
+    footage_extractor.generate_folder_structure()
 
     arg_list = sys.argv[1:]
 
@@ -430,6 +458,9 @@ if __name__ == '__main__':
     if generate_config_flag:
         if roboflow_found:
             footage_extractor.create_roboflow_upload_config_file(EXTRACTED_FOOTAGE_DIR)
+
+            if not os.path.isfile(ROBOFLOW_PROJECT_CONFIG_FILE):
+                footage_extractor.create_roboflow_project_config_file()
 
         else:
             footage_extractor.create_footage_extraction_config_file(FOOTAGE_DIR,
