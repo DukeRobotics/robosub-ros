@@ -41,4 +41,5 @@ robosub_ws.code-workspace
 onboard/catkin_ws/src/cv/footage_extraction/footage
 onboard/catkin_ws/src/cv/footage_extraction/extacted_footage
 onboard/catkin_ws/src/cv/footage_extraction/extacted_files
+onboard/catkin_ws/src/cv/footage_extraction/uploaded_footage
 onboard/catkin_ws/src/cv/footage_extraction/*.yaml
