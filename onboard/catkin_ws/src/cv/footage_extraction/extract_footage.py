@@ -22,17 +22,6 @@ ROBOFLOW_PROJECT_CONFIG_FILE = os.path.join(FOOTAGE_EXTRACTION_DIR, 'roboflow_pr
 # Extracts footage from rosbag files
 class FootageExtractor:
 
-    def view_rosbag_info(self, footage_path):
-        """
-        Call rosbag info on the rosbag file. This provides a human-readable summary of the file contents, including
-        what topic was recorded.
-
-        :param footage_path: Path to rosbag file.
-        :return: Prints summary of the file contents.
-        """
-        os.system("rosbag info " + footage_path)
-        print()
-
     def extract_frames_from_bag(self, topic_name, topic_use_name, footage_path, output_dir, step_size=10):
         """
         Extract frames from the rosbag file and save them into output_dir
