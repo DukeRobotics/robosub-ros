@@ -5,6 +5,7 @@ project(sonar)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   actionlib
+  sensor_msgs
   custom_msgs
   tf
   geometry_msgs
@@ -16,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(CATKIN_DEPENDS 
   rospy
   actionlib
+  sensor_msgs
   custom_msgs
   tf
   geometry_msgs

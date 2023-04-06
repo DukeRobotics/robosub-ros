@@ -2,9 +2,11 @@
 import rospy
 from sonar import Sonar
 from custom_msgs.msg import sweepResult, sweepGoal
+from sensor_msgs import CompressedImage
 from sonar_utils import degrees_to_centered_gradians
 from sonar_image_processing import scan_and_build_sonar_image
 from cv.image_tools import ImageTools
+
 
 class SonarPublisher:
 
@@ -24,8 +26,8 @@ class SonarPublisher:
         self.image_tools = ImageTools()
         self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC,
                                             sweepResult, queue_size=10)
-        self.sonar_image_publisher = rospy.Publisher(self.SONAR_IMAGE_TOPIC
-                                            )
+        self.sonar_image_publisher = rospy.Publisher(self.SONAR_IMAGE_TOPIC,
+                                                     CompressedImage, queue_size=10)
 
     def on_request(self, request):
         if (request.distance_of_scan == -1):
@@ -39,10 +41,13 @@ class SonarPublisher:
                                                                right_gradians)
 
         if self.stream:
-            scan_and_build_sonar_image(self.sonar, False,
-                                       jpeg_save_path="Sonar_Image.jpeg",
-                                       start_angle=left_gradians,
-                                       end_angle=right_gradians)
+            sonar_image = scan_and_build_sonar_image(self.sonar, False,
+                                                     jpeg_save_path="Sonar_Image.jpeg",
+                                                     start_angle=left_gradians,
+                                                     end_angle=right_gradians)
+            
+            compressed_image = self.image_tools.convert_to_ros_compressed_msg(sonar_image)
+            self.sonar_image_publisher.publish(compressed_image)
 
         response = sweepResult()
         response.x_pos = sonar_xy_result[0]
