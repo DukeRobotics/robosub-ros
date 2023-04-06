@@ -41,7 +41,7 @@ class FootageExtractor:
         frame_count = 0
         num_frames_saved = 0
         num_digits = len(str(num_frames))
-        img_tools = ImageTools.ImageTools()
+        img_tools = ImageTools()
 
         for topic, msg, t in bag.read_messages(topics=[topic_name]):
             if topic == topic_name:
