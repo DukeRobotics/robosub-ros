@@ -2,6 +2,27 @@
 
 import numpy as np
 import cv2
+import os
+
+
+def check_file_writable(filepath):
+    """
+    Check if a file can be created or overwritten.
+    """
+    if os.path.exists(filepath):
+        # path exists
+        if os.path.isfile(filepath):
+            # also works when file is a link and the target is writable
+            return os.access(filepath, os.W_OK)
+        else:
+            # path is a dir, so cannot write as a file
+            return False
+    # target does not exist, check perms on parent dir
+    pdir = os.path.dirname(filepath)
+    if not pdir:
+        pdir = '.'
+    # target is creatable if parent dir is writable
+    return os.access(pdir, os.W_OK)
 
 
 class DetectionVisualizer:

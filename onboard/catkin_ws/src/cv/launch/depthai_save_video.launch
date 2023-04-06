@@ -1,0 +1,10 @@
+<launch>
+	<arg name="rgb_video_file_name" default="" />
+	<arg name="left_file_name" default="" />
+	<arg name="right_file_name" default="" />
+	<node name="depthai_save_video" pkg="cv" type="depthai_save_video.py" output="screen">
+		<param name="rgb_video_file_name" value="$(arg rgb_video_file_name)" />
+		<param name="left_file_name" value="$(arg left_file_name)" />
+		<param name="right_file_name" value="$(arg right_file_name)" />
+	</node>
+</launch>

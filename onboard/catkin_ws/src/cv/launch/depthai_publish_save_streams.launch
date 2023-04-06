@@ -1,0 +1,32 @@
+<launch>
+	<arg name="framerate" default="30" doc='{"type":"int","help":"All streams will be set to this framerate. Must be between 1 and 60 inclusive. If many streams/encoders are running, percieved framerate may be lower."}' />
+	<arg name="rgb_video" default="False" doc='{"type":"bool","help":"Whether the RGB video (16:9, 1080p) should be published."}' />
+	<arg name="rgb_video_file_path" default="" doc='{"type":"str","help":"File path and name to save RGB video to. Relative to robosub-ros folder. Do NOT include a file extension. If empty, will not save video."}' />
+	<arg name="rgb_preview" default="False" doc='{"type":"bool","help":"Whether the RGB preview (square, 416x416) should be published."}' />
+	<arg name="rgb_preview_file_path" default="" doc='{"type":"str","help":"File path and name to save RGB preview to. Relative to robosub-ros folder. Do NOT include a file extension. If empty, will not save video."}' />
+	<arg name="left" default="False" doc='{"type":"bool","help":"Whether the left mono video should be published."}' />
+	<arg name="left_file_path" default="" doc='{"type":"str","help":"File path and name to save left mono video to. Relative to robosub-ros folder. Do NOT include a file extension. If empty, will not save video."}' />
+	<arg name="right" default="False" doc='{"type":"bool","help":"Whether the right mono video should be published."}' />
+	<arg name="right_file_path" default="" doc='{"type":"str","help":"File path and name to save right mono video to. Relative to robosub-ros folder. Do NOT include a file extension. If empty, will not save video."}' />
+	<arg name="disparity" default="False" doc='{"type":"bool","help":"Whether the disparity map should be published."}' />
+	<arg name="disparity_file_path" default="" doc='{"type":"str","help":"File path and name to save disparity map to. Relative to robosub-ros folder. Do NOT include a file extension. If empty, will not save video. NOTE: Encoded disparity map will be black and white, unlike published disparity map."}' />
+	<arg name="depth" default="False" doc='{"type":"bool","help":"Whether the depth map should be published."}' />
+	<arg name="convert_to_video" default="False" doc='{"type":"bool","help":"Whether to convert the saved encoded streams into a video."}' />
+	<arg name="qt_compatible" default="False" doc='{"type":"bool","help":"Whether to convert video files in a QuickTime compatible format so they are easily playable on Mac. If True, conversion will take more time and video will have a slightly different color grading. If False, you may have to use VLC media player to view some converted video files."}' />
+	<node name="depthai_publish_save_streams" pkg="cv" type="depthai_publish_save_streams.py" output="screen">
+		<param name="framerate" value="$(arg framerate)" />
+		<param name="rgb_video" value="$(arg rgb_video)" />
+		<param name="rgb_video_file_path" value="$(arg rgb_video_file_path)" />
+		<param name="rgb_preview" value="$(arg rgb_preview)" />
+		<param name="rgb_preview_file_path" value="$(arg rgb_preview_file_path)" />
+		<param name="left" value="$(arg left)" />
+		<param name="left_file_path" value="$(arg left_file_path)" />
+		<param name="right" value="$(arg right)" />
+		<param name="right_file_path" value="$(arg right_file_path)" />
+		<param name="disparity" value="$(arg disparity)" />
+		<param name="disparity_file_path" value="$(arg disparity_file_path)" />
+		<param name="depth" value="$(arg depth)" />
+		<param name="convert_to_video" value="$(arg convert_to_video)" />
+		<param name="qt_compatible" value="$(arg qt_compatible)" />
+	</node>
+</launch>
