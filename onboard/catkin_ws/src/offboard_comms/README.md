@@ -61,7 +61,7 @@ Values for `num` are 0-indexed (meaning the first servo corresponds to pin numbe
 
 This service lives in the script `servo_wrapper.py` which communicates with the Arduino by publishing a message of type `custom_msgs/ServoAngleArray.msg`. This is an array of 8 8-bit unsigned integers, and publishes them to topic `/offboard/servo_angles`.
 ### Camera Relay
-The camera relay is a hardware device that is used to kill and enable the power to the camera. The relay interrupts the POE power, forcing the camera to reboot when re-enabled. This is useful for when the camera is not responding to commands. This relay is connected to the onboard Arduino, and involves two topics and a service. The topics are `/offboard/camera_relay` and `/offboard/camera_relay_status`. The service is `rosservice call /enable_camera [true/false]`.
+The camera relay is a hardware device that is used to kill and enable the power to the camera. The relay interrupts the POE power, forcing the camera to reboot when re-enabled. This is useful for when the camera is not responding to commands. This relay is connected to the onboard Arduino, and involves two topics and a service. The topics are `/offboard/camera_relay` and `/offboard/camera_relay_status`. The service is `rosservice call /enable_camera <true/false>`.
 
 To set up the node on the computer that will interface with to the Arduino, run:
 ```
