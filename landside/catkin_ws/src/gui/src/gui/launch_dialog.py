@@ -3,6 +3,7 @@ import glob
 
 from python_qt_binding import loadUi, QtWidgets, QtGui
 from python_qt_binding.QtWidgets import QDialog, QMessageBox, QScrollArea, QFormLayout, QWidget
+from python_qt_binding.QtGui import QPalette
 from python_qt_binding.QtCore import Qt, QRegularExpression, pyqtSignal, pyqtProperty
 
 import rospy
@@ -149,6 +150,14 @@ class LaunchDialog(QDialog):
             input.setText(default_value)
 
             toolTip = ""
+
+            if "value" in arg:
+                input.setReadOnly(True)
+                input.setText(arg["value"])
+                palette = QPalette()
+                palette.setColor(QPalette.Base, Qt.lightGray)
+                palette.setColor(QPalette.Text, Qt.darkGray)
+                input.setPalette(palette)
 
             if "doc" in arg:
                 doc_dict = {}
