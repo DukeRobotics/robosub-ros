@@ -5,7 +5,7 @@ These files are used for extracting frames from video files (`.avi`, `.mov`, etc
 
 ## Usage
 1. Create the directory `footage_extraction/footage` and upload all files you want to extract here
-2. Run
+2. Generate the extraction config by running
    ```
    python3 extract_footage.py --generate-config footage
    ```
@@ -22,9 +22,15 @@ These files are used for extracting frames from video files (`.avi`, `.mov`, etc
    ```
 - Note: the original files will be moved to `extracted_files`
 5. Filter the extracted frames in `extracted_footage`
-6. Run `python3 extract_footage.py --generate-config robosub` to generate a Roboflow upload config and Roboflow project config
-7. In `roboflow_project_config.yaml` update the following:
+6. Generate a Roboflow upload config and Roboflow project config by running
+   ```
+   python3 extract_footage.py --generate-config robosub
+   ```
+7.  In `roboflow_project_config.yaml` update the following:
 - `api_key`: Log in to Roboflow, then go to your name in the top right, Settings, the desired workspace, and Roboflow API. Copy/paste your Private API Key.
 - `project_id`: Log in to Roboflow, click the 3 dots next to the desired project, click Rename Project. Copy/paste your Project ID.
 8. In `roboflow_upload_config.yaml` set the desired files you want to upload to Roboflow to `true` and update the `batch_name`.
-9. Run `python3 extract_footage.py --upload-to-roboflow` to upload the frames to Roboflow.
+9. Upload the frames to Roboflow by running 
+   ```
+   python3 extract_footage.py --upload-to-roboflow
+   ```
