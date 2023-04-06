@@ -1,12 +1,12 @@
 import rosbag
 import cv2
-import image_tools
 import os
 import yaml
 import sys
 import shutil
 from datetime import datetime
 import roboflow
+from extraction_tools import ImageTools
 
 
 FOOTAGE_EXTRACTION_DIR = '/root/dev/robosub-ros/onboard/catkin_ws/src/cv/footage_extraction'
@@ -41,7 +41,7 @@ class FootageExtractor:
         frame_count = 0
         num_frames_saved = 0
         num_digits = len(str(num_frames))
-        img_tools = image_tools.ImageTools()
+        img_tools = ImageTools.ImageTools()
 
         for topic, msg, t in bag.read_messages(topics=[topic_name]):
             if topic == topic_name:
