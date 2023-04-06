@@ -13,7 +13,7 @@ from custom_msgs.srv import StartLaunch
 import xml.etree.ElementTree as ET
 import json
 
-SCROLLABLE_THRESHOLD = 1
+SCROLLABLE_THRESHOLD = 6
 
 
 class LaunchDialog(QDialog):
@@ -73,7 +73,7 @@ class LaunchDialog(QDialog):
             launch_files = glob.glob(os.path.join(package_dir, 'launch', '*.launch'))
             script_files = glob.glob(os.path.join(package_dir, 'scripts', '*.py'))
             executables = [f for f in script_files if os.access(f, os.X_OK)]
-            return [''] + launch_files + executables
+            return [''] + sorted(launch_files) + sorted(executables)
         else:
             return []
 
@@ -105,7 +105,7 @@ class LaunchDialog(QDialog):
             self.node_name_box.insertSeparator(index_of_first_script_file)
 
     def clear_arg_form_rows(self):
-        if len(self.arg_form_rows) > SCROLLABLE_THRESHOLD:
+        if len(self.arg_form_rows) >= SCROLLABLE_THRESHOLD:
             self.form_layout.removeRow(2)
 
         else:
@@ -134,9 +134,9 @@ class LaunchDialog(QDialog):
         # Selected node file is a launch file
         self.get_args_from_launch_file()
 
-        if len(self.arg_form_rows) > SCROLLABLE_THRESHOLD:
+        if len(self.arg_form_rows) >= SCROLLABLE_THRESHOLD:
             args_form_layout = QFormLayout()
-            scroll = True
+            scroll = True       # boolean to indicate whether to create a QScrollArea or not
 
         for row, arg in enumerate(self.arg_form_rows):
             arg['allow_empty'] = True
@@ -189,16 +189,6 @@ class LaunchDialog(QDialog):
                 args_form_layout.insertRow(row + 2, label, input)
             else:
                 args_form_layout.insertRow(row, label, input)
-                # args_form_layout.insertRow(row+1, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
-                # args_form_layout.insertRow(row+2, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
-                # args_form_layout.insertRow(row+3, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
-                # args_form_layout.insertRow(row+4, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
-                # args_form_layout.insertRow(row+5, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
-                # args_form_layout.insertRow(row+6, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
-                # args_form_layout.insertRow(row+7, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
-                # args_form_layout.insertRow(row+8, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
-                # args_form_layout.insertRow(row+9, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
-                # args_form_layout.insertRow(row+10, QtWidgets.QLabel(arg['name']), QtWidgets.QLineEdit())
 
             arg['label'] = label
             arg['input'] = input
@@ -208,6 +198,7 @@ class LaunchDialog(QDialog):
             widget.setLayout(args_form_layout)
 
             scroll_widget = QScrollArea()
+            scroll_widget.setMaximumHeight(215)     # height of 6 rows of QLineEdits
             scroll_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
             scroll_widget.setWidgetResizable(True)
             scroll_widget.setWidget(widget)

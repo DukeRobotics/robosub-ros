@@ -31,14 +31,16 @@ class LaunchWidget(QWidget):
         ui_file = rr.get_filename('package://gui/resource/LaunchWidget.ui', use_protocol=False)
         loadUi(ui_file, self)
 
-        # TODO: Change default value to False
-        self.display_all_nodes = True
+        self.args_from_row = {}
+
+        self.display_all_nodes = False
 
         self.default_package = ''
         self.table_widget_lock = Lock()
 
         self.table_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.table_widget.cellDoubleClicked.connect(self.row_double_clicked)
 
         self.launch_dialog.node_launched.connect(self.append_to_table)
 
@@ -106,12 +108,28 @@ class LaunchWidget(QWidget):
         self.table_widget_lock.acquire()
         row = self.get_row_with_pid(pid)
         if row is None:
+            self.args_from_row[self.table_widget.rowCount()] = args
             self.table_widget.insertRow(self.table_widget.rowCount())
             self.table_widget.setItem(self.table_widget.rowCount() - 1, 0, QTableWidgetItem(str(pid)))
             self.table_widget.setItem(self.table_widget.rowCount() - 1, 1, QTableWidgetItem(package))
             self.table_widget.setItem(self.table_widget.rowCount() - 1, 2, QTableWidgetItem(name))
         self.table_widget_lock.release()
         return self.table_widget.rowCount() - 1
+
+    def row_double_clicked(self, row, column):
+        if row >= 1:
+            node_info_dialog = QDialog()
+            node_info_dialog.setWindowTitle("Node Info")
+            node_info_dialog.exec()
+
+            node_info_text = ""
+            node_info_text_fields = ["PID", "Package", "File", "Args"]
+            for i in range(len(node_info_text_fields)):
+                if node_info_text_fields[i] != "Args":
+                    node_info_text += '<b>{}:</b>'.format(node_info_text_fields[i])
+                    node_info_text += self.table_widget.item(row, i)
+            node_info_text += '<b>Args:</b>'
+            node_info_dialog.setText(node_info_text)
 
     def closeEvent(self, event):
         self.launch_dialog.accept()
