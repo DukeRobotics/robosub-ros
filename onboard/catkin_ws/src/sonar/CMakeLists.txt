@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   geometry_msgs
   cv
+  cv_bridge
 )
 
 ## The catkin_package macro generates cmake config files for your package
@@ -22,4 +23,5 @@ catkin_package(CATKIN_DEPENDS
   tf
   geometry_msgs
   cv
+  cv_bridge
 )

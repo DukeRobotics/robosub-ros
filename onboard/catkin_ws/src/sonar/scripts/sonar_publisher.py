@@ -2,10 +2,10 @@
 import rospy
 from sonar import Sonar
 from custom_msgs.msg import sweepResult, sweepGoal
-from sensor_msgs import CompressedImage
+from sensor_msgs.msg import CompressedImage
+from cv_bridge import CvBridge, CvBridgeError
 from sonar_utils import degrees_to_centered_gradians
 from sonar_image_processing import scan_and_build_sonar_image
-from cv.image_tools import ImageTools
 
 
 class SonarPublisher:
@@ -23,7 +23,7 @@ class SonarPublisher:
         self.stream = rospy.get_param('~stream')
         self.port = rospy.get_param('~port')
         self.sonar = Sonar(10, serial_port_number=self.port)
-        self.image_tools = ImageTools()
+        self.cv_bridge = CvBridge()
         self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC,
                                             sweepResult, queue_size=10)
         self.sonar_image_publisher = rospy.Publisher(self.SONAR_IMAGE_TOPIC,
@@ -53,6 +53,12 @@ class SonarPublisher:
         response.x_pos = sonar_xy_result[0]
         response.y_pos = sonar_xy_result[1]
         self._pub_request.publish(response)
+
+    def convert_to_ros_compressed_msg(self, image, compressed_format='jpg'):
+        """
+        Convert any kind of image to ROS Compressed Image.
+        """
+        return self.cv_bridge.cv2_to_compressed_imgmsg(image, dst_format=compressed_format)
 
     def run(self):
         rospy.Subscriber(self.SONAR_REQUEST_TOPIC, sweepGoal, self.on_request)
