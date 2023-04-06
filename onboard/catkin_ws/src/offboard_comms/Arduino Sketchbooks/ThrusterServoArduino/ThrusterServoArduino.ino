@@ -49,14 +49,12 @@ void servo_control_callback(const custom_msgs::ServoAngleArray &sa_msg){
 //Message to use with the relay status
 std_msgs::Bool relay_status_msg;
 
-//sync with to camera_enabled on startup
-relay_status_msg.data = camera_enabled;
-
 //Message to use with the pressure sensor
 sensor_msgs::FluidPressure pressure_msg;
 
-ros::Publisher relay_status_pub("/offboard/camera_relay_status", &relay_status_msg);
+
 ros::Publisher pressure_pub("/offboard/pressure", &pressure_msg);
+ros::Publisher relay_status_pub("/offboard/camera_relay_status", &relay_status_msg);
 
 void relay_callback(const std_msgs::Bool &relay_msg){
     
@@ -76,7 +74,6 @@ void relay_callback(const std_msgs::Bool &relay_msg){
         }
         camera_enabled = relay_msg.data;
         relay_status_msg.data = camera_enabled;
-        relay_status_pub.publish(&relay_status_msg);
     }
 
     
@@ -97,11 +94,14 @@ void setup(){
 
     // Set up relay
     pinMode(relay, OUTPUT);
-    digitalWrite(relay, HIGH);
+    digitalWrite(relay, HIGH); //default to on
+
+    //sync with to camera_enabled on startup
+    relay_status_msg.data = camera_enabled;
 
     pwm_multiplexer.begin();
     for (uint8_t i = 0; i < NUM_THRUSTERS; ++i){
-        thrusters[i].initialize(&pwm_multiplexer);
+        thrusters[i].initialize(&pwm_multiplexer); 
         thrusters[i].attach(i);
     }
     for (uint8_t i = 0; i < NUM_SERVOS; ++i){
@@ -140,5 +140,6 @@ void loop(){
     pressure_sensor.read();
     pressure_msg.fluid_pressure = pressure_sensor.pressure(100.0f);
     pressure_pub.publish(&pressure_msg);
+    relay_status_pub.publish(&relay_status_msg);
     nh.spinOnce();
 }
