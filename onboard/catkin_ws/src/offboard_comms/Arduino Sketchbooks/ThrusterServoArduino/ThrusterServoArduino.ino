@@ -29,11 +29,11 @@ MS5837 pressure_sensor;
 bool has_pressure = true;
 
 //Variable for relay to hard reset camera
-int relay = 2;
+int relay = 2; //pin 2
 bool camera_enabled = false;
 
-// Sets node handle to have 3 subscribers, 1 publishers, and 128 bytes for input and output buffer
-ros::NodeHandle_<ArduinoHardware,3,1,128,128> nh;
+// Sets node handle to have 3 subscribers, 2 publishers, and 128 bytes for input and output buffer
+ros::NodeHandle_<ArduinoHardware,3,2,128,128> nh;
 
 // Reusing ESC library code
 void thruster_speeds_callback(const custom_msgs::ThrusterSpeeds &ts_msg){
@@ -45,6 +45,18 @@ void thruster_speeds_callback(const custom_msgs::ThrusterSpeeds &ts_msg){
 void servo_control_callback(const custom_msgs::ServoAngleArray &sa_msg){
     memcpy(servo_angles, sa_msg.angles, sizeof(servo_angles));
 }
+
+//Message to use with the relay status
+std_msgs::Bool relay_status_msg;
+
+//sync with to camera_enabled on startup
+relay_status_msg.data = camera_enabled;
+
+//Message to use with the pressure sensor
+sensor_msgs::FluidPressure pressure_msg;
+
+ros::Publisher relay_status_pub("/offboard/camera_relay_status", &relay_status_msg);
+ros::Publisher pressure_pub("/offboard/pressure", &pressure_msg);
 
 void relay_callback(const std_msgs::Bool &relay_msg){
     
@@ -63,18 +75,16 @@ void relay_callback(const std_msgs::Bool &relay_msg){
             nh.loginfo("Camera disabled");
         }
         camera_enabled = relay_msg.data;
+        relay_status_msg.data = camera_enabled;
+        relay_status_pub.publish(&relay_status_msg);
     }
 
     
 }
 
-//Message to use with the pressure sensor
-sensor_msgs::FluidPressure pressure_msg;
-
 ros::Subscriber<custom_msgs::ThrusterSpeeds> ts_sub("/offboard/thruster_speeds", &thruster_speeds_callback);
 ros::Subscriber<custom_msgs::ServoAngleArray> sa_sub("/offboard/servo_angles", &servo_control_callback);
 ros::Subscriber<std_msgs::Bool> relay_sub("/offboard/camera_relay", &relay_callback);
-ros::Publisher pressure_pub("/offboard/pressure", &pressure_msg);
 
 void setup(){
     Serial.begin(BAUD_RATE);
@@ -83,6 +93,7 @@ void setup(){
     nh.subscribe(sa_sub);
     nh.subscribe(relay_sub);
     nh.advertise(pressure_pub);
+    nh.advertise(relay_status_pub);
 
     // Set up relay
     pinMode(relay, OUTPUT);
