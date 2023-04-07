@@ -140,6 +140,9 @@ class LaunchDialog(QDialog):
             scroll = True       # boolean to indicate whether to create a QScrollArea or not
 
         for row, arg in enumerate(self.arg_form_rows):
+            if "value" in arg:
+                arg['default'] = arg['value']
+
             arg['allow_empty'] = True
 
             default_value = arg.get('default', '')
@@ -150,14 +153,6 @@ class LaunchDialog(QDialog):
             input.setText(default_value)
 
             toolTip = ""
-
-            if "value" in arg:
-                input.setReadOnly(True)
-                input.setText(arg["value"])
-                palette = QPalette()
-                palette.setColor(QPalette.Base, Qt.lightGray)
-                palette.setColor(QPalette.Text, Qt.darkGray)
-                input.setPalette(palette)
 
             if "doc" in arg:
                 doc_dict = {}
@@ -192,6 +187,9 @@ class LaunchDialog(QDialog):
             if toolTip:
                 label.setText(label.text() + " (?)")
                 label.setToolTip(toolTip)
+
+            if "value" in arg:
+                input.setEnabled(False)
 
             # row inserted at position row + 2, after the Package and Node Name rows
             if not scroll:
@@ -330,6 +328,9 @@ class LaunchDialog(QDialog):
         args = []
 
         for row in self.arg_form_rows:
+            if "value" in row:
+                continue
+
             text = ""
 
             if type(row['input']) is QtWidgets.QComboBox:
