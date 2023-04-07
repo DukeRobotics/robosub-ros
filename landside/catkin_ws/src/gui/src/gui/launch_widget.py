@@ -8,7 +8,9 @@ from python_qt_binding.QtWidgets import (
     QCheckBox,
     QLabel,
     QDialogButtonBox,
-    QFormLayout
+    QFormLayout,
+    QTableWidget,
+    QVBoxLayout
 )
 from python_qt_binding.QtCore import QTimer, pyqtProperty
 import python_qt_binding.QtCore as QtCore
@@ -31,7 +33,7 @@ class LaunchWidget(QWidget):
         ui_file = rr.get_filename('package://gui/resource/LaunchWidget.ui', use_protocol=False)
         loadUi(ui_file, self)
 
-        self.args_from_row = {}
+        self.running_nodes = {}
 
         self.display_all_nodes = False
 
@@ -102,34 +104,68 @@ class LaunchWidget(QWidget):
         row = self.get_row_with_pid(pid)
         if row is not None:
             self.table_widget.removeRow(row)
+            self.running_nodes.pop(str(pid))
         self.table_widget_lock.release()
 
     def append_to_table(self, pid, package, name, args):
         self.table_widget_lock.acquire()
-        row = self.get_row_with_pid(pid)
-        if row is None:
-            self.args_from_row[self.table_widget.rowCount()] = args
+        if pid not in self.running_nodes:
+            self.running_nodes[str(pid)] = {
+                "PID": str(pid),
+                "Package": package,
+                "Name": name,
+                "Args": args
+            }
+
             self.table_widget.insertRow(self.table_widget.rowCount())
             self.table_widget.setItem(self.table_widget.rowCount() - 1, 0, QTableWidgetItem(str(pid)))
             self.table_widget.setItem(self.table_widget.rowCount() - 1, 1, QTableWidgetItem(package))
             self.table_widget.setItem(self.table_widget.rowCount() - 1, 2, QTableWidgetItem(name))
+
         self.table_widget_lock.release()
         return self.table_widget.rowCount() - 1
 
     def row_double_clicked(self, row, column):
         if row >= 1:
+            row_pid = self.table_widget.item(row, 0).text()
+            node_info = self.running_nodes[row_pid]
+
             node_info_dialog = QDialog()
             node_info_dialog.setWindowTitle("Node Info")
-            node_info_dialog.exec()
+
+            node_info_layout = QVBoxLayout(node_info_dialog)
+
+            node_info_label = QLabel()
 
             node_info_text = ""
             node_info_text_fields = ["PID", "Package", "File", "Args"]
-            for i in range(len(node_info_text_fields)):
-                if node_info_text_fields[i] != "Args":
-                    node_info_text += '<b>{}:</b>'.format(node_info_text_fields[i])
-                    node_info_text += self.table_widget.item(row, i)
-            node_info_text += '<b>Args:</b>'
-            node_info_dialog.setText(node_info_text)
+            for field in node_info_text_fields:
+                if field == "File":
+                    node_info_text += f'<b>File:</b> {self.table_widget.item(row, 2).text()}<br>'
+                elif field != "Args":
+                    node_info_text += f'<b>{field}:</b> {node_info[field]}<br>'
+            node_info_text += '<b>Args: </b>'
+            if node_info["Args"] == "":
+                node_info_text += "None"
+            node_info_label.setText(node_info_text)
+            node_info_layout.addWidget(node_info_label)
+
+            args_table = QTableWidget()
+
+            args_table.setColumnCount(2)
+            args_table.setHorizontalHeaderItem(0, QTableWidgetItem("Name"))
+            args_table.setHorizontalHeaderItem(1, QTableWidgetItem("Value"))
+
+            if node_info["Args"] != "":
+                for arg in node_info["Args"].split(" "):
+                    arg_name, arg_value = arg.split(":=")
+                    args_table.insertRow(args_table.rowCount())
+                    args_table.setItem(args_table.rowCount() - 1, 0, QTableWidgetItem(arg_name))
+                    args_table.setItem(args_table.rowCount() - 1, 1, QTableWidgetItem(arg_value))
+
+                node_info_layout.addWidget(args_table)
+
+            node_info_dialog.exec()
 
     def closeEvent(self, event):
         self.launch_dialog.accept()
