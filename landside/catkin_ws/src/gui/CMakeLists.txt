@@ -30,5 +30,7 @@ install(FILES
   plugins/controls_plugin.xml
   plugins/launch_plugin.xml
   plugins/rosbag_plugin.xml
+  plugins/camera_status_plugin.xml
+  plugins/system_usage_plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 ) 

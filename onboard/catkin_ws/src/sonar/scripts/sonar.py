@@ -13,7 +13,7 @@ class Sonar:
     """
 
     # PORT of the salea is ttyUSB2 for testing
-    DEFAULT_SERIAL_PORT = 0
+    DEFAULT_SERIAL_PORT = 1
     SERIAL_PORT_NAME = "/dev/ttyUSB"
     BAUD_RATE = 2000000  # hz
     SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
@@ -27,7 +27,7 @@ class Sonar:
                  serial_port_number=DEFAULT_SERIAL_PORT):
         self.ping360 = Ping360()
         # TODO: Add try except for connecting to device
-        self.ping360.connect_serial(f'/dev/ttyUSB1',
+        self.ping360.connect_serial(f'{serial_port_name}{serial_port_number}',
                                     baud_rate)
         self.ping360.initialize()
         period_and_duration = self.range_to_period_and_duration(range)
