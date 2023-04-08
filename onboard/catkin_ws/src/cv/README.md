@@ -23,6 +23,7 @@ To stream the feed or perform spatial detection using the OAK camera, use `rosla
 * `depthai_spatial_detection.py`: Waits for an enable_model rosservice call, and then publishes spatial detections using the model specified in the service call and in depthai_models.yaml.
 * `depthai_sonar_spatial_detection.py`: Same as `depthai_spatial_detection.py`.
 * `depthai_simulate_detection.launch`: Runs spatial detection on a user-specified DepthAI model using a still image or image feed as input.
+* `camera_hard_reset.py`: Used to reset a POE camera if it is not connecting properly. The script creates the topics `/offboard/camera_relay` (for sending commands to the camera relay) and `/offboard/camera_relay_status` (for checking the status of the physical relay). Running `rosservice call /enable_camera <true/false>` enables or disables the camera. Note: running `camera_hard_reset.py` requires serial.launch to have been run and this may power cycle the camera upon running. By default, the camera will be enabled unless the topic `/offboard/camera_relay` is set to `false`. See `onboard/catkin_ws/src/offboard_comms/README.md` for more information on the relay service.
 
 `launch/`
 * `depthai_camera_connext.launch`: Connects to the OAK camera and uploads the image pipeline.
@@ -30,6 +31,7 @@ To stream the feed or perform spatial detection using the OAK camera, use `rosla
 * `depthai_spatial_detection.launch`: Runs the spatial detection script.
 * `depthai_sonar_spatial_detection`: Runs the spatial detection script with sonar.
 * `depthai_spatial_detection.launch`: Runs the simulated spatial detection script.
+* `camera_hard_reset.launch`: Runs the camera hard reset script.
 
 `models/`
 * `depthai_models.yaml`: contains models for object detection. A model is specified by a name, what classes it predicts, and the path to a .blob file, as well as other configuration parameters. `input_size` is [width, height]. The blob file format is specific to the processors that the OAK cameras use.
@@ -112,6 +114,8 @@ Once 1+ models are enabled for a specific node, they listen and publish to topic
    * The topic that the camera publishes each frame to
    * If no actual camera feed is available, you can simulate one using `test_images.py`. See Simulating image feeds above for more information.
    * Type: sensor_msgs/CompressedImage
+  * `/offboard/camera_relay_status`
+     * The topic that the Arduino publishes the camera relay status to. Only runs if `camera_hard_reset.py` is running.
 
 #### Publishing:
 
@@ -124,6 +128,8 @@ Once 1+ models are enabled for a specific node, they listen and publish to topic
     of \[0, 1\]), and the `width` and `height` of the frame.
   * If a model is enabled but detects no objects in a frame, it will not publish any messages to any topic
   * Type: custom_msgs/CVObject
+ * `/offboard/camera_relay_status`
+   * The topic that `rosservice enable_camera <true/false>` publishes the camera command to. Only runs if `camera_hard_reset.py` is running.
 
 Note that the camera feed frame rate will likely be greater than the rate at which predictions can
 be generated (especially if more than one model is enabled at the same time), so the publishing rate

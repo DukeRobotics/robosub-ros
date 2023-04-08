@@ -60,3 +60,33 @@ The servos utilize the `/offboard/set_servo_angle` service that is of type `cust
 Values for `num` are 0-indexed (meaning the first servo corresponds to pin number 0) and values that are greater than or equal to the number of servos will result in an unsuccessfull call. Values for `angle` that are >180 will also result in an unsuccessful call.
 
 This service lives in the script `servo_wrapper.py` which communicates with the Arduino by publishing a message of type `custom_msgs/ServoAngleArray.msg`. This is an array of 8 8-bit unsigned integers, and publishes them to topic `/offboard/servo_angles`.
+### Camera Relay
+The camera relay is a hardware device that is used to kill and enable the power to the camera. The relay interrupts the POE power, forcing the camera to reboot when re-enabled. This is useful for when the camera is not responding to commands. This relay is connected to the onboard Arduino, and involves two topics and a service. The topics are `/offboard/camera_relay` and `/offboard/camera_relay_status`. The service is `rosservice call /enable_camera <true/false>`.
+
+To set up the node on the computer that will interface with to the Arduino, run:
+```
+roslaunch offboard_comms serial.launch
+```
+
+Next, the Python code for the camera relay needs to be run. This is done by running the file `camera_hard_reset.py` in the `cv/scripts` folder. This file is set up to run automatically when the `camera_hard_reset.launch` file is run from within the `cv` package. To run this file, run:
+```
+roslaunch cv camera_hard_reset.launch
+```
+From this point, interfacing with the relay requires running:
+```
+rosservice call /enable_camera false
+```
+to disable the camera, and
+```
+rosservice call /enable_camera true
+```
+to re-enable the camera. By default, the camera is enabled. The camera relay topic can be checked by running:
+```
+rostopic echo /offboard/camera_relay
+```
+This will print the current state of the topic that the Arduino is subscribed to. The camera relay status topic can be checked by running:
+```
+rostopic echo /offboard/camera_relay_status
+```
+This will print the current state of the relay itself as reported by the Arduino. The distinction between the two topics is that the camera relay topic is the state that the relay is trying to be in, while the camera relay status topic is the state that the relay is actually in. The camera relay topic is set by the service call, while the camera relay status topic is set by the Arduino. The camera relay status topic is used to check if the camera is actually enabled or disabled, while the camera relay topic is used to check if the camera is trying to be enabled or disabled. Additionally, a message is displayed in the serial.launch terminal when the camera is enabled or disabled.
+
