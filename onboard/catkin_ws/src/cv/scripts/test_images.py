@@ -4,8 +4,8 @@ import rospy
 import cv2
 import os
 import subprocess
-from sensor_msgs.msg import Image
-from cv_bridge import CvBridge
+from sensor_msgs.msg import CompressedImage
+from image_tools import ImageTools
 
 
 class DummyImagePublisher:
@@ -26,7 +26,7 @@ class DummyImagePublisher:
             rospy.logerr("No feed path variable given")
             rospy.spin()
 
-        self.cv_bridge = CvBridge()
+        self.image_tools = ImageTools()
 
     def run(self):
         """Check arguments for errors and run the appropriate function based on the type of feed_path."""
@@ -35,7 +35,7 @@ class DummyImagePublisher:
         if file_extension != ".bag":
             # Only create the publisher if feed_path is not a bagfile and self.topic exists
             if self.topic:
-                self.image_publisher = rospy.Publisher(self.topic, Image, queue_size=10)
+                self.image_publisher = rospy.Publisher(self.topic, CompressedImage, queue_size=10)
             # Raise an exception if self.topic is not specified and the feed_path is not a bagfile
             else:
                 raise ValueError("A non-empty value for the topic argument must be provided \
@@ -69,9 +69,8 @@ class DummyImagePublisher:
         """Publish a still image to topic with the specified framerate."""
 
         image = cv2.imread(self.feed_path, cv2.IMREAD_COLOR)
-        image_msg = self.cv_bridge.cv2_to_imgmsg(image, 'bgr8')
+        image_msg = self.image_tools.convert_to_ros_compressed_msg(image)
         loop_rate = rospy.Rate(self.framerate)
-
         while not rospy.is_shutdown():
             self.image_publisher.publish(image_msg)
             loop_rate.sleep()
@@ -124,7 +123,7 @@ class DummyImagePublisher:
 
         while not rospy.is_shutdown():
             for image in images:
-                image_msg = self.cv_bridge.cv2_to_imgmsg(image, 'bgr8')
+                image_msg = self.image_tools.convert_to_ros_compressed_msg(image)
                 self.image_publisher.publish(image_msg)
 
                 loop_rate.sleep()
@@ -153,7 +152,7 @@ class DummyImagePublisher:
             # Including 'not rospy.is_shutdown()' in the loop condition here to ensure if this script is exited
             # while this loop is running, the script quits without escalating to SIGTERM or SIGKILL
             while not rospy.is_shutdown() and success:
-                image_msg = self.cv_bridge.cv2_to_imgmsg(img, 'bgr8')
+                image_msg = self.image_tools.convert_to_ros_compressed_msg(img)
                 self.image_publisher.publish(image_msg)
 
                 success, img = cap.read()

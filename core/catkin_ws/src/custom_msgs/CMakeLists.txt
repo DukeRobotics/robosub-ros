@@ -24,8 +24,10 @@ add_message_files(
 
 add_service_files(
   FILES
-  SetServo.srv
+  ConnectDepthAICamera.srv
+  ConnectUSBCamera.srv
   EnableModel.srv
+  SetServo.srv
   StartLaunch.srv
   StopLaunch.srv
 )
@@ -40,6 +42,7 @@ add_action_files(
   ControlsDesiredPose.action
   ControlsDesiredTwist.action
   ControlsDesiredPower.action
+  sweep.action
 )
 
 generate_messages(
