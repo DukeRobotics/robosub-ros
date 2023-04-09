@@ -1,0 +1,98 @@
+gate:
+  classes: ['gate', 'gate_side', 'gate_tick', 'gate_top', 'start_gate']
+  topic: cv/
+  weights: yolo_v4_tiny_gate_openvino_2021.3_6shave-2022-7-21_416_416.blob
+  input_size: [416, 416]
+  coordinate_size: 4
+  anchors: [10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]
+  anchor_masks: {"side26": [0, 1, 2], "side13": [3, 4, 5]}
+  iou_threshold: 0.5
+  confidence_threshold: 0.5
+
+gate_buoy:
+  classes: ['buoy_bootlegger', 'buoy_gman', 'gate']
+  topic: cv/
+  weights: yolo_v4_tiny_buoys_and_gate_6shave.blob
+  input_size: [416, 416]
+  coordinate_size: 4
+  anchors: [10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]
+  anchor_masks: {"side26": [0, 1, 2], "side13": [3, 4, 5]}
+  iou_threshold: 0.5
+  confidence_threshold: 0.5
+
+yolov8s-coco:
+  classes: ["person","bicycle","car","motorbike","aeroplane","bus","train","truck","boat","trafficlight","firehydrant","stopsign","parkingmeter","bench","bird","cat","dog","horse","sheep","cow","elephant","bear","zebra","giraffe","backpack","umbrella","handbag","tie","suitcase","frisbee","skis","snowboard","sportsball","kite","baseballbat","baseballglove","skateboard","surfboard","tennisracket","bottle","wineglass","cup","fork","knife","spoon","bowl","banana","apple","sandwich","orange","broccoli","carrot","hotdog","pizza","donut","cake","chair","sofa","pottedplant","bed","diningtable","toilet","tvmonitor","laptop","mouse","remote","keyboard","cellphone","microwave","oven","toaster","sink","refrigerator","book","clock","vase","scissors","teddybear","hairdrier","toothbrush"]
+  topic: cv/
+  weights: yolov8s_openvino_2021.4_6shave.blob
+  input_size: [640, 640]
+  coordinate_size: 4
+  anchors: []
+  anchor_masks: {}
+  iou_threshold: 0.7
+  confidence_threshold: 0.001
+
+yolov8s-incorrect:
+  classes: ['buoy_bootlegger', 'buoy_gman', 'gate']
+  topic: cv/
+  weights: best_openvino_2021.4_6shave.blob
+  input_size: [640, 640]
+  coordinate_size: 4
+  anchors: []
+  anchor_masks: {}
+  iou_threshold: 0.7
+  confidence_threshold: 0.001
+
+yolov8s-correct:
+  classes: ['buoy_bootlegger', 'buoy_gman', 'gate']
+  topic: cv/
+  weights: correctsizeweights_openvino_2021.4_6shave.blob
+  input_size: [416, 416]
+  coordinate_size: 4
+  anchors: []
+  anchor_masks: {}
+  iou_threshold: 0.7
+  confidence_threshold: 0.001
+
+yolov8n:
+  classes: ['buoy_bootlegger', 'buoy_gman', 'gate']
+  topic: cv/
+  weights: weights_openvino_2021.4_6shave.blob
+  input_size: [416, 416]
+  coordinate_size: 4
+  anchors: []
+  anchor_masks: {}
+  iou_threshold: 0.7
+  confidence_threshold: 0.001
+
+yolov7:
+  classes: ['buoy_bootlegger', 'buoy_gman', 'gate']
+  topic: cv/
+  weights: yolov7_best_openvino_2021.4_6shave.blob
+  input_size: [416, 416]
+  coordinate_size: 4
+  anchors: [12.0, 16.0, 19.0, 36.0, 40.0, 28.0, 75.0, 36.0, 76.0, 55.0, 72.0, 146.0, 142.0, 110.0, 192.0, 243.0, 459.0, 401.0]
+  anchor_masks: {"side52": [0,1,2], "side26": [3,4,5], "side13": [6,7,8]}
+  iou_threshold: 0.5
+  confidence_threshold: 0.5
+
+yolov7-tiny:
+  classes: ['buoy_bootlegger', 'buoy_gman', 'gate']
+  topic: cv/
+  weights: yolov7_tiny_best_openvino_2021.4_6shave.blob
+  input_size: [416, 416]
+  coordinate_size: 4
+  anchors: [12.0,16.0,19.0,36.0,40.0,28.0,36.0,75.0,76.0,55.0,72.0,146.0,142.0,110.0,192.0,243.0,459.0,401.0]
+  anchor_masks: {"side52":[0,1,2],"side26":[3,4,5],"side13":[6,7,8]}
+  iou_threshold: 0.5
+  confidence_threshold: 0.5
+
+yolov5n-v7:
+  classes: ['buoy_bootlegger', 'buoy_gman', 'gate']
+  topic: cv/
+  weights: yolov5n_v7_best_openvino_2021.4_6shave.blob
+  input_size: [416, 416]
+  coordinate_size: 4
+  anchors: [10.0,13.0,16.0,30.0,33.0,23.0,30.0,61.0,62.0,45.0,59.0,119.0,116.0,90.0,156.0,198.0,373.0,326.0]
+  anchor_masks: {"side52":[0,1,2],"side26":[3,4,5],"side13":[6,7,8]}
+  iou_threshold: 0.5
+  confidence_threshold: 0.5
