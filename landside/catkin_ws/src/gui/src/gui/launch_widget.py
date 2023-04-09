@@ -113,7 +113,7 @@ class LaunchWidget(QWidget):
             self.running_nodes[str(pid)] = {
                 "PID": str(pid),
                 "Package": package,
-                "Name": name,
+                "File": name,
                 "Args": args
             }
 
@@ -140,9 +140,7 @@ class LaunchWidget(QWidget):
             node_info_text = ""
             node_info_text_fields = ["PID", "Package", "File", "Args"]
             for field in node_info_text_fields:
-                if field == "File":
-                    node_info_text += f'<b>File:</b> {self.table_widget.item(row, 2).text()}<br>'
-                elif field != "Args":
+                if field != "Args":
                     node_info_text += f'<b>{field}:</b> {node_info[field]}<br>'
             node_info_text += '<b>Args: </b>'
             if node_info["Args"] == "":
