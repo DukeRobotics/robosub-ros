@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>316</width>
+    <width>334</width>
     <height>145</height>
    </rect>
   </property>
@@ -62,6 +62,13 @@
      <property name="spacing">
       <number>1</number>
      </property>
+     <item>
+      <widget class="QPushButton" name="camera_toggle_button">
+       <property name="text">
+        <string>Turn On</string>
+       </property>
+      </widget>
+     </item>
      <item>
       <widget class="QPushButton" name="logs_button">
        <property name="sizePolicy">
