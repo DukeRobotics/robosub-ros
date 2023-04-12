@@ -147,6 +147,7 @@ class CameraStatusWidget(QWidget):
 
         self.camera_relay_status = None
         self.camera_relay = None
+        self.relay_in_sync = False
         self.enable_camera_service_available = False
 
         self.background_colors = {
@@ -265,7 +266,7 @@ class CameraStatusWidget(QWidget):
                 CAMERA_STATUS_DATA_TYPE_INFORMATION[camera_type]['service_name'] in service_list and
                 not self.checking[camera_type]
             )
-        self.enable_camera_service_available = '/enable_camera' in service_list
+        self.toggle_relay_button.setEnabled(self.relay_in_sync and '/enable_camera' in service_list)
 
     def open_conection_log(self):
         self.log = CameraStatusLog(self.data_updated, self.status_logs)
@@ -368,10 +369,9 @@ class CameraStatusWidget(QWidget):
         if self.camera_relay is None or self.camera_relay_status is None:
             return
 
-        in_sync = self.camera_relay == self.camera_relay_status
-        self.toggle_relay_button.setEnabled(in_sync and self.enable_camera_service_available)
+        self.relay_in_sync = self.camera_relay == self.camera_relay_status
 
-        if in_sync:
+        if self.relay_in_sync:
             action = 'Turn Off' if self.camera_relay_status else 'Turn On'
             self.toggle_relay_button.setText(action)
 
