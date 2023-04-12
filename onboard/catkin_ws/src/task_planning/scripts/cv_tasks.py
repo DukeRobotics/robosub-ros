@@ -34,7 +34,7 @@ class SpinDirectionTask(smach.State):
 
 
 class ObjectCoordsTask(smach.State):
-    def __init__(self, name, cv):
+    def __init__(self, name, cv: CVInterface):
         super().__init__(outcomes=["valid", "invalid"], output_keys=["point"])
         self.name = name
         self.cv = cv

@@ -25,7 +25,7 @@ class TaskRunner(smach.StateMachine):
         with self:
             # smach.StateMachine.add('TEST', BuoyTask(self.listener, self.controls, CVInterface()),
             #                        transitions={'done': 'done'})
-            smach.StateMachine.add('TEST', MoveToPoseGlobalTask(self.x, self.y, 0, 0, 0, 0, None, None),
+            smach.StateMachine.add('TEST', MoveToPoseGlobalTask(self.x, self.y, 0, 0, 0, 0, self.controls),
                                    transitions={'done': 'done', 'continue': 'TEST'})
             # smach.StateMachine.add('TEST', controls_testing(self.controls, self.listener),
             #                        transitions={'done': 'done'})
