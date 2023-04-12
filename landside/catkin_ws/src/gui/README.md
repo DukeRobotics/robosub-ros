@@ -234,6 +234,8 @@ The System Usage box displays percent CPU usage and amount of RAM used in GB.
 #### Dependences
 - `camera_test_connect.launch` in cv
 - `ping_host.launch` in cv
+- `serial.launch` in offboard_comms
+- `camera_hard_reset.launch` in cv
 
 #### Description
 If `ping_host.launch` is running this plugin shows whether the ping to the stereo camera was successful.
@@ -244,3 +246,6 @@ To check whether the stereo camera is connected, click the stereo button.
 To view all recorded ping, mono, and stereo connections, click the logs button. A dialog will appear with tabs along the top that allow you to view the history of ping, stereo, and mono connections.
 
 From the perspective file, you can control the hostname whose ping messages are displayed and the channel that is checked for the mono camera.
+
+Oogway robot: If `serial.launch` and `camera_hard_reset.launch` is running, this plugin shows the current relay status.
+To restart the DepthAI camera, click the 'Turn On/Off' button. The button will reenable again once the relay successfully switches state.

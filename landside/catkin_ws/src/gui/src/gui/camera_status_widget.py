@@ -1,7 +1,12 @@
 # TODO: Remove
 # For debugging
+
+# State that camera is trying to be in
 # rostopic pub /offboard/camera_relay std_msgs/Bool True
+
+# Actual state
 # rostopic pub /offboard/camera_relay_status std_msgs/Bool True
+# roslaunch cv camera_hard_reset.launch
 
 from datetime import datetime
 from enum import Enum
@@ -138,7 +143,7 @@ class CameraStatusWidget(QWidget):
 
         self.threadpool = QThreadPool()
 
-        self.camera_toggle_button.clicked.connect(self.toggle_camera)
+        self.toggle_relay_button.clicked.connect(self.toggle_camera)
         self.logs_button.clicked.connect(self.open_conection_log)
 
         self.check_camera_buttons = {
@@ -356,7 +361,7 @@ class CameraStatusWidget(QWidget):
             return
 
         in_sync = self.camera_relay == self.camera_relay_status
-        self.camera_toggle_button.setEnabled(in_sync and self.enable_camera_service_available)
+        self.toggle_relay_button.setEnabled(in_sync and self.enable_camera_service_available)
         # print("in_sync:", in_sync)  # TODO: REMOVE
 
         data_type = CameraStatusDataType.RELAY
@@ -371,7 +376,7 @@ class CameraStatusWidget(QWidget):
 
         if in_sync:
             action = 'Turn Off' if self.camera_relay_status else 'Turn On'
-            self.camera_toggle_button.setText(action)
+            self.toggle_relay_button.setText(action)
 
     def init_table(self):
         for _, data_dict in CAMERA_STATUS_DATA_TYPE_INFORMATION.items():
@@ -409,7 +414,10 @@ class CameraStatusWidget(QWidget):
             "the 'Mono' and 'Stereo' buttons. If camera_test_connect.launch is not running, the buttons will be " + \
             f"disabled. The channel used for the mono camera is {self.usb_channel}.\n\n" + \
             "To change the ping hostname or mono camera channel, click the settings icon. If the plugin appears to " + \
-            "be unresponsive to publishing ping messages, you can restart the ping subscriber from settings."
+            "be unresponsive to publishing ping messages, you can restart the ping subscriber from settings.\n\n" + \
+            "The Oogway robot has a relay to restart its DepthAI camera if it becomes unresponsive. To enable " + \
+            "toggling this relay from the 'Turn On/Off' button, launch offboard_comms/serial.launch and " + \
+            "cv/camera_hard_reset.launch."
 
         alert = QMessageBox()
         alert.setWindowTitle("Camera Status Widget Help")
