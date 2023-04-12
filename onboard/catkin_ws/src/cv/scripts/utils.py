@@ -70,9 +70,9 @@ class DetectionVisualizer:
             if self.showClassName and self.showConfidence:
                 self.putText(frame_copy, f"{self.classes[detection.label]} {int(detection.confidence * 100)}%", (bbox[0], bbox[1]), self.colors[detection.label])
             elif self.showClassName and not self.showConfidence:
-                self.putText(frame_copy, self.classes[detection.label], (bbox[0] + 10, bbox[1] + 30), self.colors[detection.label])
+                self.putText(frame_copy, self.classes[detection.label], (bbox[0], bbox[1]), self.colors[detection.label])
             elif not self.showClassName and self.showConfidence:
-                self.putText(frame_copy, f"{int(detection.confidence * 100)}%", (bbox[0] + 10, bbox[1] + 60), self.colors[detection.label])
+                self.putText(frame_copy, f"{int(detection.confidence * 100)}%", (bbox[0], bbox[1]), self.colors[detection.label])
             
             self.rectangle(frame_copy, bbox, self.colors[detection.label])
 
