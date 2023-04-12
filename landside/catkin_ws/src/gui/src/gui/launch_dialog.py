@@ -3,7 +3,6 @@ import glob
 
 from python_qt_binding import loadUi, QtWidgets, QtGui
 from python_qt_binding.QtWidgets import QDialog, QMessageBox, QScrollArea, QFormLayout, QWidget
-from python_qt_binding.QtGui import QPalette
 from python_qt_binding.QtCore import Qt, QRegularExpression, pyqtSignal, pyqtProperty
 
 import rospy

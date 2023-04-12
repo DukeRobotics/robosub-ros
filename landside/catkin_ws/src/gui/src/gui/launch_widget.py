@@ -10,7 +10,8 @@ from python_qt_binding.QtWidgets import (
     QDialogButtonBox,
     QFormLayout,
     QTableWidget,
-    QVBoxLayout
+    QVBoxLayout,
+    QAbstractScrollArea
 )
 from python_qt_binding.QtCore import QTimer, pyqtProperty
 import python_qt_binding.QtCore as QtCore
@@ -36,6 +37,8 @@ class LaunchWidget(QWidget):
         self.running_nodes = {}
 
         self.display_all_nodes = False
+        self.remove_nodes_manually = False
+        self.running_status_column = False
 
         self.default_package = ''
         self.table_widget_lock = Lock()
@@ -78,7 +81,13 @@ class LaunchWidget(QWidget):
 
     def check_for_termination(self, rli_msg):
         if rli_msg.msg_type == "Terminating":
-            self.remove_from_table(rli_msg.pid)
+            if self.remove_nodes_manually:
+                self.remove_from_table(rli_msg.pid)
+            else:
+                row = self.get_row_with_pid(rli_msg.pid)
+                if row:
+                    self.table_widget.setItem(row, self.table_widget.columnCount() - 1,
+                                              QTableWidgetItem("Terminating"))
 
     def check_for_new_nodes(self, rli_msg):
         if self.display_all_nodes:
@@ -161,6 +170,8 @@ class LaunchWidget(QWidget):
                     args_table.setItem(args_table.rowCount() - 1, 0, QTableWidgetItem(arg_name))
                     args_table.setItem(args_table.rowCount() - 1, 1, QTableWidgetItem(arg_value))
 
+                args_table.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
+                args_table.resizeColumnsToContents()
                 node_info_layout.addWidget(args_table)
 
             node_info_dialog.exec()
@@ -169,20 +180,33 @@ class LaunchWidget(QWidget):
         self.launch_dialog.accept()
 
     def settings(self):
-        settings = LaunchWidgetSettings(self, self.display_all_nodes)
+        settings = LaunchWidgetSettings(self, self.display_all_nodes,
+                                        self.remove_nodes_manually, self.running_status_column)
         if settings.exec_():
-            self.display_all_nodes = settings.get_values()
+            self.display_all_nodes, self.remove_nodes_manually, self.running_status_column = settings.get_values()
+
+            if self.running_status_column and self.table_widget.columnCount() == 3:
+                self.table_widget.insertColumn(self.table_widget.columnCount())
+                self.table_widget.setItem(0, self.table_widget.columnCount() - 1, QTableWidgetItem("Status"))
+                for row in range(1, self.table_widget.rowCount()):
+                    row_pid = self.table_widget.item(row, 0).text()
+                    node_status = "Running" if row_pid in self.running_nodes else "Terminated"
+                    self.table_widget.setItem(row, self.table_widget.columnCount() - 1,
+                                              QTableWidgetItem(node_status))
+
+            if not self.running_status_column and self.table_widget.columnCount() == 4:
+                self.table_widget.removeColumn(self.table_widget.columnCount() - 1)
 
 
 class LaunchWidgetSettings(QDialog):
-    def __init__(self, parent, display_all_nodes):
+    def __init__(self, parent, display_all_nodes, remove_node_manually, running_status_column):
         super().__init__(parent)
 
-        self.setFixedSize(285, 70)
+        self.setFixedSize(345, 105)
 
         self.display_all_nodes_checkbox = QCheckBox(self)
         self.display_all_nodes_checkbox.setChecked(display_all_nodes)
-        self.display_all_nodes_label = QLabel("Display all nodes (?)", self)
+        self.display_all_nodes_label = QLabel("Display all nodes", self)
         self.display_all_nodes_label.setToolTip("If checked, the plugin will display all nodes launched by "
                                                 "remote_launch (not just nodes launched by the plugin) and allow "
                                                 "the user to terminate any node that is displayed in the table. This "
@@ -191,14 +215,36 @@ class LaunchWidgetSettings(QDialog):
                                                 "nodes that have been launched by all instances and they all can "
                                                 "terminate each others' node as well.")
 
+        self.remove_nodes_manually_checkbox = QCheckBox(self)
+        self.remove_nodes_manually_checkbox.setChecked(remove_node_manually)
+        self.remove_nodes_manually_label = QLabel("Only remove nodes manually", self)
+        self.remove_nodes_manually_label.setToolTip("If checked, the plugin does not remove nodes "
+                                                    "that were terminated on their own "
+                                                    "or by another launch plugin from the table; "
+                                                    "nodes should only be removed from the table when the user "
+                                                    "selects a row and presses Fn+Delete. The row can either be "
+                                                    "of a running node, in which case the node is terminated "
+                                                    "before being removed from the table, "
+                                                    "or the row can be of an already terminated node, "
+                                                    "in which case simply delete row from the table.")
+
+        self.running_status_column_checkbox = QCheckBox(self)
+        self.running_status_column_checkbox.setChecked(running_status_column)
+        self.running_status_column_label = QLabel("Display running status column", self)
+        self.running_status_column_label.setToolTip("If checked, the plugin adds a column to the table that indicates "
+                                                    "whether the node is currently running or has been terminated.")
+
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
 
         layout = QFormLayout(self)
         layout.addRow(self.display_all_nodes_label, self.display_all_nodes_checkbox)
+        layout.addRow(self.remove_nodes_manually_label, self.remove_nodes_manually_checkbox)
+        layout.addRow(self.running_status_column_label, self.running_status_column_checkbox)
         layout.addWidget(buttonBox)
 
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
 
     def get_values(self):
-        return (self.display_all_nodes_checkbox.isChecked())
+        return (self.display_all_nodes_checkbox.isChecked(), self.remove_nodes_manually_checkbox.isChecked(),
+                self.running_status_column_checkbox.isChecked())
