@@ -1,3 +1,5 @@
+# TODO: Either add callback function in global dictionary or only use 1 callback function
+
 # TODO: Remove
 # For debugging
 
@@ -59,7 +61,8 @@ CAMERA_STATUS_DATA_TYPE_INFORMATION = {
         'name': 'Ping',
         'index': 0,
         'topic_name': ['/ping_host'],
-        'topic_type': [DiagnosticArray]
+        'topic_type': [DiagnosticArray],
+        'response_function': ['ping_response']
     },
     CameraStatusDataType.STEREO: {
         'name': 'Stereo',
@@ -77,7 +80,8 @@ CAMERA_STATUS_DATA_TYPE_INFORMATION = {
         'name': 'Relay',
         'index': 3,
         'topic_name': ['/offboard/camera_relay', '/offboard/camera_relay_status'],
-        'topic_type': [Bool, Bool]
+        'topic_type': [Bool, Bool],
+        'response_function': ['camera_relay_response', 'camera_relay_status_response']
     }
 }
 
@@ -87,6 +91,15 @@ for value in CAMERA_STATUS_DATA_TYPE_INFORMATION.values():
     if value.get('topic_name') is not None:
         for topic in value.get('topic_name'):
             CAMERA_STATUS_TOPICS.append(topic)
+
+# CAMERA_STATUS_TOPICS = {}
+# for value in CAMERA_STATUS_DATA_TYPE_INFORMATION.values():
+#     if value.get('topic_name') is not None:
+#         for index, topic in enumerate(value.get('topic_name')):
+#             CAMERA_STATUS_TOPICS[topic] = {
+#                 'topic_type': value.get('topic_type')[index],
+#                 'response_function': value.get('response_function')[index]
+#             }
 
 
 class CallConnectCameraServiceSignals(QObject):
@@ -177,23 +190,10 @@ class CameraStatusWidget(QWidget):
         self.timer.timeout.connect(self.timer_check)
         self.timer.start(100)
 
-        self.subscribers = {
-            CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"][0]: rospy.Subscriber(
-                CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"][0],
-                CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_type"][0],
-                self.ping_response
-            ),
-            CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_name"][0]: rospy.Subscriber(
-                CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_name"][0],
-                CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_type"][0],
-                self.camera_relay_response
-            ),
-            CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_name"][1]: rospy.Subscriber(
-                CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_name"][1],
-                CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_type"][1],
-                self.camera_relay_status_response
-            )
-        }
+        self.subscribers = {}
+        self.create_new_subscriber(CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"][0])
+        self.create_new_subscriber(CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_name"][0])
+        self.create_new_subscriber(CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_name"][1])
 
         self.init_table()
 
@@ -339,35 +339,37 @@ class CameraStatusWidget(QWidget):
         # This method is called when a new message is published to the camera_relay topic
 
         self.camera_relay = response.data
-        self.check_relay_syncrony(response)
+
+        self.check_relay_syncrony()
 
     def camera_relay_status_response(self, response):
         # This method is called when a new message is published to the camera_relay_status topic
 
         self.camera_relay_status = response.data
-        self.check_relay_syncrony(response)
+
+        data_type = CameraStatusDataType.RELAY
+        status_info = {}
+        status_info["status"] = response.data
+        status_info["timestamp"] = datetime.now().strftime("%H:%M:%S")
+        status_info["message"] = "Camera Enabled" if response.data else "Camera Disabled"
+
+        self.status_logs[data_type].append(status_info)
+        self.data_updated.emit(data_type, status_info["status"], status_info["timestamp"], status_info["message"])
+        self.update_table(data_type, status_info["status"], status_info["timestamp"])
+
+        self.check_relay_syncrony()
 
     """
     The camera relay status topic is used to check if the camera is actually enabled or disabled,
     while the camera relay topic is used to check if the camera is trying to be enabled or disabled.
     """
-    def check_relay_syncrony(self, response):
+    def check_relay_syncrony(self):
         # Both /camera_relay and /camera_relay_status must be publishing
         if self.camera_relay is None or self.camera_relay_status is None:
             return
 
         in_sync = self.camera_relay == self.camera_relay_status
         self.toggle_relay_button.setEnabled(in_sync and self.enable_camera_service_available)
-
-        data_type = CameraStatusDataType.RELAY
-        status_info = {}
-        status_info["status"] = self.camera_relay_status
-        status_info["message"] = "Camera Enabled" if response.data else "Camera Disabled"
-        status_info["timestamp"] = datetime.now().strftime("%H:%M:%S")
-
-        self.status_logs[data_type].append(status_info)
-        self.data_updated.emit(data_type, status_info["status"], status_info["timestamp"], status_info["message"])
-        self.update_table(data_type, status_info["status"], status_info["timestamp"])
 
         if in_sync:
             action = 'Turn Off' if self.camera_relay_status else 'Turn On'
