@@ -51,7 +51,9 @@ class DepthAISimulateDetection:
                                                               Image,
                                                               queue_size=10)
 
-        self.detection_visualizer = DetectionVisualizer(self.model['classes'])
+        self.showClassName = True
+        self.showConfidence = True
+        self.detection_visualizer = DetectionVisualizer(self.model['classes'], self.model['colors'], self.showClassName, self.showConfidence)
 
     def _build_pipeline(self):
         """

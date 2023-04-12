@@ -205,7 +205,9 @@ class DepthAISpatialDetector:
         self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
         self.connected = True
 
-        self.detection_visualizer = DetectionVisualizer(self.classes, self.colors)
+        self.showClassName = True
+        self.showConfidence = True
+        self.detection_visualizer = DetectionVisualizer(self.classes, self.colors, self.showClassName, self.showConfidence)
 
     def detect(self):
         """
