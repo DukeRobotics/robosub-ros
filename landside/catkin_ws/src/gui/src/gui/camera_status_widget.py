@@ -223,18 +223,18 @@ class CameraStatusWidget(QWidget):
         master = rosgraph.Master('/rostopic')
         pubs, _ = rostopic.get_topic_list(master=master)
 
-        publishing = {}
+        publishers = {}
         for value in CAMERA_STATUS_TOPICS:
-            publishing[value] = False
+            publishers[value] = False
 
         for topic_name, _, publishing_nodes in pubs:
             if topic_name in CAMERA_STATUS_TOPICS and len(publishing_nodes) > 0:
                 if self.subscribers[topic_name] is None:
                     self.create_new_subscriber(topic_name)
-                publishing[topic_name] = True
+                publishers[topic_name] = True
 
-        for topic_name, status in publishing.items():
-            if self.subscribers[topic_name] is not None and not status:
+        for topic_name, publishing in publishers.items():
+            if self.subscribers[topic_name] is not None and not publishing:
                 self.remove_subscriber(topic_name)
 
     def create_new_subscriber(self, topic_name):
