@@ -58,7 +58,8 @@ CAMERA_STATUS_DATA_TYPE_INFORMATION = {
     CameraStatusDataType.PING: {
         'name': 'Ping',
         'index': 0,
-        'topic_name': ['/ping_host']
+        'topic_name': ['/ping_host'],
+        'topic_type': [DiagnosticArray]
     },
     CameraStatusDataType.STEREO: {
         'name': 'Stereo',
@@ -75,7 +76,8 @@ CAMERA_STATUS_DATA_TYPE_INFORMATION = {
     CameraStatusDataType.RELAY: {
         'name': 'Relay',
         'index': 3,
-        'topic_name': ['/offboard/camera_relay', '/offboard/camera_relay_status']
+        'topic_name': ['/offboard/camera_relay', '/offboard/camera_relay_status'],
+        'topic_type': [Bool, Bool]
     }
 }
 
@@ -175,21 +177,20 @@ class CameraStatusWidget(QWidget):
         self.timer.timeout.connect(self.timer_check)
         self.timer.start(100)
 
-        # TODO: Maybe refactor
         self.subscribers = {
             CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"][0]: rospy.Subscriber(
                 CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"][0],
-                DiagnosticArray,
+                CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_type"][0],
                 self.ping_response
             ),
             CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_name"][0]: rospy.Subscriber(
                 CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_name"][0],
-                Bool,
+                CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_type"][0],
                 self.camera_relay_response
             ),
             CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_name"][1]: rospy.Subscriber(
                 CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_name"][1],
-                Bool,
+                CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_type"][1],
                 self.camera_relay_status_response
             )
         }
@@ -237,15 +238,14 @@ class CameraStatusWidget(QWidget):
                 self.remove_subscriber(topic_name)
 
     def create_new_subscriber(self, topic_name):
-        # TODO: Array indices are hardcoded
         if topic_name == CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"][0]:
-            type = DiagnosticArray
+            type = CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_type"][0]
             response = self.ping_response
         elif topic_name == CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_name"][0]:
-            type = Bool
+            type = CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_type"][0]
             response = self.camera_relay_response
         elif topic_name == CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_name"][1]:
-            type = Bool
+            type = CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_type"][1]
             response = self.camera_relay_status_response
 
         self.subscribers[topic_name] = rospy.Subscriber(
@@ -339,16 +339,12 @@ class CameraStatusWidget(QWidget):
         # This method is called when a new message is published to the camera_relay topic
 
         self.camera_relay = response.data
-        # print("camera_relay:", self.camera_relay)  # TODO: REMOVE
-
         self.check_relay_syncrony(response)
 
     def camera_relay_status_response(self, response):
         # This method is called when a new message is published to the camera_relay_status topic
 
         self.camera_relay_status = response.data
-        # print("camera_relay_status:", self.camera_relay_status)  # TODO: REMOVE
-
         self.check_relay_syncrony(response)
 
     """
@@ -362,7 +358,6 @@ class CameraStatusWidget(QWidget):
 
         in_sync = self.camera_relay == self.camera_relay_status
         self.toggle_relay_button.setEnabled(in_sync and self.enable_camera_service_available)
-        # print("in_sync:", in_sync)  # TODO: REMOVE
 
         data_type = CameraStatusDataType.RELAY
         status_info = {}
@@ -429,7 +424,6 @@ class CameraStatusWidget(QWidget):
         settings = CameraStatusWidgetSettings(self, self.ping_hostname, self.usb_channel)
         if settings.exec_():
             self.hostname, self.channel, restart_ping = settings.get_values()
-            # TODO: Change?
             ping_topic = CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"][0]
             if restart_ping and self.subscribers[ping_topic] is not None:
                 self.remove_subscriber(ping_topic)
@@ -441,7 +435,6 @@ class CameraStatusWidget(QWidget):
         if self.log and self.log.isVisible():
             self.log.close()
 
-        # TODO: Change?
         ping_topic = CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"][0]
         if self.subscribers[ping_topic] is not None:
             self.remove_subscriber(ping_topic)
