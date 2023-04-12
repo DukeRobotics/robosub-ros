@@ -6,6 +6,7 @@
 #include <custom_msgs/ThrusterSpeeds.h>
 #include <custom_msgs/ServoAngleArray.h>
 #include <sensor_msgs/FluidPressure.h>
+#include <std_msgs/Bool.h>
 #include <Arduino.h>
 
 Adafruit_PWMServoDriver pwm_multiplexer(0x40);
@@ -25,6 +26,15 @@ MultiplexedServo servos[NUM_SERVOS];
 
 MS5837 pressure_sensor;
 
+bool has_pressure = true;
+
+//Variable for relay to hard reset camera
+int relay = 2; //pin 2
+bool camera_enabled = false;
+
+// Sets node handle to have 3 subscribers, 2 publishers, and 128 bytes for input and output buffer
+ros::NodeHandle_<ArduinoHardware,3,2,128,128> nh;
+
 // Reusing ESC library code
 void thruster_speeds_callback(const custom_msgs::ThrusterSpeeds &ts_msg){
     // Copy the contents of the speed message to the local array
@@ -36,25 +46,62 @@ void servo_control_callback(const custom_msgs::ServoAngleArray &sa_msg){
     memcpy(servo_angles, sa_msg.angles, sizeof(servo_angles));
 }
 
+//Message to use with the relay status
+std_msgs::Bool relay_status_msg;
+
 //Message to use with the pressure sensor
 sensor_msgs::FluidPressure pressure_msg;
 
-// Sets node handle to have 2 subscribers, 1 publishers, and 128 bytes for input and output buffer
-ros::NodeHandle_<ArduinoHardware,2,1,128,128> nh;
+
+ros::Publisher pressure_pub("/offboard/pressure", &pressure_msg);
+ros::Publisher relay_status_pub("/offboard/camera_relay_status", &relay_status_msg);
+
+void relay_callback(const std_msgs::Bool &relay_msg){
+    
+    if (relay_msg.data) {
+        digitalWrite(relay, HIGH);
+    }
+    else {
+        digitalWrite(relay, LOW);
+    }
+    //log if change
+    if (relay_msg.data != camera_enabled) {
+        if (relay_msg.data) {
+            nh.loginfo("Camera enabled");
+        }
+        else {
+            nh.loginfo("Camera disabled");
+        }
+        camera_enabled = relay_msg.data;
+        relay_status_msg.data = camera_enabled;
+    }
+
+    
+}
+
 ros::Subscriber<custom_msgs::ThrusterSpeeds> ts_sub("/offboard/thruster_speeds", &thruster_speeds_callback);
 ros::Subscriber<custom_msgs::ServoAngleArray> sa_sub("/offboard/servo_angles", &servo_control_callback);
-ros::Publisher pressure_pub("/offboard/pressure", &pressure_msg);
+ros::Subscriber<std_msgs::Bool> relay_sub("/offboard/camera_relay", &relay_callback);
 
 void setup(){
     Serial.begin(BAUD_RATE);
     nh.initNode();
     nh.subscribe(ts_sub);
     nh.subscribe(sa_sub);
+    nh.subscribe(relay_sub);
     nh.advertise(pressure_pub);
+    nh.advertise(relay_status_pub);
+
+    // Set up relay
+    pinMode(relay, OUTPUT);
+    digitalWrite(relay, HIGH); //default to on
+
+    //sync with to camera_enabled on startup
+    relay_status_msg.data = camera_enabled;
 
     pwm_multiplexer.begin();
     for (uint8_t i = 0; i < NUM_THRUSTERS; ++i){
-        thrusters[i].initialize(&pwm_multiplexer);
+        thrusters[i].initialize(&pwm_multiplexer); 
         thrusters[i].attach(i);
     }
     for (uint8_t i = 0; i < NUM_SERVOS; ++i){
@@ -64,11 +111,16 @@ void setup(){
     memset(servo_angles, 0, sizeof(servo_angles));
 
     Wire.begin();
+    int pressure_attempts = 0;
     while(!pressure_sensor.init()){
       nh.logerror("Failed to initialize pressure sensor.");
+      if(++pressure_attempts > 3){
+         has_pressure = false;
+         break;
+      }
       delay(2000);
     }
-    pressure_sensor.setModel(MS5837::MS5837_30BA);
+    if(has_pressure) pressure_sensor.setModel(MS5837::MS5837_30BA);
 
     // Wait for motors to fully initialise
     delay(2000);
@@ -88,5 +140,6 @@ void loop(){
     pressure_sensor.read();
     pressure_msg.fluid_pressure = pressure_sensor.pressure(100.0f);
     pressure_pub.publish(&pressure_msg);
+    relay_status_pub.publish(&relay_status_msg);
     nh.spinOnce();
 }
