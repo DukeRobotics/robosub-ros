@@ -39,7 +39,7 @@ call `extract_frames(FOOTAGE_PATH, TOPIC_NAME, OUTPUT_DIR)`
 
 ```
 OUTPUT_DIR = '/root/dev/robosub-ros/footage_extraction/footage/'
-TOPIC_NAME = "/camera/front/stream_raw"
+TOPIC_NAME = "/camera/front/compressed"
 footage_extractor.extract_frames(FOOTAGE_PATH, TOPIC_NAME, OUTPUT_DIR)
 ```
 
