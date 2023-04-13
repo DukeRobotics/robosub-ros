@@ -102,9 +102,8 @@ class LaunchWidget(QWidget):
     def delete_launch(self, pid):
         stop_launch = rospy.ServiceProxy('stop_node', StopLaunch)
         resp = stop_launch(int(pid))
-        success = resp.success if pid in self.running_nodes else True
         self.remove_from_table(pid)
-        return success
+        return resp.success
 
     def get_row_with_pid(self, pid):
         # Any function must acquire the table_widget_lock before calling this function
