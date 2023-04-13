@@ -48,7 +48,7 @@ class RemoteLaunchNode:
         else:
             proc = subprocess.Popen([exe, req.package, req.file] + req.args)
 
-        # Add message to  process dictionary
+        # Add message to process dictionary
         process_dict = {}
         process_dict["package"] = req.package
         process_dict["file"] = req.file
