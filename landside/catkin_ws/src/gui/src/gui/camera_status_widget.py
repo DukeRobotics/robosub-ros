@@ -361,7 +361,7 @@ class CameraStatusWidget(QWidget):
 
         self.status_logs[data_type].append(status_info)
         self.data_updated.emit(data_type, status_info["status"], status_info["timestamp"], status_info["message"])
-        # self.update_table(data_type, status_info["status"], status_info["timestamp"])
+        self.update_table(data_type, status_info["status"], status_info["timestamp"])
 
         self.check_relay_syncrony()
 
@@ -382,8 +382,6 @@ class CameraStatusWidget(QWidget):
 
     def init_table(self):
         for key, data_dict in CAMERA_STATUS_DATA_TYPE_INFORMATION.items():
-            if key == CameraStatusDataType.RELAY:
-                continue
             self.status_table.insertRow(data_dict["index"])
             self.status_table.setItem(data_dict["index"], 0, QTableWidgetItem(data_dict["name"]))
             self.status_table.setItem(data_dict["index"], 1, QTableWidgetItem("-"))
