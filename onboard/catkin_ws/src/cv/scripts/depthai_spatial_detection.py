@@ -39,6 +39,8 @@ class DepthAISpatialDetector:
         self.queue_depth = rospy.get_param("~depth")
         self.sync_nn = rospy.get_param("~sync_nn")
         self.using_sonar = rospy.get_param("~using_sonar")
+        self.show_class_name = rospy.get_param("~show_class_name")
+        self.show_confidence = rospy.get_param("~show_confidence")
 
         with open(rr.get_filename(DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH,
                                   use_protocol=False)) as f:
@@ -239,9 +241,7 @@ class DepthAISpatialDetector:
 
         self.connected = True
 
-        self.showClassName = True
-        self.showConfidence = True
-        self.detection_visualizer = DetectionVisualizer(self.classes, self.colors, self.showClassName, self.showConfidence)
+        self.detection_visualizer = DetectionVisualizer(self.classes, self.colors, self.show_class_name, self.show_confidence)
 
     def detect(self):
         """
