@@ -81,13 +81,17 @@ class LaunchWidget(QWidget):
 
     def check_for_termination(self, rli_msg):
         if rli_msg.msg_type == "Terminating":
-            if self.remove_nodes_manually:
+            if not self.remove_nodes_manually:
                 self.remove_from_table(rli_msg.pid)
             else:
+                self.table_widget_lock.acquire()
                 row = self.get_row_with_pid(rli_msg.pid)
-                if row:
-                    self.table_widget.setItem(row, self.table_widget.columnCount() - 1,
-                                              QTableWidgetItem("Terminating"))
+                if row is not None:
+                    self.running_nodes.pop(str(rli_msg.pid))
+                    if self.table_widget.columnCount() == 4:
+                        self.table_widget.setItem(row, self.table_widget.columnCount() - 1,
+                                                  QTableWidgetItem("Terminated"))
+                self.table_widget_lock.release()
 
     def check_for_new_nodes(self, rli_msg):
         if self.display_all_nodes:
@@ -98,8 +102,9 @@ class LaunchWidget(QWidget):
     def delete_launch(self, pid):
         stop_launch = rospy.ServiceProxy('stop_node', StopLaunch)
         resp = stop_launch(int(pid))
+        success = resp.success if pid in self.running_nodes else True
         self.remove_from_table(pid)
-        return resp.success
+        return success
 
     def get_row_with_pid(self, pid):
         # Any function must acquire the table_widget_lock before calling this function
@@ -113,7 +118,8 @@ class LaunchWidget(QWidget):
         row = self.get_row_with_pid(pid)
         if row is not None:
             self.table_widget.removeRow(row)
-            self.running_nodes.pop(str(pid))
+            if str(pid) in self.running_nodes:
+                self.running_nodes.pop(str(pid))
         self.table_widget_lock.release()
 
     def append_to_table(self, pid, package, name, args):
@@ -130,6 +136,8 @@ class LaunchWidget(QWidget):
             self.table_widget.setItem(self.table_widget.rowCount() - 1, 0, QTableWidgetItem(str(pid)))
             self.table_widget.setItem(self.table_widget.rowCount() - 1, 1, QTableWidgetItem(package))
             self.table_widget.setItem(self.table_widget.rowCount() - 1, 2, QTableWidgetItem(name))
+            if self.running_status_column:
+                self.table_widget.setItem(self.table_widget.rowCount() - 1, 3, QTableWidgetItem("Running"))
 
         self.table_widget_lock.release()
         return self.table_widget.rowCount() - 1
@@ -185,6 +193,7 @@ class LaunchWidget(QWidget):
         if settings.exec_():
             self.display_all_nodes, self.remove_nodes_manually, self.running_status_column = settings.get_values()
 
+            # if the running_status_checkbox is toggled on (previously off)
             if self.running_status_column and self.table_widget.columnCount() == 3:
                 self.table_widget.insertColumn(self.table_widget.columnCount())
                 self.table_widget.setItem(0, self.table_widget.columnCount() - 1, QTableWidgetItem("Status"))
@@ -194,8 +203,17 @@ class LaunchWidget(QWidget):
                     self.table_widget.setItem(row, self.table_widget.columnCount() - 1,
                                               QTableWidgetItem(node_status))
 
+            # if the running_status_checkbox is toggled off (previously on)
             if not self.running_status_column and self.table_widget.columnCount() == 4:
                 self.table_widget.removeColumn(self.table_widget.columnCount() - 1)
+
+            # if the remove_nodes_manually_checkbox is toggled off (previously on)
+            if not self.remove_nodes_manually:
+                # proceed through rows in reverse order since rows can be removed
+                for row in range(self.table_widget.rowCount() - 1, 0, -1):
+                    row_pid = self.table_widget.item(row, 0).text()
+                    if row_pid not in self.running_nodes:
+                        self.table_widget.removeRow(row)
 
 
 class LaunchWidgetSettings(QDialog):
