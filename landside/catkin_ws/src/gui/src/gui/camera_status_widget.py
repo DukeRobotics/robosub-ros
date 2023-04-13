@@ -191,15 +191,7 @@ class CameraStatusWidget(QWidget):
         self.timer.timeout.connect(self.timer_check)
         self.timer.start(100)
 
-        self.subscribers = {}
-
-        self.subscribers = {
-            CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"][0]
-        }
-
-        self.create_new_subscriber(CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"][0])
-        self.create_new_subscriber(CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_name"][0])
-        self.create_new_subscriber(CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_name"][1])
+        self.subscribers = dict.fromkeys(CAMERA_STATUS_TOPICS, None)
 
         self.init_table()
 
