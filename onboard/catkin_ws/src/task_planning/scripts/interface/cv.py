@@ -4,15 +4,13 @@ from custom_msgs.msg import CVObject
 
 class CVInterface:
     REL_PATH = "onboard/catkin_ws/src/cv/models/depthai_models.yaml"  # TODO: read from fil
-    CV_DATA_TOPICS = ["/cv/front/bin/left",
-                      "/cv/front/bootleggerbuoy/left",
-                      "/cv/front/gate/left",
-                      "/cv/front/gateleftchild/left",
-                      "/cv/front/gaterightchild/left",
-                      "/cv/front/gmanbuoy/left",
-                      "/cv/front/octagon/left",
-                      "/cv/front/pole/left",
-                      "/cv/front/straightpathmarker/left"]
+    CV_DATA_TOPICS = ["/cv/front/gate",
+                      "/cv/front/gate_side",
+                      "/cv/front/gate_tick",
+                      "/cv/front/gate_top",
+                      "/cv/front/start_gate",
+                      "/cv/front/buoy_bootlegger",
+                      "/cv/front/buoy_gman"]
 
     def __init__(self):
         self.cv_data = {}
@@ -27,7 +25,7 @@ class CVInterface:
                                                           queue_size=10)
         '''
         for topic in self.CV_DATA_TOPICS:
-            name = topic.replace("/left", "").split("/")[-1]
+            name = topic.split("/")[-1]
             self.cv_data[name] = None
             rospy.Subscriber(topic, CVObject, self._on_receive_cv_data, name)
 
