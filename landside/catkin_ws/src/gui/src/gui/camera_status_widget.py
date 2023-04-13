@@ -348,15 +348,15 @@ class CameraStatusWidget(QWidget):
 
         self.camera_relay_status = response.data
 
-        data_type = CameraStatusDataType.RELAY
-        status_info = {}
-        status_info["status"] = response.data
-        status_info["timestamp"] = datetime.now().strftime("%H:%M:%S")
-        status_info["message"] = "Camera Enabled" if response.data else "Camera Disabled"
+        # data_type = CameraStatusDataType.RELAY
+        # status_info = {}
+        # status_info["status"] = response.data
+        # status_info["timestamp"] = datetime.now().strftime("%H:%M:%S")
+        # status_info["message"] = "Camera Enabled" if response.data else "Camera Disabled"
 
-        self.status_logs[data_type].append(status_info)
-        self.data_updated.emit(data_type, status_info["status"], status_info["timestamp"], status_info["message"])
-        self.update_table(data_type, status_info["status"], status_info["timestamp"])
+        # self.status_logs[data_type].append(status_info)
+        # self.data_updated.emit(data_type, status_info["status"], status_info["timestamp"], status_info["message"])
+        # self.update_table(data_type, status_info["status"], status_info["timestamp"])
 
         self.check_relay_syncrony()
 
@@ -376,7 +376,9 @@ class CameraStatusWidget(QWidget):
             self.toggle_relay_button.setText(action)
 
     def init_table(self):
-        for _, data_dict in CAMERA_STATUS_DATA_TYPE_INFORMATION.items():
+        for key, data_dict in CAMERA_STATUS_DATA_TYPE_INFORMATION.items():
+            if key == CameraStatusDataType.RELAY:
+                continue
             self.status_table.insertRow(data_dict["index"])
             self.status_table.setItem(data_dict["index"], 0, QTableWidgetItem(data_dict["name"]))
             self.status_table.setItem(data_dict["index"], 1, QTableWidgetItem("-"))
