@@ -192,6 +192,11 @@ class CameraStatusWidget(QWidget):
         self.timer.start(100)
 
         self.subscribers = {}
+
+        self.subscribers = {
+            CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"][0]
+        }
+
         self.create_new_subscriber(CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"][0])
         self.create_new_subscriber(CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_name"][0])
         self.create_new_subscriber(CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_name"][1])
@@ -439,9 +444,9 @@ class CameraStatusWidget(QWidget):
         if self.log and self.log.isVisible():
             self.log.close()
 
-        ping_topic = CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"][0]
-        if self.subscribers[ping_topic] is not None:
-            self.remove_subscriber(ping_topic)
+        for topic in CAMERA_STATUS_TOPICS:
+            if self.subscribers[topic] is not None:
+                self.remove_subscriber(topic)
 
         self.threadpool.clear()
         if self.threadpool.activeThreadCount() > 0:
