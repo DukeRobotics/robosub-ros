@@ -11,9 +11,10 @@ from python_qt_binding.QtWidgets import (
     QFormLayout,
     QTableWidget,
     QVBoxLayout,
-    QAbstractScrollArea
+    QAbstractScrollArea,
+    QMessageBox
 )
-from python_qt_binding.QtCore import QTimer, pyqtProperty
+from python_qt_binding.QtCore import QTimer, pyqtProperty, QObject, QRunnable, QThreadPool, pyqtSignal, pyqtSlot
 import python_qt_binding.QtCore as QtCore
 
 import rospy
@@ -26,6 +27,29 @@ from custom_msgs.msg import RemoteLaunchInfo
 from threading import Lock
 
 
+class StopNodeSignal(QObject):
+    connected_signal = pyqtSignal(str, str, bool)
+
+
+class StopNodeService(QRunnable):
+
+    def __init__(self, pid, node_name):
+        super(StopNodeService, self).__init__()
+
+        self.signals = StopNodeSignal()
+        self.pid = pid
+        self.node_name = node_name
+
+    @pyqtSlot()
+    def run(self):
+        try:
+            stop_launch = rospy.ServiceProxy('stop_node', StopLaunch)
+            resp = stop_launch(int(self.pid))
+            self.signals.connected_signal.emit(self.pid, self.node_name, resp.success)
+        except Exception:
+            self.signals.connected_signal.emit(self.pid, self.node_name, False)
+
+
 class LaunchWidget(QWidget):
 
     def __init__(self):
@@ -35,6 +59,8 @@ class LaunchWidget(QWidget):
         loadUi(ui_file, self)
 
         self.running_nodes = {}
+
+        self.threadpool = QThreadPool()
 
         self.display_all_nodes = False
         self.remove_nodes_manually = False
@@ -71,7 +97,7 @@ class LaunchWidget(QWidget):
         if event.key() == QtCore.Qt.Key_Delete:
             items = self.table_widget.selectedItems()
             if items and items[0].row() != 0:
-                self.delete_launch(items[0].text())
+                self.delete_launch(items[0].text(), items[2].text())
         super(LaunchWidget, self).keyPressEvent(event)
 
     def check_remote_launch(self):
@@ -99,11 +125,19 @@ class LaunchWidget(QWidget):
                 # If the new node was launched from another plugin instance
                 self.append_to_table(rli_msg.pid, rli_msg.package, rli_msg.file, " ".join(rli_msg.args))
 
-    def delete_launch(self, pid):
-        stop_launch = rospy.ServiceProxy('stop_node', StopLaunch)
-        resp = stop_launch(int(pid))
-        self.remove_from_table(pid)
-        return resp.success
+    def delete_launch(self, pid, node_name):
+        stop_node_service = StopNodeService(pid, node_name)
+        stop_node_service.signals.connected_signal.connect(self.stop_node_response)
+        self.threadpool.start(stop_node_service)
+
+    def stop_node_response(self, pid, node_name, status):
+        if status:
+            self.remove_from_table(pid)
+        else:
+            alert = QMessageBox()
+            alert.setIcon(QMessageBox.Warning)
+            alert.setText(f"The node {node_name} with pid {pid} could not be terminated.")
+            alert.exec_()
 
     def get_row_with_pid(self, pid):
         # Any function must acquire the table_widget_lock before calling this function
@@ -144,44 +178,52 @@ class LaunchWidget(QWidget):
     def row_double_clicked(self, row, column):
         if row >= 1:
             row_pid = self.table_widget.item(row, 0).text()
-            node_info = self.running_nodes[row_pid]
 
-            node_info_dialog = QDialog()
-            node_info_dialog.setWindowTitle("Node Info")
+            if row_pid not in self.running_nodes:
+                alert = QMessageBox()
+                alert.setIcon(QMessageBox.Warning)
+                alert.setText("This node has already been terminated.")
+                alert.exec_()
 
-            node_info_layout = QVBoxLayout(node_info_dialog)
+            else:
+                node_info = self.running_nodes[row_pid]
 
-            node_info_label = QLabel()
+                node_info_dialog = QDialog()
+                node_info_dialog.setWindowTitle("Node Info")
 
-            node_info_text = ""
-            node_info_text_fields = ["PID", "Package", "File", "Args"]
-            for field in node_info_text_fields:
-                if field != "Args":
-                    node_info_text += f'<b>{field}:</b> {node_info[field]}<br>'
-            node_info_text += '<b>Args: </b>'
-            if node_info["Args"] == "":
-                node_info_text += "None"
-            node_info_label.setText(node_info_text)
-            node_info_layout.addWidget(node_info_label)
+                node_info_layout = QVBoxLayout(node_info_dialog)
 
-            args_table = QTableWidget()
+                node_info_label = QLabel()
 
-            args_table.setColumnCount(2)
-            args_table.setHorizontalHeaderItem(0, QTableWidgetItem("Name"))
-            args_table.setHorizontalHeaderItem(1, QTableWidgetItem("Value"))
+                node_info_text = ""
+                node_info_text_fields = ["PID", "Package", "File", "Args"]
+                for field in node_info_text_fields:
+                    if field != "Args":
+                        node_info_text += f'<b>{field}:</b> {node_info[field]}<br>'
+                node_info_text += '<b>Args: </b>'
+                if node_info["Args"] == "":
+                    node_info_text += "None"
+                node_info_label.setText(node_info_text)
+                node_info_layout.addWidget(node_info_label)
 
-            if node_info["Args"] != "":
-                for arg in node_info["Args"].split(" "):
-                    arg_name, arg_value = arg.split(":=")
-                    args_table.insertRow(args_table.rowCount())
-                    args_table.setItem(args_table.rowCount() - 1, 0, QTableWidgetItem(arg_name))
-                    args_table.setItem(args_table.rowCount() - 1, 1, QTableWidgetItem(arg_value))
+                args_table = QTableWidget()
 
-                args_table.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
-                args_table.resizeColumnsToContents()
-                node_info_layout.addWidget(args_table)
+                args_table.setColumnCount(2)
+                args_table.setHorizontalHeaderItem(0, QTableWidgetItem("Name"))
+                args_table.setHorizontalHeaderItem(1, QTableWidgetItem("Value"))
 
-            node_info_dialog.exec()
+                if node_info["Args"] != "":
+                    for arg in node_info["Args"].split(" "):
+                        arg_name, arg_value = arg.split(":=")
+                        args_table.insertRow(args_table.rowCount())
+                        args_table.setItem(args_table.rowCount() - 1, 0, QTableWidgetItem(arg_name))
+                        args_table.setItem(args_table.rowCount() - 1, 1, QTableWidgetItem(arg_value))
+
+                    args_table.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
+                    args_table.resizeColumnsToContents()
+                    node_info_layout.addWidget(args_table)
+
+                node_info_dialog.exec()
 
     def closeEvent(self, event):
         self.launch_dialog.accept()
