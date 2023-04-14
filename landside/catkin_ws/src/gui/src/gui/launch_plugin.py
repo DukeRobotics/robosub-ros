@@ -16,7 +16,7 @@ class LaunchPlugin(Plugin):
         context.add_widget(self.widget)
 
     def shutdown_plugin(self):
-        pass
+        self.widget.close()
 
     def save_settings(self, plugin_settings, instance_settings):
         pass

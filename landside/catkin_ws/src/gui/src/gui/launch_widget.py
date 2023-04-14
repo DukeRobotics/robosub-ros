@@ -79,8 +79,8 @@ class LaunchWidget(QWidget):
         self.remote_launch_timer.timeout.connect(self.check_remote_launch)
         self.remote_launch_timer.start(100)
 
-        rospy.Subscriber('remote_launch', RemoteLaunchInfo, self.check_for_termination)
-        rospy.Subscriber('remote_launch', RemoteLaunchInfo, self.check_for_new_nodes)
+        self.termination_subscriber = rospy.Subscriber('remote_launch', RemoteLaunchInfo, self.check_for_termination)
+        self.new_nodes_subscriber = rospy.Subscriber('remote_launch', RemoteLaunchInfo, self.check_for_new_nodes)
 
         rospy.loginfo('Launch Widget successfully initialized')
 
@@ -227,6 +227,28 @@ class LaunchWidget(QWidget):
 
     def closeEvent(self, event):
         self.launch_dialog.accept()
+
+    def close(self):
+        self.remote_launch_timer.stop()
+
+        self.termination_subscriber.unregister()
+        self.new_nodes_subscriber.unregister()
+
+        self.threadpool.clear()
+        if self.threadpool.activeThreadCount() > 0:
+            message = f"CV Launch Widget waiting for {self.threadpool.activeThreadCount()} thread(s) to finish. " + \
+                      "It will close automatically when all threads are finished."
+            rospy.loginfo(message)
+
+            alert = QMessageBox()
+            alert.setWindowTitle("Waiting for Threads to Finish")
+            alert.setIcon(QMessageBox.Information)
+            alert.setText(message)
+            alert.exec_()
+
+            self.threadpool.waitForDone()
+
+            rospy.loginfo("CV Launch Widget has finished all threads and is successfully closed.")
 
     def settings(self):
         settings = LaunchWidgetSettings(self, self.display_all_nodes,
