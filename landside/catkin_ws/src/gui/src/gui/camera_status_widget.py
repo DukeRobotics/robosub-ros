@@ -1,15 +1,3 @@
-# TODO: Either add callback function in global dictionary or only use 1 callback function
-
-# TODO: Remove
-# For debugging
-
-# State that camera is trying to be in
-# rostopic pub /offboard/camera_relay std_msgs/Bool True
-
-# Actual state
-# rostopic pub /offboard/camera_relay_status std_msgs/Bool True
-# roslaunch cv camera_hard_reset.launch
-
 from datetime import datetime
 from enum import Enum
 
@@ -85,21 +73,15 @@ CAMERA_STATUS_DATA_TYPE_INFORMATION = {
     }
 }
 
-
-CAMERA_STATUS_TOPICS = []
+# Extract topic information from CAMERA_STATUS_DATA_TYPE_INFORMATION
+CAMERA_STATUS_TOPICS_INFORMATION = {}
 for value in CAMERA_STATUS_DATA_TYPE_INFORMATION.values():
     if value.get('topic_name') is not None:
-        for topic in value.get('topic_name'):
-            CAMERA_STATUS_TOPICS.append(topic)
-
-# CAMERA_STATUS_TOPICS = {}
-# for value in CAMERA_STATUS_DATA_TYPE_INFORMATION.values():
-#     if value.get('topic_name') is not None:
-#         for index, topic in enumerate(value.get('topic_name')):
-#             CAMERA_STATUS_TOPICS[topic] = {
-#                 'topic_type': value.get('topic_type')[index],
-#                 'response_function': value.get('response_function')[index]
-#             }
+        for index, topic in enumerate(value.get('topic_name')):
+            CAMERA_STATUS_TOPICS_INFORMATION[topic] = {
+                'topic_type': value.get('topic_type')[index],
+                'response_function': value.get('response_function')[index]
+            }
 
 
 class CallConnectCameraServiceSignals(QObject):
@@ -142,18 +124,18 @@ class CameraStatusWidget(QWidget):
         ui_file = rr.get_filename('package://gui/resource/CameraStatusWidget.ui', use_protocol=False)
         loadUi(ui_file, self)
 
-        self.ping_hostname = ''
-        self.usb_channel = -1
-
-        self.camera_relay_status = None
-        self.camera_relay = None
-        self.relay_in_sync = False
-        self.enable_camera_service_available = False
-
         self.background_colors = {
             "green": "background-color: #8aff92",
             "red": "background-color: #ff7878"
         }
+
+        self.ping_hostname = ''
+        self.usb_channel = -1
+
+        self.camera_relay = None
+        self.camera_relay_status = None
+        self.relay_in_sync = False
+        self.enable_camera_service_available = False
 
         self.log = None
 
@@ -191,7 +173,7 @@ class CameraStatusWidget(QWidget):
         self.timer.timeout.connect(self.timer_check)
         self.timer.start(100)
 
-        self.subscribers = dict.fromkeys(CAMERA_STATUS_TOPICS, None)
+        self.subscribers = dict.fromkeys(CAMERA_STATUS_TOPICS_INFORMATION.keys(), None)
 
         self.init_table()
 
@@ -222,11 +204,11 @@ class CameraStatusWidget(QWidget):
         pubs, _ = rostopic.get_topic_list(master=master)
 
         publishers = {}
-        for value in CAMERA_STATUS_TOPICS:
+        for value in CAMERA_STATUS_TOPICS_INFORMATION.keys():
             publishers[value] = False
 
         for topic_name, _, publishing_nodes in pubs:
-            if topic_name in CAMERA_STATUS_TOPICS and len(publishing_nodes) > 0:
+            if topic_name in CAMERA_STATUS_TOPICS_INFORMATION.keys() and len(publishing_nodes) > 0:
                 if self.subscribers[topic_name] is None:
                     self.create_new_subscriber(topic_name)
                 publishers[topic_name] = True
@@ -236,20 +218,13 @@ class CameraStatusWidget(QWidget):
                 self.remove_subscriber(topic_name)
 
     def create_new_subscriber(self, topic_name):
-        if topic_name == CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_name"][0]:
-            type = CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.PING]["topic_type"][0]
-            response = self.ping_response
-        elif topic_name == CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_name"][0]:
-            type = CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_type"][0]
-            response = self.camera_relay_response
-        elif topic_name == CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_name"][1]:
-            type = CAMERA_STATUS_DATA_TYPE_INFORMATION[CameraStatusDataType.RELAY]["topic_type"][1]
-            response = self.camera_relay_status_response
+        # Converting 'response_function' string in CAMERA_STATUS_TOPICS_INFORMATION to the function of the same name
+        response_function = getattr(self, CAMERA_STATUS_TOPICS_INFORMATION[topic_name]['response_function'])
 
         self.subscribers[topic_name] = rospy.Subscriber(
             topic_name,
-            type,
-            response
+            CAMERA_STATUS_TOPICS_INFORMATION[topic_name]['topic_type'],
+            response_function
         )
 
     def remove_subscriber(self, topic_name):
@@ -263,6 +238,7 @@ class CameraStatusWidget(QWidget):
                 CAMERA_STATUS_DATA_TYPE_INFORMATION[camera_type]['service_name'] in service_list and
                 not self.checking[camera_type]
             )
+
         self.toggle_relay_button.setEnabled(self.relay_in_sync and '/enable_camera' in service_list)
 
     def open_conection_log(self):
@@ -357,20 +333,16 @@ class CameraStatusWidget(QWidget):
 
         self.check_relay_syncrony()
 
-    """
-    The camera relay status topic is used to check if the camera is actually enabled or disabled,
-    while the camera relay topic is used to check if the camera is trying to be enabled or disabled.
-    """
+        if self.relay_in_sync:
+            action = 'Turn Off' if self.camera_relay_status else 'Turn On'
+            self.toggle_relay_button.setText(action)
+
     def check_relay_syncrony(self):
         # Both /camera_relay and /camera_relay_status must be publishing
         if self.camera_relay is None or self.camera_relay_status is None:
             return
 
         self.relay_in_sync = self.camera_relay == self.camera_relay_status
-
-        if self.relay_in_sync:
-            action = 'Turn Off' if self.camera_relay_status else 'Turn On'
-            self.toggle_relay_button.setText(action)
 
     def init_table(self):
         for key, data_dict in CAMERA_STATUS_DATA_TYPE_INFORMATION.items():
@@ -434,7 +406,7 @@ class CameraStatusWidget(QWidget):
         if self.log and self.log.isVisible():
             self.log.close()
 
-        for topic in CAMERA_STATUS_TOPICS:
+        for topic in CAMERA_STATUS_TOPICS_INFORMATION.keys():
             if self.subscribers[topic] is not None:
                 self.remove_subscriber(topic)
 
@@ -496,6 +468,7 @@ class CameraStatusLog(QDialog):
             status_msg = "Enabled" if status else "Disabled"
         else:
             status_msg = "Successful" if status else "Failed"
+
         color = "green" if status else "red"
 
         status_item = QTableWidgetItem(status_msg)
