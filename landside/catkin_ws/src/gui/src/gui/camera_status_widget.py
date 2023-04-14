@@ -197,9 +197,9 @@ class CameraStatusWidget(QWidget):
 
     def timer_check(self):
         self.check_buttons_enabled()
-        self.check_publisher()
+        self.check_publishers()
 
-    def check_publisher(self):
+    def check_publishers(self):
         master = rosgraph.Master('/rostopic')
         pubs, _ = rostopic.get_topic_list(master=master)
 
@@ -345,7 +345,7 @@ class CameraStatusWidget(QWidget):
         self.relay_in_sync = self.camera_relay == self.camera_relay_status
 
     def init_table(self):
-        for key, data_dict in CAMERA_STATUS_DATA_TYPE_INFORMATION.items():
+        for _, data_dict in CAMERA_STATUS_DATA_TYPE_INFORMATION.items():
             self.status_table.insertRow(data_dict["index"])
             self.status_table.setItem(data_dict["index"], 0, QTableWidgetItem(data_dict["name"]))
             self.status_table.setItem(data_dict["index"], 1, QTableWidgetItem("-"))
@@ -359,6 +359,7 @@ class CameraStatusWidget(QWidget):
             status_msg = "Enabled" if status else "Disabled"
         else:
             status_msg = "Successful" if status else "Failed"
+
         color = "green" if status else "red"
 
         name_item = QTableWidgetItem(type_info["name"])
