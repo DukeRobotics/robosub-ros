@@ -125,7 +125,7 @@
         <bool>false</bool>
        </property>
        <property name="text">
-        <string>Turn On</string>
+        <string>Turn Off</string>
        </property>
       </widget>
      </item>
