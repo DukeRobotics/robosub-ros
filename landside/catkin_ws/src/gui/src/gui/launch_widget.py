@@ -287,7 +287,7 @@ class LaunchWidgetSettings(QDialog):
 
         self.display_all_nodes_checkbox = QCheckBox(self)
         self.display_all_nodes_checkbox.setChecked(display_all_nodes)
-        self.display_all_nodes_label = QLabel("Display all nodes", self)
+        self.display_all_nodes_label = QLabel("Display all nodes (?)", self)
         self.display_all_nodes_label.setToolTip("If checked, the plugin will display all nodes launched by "
                                                 "remote_launch (not just nodes launched by the plugin) and allow "
                                                 "the user to terminate any node that is displayed in the table. This "
@@ -298,22 +298,24 @@ class LaunchWidgetSettings(QDialog):
 
         self.remove_nodes_manually_checkbox = QCheckBox(self)
         self.remove_nodes_manually_checkbox.setChecked(remove_node_manually)
-        self.remove_nodes_manually_label = QLabel("Only remove nodes manually", self)
+        self.remove_nodes_manually_label = QLabel("Only remove nodes manually (?)", self)
         self.remove_nodes_manually_label.setToolTip("If checked, the plugin does not remove nodes "
                                                     "that were terminated on their own "
                                                     "or by another launch plugin from the table; "
-                                                    "nodes should only be removed from the table when the user "
-                                                    "selects a row and presses Fn+Delete. The row can either be "
-                                                    "of a running node, in which case the node is terminated "
-                                                    "before being removed from the table, "
-                                                    "or the row can be of an already terminated node, "
-                                                    "in which case simply delete row from the table.")
+                                                    "nodes will only be removed from the table when the user "
+                                                    "selects a row and presses Delete/Fn+Delete. "
+                                                    "If the row is a running node, it will be terminated "
+                                                    "before being removed from the table. "
+                                                    "Otherwise, if this option is not checked, "
+                                                    "whenever a node is terminated "
+                                                    "(either on its own by Delete/Fn + Delete), "
+                                                    "it will automatically be removed from the table.")
 
         self.running_status_column_checkbox = QCheckBox(self)
         self.running_status_column_checkbox.setChecked(running_status_column)
-        self.running_status_column_label = QLabel("Display running status column", self)
+        self.running_status_column_label = QLabel("Display running status (?)", self)
         self.running_status_column_label.setToolTip("If checked, the plugin adds a column to the table that indicates "
-                                                    "whether the node is currently running or has been terminated.")
+                                                    "whether each node is currently running or has been terminated.")
 
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
 

@@ -81,9 +81,16 @@ The `Upload Arduino Code` will upload arduino code to the arduino when pressed.
 
 To launch any node on onboard, select the node from the Node Name drop down list in the Launch Plugin window. If a launch file with arguments is selected, additional textboxes will appear, with the default value (if any) prepopulated. Fill in all arguments, then click OK to launch.
 
-The table will show you what nodes are running.
+The table will show you what nodes are running. To view information about any node, you may double click on that row. An info dialog will show up that either displays the PID, Package Name, File Name, and Args of the node if it is still running, or that the node is already terminated.
 
 To stop a node that was run using the Launch Dialog, you may click on the item in the table and, on your keyboard, press Delete for Windows or Fn + Delete for Mac, which will stop the node.
+
+To open the configuration dialog, you may click on the gear icon in the top right corner of the plugin. In the configuration dialog, there are 3 independent checkboxes:
+
+- Display all nodes: if checked, the plugin will display all nodes launched by remote_launch (not just nodes launched by the plugin) and allow the user to terminate any node that is displayed in the table. This means that if there is more than one instance of the Launch Plugin being used to launch nodes, then all instances will display all nodes that have been launched by all instances and they all can terminate each others' node as well.
+- Only remove nodes manually: if checked, the plugin does not remove nodes that were terminated on their own or by another launch plugin from the table; nodes will only be removed from the table when the user selects a row and presses Delete/Fn + Delete. If the row is a running node, it will be terminated before being removed from the table. Otherwise, if this option is not checked, whenever a node is terminated (either on its own by Delete/Fn + Delete), it will automatically be removed from the table.
+- Display running status: if checked, the plugin adds a column "Status" to the table that indicates whether each node is currently running or has been terminated.
+
 
 #### Launch Argument Validation & Help
 
