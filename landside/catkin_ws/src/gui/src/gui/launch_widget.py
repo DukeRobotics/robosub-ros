@@ -20,6 +20,8 @@ import python_qt_binding.QtCore as QtCore
 import rospy
 import resource_retriever as rr
 import rosservice
+import rosgraph
+import rostopic
 
 from custom_msgs.srv import StopLaunch
 from custom_msgs.msg import RemoteLaunchInfo
@@ -79,8 +81,10 @@ class LaunchWidget(QWidget):
         self.remote_launch_timer.timeout.connect(self.check_remote_launch)
         self.remote_launch_timer.start(100)
 
-        self.termination_subscriber = rospy.Subscriber('remote_launch', RemoteLaunchInfo, self.check_for_termination)
-        self.new_nodes_subscriber = rospy.Subscriber('remote_launch', RemoteLaunchInfo, self.check_for_new_nodes)
+        self.subscribers = [
+            rospy.Subscriber('remote_launch', RemoteLaunchInfo, self.check_for_termination),
+            rospy.Subscriber('remote_launch', RemoteLaunchInfo, self.check_for_new_nodes)
+        ]
 
         rospy.loginfo('Launch Widget successfully initialized')
 
@@ -104,6 +108,31 @@ class LaunchWidget(QWidget):
         enabled = '/start_node' in rosservice.get_service_list()
         self.launch_dialog.setEnabled(enabled)
         self.table_widget.setEnabled(enabled)
+
+        self.check_publishers()
+
+    def check_publishers(self):
+        master = rosgraph.Master('/rostopic')
+        pubs, _ = rostopic.get_topic_list(master=master)
+        for topic_name, _, publishing_nodes in pubs:
+            if topic_name == 'remote_launch' and len(publishing_nodes) > 0:
+                if len(self.subscribers) == 0:
+                    self.create_new_subscribers()
+                return
+
+        if len(self.subscribers) > 0:
+            self.remove_subscribers()
+
+    def create_new_subscribers(self):
+        self.subscribers = [
+            rospy.Subscriber('remote_launch', RemoteLaunchInfo, self.check_for_termination),
+            rospy.Subscriber('remote_launch', RemoteLaunchInfo, self.check_for_new_nodes)
+        ]
+
+    def remove_subscribers(self):
+        for subscriber in self.subscribers:
+            subscriber.unregister()
+        self.subscribers = []
 
     def check_for_termination(self, rli_msg):
         if rli_msg.msg_type == "Terminating":
@@ -231,8 +260,8 @@ class LaunchWidget(QWidget):
     def close(self):
         self.remote_launch_timer.stop()
 
-        self.termination_subscriber.unregister()
-        self.new_nodes_subscriber.unregister()
+        if len(self.subscribers) > 0:
+            self.remove_subscribers()
 
         self.threadpool.clear()
         if self.threadpool.activeThreadCount() > 0:
