@@ -1,6 +1,6 @@
 <launch>
 	<arg name="feed_path" default="" doc='{"type":"str","allowEmpty":false,"help":"The path to the still image or topic to use as the simulated camera feed."}'/>
-	<arg name="depthai_model_name" default="" doc='{"options":["yolov8n_2023","yolov7_tiny_2023","gate","gate_buoy"],"allowEmpty":false,"help":"The DepthAI model to use from depthai_models.yaml"}' />
+	<arg name="depthai_model_name" default="" doc='{"options":["yolov7_tiny_2023","yolov8n_2023","gate","gate_buoy"],"allowEmpty":false,"help":"The DepthAI model to use from depthai_models.yaml"}' />
 	<arg name="publishing_topic" default="/cv/depthai_sim/detections" doc='{"type":"str","allowEmpty":false,"help":"The topic to publish detections to."}'/>
 	<node name="depthai_simulate_detection" pkg="cv" type="depthai_simulate_detection.py" output="screen">
 		<param name="feed_path" value="$(arg feed_path)" />
