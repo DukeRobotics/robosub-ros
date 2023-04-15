@@ -7,6 +7,7 @@ from geometry_msgs.msg import Pose
 from tf import TransformListener
 import subprocess
 
+
 class Sonar:
     """
     Class to interface with the Sonar device.
@@ -23,9 +24,9 @@ class Sonar:
     def __init__(self, range=DEFAULT_RANGE, number_of_samples=1200,
                  baud_rate=BAUD_RATE):
         self.ping360 = Ping360()
-        
+
         # Run the lsusb command and capture the output
-        usb_output = subprocess.check_output(['ls', '-l', 
+        usb_output = subprocess.check_output(['ls', '-l',
                                               '/dev/serial/by-id/'])
         usb_lines = usb_output.decode().split('\n')
 
@@ -43,7 +44,7 @@ class Sonar:
         if sonar_usb == "":
             raise RuntimeError("Sonar not found")
 
-        self.ping360.connect_serial(f'{sonar_usb}',baud_rate)
+        self.ping360.connect_serial(f'{sonar_usb}', baud_rate)
         self.ping360.initialize()
         period_and_duration = self.range_to_period_and_duration(range)
 
