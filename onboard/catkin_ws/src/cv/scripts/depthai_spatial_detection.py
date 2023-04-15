@@ -241,7 +241,8 @@ class DepthAISpatialDetector:
 
         self.connected = True
 
-        self.detection_visualizer = DetectionVisualizer(self.classes, self.colors, self.show_class_name, self.show_confidence)
+        self.detection_visualizer = DetectionVisualizer(self.classes, self.colors,
+                                                        self.show_class_name, self.show_confidence)
 
     def detect(self):
         """

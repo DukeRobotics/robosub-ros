@@ -31,9 +31,7 @@ class DetectionVisualizer:
     https://github.com/luxonis/depthai-experiments/blob/master/gen2-display-detections/utility.py
     """
 
-    def __init__(self, classes, colors, show_class_name = True, show_confidence = True) -> None:
-
-
+    def __init__(self, classes, colors, show_class_name=True, show_confidence=True) -> None:
         self.text_type = cv2.FONT_HERSHEY_SIMPLEX
         self.line_type = cv2.LINE_AA
 
@@ -45,33 +43,33 @@ class DetectionVisualizer:
         self.show_class_name = show_class_name
         self.show_confidence = show_confidence
 
-    #converts the hex string passed in by the args into a tuple representing the corresponding rgb color
+    # converts the hex string passed in by the args into a tuple representing the corresponding rgb color
     def hex_to_rgb(self, hex):
         return tuple(int(hex[i:i+2], 16) for i in (0, 2, 4))
 
     def putText(self, frame, text, coords, color):
         """Add text to frame, such as class label or confidence value."""
-        
+
         (w, h), _ = cv2.getTextSize(text, self.text_type, 0.75, 2)
-        #places the text labeling the class and/or confidence value of the bbox
+        # places the text labeling the class and/or confidence value of the bbox
         if coords[1]-h-10 > 0:
-            #text is placed above the top left corner of the bbox by default
+            # text is placed above the top left corner of the bbox by default
             new_coords = (coords[0], coords[1]-10)
             startpoint = (new_coords[0], new_coords[1]-h)
             endpoint = (new_coords[0] + w, new_coords[1]+10)
         else:
-            #if there is not enough space above the top left corner of the bbox then 
-            #the text is placed right below the top left corner, within the bbox
+            # if there is not enough space above the top left corner of the bbox then
+            # the text is placed right below the top left corner, within the bbox
             new_coords = (coords[0], coords[1]+h)
             startpoint = (new_coords[0],  new_coords[1]-h)
             endpoint = (new_coords[0] + w, new_coords[1])
         cv2.rectangle(frame, startpoint, endpoint, color, -1)
-        cv2.putText(frame, text, new_coords, self.text_type, 0.75, (255,255,255), 2, self.line_type)
-        
+        cv2.putText(frame, text, new_coords, self.text_type, 0.75, (255, 255, 255), 2, self.line_type)
+
     def rectangle(self, frame, bbox, color):
         """Add a rectangle to frame, such as a bounding box."""
         x1, y1, x2, y2 = bbox
-        #cv2.rectangle(frame, (x1, y1), (x2, y2), self.bg_color, 3)
+        # cv2.rectangle(frame, (x1, y1), (x2, y2), self.bg_color, 3)
         cv2.rectangle(frame, (x1, y1), (x2, y2), color, 3)
 
     def frame_norm(self, frame, bbox):
@@ -86,14 +84,17 @@ class DetectionVisualizer:
 
         for detection in detections:
             bbox = self.frame_norm(frame_copy, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
-            #the code below specifies whether to display the bbox's class name and/or confidence value
+            # the code below specifies whether to display the bbox's class name and/or confidence value
             if self.show_class_name and self.show_confidence:
-                self.putText(frame_copy, f"{self.classes[detection.label]} {int(detection.confidence * 100)}%", (bbox[0], bbox[1]), self.colors[detection.label])
+                self.putText(frame_copy, f"{self.classes[detection.label]} {int(detection.confidence * 100)}%",
+                             (bbox[0], bbox[1]), self.colors[detection.label])
             elif self.show_class_name and not self.show_confidence:
-                self.putText(frame_copy, self.classes[detection.label], (bbox[0], bbox[1]), self.colors[detection.label])
+                self.putText(frame_copy, self.classes[detection.label],
+                             (bbox[0], bbox[1]), self.colors[detection.label])
             elif not self.show_class_name and self.show_confidence:
-                self.putText(frame_copy, f"{int(detection.confidence * 100)}%", (bbox[0], bbox[1]), self.colors[detection.label])
-            
+                self.putText(frame_copy, f"{int(detection.confidence * 100)}%",
+                             (bbox[0], bbox[1]), self.colors[detection.label])
+
             self.rectangle(frame_copy, bbox, self.colors[detection.label])
 
         return frame_copy
