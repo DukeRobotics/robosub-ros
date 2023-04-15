@@ -35,7 +35,7 @@ yolov8n_2023:
 yolov7_tiny_2023:
   classes: ['buoy_abydos_serpenscaput','buoy_abydos_taurus','buoy_earth_auriga','buoy_earth_cetus','gate_abydos','gate_earth']
   topic: cv/
-  weights: yolov7_tiny_best_openvino_2021.4_6shave.blob
+  weights: yolov7-tiny_openvino_2022.1_6shave.blob
   input_size: [416, 416]
   coordinate_size: 4
   anchors: [12.0, 16.0, 19.0, 36.0, 40.0, 28.0, 36.0, 75.0, 76.0, 55.0, 72.0, 146.0, 142.0, 110.0, 192.0, 243.0, 459.0, 401.0]
