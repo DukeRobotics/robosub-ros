@@ -33,12 +33,6 @@ class DetectionVisualizer:
 
     def __init__(self, classes, colors, showClassName = True, showConfidence = True) -> None:
 
-        # The color to outline text & bounding boxes in
-        #self.bg_color = (0, 0, 0)
-
-        # The color of the text & bounding boxes
-        #self.color = (255, 255, 255)
-
 
         self.text_type = cv2.FONT_HERSHEY_SIMPLEX
         self.line_type = cv2.LINE_AA
@@ -51,19 +45,23 @@ class DetectionVisualizer:
         self.showClassName = showClassName
         self.showConfidence = showConfidence
 
+    #converts the hex string passed in by the args into a tuple representing the corresponding rgb color
     def hex_to_rgb(self, hex):
         return tuple(int(hex[i:i+2], 16) for i in (0, 2, 4))
 
     def putText(self, frame, text, coords, color):
         """Add text to frame, such as class label or confidence value."""
-        #cv2.putText(frame, text, coords, self.text_type, 0.75, self.bg_color, 3, self.line_type)
         
         (w, h), _ = cv2.getTextSize(text, self.text_type, 0.75, 2)
+        #places the text labeling the class and/or confidence value of the bbox
         if coords[1]-h-10 > 0:
+            #text is placed above the top left corner of the bbox by default
             newCoords = (coords[0], coords[1]-10)
             startpoint = (newCoords[0], newCoords[1]-h)
             endpoint = (newCoords[0] + w, newCoords[1]+10)
         else:
+            #if there is not enough space above the top left corner of the bbox then 
+            #the text is placed right below the top left corner, within the bbox
             newCoords = (coords[0], coords[1]+h)
             startpoint = (newCoords[0],  newCoords[1]-h)
             endpoint = (newCoords[0] + w, newCoords[1])
@@ -88,6 +86,7 @@ class DetectionVisualizer:
 
         for detection in detections:
             bbox = self.frame_norm(frame_copy, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
+            #the code below specifies whether to display the bbox's class name and/or confidence value
             if self.showClassName and self.showConfidence:
                 self.putText(frame_copy, f"{self.classes[detection.label]} {int(detection.confidence * 100)}%", (bbox[0], bbox[1]), self.colors[detection.label])
             elif self.showClassName and not self.showConfidence:
