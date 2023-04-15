@@ -115,7 +115,7 @@ class LaunchWidget(QWidget):
         master = rosgraph.Master('/rostopic')
         pubs, _ = rostopic.get_topic_list(master=master)
         for topic_name, _, publishing_nodes in pubs:
-            if topic_name == 'remote_launch' and len(publishing_nodes) > 0:
+            if topic_name == '/remote_launch' and len(publishing_nodes) > 0:
                 if len(self.subscribers) == 0:
                     self.create_new_subscribers()
                 return
