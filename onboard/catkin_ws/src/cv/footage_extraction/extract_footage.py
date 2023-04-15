@@ -156,7 +156,7 @@ class FootageExtractor:
                   "Only PNG and JPEG files are supported. Image failed to upload!")
             return False
 
-        return rf_project.single_upload(image_path=image_path, batch_name=batch_name)
+        return rf_project.single_upload(image_path=image_path, batch_name=batch_name, num_retry_uploads=5)
 
     def create_footage_extraction_config_file(self, directory, enabled=False, step_size=10):
         """
