@@ -7,6 +7,7 @@ import shutil
 from datetime import datetime
 import roboflow
 from extraction_tools import ImageTools
+from json import JSONDecodeError
 
 
 FOOTAGE_EXTRACTION_DIR = '/root/dev/robosub-ros/onboard/catkin_ws/src/cv/footage_extraction'
@@ -156,7 +157,16 @@ class FootageExtractor:
                   "Only PNG and JPEG files are supported. Image failed to upload!")
             return False
 
-        return rf_project.single_upload(image_path=image_path, batch_name=batch_name, num_retry_uploads=5)
+        for attempt in range(5):
+            try:
+                ret = rf_project.single_upload(image_path=image_path, batch_name=batch_name)
+            except JSONDecodeError:
+                print("JSONDecodeError: Retrying")
+            else:
+                return ret
+
+        print(f"ERROR: 5 attempts to uploading {image_path} to Roboflow have failed. Skipping.")
+        return False
 
     def create_footage_extraction_config_file(self, directory, enabled=False, step_size=10):
         """
