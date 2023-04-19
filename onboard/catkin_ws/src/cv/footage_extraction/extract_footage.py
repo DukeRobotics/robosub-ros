@@ -157,15 +157,16 @@ class FootageExtractor:
                   "Only PNG and JPEG files are supported. Image failed to upload!")
             return False
 
-        for attempt in range(5):
+        upload_retries = 5
+        for attempt in range(upload_retries):
             try:
                 ret = rf_project.single_upload(image_path=image_path, batch_name=batch_name)
             except JSONDecodeError:
-                print("JSONDecodeError: Retrying")
+                print(f"JSONDecodeError on upload attempt #{attempt+1}. Retrying.")
             else:
                 return ret
 
-        print(f"ERROR: 5 attempts to uploading {image_path} to Roboflow have failed. Skipping.")
+        print(f"ERROR: {upload_retries} attempts to uploading {image_path} to Roboflow have failed. Skipping.")
         return False
 
     def create_footage_extraction_config_file(self, directory, enabled=False, step_size=10):
