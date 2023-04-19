@@ -19,7 +19,8 @@ class Sonar:
     # number of values to filter TODO figure out where the noise starts
     FILTER_INDEX = 100
     DEFAULT_RANGE = 5
-    SONAR_STRING = "usb-FTDI_FT230X_Basic_UART_DK0C1WF7-if00-port0"
+    SONAR_STRING_CTHULU = "usb-FTDI_FT230X_Basic_UART_DK0C1WF7-if00-port0"
+    SONAR_STRING_OOGWAY = "usb-FTDI_FT230X_Basic_UART_D2011831-if00-port0"
 
     def __init__(self, range=DEFAULT_RANGE, number_of_samples=1200,
                  baud_rate=BAUD_RATE):
@@ -38,7 +39,7 @@ class Sonar:
                 fields = line.split(' ')
                 FTDI_Number = fields[8]
                 USB_port = fields[10][-7:]
-                if FTDI_Number == self.SONAR_STRING:
+                if (FTDI_Number == self.SONAR_STRING_CTHULU or FTDI_Number == self.SONAR_STRING_OOGWAY):
                     sonar_usb = "/dev/" + USB_port
 
         if sonar_usb == "":
