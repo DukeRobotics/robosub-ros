@@ -28,9 +28,10 @@ MS5837 pressure_sensor;
 
 bool has_pressure = true;
 
-//Variable for relay to hard reset camera
+//Relay to hard reset camera
 int relay = 2; //pin 2
-bool camera_enabled = false;
+bool camera_enabled = true;
+uint64_t last_relay_msg;
 
 // Sets node handle to have 3 subscribers, 2 publishers, and 128 bytes for input and output buffer
 ros::NodeHandle_<ArduinoHardware,3,2,128,128> nh;
@@ -58,11 +59,12 @@ ros::Publisher relay_status_pub("/offboard/camera_relay_status", &relay_status_m
 
 void relay_callback(const std_msgs::Bool &relay_msg){
     
+    //relay is normally closed, so turning it on means pulling the control pin low
     if (relay_msg.data) {
-        digitalWrite(relay, HIGH);
+        digitalWrite(relay, LOW);
     }
     else {
-        digitalWrite(relay, LOW);
+        digitalWrite(relay, HIGH);
     }
     //log if change
     if (relay_msg.data != camera_enabled) {
@@ -71,6 +73,7 @@ void relay_callback(const std_msgs::Bool &relay_msg){
         }
         else {
             nh.loginfo("Camera disabled");
+            nh.logwarn("Do not leave camera diasbled for more than 3 minutes as it will draw excessive power to maintain the relay state");
         }
         camera_enabled = relay_msg.data;
         relay_status_msg.data = camera_enabled;
@@ -94,7 +97,7 @@ void setup(){
 
     // Set up relay
     pinMode(relay, OUTPUT);
-    digitalWrite(relay, HIGH); //default to on
+    digitalWrite(relay, LOW); //default to on (relay is normally closed)
 
     //sync with to camera_enabled on startup
     relay_status_msg.data = camera_enabled;
@@ -140,6 +143,10 @@ void loop(){
     pressure_sensor.read();
     pressure_msg.fluid_pressure = pressure_sensor.pressure(100.0f);
     pressure_pub.publish(&pressure_msg);
-    relay_status_pub.publish(&relay_status_msg);
+    //publish relay if it has been at least a second since last publish
+    if (millis() - last_relay_msg > 1000) {
+        relay_status_pub.publish(&relay_status_msg);
+        last_relay_msg = millis();
+    }
     nh.spinOnce();
 }
