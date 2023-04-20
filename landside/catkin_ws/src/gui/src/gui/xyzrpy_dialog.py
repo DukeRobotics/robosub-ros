@@ -12,7 +12,7 @@ class XyzRpyDialog(QDialog):
     def __init__(self, text):
         super(XyzRpyDialog, self).__init__()
 
-        ui_file = rr.get_filename('package://gui/resource/XyzrpyDialog.ui', use_protocol=False)
+        ui_file = rr.get_filename('package://gui/resource/XyzRpyDialog.ui', use_protocol=False)
         loadUi(ui_file, self)
 
         self.label.setText(text)
