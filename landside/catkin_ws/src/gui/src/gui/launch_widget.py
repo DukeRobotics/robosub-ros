@@ -23,7 +23,7 @@ import rosservice
 import rosgraph
 import rostopic
 
-from custom_msgs.srv import StopLaunch
+from custom_msgs.srv import StopLaunch, GetRunningNodes
 from custom_msgs.msg import RemoteLaunchInfo
 
 from threading import Lock
@@ -135,14 +135,15 @@ class LaunchWidget(QWidget):
         self.subscribers = []
 
     def check_for_termination(self, rli_msg):
-        if rli_msg.msg_type == "Terminating":
+        if rli_msg.msg_type == RemoteLaunchInfo.TERMINATING:
+            running_node_msg = rli_msg.running_node_info
             if not self.remove_nodes_manually:
-                self.remove_from_table(rli_msg.pid)
+                self.remove_from_table(running_node_msg.pid)
             else:
                 self.table_widget_lock.acquire()
-                row = self.get_row_with_pid(rli_msg.pid)
+                row = self.get_row_with_pid(running_node_msg.pid)
                 if row is not None:
-                    self.running_nodes.pop(str(rli_msg.pid))
+                    self.running_nodes.pop(str(running_node_msg.pid))
                     if self.table_widget.columnCount() == 4:
                         self.table_widget.setItem(row, self.table_widget.columnCount() - 1,
                                                   QTableWidgetItem("Terminated"))
@@ -150,9 +151,11 @@ class LaunchWidget(QWidget):
 
     def check_for_new_nodes(self, rli_msg):
         if self.display_all_nodes:
-            if rli_msg.msg_type.startswith("Executing"):
+            if rli_msg.msg_type == RemoteLaunchInfo.EXECUTING:
+                running_node_msg = rli_msg.running_node_info
                 # If the new node was launched from another plugin instance
-                self.append_to_table(rli_msg.pid, rli_msg.package, rli_msg.file, " ".join(rli_msg.args))
+                self.append_to_table(running_node_msg.pid, running_node_msg.package,
+                                     running_node_msg.file, " ".join(running_node_msg.args))
 
     def delete_launch(self, pid, node_name):
         stop_node_service = StopNodeService(pid, node_name)
@@ -306,6 +309,13 @@ class LaunchWidget(QWidget):
                     row_pid = self.table_widget.item(row, 0).text()
                     if row_pid not in self.running_nodes:
                         self.table_widget.removeRow(row)
+
+            # if the display_all_nodes_checkbox is toggled on (previously off)
+            if self.display_all_nodes:
+                running_nodes_srv = rospy.ServiceProxy('running_nodes', GetRunningNodes)
+                running_nodes_msgs = running_nodes_srv()
+                for node in running_nodes_msgs.running_nodes_msgs:
+                    self.append_to_table(node.pid, node.package, node.file, node.args)
 
 
 class LaunchWidgetSettings(QDialog):

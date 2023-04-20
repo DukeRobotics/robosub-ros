@@ -1,8 +1,8 @@
 # message type (Executing roslaunch/Executing rosrun/Terminating)
-string msg_type
+uint32 msg_type
+
+uint32 EXECUTING = 0
+uint32 TERMINATING = 1
 
 # process info
-uint64 pid
-string package
-string file
-string[] args
+custom_msgs/RunningNode running_node_info

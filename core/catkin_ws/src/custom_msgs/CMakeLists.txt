@@ -21,6 +21,7 @@ add_message_files(
   SimObject.msg
   SimObjectArray.msg
   RemoteLaunchInfo.msg
+  RunningNode.msg
 )
 
 add_service_files(
@@ -31,6 +32,7 @@ add_service_files(
   SetServo.srv
   StartLaunch.srv
   StopLaunch.srv
+  GetRunningNodes.srv
 )
 
 add_action_files(
