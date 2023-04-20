@@ -19,12 +19,12 @@ class DepthAIStreamsPublisherAndSaver:
     """
 
     CAMERA = 'front'
-    STREAM_TOPIC_RGB_VIDEO = f'/camera/{CAMERA}/rgb/video/stream_raw'
-    STREAM_TOPIC_RGB_PREVIEW = f'/camera/{CAMERA}/rgb/preview/stream_raw'
-    STREAM_TOPIC_LEFT = f'/camera/{CAMERA}/left/stream_raw'
-    STREAM_TOPIC_RIGHT = f'/camera/{CAMERA}/right/stream_raw'
-    STREAM_TOPIC_DISPARITY = f'/camera/{CAMERA}/disparity/stream_raw'
-    STREAM_TOPIC_DEPTH = f'/camera/{CAMERA}/depth/stream_raw'
+    STREAM_TOPIC_RGB_VIDEO = f'/camera/{CAMERA}/rgb/video/compressed'
+    STREAM_TOPIC_RGB_PREVIEW = f'/camera/{CAMERA}/rgb/preview/compressed'
+    STREAM_TOPIC_LEFT = f'/camera/{CAMERA}/left/compressed'
+    STREAM_TOPIC_RIGHT = f'/camera/{CAMERA}/right/compressed'
+    STREAM_TOPIC_DISPARITY = f'/camera/{CAMERA}/disparity/compressed'
+    STREAM_TOPIC_DEPTH = f'/camera/{CAMERA}/depth/compressed'
 
     BASE_PATH = '/root/dev/robosub-ros/'
 
