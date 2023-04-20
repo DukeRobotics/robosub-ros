@@ -4,7 +4,6 @@ import rospy
 from sonar import Sonar
 from custom_msgs.msg import sweepResult, sweepGoal
 from sonar_utils import degrees_to_centered_gradians
-from sonar_image_processing import scan_and_build_sonar_image
 
 
 class SonarPublisher:
