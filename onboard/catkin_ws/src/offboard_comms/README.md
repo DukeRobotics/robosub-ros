@@ -76,11 +76,11 @@ From this point, interfacing with the relay requires running:
 ```
 rosservice call /enable_camera false
 ```
-to disable the camera, and
+to disable the camera. Note: this disabled state should not be maintained for more than about 3 minutes as this draws significant current from the Arduino. A warning is thrown in serial.launch indicating this. To re-enable the camera, run
 ```
 rosservice call /enable_camera true
 ```
-to re-enable the camera. By default, the camera is enabled. The camera relay topic can be checked by running:
+By default, the camera is enabled. The camera relay topic can be checked by running:
 ```
 rostopic echo /offboard/camera_relay
 ```
