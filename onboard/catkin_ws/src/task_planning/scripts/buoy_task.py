@@ -50,7 +50,7 @@ class BuoyTask(smach.StateMachine):
                                             'done': f'BUOY_TOO_CLOSE_{i}'
                                         })
                 smach.StateMachine.add(f'BUOY_TOO_CLOSE_{i}', task_utils.LambdaTask(self.check_too_close,
-                                                                                    ['done'], input_keys=['pose']),
+                                                                                    ['close', 'far'], input_keys=['pose']),
                                     transitions={
                                             'close': f'BONK_BUOY_{i}',
                                             'far': f'APPROACH_BUOY_{i}'

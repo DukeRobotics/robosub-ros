@@ -107,7 +107,7 @@ class MoveToUserDataPoseLocalTask(MoveToPoseLocalTask):
             controls (interface.ControlsInterface): interface to interact with controls
             listener (tf.TransformListener): transform listener to go from local to global
         """
-        super(MoveToUserDataPoseLocalTask, self).__init__(controls, listener, input_keys=['pose'])
+        super(MoveToUserDataPoseLocalTask, self).__init__(0, 0, 0, 0, 0, 0, controls, listener, input_keys=['pose'])
 
     def execute(self, userdata):
         # Get pose from userdata
