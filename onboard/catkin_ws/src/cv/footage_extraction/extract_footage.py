@@ -189,6 +189,7 @@ class FootageExtractor:
                 path = os.path.join(directory, file)
                 bag = rosbag.Bag(path, "r")
                 topics = bag.get_type_and_topic_info()[1].keys()
+                file_dict['topics'] = {}
                 for topic in topics:
                     use_name = topic.replace("/", "_")[1:]
                     topic_dict = {
@@ -197,7 +198,7 @@ class FootageExtractor:
                         'step_size': step_size
                     }
 
-                    file_dict[topic] = topic_dict
+                    file_dict['topics'][topic] = topic_dict
             else:
                 file_dict['step_size'] = step_size
 
@@ -241,11 +242,8 @@ class FootageExtractor:
                 extracted_footage_path = os.path.join(EXTRACTED_FILES_DIR, file_name)
 
                 if file_name.endswith('bag'):
-                    for topic in file_dict:
-                        if topic in ['enabled', 'use_name']:  # The keys 'enabled' and 'use_name' are not topics
-                            continue
-
-                        topic_dict = file_dict[topic]
+                    for topic in file_dict['topics']:
+                        topic_dict = file_dict['topics'][topic]
                         if topic_dict['enabled']:
 
                             # creating topic directory for the first time
