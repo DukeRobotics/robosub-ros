@@ -52,7 +52,8 @@ RUN pip3 install --no-cache-dir \
     numpy==1.20.3 scipy pymba python-dateutil \
     pyserial dependency-injector \
     gputil saleae \
-    bluerobotics-ping
+    bluerobotics-ping \
+    roboflow
 
 # Install PyTorch and Torchvision
 COPY torch_installer.sh torch_deps/torch_installer.sh
