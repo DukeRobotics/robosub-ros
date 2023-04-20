@@ -16,7 +16,7 @@ class LaunchPlugin(Plugin):
         context.add_widget(self.widget)
 
     def shutdown_plugin(self):
-        pass
+        self.widget.close()
 
     def save_settings(self, plugin_settings, instance_settings):
         pass
@@ -24,3 +24,6 @@ class LaunchPlugin(Plugin):
     def restore_settings(self, plugin_settings, instance_settings):
         self.widget.default_pkg = instance_settings.value("default_pkg")
         pass
+
+    def trigger_configuration(self):
+        self.widget.settings()
