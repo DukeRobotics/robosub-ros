@@ -38,7 +38,7 @@ class FootageExtractor:
 
         bag = rosbag.Bag(footage_path)
 
-        num_frames = bag.get_message_count('/'+topic_name)
+        num_frames = bag.get_message_count(topic_name)
         frame_count = 0
         num_frames_saved = 0
         num_digits = len(str(num_frames))
@@ -47,10 +47,8 @@ class FootageExtractor:
         for topic, msg, t in bag.read_messages(topics=[topic_name]):
             if topic == topic_name:
                 if frame_count % step_size == 0:
-                    current_frame_str = str(frame_count)
-                    current_frame_str = current_frame_str.rjust(num_digits, '0')
                     cv_img = img_tools.convert_to_cv2(msg)
-                    file_save_path = os.path.join(output_dir, f"{topic_use_name}_frame_{current_frame_str}.jpg")
+                    file_save_path = os.path.join(output_dir, f"{topic_use_name}_frame_{frame_count:0{num_digits}}.jpg")
                     success = cv2.imwrite(file_save_path, cv_img)
 
                     if success:
@@ -88,9 +86,7 @@ class FootageExtractor:
         # while there is still video left, continue creating images
         while ret:
             if current_frame % step_size == 0:
-                current_frame_str = str(current_frame)
-                current_frame_str = current_frame_str.rjust(num_digits, '0')
-                name = os.path.join(output_dir, f"{use_name}_frame_{current_frame_str}.jpg")
+                name = os.path.join(output_dir, f"{use_name}_frame_{current_frame:0{num_digits}}.jpg")
                 cv2.imwrite(name, frame)
                 num_frames_saved += 1
 
@@ -137,7 +133,7 @@ class FootageExtractor:
 
         return status
 
-    def upload_images_to_roboflow_with_success(self, rf_project, image_path, batch_name):
+    def upload_image_to_roboflow_with_success(self, rf_project, image_path, batch_name):
         """
         Upload a single image at image_path to the Roboflow project rf_project under batch_name
         and return a success boolean
@@ -239,7 +235,8 @@ class FootageExtractor:
                     continue
 
                 # extracting file_name
-                file_name = file[::-1].replace('_', '.', 1)[::-1]
+                file_name = '.'.join(file.rsplit('_', 1))
+
                 footage_path = os.path.join(directory, file_name)
                 extracted_footage_path = os.path.join(EXTRACTED_FILES_DIR, file_name)
 
