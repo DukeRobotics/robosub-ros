@@ -163,9 +163,14 @@ class DepthAISimulateDetection:
         # Send a message to the ColorCamera to capture a still image
         img = dai.ImgFrame()
         img.setType(dai.ImgFrame.Type.BGR888p)
-        img.setData(to_planar(latest_img, (416, 416)))
-        img.setWidth(self.model['input_size'][0])
-        img.setHeight(self.model['input_size'][1])
+
+        width = self.model['input_size'][0]
+        height = self.model['input_size'][1]
+
+        img.setData(to_planar(latest_img, (width, height)))
+        img.setWidth(width)
+        img.setHeight(height)
+
         input_queue.send(img)
 
     def _publish_detections(self, detection_results):
