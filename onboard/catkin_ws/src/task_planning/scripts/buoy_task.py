@@ -9,7 +9,7 @@ class BuoyTask(smach.StateMachine):
     CENTER_TOLERANCE = 0.05
     ROTATE_SPEED = 1
     TOO_CLOSE_TO_BUOY = 0.5
-    targets = ['bootleggerbuoy', 'bootleggerbuoy2']
+    targets = ['buoy_abydos_taurus', 'buoy_abydos_sepenscaput']
 
     def __init__(self, listener, controls: ControlsInterface, cv: CVInterface):
         super().__init__(outcomes=['done']) #maybe do calls here - also TODO add move backwards at the end of the func

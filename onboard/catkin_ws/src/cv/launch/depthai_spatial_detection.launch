@@ -8,6 +8,7 @@
     <arg name="show_class_name" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to show the class name."}'/>
     <arg name="show_confidence" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to show the confidence value."}'/>
     <node name="depthai_spatial_detection" pkg="cv" type="depthai_spatial_detection.py" output="screen">
+        <param name="model" value="$(arg model)" />
         <param name="rgb_raw" value="$(arg rgb_raw)" />
         <param name="rgb_detections" value="$(arg rgb_detections)" />
         <param name="depth" value="$(arg depth)" />

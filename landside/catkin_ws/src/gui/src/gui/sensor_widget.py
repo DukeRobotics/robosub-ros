@@ -87,7 +87,7 @@ class SensorWidget(QWidget):
         self.power_client = actionlib.SimpleActionClient('controls/desired_power', ControlsDesiredPowerAction)
         # self.power_client.wait_for_server()
         self.power_msg = Twist()
-        self.power_val = 0.5
+        self.power_val = 1.0
 
         rospy.loginfo("Sensor Widget successfully initialized")
 

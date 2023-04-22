@@ -258,10 +258,12 @@ class PointToPoseTask(smach.State):
         self.controls = controls
 
     def execute(self, userdata):
-        userdata.pose = Pose()
-        userdata.pose.position = userdata.point
-        userdata.pose.orientation = quaternion_multiply(
-            self.controls.get_state().pose.pose.orientation, self.rotation)
+        pose = Pose()
+        pose.position = userdata.point
+        quat = self.controls.get_state().pose.pose.orientation
+        pose.orientation = Quaternion(*quaternion_multiply(
+            [quat.x, quat.y, quat.z, quat.w], self.rotation))
+        userdata.pose = pose
         return "done"
 
 

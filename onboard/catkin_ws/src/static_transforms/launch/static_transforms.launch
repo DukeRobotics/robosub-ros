@@ -6,9 +6,6 @@
 		<node pkg="tf2_ros" type="static_transform_publisher" name="left_cameras_link_publisher" args="0 0.0362 0 0 0 0 cameras_link left_cameras_link" />
 		<node pkg="tf2_ros" type="static_transform_publisher" name="right_cameras_link_publisher" args="0 -0.0362 0 0 0 0 cameras_link right_cameras_link" />
 		<node pkg="tf2_ros" type="static_transform_publisher" name="imu_link_publisher" args="-0.0359 -0.1008 -0.1219 0 0 0 corner_link imu_link" />
-		<node pkg="tf2_ros" type="static_transform_publisher" name="cameras_link_publisher" args="0.2287 -0.2061 0.0407 0 0 0 corner_link cameras_link" />
-        <node pkg="tf2_ros" type="static_transform_publisher" name="left_cameras_link_publisher" args="0 0.0362 0 0 0 0 cameras_link left_cameras_link" />
-        <node pkg="tf2_ros" type="static_transform_publisher" name="right_cameras_link_publisher" args="0 -0.0362 0 0 0 0 cameras_link right_cameras_link" />
 		<node pkg="tf2_ros" type="static_transform_publisher" name="sonar_link_publisher" args="0.3794125 0.0015875 -0.111125 0 0 0 corner_link sonar_link" />
 	</group>
 	<group if="$(eval optenv('ROBOT_NAME', 'oogway') == 'oogway')">
@@ -17,5 +14,6 @@
 		<node pkg="tf2_ros" type="static_transform_publisher" name="imu_link_publisher" args="-0.219075 0.3095625 -0.11241875 0 0 0 corner_link imu_link" />
 		<!-- TODO: Remeasure sonar transform-->
 		<node pkg="tf2_ros" type="static_transform_publisher" name="sonar_link_publisher" args="0 0 0 0 0 0 corner_link sonar_link" />
+		<node pkg="tf2_ros" type="static_transform_publisher" name="cameras_link_publisher" args="0.1 0.3 0 0 0 0 corner_link cameras_link" />
 	</group>
 </launch>
