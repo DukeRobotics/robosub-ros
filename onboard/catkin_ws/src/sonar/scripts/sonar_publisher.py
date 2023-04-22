@@ -29,9 +29,9 @@ class SonarPublisher:
         self.cv_bridge = CvBridge()
         self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC,
                                             sweepResult, queue_size=10)
-        self.sonar_image_publisher = rospy.Publisher(self.SONAR_IMAGE_TOPIC,
-                                                     CompressedImage, queue_size=10)
-
+        if self.stream:
+            self.sonar_image_publisher = rospy.Publisher(self.SONAR_IMAGE_TOPIC,
+                                                        CompressedImage, queue_size=10)
     def on_request(self, request):
         if (request.distance_of_scan == -1):
             return
