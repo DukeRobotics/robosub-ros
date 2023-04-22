@@ -5,7 +5,7 @@ from custom_msgs.msg import sweepResult, sweepGoal
 from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
 from sonar_utils import degrees_to_centered_gradians
-from sonar_image_processing import scan_and_build_sonar_image
+from sonar_image_processing import build_sonar_image
 
 
 class SonarPublisher:
@@ -37,15 +37,11 @@ class SonarPublisher:
         left_gradians = degrees_to_centered_gradians(request.start_angle)
         right_gradians = degrees_to_centered_gradians(request.end_angle)
 
-        sonar_xy_result = self.sonar.get_xy_of_object_in_sweep(left_gradians,
-                                                               right_gradians)
+        sonar_xy_result, scanned_image = self.sonar.get_xy_of_object_in_sweep(left_gradians,
+                                                                              right_gradians)
 
         if self.stream:
-            sonar_image = scan_and_build_sonar_image(self.sonar, False,
-                                                     jpeg_save_path="Sonar_Image.jpeg",
-                                                     start_angle=left_gradians,
-                                                     end_angle=right_gradians)
-            
+            sonar_image = build_sonar_image(scanned_image)
             compressed_image = self.image_tools.convert_to_ros_compressed_msg(sonar_image)
             self.sonar_image_publisher.publish(compressed_image)
 
