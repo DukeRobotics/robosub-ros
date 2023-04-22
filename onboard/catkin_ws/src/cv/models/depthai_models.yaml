@@ -6,6 +6,8 @@ gate:
   coordinate_size: 4
   anchors: [10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]
   anchor_masks: {"side26": [0, 1, 2], "side13": [3, 4, 5]}
+  iou_threshold: 0.5
+  confidence_threshold: 0.5
   colors: ["DC143C", "FFA500", "FFFF00", "00FF00", "000080"]
 
 gate_buoy:
@@ -16,4 +18,30 @@ gate_buoy:
   coordinate_size: 4
   anchors: [10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]
   anchor_masks: {"side26": [0, 1, 2], "side13": [3, 4, 5]}
+  iou_threshold: 0.5
+  confidence_threshold: 0.5
   colors: ["8A2BE2", "800000", "708090"]
+
+yolov8n_2023:
+  classes: ['buoy_abydos_serpenscaput','buoy_abydos_taurus','buoy_earth_auriga','buoy_earth_cetus','gate_abydos','gate_earth']
+  topic: cv/
+  weights: yolov8_nano_openvino_2022.1_6shave.blob
+  input_size: [416, 416]
+  coordinate_size: 4
+  anchors: []
+  anchor_masks: {}
+  iou_threshold: 0.7
+  confidence_threshold: 0.001
+  colors: ["DC143C", "FFA500", "FFFF00", "00FF00", "000080", "8A2BE2"]
+
+yolov7_tiny_2023:
+  classes: ['buoy_abydos_serpenscaput','buoy_abydos_taurus','buoy_earth_auriga','buoy_earth_cetus','gate_abydos','gate_earth']
+  topic: cv/
+  weights: yolov7-tiny_openvino_2022.1_6shave.blob
+  input_size: [416, 416]
+  coordinate_size: 4
+  anchors: [12.0, 16.0, 19.0, 36.0, 40.0, 28.0, 36.0, 75.0, 76.0, 55.0, 72.0, 146.0, 142.0, 110.0, 192.0, 243.0, 459.0, 401.0]
+  anchor_masks: {"side52": [0,1,2], "side26": [3,4,5], "side13": [6,7,8]}
+  iou_threshold: 0.5
+  confidence_threshold: 0.5
+  colors: ["DC143C", "FFA500", "FFFF00", "00FF00", "000080", "8A2BE2"]

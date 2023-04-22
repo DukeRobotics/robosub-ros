@@ -128,7 +128,7 @@ class DepthAISpatialDetector:
         stereo.setDepthAlign(dai.CameraBoardSocket.RGB)
 
         spatial_detection_network.setBlobPath(nn_blob_path)
-        spatial_detection_network.setConfidenceThreshold(0.5)
+        spatial_detection_network.setConfidenceThreshold(model['confidence_threshold'])
         spatial_detection_network.input.setBlocking(False)
         spatial_detection_network.setBoundingBoxScaleFactor(0.5)
         spatial_detection_network.setDepthLowerThreshold(100)
@@ -139,7 +139,7 @@ class DepthAISpatialDetector:
         spatial_detection_network.setCoordinateSize(model['coordinate_size'])
         spatial_detection_network.setAnchors(np.array(model['anchors']))
         spatial_detection_network.setAnchorMasks(model['anchor_masks'])
-        spatial_detection_network.setIouThreshold(0.5)
+        spatial_detection_network.setIouThreshold(model['iou_threshold'])
 
         # Linking
         mono_left.out.link(stereo.left)
@@ -237,7 +237,6 @@ class DepthAISpatialDetector:
             self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
 
         self.output_queues["detections"] = device.getOutputQueue(name="detections", maxSize=1, blocking=False)
-
         self.connected = True
 
         self.detection_visualizer = DetectionVisualizer(self.classes, self.colors,
