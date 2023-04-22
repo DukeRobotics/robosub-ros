@@ -53,7 +53,7 @@ class SonarPublisher:
                 polar_img = cv2.linearPolar(greyscale_image, (175, 175), 175.0, cv2.WARP_INVERSE_MAP)
                 sonar_image = polar_img[0:350, 0:350]
             
-            sonar_image = cv2.applyColorMap(greyscale_image, cv2.COLORMAP_VIRIDIS)
+            sonar_image = cv2.applyColorMap(sonar_image, cv2.COLORMAP_VIRIDIS)
             compressed_image = self.cv_bridge.cv2_to_compressed_imgmsg(sonar_image)
             self.sonar_image_publisher.publish(compressed_image)
 
