@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import rospy
+import cv2
+import numpy as np
 from sonar import Sonar
 from custom_msgs.msg import sweepResult, sweepGoal
 from sensor_msgs.msg import CompressedImage
@@ -22,6 +24,7 @@ class SonarPublisher:
     def __init__(self):
         rospy.init_node(self.NODE_NAME)
         self.stream = rospy.get_param('~stream')
+        self.polar = rospy.get_param('~polar')
         self.sonar = Sonar(10)
         self.cv_bridge = CvBridge()
         self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC,
@@ -43,6 +46,14 @@ class SonarPublisher:
 
         if self.stream:
             sonar_image = build_sonar_image(scanned_image)
+            
+            if self.polar:
+                img = np.pad(sonar_image.astype(np.uint8), ((80, 80),(0, 0)), 'constant')
+                greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+                polar_img = cv2.linearPolar(greyscale_image, (175, 175), 175.0, cv2.WARP_INVERSE_MAP)
+                sonar_image = polar_img[0:350, 0:350]
+            
+            sonar_image = cv2.applyColorMap(greyscale_image, cv2.COLORMAP_VIRIDIS)
             compressed_image = self.cv_bridge.cv2_to_compressed_imgmsg(sonar_image)
             self.sonar_image_publisher.publish(compressed_image)
 
