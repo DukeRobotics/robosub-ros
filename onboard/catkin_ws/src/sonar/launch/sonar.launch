@@ -1,5 +1,5 @@
 <launch>
-	<arg name="stream" default="False" />
+	<arg name="stream" default="True" />
 	<arg name="polar" default="False" />
 	<node pkg="sonar" name="sonar_pub" type="sonar_publisher.py">
 		<param name="stream" value="$(arg stream)" />
