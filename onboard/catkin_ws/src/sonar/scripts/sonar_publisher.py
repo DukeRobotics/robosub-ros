@@ -37,8 +37,9 @@ class SonarPublisher:
         left_gradians = degrees_to_centered_gradians(request.start_angle)
         right_gradians = degrees_to_centered_gradians(request.end_angle)
 
-        sonar_xy_result, scanned_image = self.sonar.get_xy_of_object_in_sweep(left_gradians,
+        sonar_x, sonar_y, scanned_image = self.sonar.get_xy_of_object_in_sweep(left_gradians,
                                                                               right_gradians)
+        sonar_xy_result = (sonar_x, sonar_y)
 
         if self.stream:
             sonar_image = build_sonar_image(scanned_image)
