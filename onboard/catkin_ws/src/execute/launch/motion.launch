@@ -1,7 +1,7 @@
 <launch>
-	
+
 	<!-- Include all launch files required to move the robot, i.e. state tracking and controls -->
-	
+
 	<arg name="sim" default="false" />
 
 	<!-- Start state tracking -->
@@ -13,11 +13,6 @@
 	<include file="$(find controls)/launch/controls.launch">
 		<arg name="sim" value="$(arg sim)" />
 	</include>
-
-	<!-- Start Sonar -->
-	<group unless="$(arg sim)">
-		<include file="$(find sonar)/launch/sonar.launch" />
-	</group>
 
 	<!-- Start Arduino I/O -->
 	<group unless="$(arg sim)">

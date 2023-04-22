@@ -1,0 +1,23 @@
+<launch>
+	<!-- Include all launch files for peripheral sensors, i.e. CV, sonar, acoustics. -->
+
+	<arg name="sim" default="false" />
+
+	<!-- Start Sonar -->
+	<group unless="$(arg sim)">
+		<include file="$(find sonar)/launch/sonar.launch" />
+	</group>
+
+    <!-- Start CV -->
+    <group unless="$(arg sim)">
+        <include file="$(find cv)/launch/depthai_spatial_detection.launch">
+            <arg name="model" value="gate_buoy" doc='{"options":["gate_buoy","gate"],"allowEmpty":false,"help":"The DepthAI model to use from depthai_models.yaml"}'/>
+            <arg name="rgb_raw" value="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the raw rgb stream (no detections)."}'/>
+            <arg name="rgb_detections" value="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the rgb stream with detections overlaid."}'/>
+            <arg name="depth" value="False" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the depth map."}'/>
+            <arg name="sync_nn" value="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to sync the RGB frames with the detections so the latest published detections correspond to the latest published RGB frame."}'/>
+            <arg name="using_sonar" value="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to use sonar to estimate depth instead of stereo."}'/>
+        </include>
+    </group>
+
+</launch>

@@ -1,4 +1,5 @@
 <launch>
+    <arg name="model" default="gate_buoy" doc='{"options":["gate_buoy","gate"],"allowEmpty":false,"help":"The DepthAI model to use from depthai_models.yaml"}'/>
     <arg name="rgb_raw" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the raw rgb stream (no detections)."}'/>
     <arg name="rgb_detections" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the rgb stream with detections overlaid."}'/>
     <arg name="depth" default="False" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the depth map."}'/>
