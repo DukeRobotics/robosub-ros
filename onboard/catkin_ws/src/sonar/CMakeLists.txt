@@ -5,9 +5,12 @@ project(sonar)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   actionlib
+  sensor_msgs
   custom_msgs
   tf
   geometry_msgs
+  cv
+  cv_bridge
 )
 
 ## The catkin_package macro generates cmake config files for your package
@@ -15,7 +18,10 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(CATKIN_DEPENDS 
   rospy
   actionlib
+  sensor_msgs
   custom_msgs
   tf
   geometry_msgs
+  cv
+  cv_bridge
 )

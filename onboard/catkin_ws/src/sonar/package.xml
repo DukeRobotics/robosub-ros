@@ -12,8 +12,11 @@
   <depend>brping</depend>
   <depend>actionlib</depend>
   <depend>custom_msgs</depend>
+  <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
+  <depend>cv_bridge</depend>
   <depend>tf</depend>
+  <depend>cv</depend>
 
   <buildtool_depend>catkin</buildtool_depend>
 

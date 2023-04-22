@@ -165,15 +165,15 @@ class Sonar:
         Returns:
             float: Average value for object sweep
         """
-        max_byte_array = self.get_max_bytes_along_sweep(int(start_angle),
-                                                        int(end_angle))
+        max_byte_array, scanned_image = self.get_max_bytes_along_sweep(int(start_angle),
+                                                                       int(end_angle))
 
         indices = [sample[0] for sample in max_byte_array]
         mean_index = sum(indices) / len(indices)
         center_angle = (start_angle + end_angle) / 2
 
         pose = self.to_robot_position(center_angle, mean_index)
-        return pose.position.x, pose.position.y
+        return pose.position.x, pose.position.y, scanned_image
 
     def get_max_bytes_along_sweep(self, start_angle, end_angle):
         """ Execute a sweep and get the largest activation for each angle
@@ -188,10 +188,12 @@ class Sonar:
         """
 
         max_byte_array = []
+        scanned_image = []
         for theta in range(start_angle, end_angle):
-            max_byte = self.get_max_byte(theta)
-            max_byte_array.append(max_byte)
-        return max_byte_array
+            max_byte_index, max_byte_filter, image_at_angle = self.get_max_byte(theta)
+            max_byte_array.append((max_byte_index, max_byte_filter))
+            scanned_image.append(image_at_angle)
+        return max_byte_array, scanned_image
 
     def get_max_byte(self, angle):
         """ Get the biggest value of the byte array of data scanned at input
@@ -207,7 +209,7 @@ class Sonar:
         split_bytes = [data[i:i+1] for i in range(len(data))]
         filteredbytes = split_bytes[self.FILTER_INDEX:]
         best = np.argmax(filteredbytes)
-        return best+self.FILTER_INDEX, filteredbytes[best]
+        return best+self.FILTER_INDEX, filteredbytes[best], data
 
     def to_robot_position(self, angle, index):
         """ Converts a point in sonar space a robot global position
