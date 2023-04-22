@@ -240,3 +240,7 @@ class Sonar:
             self.listener, pos_of_point)
 
         return transformed_pose
+
+if __name__ == '__main__':
+    sonar = Sonar(5)
+

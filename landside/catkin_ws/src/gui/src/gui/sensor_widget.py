@@ -15,7 +15,11 @@ from std_msgs.msg import Float64
 from geometry_msgs.msg import Point, Quaternion, PoseWithCovarianceStamped, Twist
 from robot_localization.srv import SetPose
 
+from custom_msgs.msg import ControlsDesiredPowerAction, ControlsDesiredPowerGoal
+
 from gui.xyzrpy_dialog import XyzRpyDialog
+
+import actionlib
 
 
 class SensorWidget(QWidget):
@@ -79,8 +83,11 @@ class SensorWidget(QWidget):
         self.enable_keyboard_button.clicked.connect(self.enable_keyboard)
         self.enable_keyboard_button.setStyleSheet(self.background_colors['green'])
         self.keyboard_enabled = False
-        self.power_publisher = rospy.Publisher('/controls/desired_power', Twist, queue_size=3)
+        # self.power_publisher = rospy.Publisher('/controls/desired_power', Twist, queue_size=3)
+        self.power_client = actionlib.SimpleActionClient('controls/desired_power', ControlsDesiredPowerAction)
+        # self.power_client.wait_for_server()
         self.power_msg = Twist()
+        self.power_val = 0.5
 
         rospy.loginfo("Sensor Widget successfully initialized")
 
@@ -97,6 +104,12 @@ class SensorWidget(QWidget):
 
     def update_state_display(self):
         self.state_box.setEnabled(rospy.Time.now() - self.state_time < rospy.Duration(2))
+        if self.power_client.wait_for_server(rospy.Duration(0.1)):
+            self.enable_keyboard_button.setEnabled(True)
+        else:
+            self.enable_keyboard_button.setEnabled(False)
+            if self.keyboard_enabled:
+                self.enable_keyboard()
 
     def update_state(self, state):
         self.state_time = rospy.Time.now()
@@ -134,35 +147,37 @@ class SensorWidget(QWidget):
             print("Service did not process request: " + str(exc))
 
     def publish_power(self):
-        self.power_publisher.publish(self.power_msg)
+        # self.power_publisher.publish(self.power_msg)
+        goal = ControlsDesiredPowerGoal(power=self.power_msg)
+        self.power_client.send_goal(goal)
         self.power_msg = Twist()
 
     def keyPressEvent(self, event):
         if self.keyboard_enabled:
             if event.key() == QtCore.Qt.Key_W:
-                self.power_msg.linear.x = 1.0
+                self.power_msg.linear.x = min(self.power_val, 1)
             if event.key() == QtCore.Qt.Key_S:
-                self.power_msg.linear.x = -1.0
+                self.power_msg.linear.x = max(-1 * self.power_val, -1)
             if event.key() == QtCore.Qt.Key_A:
-                self.power_msg.linear.y = 1.0
+                self.power_msg.linear.y = min(self.power_val, 1)
             if event.key() == QtCore.Qt.Key_D:
-                self.power_msg.linear.y = -1.0
+                self.power_msg.linear.y = max(-1 * self.power_val, -1)
             if event.key() == QtCore.Qt.Key_I:
-                self.power_msg.linear.z = 1.0
+                self.power_msg.linear.z = min(self.power_val, 1)
             if event.key() == QtCore.Qt.Key_K:
-                self.power_msg.linear.z = -1.0
+                self.power_msg.linear.z = max(-1 * self.power_val, -1)
             if event.key() == QtCore.Qt.Key_Right:
-                self.power_msg.angular.x = -1.0
+                self.power_msg.angular.x = max(-1 * self.power_val, -0.5)
             if event.key() == QtCore.Qt.Key_Left:
-                self.power_msg.angular.x = 1.0
+                self.power_msg.angular.x = min(self.power_val, 0.5)
             if event.key() == QtCore.Qt.Key_Up:
-                self.power_msg.angular.y = 1.0
+                self.power_msg.angular.y = min(self.power_val, 0.5)
             if event.key() == QtCore.Qt.Key_Down:
-                self.power_msg.angular.y = -1.0
+                self.power_msg.angular.y = max(-1 * self.power_val, -0.5)
             if event.key() == QtCore.Qt.Key_J:
-                self.power_msg.angular.z = 1.0
+                self.power_msg.angular.z = min(self.power_val, 0.5)
             if event.key() == QtCore.Qt.Key_L:
-                self.power_msg.angular.z = -1.0
+                self.power_msg.angular.z = max(-1 * self.power_val, -0.5)
         super(SensorWidget, self).keyPressEvent(event)
 
     def enable_keyboard(self):

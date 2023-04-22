@@ -3,23 +3,32 @@
 import rospy
 import serial
 import serial.tools.list_ports as list_ports
+import yaml
+import os
+import resource_retriever as rr
 import traceback
 
 from sensor_msgs.msg import Imu, MagneticField
 from tf.transformations import quaternion_multiply
+
+CONFIG_FILE_PATH = 'package://data_pub/config/%s/imu.yaml'
+config_data = None
 
 
 class IMURawPublisher:
 
     IMU_DEST_TOPIC_QUAT = 'sensors/imu/imu'
     IMU_DEST_TOPIC_MAG = 'sensors/imu/mag'
+    FTDI_FILE_PATH = 'package://data_pub/config/imu_ftdi.yaml'
 
-    FTDI_STR = 'FT1WDFQ2'
     BAUDRATE = 115200
     NODE_NAME = 'imu_pub'
     LINE_DELIM = b','
 
     def __init__(self):
+        with open(rr.get_filename(self.FTDI_FILE_PATH, use_protocol=False)) as f:
+            self._ftdi_strings = yaml.safe_load(f)
+
         self._pub_imu = rospy.Publisher(self.IMU_DEST_TOPIC_QUAT, Imu, queue_size=50)
         self._pub_mag = rospy.Publisher(self.IMU_DEST_TOPIC_MAG, MagneticField, queue_size=50)
 
@@ -32,7 +41,7 @@ class IMURawPublisher:
     def connect(self):
         while self._serial_port is None and not rospy.is_shutdown():
             try:
-                self._serial_port = next(list_ports.grep(self.FTDI_STR)).device
+                self._serial_port = next(list_ports.grep('|'.join(self._ftdi_strings))).device
                 self._serial = serial.Serial(self._serial_port, self.BAUDRATE,
                                              timeout=None, write_timeout=None,
                                              bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
@@ -67,8 +76,9 @@ class IMURawPublisher:
 
     def _parse_orient(self, items):
         untransformed_orient = [float(items[1]), float(items[2]), float(items[3]), float(items[4])]
-        # Transform quaternion from NED to ENU coordinates
-        updated_quat = quaternion_multiply([0.707, 0.707, 0, 0], untransformed_orient)
+        # For Cthulhu, transform quaternion from NED to ENU coordinates	
+        # For Oogway, rotate upside down and about z axis by 45 degrees clockwise (negative)
+        updated_quat = quaternion_multiply([config_data[i] for i in 'xyzw'], untransformed_orient)
 
         self._current_imu_msg.orientation.x = updated_quat[0]
         self._current_imu_msg.orientation.y = updated_quat[1]
@@ -104,6 +114,9 @@ class IMURawPublisher:
 
 
 if __name__ == '__main__':
+    with open(rr.get_filename(CONFIG_FILE_PATH % os.getenv("ROBOT_NAME", "oogway"), use_protocol=False)) as f:
+        config_data = yaml.safe_load(f)
+
     try:
         IMURawPublisher().run()
     except rospy.ROSInterruptException:

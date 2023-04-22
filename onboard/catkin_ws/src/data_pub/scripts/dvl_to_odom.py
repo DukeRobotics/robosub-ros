@@ -3,10 +3,15 @@
 import math
 import numpy as np
 import rospy
+import yaml
+import os
+import resource_retriever as rr
 from custom_msgs.msg import DVLRaw
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
 from tf.transformations import quaternion_from_euler
+
+CONFIG_FILE_PATH = 'package://data_pub/config/%s/dvl.yaml'
 
 NODE_NAME = 'dvl_odom_pub'
 DVL_RAW_TOPIC = 'sensors/dvl/raw'
@@ -15,6 +20,7 @@ DVL_ODOM_TOPIC = 'sensors/dvl/odom'
 DVL_BAD_STATUS_MSG = 'V'
 
 odom_pub = rospy.Publisher(DVL_ODOM_TOPIC, Odometry, queue_size=50)
+config_data = None
 
 
 def callback(msg):
@@ -36,9 +42,17 @@ def callback(msg):
     z = 0
 
     # bs velocity, normalized to meters (given in mm)
-    vx = -np.float64(msg.bs_longitudinal) / 1000
+    # parentheses denote new negative signs
+    vx = np.float64(msg.bs_longitudinal) / 1000
     vy = np.float64(msg.bs_transverse) / 1000
     vz = np.float64(msg.bs_normal) / 1000
+
+    if config_data["negate_x_vel"]:
+        vx = -vx
+    if config_data["negate_y_vel"]:
+        vy = -vy
+    if config_data["negate_z_vel"]:
+        vz = -vz
 
     # quat
     roll = math.radians(np.float64(msg.sa_roll))
@@ -55,6 +69,10 @@ def callback(msg):
 
 
 def listener():
+    global config_data
+    with open(rr.get_filename(CONFIG_FILE_PATH % os.getenv("ROBOT_NAME", "oogway"), use_protocol=False)) as f:
+        config_data = yaml.safe_load(f)
+
     rospy.init_node(NODE_NAME)
     rospy.Subscriber(DVL_RAW_TOPIC, DVLRaw, callback)
     rospy.spin()

@@ -133,8 +133,9 @@ void setup(){
 
 void loop(){
     // Check if last version of data has timed out, if so, reset the speeds
-    if (last_cmd_ms_ts + THRUSTER_TIMEOUT_MS < millis())
+    if (last_cmd_ms_ts + THRUSTER_TIMEOUT_MS < millis()){
         memset(thruster_speeds, 0, sizeof(thruster_speeds));
+    }
     for (uint8_t i = 0; i < NUM_THRUSTERS; ++i){
         thrusters[i].write(thruster_speeds[i]);
     }
@@ -150,4 +151,5 @@ void loop(){
         last_relay_msg = millis();
     }
     nh.spinOnce();
+    
 }

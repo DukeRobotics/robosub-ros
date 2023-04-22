@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import os
 from std_msgs.msg import Float64
 from custom_msgs.msg import ThrusterSpeeds
 import numpy as np
@@ -28,6 +29,7 @@ class ThrusterController:
         tm: The ThrusterManager object used to calculate thruster allocations
     """
 
+    CONFIG_FILE_PATH = 'package://controls/config/%s.config'
     ROBOT_PUB_TOPIC = '/offboard/thruster_speeds'
     RUN_LOOP_RATE = 10  # 10 Hz
     MAX_THRUSTER_POWER = 127  # Some nuance, max neg power is -128. Ignoring that for now
@@ -42,7 +44,7 @@ class ThrusterController:
         self.thruster_speeds_pub = rospy.Publisher(self.ROBOT_PUB_TOPIC, ThrusterSpeeds, queue_size=3)
         self.enable_service = rospy.Service('enable_controls', SetBool, self._handle_enable_controls)
 
-        self.tm = ThrusterManager(rr.get_filename('package://controls/config/cthulhu.config', use_protocol=False))
+        self.tm = ThrusterManager(rr.get_filename(self.CONFIG_FILE_PATH % os.getenv("ROBOT_NAME", "oogway"), use_protocol=False))
 
         self.enabled = False
         self.pid_outputs = np.zeros(6)
