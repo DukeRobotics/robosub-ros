@@ -38,34 +38,35 @@ class TaskRunner(smach.StateMachine):
 
 
 def main():
-    from geometry_msgs.msg import Pose, Quaternion, Point
-    from tf.transformations import quaternion_from_euler
-    from custom_msgs.msg import ControlsDesiredPoseAction, ControlsDesiredPoseGoal
-    import actionlib
+    try:
+        TaskRunner().execute()
+    except rospy.ROSInterruptException:
+        pass
+    # from geometry_msgs.msg import Pose, Quaternion, Point
+    # from tf.transformations import quaternion_from_euler
+    # from custom_msgs.msg import ControlsDesiredPoseAction, ControlsDesiredPoseGoal
+    # import actionlib
     
-    DESIRED_POSE_ACTION = 'controls/desired_pose'
-    DESIRED_TWIST_ACTION = 'controls/desired_twist'
+    # DESIRED_POSE_ACTION = 'controls/desired_pose'
+    # DESIRED_TWIST_ACTION = 'controls/desired_twist'
     
-    desired_pose_client = actionlib.SimpleActionClient(
-    DESIRED_POSE_ACTION, ControlsDesiredPoseAction)
+    # desired_pose_client = actionlib.SimpleActionClient(
+    # DESIRED_POSE_ACTION, ControlsDesiredPoseAction)
     
-    x, y, z = 5, 0, 0
-    roll, pitch, yaw = 0, 0, 0
+    # x, y, z = 5, 0, 0
+    # roll, pitch, yaw = 0, 0, 0
     
-    desired_pose = Pose()
-    desired_pose.position = Point(x=x, y=y, z=z)
-    desired_pose.orientation = Quaternion(
-        *
-        quaternion_from_euler(
-            roll,
-            pitch,
-            yaw))
+    # desired_pose = Pose()
+    # desired_pose.position = Point(x=x, y=y, z=z)
+    # desired_pose.orientation = Quaternion(
+    #     *
+    #     quaternion_from_euler(
+    #         roll,
+    #         pitch,
+    #         yaw))
     
-    desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose=desired_pose))
-    # try:
-    #     TaskRunner().execute()
-    # except rospy.ROSInterruptException:
-    #     pass
+    # desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose=desired_pose))
+    
 
 
 if __name__ == '__main__':
