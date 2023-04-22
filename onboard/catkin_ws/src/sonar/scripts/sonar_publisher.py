@@ -13,7 +13,7 @@ class SonarPublisher:
 
     SONAR_REQUEST_TOPIC = 'sonar/request'
     SONAR_RESPONSE_TOPIC = 'sonar/cv/response'
-    SONAR_IMAGE_TOPIC = 'sonar/image'
+    SONAR_IMAGE_TOPIC = 'sonar/image/compressed'
 
     NODE_NAME = "sonar_pub"
 
