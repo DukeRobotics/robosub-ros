@@ -1,0 +1,3 @@
+<launch>
+	<node pkg="cv" name="camera_hard_reset" type="camera_hard_reset.py" output="screen" />
+</launch>

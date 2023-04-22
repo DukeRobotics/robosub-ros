@@ -1,8 +1,6 @@
 <launch>
 	<arg name="stream" default="False" />
-	<arg name="port" default="2" />
 	<node pkg="sonar" name="sonar_pub" type="sonar_publisher.py">
 		<param name="stream" value="$(arg stream)" />
-		<param name="port" value="$(arg port)" />
 	</node>
 </launch>

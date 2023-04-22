@@ -15,6 +15,7 @@ BLOCK_LIST = [
     'joystick/launch/pub_joy.launch',
     'simulation/launch/base_sim.launch',
     'simulation/launch/test_sim_comm.launch',
+    'sonar/launch/sonar.launch',
 ]
 
 

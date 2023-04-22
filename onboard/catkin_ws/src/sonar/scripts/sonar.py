@@ -5,6 +5,7 @@ import numpy as np
 import sonar_utils
 from geometry_msgs.msg import Pose
 from tf import TransformListener
+import subprocess
 
 
 class Sonar:
@@ -12,23 +13,39 @@ class Sonar:
     Class to interface with the Sonar device.
     """
 
-    # PORT of the salea is ttyUSB2 for testing
-    DEFAULT_SERIAL_PORT = 2
-    SERIAL_PORT_NAME = "/dev/ttyUSB"
     BAUD_RATE = 2000000  # hz
     SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
     SPEED_OF_SOUND_IN_WATER = 1480  # m/s
     # number of values to filter TODO figure out where the noise starts
     FILTER_INDEX = 100
     DEFAULT_RANGE = 5
+    SONAR_STRING_CTHULU = "usb-FTDI_FT230X_Basic_UART_DK0C1WF7-if00-port0"
+    SONAR_STRING_OOGWAY = "usb-FTDI_FT230X_Basic_UART_D2011831-if00-port0"
 
     def __init__(self, range=DEFAULT_RANGE, number_of_samples=1200,
-                 serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE,
-                 serial_port_number=DEFAULT_SERIAL_PORT):
+                 baud_rate=BAUD_RATE):
         self.ping360 = Ping360()
-        # TODO: Add try except for connecting to device
-        self.ping360.connect_serial(f'{serial_port_name}{serial_port_number}',
-                                    baud_rate)
+
+        # Run the lsusb command and capture the output
+        usb_output = subprocess.check_output(['ls', '-l',
+                                              '/dev/serial/by-id/'])
+        usb_lines = usb_output.decode().split('\n')
+
+        sonar_usb = ""
+
+        # Iterate over each line and get the device path
+        for line in usb_lines[1:]:
+            if line:
+                fields = line.split(' ')
+                FTDI_Number = fields[8]
+                USB_port = fields[10][-7:]
+                if (FTDI_Number == self.SONAR_STRING_CTHULU or FTDI_Number == self.SONAR_STRING_OOGWAY):
+                    sonar_usb = "/dev/" + USB_port
+
+        if sonar_usb == "":
+            raise RuntimeError("Sonar not found")
+
+        self.ping360.connect_serial(f'{sonar_usb}', baud_rate)
         self.ping360.initialize()
         period_and_duration = self.range_to_period_and_duration(range)
 
