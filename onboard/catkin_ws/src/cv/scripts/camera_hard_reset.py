@@ -16,7 +16,7 @@ class CameraRelayController:
     """
 
     ROBOT_PUB_TOPIC = '/offboard/camera_relay'
-    RUN_LOOP_RATE = 10  # 10 Hz
+    RUN_LOOP_RATE = 1  # 1 Hz
 
     def __init__(self):
         """Initializes the ROS node.

@@ -129,7 +129,7 @@ Once 1+ models are enabled for a specific node, they listen and publish to topic
   * If a model is enabled but detects no objects in a frame, it will not publish any messages to any topic
   * Type: custom_msgs/CVObject
  * `/offboard/camera_relay_status`
-   * The topic that `rosservice enable_camera <true/false>` publishes the camera command to. Only runs if `camera_hard_reset.py` is running.
+   * The topic that `rosservice enable_camera <true/false>` publishes the camera command to. Only runs if `camera_hard_reset.launch` is running.
 
 Note that the camera feed frame rate will likely be greater than the rate at which predictions can
 be generated (especially if more than one model is enabled at the same time), so the publishing rate
