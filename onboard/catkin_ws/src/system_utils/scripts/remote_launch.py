@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import rospy
 from custom_msgs.srv import StartLaunch, StopLaunch, GetRunningNodes
 from custom_msgs.msg import RemoteLaunchInfo, RunningNode
