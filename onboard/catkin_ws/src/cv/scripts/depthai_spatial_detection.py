@@ -10,7 +10,6 @@ import numpy as np
 from utils import DetectionVisualizer
 from image_tools import ImageTools
 
-from custom_msgs.srv import EnableModel
 from custom_msgs.msg import CVObject
 from sensor_msgs.msg import CompressedImage
 from custom_msgs.msg import sweepResult, sweepGoal
@@ -30,9 +29,10 @@ SONAR_RESPONSES_PATH = 'sonar/cv/response'
 class DepthAISpatialDetector:
     def __init__(self):
         """
-        Initializes the ROS node and service. Loads the yaml file at cv/models/depthai_models.yaml
+        Initializes the ROS node. Loads the yaml file at cv/models/depthai_models.yaml
         """
         rospy.init_node('depthai_spatial_detection', anonymous=True)
+        self.running_model = rospy.get_param("~model")
         self.rgb_raw = rospy.get_param("~rgb_raw")
         self.rgb_detections = rospy.get_param("~rgb_detections")
         self.queue_rgb = self.rgb_raw or self.rgb_detections
@@ -56,7 +56,6 @@ class DepthAISpatialDetector:
         self.detection_visualizer = None
 
         self.image_tools = ImageTools()
-        self.enable_service = f'enable_model_{self.camera}'
 
         self.sonar_response = (0, 0)
         self.in_sonar_range = True
@@ -363,27 +362,6 @@ class DepthAISpatialDetector:
         if self.publishers:
             self.publishers[label].publish(object_msg)
 
-    def run_model(self, req):
-        """
-        Runs the model on the connected device.
-        :param req: Request from
-        :return: False if the model is not in cv/models/depthai_models.yaml.
-        Otherwise, the model will be run on the device.
-        """
-        if req.model_name not in self.models:
-            return False
-
-        self.init_model(req.model_name)
-        self.init_publishers(req.model_name)
-
-        with depthai_camera_connect.connect(self.pipeline) as device:
-            self.init_output_queues(device)
-
-            while not rospy.is_shutdown():
-                self.detect()
-
-        return True
-
     def update_sonar(self, sonar_results):
         """
         Callback function for listenting to sonar response
@@ -399,16 +377,24 @@ class DepthAISpatialDetector:
 
     def run(self):
         """
-        Wait for the EnableModel rosservice call. If this call is made, the model specified will be run.
-        For information about EnableModel, see robosub-ros/core/catkin_ws/src/custom_msgs/srv/EnableModel.srv
-
-        Example ros commands to run this node and activate the model:
-            roslaunch cv spatial_detection_front.launch
-            rosservice call /enable_model_front gate True
-
+        Runs the selected model on the connected device.
+        :param req: Request from
+        :return: False if the model is not in cv/models/depthai_models.yaml.
+        Otherwise, the model will be run on the device.
         """
-        rospy.Service(self.enable_service, EnableModel, self.run_model)
-        rospy.spin()
+        if self.running_model not in self.models:
+            return False
+
+        self.init_model(self.running_model)
+        self.init_publishers(self.running_model)
+
+        with depthai_camera_connect.connect(self.pipeline) as device:
+            self.init_output_queues(device)
+
+            while not rospy.is_shutdown():
+                self.detect()
+
+        return True
 
 
 def mm_to_meters(val_mm):
