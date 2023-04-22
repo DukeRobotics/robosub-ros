@@ -128,6 +128,7 @@ void setup(){
     // Wait for motors to fully initialise
     delay(2000);
     last_cmd_ms_ts = millis();
+    last_relay_msg = millis();
 }
 
 void loop(){
