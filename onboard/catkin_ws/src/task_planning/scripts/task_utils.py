@@ -248,21 +248,30 @@ def cv_object_position(cv_obj_data):
     return [cv_obj_data.x, cv_obj_data.y, cv_obj_data.z]
 
 
-class ObjectVisibleTask(smach.State):
-    def __init__(self, image_name, timeout=0):
-        super(ObjectVisibleTask, self).__init__(["undetected", "detected"],
-                                                input_keys=['image_name'],
-                                                output_keys=['image_name'])
-        self.image_name = image_name
-        self.timeout = timeout  # in seconds
+class PointToPoseTask(smach.State):
+    """
+    Converts a point to a pose with the current orientation of the robot (optionally multiplied by a quaternion)
+    """
+    def __init__(self, controls, rotation=[0, 0, 0, 1]):
+        super().__init__(outcomes=["done"], input_keys=["point"], output_keys=["pose"])
+        self.rotation = rotation
+        self.controls = controls
 
     def execute(self, userdata):
-        cycles_per_second = 10
-        rate = rospy.Rate(cycles_per_second)
-        total = 0
-        while total <= self.timeout * cycles_per_second:
-            if object_vector(self.cv_data[self.image_name]) is not None:
-                return "detected"
-            total += 1
-            rate.sleep()
-        return "undetected"
+        userdata.pose = Pose()
+        userdata.pose.position = userdata.point
+        userdata.pose.orientation = quaternion_multiply(
+            self.controls.get_state().pose.pose.orientation, self.rotation)
+        return "done"
+
+
+class LambdaTask(smach.State):
+    """
+    A task to wrap a function as a simple task
+    """
+    def __init__(self, func, outcomes, input_keys=[], output_keys=[]):
+        super().__init__(outcomes=outcomes, input_keys=input_keys, output_keys=output_keys)
+        self.func = func
+
+    def execute(self, userdata):
+        return self.func(userdata)

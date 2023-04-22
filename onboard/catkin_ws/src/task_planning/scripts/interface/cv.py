@@ -1,25 +1,23 @@
 import rospy
-
+import yaml
+import resource_retriever as rr
 from custom_msgs.msg import CVObject
 
 
 class CVInterface:
-    CV_DATA_TOPICS = ["/cv/simulation/bin/left",
-                      "/cv/simulation/bootleggerbuoy/left",
-                      "/cv/simulation/gate/left",
-                      "/cv/simulation/gateleftchild/left",
-                      "/cv/simulation/gaterightchild/left",
-                      "/cv/simulation/gmanbuoy/left",
-                      "/cv/simulation/octagon/left",
-                      "/cv/simulation/pole/left",
-                      "/cv/simulation/straightpathmarker/left"]
+    MODELS_PATH = "package://cv/models/depthai_models.yaml"
+    CV_CAMERA = "front"
+    CV_MODEL = "yolov7_tiny_2023"
 
     def __init__(self):
         self.cv_data = {}
-        for topic in self.CV_DATA_TOPICS:
-            name = topic.replace("/left", "").split("/")[-1]
-            self.cv_data[name] = None
-            rospy.Subscriber(topic, CVObject, self._on_receive_cv_data, name)
+
+        with open(rr.get_filename(self.MODELS_PATH, use_protocol=False)) as f:
+            model = yaml.safe_load(f)[self.CV_MODEL]
+            for model_class in model['classes']:
+                self.cv_data[model_class] = None
+                topic = f"{model['topic']}{self.CV_CAMERA}/{model_class}"
+                rospy.Subscriber(topic, CVObject, self._on_receive_cv_data, model_class)
 
     def _on_receive_cv_data(self, cv_data, object_type):
         self.cv_data[object_type] = cv_data
