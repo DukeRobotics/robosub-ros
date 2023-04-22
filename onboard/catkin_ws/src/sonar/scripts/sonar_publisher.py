@@ -22,7 +22,7 @@ class SonarPublisher:
     def __init__(self):
         rospy.init_node(self.NODE_NAME)
         self.stream = rospy.get_param('~stream')
-        self.sonar = Sonar(10, serial_port_number=self.port)
+        self.sonar = Sonar(10)
         self.cv_bridge = CvBridge()
         self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC,
                                             sweepResult, queue_size=10)
