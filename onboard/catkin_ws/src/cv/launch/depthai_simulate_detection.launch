@@ -2,9 +2,13 @@
 	<arg name="feed_path" default="" doc='{"type":"str","allowEmpty":false,"help":"The path to the still image or topic to use as the simulated camera feed."}'/>
 	<arg name="depthai_model_name" default="" doc='{"options":["","gate","gate_buoy"],"allowEmpty":false,"help":"The DepthAI model to use from depthai_models.yaml"}' />
 	<arg name="publishing_topic" default="/cv/depthai_sim/detections" doc='{"type":"str","allowEmpty":false,"help":"The topic to publish detections to."}'/>
+	<arg name="show_class_name" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to show the class name."}'/>
+	<arg name="show_confidence" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to show the confidence value."}'/>
 	<node name="depthai_simulate_detection" pkg="cv" type="depthai_simulate_detection.py" output="screen">
 		<param name="feed_path" value="$(arg feed_path)" />
 		<param name="depthai_model_name" value="$(arg depthai_model_name)" />
 		<param name="publishing_topic" value="$(arg publishing_topic)" />
+		<param name="show_class_name" value="$(arg show_class_name)" />
+		<param name="show_confidence" value="$(arg show_confidence)" />
 	</node>
 </launch>

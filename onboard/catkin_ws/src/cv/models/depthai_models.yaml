@@ -6,6 +6,7 @@ gate:
   coordinate_size: 4
   anchors: [10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]
   anchor_masks: {"side26": [0, 1, 2], "side13": [3, 4, 5]}
+  colors: ["DC143C", "FFA500", "FFFF00", "00FF00", "000080"]
 
 gate_buoy:
   classes: ['buoy_bootlegger', 'buoy_gman', 'gate']
@@ -15,3 +16,4 @@ gate_buoy:
   coordinate_size: 4
   anchors: [10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]
   anchor_masks: {"side26": [0, 1, 2], "side13": [3, 4, 5]}
+  colors: ["8A2BE2", "800000", "708090"]
