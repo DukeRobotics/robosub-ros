@@ -76,6 +76,7 @@ class LaunchWidget(QWidget):
         self.table_widget.cellDoubleClicked.connect(self.row_double_clicked)
 
         self.launch_dialog.node_launched.connect(self.append_to_table)
+        self.check_running_nodes_button.clicked.connect(self.check_running_nodes)
 
         self.remote_launch_timer = QTimer(self)
         self.remote_launch_timer.timeout.connect(self.check_remote_launch)
@@ -154,7 +155,7 @@ class LaunchWidget(QWidget):
             if rli_msg.msg_type == RemoteLaunchInfo.EXECUTING:
                 running_node_msg = rli_msg.running_node_info
                 # If the new node was launched from another plugin instance
-                self.append_to_table(running_node_msg.pid, running_node_msg.package,
+                self.append_to_table(str(running_node_msg.pid), running_node_msg.package,
                                      running_node_msg.file, " ".join(running_node_msg.args))
 
     def delete_launch(self, pid, node_name):
@@ -207,7 +208,13 @@ class LaunchWidget(QWidget):
         self.table_widget_lock.release()
         return self.table_widget.rowCount() - 1
 
-    def row_double_clicked(self, row, column):
+    def check_running_nodes(self):
+        running_nodes_srv = rospy.ServiceProxy('running_nodes', GetRunningNodes)
+        running_nodes_msgs = running_nodes_srv()
+        for node in running_nodes_msgs.running_nodes_msgs:
+            self.append_to_table(str(node.pid), node.package, node.file, " ".join(node.args))
+
+    def row_double_clicked(self, row, _):
         if row >= 1:
             row_pid = self.table_widget.item(row, 0).text()
 
@@ -257,7 +264,7 @@ class LaunchWidget(QWidget):
 
                 node_info_dialog.exec()
 
-    def closeEvent(self, event):
+    def closeEvent(self, _):
         self.launch_dialog.accept()
 
     def close(self):
@@ -312,10 +319,7 @@ class LaunchWidget(QWidget):
 
             # if the display_all_nodes_checkbox is toggled on (previously off)
             if self.display_all_nodes:
-                running_nodes_srv = rospy.ServiceProxy('running_nodes', GetRunningNodes)
-                running_nodes_msgs = running_nodes_srv()
-                for node in running_nodes_msgs.running_nodes_msgs:
-                    self.append_to_table(node.pid, node.package, node.file, node.args)
+                self.check_running_nodes()
 
 
 class LaunchWidgetSettings(QDialog):

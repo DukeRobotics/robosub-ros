@@ -37,17 +37,31 @@
     </widget>
    </item>
    <item>
-     <widget class="Line" name="line">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
+    <widget class="Line" name="line">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontal_layout">
+     <item>
+      <widget class="QLabel" name="delete_nodes_label">
+       <property name="text">
+        <string>Select row and press Fn+Delete (for Mac)/Delete (for Windows) to delete node</string>
+       </property>
+       <property name="alignment">
+        <enum>Qt::AlignCenter</enum>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="QTableWidget" name="table_widget">
@@ -108,6 +122,17 @@
       </property>
      </item>
     </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontal_layout">
+     <item>
+      <widget class="QPushButton" name="check_running_nodes_button">
+       <property name="text">
+        <string>Check all running nodes</string>
+       </property>\
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
