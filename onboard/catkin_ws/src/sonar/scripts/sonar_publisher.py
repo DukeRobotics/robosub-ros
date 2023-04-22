@@ -43,7 +43,7 @@ class SonarPublisher:
 
         if self.stream:
             sonar_image = build_sonar_image(scanned_image)
-            compressed_image = self.image_tools.convert_to_ros_compressed_msg(sonar_image)
+            compressed_image = self.cv_bridge.cv2_to_compressed_imgmsg(sonar_image)
             self.sonar_image_publisher.publish(compressed_image)
 
         response = sweepResult()
