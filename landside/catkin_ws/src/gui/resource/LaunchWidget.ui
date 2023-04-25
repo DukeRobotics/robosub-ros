@@ -129,7 +129,7 @@
       <widget class="QPushButton" name="check_running_nodes_button">
        <property name="text">
         <string>Check all running nodes</string>
-       </property>\
+       </property>
       </widget>
      </item>
     </layout>

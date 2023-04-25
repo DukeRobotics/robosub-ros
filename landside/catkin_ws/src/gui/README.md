@@ -87,10 +87,11 @@ To stop a node that was run using the Launch Dialog, you may click on the item i
 
 To open the configuration dialog, you may click on the gear icon in the top right corner of the plugin. In the configuration dialog, there are 3 independent checkboxes:
 
-- Display all nodes: if checked, the plugin will display all nodes launched by remote_launch (not just nodes launched by the plugin) and allow the user to terminate any node that is displayed in the table. This means that if there is more than one instance of the Launch Plugin being used to launch nodes, then all instances will display all nodes that have been launched by all instances and they all can terminate each others' node as well.
+- Display all nodes: if checked, the plugin will display all nodes launched by remote_launch (not just nodes launched by the plugin) and allow the user to terminate any node that is displayed in the table. This means that if there is more than one instance of the Launch Plugin being used to launch nodes, then all instances will display all nodes that have been launched by all instances and they all can terminate each others' node as well. If this option is unchecked, all nodes that were not launched by this instance will be removed from the table.
 - Only remove nodes manually: if checked, the plugin does not remove nodes that were terminated on their own or by another launch plugin from the table; nodes will only be removed from the table when the user selects a row and presses Delete/Fn + Delete. If the row is a running node, it will be terminated before being removed from the table. Otherwise, if this option is not checked, whenever a node is terminated (either on its own by Delete/Fn + Delete), it will automatically be removed from the table.
 - Display running status: if checked, the plugin adds a column "Status" to the table that indicates whether each node is currently running or has been terminated.
 
+Pressing the "Check all running nodes" button will also add all nodes previously launched by remote_launch and allow the user to terminate any node that is displayed in the table (similar to Display all nodes checkbox). However, unlike that checkbox option, after this point, the table will _not_ automatically update when nodes are launched by other instances.
 
 #### Launch Argument Validation & Help
 
