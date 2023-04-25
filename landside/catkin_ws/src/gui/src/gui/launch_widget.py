@@ -61,6 +61,7 @@ class LaunchWidget(QWidget):
         loadUi(ui_file, self)
 
         self.running_nodes = {}
+        self.self_launched_nodes_pid = []
 
         self.threadpool = QThreadPool()
 
@@ -141,6 +142,8 @@ class LaunchWidget(QWidget):
             if not self.remove_nodes_manually:
                 self.remove_from_table(running_node_msg.pid)
             else:
+                if str(running_node_msg.pid) in self.self_launched_nodes_pid:
+                    self.self_launched_nodes_pid.remove(str(running_node_msg.pid))
                 self.table_widget_lock.acquire()
                 row = self.get_row_with_pid(running_node_msg.pid)
                 if row is not None:
@@ -155,7 +158,7 @@ class LaunchWidget(QWidget):
             running_node_msg = rli_msg.running_node_info
             # If the new node was launched from another plugin instance
             self.append_to_table(str(running_node_msg.pid), running_node_msg.package,
-                                 running_node_msg.file, running_node_msg.args)
+                                 running_node_msg.file, running_node_msg.args, False)
 
     def delete_launch(self, pid, node_name):
         stop_node_service = StopNodeService(pid, node_name)
@@ -179,6 +182,8 @@ class LaunchWidget(QWidget):
         return None
 
     def remove_from_table(self, pid):
+        if str(pid) in self.self_launched_nodes_pid:
+            self.self_launched_nodes_pid.remove(str(pid))
         self.table_widget_lock.acquire()
         row = self.get_row_with_pid(pid)
         if row is not None:
@@ -187,9 +192,12 @@ class LaunchWidget(QWidget):
                 self.running_nodes.pop(str(pid))
         self.table_widget_lock.release()
 
-    def append_to_table(self, pid, package, name, args):
+    def append_to_table(self, pid, package, name, args, self_launched=True):
+        if self_launched:
+            self.self_launched_nodes_pid.append(str(pid))
+
         self.table_widget_lock.acquire()
-        if pid not in self.running_nodes:
+        if str(pid) not in self.running_nodes:
             self.running_nodes[str(pid)] = {
                 "PID": str(pid),
                 "Package": package,
@@ -211,7 +219,7 @@ class LaunchWidget(QWidget):
         running_nodes_srv = rospy.ServiceProxy('running_nodes', GetRunningNodes)
         running_nodes_msgs = running_nodes_srv()
         for node in running_nodes_msgs.running_nodes_msgs:
-            self.append_to_table(str(node.pid), node.package, node.file, node.args)
+            self.append_to_table(str(node.pid), node.package, node.file, node.args, False)
 
     def row_double_clicked(self, row, _):
         if row >= 1:
@@ -321,6 +329,10 @@ class LaunchWidget(QWidget):
             # if the display_all_nodes_checkbox is toggled on (previously off)
             if self.display_all_nodes:
                 self.check_running_nodes()
+            else:
+                for pid in list(self.running_nodes):
+                    if pid not in self.self_launched_nodes_pid:
+                        self.remove_from_table(pid)
 
 
 class LaunchWidgetSettings(QDialog):
