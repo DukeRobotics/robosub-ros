@@ -151,12 +151,11 @@ class LaunchWidget(QWidget):
                 self.table_widget_lock.release()
 
     def check_for_new_nodes(self, rli_msg):
-        if self.display_all_nodes:
-            if rli_msg.msg_type == RemoteLaunchInfo.EXECUTING:
-                running_node_msg = rli_msg.running_node_info
-                # If the new node was launched from another plugin instance
-                self.append_to_table(str(running_node_msg.pid), running_node_msg.package,
-                                     running_node_msg.file, " ".join(running_node_msg.args))
+        if self.display_all_nodes and rli_msg.msg_type == RemoteLaunchInfo.EXECUTING:
+            running_node_msg = rli_msg.running_node_info
+            # If the new node was launched from another plugin instance
+            self.append_to_table(str(running_node_msg.pid), running_node_msg.package,
+                                 running_node_msg.file, running_node_msg.args)
 
     def delete_launch(self, pid, node_name):
         stop_node_service = StopNodeService(pid, node_name)
@@ -212,7 +211,7 @@ class LaunchWidget(QWidget):
         running_nodes_srv = rospy.ServiceProxy('running_nodes', GetRunningNodes)
         running_nodes_msgs = running_nodes_srv()
         for node in running_nodes_msgs.running_nodes_msgs:
-            self.append_to_table(str(node.pid), node.package, node.file, " ".join(node.args))
+            self.append_to_table(str(node.pid), node.package, node.file, node.args)
 
     def row_double_clicked(self, row, _):
         if row >= 1:
@@ -240,19 +239,21 @@ class LaunchWidget(QWidget):
                     if field != "Args":
                         node_info_text += f'<b>{field}:</b> {node_info[field]}<br>'
                 node_info_text += '<b>Args: </b>'
-                if node_info["Args"] == "":
+
+                if len(node_info["Args"]) == 0:
                     node_info_text += "None"
+
                 node_info_label.setText(node_info_text)
                 node_info_layout.addWidget(node_info_label)
 
-                args_table = QTableWidget()
+                if len(node_info["Args"]) > 0:
+                    args_table = QTableWidget()
 
-                args_table.setColumnCount(2)
-                args_table.setHorizontalHeaderItem(0, QTableWidgetItem("Name"))
-                args_table.setHorizontalHeaderItem(1, QTableWidgetItem("Value"))
+                    args_table.setColumnCount(2)
+                    args_table.setHorizontalHeaderItem(0, QTableWidgetItem("Name"))
+                    args_table.setHorizontalHeaderItem(1, QTableWidgetItem("Value"))
 
-                if node_info["Args"] != "":
-                    for arg in node_info["Args"].split(" "):
+                    for arg in node_info["Args"]:
                         arg_name, arg_value = arg.split(":=")
                         args_table.insertRow(args_table.rowCount())
                         args_table.setItem(args_table.rowCount() - 1, 0, QTableWidgetItem(arg_name))
