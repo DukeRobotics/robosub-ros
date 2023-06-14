@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import rospy
+import rostopic
+import rosgraph
 from std_msgs.msg import Float64
 from custom_msgs.msg import ThrusterSpeeds
 import numpy as np
@@ -103,16 +105,20 @@ class ThrusterController:
         """
         rate = rospy.Rate(self.RUN_LOOP_RATE)
         while not rospy.is_shutdown():
-            if not self.enabled:
-                i8_t_allocs = ThrusterSpeeds()
-                i8_t_allocs.speeds = np.zeros(8).astype(int)
-                self.thruster_speeds_pub.publish(i8_t_allocs)
+            master = rosgraph.Master('/rostopic')
+            pubs, _ = rostopic.get_topic_list(master=master)
+            if self.ROBOT_PUB_TOPIC in [pub[0] for pub in pubs]:
+                rospy.loginfo("Thruster speeds topics published")
+                if not self.enabled:
+                    i8_t_allocs = ThrusterSpeeds()
+                    i8_t_allocs.speeds = np.zeros(8).astype(int)
+                    self.thruster_speeds_pub.publish(i8_t_allocs)
 
-            if self.enabled:
-                self._scale_thruster_speeds()
-                i8_t_allocs = ThrusterSpeeds()
-                i8_t_allocs.speeds = (self.t_allocs * self.MAX_THRUSTER_POWER * self.POWER_SCALING_FACTOR).astype(int)
-                self.thruster_speeds_pub.publish(i8_t_allocs)
+                if self.enabled:
+                    self._scale_thruster_speeds()
+                    i8_t_allocs = ThrusterSpeeds()
+                    i8_t_allocs.speeds = (self.t_allocs * self.MAX_THRUSTER_POWER * self.POWER_SCALING_FACTOR).astype(int)
+                    self.thruster_speeds_pub.publish(i8_t_allocs)
 
             rate.sleep()
 
