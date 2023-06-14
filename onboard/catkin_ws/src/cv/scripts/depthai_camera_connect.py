@@ -93,15 +93,13 @@ def connect(pipeline):
 def custom_autodiscovery():
     """
     Scans all IP addresses from 192.168.1.0 to 192.168.1.255 looking for the DepthAI camera's MAC address.
-    If successful, returns the camera's IP address.
-    If not successful, raises RuntimeError
 
-    :return: IP address string
+    :return: DepthAI IP address string
     :raises RuntimeError: if the camera's IP address could not be found
     """
 
     MAC_address = "44:A9:2C:3C:0A:90"  # DepthAI camera MAC address
-    IP_range = "192.168.1.0/24"
+    IP_range = "192.168.1.0/24"  # 192.168.1.0 to 192.168.1.255
 
     nm = nmap.PortScanner()
     scan = nm.scan(hosts=IP_range, arguments='-sP')['scan']
