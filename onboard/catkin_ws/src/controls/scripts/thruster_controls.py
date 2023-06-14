@@ -117,7 +117,8 @@ class ThrusterController:
                 if self.enabled:
                     self._scale_thruster_speeds()
                     i8_t_allocs = ThrusterSpeeds()
-                    i8_t_allocs.speeds = (self.t_allocs * self.MAX_THRUSTER_POWER * self.POWER_SCALING_FACTOR).astype(int)
+                    i8_t_allocs.speeds = (self.t_allocs * self.MAX_THRUSTER_POWER
+                                          * self.POWER_SCALING_FACTOR).astype(int)
                     self.thruster_speeds_pub.publish(i8_t_allocs)
 
             rate.sleep()
