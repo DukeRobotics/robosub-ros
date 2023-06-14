@@ -2,6 +2,7 @@
 
 import depthai as dai
 import rospy
+import nmap
 
 
 def connect(pipeline):
@@ -10,7 +11,7 @@ def connect(pipeline):
 
     It tries to connect five times, waiting 2 seconds before trying again (so the script is successful if the camera is
     just temporarily unavailable). In each try, it attempts to connect first using autodiscovery, then using manual IP
-    address specification.
+    address specification, then finally using custom autodiscovery.
 
     :param pipeline: The DepthAI pipeline to upload to the camera.
     :return: depthai.Device object
@@ -53,6 +54,24 @@ def connect(pipeline):
             # successful camera connection was made, and device should be returned
             return device
 
+        except RuntimeError:
+            pass
+
+        if rospy.is_shutdown():
+            break
+
+        try:
+            # Scan for camera IP address using custom autodiscovery
+            ip = custom_autodiscovery()
+            device_info = dai.DeviceInfo(ip)
+
+            # Try connecting with the discovered IP address
+            device = dai.Device(pipeline, device_info)
+
+            # If the execution reaches the following return statement, the line above did not raise an exception, so a
+            # successful camera connection was made, and device should be returned
+            return device
+
         except RuntimeError as e:
             # For all tries before the last one, don't raise the exception and try connecting again
             # On the last try, raise the exception so DepthAI code doesn't run without a successful camera connection
@@ -71,7 +90,30 @@ def connect(pipeline):
                        f"autodiscovery and manual IP address specification. All attempts failed.")
 
 
-if __name__ == '__main__':
-    rospy.init_node('depthai_camera_connect')
+def custom_autodiscovery():
+    """
+    Scans all IP addresses from 192.168.1.0 to 192.168.1.255 looking for the DepthAI camera's MAC address.
+    If successful, returns the camera's IP address.
+    If not successful, raises RuntimeError
+
+    :return: IP address string
+    :raises RuntimeError: if the camera's IP address could not be found
+    """
+
+    MAC_address = "44:A9:2C:3C:0A:90"  # DepthAI camera MAC address
+    IP_range = "192.168.1.0/24"
+
+    nm = nmap.PortScanner()
+    scan = nm.scan(hosts=IP_range, arguments='-sP')['scan']
+
+    for ip, info in scan.items():
+        if info['status']['state'] == 'up' and info['addresses'].get('mac') == MAC_address:
+            return ip
+
+    raise RuntimeError("Custom autodiscovery failed to find camera.")
+
+
+if __name__ == "__main__":
+    rospy.init_node("depthai_camera_connect")
     if connect(dai.Pipeline()):
         rospy.loginfo("Connected to DepthAI device successfully.")

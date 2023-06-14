@@ -53,7 +53,8 @@ RUN pip3 install --no-cache-dir \
     pyserial dependency-injector \
     gputil saleae \
     bluerobotics-ping \
-    roboflow
+    roboflow \
+    python-nmap
 
 # Install PyTorch and Torchvision
 COPY torch_installer.sh torch_deps/torch_installer.sh
