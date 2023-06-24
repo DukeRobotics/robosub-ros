@@ -1,17 +1,25 @@
 # The best readme
 
 ## To launch the Docker container on landside container on the laptop during pool test
-
+```bash
 docker run --priveleged --net=host -td -p 2201:2201 -v ${PWD}:/root/dev/robosub-ros dukerobotics/robosub-ros:landside
+```
 
 ## To connect Robot onboard to laptop landside 
 
 ### On laptop landside
+```bash
 hostname
+```
 
 ### On robot onboard
+```bash
 nano etc/hosts
+```
+
+```bash
 ping {hostname}
+```
 
 ## To test thrusters and onboard-landside connection
 ``rostopic pub -r 10 /offboard/thruster_speeds custom_msgs/ThrusterSpeeds '{speeds: [0,0,0,0,0,0,0,0]}'``
