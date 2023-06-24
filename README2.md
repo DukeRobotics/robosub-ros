@@ -22,9 +22,12 @@ ping {hostname}
 ```
 
 ## To test thrusters and onboard-landside connection
+``roslaunch offboard_comms serial.launch``
+
 ``rostopic pub -r 10 /offboard/thruster_speeds custom_msgs/ThrusterSpeeds '{speeds: [0,0,0,0,0,0,0,0]}'``
 
-Run this with serial.launch (instead of motion.launch)
+This must be done with **serial.launch** instead of `motion.launch` because `motion.launch` launches 
+`test_state_publisher.py` which also publishes to `offboard/thruster_speeds`.
 
 ## To set a desired global state for the robot
 ``roslaunch execute motion.launch``
