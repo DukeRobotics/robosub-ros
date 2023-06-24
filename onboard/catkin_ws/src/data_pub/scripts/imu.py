@@ -9,6 +9,7 @@ import resource_retriever as rr
 import traceback
 
 from sensor_msgs.msg import Imu, MagneticField
+from tf.transformations import quaternion_multiply
 
 CONFIG_FILE_PATH = 'package://data_pub/config/%s/imu.yaml'
 config_data = None
@@ -74,30 +75,38 @@ class IMURawPublisher:
         return line.split(self.LINE_DELIM)
 
     def _parse_orient(self, items):
+        #x,y,z,w
         quat = [float(items[1]), float(items[2]), float(items[3]), float(items[4])]
         # For Cthulhu, transform quaternion from NED to ENU coordinates	
-        # For Oogway, rotate upside down and about z axis by 45 degrees clockwise (negative)
+        enu_quat = [0.7071068, -0.7071068, 0.0, 0.0]
+        up_quat = quaternion_multiply(enu_quat, quat)
 
-        self._current_imu_msg.orientation.x = quat[1]
-        self._current_imu_msg.orientation.y = quat[0]
-        self._current_imu_msg.orientation.z = -1 * quat[2]
-        self._current_imu_msg.orientation.w = quat[3]
+        self._current_imu_msg.orientation.x = up_quat[0]
+        self._current_imu_msg.orientation.y = up_quat[1]
+        self._current_imu_msg.orientation.z = up_quat[2]
+        self._current_imu_msg.orientation.w = up_quat[3]
+
+        self._current_imu_msg.orientation_covariance = [0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.01]
 
     def _parse_accel(self, items):
-        self._current_imu_msg.linear_acceleration.x = float(items[9])
-        self._current_imu_msg.linear_acceleration.y = float(items[8])
-        self._current_imu_msg.linear_acceleration.z = -1 * float(items[10])
+        self._current_imu_msg.linear_acceleration.x = float(items[8])
+        self._current_imu_msg.linear_acceleration.y = float(items[9])
+        self._current_imu_msg.linear_acceleration.z = float(items[10])
+
+        self._current_imu_msg.linear_acceleration_covariance = [0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.01]
 
     def _parse_angvel(self, items):
-        self._current_imu_msg.angular_velocity.x = float(items[12])
-        self._current_imu_msg.angular_velocity.y = float(items[11])
+        self._current_imu_msg.angular_velocity.x = float(items[11])
+        self._current_imu_msg.angular_velocity.y = float(items[12])
         items[13] = items[13][0:10]
-        self._current_imu_msg.angular_velocity.z = -1 * float(items[13])
+        self._current_imu_msg.angular_velocity.z = float(items[13])
+
+        self._current_imu_msg.angular_velocity_covariance = [0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.01]
 
     def _parse_mag(self, items):
-        self._current_mag_msg.magnetic_field.x = float(items[6])
-        self._current_mag_msg.magnetic_field.y = float(items[5])
-        self._current_mag_msg.magnetic_field.z = -1 * float(items[7])
+        self._current_mag_msg.magnetic_field.x = float(items[5])
+        self._current_mag_msg.magnetic_field.y = float(items[6])
+        self._current_mag_msg.magnetic_field.z = float(items[7])
 
     def _publish_current_msg(self):
         self._current_imu_msg.header.stamp = rospy.Time.now()
