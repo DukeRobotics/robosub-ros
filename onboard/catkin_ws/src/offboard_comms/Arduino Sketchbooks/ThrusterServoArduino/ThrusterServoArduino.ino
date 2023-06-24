@@ -116,7 +116,7 @@ void setup(){
     Wire.begin();
     int pressure_attempts = 0;
     while(!pressure_sensor.init()){
-      nh.logerror("Failed to initialize pressure sensor.");
+    //   nh.logerror("Failed to initialize pressure sensor.");
       if(++pressure_attempts > 3){
          has_pressure = false;
          break;
