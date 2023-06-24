@@ -14,10 +14,13 @@ nano etc/hosts
 ping {hostname}
 
 ## To test thrusters and onboard-landside connection
-rostopic pub -r 10 /offboard/thruster_speeds custom_msgs/ThrusterSpeeds '{speeds: [0,0,0,0,0,0,0,0]}'
+``rostopic pub -r 10 /offboard/thruster_speeds custom_msgs/ThrusterSpeeds '{speeds: [0,0,0,0,0,0,0,0]}'``
+
 Run this with series.launch (instead of motion.launch)
 
 ## To set a desired global state for the robot
-roslaunch execute motion.launch
-rosservice call /enable_controls true
-rosrun controls test_state_publisher.py
+``roslaunch execute motion.launch``
+
+``rosservice call /enable_controls true``
+
+``rosrun controls test_state_publisher.py``
