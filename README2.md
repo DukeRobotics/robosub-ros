@@ -32,3 +32,16 @@ Run this with series.launch (instead of motion.launch)
 ``rosservice call /enable_controls true``
 
 ``rosrun controls test_state_publisher.py``
+
+## To launch the joystick:
+Start the raw joystick node on the **landside** computer by executing
+
+`
+roslaunch joystick_raw.launch
+`
+
+Start the joystick pulishing node on either computer by executing 
+
+`
+roslaunch pub_joy.launch
+`
