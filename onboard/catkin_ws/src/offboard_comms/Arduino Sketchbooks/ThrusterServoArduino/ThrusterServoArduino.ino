@@ -6,6 +6,7 @@
 #include <custom_msgs/ThrusterSpeeds.h>
 #include <custom_msgs/ServoAngleArray.h>
 #include <sensor_msgs/FluidPressure.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <std_msgs/Bool.h>
 #include <Arduino.h>
 
@@ -52,7 +53,7 @@ std_msgs::Bool relay_status_msg;
 
 //Message to use with the pressure sensor
 sensor_msgs::FluidPressure pressure_msg;
-
+geometry_msgs::PoseWithCovarianceStamped depth;
 
 ros::Publisher pressure_pub("/offboard/pressure", &pressure_msg);
 ros::Publisher relay_status_pub("/offboard/camera_relay_status", &relay_status_msg);
@@ -144,6 +145,7 @@ void loop(){
     }
     pressure_sensor.read();
     pressure_msg.fluid_pressure = pressure_sensor.pressure(100.0f);
+    
     pressure_pub.publish(&pressure_msg);
     //publish relay if it has been at least a second since last publish
     if (millis() - last_relay_msg > 1000) {
