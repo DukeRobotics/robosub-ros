@@ -173,7 +173,7 @@ float MS5837::temperature() {
 }
 
 float MS5837::depth() {
-	return (pressure(MS5837::Pa)-101300)/(fluidDensity*9.80665);
+	return (pressure(MS5837::Pa)-99880)/(fluidDensity*9.80665);
 }
 
 float MS5837::altitude() {
