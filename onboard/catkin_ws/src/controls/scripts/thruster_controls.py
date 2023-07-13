@@ -111,7 +111,7 @@ class ThrusterController:
             master = rosgraph.Master('/rostopic')
             pubs, _ = rostopic.get_topic_list(master=master)
             if self.ROBOT_PUB_TOPIC in [pub[0] for pub in pubs]:
-                rospy.loginfo("Thruster speeds topics published")
+                # rospy.loginfo("Thruster speeds topics published")
                 if not self.enabled:
                     i8_t_allocs = ThrusterSpeeds()
                     i8_t_allocs.speeds = np.zeros(8).astype(int)
