@@ -41,7 +41,7 @@ void loop() {
   sensor.read();
   char c[50];
   sprintf(c, "%g", sensor.pressure(100.0f));
-  nh.loginfo(c);
+  // nh.loginfo(c);
 
   //odom_msg.header.stamp = ros::Time::now();
   odom_msg.header.frame_id = "odom";
