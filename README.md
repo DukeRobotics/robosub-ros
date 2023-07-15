@@ -100,7 +100,7 @@ Use these instructions when running code on the robot itself.
     ```
 1. There, make sure the latest code from this repo is pulled. Then, run the onboard container if it's not already running.
     ```bash
-    docker run -td --privileged --net=host -v /home/robot/robosub-ros:/root/dev/robosub-ros -v /dev/bus/usb:/dev/bus/usb -v /dev/serial:/dev/serial  dukerobotics/robosub-ros:onboard
+    docker run -td --privileged --net=host -v /home/robot/robosub-ros:/root/dev/robosub-ros -v /dev:/dev dukerobotics/robosub-ros:onboard
     ```
 1. Clone this repo on your local computer. In the newly-created directory (robosub-ros), run the landside container. If on Windows, use PowerShell.
     ```bash
