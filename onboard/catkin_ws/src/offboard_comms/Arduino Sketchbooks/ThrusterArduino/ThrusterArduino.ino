@@ -4,11 +4,9 @@
 #include <ros.h>
 #include <custom_msgs/ThrusterSpeeds.h>
 #include <custom_msgs/ServoAngleArray.h>
-#include <sensor_msgs/FluidPressure.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <std_msgs/Bool.h>
 #include <Arduino.h>
-// #include <Wire.h>
 
 Adafruit_PWMServoDriver pwm_multiplexer(0x40);
 
@@ -24,8 +22,6 @@ uint8_t servo_angles[NUM_SERVOS];
 
 MultiplexedBasicESC thrusters[NUM_THRUSTERS];
 MultiplexedServo servos[NUM_SERVOS];
-
-bool has_pressure = true;
 
 //Relay to hard reset camera
 int relay = 2; //pin 2
@@ -48,8 +44,6 @@ void servo_control_callback(const custom_msgs::ServoAngleArray &sa_msg){
 
 //Message to use with the relay status
 std_msgs::Bool relay_status_msg;
-
-//geometry_msgs::PoseWithCovarianceStamped depth;
 
 ros::Publisher relay_status_pub("/offboard/camera_relay_status", &relay_status_msg);
 
@@ -74,8 +68,6 @@ void relay_callback(const std_msgs::Bool &relay_msg){
         camera_enabled = relay_msg.data;
         relay_status_msg.data = camera_enabled;
     }
-
-    
 }
 
 ros::Subscriber<custom_msgs::ThrusterSpeeds> ts_sub("/offboard/thruster_speeds", &thruster_speeds_callback);
@@ -108,28 +100,6 @@ void setup(){
         servos[i].attach(i + NUM_THRUSTERS);
     }
     memset(servo_angles, 0, sizeof(servo_angles));
-
-    // Wire.setClock(400*1000);
-//    Wire.begin();
-    /*#if defined(WIRE_HAS_TIMEOUT)
-        Wire.setWireTimeout(3000, true);
-    #endif
-    int pressure_attempts = 0;
-    while(!pressure_sensor.init()){
-    //   nh.logerror("Failed to initialize pressure sensor.");
-      if(++pressure_attempts > 3){
-         has_pressure = false;
-         break;
-      }
-      delay(2000);
-    }
-    if(has_pressure) pressure_sensor.setModel(MS5837::MS5837_30BA);
-
-    // Wait for motors to fully initialise
-    delay(2000);
-    last_cmd_ms_ts = millis();
-    last_relay_msg = millis();
-    last_pressure_msg = millis(); */
 }
 
 void loop(){
@@ -149,7 +119,8 @@ void loop(){
     if (millis() - last_relay_msg > 1000) {
         relay_status_pub.publish(&relay_status_msg);
         last_relay_msg = millis();
-	nh.spinOnce();
     }
+
+	nh.spinOnce();
 
 }

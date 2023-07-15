@@ -7,8 +7,8 @@ while getopts ":hc" opt; do
 	case ${opt} in
 		h )
 			echo "Usage:"
-			echo "    rosrun offboard_comms upload_arduino.sh                  Compile and upload code to the arduino"
-			echo "    rosrun offboard_comms upload_arduino.sh -c               Only compile arduino code (no upload)"
+			echo "    rosrun offboard_comms dual_upload.sh                  Compile and upload code to the arduino"
+			echo "    rosrun offboard_comms dual_upload.sh -c               Only compile arduino code (no upload)"
 			exit 0
 		;;
 		c )
@@ -32,8 +32,8 @@ rosrun rosserial_arduino make_libraries.py .
 zip -r ros_lib.zip ros_lib
 
 PKG_DIR=$(rospack find offboard_comms)
-SRC_CODE1="${PKG_DIR}/Arduino Sketchbooks/ThrusterServoArduino"
-SRC_CODE2="${PKG_DIR}/Arduino Sketchbooks/THRUSTER_TEMP"
+SRC_CODE1="${PKG_DIR}/Arduino Sketchbooks/PressureArduino"
+SRC_CODE2="${PKG_DIR}/Arduino Sketchbooks/ThrusterArduino"
 ARD_DEVS=$("${PKG_DIR}"/scripts/devices.sh)
 ARDUINO1=$(echo $ARD_DEVS | awk '{print $1}')
 PORT1=$(echo $ARD_DEVS | awk '{print $3}')
