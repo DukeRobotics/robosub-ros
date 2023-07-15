@@ -41,6 +41,7 @@ RUN apt-get update && \
     ros-noetic-rosserial \
     ros-noetic-rosserial-arduino \
     ffmpeg \
+    nmap \
     iputils-ping \
     python3-pandas && \
     apt-get clean && \
@@ -53,6 +54,7 @@ RUN pip3 install --no-cache-dir \
     pyserial dependency-injector \
     gputil saleae \
     bluerobotics-ping \
+    python-nmap \
     roboflow
 
 # Install PyTorch and Torchvision
