@@ -1,8 +1,13 @@
 # The best readme
 
+## Docker onboard
+```bash
+docker run -td --privileged --net=host -v /home/robot/robosub-ros:/root/dev/robosub-ros -v /dev:/dev dukerobotics/robosub-ros:onboard
+```
+
 ## To launch the Docker container on landside container on the laptop during pool test
 ```bash
-docker run --priveleged --net=host -td -p 2201:2201 -v ${PWD}:/root/dev/robosub-ros dukerobotics/robosub-ros:landside
+docker run --privileged --net=host -td -p 2201:2201 -v ${PWD}:/root/dev/robosub-ros dukerobotics/robosub-ros:landside
 ```
 
 ## To connect Robot onboard to laptop landside 
