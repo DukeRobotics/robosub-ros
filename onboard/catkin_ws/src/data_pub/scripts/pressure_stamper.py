@@ -3,7 +3,8 @@
 import rospy
 from geometry_msgs.msg import PoseWithCovarianceStamped
 
-class PressureToDepthConverter:
+
+class PressureStamper:
 
     NODE_NAME = "depth_pub"
     PRESSURE_SUB_TOPIC = "offboard/pressure"
@@ -22,6 +23,6 @@ class PressureToDepthConverter:
 
 if __name__ == '__main__':
     try:
-        PressureToDepthConverter()
+        PressureStamper()
     except rospy.ROSInterruptException:
         pass
