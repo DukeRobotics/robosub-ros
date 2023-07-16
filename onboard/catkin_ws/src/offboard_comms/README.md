@@ -8,14 +8,14 @@ This package provides communications and functionality for an Arduino to be inte
 
 On Linux hosts, with the container running in privileged mode, you may use the following command to compile and upload code to the Arduino.
 ```
-rosrun offboard_comms arduino_upload.sh
+rosrun offboard_comms dual_upload.sh
 ```
 
 Note that this requires the Arduino to be an Arduino Nano using the old bootloader.
 
 To only compile (and not upload) the Arduino code, useful for testing builds, you may use:
 ```
-rosrun offboard_comms arduino_upload.sh -c
+rosrun offboard_comms dual_upload.sh -c
 ```
 
 ### Manual Upload
