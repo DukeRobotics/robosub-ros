@@ -1,22 +1,65 @@
 # Offboard Communications Package
 
-This package provides communications and functionality for an Arduino to be integrated with our main ROS system.
+This package provides communications and functionality for Arduinos to be integrated with our main ROS system. The Arduinos handle thruster controls, servos, pressure (depth) readings, and the camera relay. DVL and IMU interfaces are handled in `data_pub`. The Arduinos are connected to the main computer via USB.
+
+`offboard_comms` supports functionality for both a single Arduino and multiple Arduinos. Multiple Arduinos serve to run multiple ROS node handles running at different baud rates. This was necessitated by thruster publishers requiring the default 57600 baud while the pressure sensor is (from the factory) optimized for 9600 baud.
+
+Multiple software serial ports is supported on some Arduinos, but launching both of these nodes independently is not feasable.
+
+The robot is currently configured to use two Arduinos, one for thrusters and one for the pressure sensor. However, functionality is still included for a single Arduino, as described below.
+
+# Directory Structure
+
+The notable files and folders in this package are as follows. Note how this specific directory structure is required per the upload scripts.
+
+```
+offboard_comms
+├── CMakeLists.txt
+├── package.xml
+├── README.md
+├── scripts
+│   ├── ... Bash scripts for compiling and uploading Arduino code
+├── launch
+│   ├── serial.launch
+├── Arduino\ Sketchbook
+│   ├── PressureArduino
+│   │   ├── PressureArduino.ino # Arduino code for pressure sensor
+│   │   ├── ... Libraries for pressure sensor
+│   ├── ThrusterArduino
+│   │   ├── ThrusterArduino.ino # Arduino code for thrusters
+│   │   ├── ... Libraries for thrusters
+```
 
 ## Compile and Upload
 
 ### Upload script
 
-On Linux hosts, with the container running in privileged mode, you may use the following command to compile and upload code to the Arduino.
+On Linux hosts, with the container running in privileged mode, you may use the following command to compile and upload code to both Arduinos.
 ```
 rosrun offboard_comms dual_upload.sh
 ```
+Running just a single Arduino would require only a single Arduino to be connected over USB. Upload with the following command:
+```
+rosrun offboard_comms arduino_upload.sh
+```
 
-Note that this requires the Arduino to be an Arduino Nano using the old bootloader.
+Note that these commands requires the Arduino(s) to be an Arduino Nano using the old bootloader.
+
+If the type of Arduino is changed, the `dual_upload.sh` (or `arduino_upload.sh` ) script will need to be updated to reflect the new board type. Specifically, `arduino-cli` installation and compliation calls.
 
 To only compile (and not upload) the Arduino code, useful for testing builds, you may use:
 ```
 rosrun offboard_comms dual_upload.sh -c
 ```
+
+Or for a single Arduino:
+```
+rosrun offboard_comms arduino_upload.sh -c
+```
+
+Note that uploading to the Arduino might require restarting the Docker container. The same applies for the case where an Arduino is disconnected and reconnected.
+
+To run successfully in `dual_upload.sh`, ensure that the Arduino serial numbers are accurately reflected in the script. These can be found by running `arduino-cli board list` with the Arduino connected.
 
 ### Manual Upload
 We recommend using the upload script mentioned in the previous section, but the instructions are below for manual upload if that is preferred or required.
@@ -54,14 +97,26 @@ rosservice call /offboard/set_servo_angle '{num: 0, angle: 90}'
 ## Topics and Services
 ### Thrusters
 The thrusters are subscribed to the `/offboard/thruster_speeds` topic that is of type `custom_msgs/ThrusterSpeeds.msg`. This is an array of 8 signed 8-bit integers, which have range of [-128,127]. Negative values correspond to reverse (<1500 microseconds PWM), and positive values correspond to forward (>1500 microseconds PWM). 
-### Servos
-The servos utilize the `/offboard/set_servo_angle` service that is of type `custom_msgs/SetServo.srv`. The request to this service consists of an unsigned 8-bit integer `num` that corresponds to the pin number of the servo, and an unsigned 8 bit integer `angle` that corresponds to the desired angle (0-180). The reply consists of a bool `success` that corresponds to whether the request successfully set the angle.
 
-Values for `num` are 0-indexed (meaning the first servo corresponds to pin number 0) and values that are greater than or equal to the number of servos will result in an unsuccessfull call. Values for `angle` that are >180 will also result in an unsuccessful call.
+Note that an inaccuracy in the ESCs required modifying a C++ file in the Blue Robotics library (`MultiplexedBasicESC.cpp`). 
 
-This service lives in the script `servo_wrapper.py` which communicates with the Arduino by publishing a message of type `custom_msgs/ServoAngleArray.msg`. This is an array of 8 8-bit unsigned integers, and publishes them to topic `/offboard/servo_angles`.
+```c++
+void MultiplexedBasicESC::write(int8_t speed){writeMicroseconds(map(speed, -128, 128, 1100, 1900)+31);}
+//                                                                                               ^^^ 
+// A 31 microsecond offset is added to the PWM signal to account for an inaccuracy in the ESCs
+```
+
+This correction was determined to be a hardware defect with Oogway's Blue Robotics Basic ESCs. When sending a stop/configuration PWM signal of 1500 microseconds, the thrusters would interpret the command as a spin command. The introduced offset corrects for this issue.
+
+### Pressure/Depth Sensor
+The pressure sensor publishes to the `/offboard/pressure` topic with an odometry message.
+
+All values of the odometry message are set to 0 except for the `pose.pose.position.z` value, which is set to the depth in meters. The `pose.pose.orientation` is set to the identity quaternion. Except for the `pose.pose.position.z` value, all other values are unused in sensor fusion.
+
+Additionally, the covariance matrix is set to all 0s except for the `pose.pose.position.z` value, which is set to 0.01.
+
 ### Camera Relay
-The camera relay is a hardware device that is used to kill and enable the power to the camera. The relay interrupts the POE power, forcing the camera to reboot when re-enabled. This is useful for when the camera is not responding to commands. This relay is connected to the onboard Arduino, and involves two topics and a service. The topics are `/offboard/camera_relay` and `/offboard/camera_relay_status`. The service is `rosservice call /enable_camera <true/false>`.
+The camera relay is a hardware device that is used to kill and enable the power to the camera. The relay interrupts the POE power, forcing the camera to reboot when re-enabled. This is useful for when the camera is not responding to CV commands. This relay is connected to the onboard Arduino, and involves two topics and a service. The topics are `/offboard/camera_relay` and `/offboard/camera_relay_status`. The service is `rosservice call /enable_camera <true/false>`.
 
 To set up the node on the computer that will interface with to the Arduino, run:
 ```
@@ -90,3 +145,10 @@ rostopic echo /offboard/camera_relay_status
 ```
 This will print the current state of the relay itself as reported by the Arduino. The distinction between the two topics is that the camera relay topic is the state that the relay is trying to be in, while the camera relay status topic is the state that the relay is actually in. The camera relay topic is set by the service call, while the camera relay status topic is set by the Arduino. The camera relay status topic is used to check if the camera is actually enabled or disabled, while the camera relay topic is used to check if the camera is trying to be enabled or disabled. Additionally, a message is displayed in the serial.launch terminal when the camera is enabled or disabled.
 
+
+### Servos
+The servos utilize the `/offboard/set_servo_angle` service that is of type `custom_msgs/SetServo.srv`. The request to this service consists of an unsigned 8-bit integer `num` that corresponds to the pin number of the servo, and an unsigned 8 bit integer `angle` that corresponds to the desired angle (0-180). The reply consists of a bool `success` that corresponds to whether the request successfully set the angle.
+
+Values for `num` are 0-indexed (meaning the first servo corresponds to pin number 0) and values that are greater than or equal to the number of servos will result in an unsuccessfull call. Values for `angle` that are >180 will also result in an unsuccessful call.
+
+This service lives in the script `servo_wrapper.py` which communicates with the Arduino by publishing a message of type `custom_msgs/ServoAngleArray.msg`. This is an array of 8 8-bit unsigned integers, and publishes them to topic `/offboard/servo_angles`.

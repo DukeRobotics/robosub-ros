@@ -28,7 +28,7 @@ int relay = 2; //pin 2
 bool camera_enabled = true;
 uint64_t last_relay_msg;
 
-// Sets node handle to have 3 subscribers, 1 publisher, and 128 bytes for input and output buffer
+// Sets node handle to have 3 subscribers, 2 publishers, and 128 bytes for input and output buffer
 ros::NodeHandle_<ArduinoHardware,3,2,128,128> nh;
 
 // Reusing ESC library code
