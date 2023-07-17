@@ -115,6 +115,8 @@ All values of the odometry message are set to 0 except for the `pose.pose.positi
 
 Additionally, the covariance matrix is set to all 0s except for the `pose.pose.position.z` value, which is set to 0.01.
 
+The data from this publisher is then stamped with the current time and published to the `/sensors/depth` topic. This is done in the `/data_pub/scripts/pressure_stamper.py` file. The data is stamped for use in the Kalman Filter, and this is not possible on the Arduino.
+
 ### Camera Relay
 The camera relay is a hardware device that is used to kill and enable the power to the camera. The relay interrupts the POE power, forcing the camera to reboot when re-enabled. This is useful for when the camera is not responding to CV commands. This relay is connected to the onboard Arduino, and involves two topics and a service. The topics are `/offboard/camera_relay` and `/offboard/camera_relay_status`. The service is `rosservice call /enable_camera <true/false>`.
 
