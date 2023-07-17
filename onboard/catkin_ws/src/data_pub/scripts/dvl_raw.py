@@ -100,7 +100,7 @@ class DvlRawPublisher:
 
     def _parse_BS(self, line):
         fields = self._extract_floats(line, 0, 3)
-	
+
 	    # Filter out error values
         if abs(fields[0]) > 32000 or abs(fields[1]) > 32000 or abs(fields[2]) > 32000:
             return

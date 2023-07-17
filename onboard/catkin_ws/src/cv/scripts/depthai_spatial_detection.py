@@ -61,6 +61,7 @@ class DepthAISpatialDetector:
 
         self.sonar_response = (0, 0)
         self.in_sonar_range = True
+        self.sonar_busy = False
 
         self.sonar_requests_publisher = rospy.Publisher(
             SONAR_REQUESTS_PATH, sweepGoal, queue_size=10)
@@ -320,7 +321,12 @@ class DepthAISpatialDetector:
                 sonar_request_msg.start_angle = left_end
                 sonar_request_msg.end_angle = right_end
                 sonar_request_msg.distance_of_scan = SONAR_DEPTH
-                self.sonar_requests_publisher.publish(sonar_request_msg)
+
+                # Make a request to sonar if it is not busy
+                if not self.sonar_busy:
+                    self.sonar_requests_publisher.publish(sonar_request_msg)
+                    # Getting response...
+                    self.sonar_busy = True
 
                 # Try calling sonar on detected bounding box
                 # if sonar responds, then override existing robot-frame x, y info;
@@ -373,6 +379,7 @@ class DepthAISpatialDetector:
         what sonar throws back if it is in range (> SONAR_RANGE = 1.75m)
         """
         # Check to see if the sonar is in range - are results from sonar valid?
+        self.sonar_busy = False
         if sonar_results.x_pos > SONAR_RANGE:
             self.in_sonar_range = True
             self.sonar_response = (sonar_results.x_pos, sonar_results.y_pos)
