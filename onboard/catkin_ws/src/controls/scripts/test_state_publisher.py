@@ -61,7 +61,7 @@ class TestStatePublisher:
         self.desired_pose_local = Pose()
         self.desired_pose_local.position.x = 0
         self.desired_pose_local.position.y = 0
-        self.desired_pose_local.position.z = 1
+        self.desired_pose_local.position.z = -1.5
         self.desired_pose_local.orientation.x = 0
         self.desired_pose_local.orientation.y = 0
         self.desired_pose_local.orientation.z = 0
