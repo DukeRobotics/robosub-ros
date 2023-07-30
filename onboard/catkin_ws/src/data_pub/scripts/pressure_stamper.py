@@ -10,6 +10,8 @@ class PressureStamper:
     PRESSURE_SUB_TOPIC = "offboard/pressure"
     DEPTH_DEST_TOPIC = "sensors/depth"
 
+    FILTER_CONSTANT = 5
+
     def __init__(self):
         rospy.init_node(self.NODE_NAME)
         self._pub_depth = rospy.Publisher(self.DEPTH_DEST_TOPIC, PoseWithCovarianceStamped, queue_size=50)
@@ -18,7 +20,10 @@ class PressureStamper:
 
     def receive_pressure(self, pressure):
         pressure.header.stamp = rospy.Time.now()
-        self._pub_depth.publish(pressure)
+        pressure.pose.pose.position.z = -pressure.pose.pose.position.z
+        
+        if pressure.pose.pose.position.z <= self.FILTER_CONSTANT:
+            self._pub_depth.publish(pressure)
 
 
 if __name__ == '__main__':
