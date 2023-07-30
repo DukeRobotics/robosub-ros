@@ -21,10 +21,14 @@ class SonarPublisher:
 
     SONAR_DEFAULT_RANGE = 10
 
+    CONSTANT_SWEEP_START = -180
+    CONSTANT_SWEEP_END = 180
+
     def __init__(self):
         rospy.init_node(self.NODE_NAME)
         self.stream = rospy.get_param('~stream')
         self.polar = rospy.get_param('~polar')
+        self.debug = rospy.get_param('~debug')
         self.sonar = Sonar(10)
         self.cv_bridge = CvBridge()
         self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC,
@@ -62,6 +66,19 @@ class SonarPublisher:
         response.y_pos = sonar_xy_result[1]
         self._pub_request.publish(response)
 
+    def constant_sweeps(self, start_angle, end_angle, distance_of_scan):
+
+        self.sonar.set_new_range(distance_of_scan)
+        sonar_request_msg = sweepGoal()
+        sonar_request_msg.start_angle = start_angle
+        sonar_request_msg.end_angle = end_angle
+        sonar_request_msg.distance_of_scan = distance_of_scan
+
+        while True:
+            self.on_request(sonar_request_msg)
+            rospy.spin()
+
+
     def convert_to_ros_compressed_msg(self, image, compressed_format='jpg'):
         """
         Convert any kind of image to ROS Compressed Image.
@@ -69,9 +86,13 @@ class SonarPublisher:
         return self.cv_bridge.cv2_to_compressed_imgmsg(image, dst_format=compressed_format)
 
     def run(self):
-        rospy.Subscriber(self.SONAR_REQUEST_TOPIC, sweepGoal, self.on_request)
-        rospy.loginfo("starting sonar_publisher...")
-        rospy.spin()
+        # If debug mode is on, do constant sweeps within range
+        if self.debug:
+            self.constant_sweeps(self.CONSTANT_SWEEP_START, self.CONSTANT_SWEEP_END, self.SONAR_DEFAULT_RANGE)
+        else:
+            rospy.Subscriber(self.SONAR_REQUEST_TOPIC, sweepGoal, self.on_request)
+            rospy.loginfo("starting sonar_publisher...")
+            rospy.spin()
 
 
 if __name__ == '__main__':
