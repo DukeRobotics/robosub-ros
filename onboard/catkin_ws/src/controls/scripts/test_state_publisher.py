@@ -72,6 +72,10 @@ class TestStatePublisher:
         self.current_pos_y = 0
         self.current_pos_z = 0
 
+        self.cv_pos_x = 0
+        self.cv_pos_y = 0
+        self.cv_pos_z = 0
+
         # These values correspond to the desired local twist for the robot
         # Max linear z speed is ~ -0.26 -- ignore (for different mass)
         self.desired_twist = Twist()
@@ -127,42 +131,33 @@ class TestStatePublisher:
         self._desired_power_client.send_goal(ControlsDesiredPowerGoal(power=self.desired_power))
         rospy.spin()
 
-    def move_to_pos_and_stop(self):
+    def move_to_pos_and_stop(self, x, y, z):
         self._desired_pose_client.cancel_goal()
-        self.desired_pose_local.position.x = self.current_pos_x
-        self.desired_pose_local.position.y = self.current_pos_y
-        self.desired_pose_local.position.z = self.current_pos_z
+        self.desired_pose_local.position.x = x
+        self.desired_pose_local.position.y = y
+        self.desired_pose_local.position.z = z
 
         self.recalculate_local_pose()
         self._desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose=self.desired_pose_transformed))
 
         rate = rospy.Rate(1)
         while not rospy.is_shutdown():
-            self.desired_pose_local.position.x = self.current_pos_x
-            self.desired_pose_local.position.y = self.current_pos_y
-            self.desired_pose_local.position.z = self.current_pos_z
-
-            self.recalculate_local_pose()
-            self._desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose=self.desired_pose_transformed))
-
+            if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT and abs(
+                    self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT:
+                # print("Done with loop")
+                break
             rate.sleep()
 
-        # delay = 0
-        # while not rospy.is_shutdown():
-        #     delay += 1
+        print("Finished")
 
-        #     if delay > 30:
-        #         # print(self.current_setpoint)
-        #         # if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT and
-        #         # abs(self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT and
-        #         # abs(self.current_setpoint[2]) <= self.MOVE_OFFSET_CONSTANT:
-        #         if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT and abs(
-        #                 self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT:
-        #             # print("Done with loop")
-        #             break
-        #     rate.sleep()
+    def update_desired_pos_local(self, x, y, z):
+        self._desired_pose_client.cancel_goal()
+        self.desired_pose_local.position.x = x
+        self.desired_pose_local.position.y = y
+        self.desired_pose_local.position.z = z
 
-        # print("Finished")
+        self.recalculate_local_pose()
+        self._desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose=self.desired_pose_transformed))
 
     def move_to_yaw_and_stop(self, x, y, z, w):
         # self.desired_pose_local.position.x = 0
@@ -179,14 +174,10 @@ class TestStatePublisher:
 
         self._desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose=self.desired_pose_transformed))
 
-        delay = 0
         while not rospy.is_shutdown():
-            delay += 1
-
-            if delay > 30:
-                if abs(self.current_yaw) <= self.MOVE_OFFSET_CONSTANT_ANGULAR and abs(
-                        self.current_yaw) <= self.MOVE_OFFSET_CONSTANT_ANGULAR:
-                    break
+            if abs(self.current_yaw) <= self.MOVE_OFFSET_CONSTANT_ANGULAR and abs(
+                    self.current_yaw) <= self.MOVE_OFFSET_CONSTANT_ANGULAR:
+                break
             rate.sleep()
 
         self._desired_pose_client.cancel_goal()
@@ -224,6 +215,7 @@ class TestStatePublisher:
         #     rate.sleep()
 
         # SET POINT BASED STOPPING PROTOCOL
+        
         delay = 0
         while not rospy.is_shutdown():
             delay += 1
@@ -249,17 +241,23 @@ class TestStatePublisher:
         self.current_yaw = data.data
 
     def _on_receive_data_cv(self, data):
-        self.current_pos_x = data.coords.x
-        self.current_pos_y = data.coords.y
-        self.current_pos_z = data.coords.z
+        self.cv_pos_x = data.coords.x
+        self.cv_pos_y = data.coords.y
+        self.cv_pos_z = data.coords.z
 
 
 def main():
+    tsp = TestStatePublisher()
+
     # TestStatePublisher().publish_desired_pose_global()
-    TestStatePublisher().publish_desired_pose_local()
+    # tsp.publish_desired_pose_local()
     # TestStatePublisher().publish_desired_twist()
     # TestStatePublisher().publish_desired_power()
     # TestStatePublisher().move_to_pos_and_stop()
+
+    tsp.update_desired_pos_local(0, 0, -2)
+    
+
 
 if __name__ == '__main__':
     main()
