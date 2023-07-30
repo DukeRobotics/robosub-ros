@@ -19,6 +19,7 @@ MM_IN_METER = 1000
 DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH = 'package://cv/models/depthai_models.yaml'
 HORIZONTAL_FOV = 95
 CAMERA_PIXEL_WIDTH = 416
+IMAGE_CENTER_X = CAMERA_PIXEL_WIDTH / 2.0
 SONAR_DEPTH = 10
 SONAR_RANGE = 1.75
 SONAR_REQUESTS_PATH = 'sonar/request'
@@ -306,9 +307,12 @@ class DepthAISpatialDetector:
             if self.using_sonar:
 
                 # Get sonar sweep range
-                (left_end, right_end) = coords_to_angle(
-                    (detection.xmin - 0.5) * CAMERA_PIXEL_WIDTH,
-                    (detection.xmax - 0.5) * CAMERA_PIXEL_WIDTH)
+                # (left_end, right_end) = coords_to_angle(
+                #     (detection.xmin - 0.5) * CAMERA_PIXEL_WIDTH,
+                #     (detection.xmax - 0.5) * CAMERA_PIXEL_WIDTH)
+
+                left_end = compute_angle_from_x_offset(detection.xmin)
+                left_end = compute_angle_from_x_offset(detection.xmax)
 
                 left_end = float(left_end)
                 right_end = float(right_end)
@@ -445,6 +449,9 @@ def coords_to_angle(min_x, max_x):
     max_angle = math.degrees(np.arctan(max_x/distance_to_screen))
     return min_angle, max_angle
 
+def compute_angle_from_x_offset(x_offset):
+    return math.degrees(np.arctan((IMAGE_CENTER_X - x_offset) - math.tan(HORIZONTAL_FOV/2.0) / IMAGE_CENTER_X ))
 
 if __name__ == '__main__':
     DepthAISpatialDetector().run()
+
