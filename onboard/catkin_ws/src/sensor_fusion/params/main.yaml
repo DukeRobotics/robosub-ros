@@ -17,12 +17,12 @@ gravitational_acceleration: 9.79604
 
 imu0_relative: true
 
-imu0: sensors/imu/imu
+imu0: vectornav/IMU
 imu0_config: [false, false, false,
-              true, true, false,
+              true, true, true,
               false, false, false,
-              true, true, false,
-              true, true, false]
+              true, true, true,
+              false, false, false]
 
 pose0: sensors/depth
 pose0_config: [false, false, true,
