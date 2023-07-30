@@ -312,7 +312,7 @@ class DepthAISpatialDetector:
                 #     (detection.xmax - 0.5) * CAMERA_PIXEL_WIDTH)
 
                 left_end = compute_angle_from_x_offset(detection.xmin)
-                left_end = compute_angle_from_x_offset(detection.xmax)
+                right_end = compute_angle_from_x_offset(detection.xmax)
 
                 left_end = float(left_end)
                 right_end = float(right_end)
