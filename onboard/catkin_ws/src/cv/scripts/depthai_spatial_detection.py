@@ -10,9 +10,9 @@ import numpy as np
 from utils import DetectionVisualizer
 from image_tools import ImageTools
 
-from custom_msgs.msg import CVObject
+from custom_msgs.msg import CVObject, sweepResult, sweepGoal
 from sensor_msgs.msg import CompressedImage
-from custom_msgs.msg import sweepResult, sweepGoal
+from std_msgs.msg import String
 
 
 MM_IN_METER = 1000
@@ -24,8 +24,7 @@ SONAR_DEPTH = 10
 SONAR_RANGE = 1.75
 SONAR_REQUESTS_PATH = 'sonar/request'
 SONAR_RESPONSES_PATH = 'sonar/cv/response'
-TASK_PLANNING_REQUESTS_PATH = ""
-TASK_PLANNING_REQUESTS_PATH = ""
+TASK_PLANNING_REQUESTS_PATH = "controls/desired_feature"
 
 
 # Compute detections on live camera feed and publish spatial coordinates for detected objects
@@ -66,12 +65,15 @@ class DepthAISpatialDetector:
         self.in_sonar_range = True
         self.sonar_busy = False
 
+        # By default the first task is going through the gate
+        self.current_priority = "gate_abydos"
+
         self.sonar_requests_publisher = rospy.Publisher(
             SONAR_REQUESTS_PATH, sweepGoal, queue_size=10)
         self.sonar_response_subscriber = rospy.Subscriber(
             SONAR_RESPONSES_PATH, sweepResult, self.update_sonar)
         self.desired_detection_feature = rospy.Subscriber(
-            TASK_PLANNING_REQUESTS_PATH, int)
+            TASK_PLANNING_REQUESTS_PATH, String, self.update_priority)
 
     def build_pipeline(self, nn_blob_path, sync_nn):
         """
@@ -307,13 +309,9 @@ class DepthAISpatialDetector:
                                                               y_cam_meters,
                                                               z_cam_meters)
 
-            # Create a new sonar request msg object if using sonar
-            if self.using_sonar:
-
-                # Get sonar sweep range
-                # (left_end, right_end) = coords_to_angle(
-                #     (detection.xmin - 0.5) * CAMERA_PIXEL_WIDTH,
-                #     (detection.xmax - 0.5) * CAMERA_PIXEL_WIDTH)
+            # Create a new sonar request msg object if using sonar and the current detected
+            # class is the desired class to be returned to task planning
+            if self.using_sonar and label == self.current_priority:
 
                 left_end = compute_angle_from_x_offset(detection.xmin)
                 right_end = compute_angle_from_x_offset(detection.xmax)
@@ -393,6 +391,9 @@ class DepthAISpatialDetector:
             self.sonar_response = (sonar_results.x_pos, sonar_results.y_pos)
         else:
             self.in_sonar_range = False
+
+    def update_priority(self, object):
+        self.current_priority = object
 
     def run(self):
         """

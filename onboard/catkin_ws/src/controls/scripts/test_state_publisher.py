@@ -5,7 +5,7 @@ import actionlib
 from custom_msgs.msg import ControlsDesiredPoseAction, ControlsDesiredTwistAction, ControlsDesiredPowerAction, \
     ControlsDesiredPoseGoal, ControlsDesiredTwistGoal, ControlsDesiredPowerGoal
 from geometry_msgs.msg import Pose, Twist
-from std_msgs.msg import Float64
+from std_msgs.msg import Float64, String
 from nav_msgs.msg import Odometry
 import controls_utils
 from tf import TransformListener
@@ -23,15 +23,19 @@ class TestStatePublisher:
             self.listener, "base_link", "odom", self.desired_pose_local)
 
     def __init__(self):
+        
         rospy.init_node('test_state_publisher')
         self.listener = TransformListener()
+
+        rospy.Publisher("controls/desired_feature", String)
+        
         rospy.Subscriber("/controls/x_pos/setpoint", Float64, self._on_receive_data_x)
         rospy.Subscriber("/controls/y_pos/setpoint", Float64, self._on_receive_data_y)
         rospy.Subscriber("/controls/z_pos/setpoint", Float64, self._on_receive_data_z)
         rospy.Subscriber("/controls/yaw_pos/setpoint", Float64, self._on_receive_data_yaw)
-        rospy.Subscriber("/cv/front/buoy_earth_cetus", CVObject, self._on_receive_data_cv_buoy)
-        rospy.Subscriber("/cv/front/buoy_earth_cetus", CVObject, self._on_receive_data_cv_gate)
-        rospy.Publisher("")
+        rospy.Subscriber("/cv/front/buoy_abydos_serpenscaput", CVObject, self._on_receive_data_cv_serpenscaupt)
+        rospy.Subscriber("/cv/front/buoy_abydos_taurus", CVObject, self._on_receive_data_cv_taurus)
+        rospy.Subscriber("/cv/front/gate_abydos", CVObject, self._on_receive_data_cv_gate)
 
         self.current_setpoint = [100.0, 100.0, 100.0]  # x,y,z
         self.MOVE_OFFSET_CONSTANT = 1
@@ -74,13 +78,17 @@ class TestStatePublisher:
         self.current_pos_y = 0
         self.current_pos_z = 0
 
-        self.buoy_pos_x = 0
-        self.buoy_pos_y = 0
-        self.buoy_pos_z = 0
+        self.taurus_pos_x = 0
+        self.taurus_pos_y = 0
+        self.taurus_pos_z = 0
+        
+        self.serpenscaput_pos_x = 0
+        self.serpenscaput_pos_y = 0
+        self.serpenscaput_pos_z = 0
 
-        self.gate_pos_x = 0
-        self.gate_pos_y = 0
-        self.gate_pos_z = 0
+        self.abydos_gate_pos_x = 0
+        self.abydos_gate_pos_y = 0
+        self.abydos_gate_pos_z = 0
 
         # These values correspond to the desired local twist for the robot
         # Max linear z speed is ~ -0.26 -- ignore (for different mass)
@@ -246,15 +254,20 @@ class TestStatePublisher:
     def _on_receive_data_yaw(self, data):
         self.current_yaw = data.data
 
-    def _on_receive_data_cv_buoy(self, data):
-        self.buoy_pos_x = data.coords.x
-        self.buoy_pos_y = data.coords.y
-        self.buoy_pos_z = data.coords.z
+    def _on_receive_data_cv_serpenscaupt(self, data):
+        self.serpenscaupt_pos_x = data.coords.x
+        self.serpenscaupt_pos_y = data.coords.y
+        self.serpenscaupt_pos_z = data.coords.z
+
+    def _on_receive_data_cv_taurus(self, data):
+        self.taurus_pos_x = data.coords.x
+        self.taurus_pos_y = data.coords.y
+        self.taurus_pos_z = data.coords.z
 
     def _on_receive_data_cv_gate(self, data):
-        self.gate_pos_x = data.coords.x
-        self.gate_pos_y = data.coords.y
-        self.gate_pos_z = data.coords.z
+        self.abydos_gate_pos_x = data.coords.x
+        self.abydos_gate_pos_y = data.coords.y
+        self.abydos_gate_pos_z = data.coords.z
 
 
 def main():
@@ -266,7 +279,21 @@ def main():
     # TestStatePublisher().publish_desired_power()
     # TestStatePublisher().move_to_pos_and_stop()
 
-    tsp.update_desired_pos_local(0, 0, -2)
+    ### TASK PLANNING START ###
+
+    #Move Down then forward little by little
+
+    rate = rospy.Rate(1)
+
+    tsp.move_to_pos_and_stop(0, 0, -1) #submerge
+
+    while tsp.abydos_gate_pos_x == 0:
+        rate.sleep()
+        tsp.update_desired_pos_local(2, 0 , 0)
+
+    while True:
+        rate.sleep()
+        tsp.update_desired_pos_local(tsp.abydos_gate_pos_x + 2.0, tsp.abydos_gate_pos_y, tsp.abydos_gate_pos_z - 1.0)
     
 
 
