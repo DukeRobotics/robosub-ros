@@ -12,9 +12,9 @@
     <!-- ROBOT PID Constants -->
     <group unless="$(arg sim)">
        <group ns="controls/x_vel/controller">
-            <param name="Kp" value="1" />
+            <param name="Kp" value="1.75" />
             <param name="Ki" value="0.02" />
-            <param name="Kd" value="0.05" />
+            <param name="Kd" value="0.5" />
         </group>
         <group ns="controls/y_vel/controller">
             <param name="Kp" value="1" />
@@ -23,8 +23,8 @@
         </group>
         <group ns="controls/z_vel/controller">
             <param name="Kp" value="0.5" /> <!--20-->
-            <param name="Ki" value="0.75" />
-            <param name="Kd" value="0.75" />
+            <param name="Ki" value="0.5" />
+            <param name="Kd" value="0.5" />
         </group>
         <group ns="controls/roll_vel/controller">
             <param name="Kp" value="0.01" />
