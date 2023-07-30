@@ -29,7 +29,9 @@ class TestStatePublisher:
         rospy.Subscriber("/controls/y_pos/setpoint", Float64, self._on_receive_data_y)
         rospy.Subscriber("/controls/z_pos/setpoint", Float64, self._on_receive_data_z)
         rospy.Subscriber("/controls/yaw_pos/setpoint", Float64, self._on_receive_data_yaw)
-        rospy.Subscriber("/cv/front/buoy_earth_cetus", CVObject, self._on_receive_data_cv)
+        rospy.Subscriber("/cv/front/buoy_earth_cetus", CVObject, self._on_receive_data_cv_buoy)
+        rospy.Subscriber("/cv/front/buoy_earth_cetus", CVObject, self._on_receive_data_cv_gate)
+        rospy.Publisher("")
 
         self.current_setpoint = [100.0, 100.0, 100.0]  # x,y,z
         self.MOVE_OFFSET_CONSTANT = 1
@@ -72,9 +74,13 @@ class TestStatePublisher:
         self.current_pos_y = 0
         self.current_pos_z = 0
 
-        self.cv_pos_x = 0
-        self.cv_pos_y = 0
-        self.cv_pos_z = 0
+        self.buoy_pos_x = 0
+        self.buoy_pos_y = 0
+        self.buoy_pos_z = 0
+
+        self.gate_pos_x = 0
+        self.gate_pos_y = 0
+        self.gate_pos_z = 0
 
         # These values correspond to the desired local twist for the robot
         # Max linear z speed is ~ -0.26 -- ignore (for different mass)
@@ -240,10 +246,15 @@ class TestStatePublisher:
     def _on_receive_data_yaw(self, data):
         self.current_yaw = data.data
 
-    def _on_receive_data_cv(self, data):
-        self.cv_pos_x = data.coords.x
-        self.cv_pos_y = data.coords.y
-        self.cv_pos_z = data.coords.z
+    def _on_receive_data_cv_buoy(self, data):
+        self.buoy_pos_x = data.coords.x
+        self.buoy_pos_y = data.coords.y
+        self.buoy_pos_z = data.coords.z
+
+    def _on_receive_data_cv_gate(self, data):
+        self.gate_pos_x = data.coords.x
+        self.gate_pos_y = data.coords.y
+        self.gate_pos_z = data.coords.z
 
 
 def main():

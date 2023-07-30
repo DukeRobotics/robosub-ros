@@ -24,6 +24,8 @@ SONAR_DEPTH = 10
 SONAR_RANGE = 1.75
 SONAR_REQUESTS_PATH = 'sonar/request'
 SONAR_RESPONSES_PATH = 'sonar/cv/response'
+TASK_PLANNING_REQUESTS_PATH = ""
+TASK_PLANNING_REQUESTS_PATH = ""
 
 
 # Compute detections on live camera feed and publish spatial coordinates for detected objects
@@ -68,6 +70,8 @@ class DepthAISpatialDetector:
             SONAR_REQUESTS_PATH, sweepGoal, queue_size=10)
         self.sonar_response_subscriber = rospy.Subscriber(
             SONAR_RESPONSES_PATH, sweepResult, self.update_sonar)
+        self.desired_detection_feature = rospy.Subscriber(
+            TASK_PLANNING_REQUESTS_PATH, int)
 
     def build_pipeline(self, nn_blob_path, sync_nn):
         """
