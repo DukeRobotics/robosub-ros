@@ -14,12 +14,10 @@
     <!-- Start CV -->
     <group unless="$(arg sim)">
         <include file="$(find cv)/launch/depthai_spatial_detection.launch">
-            <arg name="model" value="yolov7_tiny_2023" doc='{"options":["gate_buoy","gate"],"allowEmpty":false,"help":"The DepthAI model to use from depthai_models.yaml"}'/>
-            <arg name="rgb_raw" value="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the raw rgb stream (no detections)."}'/>
-            <arg name="rgb_detections" value="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the rgb stream with detections overlaid."}'/>
-            <arg name="depth" value="False" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the depth map."}'/>
-            <arg name="sync_nn" value="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to sync the RGB frames with the detections so the latest published detections correspond to the latest published RGB frame."}'/>
-            <arg name="using_sonar" value="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to use sonar to estimate depth instead of stereo."}'/>
+        </include>
+    </group>
+    <group unless="$(arg sim)">
+        <include file="$(find cv)/launch/usb_camera.launch">
         </include>
     </group>
 
