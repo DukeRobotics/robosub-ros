@@ -18,4 +18,9 @@
 	<group unless="$(arg sim)">
 		<include file="$(find offboard_comms)/launch/serial.launch" />
 	</group>
+
+	<include file="$(find execute)/launch/sensors.launch" />
+
+	<include file="$(find vectornav)/launch/vectornav.launch" />
+
 </launch>
