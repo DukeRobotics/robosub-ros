@@ -34,7 +34,7 @@ class TestStatePublisher:
         rospy.Subscriber("/controls/y_pos/setpoint", Float64, self._on_receive_data_y)
         rospy.Subscriber("/controls/z_pos/setpoint", Float64, self._on_receive_data_z)
         rospy.Subscriber("/controls/yaw_pos/setpoint", Float64, self._on_receive_data_yaw)
-        rospy.Subscriber("/cv/front/buoy_abydos_serpenscaput", CVObject, self._on_receive_data_cv_serpenscaupt)
+        rospy.Subscriber("/cv/front/buoy_abydos_serpenscaput", CVObject, self._on_receive_data_cv_serpenscaput)
         rospy.Subscriber("/cv/front/buoy_abydos_taurus", CVObject, self._on_receive_data_cv_taurus)
         rospy.Subscriber("/cv/front/gate_abydos", CVObject, self._on_receive_data_cv_gate)
         rospy.Subscriber("/state", Odometry, self._on_receive_state)
@@ -175,7 +175,7 @@ class TestStatePublisher:
         print("Finished")
 
     def update_desired_pos_local(self, x, y, z):
-        # self._desired_pose_client.cancel_goal()
+        self._desired_pose_client.cancel_goal()
         self.desired_pose_local.position.x = x
         self.desired_pose_local.position.y = y
         self.desired_pose_local.position.z = z
@@ -288,10 +288,10 @@ class TestStatePublisher:
     def _on_receive_data_yaw(self, data):
         self.current_yaw = data.data
 
-    def _on_receive_data_cv_serpenscaupt(self, data):
-        self.serpenscaupt_pos_x = data.coords.x
-        self.serpenscaupt_pos_y = data.coords.y
-        self.serpenscaupt_pos_z = data.coords.z
+    def _on_receive_data_cv_serpenscaput(self, data):
+        self.serpenscaput_pos_x = data.coords.x
+        self.serpenscaput_pos_y = data.coords.y
+        self.serpenscaput_pos_z = data.coords.z
 
     def _on_receive_data_cv_taurus(self, data):
         self.taurus_pos_x = data.coords.x
@@ -340,18 +340,19 @@ class TestStatePublisher:
         
         self._desired_pose_client.cancel_goal()
         self.yaw_task()
+
         print("Finished yaw, move back to previous global state")
         self.update_desired_pos_global(temp_state)
-        # rospy.spin()
-        self._desired_pose_client.cancel_goal()
 
+        self._desired_pose_client.cancel_goal()
 
 
 def main():
     tsp = TestStatePublisher()
+    # tsp.style_and_return()
+
+    # return
     
-
-
 
     # TestStatePublisher().publish_desired_pose_global()
     # tsp.publish_desired_pose_local()
@@ -361,22 +362,89 @@ def main():
 
     # ## TASK PLANNING START ###
 
-    # Move Down then forward little by little
+    # Move down then forward little by little
 
-    # rate = rospy.Rate(1)
+    rate = rospy.Rate(1)
     
-    # for seconds in range(5):
-    #     rate.sleep()
-    #     print(f"{seconds}/5 seconds ellapsed")
+    tsp.move_to_pos_and_stop(0, 0, -0.75) # submerge
+    print("Finished submerging")
+
+    tsp.update_desired_pos_local(0, tsp.taurus_pos_y, tsp.taurus_pos_z)        
+    rospy.sleep(1)
+
+    print("Current Taurus setpoint: ", tsp.current_setpoint)
+
+    while True:
+        print(tsp.current_setpoint)
+        if abs(tsp.current_setpoint[0]) <= tsp.MOVE_OFFSET_CONSTANT[0] and abs(
+                tsp.current_setpoint[1]) <= tsp.MOVE_OFFSET_CONSTANT[1] and abs(
+            tsp.current_setpoint[2]) <= tsp.MOVE_OFFSET_CONSTANT[2]:
+            # print("Done with loop")
+            break
+        
+        rate.sleep()
+        # tsp.update_desired_pos_local(tsp.taurus_pos_x + 0.5, tsp.taurus_pos_y, tsp.taurus_pos_z)
+
+    print("Hit Taurus y")
+
+    tsp.update_desired_pos_local(tsp.taurus_pos_x + 1.0, 0, tsp.taurus_pos_z)        
+    rospy.sleep(1)
+
+    print("Current Taurus setpoint: ", tsp.current_setpoint)
+
+    while True:
+        print(tsp.current_setpoint)
+        if abs(tsp.current_setpoint[0]) <= tsp.MOVE_OFFSET_CONSTANT[0] and abs(
+                tsp.current_setpoint[1]) <= tsp.MOVE_OFFSET_CONSTANT[1] and abs(
+            tsp.current_setpoint[2]) <= tsp.MOVE_OFFSET_CONSTANT[2]:
+            # print("Done with loop")
+            break
+        
+        rate.sleep()
+        # tsp.update_desired_pos_local(tsp.taurus_pos_x + 0.5, tsp.taurus_pos_y, tsp.taurus_pos_z)
+
+    print("Hit Taurus x")
     
+    tsp.move_to_pos_and_stop(-1.5, 0, 0)
+    print("Moved back")
+
+    tsp.update_desired_pos_local(0, tsp.serpenscaput_pos_y, tsp.serpenscaput_pos_z)        
+    rospy.sleep(1)
+
+    print("Current Serpens Caput setpoint: ", tsp.current_setpoint)
+
+    while True:
+        print(tsp.current_setpoint)
+        if abs(tsp.current_setpoint[0]) <= tsp.MOVE_OFFSET_CONSTANT[0] and abs(
+                tsp.current_setpoint[1]) <= tsp.MOVE_OFFSET_CONSTANT[1] and abs(
+            tsp.current_setpoint[2]) <= tsp.MOVE_OFFSET_CONSTANT[2]:
+            # print("Done with loop")
+            break
+        
+        rate.sleep()
+        # tsp.update_desired_pos_local(tsp.serpenscaput_pos_x, tsp.serpenscaput_pos_y, tsp.serpenscaput_pos_z)
     
+    print("Hit Serpens Caput y")
 
-    print("Exited successfully")
+    tsp.update_desired_pos_local(tsp.serpenscaput_pos_x + 1.0, 0, tsp.serpenscaput_pos_z)        
+    rospy.sleep(1)
 
-    return
+    print("Current Serpens Caput setpoint: ", tsp.current_setpoint)
 
-    # tsp.move_to_pos_and_stop(0, 0, -0.5) # submerge
-    # print("Finished submerging")
+    while True:
+        print(tsp.current_setpoint)
+        if abs(tsp.current_setpoint[0]) <= tsp.MOVE_OFFSET_CONSTANT[0] and abs(
+                tsp.current_setpoint[1]) <= tsp.MOVE_OFFSET_CONSTANT[1] and abs(
+            tsp.current_setpoint[2]) <= tsp.MOVE_OFFSET_CONSTANT[2]:
+            # print("Done with loop")
+            break
+        
+        rate.sleep()
+        # tsp.update_desired_pos_local(tsp.serpenscaput_pos_x, tsp.serpenscaput_pos_y, tsp.serpenscaput_pos_z)
+    
+    print("Hit Serpens Caput x")
+
+    tsp._desired_pose_client.cancel_goal()
 
     # while tsp.abydos_gate_pos_x == 0:
     #     rate.sleep()
@@ -385,7 +453,7 @@ def main():
 
     # while True:
     #     rate.sleep()
-    #     tsp.update_desired_pos_local(tsp.abydos_gate_pos_x + 1.0, tsp.abydos_gate_pos_y, tsp.abydos_gate_pos_z)
+    # print("Current setpoint: ", tsp.abydos_gate_pos_x + 1.0, tsp.abydos_gate_pos_y, tsp.abydos_gate_pos_z - 0.75)
 
 
 if __name__ == '__main__':
