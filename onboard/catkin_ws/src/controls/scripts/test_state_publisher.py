@@ -347,15 +347,15 @@ class TestStatePublisher:
     def dead_reckon_gate(self, distance, depth):
         self.move_to_pos_and_stop(0, 0, depth) # submerge
         print("Finished submerging")
-        self.move_to_pos_and_stop(distance, 0, 0) # forward
+        self.move_to_pos_and_stop(distance, 0, -0.5) # forward
         print("Finished moving forward")
         self._desired_pose_client.cancel_goal()
     
     def cv_gate(self):
-        self.move_to_pos_and_stop(0, 0, -0.75) # submerge
+        self.move_to_pos_and_stop(0, 0, -2) # submerge
         print("Finished submerging")
         
-        self.update_desired_pos_local(0, self.abydos_gate_pos_y, self.abydos_gate_pos_z)        
+        self.update_desired_pos_local(0, self.abydos_gate_pos_y, self.abydos_gate_pos_z - 2)        
 
         rate = rospy.Rate(1)
 
@@ -375,7 +375,7 @@ class TestStatePublisher:
 
         print("Hit Abydos y")
         
-        self.update_desired_pos_local(self.abydos_gate_pos_x + 2.0, 0, self.abydos_gate_pos_z - 0.5)        
+        self.update_desired_pos_local(self.abydos_gate_pos_x + 2.0, 0, self.abydos_gate_pos_z - 2)        
 
         rospy.sleep(1)
         
@@ -398,15 +398,15 @@ class TestStatePublisher:
 
 def main():
     # Uncomment for competition
-    # rospy.sleep(60)
+    # rospy.sleep(30)
 
     tsp = TestStatePublisher()
 
     # CV GATE
-    # tsp.cv_gate()
+    tsp.cv_gate()
     
     # DEAD RECKON GATE
-    tsp.dead_reckon_gate(4, -0.75)
+    # tsp.dead_reckon_gate(7, -2)
 
     return
     # tsp.style_and_return()
