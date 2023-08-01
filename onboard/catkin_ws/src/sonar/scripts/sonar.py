@@ -39,6 +39,16 @@ class Sonar:
                 fields = line.split(' ')
                 FTDI_Number = fields[8]
                 USB_port = fields[10][-7:]
+                print(FTDI_Number)
+                if (FTDI_Number == self.SONAR_STRING_CTHULU or FTDI_Number == self.SONAR_STRING_OOGWAY):
+                    sonar_usb = "/dev/" + USB_port
+
+        for line in usb_lines[1:]:
+            if line:
+                fields = line.split(' ')
+                FTDI_Number = fields[9]
+                USB_port = fields[11][-7:]
+                print(FTDI_Number)
                 if (FTDI_Number == self.SONAR_STRING_CTHULU or FTDI_Number == self.SONAR_STRING_OOGWAY):
                     sonar_usb = "/dev/" + USB_port
 

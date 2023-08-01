@@ -313,19 +313,24 @@ class DepthAISpatialDetector:
             # class is the desired class to be returned to task planning
             if self.using_sonar and label == self.current_priority:
 
-                left_end = compute_angle_from_x_offset(detection.xmin)
-                right_end = compute_angle_from_x_offset(detection.xmax)
+                # rospy.loginfo(f"xmin: {detection.xmin} | xmax: {detection.xmax}")
 
-                left_end = float(left_end)
-                right_end = float(right_end)
+                left_end_compute = compute_angle_from_x_offset(detection.xmin * CAMERA_PIXEL_WIDTH)
+                right_end_compute = compute_angle_from_x_offset(detection.xmax * CAMERA_PIXEL_WIDTH)
+                (left_end, right_end) = coords_to_angle(detection.xmin * CAMERA_PIXEL_WIDTH, detection.xmax * CAMERA_PIXEL_WIDTH)
 
-                # Rescale left and right end points to fit better sonar image
-                left_end = left_end * 0.5 + 5
-                right_end = right_end * 0.5 + 5
+                #rospy.loginfo(f"Coords Left: {round(left_end, 10)} | Right: {round(right_end, 10)}")
+                #rospy.loginfo(f"Comput Left: {round(left_end_compute, 10)} | Right: {round(right_end_compute, 10)}")
+
+                # rospy.loginfo(f"Coords Left: {left_end} | Right: {right_end} | Diff: {right_end - left_end}")
+                # rospy.loginfo(f"Compute Left: {left_end_compute} | Right: {right_end_compute} | Diff: {right_end - left_end}")
+
+                # rospy.loginfo(f"Coords Diff: {right_end - left_end}")
+                # rospy.loginfo(f"Compute Diff: {right_end - left_end}")
 
                 sonar_request_msg = sweepGoal()
-                sonar_request_msg.start_angle = left_end
-                sonar_request_msg.end_angle = right_end
+                sonar_request_msg.start_angle = left_end_compute
+                sonar_request_msg.end_angle = right_end_compute
                 sonar_request_msg.distance_of_scan = SONAR_DEPTH
 
                 # Make a request to sonar if it is not busy
@@ -455,7 +460,7 @@ def coords_to_angle(min_x, max_x):
     return min_angle, max_angle
 
 def compute_angle_from_x_offset(x_offset):
-    return math.degrees(np.arctan((IMAGE_CENTER_X - x_offset) - math.tan(HORIZONTAL_FOV/2.0) / IMAGE_CENTER_X ))
+    return(math.degrees(math.atan(((x_offset- IMAGE_CENTER_X)*0.005246675486))))
 
 if __name__ == '__main__':
     DepthAISpatialDetector().run()

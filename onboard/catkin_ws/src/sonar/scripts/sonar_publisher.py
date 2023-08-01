@@ -19,7 +19,7 @@ class SonarPublisher:
 
     NODE_NAME = "sonar_pub"
 
-    SONAR_DEFAULT_RANGE = 10
+    SONAR_DEFAULT_RANGE = 5
 
     CONSTANT_SWEEP_START = -180
     CONSTANT_SWEEP_END = 180
@@ -32,10 +32,10 @@ class SonarPublisher:
         self.sonar = Sonar(10)
         self.cv_bridge = CvBridge()
         self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC,
-                                            sweepResult, queue_size=0)
+                                            sweepResult, queue_size=1)
         if self.stream:
             self.sonar_image_publisher = rospy.Publisher(self.SONAR_IMAGE_TOPIC,
-                                                        CompressedImage)
+                                                        CompressedImage, queue_size=1)
     def on_request(self, request):
         if (request.distance_of_scan == -1):
             return
