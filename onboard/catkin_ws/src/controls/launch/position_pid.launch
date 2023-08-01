@@ -29,9 +29,9 @@
         </group>
         <group ns="controls/z_pos/controller">
             <!-- Commented values are for camera pods /-->
-            <param name="Kp" value="1.32" /> <!-- 25 -->
-            <param name="Ki" value="0.18" /> <!-- 0.5 -->
-            <param name="Kd" value="2.31" /> <!--0.3 -->
+            <param name="Kp" value="2.32" /> <!-- 25 -->
+            <param name="Ki" value="0.3" /> <!-- 0.5 -->
+            <param name="Kd" value="3.31" /> <!--0.3 -->
         </group>
         <group ns="controls/roll_pos/controller">
             <param name="Kp" value="0.01" />
