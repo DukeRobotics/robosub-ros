@@ -172,8 +172,6 @@ class TestStatePublisher:
                 break
             rate.sleep()
 
-        print("Finished")
-
     def update_desired_pos_local(self, x, y, z):
         self._desired_pose_client.cancel_goal()
         self.desired_pose_local.position.x = x
@@ -346,9 +344,71 @@ class TestStatePublisher:
 
         self._desired_pose_client.cancel_goal()
 
+    def dead_reckon_gate(self, distance, depth):
+        self.move_to_pos_and_stop(0, 0, -0.75) # submerge
+        print("Finished submerging")
+        self.move_to_pos_and_stop(distance, 0, 0) # forward
+        print("Finished moving forward")
+        self._desired_pose_client.cancel_goal()
+    
+    def cv_gate(self):
+        self.move_to_pos_and_stop(0, 0, -0.75) # submerge
+        print("Finished submerging")
+        
+        self.update_desired_pos_local(0, self.abydos_gate_pos_y, self.abydos_gate_pos_z)        
+
+        rate = rospy.Rate(1)
+
+        rospy.sleep(1)
+
+        print("Current Abydos y setpoint: ", self.current_setpoint)
+
+        while True:
+            print(self.current_setpoint)
+            if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT[0] and abs(
+                    self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1] and abs(
+                self.current_setpoint[2]) <= self.MOVE_OFFSET_CONSTANT[2]:
+                break
+            
+            rate.sleep()
+            # tsp.update_desired_pos_local(tsp.taurus_pos_x + 0.5, tsp.taurus_pos_y, tsp.taurus_pos_z)
+
+        print("Hit Abydos y")
+        
+        self.update_desired_pos_local(self.abydos_gate_pos_x + 2.0, 0, self.abydos_gate_pos_z - 0.5)        
+
+        rospy.sleep(1)
+        
+        print("Current Abydos x setpoint: ", self.current_setpoint)
+
+        while True:
+            print(self.current_setpoint)
+            if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT[0] and abs(
+                    self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1] and abs(
+                self.current_setpoint[2]) <= self.MOVE_OFFSET_CONSTANT[2]:
+                break
+            
+            rate.sleep()
+            # tsp.update_desired_pos_local(tsp.taurus_pos_x + 0.5, tsp.taurus_pos_y, tsp.taurus_pos_z)
+
+        print("Hit Abydos x")
+        
+        self._desired_pose_client.cancel_goal()
+        
 
 def main():
+    # Uncomment for competition
+    # rospy.sleep(60)
+
     tsp = TestStatePublisher()
+
+    # CV GATE
+    tsp.cv_gate()
+    
+    # DEAD RECKON GATE
+    # tsp.dead_reckon_gate(4, -0.75)
+
+    return
     # tsp.style_and_return()
 
     # return
