@@ -319,8 +319,9 @@ class DepthAISpatialDetector:
 
                 left_end_compute = compute_angle_from_x_offset(detection.xmin * CAMERA_PIXEL_WIDTH)
                 right_end_compute = compute_angle_from_x_offset(detection.xmax * CAMERA_PIXEL_WIDTH)
-                (left_end, right_end) = coords_to_angle(detection.xmin * CAMERA_PIXEL_WIDTH, detection.xmax * CAMERA_PIXEL_WIDTH)
-
+                top_end_compute = compute_angle_from_y_offset(detection.ymin * CAMERA_PIXEL_HEIGHT)
+                bottom_end_compute = compute_angle_from_y_offset(detection.ymax * CAMERA_PIXEL_HEIGHT)
+                
                 #rospy.loginfo(f"Coords Left: {round(left_end, 10)} | Right: {round(right_end, 10)}")
                 #rospy.loginfo(f"Comput Left: {round(left_end_compute, 10)} | Right: {round(right_end_compute, 10)}")
 
@@ -333,6 +334,7 @@ class DepthAISpatialDetector:
                 sonar_request_msg = sweepGoal()
                 sonar_request_msg.start_angle = left_end_compute
                 sonar_request_msg.end_angle = right_end_compute
+                sonar_request_msg.center_z_angle = (top_end_compute + bottom_end_compute) / 2.0
                 sonar_request_msg.distance_of_scan = SONAR_DEPTH
 
                 # Make a request to sonar if it is not busy

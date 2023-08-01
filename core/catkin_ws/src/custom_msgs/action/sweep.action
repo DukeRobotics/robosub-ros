@@ -1,6 +1,7 @@
 #goal definition
 float64 start_angle
 float64 end_angle
+float64 center_z_angle
 float64 distance_of_scan
 ---
 #result definition
