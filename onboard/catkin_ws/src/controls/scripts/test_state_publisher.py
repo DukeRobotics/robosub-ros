@@ -345,7 +345,7 @@ class TestStatePublisher:
         self._desired_pose_client.cancel_goal()
 
     def dead_reckon_gate(self, distance, depth):
-        self.move_to_pos_and_stop(0, 0, -0.75) # submerge
+        self.move_to_pos_and_stop(0, 0, depth) # submerge
         print("Finished submerging")
         self.move_to_pos_and_stop(distance, 0, 0) # forward
         print("Finished moving forward")
@@ -403,10 +403,10 @@ def main():
     tsp = TestStatePublisher()
 
     # CV GATE
-    tsp.cv_gate()
+    # tsp.cv_gate()
     
     # DEAD RECKON GATE
-    # tsp.dead_reckon_gate(4, -0.75)
+    tsp.dead_reckon_gate(4, -0.75)
 
     return
     # tsp.style_and_return()
