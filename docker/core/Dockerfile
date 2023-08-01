@@ -42,9 +42,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Set up locales
 RUN locale-gen en_GB.UTF-8 && locale-gen en_US.UTF-8
 
-# Set a password for root
-RUN echo root:robotics | chpasswd
-
 # Allow root to login over ssh and forward graphics over ssh
 # Allow for environment variables to be set in ssh
 RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
