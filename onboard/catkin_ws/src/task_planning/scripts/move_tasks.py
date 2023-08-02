@@ -38,16 +38,19 @@ class MoveToPoseGlobalTask(smach.State):
             self.last_pose = new_pose
             self.controls.move_to_pose_global(new_pose)
 
-        if task_utils.stopped_at_pose(
-                self.controls.get_state().pose.pose,
-                new_pose,
-                self.controls.get_state().twist.twist):
-            self.controls.cancel_movement()
-            return 'done'
+    def run(self, userdata):
+        print("moving to ", self.desired_pose)
+        rate = rospy.Rate(15)
+        while not(
+            self.state and task_utils.stopped_at_pose(
+                self.state.pose.pose,
+                self.getPose(),
+                self.state.twist.twist)):
+            self.publish_desired_pose_global(self.getPose())
+            rate.sleep()
+        return "done"
 
-        return 'continue'
-
-    def _get_pose(self):
+    def getPose(self):
         return self.desired_pose
 
 
@@ -168,7 +171,15 @@ class AllocateUserDataVelocityLocalTask(AllocateVelocityLocalTask):
         # Get pose from userdata if supplied
         self.desired_twist = userdata.twist
 
-        return super(AllocateUserDataVelocityLocalTask, self).execute(userdata)
+    def run(self, userdata):
+        # rospy.loginfo("publishing desired twist...")
+        rate = rospy.Rate(15)
+        while True:
+            if self.preempt_requested():
+                self.service_preempt()
+                return 'preempted'
+            self.publish_desired_twist(self.desired_twist)
+            rate.sleep()
 
 
 class AllocateVelocityGlobalTask(AllocateVelocityLocalTask):
