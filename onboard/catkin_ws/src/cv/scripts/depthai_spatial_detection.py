@@ -313,6 +313,7 @@ class DepthAISpatialDetector:
 
             # Create a new sonar request msg object if using sonar and the current detected
             # class is the desired class to be returned to task planning
+            self.using_sonar = False
             if self.using_sonar and label == self.current_priority:
 
                 # rospy.loginfo(f"xmin: {detection.xmin} | xmax: {detection.xmax}")
