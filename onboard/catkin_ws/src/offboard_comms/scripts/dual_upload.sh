@@ -48,9 +48,9 @@ arduino-cli core install arduino:megaavr
 arduino-cli compile -b arduino:megaavr:nona4809 "$SRC_CODE1"
 arduino-cli compile -b arduino:megaavr:nona4809 "$SRC_CODE2"
 if [ "$ARD_UPLOAD" = true ]; then
-	# 393DA45D51514A4E43202020FF13152A is thruster arduino
+	# E49AFA8B51514C4B39202020FF024242 is thruster arduino
 	# 3FE1330851544B5933202020FF070938 is pressure arduino
-	if [ "$ARDUINO1" = "393DA45D51514A4E43202020FF13152A" ]; then
+	if [ "$ARDUINO1" = "E49AFA8B51514C4B39202020FF024242" ]; then
 		TEMP=$PORT1
 		SRC_CODE1=$PORT2
 		SRC_CODE2=$TEMP
