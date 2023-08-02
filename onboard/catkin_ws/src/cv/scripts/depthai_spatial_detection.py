@@ -347,9 +347,7 @@ class DepthAISpatialDetector:
                 # if sonar responds, then override existing robot-frame x, y info;
                 # else, keep default
                 if not (self.sonar_response == (0, 0)) and self.in_sonar_range:
-                    det_coords_robot_mm = (self.sonar_response[0],
-                                           self.sonar_response[1],
-                                           y_cam_meters)
+                    det_coords_robot_mm[0] = self.sonar_response[0]
 
             self.publish_prediction(
                 bbox, det_coords_robot_mm, label, confidence,
