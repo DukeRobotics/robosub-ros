@@ -158,14 +158,23 @@ class TestStatePublisher:
         self.desired_pose_local.position.z = z
         self.recalculate_local_pose()
 
+        self._pub_desired_pose.publish(self.desired_pose_transformed)
+        rospy.sleep(1)
+
         rate = rospy.Rate(15)
 
         while not rospy.is_shutdown():
             self._pub_desired_pose.publish(self.desired_pose_transformed)
+            print(self.current_setpoint)
 
+            if self.current_setpoint[0] == 0 or self.current_setpoint[1] == 0 or self.current_setpoint[2] == 0:
+                print("Ignoring 0 0 0 setpoint")
+                continue
+            
             if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT[0] and abs(
                     self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1] and abs(
                         self.current_setpoint[2]) <= self.MOVE_OFFSET_CONSTANT[2]:
+                print("reached setpoint")
                 break
 
             rate.sleep()
@@ -308,7 +317,7 @@ class TestStatePublisher:
     def dead_reckon_gate(self, distance, depth):
         self.move_to_pos_and_stop(0, 0, depth) # submerge
         print("Finished submerging")
-        self.move_to_pos_and_stop(distance, 0, -0.5) # forward
+        self.move_to_pos_and_stop(distance, 0, 0) # forward
         print("Finished moving forward")
     
     def update_desired_pos_local(self, x, y, z):
@@ -325,16 +334,16 @@ class TestStatePublisher:
         self.move_to_pos_and_stop(0, 0, -1)
         print("Finished submerging")
         
-        self.move_to_pos_and_stop(3, 0, 0)
+        self.move_to_pos_and_stop(1, 0, 0)
         print("Finished moving forward")
 
         while True:
+            if self.abydos_gate_pos_x == 0 or self.abydos_gate_pos_y == 0:
+                print("Abydos not detected")
+                continue
+
             self.update_desired_pos_local(self.abydos_gate_pos_x, self.abydos_gate_pos_y, 0) 
             print(self.current_setpoint)
-
-            if self.abydos_gate_pos_x == 0 or self.abydos_gate_pos_y == 0:
-                print("Continued loop")
-                continue
 
             if self.abydos_gate_pos_x < 1:
                 print("Break due to low x")
@@ -346,11 +355,13 @@ class TestStatePublisher:
             #         self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1] and abs(
             #     self.current_setpoint[2]) <= self.MOVE_OFFSET_CONSTANT[2]:
             #     break
+        
+            
             
             if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT[0] and abs(
                 self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1]:
                 print("Hit setpoint")
-                break
+                # break
             
 
         print("Hit Abydos")
@@ -386,11 +397,12 @@ def main():
 
     tsp = TestStatePublisher()
 
+    # tsp.dead_reckon_gate(1, -1)
+
     # CV GATE
     tsp.cv_gate()
     
     # DEAD RECKON GATE
-    # tsp.dead_reckon_gate(7, -2)
 
     return
 
