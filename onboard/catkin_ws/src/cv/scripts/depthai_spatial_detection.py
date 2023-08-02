@@ -19,7 +19,9 @@ MM_IN_METER = 1000
 DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH = 'package://cv/models/depthai_models.yaml'
 HORIZONTAL_FOV = 95
 CAMERA_PIXEL_WIDTH = 416
+CAMERA_PIXEL_HEIGHT = 416
 IMAGE_CENTER_X = CAMERA_PIXEL_WIDTH / 2.0
+IMAGE_CENTER_Y = CAMERA_PIXEL_HEIGHT / 2.0
 SONAR_DEPTH = 10
 SONAR_RANGE = 1.75
 SONAR_REQUESTS_PATH = 'sonar/request'
@@ -317,8 +319,9 @@ class DepthAISpatialDetector:
 
                 left_end_compute = compute_angle_from_x_offset(detection.xmin * CAMERA_PIXEL_WIDTH)
                 right_end_compute = compute_angle_from_x_offset(detection.xmax * CAMERA_PIXEL_WIDTH)
-                (left_end, right_end) = coords_to_angle(detection.xmin * CAMERA_PIXEL_WIDTH, detection.xmax * CAMERA_PIXEL_WIDTH)
-
+                top_end_compute = compute_angle_from_y_offset(detection.ymin * CAMERA_PIXEL_HEIGHT)
+                bottom_end_compute = compute_angle_from_y_offset(detection.ymax * CAMERA_PIXEL_HEIGHT)
+                
                 #rospy.loginfo(f"Coords Left: {round(left_end, 10)} | Right: {round(right_end, 10)}")
                 #rospy.loginfo(f"Comput Left: {round(left_end_compute, 10)} | Right: {round(right_end_compute, 10)}")
 
@@ -331,6 +334,7 @@ class DepthAISpatialDetector:
                 sonar_request_msg = sweepGoal()
                 sonar_request_msg.start_angle = left_end_compute
                 sonar_request_msg.end_angle = right_end_compute
+                sonar_request_msg.center_z_angle = (top_end_compute + bottom_end_compute) / 2.0
                 sonar_request_msg.distance_of_scan = SONAR_DEPTH
 
                 # Make a request to sonar if it is not busy
@@ -461,6 +465,9 @@ def coords_to_angle(min_x, max_x):
 
 def compute_angle_from_x_offset(x_offset):
     return(math.degrees(math.atan(((x_offset- IMAGE_CENTER_X)*0.005246675486))))
+
+def compute_angle_from_y_offset(y_offset):
+    return(math.degrees(math.atan(((y_offset- IMAGE_CENTER_Y)*0.003366382395))))
 
 if __name__ == '__main__':
     DepthAISpatialDetector().run()
