@@ -153,33 +153,22 @@ class TestStatePublisher:
             rate.sleep()
 
     def move_to_pos_and_stop(self, x, y, z):
-        self._desired_pose_client.cancel_goal()
         self.desired_pose_local.position.x = x
         self.desired_pose_local.position.y = y
         self.desired_pose_local.position.z = z
-
         self.recalculate_local_pose()
 
         rate = rospy.Rate(15)
 
-        rospy.sleep(1)
-        rate = rospy.Rate(1)
-
         while not rospy.is_shutdown():
-            delay += 1
             self._pub_desired_pose.publish(self.desired_pose_transformed)
 
-            if delay > 30:
-                # print(self.current_setpoint)
-                # if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT and
-                # abs(self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT and
-                # abs(self.current_setpoint[2]) <= self.MOVE_OFFSET_CONSTANT:
-                if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT and abs(
-                        self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT:
-                    # print("Done with loop")
-                    break
+            if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT[0] and abs(
+                    self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1] and abs(
+                        self.current_setpoint[2]) <= self.MOVE_OFFSET_CONSTANT[2]:
+                break
+
             rate.sleep()
-        # print("Finished")
 
     def move_to_yaw_and_stop(self, x, y, z, w):
         # self.desired_pose_local.position.x = 0
@@ -310,20 +299,17 @@ class TestStatePublisher:
         self.move_to_pos_and_stop(2, 0, 0) # forward
         print("Starting yaw")
         
-        self._desired_pose_client.cancel_goal()
         self.yaw_task()
 
         print("Finished yaw, move back to previous global state")
         self.update_desired_pos_global(temp_state)
 
-        self._desired_pose_client.cancel_goal()
 
     def dead_reckon_gate(self, distance, depth):
         self.move_to_pos_and_stop(0, 0, depth) # submerge
         print("Finished submerging")
         self.move_to_pos_and_stop(distance, 0, -0.5) # forward
         print("Finished moving forward")
-        self._desired_pose_client.cancel_goal()
     
     def update_desired_pos_local(self, x, y, z):
         self.desired_pose_local.position.x = x
@@ -331,22 +317,16 @@ class TestStatePublisher:
         self.desired_pose_local.position.z = z
         
         self.recalculate_local_pose()
-        self.publish_desired_pose_local()
+        self._pub_desired_pose.publish(self.desired_pose_transformed)
     
     def cv_gate(self):
+        rate = rospy.Rate(15)
 
         self.move_to_pos_and_stop(0, 0, -1)
         print("Finished submerging")
         
         self.move_to_pos_and_stop(3, 0, 0)
         print("Finished moving forward")
-        
-        # self.move_to_pos_and_stop(3, 0, 0) 
-        # print("Finished moving forward")
-        
-        rate = rospy.Rate(1)
-
-        rospy.sleep(3)
 
         while True:
             self.update_desired_pos_local(self.abydos_gate_pos_x, self.abydos_gate_pos_y, 0) 
@@ -399,9 +379,6 @@ class TestStatePublisher:
             # tsp.update_desired_pos_local(tsp.taurus_pos_x + 0.5, tsp.taurus_pos_y, tsp.taurus_pos_z)
 
         print("Hit Abydos x")
-        
-        self._desired_pose_client.cancel_goal()
-        
 
 def main():
     # Uncomment for competition
