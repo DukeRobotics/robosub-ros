@@ -352,8 +352,11 @@ class TestStatePublisher:
         self._desired_pose_client.cancel_goal()
     
     def cv_gate(self):
-        self.move_to_pos_and_stop(0, 0, -2) # submerge
+        self.move_to_pos_and_stop(0, 0, -1) # submerge
         print("Finished submerging")
+        self.move_to_pos_and_stop(3, 0, 0) 
+        print("Finished moving forward")
+        
         
         self.update_desired_pos_local(0, self.abydos_gate_pos_y, self.abydos_gate_pos_z - 2)        
 
@@ -375,7 +378,7 @@ class TestStatePublisher:
 
         print("Hit Abydos y")
         
-        self.update_desired_pos_local(self.abydos_gate_pos_x + 2.0, 0, self.abydos_gate_pos_z - 2)        
+        self.update_desired_pos_local(self.abydos_gate_pos_x + 2.0, 0, 0)        
 
         rospy.sleep(1)
         
