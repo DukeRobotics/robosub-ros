@@ -273,6 +273,7 @@ class TestStatePublisher:
         self.abydos_gate_pos_x = data.coords.x
         self.abydos_gate_pos_y = data.coords.y
         self.abydos_gate_pos_z = data.coords.z
+        
 
     def _on_receive_state(self, data):
         self.state = data
@@ -323,6 +324,14 @@ class TestStatePublisher:
         self.move_to_pos_and_stop(distance, 0, -0.5) # forward
         print("Finished moving forward")
         self._desired_pose_client.cancel_goal()
+    
+    def update_desired_pos_local(self, x, y, z):
+        self.desired_pose_local.position.x = x
+        self.desired_pose_local.position.y = y
+        self.desired_pose_local.position.z = z
+        
+        self.recalculate_local_pose()
+        self.publish_desired_pose_local()
     
     def cv_gate(self):
 
