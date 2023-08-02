@@ -34,14 +34,14 @@
             <param name="Kd" value="3.31" /> <!--0.3 -->
         </group>
         <group ns="controls/roll_pos/controller">
-            <param name="Kp" value="0.01" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+            <param name="Kp" value="1" />
+            <param name="Ki" value="0.1" />
+            <param name="Kd" value="0.1" />
         </group>
         <group ns="controls/pitch_pos/controller">
-            <param name="Kp" value="0.01" />
-            <param name="Ki" value="0.001" />
-            <param name="Kd" value="0.001" />
+            <param name="Kp" value="1" />
+            <param name="Ki" value="0.1" />
+            <param name="Kd" value="0.1" />
         </group>
 	<group ns="controls/yaw_pos/controller">
             <param name="Kp" value="1" />
