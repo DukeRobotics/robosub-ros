@@ -311,27 +311,19 @@ class DepthAISpatialDetector:
                                                               y_cam_meters,
                                                               z_cam_meters)
 
+            # Find yaw angle offset
+            left_end_compute = compute_angle_from_x_offset(detection.xmin * CAMERA_PIXEL_WIDTH)
+            right_end_compute = compute_angle_from_x_offset(detection.xmax * CAMERA_PIXEL_WIDTH)
+            yaw_offset = ((left_end_compute + right_end_compute) / 2.0) * (180.0 / math.pi)
+
             # Create a new sonar request msg object if using sonar and the current detected
             # class is the desired class to be returned to task planning
             self.using_sonar = False
             if self.using_sonar and label == self.current_priority:
 
-                # rospy.loginfo(f"xmin: {detection.xmin} | xmax: {detection.xmax}")
-
-                left_end_compute = compute_angle_from_x_offset(detection.xmin * CAMERA_PIXEL_WIDTH)
-                right_end_compute = compute_angle_from_x_offset(detection.xmax * CAMERA_PIXEL_WIDTH)
                 top_end_compute = compute_angle_from_y_offset(detection.ymin * CAMERA_PIXEL_HEIGHT)
                 bottom_end_compute = compute_angle_from_y_offset(detection.ymax * CAMERA_PIXEL_HEIGHT)
-                
-                #rospy.loginfo(f"Coords Left: {round(left_end, 10)} | Right: {round(right_end, 10)}")
-                #rospy.loginfo(f"Comput Left: {round(left_end_compute, 10)} | Right: {round(right_end_compute, 10)}")
-
-                # rospy.loginfo(f"Coords Left: {left_end} | Right: {right_end} | Diff: {right_end - left_end}")
-                # rospy.loginfo(f"Compute Left: {left_end_compute} | Right: {right_end_compute} | Diff: {right_end - left_end}")
-
-                # rospy.loginfo(f"Coords Diff: {right_end - left_end}")
-                # rospy.loginfo(f"Compute Diff: {right_end - left_end}")
-
+            
                 sonar_request_msg = sweepGoal()
                 sonar_request_msg.start_angle = left_end_compute
                 sonar_request_msg.end_angle = right_end_compute
@@ -353,10 +345,10 @@ class DepthAISpatialDetector:
                                            y_cam_meters)
 
             self.publish_prediction(
-                bbox, det_coords_robot_mm, label, confidence,
+                bbox, det_coords_robot_mm, yaw_offset, label, confidence,
                 (height, width), self.in_sonar_range)
 
-    def publish_prediction(self, bbox, det_coords, label, confidence,
+    def publish_prediction(self, bbox, det_coords, yaw, label, confidence,
                            shape, using_sonar):
         """
         Publish predictions to label-specific topic. Publishes to /cv/[camera]/[label].
@@ -379,6 +371,8 @@ class DepthAISpatialDetector:
         object_msg.ymin = bbox[1]
         object_msg.xmax = bbox[2]
         object_msg.ymax = bbox[3]
+
+        object_msg.yaw = yaw
 
         object_msg.height = shape[0]
         object_msg.width = shape[1]

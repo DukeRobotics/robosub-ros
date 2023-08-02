@@ -6,6 +6,7 @@ from std_msgs.msg import Float64, String
 from nav_msgs.msg import Odometry
 import controls_utils
 from tf import TransformListener
+from tf.transformations import quaternion_from_euler
 from custom_msgs.msg import CVObject
 import copy
 
@@ -25,21 +26,22 @@ class TestStatePublisher:
         rospy.init_node('test_state_publisher')
         self.listener = TransformListener()
 
-        rospy.Publisher("controls/desired_feature", String)
+        self.sonar_requests = rospy.Publisher("controls/desired_feature", String)
         
         rospy.Subscriber("/controls/x_pos/setpoint", Float64, self._on_receive_data_x)
         rospy.Subscriber("/controls/y_pos/setpoint", Float64, self._on_receive_data_y)
         rospy.Subscriber("/controls/z_pos/setpoint", Float64, self._on_receive_data_z)
+        rospy.Subscriber("/controls/roll_pos/setpoint", Float64, self._on_receive_data_roll)
+        rospy.Subscriber("/controls/pitch_pos/setpoint", Float64, self._on_receive_data_pitch)
         rospy.Subscriber("/controls/yaw_pos/setpoint", Float64, self._on_receive_data_yaw)
         rospy.Subscriber("/cv/front/buoy_abydos_serpenscaput", CVObject, self._on_receive_data_cv_serpenscaput)
         rospy.Subscriber("/cv/front/buoy_abydos_taurus", CVObject, self._on_receive_data_cv_taurus)
         rospy.Subscriber("/cv/front/gate_abydos", CVObject, self._on_receive_data_cv_gate)
         rospy.Subscriber("/state", Odometry, self._on_receive_state)
 
-        self.current_setpoint = [100.0, 100.0, 100.0]  # x,y,z
+        self.current_setpoint = [100.0, 100.0, 100.0, 0.0, 0.0, 0.0] # x,y,z,r,p,y
         self.MOVE_OFFSET_CONSTANT = [0.2, 0.2, 0.2]  # x,y,z
-        self.current_yaw = 100.0
-        self.MOVE_OFFSET_CONSTANT_ANGULAR = 0.2
+        self.MOVE_OFFSET_CONSTANT_ANGULAR = 0.1
 
         self.listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(10))
 
@@ -84,6 +86,7 @@ class TestStatePublisher:
         self.abydos_gate_pos_x = 0
         self.abydos_gate_pos_y = 0
         self.abydos_gate_pos_z = 0
+        self.abydos_gate_yaw = 0
 
         self.state = Odometry()
 
@@ -152,10 +155,17 @@ class TestStatePublisher:
             # self._pub_current_state.publish(self.current_state)
             rate.sleep()
 
-    def move_to_pos_and_stop(self, x, y, z):
+    def move_to_pos_and_stop(self, x, y, z, roll=0, pitch=0, yaw=0):
         self.desired_pose_local.position.x = x
         self.desired_pose_local.position.y = y
         self.desired_pose_local.position.z = z
+
+        q = quaternion_from_euler(roll, pitch, yaw)
+        self.desired_pose_local.orientation.x = q[0]
+        self.desired_pose_local.orientation.y = q[1]
+        self.desired_pose_local.orientation.z = q[2]
+        self.desired_pose_local.orientation.w = q[3]
+
         self.recalculate_local_pose()
 
         self._pub_desired_pose.publish(self.desired_pose_transformed)
@@ -171,9 +181,10 @@ class TestStatePublisher:
                 print("Ignoring 0 0 0 setpoint")
                 continue
             
-            if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT[0] and abs(
-                    self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1] and abs(
-                        self.current_setpoint[2]) <= self.MOVE_OFFSET_CONSTANT[2]:
+            if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT[0] and \
+               abs(self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1] and abs(
+                        self.current_setpoint[2]) <= self.MOVE_OFFSET_CONSTANT[2] and abs(
+                            self.current_setpoint[5]) <= self.MOVE_OFFSET_CONSTANT_ANGULAR:
                 print("reached setpoint")
                 break
 
@@ -192,15 +203,12 @@ class TestStatePublisher:
 
         rate = rospy.Rate(15)
 
-        delay = 0
         while not rospy.is_shutdown():
-            delay += 1
             self._pub_desired_pose.publish(self.desired_pose_transformed)
-
-            if delay > 30:
-                if abs(self.current_yaw) <= self.MOVE_OFFSET_CONSTANT_ANGULAR and abs(
-                        self.current_yaw) <= self.MOVE_OFFSET_CONSTANT_ANGULAR:
-                    break
+            if abs(self.current_state[3]) <= self.MOVE_OFFSET_CONSTANT_ANGULAR and \
+               abs(self.current_state[4]) <= self.MOVE_OFFSET_CONSTANT_ANGULAR and \
+               abs(self.current_state[5]) <= self.MOVE_OFFSET_CONSTANT_ANGULAR:
+                break
             rate.sleep()
 
     # Point the robot forward in the global frame
@@ -254,8 +262,14 @@ class TestStatePublisher:
     def _on_receive_data_z(self, data):
         self.current_setpoint[2] = data.data
 
+    def _on_receive_data_roll(self, data):
+        self.current_setpoint[3] = data.data
+    
+    def _on_receive_data_pitch(self, data):
+        self.current_setpoint[4] = data.data
+
     def _on_receive_data_yaw(self, data):
-        self.current_yaw = data.data
+        self.current_setpoint[5] = data.data
 
     def _on_receive_data_cv_serpenscaput(self, data):
         self.serpenscaput_pos_x = data.coords.x
@@ -271,7 +285,7 @@ class TestStatePublisher:
         self.abydos_gate_pos_x = data.coords.x
         self.abydos_gate_pos_y = data.coords.y
         self.abydos_gate_pos_z = data.coords.z
-        
+        self.abydos_gate_yaw = data.yaw        
 
     def _on_receive_state(self, data):
         self.state = data
@@ -320,11 +334,19 @@ class TestStatePublisher:
         self.move_to_pos_and_stop(distance, 0, 0) # forward
         print("Finished moving forward")
     
-    def update_desired_pos_local(self, x, y, z):
-        self.desired_pose_local.position.x = x
-        self.desired_pose_local.position.y = y
-        self.desired_pose_local.position.z = z
+    def update_desired_pos_local(self, pos_x, pos_y, pos_z,
+                                 roll=0, pitch=0, yaw=0):
         
+        self.desired_pose_local.position.x = pos_x
+        self.desired_pose_local.position.y = pos_y
+        self.desired_pose_local.position.z = pos_z
+
+        q = quaternion_from_euler(roll, pitch, yaw)
+        self.desired_pose_local.orientation.x = q[0]
+        self.desired_pose_local.orientation.y = q[1]
+        self.desired_pose_local.orientation.z = q[2]
+        self.desired_pose_local.orientation.w = q[3]
+
         self.recalculate_local_pose()
         self._pub_desired_pose.publish(self.desired_pose_transformed)
     
@@ -336,6 +358,8 @@ class TestStatePublisher:
         
         self.move_to_pos_and_stop(1, 0, 0)
         print("Finished moving forward")
+        
+        self.move_to_pos_and_stop(0, 0, 0, yaw=self.abydos_gate_yaw)
 
         while True:
             if self.abydos_gate_pos_x == 0 or self.abydos_gate_pos_y == 0:
@@ -355,11 +379,10 @@ class TestStatePublisher:
             #         self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1] and abs(
             #     self.current_setpoint[2]) <= self.MOVE_OFFSET_CONSTANT[2]:
             #     break
-        
             
             
-            if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT[0] and abs(
-                self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1]:
+            if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT[0] and \ 
+                abs(self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1]:
                 print("Hit setpoint")
                 # break
             

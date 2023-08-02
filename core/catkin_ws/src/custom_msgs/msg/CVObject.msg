@@ -6,6 +6,9 @@ float64 ymin
 float64 xmax
 float64 ymax
 
+# Yaw value for task planning
+float64 yaw
+
 # Object coordinates
 geometry_msgs/Point coords
 
