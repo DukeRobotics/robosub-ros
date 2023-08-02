@@ -29,7 +29,7 @@ class SonarPublisher:
         self.stream = rospy.get_param('~stream')
         self.polar = rospy.get_param('~polar')
         self.debug = rospy.get_param('~debug')
-        self.sonar = Sonar(10)
+        self.sonar = Sonar(5)
         self.cv_bridge = CvBridge()
         self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC,
                                             sweepResult, queue_size=1)
