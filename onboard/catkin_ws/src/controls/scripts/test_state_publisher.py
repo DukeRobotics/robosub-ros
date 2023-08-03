@@ -314,11 +314,11 @@ class TestStatePublisher:
 
         self.desired_power.linear.x = 0
         self.desired_power.linear.y = 0
-        self.desired_power.linear.z = -0.9
+        self.desired_power.linear.z = -0.8
         self.desired_power.angular.x = 0
         self.desired_power.angular.y = 0
         self.desired_power.angular.z = power
-        self.publish_desired_power(14)
+        self.publish_desired_power(11.5)
 
         print("Stopped yaw 720")
 
@@ -381,7 +381,7 @@ class TestStatePublisher:
         print("Submerged")
 
         self.move_to_pos_and_stop(distance, 0, 0)
-        print("Moving forward")
+        print("Moved forward")
 
         temp_state = copy.deepcopy(self.state)
         print(temp_state)
@@ -392,6 +392,10 @@ class TestStatePublisher:
         temp_state.pose.pose.position.x = 0
         temp_state.pose.pose.position.y = 0
         temp_state.pose.pose.position.z = 0
+        temp_state.pose.pose.orientation.x = 0
+        temp_state.pose.pose.orientation.y = 0
+        temp_state.pose.pose.orientation.z = 0
+        temp_state.pose.pose.orientation.w = 1
 
         self.update_desired_pos_global(temp_state)
 
@@ -410,11 +414,11 @@ class TestStatePublisher:
 
         print("Finished yawing")
 
-        self.move_to_pos_and_stop(0, 0, -0.75)
+        self.move_to_pos_and_stop(0, 0, -1)
         print("Finished submerging again")
 
-        self.move_to_pos_and_stop(1.5, 0, 0)
-        print("Finished task")
+        # self.move_to_pos_and_stop(1.5, 0, 0)
+        # print("Finished task")
     
     def cv_gate(self):
         rate = rospy.Rate(15)
@@ -487,8 +491,8 @@ class TestStatePublisher:
     def cv_buoy(self, initial_depth):
         rate = rospy.Rate(15)
 
-        self.move_to_pos_and_stop(0, 0, initial_depth)
-        print("Finished submerging")
+        # self.move_to_pos_and_stop(0, 0, initial_depth)
+        # print("Finished submerging")
         
         # self.move_to_pos_and_stop(3, 0, 0)
         # print("Finished moving forward")
@@ -564,7 +568,7 @@ def main():
     tsp = TestStatePublisher()
 
     # DEAD RECKON GATE WITH STYLE, THEN YAW BACK TO ORIGINAL YAW, THEN SUBMERGE AND MOVE FORWARD AGAIN
-    tsp.dead_reckon_gate_with_style(7, -2)
+    tsp.dead_reckon_gate_with_style(9.5, -1.5)
 
     # CV BUOY
     # tsp.cv_buoy(-0.5)
