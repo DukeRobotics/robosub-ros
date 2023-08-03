@@ -144,7 +144,7 @@ class DesiredStateHandler:
                     self.pid_manager.position_control(self.pose)
                 elif self.twist and self._twist_state_safety(self.twist):
                     self.pid_manager.velocity_control(self.twist)
-                elif self.power and self.twist_state_safety(self.power):
+                elif self.power and self._twist_state_safety(self.power):
                     self.pid_manager.power_control(self.power)
 
             self._reset_data()
