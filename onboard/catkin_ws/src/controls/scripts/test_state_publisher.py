@@ -148,12 +148,11 @@ class TestStatePublisher:
             # self._pub_current_state.publish(self.current_state)
             rate.sleep()
 
-    def publish_desired_power(self):
-        rate = rospy.Rate(15)
-        while not rospy.is_shutdown():
-            self._pub_desired_power.publish(self.desired_power)
-            # self._pub_current_state.publish(self.current_state)
-            rate.sleep()
+    def publish_desired_power(self, time):
+        self._pub_desired_power.publish(self.desired_power)
+        # self._pub_current_state.publish(self.current_state)
+        rospy.sleep(time)
+        return
 
     def move_to_pos_and_stop(self, x, y, z, roll=0, pitch=0, yaw=0):
         self.desired_pose_local.position.x = x
@@ -356,14 +355,18 @@ class TestStatePublisher:
         self.move_to_pos_and_stop(0, 0, -1)
         print("Finished submerging")
         
-        self.move_to_pos_and_stop(1, 0, 0)
+        self.move_to_pos_and_stop(3, 0, 0)
         print("Finished moving forward")
         
-        self.move_to_pos_and_stop(0, 0, 0, yaw=self.abydos_gate_yaw)
+        # print(f"{self.abydos_gate_yaw}")
+        # self.move_to_pos_and_stop(0, 0, 0, yaw=self.abydos_gate_yaw)
+        # print(f"{self.abydos_gate_yaw}")
+        # print("Finished yawing to gate")
 
-        while True:
+        while not rospy.is_shutdown():
             if self.abydos_gate_pos_x == 0 or self.abydos_gate_pos_y == 0:
                 print("Abydos not detected")
+                self.update_desired_pos_local(0, 0, 0)
                 continue
 
             self.update_desired_pos_local(self.abydos_gate_pos_x, self.abydos_gate_pos_y, 0) 
@@ -381,8 +384,8 @@ class TestStatePublisher:
             #     break
             
             
-            if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT[0] and \ 
-                abs(self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1]:
+            if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT[0] and abs(
+                self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1]:
                 print("Hit setpoint")
                 # break
             
@@ -419,13 +422,21 @@ def main():
     # rospy.sleep(30)
 
     tsp = TestStatePublisher()
+    
+    
+    # tsp.move_to_pos_and_stop(0, 0, -1)
+    # print("Finished submerging")
+    
+    # tsp.move_to_pos_and_stop(0, 0, 0, yaw=3.14/2)
 
-    # tsp.dead_reckon_gate(1, -1)
 
     # CV GATE
-    tsp.cv_gate()
+    # tsp.cv_gate()
     
     # DEAD RECKON GATE
+    tsp.dead_reckon_gate(7, -1.75)
+    tsp.yaw_720()
+    
 
     return
 
