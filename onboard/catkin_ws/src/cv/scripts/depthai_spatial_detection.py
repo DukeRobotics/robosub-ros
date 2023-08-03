@@ -314,7 +314,7 @@ class DepthAISpatialDetector:
             # Find yaw angle offset
             left_end_compute = compute_angle_from_x_offset(detection.xmin * CAMERA_PIXEL_WIDTH)
             right_end_compute = compute_angle_from_x_offset(detection.xmax * CAMERA_PIXEL_WIDTH)
-            yaw_offset = ((left_end_compute + right_end_compute) / 2.0) * (180.0 / math.pi)
+            yaw_offset = ((left_end_compute + right_end_compute) / 2.0) * (math.pi / 180.0)
 
             # Create a new sonar request msg object if using sonar and the current detected
             # class is the desired class to be returned to task planning
