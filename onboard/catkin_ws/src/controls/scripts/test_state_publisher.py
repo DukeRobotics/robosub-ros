@@ -702,9 +702,9 @@ class TestStatePublisher:
                     print("did not receive detection for 3 seconds")
                     break
                 
-            if self.abydos_gate_pos_x > 20:
-                print("X value too high breaking...")
-                break
+            # if self.abydos_gate_pos_x > 20:
+            #     print("X value too high breaking...")
+            #     break
         
         print("Hit Taurus")
         
