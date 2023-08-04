@@ -393,7 +393,7 @@ class DepthAISpatialDetector:
         """
         # Check to see if the sonar is in range - are results from sonar valid?
         self.sonar_busy = False
-        if sonar_results.x_pos > SONAR_RANGE:
+        if sonar_results.x_pos > SONAR_RANGE and sonar_results.x_pos <= SONAR_DEPTH:
             self.in_sonar_range = True
             self.sonar_response = (sonar_results.x_pos, sonar_results.y_pos)
         else:
