@@ -24,7 +24,6 @@ tmux select-pane -t 2
 tmux rename-window -t $session:$window 'onboard_3'
 tmux send-keys -t $session:$window 'ssh robot@192.168.1.1' 'Enter'
 tmux send-keys -t $session:$window 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
-tmux send-keys -t $session:$window 'rosservice call /enable_controls 0' 'Enter'
 tmux send-keys -t $session:$window 'rosservice call /enable_controls 1'
 
 tmux select-pane -t 3
