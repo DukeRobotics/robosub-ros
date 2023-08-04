@@ -68,7 +68,7 @@ class DepthAISpatialDetector:
         self.sonar_busy = False
 
         # By default the first task is going through the gate
-        self.current_priority = "gate_abydos"
+        self.current_priority = "buoy_abydos_taurus"
 
         self.sonar_requests_publisher = rospy.Publisher(
             SONAR_REQUESTS_PATH, sweepGoal, queue_size=10)
@@ -318,7 +318,6 @@ class DepthAISpatialDetector:
 
             # Create a new sonar request msg object if using sonar and the current detected
             # class is the desired class to be returned to task planning
-            self.using_sonar = False
             if self.using_sonar and label == self.current_priority:
 
                 top_end_compute = compute_angle_from_y_offset(detection.ymin * CAMERA_PIXEL_HEIGHT)
