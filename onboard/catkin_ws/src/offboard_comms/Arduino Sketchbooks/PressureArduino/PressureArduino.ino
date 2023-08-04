@@ -38,7 +38,7 @@ void setup(){
         break;
     }
 
-    sensor.setModel(MS5837::MS5837_30BA);
+    sensor.setModel(MS5837::MS5837_02BA);
     sensor.setFluidDensity(997); // kg/m^3 (freshwater, 1029 for seawater)
 }
 
