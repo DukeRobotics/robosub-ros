@@ -132,6 +132,9 @@ class TestStatePublisher:
         self.current_state.header.frame_id = 'odom'
         self.current_state.header.stamp = rospy.Time()
 
+        self.taurus_pose_transformed = Pose()
+        self.serpenscaput_pose_transformed = Pose()
+
     def publish_desired_pose_global(self):
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
@@ -340,16 +343,18 @@ class TestStatePublisher:
         self.serpenscaput_pos_z = data.coords.z
         self.serpenscaput_yaw = data.yaw
 
-        self.desired_pose_serpenscaput.position.x = data.coords.x
-        self.desired_pose_serpenscaput.position.y = data.coords.y
-        self.desired_pose_serpenscaput.position.z = data.coords.z
-        self.desired_pose_serpenscaput.orientation.x = 0
-        self.desired_pose_serpenscaput.orientation.y = 0
-        self.desired_pose_serpenscaput.orientation.z = 0
-        self.desired_pose_serpenscaput.orientation.w = 1
+        desired_pose_serpenscaput = Pose()
+
+        desired_pose_serpenscaput.position.x = data.coords.x
+        desired_pose_serpenscaput.position.y = data.coords.y
+        desired_pose_serpenscaput.position.z = data.coords.z
+        desired_pose_serpenscaput.orientation.x = 0
+        desired_pose_serpenscaput.orientation.y = 0
+        desired_pose_serpenscaput.orientation.z = 0
+        desired_pose_serpenscaput.orientation.w = 1
 
         self.serpenscaput_pose_transformed = controls_utils.transform_pose(
-            self.listener, "base_link", "odom", self.desired_pose_serpenscaput)
+            self.listener, "base_link", "odom", desired_pose_serpenscaput)
 
     def _on_receive_data_cv_taurus(self, data):
         self.taurus_pos_x = data.coords.x
@@ -357,16 +362,17 @@ class TestStatePublisher:
         self.taurus_pos_z = data.coords.z
         self.taurus_yaw = data.yaw
 
-        self.desired_pose_taurus.position.x = data.coords.x
-        self.desired_pose_taurus.position.y = data.coords.y
-        self.desired_pose_taurus.position.z = data.coords.z
-        self.desired_pose_taurus.orientation.x = 0
-        self.desired_pose_taurus.orientation.y = 0
-        self.desired_pose_taurus.orientation.z = 0
-        self.desired_pose_taurus.orientation.w = 1
+        desired_pose_taurus = Pose()
+        desired_pose_taurus.position.x = data.coords.x
+        desired_pose_taurus.position.y = data.coords.y
+        desired_pose_taurus.position.z = data.coords.z
+        desired_pose_taurus.orientation.x = 0
+        desired_pose_taurus.orientation.y = 0
+        desired_pose_taurus.orientation.z = 0
+        desired_pose_taurus.orientation.w = 1
 
         self.taurus_pose_transformed = controls_utils.transform_pose(
-            self.listener, "base_link", "odom", self.desired_pose_taurus)
+            self.listener, "base_link", "odom", desired_pose_taurus)
 
     def _on_receive_data_cv_gate(self, data):
         self.abydos_gate_pos_x = data.coords.x
@@ -565,9 +571,6 @@ class TestStatePublisher:
 
         print("Finished yawing")
 
-        self.move_to_pos_and_stop(0, 0, -1)
-        print("Finished submerging again")
-
         # self.move_to_pos_and_stop(1.5, 0, 0)
         # print("Finished task")
     
@@ -651,11 +654,18 @@ class TestStatePublisher:
         self.sonar_requests.publish("buoy_abydos_taurus")
 
         self.taurus_pose_transformed.position.x = self.taurus_pose_transformed.position.x + 0.5
+        print(self.taurus_pose_transformed)
         self._pub_desired_pose.publish(self.taurus_pose_transformed)
         
         while not rospy.is_shutdown():
-            print(self.current_setpoint)
+            
+            if self.taurus_pose_transformed.position.x == 0 or self.taurus_pose_transformed.position.y == 0 \
+                or self.taurus_pose_transformed.position.z == 0:
+                    print("Ignoring taurus 0")
+                    continue
+            
             self._pub_desired_pose.publish(self.taurus_pose_transformed)
+            print(self.current_setpoint)
 
             if self.current_setpoint[0] == 0 or self.current_setpoint[1] == 0 or self.current_setpoint[2] == 0:
                 print("Ignoring 0 0 0 setpoint")
@@ -676,9 +686,16 @@ class TestStatePublisher:
         self.sonar_requests.publish("buoy_abydos_serpenscaput")
 
         self.serpenscaput_pose_transformed.position.x = self.serpenscaput_pose_transformed.position.x + 0.5
+        print(self.serpenscaput_pose_transformed)
         self._pub_desired_pose.publish(self.serpenscaput_pose_transformed)
 
         while not rospy.is_shutdown():
+            
+            if self.serpenscaput_pose_transformed.position.x == 0 or self.serpenscaput_pose_transformed.position.y == 0 \
+                or self.serpenscaput_pose_transformed.position.z == 0:
+                    print("Ignoring taurus 0")
+                    continue
+            
             print(self.current_setpoint)
             self._pub_desired_pose.publish(self.serpenscaput_pose_transformed)
 
@@ -697,10 +714,25 @@ class TestStatePublisher:
 
         print("Passed semi-finals :)")
 
+def buoy_dead_reckon(self):
+    print("Starting CV buoy dead reckon")
+
+    self.move_to_pos_and_stop(0, 0, -1)
+    print("Finished submerging")
+    
+    self.move_to_pos_and_stop(1.5, 0, 0)
+    print("Finished moving forward")
+
+    self.move_to_pos_and_stop(-1, 0, 0)
+    print("Moving backward")
+    
+    self.move_to_pos_and_stop(1, 0, 0)
+    print("Finished moving forward")
+    
 
 def main():
     # Uncomment for competition
-    # rospy.sleep(30)
+    rospy.sleep(10)
 
     tsp = TestStatePublisher()
 
@@ -713,7 +745,9 @@ def main():
     tsp.dead_reckon_gate_with_style_with_yaw_correction(12, -2)
 
     # CV BUOY
-    tsp.cv_buoy(-0.5)
+    # tsp.cv_buoy(-2.5)
+    
+    tsp.buoy_dead_reckon()
 
     # tsp.move_to_pos_and_stop(0, 0, -1)
     # print("Finished submerging")

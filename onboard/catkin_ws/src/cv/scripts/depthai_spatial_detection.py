@@ -345,7 +345,7 @@ class DepthAISpatialDetector:
 
             self.publish_prediction(
                 bbox, det_coords_robot_mm, yaw_offset, label, confidence,
-                (height, width), self.in_sonar_range)
+                (height, width), self.using_sonar)
 
     def publish_prediction(self, bbox, det_coords, yaw, label, confidence,
                            shape, using_sonar):
