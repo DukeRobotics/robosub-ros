@@ -361,6 +361,9 @@ class DepthAISpatialDetector:
         object_msg = CVObject()
         object_msg.label = label
         object_msg.score = confidence
+        
+        object_msg.header.stamp.secs = rospy.Time.now().secs
+        object_msg.header.stamp.nsecs = rospy.Time.now().nsecs
 
         object_msg.coords.x = det_coords[0]
         object_msg.coords.y = det_coords[1]
@@ -379,7 +382,8 @@ class DepthAISpatialDetector:
         object_msg.sonar = using_sonar
 
         if self.publishers:
-            self.publishers[label].publish(object_msg)
+            if object_msg.coords.x != 0 and object_msg.coords.y != 0 and object_msg.coords.z != 0:
+                self.publishers[label].publish(object_msg)
 
     def update_sonar(self, sonar_results):
         """
