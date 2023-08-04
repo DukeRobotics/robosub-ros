@@ -331,8 +331,8 @@ class TestStatePublisher:
     def _on_receive_data_yaw(self, data):
         self.current_setpoint[5] = data.data
 
-        if self.initial_yaw == 0:
-            self.initial_yaw = data.data
+        # if self.initial_yaw == 0:
+        #     self.initial_yaw = data.data
 
     def _on_receive_data_cv_serpenscaput(self, data):
         self.serpenscaput_pos_x = data.coords.x
@@ -497,17 +497,18 @@ class TestStatePublisher:
         temp_state = copy.deepcopy(self.state)
 
         temp_state.pose.pose.position.x = temp_state.pose.pose.position.x + distance
+        temp_state.pose.pose.position.z = temp_state.pose.pose.position.z - 0.5
 
-        q = quaternion_from_euler(0, 0, self.initial_yaw)
-        temp_state.pose.pose.orientation.x = q[0]
-        temp_state.pose.pose.orientation.y = q[1]
-        temp_state.pose.pose.orientation.z = q[2]
-        temp_state.pose.pose.orientation.w = q[3]
+        # q = quaternion_from_euler(0, 0, self.initial_yaw)
+        # temp_state.pose.pose.orientation.x = q[0]
+        # temp_state.pose.pose.orientation.y = q[1]
+        # temp_state.pose.pose.orientation.z = q[2]
+        # temp_state.pose.pose.orientation.w = q[3]
 
-        # temp_state.pose.pose.orientation.x = 0
-        # temp_state.pose.pose.orientation.y = 0
-        # temp_state.pose.pose.orientation.z = 0
-        # temp_state.pose.pose.orientation.w = 1
+        temp_state.pose.pose.orientation.x = 0
+        temp_state.pose.pose.orientation.y = 0
+        temp_state.pose.pose.orientation.z = 0
+        temp_state.pose.pose.orientation.w = 1
 
         self.update_desired_pos_global(temp_state)
 
@@ -647,6 +648,8 @@ class TestStatePublisher:
         # self.move_to_pos_and_stop(3, 0, 0)
         # print("Finished moving forward")
 
+        self.sonar_requests.publish("buoy_abydos_taurus")
+
         self.taurus_pose_transformed.position.x = self.taurus_pose_transformed.position.x + 0.5
         self._pub_desired_pose.publish(self.taurus_pose_transformed)
         
@@ -669,6 +672,8 @@ class TestStatePublisher:
 
         self.move_to_pos_and_stop(-1, 0, 0)
         print("Finished moving back")
+
+        self.sonar_requests.publish("buoy_abydos_serpenscaput")
 
         self.serpenscaput_pose_transformed.position.x = self.serpenscaput_pose_transformed.position.x + 0.5
         self._pub_desired_pose.publish(self.serpenscaput_pose_transformed)
@@ -701,13 +706,14 @@ def main():
 
     # DEAD RECKON GATE WITH STYLE, THEN YAW BACK TO ORIGINAL YAW, THEN SUBMERGE AND MOVE FORWARD AGAIN
     # FOR COURSE A, MOVE FORWARD 12
+    # FOR COURSE B, MOVE FORWARD 9.5
     # ALSO REMEMBER TO SET THE DESIRED NUMBER OF SECONDS FOR 2 ROTATIONS
     # RIGHT NOW IT'S SET TO 13 WHICH IS SLIGHTLY OVER 2 ROTATIONS, JUST TO MAKE SURE WE HIT 2 ROTATIONS
-    tsp.dead_reckon_gate_with_style(12, -2)
-    # tsp.dead_reckon_gate_with_style_with_yaw_correction(12, -2)
+    # tsp.dead_reckon_gate_with_style(12, -2)
+    tsp.dead_reckon_gate_with_style_with_yaw_correction(12, -2)
 
     # CV BUOY
-    # tsp.cv_buoy(-0.5)
+    tsp.cv_buoy(-0.5)
 
     # tsp.move_to_pos_and_stop(0, 0, -1)
     # print("Finished submerging")
