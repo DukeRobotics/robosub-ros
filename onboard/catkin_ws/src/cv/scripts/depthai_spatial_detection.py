@@ -68,7 +68,7 @@ class DepthAISpatialDetector:
         self.sonar_busy = False
 
         # By default the first task is going through the gate
-        self.current_priority = "buoy_abydos_taurus"
+        self.current_priority = "buoy_abydos_serpenscaput"
 
         self.sonar_requests_publisher = rospy.Publisher(
             SONAR_REQUESTS_PATH, sweepGoal, queue_size=10)
