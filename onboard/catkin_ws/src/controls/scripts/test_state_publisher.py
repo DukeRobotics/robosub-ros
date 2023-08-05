@@ -722,6 +722,7 @@ class TestStatePublisher:
             #         continue
             
             self.serpenscaput_pose_transformed.position.x = self.serpenscaput_pose_transformed.position.x + 0.25
+            self.serpenscaput_pose_transformed.position.z = self.serpenscaput_pose_transformed.position.z - 0.25
             self._pub_desired_pose.publish(self.serpenscaput_pose_transformed)
             print(self.current_setpoint)
             
@@ -755,9 +756,9 @@ class TestStatePublisher:
         # temp_state.pose.pose.position.x = temp_state.pose.pose.position.y + 0.5
         # temp_state.pose.pose.position.x = temp_state.pose.pose.position.x - 1
 
-        temp_state.pose.pose.position.x = temp_state.pose.pose.position.x - 2
-        temp_state.pose.pose.position.y = temp_state.pose.pose.position.y
-        temp_state.pose.pose.position.z = temp_state.pose.pose.position.z - 0.5
+        temp_state.pose.pose.position.x = temp_state.pose.pose.position.x - 1
+        temp_state.pose.pose.position.y = temp_state.pose.pose.position.y - 0.5
+        temp_state.pose.pose.position.z = temp_state.pose.pose.position.z
         
         temp_state.pose.pose.orientation.x = 0
         temp_state.pose.pose.orientation.y = 0
@@ -770,8 +771,8 @@ class TestStatePublisher:
         rospy.sleep(1)
 
         # DEAD RECKON 2ND BUOY USING PREVIOUSLY SAVED GLOBAL POSE OF THE 1ST BUOY
-        temp_state.pose.pose.position.x = temp_state.pose.pose.position.x + 2
-        temp_state.pose.pose.position.y = temp_state.pose.pose.position.y + 0.6
+        temp_state.pose.pose.position.x = temp_state.pose.pose.position.x + 1.5
+        temp_state.pose.pose.position.y = temp_state.pose.pose.position.y + 1
         temp_state.pose.pose.position.z = temp_state.pose.pose.position.z + 0.9
 
         # self.move_to_pos_and_stop(2, 0.6, 0.3)
@@ -862,10 +863,10 @@ def main():
     # RIGHT NOW IT'S SET TO 13 WHICH IS SLIGHTLY OVER 2 ROTATIONS, JUST TO MAKE SURE WE HIT 2 ROTATIONS
     # tsp.dead_reckon_gate_with_style(12, -2)
     # tsp.dead_reckon_gate_with_style_with_yaw_correction(9, -2)
-    tsp.dead_reckon_gate_with_style_with_yaw_correction(1.5, -0.6)
+    # tsp.dead_reckon_gate_with_style_with_yaw_correction(1.5, -0.6)
 
     # CV BUOY
-    tsp.cv_buoy(0)
+    tsp.cv_buoy(-0.5)
     # tsp.cv_buoy(-2.5) # if just doing buoy
     
     # tsp.buoy_dead_reckon()
