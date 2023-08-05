@@ -708,6 +708,26 @@ class TestStatePublisher:
 
     #     print("Hit Abydos x")
 
+    def the_most_magical_dead_reckoning_in_the_history_of_mankind(self):
+        octagon = Pose()
+        
+        octagon.position.x = 33.8
+        octagon.position.y = -11.8
+        octagon.position.z = -2
+        
+        octagon.orientation.x = 0
+        octagon.orientation.y = 0
+        octagon.orientation.z = 0
+        octagon.orientation.w = 1
+        
+        self.move_to_global_pos_and_stop(octagon)
+        
+        octagon.position.z = 0
+        
+        self.move_to_global_pos_and_stop(octagon)
+        
+        print("Surfaced inside octagon. We did the impossible guys :)")
+    
     def cv_buoy(self, initial_depth):
         rate = rospy.Rate(15)
 
@@ -715,6 +735,32 @@ class TestStatePublisher:
         print("Finished submerging")
         
         rospy.sleep(1)
+        
+        start_time = rospy.Time.now().secs
+        while not rospy.is_shutdown():
+            time = rospy.Time.now().secs
+            if abs(self.serpenscaput_time - time) < 3:
+                print("Serpens Caput detected, using CV algorithm")
+                break
+            
+            if abs(time - start_time) > 10:
+            # DEAD RECKON 2ND BUOY USING PREVIOUSLY SAVED GLOBAL POSE OF THE 1ST BUOY
+                # self.move_to_global_pos_and_stop(temp_state.pose.pose)
+                # print("Hit Serpens Caput")
+                # print("Passed semi-finals :)")
+                print("Did not detect Serpens Caput, surfacing in octagon")
+                # self.the_most_magical_dead_reckoning_in_the_history_of_mankind()
+                return
+            
+            self.desired_power.linear.x = 0
+            self.desired_power.linear.y = 0
+            self.desired_power.linear.z = -0.75
+            self.desired_power.angular.x = 0
+            self.desired_power.angular.y = 0
+            self.desired_power.angular.z = 0.2
+            self.publish_desired_power(0.1)
+            
+            # rate.sleep()
 
         self.sonar_requests.publish("buoy_abydos_serpenscaput")
 
@@ -766,8 +812,8 @@ class TestStatePublisher:
         # temp_state.pose.pose.position.x = temp_state.pose.pose.position.y + 0.5
         # temp_state.pose.pose.position.x = temp_state.pose.pose.position.x - 1
 
-        temp_state.pose.pose.position.x = temp_state.pose.pose.position.x - 1
-        temp_state.pose.pose.position.y = temp_state.pose.pose.position.y - 0.5
+        temp_state.pose.pose.position.x = temp_state.pose.pose.position.x - 2
+        temp_state.pose.pose.position.y = temp_state.pose.pose.position.y + 0.5
         temp_state.pose.pose.position.z = temp_state.pose.pose.position.z
         
         temp_state.pose.pose.orientation.x = 0
@@ -780,14 +826,6 @@ class TestStatePublisher:
 
         rospy.sleep(1)
 
-        # DEAD RECKON 2ND BUOY USING PREVIOUSLY SAVED GLOBAL POSE OF THE 1ST BUOY
-        # temp_state.pose.pose.position.x = temp_state.pose.pose.position.x + 1.5
-        # temp_state.pose.pose.position.y = temp_state.pose.pose.position.y + 1
-        # temp_state.pose.pose.position.z = temp_state.pose.pose.position.z + 0.9
-
-        # # self.move_to_pos_and_stop(2, 0.6, 0.3)
-        # self.move_to_global_pos_and_stop(temp_state.pose.pose)
-        # print("Hit Taurus")
 
         # DEAD RECKON 2ND BUOY USING LOCAL POSE
         # self.move_to_pos_and_stop(0, 0.6, 0.3)
@@ -796,7 +834,36 @@ class TestStatePublisher:
         # self.move_to_pos_and_stop(2, 0, 0)
         # print("Hit Taurus")
 
-        # DETECTS 2ND BUOY AND MOVES TOWARDS IT        
+        # DETECTS 2ND BUOY AND MOVES TOWARDS IT
+        start_time = rospy.Time.now().secs
+        while not rospy.is_shutdown():
+            time = rospy.Time.now().secs
+            if abs(self.taurus_time - time) < 3:
+                print("Taurus detected, using CV algorithm")
+                break
+            
+            if abs(time - start_time) > 7:
+            # DEAD RECKON 2ND BUOY USING PREVIOUSLY SAVED GLOBAL POSE OF THE 1ST BUOY
+                temp_state.pose.pose.position.x = temp_state.pose.pose.position.x + 1.5
+                temp_state.pose.pose.position.y = temp_state.pose.pose.position.y + 1
+                temp_state.pose.pose.position.z = temp_state.pose.pose.position.z + 0.9
+
+                # self.move_to_pos_and_stop(2, 0.6, 0.3)
+                self.move_to_global_pos_and_stop(temp_state.pose.pose)
+                print("Hit Taurus")
+                print("Passed semi-finals :)")
+                return
+            
+            self.desired_power.linear.x = 0
+            self.desired_power.linear.y = 0
+            self.desired_power.linear.z = -0.75
+            self.desired_power.angular.x = 0
+            self.desired_power.angular.y = 0
+            self.desired_power.angular.z = 0.2
+            self.publish_desired_power(0.1)
+            
+            # rate.sleep()
+                   
         self.sonar_requests.publish("buoy_abydos_taurus")
 
         self.taurus_pose_transformed.position.x = self.taurus_pose_transformed.position.x + 0.5
@@ -844,6 +911,8 @@ class TestStatePublisher:
             #     break
         
         print("Hit Taurus")
+        
+        # self.the_most_magical_dead_reckoning_in_the_history_of_mankind()
 
         print("Passed semi-finals :)")
 
@@ -877,6 +946,11 @@ def main():
     # tsp.dead_reckon_gate_with_style(12, -2)
     # tsp.dead_reckon_gate_with_style_with_yaw_correction(9, -2)
     # tsp.dead_reckon_gate_with_style_with_yaw_correction(1.5, -0.6)
+    
+    # Pool test
+    tsp.dead_reckon_gate_with_style_with_yaw_correction(0, -0.6)
+
+    rospy.sleep(1)
 
     # CV BUOY
     tsp.cv_buoy(-0.5)
