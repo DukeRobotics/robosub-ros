@@ -803,6 +803,8 @@ class TestStatePublisher:
         
 
     def the_most_magical_dead_reckoning_in_the_history_of_mankind(self):
+        self.move_to_pos_and_stop(-1, -2, 0.5)
+
         octagon = Pose()
         
         octagon.position.x = 33.8
@@ -951,7 +953,7 @@ class TestStatePublisher:
             if abs(time - start_time) > 20:
             # DEAD RECKON 2ND BUOY USING PREVIOUSLY SAVED GLOBAL POSE OF THE 1ST BUOY
                 temp_state.pose.pose.position.x = temp_state.pose.pose.position.x + 2.25
-                temp_state.pose.pose.position.y = temp_state.pose.pose.position.y + 0.25
+                temp_state.pose.pose.position.y = temp_state.pose.pose.position.y + 0.2
                 temp_state.pose.pose.position.z = temp_state.pose.pose.position.z + 0.9
 
                 # self.move_to_pos_and_stop(2, 0.6, 0.3)
@@ -965,7 +967,7 @@ class TestStatePublisher:
             self.desired_power.linear.z = -0.45
             self.desired_power.angular.x = 0
             self.desired_power.angular.y = 0
-            self.desired_power.angular.z = -0.15
+            self.desired_power.angular.z = 0.15
             self.publish_desired_power(0.5)
             
             # rate.sleep()
@@ -1021,7 +1023,7 @@ class TestStatePublisher:
         
         print("Hit serpens caput")
         
-        # self.the_most_magical_dead_reckoning_in_the_history_of_mankind()
+        self.the_most_magical_dead_reckoning_in_the_history_of_mankind()
 
         print("Passed semi-finals :)")
 
@@ -1043,7 +1045,7 @@ class TestStatePublisher:
 
 def main():
     # Uncomment for competition
-    # rospy.sleep(10)
+    rospy.sleep(10)
 
     tsp = TestStatePublisher()
 
@@ -1056,14 +1058,14 @@ def main():
     # RIGHT NOW IT'S SET TO 13 WHICH IS SLIGHTLY OVER 2 ROTATIONS, JUST TO MAKE SURE WE HIT 2 ROTATIONS
     
     # Course B
-    # tsp.dead_reckon_gate_with_style_with_yaw_correction(10, -2)
+    tsp.dead_reckon_gate_with_style_with_yaw_correction(10, -2)
     
     # tsp.cv_gate(10, -1)
     
     # tsp.dead_reckon_gate_with_style_with_yaw_correction(1.5, -0.6)
     
     # Pool test
-    tsp.dead_reckon_gate_with_style_with_yaw_correction(0, -0.6)
+    # tsp.dead_reckon_gate_with_style_with_yaw_correction(0, -0.6)
 
     rospy.sleep(1)
 
