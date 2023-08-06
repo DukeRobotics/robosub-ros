@@ -675,18 +675,14 @@ class TestStatePublisher:
         after_gate_dead_reckon.pose.pose.orientation.w = 1
 
         start_time = rospy.Time.now().secs
-        while not rospy.is_shutdown():
-            if self.abydos_gate_pos_x == 0 or self.abydos_gate_pos_y == 0:
-                print("Abydos not detected; moving forward 1")
-                self.update_desired_pos_local(1, 0, 0)
-                continue
             
+        while not rospy.is_shutdown():
             time = rospy.Time.now().secs
             if abs(self.abydos_time - time) < 3:
                 print("Abydos detected, using CV algorithm")
                 break
             
-            if abs(time - start_time) > 10:
+            if abs(time - start_time) > 5:
             # DEAD RECKON GATE
                 while not rospy.is_shutdown():
                     print(self.current_setpoint)
@@ -730,6 +726,24 @@ class TestStatePublisher:
 
                 print("Finished yawing")
                 return
+
+            if self.abydos_gate_pos_x == 0 or self.abydos_gate_pos_y == 0:
+                print("Abydos not detected; moving forward 1")
+                # self.update_desired_pos_local(1, 0, 0)
+                
+                temp_state = copy.deepcopy(self.state)
+                temp_state.pose.pose.position.x = temp_state.pose.pose.position.x + 1
+                temp_state.pose.pose.position.z = depth
+                temp_state.pose.pose.orientation.x = 0
+                temp_state.pose.pose.orientation.y = 0
+                temp_state.pose.pose.orientation.z = 0
+                temp_state.pose.pose.orientation.w = 1
+                self.update_desired_pos_global(temp_state)
+                
+                rate.sleep()
+                continue
+
+        rospy.sleep(1)
 
         self.abydos_gate_pose_transformed.position.x = self.abydos_gate_pose_transformed.position.x + 1
         self.abydos_gate_pose_transformed.position.z = self.abydos_gate_pose_transformed.position.z - 1
@@ -813,42 +827,51 @@ class TestStatePublisher:
 
         self.move_to_pos_and_stop(0, 0, initial_depth)
         print("Finished submerging")
-        
-        rospy.sleep(1)
+
+        rospy.sleep(0.5)
         
         start_time = rospy.Time.now().secs
         while not rospy.is_shutdown():
             time = rospy.Time.now().secs
-            if abs(self.serpenscaput_time - time) < 3:
-                print("Serpens Caput detected, using CV algorithm")
+            print(f"time ellapsed {abs(time - start_time)}")
+            
+            if abs(self.taurus_time - time) < 3:
+                print("Taurus detected, using CV algorithm")
+                rospy.sleep(1)
                 break
             
-            if abs(time - start_time) > 10:
+            if abs(time - start_time) > 20:
             # DEAD RECKON 2ND BUOY USING PREVIOUSLY SAVED GLOBAL POSE OF THE 1ST BUOY
                 # self.move_to_global_pos_and_stop(temp_state.pose.pose)
                 # print("Hit Serpens Caput")
                 # print("Passed semi-finals :)")
-                print("Did not detect Serpens Caput, surfacing in octagon")
+                print("Did not detect Taurus")
                 # self.the_most_magical_dead_reckoning_in_the_history_of_mankind()
                 return
             
             self.desired_power.linear.x = 0
             self.desired_power.linear.y = 0
-            self.desired_power.linear.z = -0.6
+            self.desired_power.linear.z = -0.5
             self.desired_power.angular.x = 0
             self.desired_power.angular.y = 0
-            self.desired_power.angular.z = -0.2
-            self.publish_desired_power(0.3)
+            self.desired_power.angular.z = -0.15
+            self.publish_desired_power(0.5)
             
             # rate.sleep()
+            
+            
 
-        self.sonar_requests.publish("buoy_abydos_serpenscaput")
+        self.sonar_requests.publish("buoy_abydos_taurus")
 
-        self.serpenscaput_pose_transformed.position.x = self.serpenscaput_pose_transformed.position.x + 0.25
-        self.serpenscaput_pose_transformed.position.y = self.serpenscaput_pose_transformed.position.y - 0.25
-        self.serpenscaput_pose_transformed.position.z = self.serpenscaput_pose_transformed.position.z - 0.25
-        print(self.serpenscaput_pose_transformed)
-        self._pub_desired_pose.publish(self.serpenscaput_pose_transformed)
+        self.taurus_pose_transformed.position.x = self.taurus_pose_transformed.position.x + 0.25
+        self.taurus_pose_transformed.position.y = self.taurus_pose_transformed.position.y
+        self.taurus_pose_transformed.position.z = self.taurus_pose_transformed.position.z
+        
+        temp_state = copy.deepcopy(self.state)
+        self.taurus_pose_transformed.orientation = temp_state.pose.pose.orientation
+        
+        print(self.taurus_pose_transformed)
+        self._pub_desired_pose.publish(self.taurus_pose_transformed)
 
         while not rospy.is_shutdown():
             
@@ -857,10 +880,11 @@ class TestStatePublisher:
             #         print("Ignoring taurus 0")
             #         continue
             
-            self.serpenscaput_pose_transformed.position.x = self.serpenscaput_pose_transformed.position.x + 0.25
-            self.serpenscaput_pose_transformed.position.y = self.serpenscaput_pose_transformed.position.y - 0.25
-            self.serpenscaput_pose_transformed.position.z = self.serpenscaput_pose_transformed.position.z - 0.25
-            self._pub_desired_pose.publish(self.serpenscaput_pose_transformed)
+            self.taurus_pose_transformed.position.x = self.taurus_pose_transformed.position.x + 0.25
+            self.taurus_pose_transformed.position.y = self.taurus_pose_transformed.position.y
+            self.taurus_pose_transformed.position.z = self.taurus_pose_transformed.position.z
+            self.taurus_pose_transformed.orientation = temp_state.pose.pose.orientation
+            self._pub_desired_pose.publish(self.taurus_pose_transformed)
             print(self.current_setpoint)
             
             rate.sleep()
@@ -876,11 +900,11 @@ class TestStatePublisher:
                 print("reached setpoint")
                 break
             
-            if self.serpenscaput_time != 0 and abs(self.serpenscaput_time - rospy.Time.now().secs) > 3:
+            if self.taurus_time != 0 and abs(self.taurus_time - rospy.Time.now().secs) > 3:
                 print("did not receive detection for 3 seconds")
                 break
 
-        print("Hit Serpens Caput")
+        print("Hit Taurus")
 
         rospy.sleep(1)
         
@@ -894,7 +918,7 @@ class TestStatePublisher:
         # temp_state.pose.pose.position.x = temp_state.pose.pose.position.x - 1
 
         temp_state.pose.pose.position.x = temp_state.pose.pose.position.x - 2
-        temp_state.pose.pose.position.y = temp_state.pose.pose.position.y - 0.5
+        temp_state.pose.pose.position.y = temp_state.pose.pose.position.y + 0.5
         temp_state.pose.pose.position.z = temp_state.pose.pose.position.z
         
         temp_state.pose.pose.orientation.x = 0
@@ -919,39 +943,42 @@ class TestStatePublisher:
         start_time = rospy.Time.now().secs
         while not rospy.is_shutdown():
             time = rospy.Time.now().secs
-            if abs(self.taurus_time - time) < 3:
-                print("Taurus detected, using CV algorithm")
+            print(f"time ellapsed {abs(time - start_time)}")
+            if abs(self.serpenscaput_time - time) < 3:
+                print("Serpens caput detected, using CV algorithm")
                 break
             
-            if abs(time - start_time) > 7:
+            if abs(time - start_time) > 20:
             # DEAD RECKON 2ND BUOY USING PREVIOUSLY SAVED GLOBAL POSE OF THE 1ST BUOY
                 temp_state.pose.pose.position.x = temp_state.pose.pose.position.x + 2.25
-                temp_state.pose.pose.position.y = temp_state.pose.pose.position.y - 0.25
-                temp_state.pose.pose.position.z = temp_state.pose.pose.position.z - 0.9
+                temp_state.pose.pose.position.y = temp_state.pose.pose.position.y + 0.25
+                temp_state.pose.pose.position.z = temp_state.pose.pose.position.z + 0.9
 
                 # self.move_to_pos_and_stop(2, 0.6, 0.3)
                 self.move_to_global_pos_and_stop(temp_state.pose.pose)
-                print("Hit Taurus")
+                print("Hit Serpens caput")
                 print("Passed semi-finals :)")
                 return
             
             self.desired_power.linear.x = 0
             self.desired_power.linear.y = 0
-            self.desired_power.linear.z = -0.6
+            self.desired_power.linear.z = -0.5
             self.desired_power.angular.x = 0
             self.desired_power.angular.y = 0
             self.desired_power.angular.z = -0.2
-            self.publish_desired_power(0.3)
+            self.publish_desired_power(0.5)
             
             # rate.sleep()
                    
-        self.sonar_requests.publish("buoy_abydos_taurus")
+        self.sonar_requests.publish("buoy_abydos_serpenscaput")
 
-        self.taurus_pose_transformed.position.x = self.taurus_pose_transformed.position.x + 0.5
-        self.taurus_pose_transformed.position.y = self.taurus_pose_transformed.position.y - 0.25
-        self.taurus_pose_transformed.position.z = self.taurus_pose_transformed.position.z - 0.25
-        print(self.taurus_pose_transformed)
-        self._pub_desired_pose.publish(self.taurus_pose_transformed)
+        self.serpenscaput_pose_transformed.position.x = self.serpenscaput_pose_transformed.position.x + 0.25
+        self.serpenscaput_pose_transformed.position.y = self.serpenscaput_pose_transformed.position.y
+        self.serpenscaput_pose_transformed.position.z = self.serpenscaput_pose_transformed.position.z
+        temp_state = copy.deepcopy(self.state)
+        self.serpenscaput_pose_transformed.orientation = temp_state.pose.pose.orientation
+        print(self.serpenscaput_pose_transformed)
+        self._pub_desired_pose.publish(self.serpenscaput_pose_transformed)
         
         while not rospy.is_shutdown():
             # if self.taurus_pose_transformed.position.x == 0 or self.taurus_pose_transformed.position.y == 0 \
@@ -965,9 +992,10 @@ class TestStatePublisher:
             # print(f"diff    : {abs(self.current_setpoint[1] - self.taurus_pos_y)}")
             # print()
 
-            self.taurus_pose_transformed.position.x = self.taurus_pose_transformed.position.x + 0.5
-            self.taurus_pose_transformed.position.z = self.taurus_pose_transformed.position.z - 0.25
-            self._pub_desired_pose.publish(self.taurus_pose_transformed)
+            self.serpenscaput_pose_transformed.position.x = self.serpenscaput_pose_transformed.position.x + 0.25
+            self.serpenscaput_pose_transformed.position.z = self.serpenscaput_pose_transformed.position.z
+            self.serpenscaput_pose_transformed.orientation = temp_state.pose.pose.orientation
+            self._pub_desired_pose.publish(self.serpenscaput_pose_transformed)
             print(self.current_setpoint)
             
             rate.sleep()
@@ -983,7 +1011,7 @@ class TestStatePublisher:
                 print("reached setpoint")
                 break
             
-            if self.taurus_time != 0 and abs(self.taurus_time - rospy.Time.now().secs) > 3:
+            if self.serpenscaput_time != 0 and abs(self.serpenscaput_time - rospy.Time.now().secs) > 3:
                 print("did not receive detection for 3 seconds")
                 break
                 
@@ -991,26 +1019,26 @@ class TestStatePublisher:
             #     print("X value too high breaking...")
             #     break
         
-        print("Hit Taurus")
+        print("Hit serpens caput")
         
         # self.the_most_magical_dead_reckoning_in_the_history_of_mankind()
 
         print("Passed semi-finals :)")
 
-def buoy_dead_reckon(self):
-    print("Starting CV buoy dead reckon")
+    def buoy_dead_reckon(self):
+        print("Starting CV buoy dead reckon")
 
-    self.move_to_pos_and_stop(0, 0, -1)
-    print("Finished submerging")
-    
-    self.move_to_pos_and_stop(1.5, 0, 0)
-    print("Finished moving forward")
+        self.move_to_pos_and_stop(0, 0, -1)
+        print("Finished submerging")
+        
+        self.move_to_pos_and_stop(1.5, 0, 0)
+        print("Finished moving forward")
 
-    self.move_to_pos_and_stop(-1, 0, 0)
-    print("Moving backward")
-    
-    self.move_to_pos_and_stop(1, 0, 0)
-    print("Finished moving forward")
+        self.move_to_pos_and_stop(-1, 0, 0)
+        print("Moving backward")
+        
+        self.move_to_pos_and_stop(1, 0, 0)
+        print("Finished moving forward")
     
 
 def main():
@@ -1019,7 +1047,7 @@ def main():
 
     tsp = TestStatePublisher()
 
-    rospy.sleep(10)
+    # rospy.sleep(10)
 
     # DEAD RECKON GATE WITH STYLE, THEN YAW BACK TO ORIGINAL YAW, THEN SUBMERGE AND MOVE FORWARD AGAIN
     # FOR COURSE A, MOVE FORWARD 12
@@ -1030,12 +1058,12 @@ def main():
     # Course B
     # tsp.dead_reckon_gate_with_style_with_yaw_correction(10, -2)
     
-    tsp.cv_gate(-2)
+    # tsp.cv_gate(10, -1)
     
     # tsp.dead_reckon_gate_with_style_with_yaw_correction(1.5, -0.6)
     
     # Pool test
-    # tsp.dead_reckon_gate_with_style_with_yaw_correction(0, -0.6)
+    tsp.dead_reckon_gate_with_style_with_yaw_correction(0, -0.6)
 
     rospy.sleep(1)
 
