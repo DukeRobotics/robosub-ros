@@ -93,6 +93,8 @@ class TestStatePublisher:
         self.abydos_gate_pos_y = 0
         self.abydos_gate_pos_z = 0
         self.abydos_gate_yaw = 0
+        self.abydos_time = 0
+        self.abydos_gate_pose_transformed = Pose()
 
         self.state = Odometry()
 
@@ -432,7 +434,25 @@ class TestStatePublisher:
         self.abydos_gate_pos_x = data.coords.x
         self.abydos_gate_pos_y = data.coords.y
         self.abydos_gate_pos_z = data.coords.z
-        self.abydos_gate_yaw = data.yaw        
+        self.abydos_gate_yaw = data.yaw       
+        self.abydos_time = data.header.stamp.secs 
+        
+        desired_pose_abydos_gate = Pose()
+        desired_pose_abydos_gate.position.x = data.coords.x
+        desired_pose_abydos_gate.position.y = data.coords.y
+        desired_pose_abydos_gate.position.z = data.coords.z
+        desired_pose_abydos_gate.orientation.x = 0
+        desired_pose_abydos_gate.orientation.y = 0
+        desired_pose_abydos_gate.orientation.z = 0
+        desired_pose_abydos_gate.orientation.w = 1
+        
+        self.abydos_gate_pose_transformed = controls_utils.transform_pose(
+            self.listener, "base_link", "odom", desired_pose_abydos_gate)
+
+        self.abydos_gate_pose_transformed.orientation.x = 0
+        self.abydos_gate_pose_transformed.orientation.y = 0
+        self.abydos_gate_pose_transformed.orientation.z = 0
+        self.abydos_gate_pose_transformed.orientation.w = 1
 
     def _on_receive_state(self, data):
         self.state = data
@@ -569,29 +589,28 @@ class TestStatePublisher:
         temp_state.pose.pose.orientation.z = 0
         temp_state.pose.pose.orientation.w = 1
         
-        self.move_to_global_pos_and_stop(temp_state.pose.pose)
+        # self.move_to_global_pos_and_stop(temp_state.pose.pose)
 
-        # self.update_desired_pos_global(temp_state)
+        self.update_desired_pos_global(temp_state)
 
-        # rate = rospy.Rate(15)
-        # rospy.sleep(1)
+        rate = rospy.Rate(15)
+        rospy.sleep(1)
 
-        # while not rospy.is_shutdown():
-        #     print(self.current_setpoint)
-        #     self._pub_desired_pose.publish(temp_state.pose.pose)
+        while not rospy.is_shutdown():
+            print(self.current_setpoint)
+            self._pub_desired_pose.publish(temp_state.pose.pose)
 
-        #     if self.current_setpoint[0] == 0 or self.current_setpoint[1] == 0 or self.current_setpoint[2] == 0:
-        #         print("Ignoring 0 0 0 setpoint")
-        #         continue
+            if self.current_setpoint[0] == 0 or self.current_setpoint[1] == 0 or self.current_setpoint[2] == 0:
+                print("Ignoring 0 0 0 setpoint")
+                continue
             
-        #     if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT[0] and \
-        #     abs(self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1] and \
-        #     abs(self.current_setpoint[2]) <= self.MOVE_OFFSET_CONSTANT[2] and \
-        #     abs(self.current_setpoint[5]) <= self.MOVE_OFFSET_CONSTANT_ANGULAR:
-        #         print("reached setpoint")
-        #         break
+            if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT[0] and \
+            abs(self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1] and \
+            abs(self.current_setpoint[5]) <= self.MOVE_OFFSET_CONSTANT_ANGULAR:
+                print("reached setpoint")
+                break
 
-        #     rate.sleep()
+            rate.sleep()
 
         print("Finished moving forward with yaw")
 
@@ -616,97 +635,158 @@ class TestStatePublisher:
         temp_state.pose.pose.orientation.w = 1
         
         
-        self.move_to_global_pos_and_stop(temp_state.pose.pose)
-        print("Finished moving back to previous global state")
+        # self.move_to_global_pos_and_stop(temp_state.pose.pose)
+        # print("Finished moving back to previous global state")
 
 
-        # self.update_desired_pos_global(temp_state)
+        self.update_desired_pos_global(temp_state)
 
-        # rospy.sleep(1)
+        rospy.sleep(1)
         
-        # while not rospy.is_shutdown():
-        #     self._pub_desired_pose.publish(temp_state.pose.pose)
-        #     print(f"Yaw setpoint: {self.current_setpoint[5]}")
-        #     rate.sleep()
+        while not rospy.is_shutdown():
+            self._pub_desired_pose.publish(temp_state.pose.pose)
+            print(f"Yaw setpoint: {self.current_setpoint[5]}")
+            rate.sleep()
 
-        #     if self.current_setpoint[5] == 0:
-        #         continue
+            if self.current_setpoint[5] == 0:
+                continue
 
-        #     if abs(self.current_setpoint[5]) <= self.MOVE_OFFSET_CONSTANT_ANGULAR:
-        #         break
+            if abs(self.current_setpoint[5]) <= self.MOVE_OFFSET_CONSTANT_ANGULAR:
+                break
 
-        # print("Finished yawing")
+        print("Finished yawing")
 
         # self.move_to_pos_and_stop(1.5, 0, 0)
         # print("Finished task")
     
-    # def cv_gate(self):
-    #     rate = rospy.Rate(15)
+    def cv_gate(self, distance, depth):
+        rate = rospy.Rate(15)
 
-    #     self.move_to_pos_and_stop(0, 0, -1)
-    #     print("Finished submerging")
+        self.move_to_pos_and_stop(0, 0, depth)
+        print("Submerged")
         
-    #     self.move_to_pos_and_stop(3, 0, 0)
-    #     print("Finished moving forward")
-        
-    #     # print(f"{self.abydos_gate_yaw}")
-    #     # self.move_to_pos_and_stop(0, 0, 0, yaw=self.abydos_gate_yaw)
-    #     # print(f"{self.abydos_gate_yaw}")
-    #     # print("Finished yawing to gate")
+        after_gate_dead_reckon = copy.deepcopy(self.state)
+        after_gate_dead_reckon.pose.pose.position.x = after_gate_dead_reckon.pose.pose.position.x + distance
+        after_gate_dead_reckon.pose.pose.position.y = after_gate_dead_reckon.pose.pose.position.y
+        after_gate_dead_reckon.pose.pose.position.z = after_gate_dead_reckon.pose.pose.position.z
+        after_gate_dead_reckon.pose.pose.orientation.x = 0
+        after_gate_dead_reckon.pose.pose.orientation.y = 0
+        after_gate_dead_reckon.pose.pose.orientation.z = 0
+        after_gate_dead_reckon.pose.pose.orientation.w = 1
 
-    #     while not rospy.is_shutdown():
-    #         if self.abydos_gate_pos_x == 0 or self.abydos_gate_pos_y == 0:
-    #             print("Abydos not detected")
-    #             self.update_desired_pos_local(0, 0, 0)
-    #             continue
-
-    #         self.update_desired_pos_local(self.abydos_gate_pos_x, self.abydos_gate_pos_y, 0) 
-    #         print(self.current_setpoint)
-
-    #         if self.abydos_gate_pos_x < 1:
-    #             print("Break due to low x")
-    #             break
-
-    #         rate.sleep()
+        start_time = rospy.Time.now().secs
+        while not rospy.is_shutdown():
+            if self.abydos_gate_pos_x == 0 or self.abydos_gate_pos_y == 0:
+                print("Abydos not detected; moving forward 1")
+                self.update_desired_pos_local(1, 0, 0)
+                continue
             
-    #         # if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT[0] and abs(
-    #         #         self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1] and abs(
-    #         #     self.current_setpoint[2]) <= self.MOVE_OFFSET_CONSTANT[2]:
-    #         #     break
+            time = rospy.Time.now().secs
+            if abs(self.abydos_time - time) < 3:
+                print("Abydos detected, using CV algorithm")
+                break
             
-            
-    #         if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT[0] and abs(
-    #             self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1]:
-    #             print("Hit setpoint")
-    #             # break
-            
+            if abs(time - start_time) > 10:
+            # DEAD RECKON GATE
+                while not rospy.is_shutdown():
+                    print(self.current_setpoint)
+                    self._pub_desired_pose.publish(after_gate_dead_reckon.pose.pose)
+                    if self.current_setpoint[0] == 0 or self.current_setpoint[1] == 0 or self.current_setpoint[2] == 0:
+                        print("Ignoring 0 0 0 setpoint")
+                        continue
+                    if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT[0] and \
+                    abs(self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1] and \
+                    abs(self.current_setpoint[5]) <= self.MOVE_OFFSET_CONSTANT_ANGULAR:
+                        print("reached setpoint")
+                        break
+                    rate.sleep()
 
-    #     print("Hit Abydos")
+                print("Finished dead reckon to gate with yaw")
+                        
+                temp_state = copy.deepcopy(self.state)
+                print(temp_state)
 
-    #     self.move_to_pos_and_stop(3, 0, 0)
-    #     print("Finished gate")
-
-    #     return
-
-    #     rospy.sleep(1)
-        
-    #     print("Current Abydos x setpoint: ", self.current_setpoint)
-
-    #     while True:
-    #         print(self.current_setpoint)
-    #         # if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT[0] and abs(
-    #         #         self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1] and abs(
-    #         #     self.current_setpoint[2]) <= self.MOVE_OFFSET_CONSTANT[2]:
-    #         #     break
+                self.yaw_720(True)
+                print("Finished yaw, move back to previous global state")
+                temp_state.pose.pose.orientation.x = 0
+                temp_state.pose.pose.orientation.y = 0
+                temp_state.pose.pose.orientation.z = 0
+                temp_state.pose.pose.orientation.w = 1
                 
-    #         if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT[0] and abs(
-    #                 self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1]:
-    #             break
-            
-    #         rate.sleep()
-    #         # tsp.update_desired_pos_local(tsp.taurus_pos_x + 0.5, tsp.taurus_pos_y, tsp.taurus_pos_z)
+                self.update_desired_pos_global(temp_state)
 
-    #     print("Hit Abydos x")
+                rospy.sleep(1)
+                
+                while not rospy.is_shutdown():
+                    self._pub_desired_pose.publish(temp_state.pose.pose)
+                    print(f"Yaw setpoint: {self.current_setpoint[5]}")
+                    rate.sleep()
+
+                    if self.current_setpoint[5] == 0:
+                        continue
+
+                    if abs(self.current_setpoint[5]) <= self.MOVE_OFFSET_CONSTANT_ANGULAR:
+                        break
+
+                print("Finished yawing")
+                return
+
+        self.abydos_gate_pose_transformed.position.x = self.abydos_gate_pose_transformed.position.x + 1
+        self.abydos_gate_pose_transformed.position.z = self.abydos_gate_pose_transformed.position.z - 1
+        self._pub_desired_pose.publish(self.abydos_gate_pose_transformed)
+        while not rospy.is_shutdown():
+            self.abydos_gate_pose_transformed.position.x = self.abydos_gate_pose_transformed.position.x + 1
+            self.abydos_gate_pose_transformed.position.z = self.abydos_gate_pose_transformed.position.z - 1
+            self._pub_desired_pose.publish(self.abydos_gate_pose_transformed)
+            print(self.current_setpoint)
+            
+            rate.sleep()
+
+            if self.current_setpoint[0] == 0 or self.current_setpoint[1] == 0 or self.current_setpoint[2] == 0:
+                print("Ignoring 0 0 0 setpoint")
+                continue
+            
+            if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT[0] and \
+            abs(self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT[1] and \
+            abs(self.current_setpoint[2]) <= self.MOVE_OFFSET_CONSTANT[2] and \
+            abs(self.current_setpoint[5]) <= self.MOVE_OFFSET_CONSTANT_ANGULAR:
+                print("reached setpoint")
+                break
+            
+            if self.abydos_time != 0 and abs(self.abydos_time - rospy.Time.now().secs) > 2:
+                print("did not receive detection for 3 seconds")
+                break
+            
+        print("Hit Abydos gate")
+        
+        temp_state = copy.deepcopy(self.state)
+        print(temp_state)
+
+        self.yaw_720(True)
+        print("Finished yaw, move back to previous global state")
+        temp_state.pose.pose.orientation.x = 0
+        temp_state.pose.pose.orientation.y = 0
+        temp_state.pose.pose.orientation.z = 0
+        temp_state.pose.pose.orientation.w = 1
+        
+        self.update_desired_pos_global(temp_state)
+
+        rospy.sleep(1)
+        
+        while not rospy.is_shutdown():
+            self._pub_desired_pose.publish(temp_state.pose.pose)
+            print(f"Yaw setpoint: {self.current_setpoint[5]}")
+            rate.sleep()
+
+            if self.current_setpoint[5] == 0:
+                continue
+
+            if abs(self.current_setpoint[5]) <= self.MOVE_OFFSET_CONSTANT_ANGULAR:
+                break
+
+        print("Finished yawing")
+
+        
 
     def the_most_magical_dead_reckoning_in_the_history_of_mankind(self):
         octagon = Pose()
@@ -754,11 +834,11 @@ class TestStatePublisher:
             
             self.desired_power.linear.x = 0
             self.desired_power.linear.y = 0
-            self.desired_power.linear.z = -0.75
+            self.desired_power.linear.z = -0.6
             self.desired_power.angular.x = 0
             self.desired_power.angular.y = 0
-            self.desired_power.angular.z = 0.2
-            self.publish_desired_power(0.1)
+            self.desired_power.angular.z = -0.2
+            self.publish_desired_power(0.3)
             
             # rate.sleep()
 
@@ -778,6 +858,7 @@ class TestStatePublisher:
             #         continue
             
             self.serpenscaput_pose_transformed.position.x = self.serpenscaput_pose_transformed.position.x + 0.25
+            self.serpenscaput_pose_transformed.position.y = self.serpenscaput_pose_transformed.position.y - 0.25
             self.serpenscaput_pose_transformed.position.z = self.serpenscaput_pose_transformed.position.z - 0.25
             self._pub_desired_pose.publish(self.serpenscaput_pose_transformed)
             print(self.current_setpoint)
@@ -813,7 +894,7 @@ class TestStatePublisher:
         # temp_state.pose.pose.position.x = temp_state.pose.pose.position.x - 1
 
         temp_state.pose.pose.position.x = temp_state.pose.pose.position.x - 2
-        temp_state.pose.pose.position.y = temp_state.pose.pose.position.y + 0.5
+        temp_state.pose.pose.position.y = temp_state.pose.pose.position.y - 0.5
         temp_state.pose.pose.position.z = temp_state.pose.pose.position.z
         
         temp_state.pose.pose.orientation.x = 0
@@ -844,9 +925,9 @@ class TestStatePublisher:
             
             if abs(time - start_time) > 7:
             # DEAD RECKON 2ND BUOY USING PREVIOUSLY SAVED GLOBAL POSE OF THE 1ST BUOY
-                temp_state.pose.pose.position.x = temp_state.pose.pose.position.x + 1.5
-                temp_state.pose.pose.position.y = temp_state.pose.pose.position.y + 1
-                temp_state.pose.pose.position.z = temp_state.pose.pose.position.z + 0.9
+                temp_state.pose.pose.position.x = temp_state.pose.pose.position.x + 2.25
+                temp_state.pose.pose.position.y = temp_state.pose.pose.position.y - 0.25
+                temp_state.pose.pose.position.z = temp_state.pose.pose.position.z - 0.9
 
                 # self.move_to_pos_and_stop(2, 0.6, 0.3)
                 self.move_to_global_pos_and_stop(temp_state.pose.pose)
@@ -856,11 +937,11 @@ class TestStatePublisher:
             
             self.desired_power.linear.x = 0
             self.desired_power.linear.y = 0
-            self.desired_power.linear.z = -0.75
+            self.desired_power.linear.z = -0.6
             self.desired_power.angular.x = 0
             self.desired_power.angular.y = 0
-            self.desired_power.angular.z = 0.2
-            self.publish_desired_power(0.1)
+            self.desired_power.angular.z = -0.2
+            self.publish_desired_power(0.3)
             
             # rate.sleep()
                    
@@ -938,22 +1019,28 @@ def main():
 
     tsp = TestStatePublisher()
 
+    rospy.sleep(10)
+
     # DEAD RECKON GATE WITH STYLE, THEN YAW BACK TO ORIGINAL YAW, THEN SUBMERGE AND MOVE FORWARD AGAIN
     # FOR COURSE A, MOVE FORWARD 12
-    # FOR COURSE B, MOVE FORWARD 9.5
+    # FOR COURSE B, MOVE FORWARD 10
     # ALSO REMEMBER TO SET THE DESIRED NUMBER OF SECONDS FOR 2 ROTATIONS
     # RIGHT NOW IT'S SET TO 13 WHICH IS SLIGHTLY OVER 2 ROTATIONS, JUST TO MAKE SURE WE HIT 2 ROTATIONS
-    # tsp.dead_reckon_gate_with_style(12, -2)
-    # tsp.dead_reckon_gate_with_style_with_yaw_correction(9, -2)
+    
+    # Course B
+    # tsp.dead_reckon_gate_with_style_with_yaw_correction(10, -2)
+    
+    tsp.cv_gate(-2)
+    
     # tsp.dead_reckon_gate_with_style_with_yaw_correction(1.5, -0.6)
     
     # Pool test
-    tsp.dead_reckon_gate_with_style_with_yaw_correction(0, -0.6)
+    # tsp.dead_reckon_gate_with_style_with_yaw_correction(0, -0.6)
 
     rospy.sleep(1)
 
     # CV BUOY
-    tsp.cv_buoy(-0.5)
+    tsp.cv_buoy(0)
     # tsp.cv_buoy(-2.5) # if just doing buoy
     
     # tsp.buoy_dead_reckon()
