@@ -851,7 +851,7 @@ class TestStatePublisher:
             
             self.desired_power.linear.x = 0
             self.desired_power.linear.y = 0
-            self.desired_power.linear.z = -0.5
+            self.desired_power.linear.z = -0.45
             self.desired_power.angular.x = 0
             self.desired_power.angular.y = 0
             self.desired_power.angular.z = -0.15
@@ -962,10 +962,10 @@ class TestStatePublisher:
             
             self.desired_power.linear.x = 0
             self.desired_power.linear.y = 0
-            self.desired_power.linear.z = -0.5
+            self.desired_power.linear.z = -0.45
             self.desired_power.angular.x = 0
             self.desired_power.angular.y = 0
-            self.desired_power.angular.z = -0.2
+            self.desired_power.angular.z = -0.15
             self.publish_desired_power(0.5)
             
             # rate.sleep()
