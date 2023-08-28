@@ -335,6 +335,7 @@ class LaunchWidget(QWidget):
                         self.remove_from_table(pid)
 
 
+# dummy commit
 class LaunchWidgetSettings(QDialog):
     def __init__(self, parent, display_all_nodes, remove_node_manually, running_status_column):
         super().__init__(parent)
