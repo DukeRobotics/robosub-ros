@@ -4,6 +4,11 @@
 
 	<arg name="sim" default="false" />
 
+	<!-- Start Arduino I/O -->
+	<group unless="$(arg sim)">
+		<include file="$(find offboard_comms)/launch/serial.launch" />
+	</group>
+
 	<!-- Start state tracking -->
 	<include file="$(find execute)/launch/state.launch">
 		<arg name="sim" value="$(arg sim)" />
@@ -13,11 +18,6 @@
 	<include file="$(find controls)/launch/controls.launch">
 		<arg name="sim" value="$(arg sim)" />
 	</include>
-
-	<!-- Start Arduino I/O -->
-	<group unless="$(arg sim)">
-		<include file="$(find offboard_comms)/launch/serial.launch" />
-	</group>
 
 	<include file="$(find execute)/launch/sensors.launch" />
 

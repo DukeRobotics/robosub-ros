@@ -27,7 +27,7 @@ class DesiredStateHandler:
     DESIRED_POSE_TOPIC = 'controls/desired_pose'
     DESIRED_POWER_TOPIC = 'controls/desired_power'
 
-    REFRESH_HZ = 10  # for main loop
+    REFRESH_HZ = 15  # for main loop
 
     # Max power & Max twist for the controls need values
     MAX_POWER = {'x': 1, 'y': 1, 'z': 1, 'roll': 0.5, 'pitch': 0.5, 'yaw': 0.5}

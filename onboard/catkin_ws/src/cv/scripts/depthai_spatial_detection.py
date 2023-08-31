@@ -68,7 +68,7 @@ class DepthAISpatialDetector:
         self.sonar_busy = False
 
         # By default the first task is going through the gate
-        self.current_priority = "buoy_abydos_taurus"
+        self.current_priority = "buoy_abydos_serpenscaput"
 
         self.sonar_requests_publisher = rospy.Publisher(
             SONAR_REQUESTS_PATH, sweepGoal, queue_size=10)
@@ -345,7 +345,7 @@ class DepthAISpatialDetector:
 
             self.publish_prediction(
                 bbox, det_coords_robot_mm, yaw_offset, label, confidence,
-                (height, width), self.in_sonar_range)
+                (height, width), self.using_sonar)
 
     def publish_prediction(self, bbox, det_coords, yaw, label, confidence,
                            shape, using_sonar):
@@ -361,6 +361,9 @@ class DepthAISpatialDetector:
         object_msg = CVObject()
         object_msg.label = label
         object_msg.score = confidence
+        
+        object_msg.header.stamp.secs = rospy.Time.now().secs
+        object_msg.header.stamp.nsecs = rospy.Time.now().nsecs
 
         object_msg.coords.x = det_coords[0]
         object_msg.coords.y = det_coords[1]
@@ -379,7 +382,8 @@ class DepthAISpatialDetector:
         object_msg.sonar = using_sonar
 
         if self.publishers:
-            self.publishers[label].publish(object_msg)
+            if object_msg.coords.x != 0 and object_msg.coords.y != 0 and object_msg.coords.z != 0:
+                self.publishers[label].publish(object_msg)
 
     def update_sonar(self, sonar_results):
         """
@@ -389,7 +393,7 @@ class DepthAISpatialDetector:
         """
         # Check to see if the sonar is in range - are results from sonar valid?
         self.sonar_busy = False
-        if sonar_results.x_pos > SONAR_RANGE:
+        if sonar_results.x_pos > SONAR_RANGE and sonar_results.x_pos <= SONAR_DEPTH:
             self.in_sonar_range = True
             self.sonar_response = (sonar_results.x_pos, sonar_results.y_pos)
         else:
