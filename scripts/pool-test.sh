@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# A tmux script that opens all the necessary terminals to control our robot.
+# Usage: ./pool-test.sh
+
 session=“pool-test”
 
 tmux new-session -d -s $session
