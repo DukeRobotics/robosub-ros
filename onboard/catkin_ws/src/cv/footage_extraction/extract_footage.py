@@ -371,8 +371,8 @@ class FootageExtractor:
                     uploaded_topic_dir_path = os.path.join(uploaded_dir_path, topic)
 
                     if file_dict[topic]:
-                        inp = input("Are you sure you want to upload the " +
-                                    f"images in {extracted_directory}/{topic}? (Y/N): ")
+                        inp = input("Are you sure you want to upload the images",
+                                    f"in {extracted_directory}/{topic}? (Y/N): ")
                         if inp.lower() == "y":
 
                             # creating directory for the file and topic subdirectories for uploaded images (if required)
@@ -430,17 +430,17 @@ if __name__ == '__main__':
     for index, arg in enumerate(arg_list):
         if arg == '--generate-config':
             generate_config_flag = True
-            if index+1 < len(arg_list) and arg_list[index+1] == "roboflow":
+            if index + 1 < len(arg_list) and arg_list[index + 1] == "roboflow":
                 roboflow_found = True
 
         if arg == '--default-bools':
-            if index+1 < len(arg_list):
-                if arg_list[index+1].lower() == "true":
+            if index + 1 < len(arg_list):
+                if arg_list[index + 1].lower() == "true":
                     default_bools_flag = True
 
         if arg == '--step-size':
-            if index+1 < len(arg_list):
-                step_size = int(arg_list[index+1])
+            if index + 1 < len(arg_list):
+                step_size = int(arg_list[index + 1])
 
         if arg == '--upload-to-roboflow':
             upload_to_roboflow_flag = True
