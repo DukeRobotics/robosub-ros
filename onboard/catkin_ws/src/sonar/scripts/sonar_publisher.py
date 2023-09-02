@@ -6,7 +6,7 @@ import numpy as np
 from sonar import Sonar
 from custom_msgs.msg import sweepResult, sweepGoal
 from sensor_msgs.msg import CompressedImage
-from cv_bridge import CvBridge, CvBridgeError
+from cv_bridge import CvBridge
 from sonar_utils import degrees_to_centered_gradians
 from sonar_image_processing import build_sonar_image
 
@@ -34,8 +34,12 @@ class SonarPublisher:
         self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC,
                                             sweepResult, queue_size=1)
         if self.stream:
-            self.sonar_image_publisher = rospy.Publisher(self.SONAR_IMAGE_TOPIC,
-                                                        CompressedImage, queue_size=1)
+            self.sonar_image_publisher = rospy.Publisher(
+                self.SONAR_IMAGE_TOPIC,
+                CompressedImage,
+                queue_size=1
+            )
+
     def on_request(self, request):
         if (request.distance_of_scan == -1):
             return
@@ -44,19 +48,21 @@ class SonarPublisher:
         left_gradians = degrees_to_centered_gradians(request.start_angle)
         right_gradians = degrees_to_centered_gradians(request.end_angle)
 
-        sonar_x, sonar_y, scanned_image = self.sonar.get_xy_of_object_in_sweep(left_gradians,
-                                                                              right_gradians)
+        sonar_x, sonar_y, scanned_image = self.sonar.get_xy_of_object_in_sweep(
+            left_gradians,
+            right_gradians
+        )
         sonar_xy_result = (sonar_x, sonar_y)
 
         if self.stream:
             sonar_image = build_sonar_image(scanned_image)
-            
+
             if self.polar:
-                img = np.pad(sonar_image.astype(np.uint8), ((80, 80),(0, 0)), 'constant')
+                img = np.pad(sonar_image.astype(np.uint8), ((80, 80), (0, 0)), 'constant')
                 greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
                 polar_img = cv2.linearPolar(greyscale_image, (175, 175), 175.0, cv2.WARP_INVERSE_MAP)
                 sonar_image = polar_img[0:350, 0:350]
-            
+
             sonar_image = cv2.applyColorMap(sonar_image, cv2.COLORMAP_VIRIDIS)
             compressed_image = self.cv_bridge.cv2_to_compressed_imgmsg(sonar_image)
             self.sonar_image_publisher.publish(compressed_image)
@@ -77,7 +83,6 @@ class SonarPublisher:
         while True:
             self.on_request(sonar_request_msg)
             rospy.spin()
-
 
     def convert_to_ros_compressed_msg(self, image, compressed_format='jpg'):
         """
