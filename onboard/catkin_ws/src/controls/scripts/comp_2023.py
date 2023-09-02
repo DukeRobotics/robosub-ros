@@ -486,12 +486,14 @@ class TaskPlanner:
         temp_state = copy.deepcopy(self.state)
 
         self.taurus_pose_transformed.position.x = self.taurus_pose_transformed.position.x + 0.25
+        self.taurus_pose_transformed.position.y = self.taurus_pose_transformed.position.y - 0.5
         self.taurus_pose_transformed.orientation = temp_state.pose.pose.orientation
 
         self._pub_desired_pose.publish(self.taurus_pose_transformed)
 
         while not rospy.is_shutdown():
             self.taurus_pose_transformed.position.x = self.taurus_pose_transformed.position.x + 0.25
+            self.taurus_pose_transformed.position.y = self.taurus_pose_transformed.position.y - 0.5
             self.taurus_pose_transformed.orientation = temp_state.pose.pose.orientation
             self._pub_desired_pose.publish(self.taurus_pose_transformed)
 
@@ -595,7 +597,7 @@ class TaskPlanner:
 
         octagon.position.x = 33.8
         octagon.position.y = -11.8
-        octagon.position.z = -2
+        octagon.position.z = -1.5
 
         octagon.orientation.x = 0
         octagon.orientation.y = 0
@@ -610,9 +612,8 @@ class TaskPlanner:
 
 
 def main():
-    rospy.sleep(10)
-
     task_planner = TaskPlanner()
+    rospy.sleep(10)
 
     task_planner.gate_task_with_style(10, -2)
     rospy.sleep(1)
