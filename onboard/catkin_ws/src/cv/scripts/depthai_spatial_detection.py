@@ -18,10 +18,6 @@ from std_msgs.msg import String
 MM_IN_METER = 1000
 DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH = 'package://cv/models/depthai_models.yaml'
 HORIZONTAL_FOV = 95
-CAMERA_PIXEL_WIDTH = 416
-CAMERA_PIXEL_HEIGHT = 416
-IMAGE_CENTER_X = CAMERA_PIXEL_WIDTH / 2.0
-IMAGE_CENTER_Y = CAMERA_PIXEL_HEIGHT / 2.0
 SONAR_DEPTH = 10
 SONAR_RANGE = 1.75
 SONAR_REQUESTS_PATH = 'sonar/request'
@@ -57,6 +53,8 @@ class DepthAISpatialDetector:
         self.connected = False
         self.current_model_name = None
         self.classes = None
+        self.camera_pixel_width = None
+        self.camera_pixel_height = None
         self.detection_feed_publisher = None
         self.rgb_preview_publisher = None
         self.detection_visualizer = None
@@ -199,6 +197,8 @@ class DepthAISpatialDetector:
 
         self.classes = model['classes']
 
+        self.camera_pixel_width, self.camera_pixel_height = model['input_size']
+
         self.colors = model['colors']
 
         blob_path = rr.get_filename(f"package://cv/models/{model['weights']}",
@@ -312,16 +312,16 @@ class DepthAISpatialDetector:
                                                               z_cam_meters)
 
             # Find yaw angle offset
-            left_end_compute = compute_angle_from_x_offset(detection.xmin * CAMERA_PIXEL_WIDTH)
-            right_end_compute = compute_angle_from_x_offset(detection.xmax * CAMERA_PIXEL_WIDTH)
+            left_end_compute = self.compute_angle_from_x_offset(detection.xmin * self.camera_pixel_width)
+            right_end_compute = self.compute_angle_from_x_offset(detection.xmax * self.camera_pixel_width)
             yaw_offset = ((left_end_compute + right_end_compute) / 2.0) * (math.pi / 180.0)
 
             # Create a new sonar request msg object if using sonar and the current detected
             # class is the desired class to be returned to task planning
             if self.using_sonar and label == self.current_priority:
 
-                top_end_compute = compute_angle_from_y_offset(detection.ymin * CAMERA_PIXEL_HEIGHT)
-                bottom_end_compute = compute_angle_from_y_offset(detection.ymax * CAMERA_PIXEL_HEIGHT)
+                top_end_compute = self.compute_angle_from_y_offset(detection.ymin * self.camera_pixel_height)
+                bottom_end_compute = self.compute_angle_from_y_offset(detection.ymax * self.camera_pixel_height)
 
                 sonar_request_msg = sweepGoal()
                 sonar_request_msg.start_angle = left_end_compute
@@ -423,6 +423,27 @@ class DepthAISpatialDetector:
 
         return True
 
+    def compute_angle_from_x_offset(self, x_offset):
+        image_center_x = self.camera_pixel_width / 2.0
+        return math.degrees(math.atan(((x_offset - image_center_x) * 0.005246675486)))
+
+    def compute_angle_from_y_offset(self, y_offset):
+        image_center_y = self.camera_pixel_height / 2.0
+        return math.degrees(math.atan(((y_offset - image_center_y) * 0.003366382395)))
+
+    def coords_to_angle(self, min_x, max_x):
+        """
+        Takes in a detected bounding box from the camera and returns the angle
+                range to sonar sweep.
+        :param min_x: minimum x coordinate of camera bounding box (robot y)
+        :param max_x: maximum x coordinate of camera bounding box (robot y)
+        """
+        distance_to_screen = self.camera_pixel_width / 2 * \
+            1/math.tan(math.radians(HORIZONTAL_FOV/2))
+        min_angle = math.degrees(np.arctan(min_x/distance_to_screen))
+        max_angle = math.degrees(np.arctan(max_x/distance_to_screen))
+        return min_angle, max_angle
+
 
 def mm_to_meters(val_mm):
     """
@@ -446,28 +467,6 @@ def camera_frame_to_robot_frame(cam_x, cam_y, cam_z):
     robot_z = cam_y
     robot_x = cam_z
     return robot_x, robot_y, robot_z
-
-
-def coords_to_angle(min_x, max_x):
-    """
-    Takes in a detected bounding box from the camera and returns the angle
-            range to sonar sweep.
-    :param min_x: minimum x coordinate of camera bounding box (robot y)
-    :param max_x: maximum x coordinate of camera bounding box (robot y)
-    """
-    distance_to_screen = CAMERA_PIXEL_WIDTH/2 * \
-        1/math.tan(math.radians(HORIZONTAL_FOV/2))
-    min_angle = math.degrees(np.arctan(min_x/distance_to_screen))
-    max_angle = math.degrees(np.arctan(max_x/distance_to_screen))
-    return min_angle, max_angle
-
-
-def compute_angle_from_x_offset(x_offset):
-    return math.degrees(math.atan(((x_offset - IMAGE_CENTER_X) * 0.005246675486)))
-
-
-def compute_angle_from_y_offset(y_offset):
-    return math.degrees(math.atan(((y_offset - IMAGE_CENTER_Y) * 0.003366382395)))
 
 
 if __name__ == '__main__':
