@@ -41,6 +41,7 @@ RUN apt-get update && \
     ros-noetic-rosserial \
     ros-noetic-rosserial-arduino \
     ffmpeg \
+    nmap \
     iputils-ping \
     python3-pandas \
     nmap && \
