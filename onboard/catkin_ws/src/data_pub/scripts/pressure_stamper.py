@@ -21,7 +21,7 @@ class PressureStamper:
     def receive_pressure(self, pressure):
         pressure.header.stamp = rospy.Time.now()
         pressure.pose.pose.position.z = -pressure.pose.pose.position.z
-        
+
         if pressure.pose.pose.position.z <= self.FILTER_CONSTANT:
             self._pub_depth.publish(pressure)
 

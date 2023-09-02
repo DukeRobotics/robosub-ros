@@ -1,7 +1,8 @@
 from interface.controls import ControlsInterface
 from interface.cv import CVInterface
 import smach
-import cv_tasks, task_utils
+import cv_tasks
+import task_utils
 from move_tasks import AllocateVelocityLocalTask, HoldPositionTask, MoveToUserDataPoseLocalTask, MoveToPoseLocalTask
 
 
@@ -12,17 +13,17 @@ class BuoyTask(smach.StateMachine):
     targets = ['buoy_abydos_taurus', 'buoy_abydos_sepenscaput']
 
     def __init__(self, listener, controls: ControlsInterface, cv: CVInterface):
-        super().__init__(outcomes=['done']) #maybe do calls here - also TODO add move backwards at the end of the func
+        super().__init__(outcomes=['done'])  # maybe do calls here - also TODO add move backwards at the end of the func
 
         with self:
             for i in range(len(self.targets)):
                 smach.StateMachine.add(f'CHOOSE_ROTATE_DIR_{i}',
-                                    cv_tasks.SpinDirectionTask(self.targets[i], self.CENTER_TOLERANCE, cv),
-                                    transitions={
-                                            'left': f'ROTATE_LEFT_{i}',
-                                            'right': f'ROTATE_RIGHT_{i}',
-                                            'center': f'BUOY_CENTERED_{i}'
-                                        })
+                                       cv_tasks.SpinDirectionTask(self.targets[i], self.CENTER_TOLERANCE, cv),
+                                       transitions={
+                                               'left': f'ROTATE_LEFT_{i}',
+                                               'right': f'ROTATE_RIGHT_{i}',
+                                               'center': f'BUOY_CENTERED_{i}'
+                                       })
 
                 smach.StateMachine.add(f'ROTATE_LEFT_{i}',
                                     AllocateVelocityLocalTask(0, 0, 0, 0, 0, self.ROTATE_SPEED, controls),
