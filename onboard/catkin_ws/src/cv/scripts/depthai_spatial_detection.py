@@ -322,7 +322,7 @@ class DepthAISpatialDetector:
 
                 top_end_compute = compute_angle_from_y_offset(detection.ymin * CAMERA_PIXEL_HEIGHT)
                 bottom_end_compute = compute_angle_from_y_offset(detection.ymax * CAMERA_PIXEL_HEIGHT)
-            
+
                 sonar_request_msg = sweepGoal()
                 sonar_request_msg.start_angle = left_end_compute
                 sonar_request_msg.end_angle = right_end_compute
@@ -361,7 +361,7 @@ class DepthAISpatialDetector:
         object_msg = CVObject()
         object_msg.label = label
         object_msg.score = confidence
-        
+
         object_msg.header.stamp.secs = rospy.Time.now().secs
         object_msg.header.stamp.nsecs = rospy.Time.now().nsecs
 
@@ -461,12 +461,14 @@ def coords_to_angle(min_x, max_x):
     max_angle = math.degrees(np.arctan(max_x/distance_to_screen))
     return min_angle, max_angle
 
+
 def compute_angle_from_x_offset(x_offset):
-    return(math.degrees(math.atan(((x_offset- IMAGE_CENTER_X)*0.005246675486))))
+    return math.degrees(math.atan(((x_offset - IMAGE_CENTER_X) * 0.005246675486)))
+
 
 def compute_angle_from_y_offset(y_offset):
-    return(math.degrees(math.atan(((y_offset- IMAGE_CENTER_Y)*0.003366382395))))
+    return math.degrees(math.atan(((y_offset - IMAGE_CENTER_Y) * 0.003366382395)))
+
 
 if __name__ == '__main__':
     DepthAISpatialDetector().run()
-
