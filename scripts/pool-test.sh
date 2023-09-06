@@ -17,51 +17,43 @@ tmux split-window -v -p 50
 tmux split-window -v -p 33
 
 tmux select-pane -t 0
-tmux rename-window -t $session:$window 'robot'
-tmux send-keys -t $session:$window 'ssh robot@192.168.1.1' 'Enter'
-tmux send-keys -t $session:$window 'cd robosub-ros' 'Enter'
+tmux send-keys 'ssh robot@192.168.1.1' 'Enter'
+tmux send-keys 'cd robosub-ros' 'Enter'
 
 tmux select-pane -t 1
-tmux rename-window -t $session:$window 'onboard_1'
-tmux send-keys -t $session:$window 'ssh robot@192.168.1.1' 'Enter'
-tmux send-keys -t $session:$window 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
-tmux send-keys -t $session:$window 'roscore' 'Enter'
+tmux send-keys 'ssh robot@192.168.1.1' 'Enter'
+tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
+tmux send-keys 'roscore' 'Enter'
 
 tmux select-pane -t 2
-tmux rename-window -t $session:$window 'onboard_2'
-tmux send-keys -t $session:$window 'ssh robot@192.168.1.1' 'Enter'
-tmux send-keys -t $session:$window 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
-tmux send-keys -t $session:$window 'roslaunch execute motion.launch'
+tmux send-keys 'ssh robot@192.168.1.1' 'Enter'
+tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
+tmux send-keys 'roslaunch execute motion.launch'
 
 tmux select-pane -t 3
-tmux rename-window -t $session:$window 'landside_1'
-tmux send-keys -t $session:$window 'ssh -XY robot@192.168.1.1' 'Enter'
-tmux send-keys -t $session:$window 'sshpass -p robotics ssh -XY -p 2201 root@192.168.1.1' 'Enter'
-tmux send-keys -t $session:$window 'roslaunch gui cv_gui.launch'
+tmux send-keys 'ssh -XY robot@192.168.1.1' 'Enter'
+tmux send-keys 'sshpass -p robotics ssh -XY -p 2201 root@192.168.1.1' 'Enter'
+tmux send-keys 'roslaunch gui cv_gui.launch'
 
 tmux select-pane -t 4
-tmux rename-window -t $session:$window 'onboard_3'
-tmux send-keys -t $session:$window 'ssh robot@192.168.1.1' 'Enter'
-tmux send-keys -t $session:$window 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
-tmux send-keys -t $session:$window 'rosservice call /enable_controls True'
+tmux send-keys 'ssh robot@192.168.1.1' 'Enter'
+tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
+tmux send-keys 'rosservice call /enable_controls True'
 
 tmux select-pane -t 5
-tmux rename-window -t $session:$window 'onboard_4'
-tmux send-keys -t $session:$window 'ssh robot@192.168.1.1' 'Enter'
-tmux send-keys -t $session:$window 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
-tmux send-keys -t $session:$window './record.sh .bag'
+tmux send-keys 'ssh robot@192.168.1.1' 'Enter'
+tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
+tmux send-keys './record.sh .bag'
 
 tmux select-pane -t 6
-tmux rename-window -t $session:$window 'onboard_5'
-tmux send-keys -t $session:$window 'ssh robot@192.168.1.1' 'Enter'
-tmux send-keys -t $session:$window 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
-tmux send-keys -t $session:$window 'rostopic echo /state'
+tmux send-keys 'ssh robot@192.168.1.1' 'Enter'
+tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
+tmux send-keys 'rostopic echo /state'
 
 tmux select-pane -t 7
-tmux rename-window -t $session:$window 'onboard_6'
-tmux send-keys -t $session:$window 'ssh robot@192.168.1.1' 'Enter'
-tmux send-keys -t $session:$window 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
-tmux send-keys -t $session:$window 'rosrun controls test_state_publisher.py'
+tmux send-keys 'ssh robot@192.168.1.1' 'Enter'
+tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
+tmux send-keys 'rosrun controls test_state_publisher.py'
 
 tmux select-pane -t 1
 
