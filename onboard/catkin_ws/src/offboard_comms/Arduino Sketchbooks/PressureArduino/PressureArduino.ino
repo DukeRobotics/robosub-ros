@@ -37,7 +37,7 @@ void loop(){
 
     sensor.read();
 
-    depth = sensor.depth()
+    depth = (std_msgs::Float64) sensor.depth();
 
     pressure_pub.publish(&depth);
 
