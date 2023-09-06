@@ -42,28 +42,4 @@ void loop(){
     pressure_pub.publish(&depth);
 
     nh.spinOnce();
-
-    // odom_msg.header.frame_id = "odom";
-
-    // // Set all values to 0 except for depth
-    // // Zeroed values are not used by the EKF
-    // geometry_msgs::Point point;
-    // point.x = 0.0;
-    // point.y = 0.0;
-    // point.z = sensor.depth();
-
-    // // Unit quaternion -- also unused by EKF
-    // geometry_msgs::Quaternion quat;
-    // quat.x = 0.0;
-    // quat.y = 0.0;
-    // quat.z = 0.0;
-    // quat.w = 1.0;
-
-    // geometry_msgs::Pose pose;
-    // pose.position = point;
-    // pose.orientation = quat;
-    // odom_msg.pose.pose = pose;
-    // odom_msg.pose.covariance[14] = 0.01; // depth variance
-
-    // pressure_pub.publish(&odom_msg);
 }
