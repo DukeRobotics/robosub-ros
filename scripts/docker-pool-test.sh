@@ -4,7 +4,7 @@
 # then opens all the necessary terminals to control our robot.
 # Usage: ./docker-pool-test.sh
 
-session=“pool-test”
+session="pool-test"
 
 tmux new-session -d -s $session
 

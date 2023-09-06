@@ -8,7 +8,7 @@
 # Note: This script assumes that you have already run `./pool-test.sh`.
 # Specifically, the onboard docker container and roscore must be running.
 
-session=“controls”
+session="controls"
 
 tmux new-session -d -s $session
 
