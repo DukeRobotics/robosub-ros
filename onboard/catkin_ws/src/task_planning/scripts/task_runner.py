@@ -3,11 +3,11 @@
 import rospy
 import smach
 import tf
-from smach_test import controls_testing
+# from smach_test import controls_testing
 from interface.controls import ControlsInterface
 from buoy_task import BuoyTask
 from interface.cv import CVInterface
-from move_tasks import MoveToPoseGlobalTask
+# from move_tasks import MoveToPoseGlobalTask
 import random
 
 
@@ -20,7 +20,7 @@ class TaskRunner(smach.StateMachine):
         self.listener = tf.TransformListener()
         self.controls = ControlsInterface(self.listener)
         self.cv = CVInterface()
-        
+
         self.x, self.y = random.randint(-10, 10), random.randint(-10, 10)
 
         with self:
@@ -46,16 +46,16 @@ def main():
     # from tf.transformations import quaternion_from_euler
     # from custom_msgs.msg import ControlsDesiredPoseAction, ControlsDesiredPoseGoal
     # import actionlib
-    
+
     # DESIRED_POSE_ACTION = 'controls/desired_pose'
     # DESIRED_TWIST_ACTION = 'controls/desired_twist'
-    
+
     # desired_pose_client = actionlib.SimpleActionClient(
     # DESIRED_POSE_ACTION, ControlsDesiredPoseAction)
-    
+
     # x, y, z = 5, 0, 0
     # roll, pitch, yaw = 0, 0, 0
-    
+
     # desired_pose = Pose()
     # desired_pose.position = Point(x=x, y=y, z=z)
     # desired_pose.orientation = Quaternion(
@@ -64,9 +64,8 @@ def main():
     #         roll,
     #         pitch,
     #         yaw))
-    
+
     # desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose=desired_pose))
-    
 
 
 if __name__ == '__main__':

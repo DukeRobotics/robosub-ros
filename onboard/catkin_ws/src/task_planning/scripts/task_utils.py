@@ -236,14 +236,14 @@ def parse_pose(pose):
 
 def object_vector(cv_obj_data):
     print(cv_obj_data)
-    if not(cv_obj_data) or cv_obj_data.label == 'none':
+    if not cv_obj_data or cv_obj_data.label == 'none':
         return None
 
     return [cv_obj_data.x, cv_obj_data.y, cv_obj_data.z]
 
 
 def cv_object_position(cv_obj_data):
-    if not(cv_obj_data) or cv_obj_data.label == 'none':
+    if not cv_obj_data or cv_obj_data.label == 'none':
         return None
     return [cv_obj_data.x, cv_obj_data.y, cv_obj_data.z]
 
