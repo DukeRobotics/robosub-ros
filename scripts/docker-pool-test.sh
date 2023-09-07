@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2016
 
 # A tmux script that starts onboard and landside docker containers,
 # then opens all the necessary terminals to control our robot.
