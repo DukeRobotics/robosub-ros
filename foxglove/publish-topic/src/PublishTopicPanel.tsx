@@ -36,8 +36,10 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
       }
 
       try {
-        context.advertise(`/${topicName}`, "str");
-        context.publish(`/${topicName}`, { request });
+        context.advertise(`/${topicName}`, "std_msgs/ColorRGBA");
+        context.publish(`/${topicName}`, JSON.parse(request));
+
+        
 
         setState((oldState) => ({
           ...oldState,
