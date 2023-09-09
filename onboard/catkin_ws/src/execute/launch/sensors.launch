@@ -1,0 +1,24 @@
+<launch>
+	<!-- Include all launch files for peripheral sensors, i.e. CV, sonar, acoustics. -->
+
+	<arg name="sim" default="false" />
+
+	<!-- Start Sonar -->
+	<group unless="$(arg sim)">
+		<include file="$(find sonar)/launch/sonar.launch" >
+            <arg name="stream" value="True" />
+	        <arg name="polar" value="False" />
+        </include>
+	</group>
+
+    <!-- Start CV -->
+    <group unless="$(arg sim)">
+        <include file="$(find cv)/launch/depthai_spatial_detection.launch">
+        </include>
+    </group>
+    <group unless="$(arg sim)">
+        <include file="$(find cv)/launch/usb_camera.launch">
+        </include>
+    </group>
+
+</launch>

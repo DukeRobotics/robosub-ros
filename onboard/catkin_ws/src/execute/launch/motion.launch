@@ -1,8 +1,13 @@
 <launch>
-	
+
 	<!-- Include all launch files required to move the robot, i.e. state tracking and controls -->
-	
+
 	<arg name="sim" default="false" />
+
+	<!-- Start Arduino I/O -->
+	<group unless="$(arg sim)">
+		<include file="$(find offboard_comms)/launch/serial.launch" />
+	</group>
 
 	<!-- Start state tracking -->
 	<include file="$(find execute)/launch/state.launch">
@@ -14,13 +19,8 @@
 		<arg name="sim" value="$(arg sim)" />
 	</include>
 
-	<!-- Start Sonar -->
-	<group unless="$(arg sim)">
-		<include file="$(find sonar)/launch/sonar.launch" />
-	</group>
+	<include file="$(find execute)/launch/sensors.launch" />
 
-	<!-- Start Arduino I/O -->
-	<group unless="$(arg sim)">
-		<include file="$(find offboard_comms)/launch/serial.launch" />
-	</group>
+	<include file="$(find vectornav)/launch/vectornav.launch" />
+
 </launch>

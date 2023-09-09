@@ -7,9 +7,9 @@
         <arg name="sim" value="$(arg sim)" />
     </include>
 
-    <include file="$(find controls)/launch/velocity_pid.launch">
+    <!-- <include file="$(find controls)/launch/velocity_pid.launch">
         <arg name="sim" value="$(arg sim)" />
-    </include>
+    </include> -->
 
     <!-- Create a local/global transform manually. Used for testing controls without using simulation. /-->
     <!--node pkg="tf2_ros" type="static_transform_publisher" name="base_link_publisher" args="0 0 0 0 0 0 1 odom base_link" /-->

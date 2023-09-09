@@ -1,16 +1,10 @@
 #!/usr/bin/env python3
 
 import rospy
-from custom_msgs.srv import StartLaunch, StopLaunch
-from custom_msgs.msg import RemoteLaunchInfo
+from custom_msgs.srv import StartLaunch, StopLaunch, GetRunningNodes
+from custom_msgs.msg import RemoteLaunchInfo, RunningNode
 import subprocess
-from enum import Enum
 from threading import Lock
-
-
-class RemoteLaunchMessageType(Enum):
-    EXECUTING = 0
-    TERMINATING = 1
 
 
 class RemoteLaunchNode:
@@ -27,6 +21,7 @@ class RemoteLaunchNode:
 
         rospy.Service('start_node', StartLaunch, self.start_launch)
         rospy.Service('stop_node', StopLaunch, self.stop_launch)
+        rospy.Service('running_nodes', GetRunningNodes, self.get_running_processes)
         rospy.loginfo('Remote Launch ready')
         self.check_for_terminated_processes()
 
@@ -38,7 +33,7 @@ class RemoteLaunchNode:
                     # Process has terminated, so add it to the list of terminated processes
                     # and publish termination messsage
                     self.terminated_processes.append(pid)
-                    self.publish_message(pid, RemoteLaunchMessageType.TERMINATING)
+                    self.publish_message(pid, RemoteLaunchInfo.TERMINATING)
             self.processes_lock.release()
 
     def start_launch(self, req):
@@ -61,7 +56,7 @@ class RemoteLaunchNode:
         self.processes_lock.release()
 
         # Publish executing message
-        self.publish_message(proc.pid, RemoteLaunchMessageType.EXECUTING)
+        self.publish_message(proc.pid, RemoteLaunchInfo.EXECUTING)
 
         return {'pid': proc.pid}
 
@@ -69,14 +64,20 @@ class RemoteLaunchNode:
         rli_msg = RemoteLaunchInfo()
 
         exe = "roslaunch" if self.processes[pid]["is_launch_file"] else "rosrun"
-        type_str = "Executing " + exe if type == RemoteLaunchMessageType.EXECUTING else "Terminating"
+        type_str = "Executing " + exe if type == RemoteLaunchInfo.EXECUTING else "Terminating"
 
-        rli_msg.msg_type = type_str
+        rli_msg.msg_type = type
 
-        rli_msg.pid = pid
-        rli_msg.package = self.processes[pid]["package"]
-        rli_msg.file = self.processes[pid]["file"]
-        rli_msg.args = self.processes[pid]["args"]
+        running_node_msg = RunningNode()
+
+        running_node_msg.pid = pid
+        running_node_msg.package = self.processes[pid]["package"]
+        running_node_msg.file = self.processes[pid]["file"]
+        running_node_msg.args = self.processes[pid]["args"]
+        running_node_msg.file_type = \
+            RunningNode.ROSLAUNCH if self.processes[pid]["is_launch_file"] else RunningNode.ROSRUN
+
+        rli_msg.running_node_info = running_node_msg
 
         self.publisher.publish(rli_msg)
         rospy.loginfo(f'{type_str} {self.processes[pid]["package"]} '
@@ -96,6 +97,24 @@ class RemoteLaunchNode:
             return {'success': True}
 
         return {'success': False}
+
+    def get_running_processes(self, _):
+        running_nodes = []
+
+        for pid in self.processes:
+            if pid not in self.terminated_processes:
+                running_node_msg = RunningNode()
+
+                running_node_msg.pid = pid
+                running_node_msg.package = self.processes[pid]["package"]
+                running_node_msg.file = self.processes[pid]["file"]
+                running_node_msg.args = self.processes[pid]["args"]
+                running_node_msg.file_type = \
+                    RunningNode.ROSLAUNCH if self.processes[pid]['is_launch_file'] else RunningNode.ROSRUN
+
+                running_nodes.append(running_node_msg)
+
+        return {'running_nodes_msgs': running_nodes}
 
 
 if __name__ == '__main__':

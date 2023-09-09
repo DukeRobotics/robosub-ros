@@ -10,35 +10,37 @@ import numpy as np
 from utils import DetectionVisualizer
 from image_tools import ImageTools
 
-from custom_msgs.srv import EnableModel
-from custom_msgs.msg import CVObject
+from custom_msgs.msg import CVObject, sweepResult, sweepGoal
 from sensor_msgs.msg import CompressedImage
-from custom_msgs.msg import sweepResult, sweepGoal
+from std_msgs.msg import String
 
 
 MM_IN_METER = 1000
 DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH = 'package://cv/models/depthai_models.yaml'
 HORIZONTAL_FOV = 95
-CAMERA_PIXEL_WIDTH = 416
 SONAR_DEPTH = 10
 SONAR_RANGE = 1.75
 SONAR_REQUESTS_PATH = 'sonar/request'
 SONAR_RESPONSES_PATH = 'sonar/cv/response'
+TASK_PLANNING_REQUESTS_PATH = "controls/desired_feature"
 
 
 # Compute detections on live camera feed and publish spatial coordinates for detected objects
 class DepthAISpatialDetector:
     def __init__(self):
         """
-        Initializes the ROS node and service. Loads the yaml file at cv/models/depthai_models.yaml
+        Initializes the ROS node. Loads the yaml file at cv/models/depthai_models.yaml
         """
         rospy.init_node('depthai_spatial_detection', anonymous=True)
+        self.running_model = rospy.get_param("~model")
         self.rgb_raw = rospy.get_param("~rgb_raw")
         self.rgb_detections = rospy.get_param("~rgb_detections")
         self.queue_rgb = self.rgb_raw or self.rgb_detections
         self.queue_depth = rospy.get_param("~depth")
         self.sync_nn = rospy.get_param("~sync_nn")
         self.using_sonar = rospy.get_param("~using_sonar")
+        self.show_class_name = rospy.get_param("~show_class_name")
+        self.show_confidence = rospy.get_param("~show_confidence")
 
         with open(rr.get_filename(DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH,
                                   use_protocol=False)) as f:
@@ -51,20 +53,27 @@ class DepthAISpatialDetector:
         self.connected = False
         self.current_model_name = None
         self.classes = None
+        self.camera_pixel_width = None
+        self.camera_pixel_height = None
         self.detection_feed_publisher = None
         self.rgb_preview_publisher = None
         self.detection_visualizer = None
 
         self.image_tools = ImageTools()
-        self.enable_service = f'enable_model_{self.camera}'
 
         self.sonar_response = (0, 0)
         self.in_sonar_range = True
+        self.sonar_busy = False
+
+        # By default the first task is going through the gate
+        self.current_priority = "buoy_abydos_serpenscaput"
 
         self.sonar_requests_publisher = rospy.Publisher(
             SONAR_REQUESTS_PATH, sweepGoal, queue_size=10)
         self.sonar_response_subscriber = rospy.Subscriber(
             SONAR_RESPONSES_PATH, sweepResult, self.update_sonar)
+        self.desired_detection_feature = rospy.Subscriber(
+            TASK_PLANNING_REQUESTS_PATH, String, self.update_priority)
 
     def build_pipeline(self, nn_blob_path, sync_nn):
         """
@@ -127,7 +136,7 @@ class DepthAISpatialDetector:
         stereo.setDepthAlign(dai.CameraBoardSocket.RGB)
 
         spatial_detection_network.setBlobPath(nn_blob_path)
-        spatial_detection_network.setConfidenceThreshold(0.5)
+        spatial_detection_network.setConfidenceThreshold(model['confidence_threshold'])
         spatial_detection_network.input.setBlocking(False)
         spatial_detection_network.setBoundingBoxScaleFactor(0.5)
         spatial_detection_network.setDepthLowerThreshold(100)
@@ -138,7 +147,7 @@ class DepthAISpatialDetector:
         spatial_detection_network.setCoordinateSize(model['coordinate_size'])
         spatial_detection_network.setAnchors(np.array(model['anchors']))
         spatial_detection_network.setAnchorMasks(model['anchor_masks'])
-        spatial_detection_network.setIouThreshold(0.5)
+        spatial_detection_network.setIouThreshold(model['iou_threshold'])
 
         # Linking
         mono_left.out.link(stereo.left)
@@ -188,6 +197,10 @@ class DepthAISpatialDetector:
 
         self.classes = model['classes']
 
+        self.camera_pixel_width, self.camera_pixel_height = model['input_size']
+
+        self.colors = model['colors']
+
         blob_path = rr.get_filename(f"package://cv/models/{model['weights']}",
                                     use_protocol=False)
         self.pipeline = self.build_pipeline(blob_path, self.sync_nn)
@@ -234,10 +247,10 @@ class DepthAISpatialDetector:
             self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
 
         self.output_queues["detections"] = device.getOutputQueue(name="detections", maxSize=1, blocking=False)
-
         self.connected = True
 
-        self.detection_visualizer = DetectionVisualizer(self.classes)
+        self.detection_visualizer = DetectionVisualizer(self.classes, self.colors,
+                                                        self.show_class_name, self.show_confidence)
 
     def detect(self):
         """
@@ -298,40 +311,43 @@ class DepthAISpatialDetector:
                                                               y_cam_meters,
                                                               z_cam_meters)
 
-            # Create a new sonar request msg object if using sonar
-            if self.using_sonar:
+            # Find yaw angle offset
+            left_end_compute = self.compute_angle_from_x_offset(detection.xmin * self.camera_pixel_width)
+            right_end_compute = self.compute_angle_from_x_offset(detection.xmax * self.camera_pixel_width)
+            yaw_offset = ((left_end_compute + right_end_compute) / 2.0) * (math.pi / 180.0)
 
-                # Get sonar sweep range
-                (left_end, right_end) = coords_to_angle(
-                    (detection.xmin - 0.5) * CAMERA_PIXEL_WIDTH,
-                    (detection.xmax - 0.5) * CAMERA_PIXEL_WIDTH)
+            # Create a new sonar request msg object if using sonar and the current detected
+            # class is the desired class to be returned to task planning
+            if self.using_sonar and label == self.current_priority:
 
-                left_end = float(left_end)
-                right_end = float(right_end)
-
-                # Rescale left and right end points to fit better sonar image
-                left_end = left_end * 0.5 + 5
-                right_end = right_end * 0.5 + 5
+                top_end_compute = self.compute_angle_from_y_offset(detection.ymin * self.camera_pixel_height)
+                bottom_end_compute = self.compute_angle_from_y_offset(detection.ymax * self.camera_pixel_height)
 
                 sonar_request_msg = sweepGoal()
-                sonar_request_msg.start_angle = left_end
-                sonar_request_msg.end_angle = right_end
+                sonar_request_msg.start_angle = left_end_compute
+                sonar_request_msg.end_angle = right_end_compute
+                sonar_request_msg.center_z_angle = (top_end_compute + bottom_end_compute) / 2.0
                 sonar_request_msg.distance_of_scan = SONAR_DEPTH
-                self.sonar_requests_publisher.publish(sonar_request_msg)
+
+                # Make a request to sonar if it is not busy
+                if not self.sonar_busy:
+                    self.sonar_requests_publisher.publish(sonar_request_msg)
+                    # Getting response...
+                    self.sonar_busy = True
 
                 # Try calling sonar on detected bounding box
                 # if sonar responds, then override existing robot-frame x, y info;
                 # else, keep default
                 if not (self.sonar_response == (0, 0)) and self.in_sonar_range:
                     det_coords_robot_mm = (self.sonar_response[0],
-                                           self.sonar_response[1],
+                                           -x_cam_meters,
                                            y_cam_meters)
 
             self.publish_prediction(
-                bbox, det_coords_robot_mm, label, confidence,
-                (height, width), self.in_sonar_range)
+                bbox, det_coords_robot_mm, yaw_offset, label, confidence,
+                (height, width), self.using_sonar)
 
-    def publish_prediction(self, bbox, det_coords, label, confidence,
+    def publish_prediction(self, bbox, det_coords, yaw, label, confidence,
                            shape, using_sonar):
         """
         Publish predictions to label-specific topic. Publishes to /cv/[camera]/[label].
@@ -346,6 +362,9 @@ class DepthAISpatialDetector:
         object_msg.label = label
         object_msg.score = confidence
 
+        object_msg.header.stamp.secs = rospy.Time.now().secs
+        object_msg.header.stamp.nsecs = rospy.Time.now().nsecs
+
         object_msg.coords.x = det_coords[0]
         object_msg.coords.y = det_coords[1]
         object_msg.coords.z = det_coords[2]
@@ -355,26 +374,46 @@ class DepthAISpatialDetector:
         object_msg.xmax = bbox[2]
         object_msg.ymax = bbox[3]
 
+        object_msg.yaw = yaw
+
         object_msg.height = shape[0]
         object_msg.width = shape[1]
 
         object_msg.sonar = using_sonar
 
         if self.publishers:
-            self.publishers[label].publish(object_msg)
+            if object_msg.coords.x != 0 and object_msg.coords.y != 0 and object_msg.coords.z != 0:
+                self.publishers[label].publish(object_msg)
 
-    def run_model(self, req):
+    def update_sonar(self, sonar_results):
         """
-        Runs the model on the connected device.
+        Callback function for listenting to sonar response
+        Updates instance variable self.sonar_response based on
+        what sonar throws back if it is in range (> SONAR_RANGE = 1.75m)
+        """
+        # Check to see if the sonar is in range - are results from sonar valid?
+        self.sonar_busy = False
+        if sonar_results.x_pos > SONAR_RANGE and sonar_results.x_pos <= SONAR_DEPTH:
+            self.in_sonar_range = True
+            self.sonar_response = (sonar_results.x_pos, sonar_results.y_pos)
+        else:
+            self.in_sonar_range = False
+
+    def update_priority(self, object):
+        self.current_priority = object
+
+    def run(self):
+        """
+        Runs the selected model on the connected device.
         :param req: Request from
         :return: False if the model is not in cv/models/depthai_models.yaml.
         Otherwise, the model will be run on the device.
         """
-        if req.model_name not in self.models:
+        if self.running_model not in self.models:
             return False
 
-        self.init_model(req.model_name)
-        self.init_publishers(req.model_name)
+        self.init_model(self.running_model)
+        self.init_publishers(self.running_model)
 
         with depthai_camera_connect.connect(self.pipeline) as device:
             self.init_output_queues(device)
@@ -384,31 +423,26 @@ class DepthAISpatialDetector:
 
         return True
 
-    def update_sonar(self, sonar_results):
-        """
-        Callback function for listenting to sonar response
-        Updates instance variable self.sonar_response based on
-        what sonar throws back if it is in range (> SONAR_RANGE = 1.75m)
-        """
-        # Check to see if the sonar is in range - are results from sonar valid?
-        if sonar_results.y_pos > SONAR_RANGE:
-            self.in_sonar_range = True
-            self.sonar_response = (sonar_results.x_pos, sonar_results.y_pos)
-        else:
-            self.in_sonar_range = False
+    def compute_angle_from_x_offset(self, x_offset):
+        image_center_x = self.camera_pixel_width / 2.0
+        return math.degrees(math.atan(((x_offset - image_center_x) * 0.005246675486)))
 
-    def run(self):
-        """
-        Wait for the EnableModel rosservice call. If this call is made, the model specified will be run.
-        For information about EnableModel, see robosub-ros/core/catkin_ws/src/custom_msgs/srv/EnableModel.srv
+    def compute_angle_from_y_offset(self, y_offset):
+        image_center_y = self.camera_pixel_height / 2.0
+        return math.degrees(math.atan(((y_offset - image_center_y) * 0.003366382395)))
 
-        Example ros commands to run this node and activate the model:
-            roslaunch cv spatial_detection_front.launch
-            rosservice call /enable_model_front gate True
-
+    def coords_to_angle(self, min_x, max_x):
         """
-        rospy.Service(self.enable_service, EnableModel, self.run_model)
-        rospy.spin()
+        Takes in a detected bounding box from the camera and returns the angle
+                range to sonar sweep.
+        :param min_x: minimum x coordinate of camera bounding box (robot y)
+        :param max_x: maximum x coordinate of camera bounding box (robot y)
+        """
+        distance_to_screen = self.camera_pixel_width / 2 * \
+            1/math.tan(math.radians(HORIZONTAL_FOV/2))
+        min_angle = math.degrees(np.arctan(min_x/distance_to_screen))
+        max_angle = math.degrees(np.arctan(max_x/distance_to_screen))
+        return min_angle, max_angle
 
 
 def mm_to_meters(val_mm):
@@ -433,20 +467,6 @@ def camera_frame_to_robot_frame(cam_x, cam_y, cam_z):
     robot_z = cam_y
     robot_x = cam_z
     return robot_x, robot_y, robot_z
-
-
-def coords_to_angle(min_x, max_x):
-    """
-    Takes in a detected bounding box from the camera and returns the angle
-            range to sonar sweep.
-    :param min_x: minimum x coordinate of camera bounding box (robot y)
-    :param max_x: maximum x coordinate of camera bounding box (robot y)
-    """
-    distance_to_screen = CAMERA_PIXEL_WIDTH/2 * \
-        1/math.tan(math.radians(HORIZONTAL_FOV/2))
-    min_angle = math.degrees(np.arctan(min_x/distance_to_screen))
-    max_angle = math.degrees(np.arctan(max_x/distance_to_screen))
-    return min_angle, max_angle
 
 
 if __name__ == '__main__':
