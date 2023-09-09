@@ -17,7 +17,8 @@ BLOCK_LIST = [
     'simulation/launch/test_sim_comm.launch',
     'sonar/launch/sonar.launch',
     'task_planning/launch/task_runner.launch',
-    'vectornav/launch/vectornav.launch'
+    'vectornav/launch/vectornav.launch',
+    'execute/launch/tasks.launch'
 ]
 
 
