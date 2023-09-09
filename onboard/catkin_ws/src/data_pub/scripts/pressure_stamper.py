@@ -35,11 +35,12 @@ class PressureStamper:
         self.pose.pose.pose.orientation.w = 1.0
 
         self.pose.pose.covariance[14] = 0.01
-        
+
         self.pose.header.stamp = rospy.Time.now()
 
         if self.pose.pose.pose.position.z <= self.FILTER_CONSTANT:
             self._pub_depth.publish(self.pose)
+
 
 if __name__ == '__main__':
     try:
