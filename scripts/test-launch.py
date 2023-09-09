@@ -18,7 +18,8 @@ BLOCK_LIST = [
     'sonar/launch/sonar.launch',
     'task_planning/launch/task_runner.launch',
     'vectornav/launch/vectornav.launch',
-    'execute/launch/tasks.launch'
+    'execute/launch/tasks.launch',
+    'execute/launch/motion.launch'
 ]
 
 
