@@ -46,6 +46,7 @@ RUN apt-get update && \
     python3-pandas \
     nmap && \
     apt-get clean && \
+    ros-noetic-foxglove-bridge \
     # Clear apt caches to reduce image size
     rm -rf /var/lib/apt/lists/*
 
