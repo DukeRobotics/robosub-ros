@@ -11,6 +11,9 @@
   <license>MIT</license>
 
 
+  <depend>std_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>sensor_msgs</depend>
   <depend>custom_msgs</depend>
   <depend>rospy</depend>
 

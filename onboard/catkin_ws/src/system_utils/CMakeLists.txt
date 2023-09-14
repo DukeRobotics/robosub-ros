@@ -3,6 +3,9 @@ project(system_utils)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
+  std_msgs
+  nav_msgs
+  sensor_msgs
   custom_msgs
   rospy
 )
