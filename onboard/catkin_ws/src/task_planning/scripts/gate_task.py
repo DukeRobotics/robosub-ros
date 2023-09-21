@@ -3,7 +3,8 @@
 from statistics import mean
 
 from numpy import array_equal
-from task_utils import cv_object_position, object_vector, ObjectVisibleTask
+from task_utils import cv_object_position, object_vector
+from cv_tasks import ObjectVisibleTask
 import smach
 import rospy
 from move_tasks import MoveToPoseLocalTask, MoveToPoseGlobalTask

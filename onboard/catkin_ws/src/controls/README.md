@@ -7,7 +7,7 @@ Thruster information is read from `*.config` files, which are written in YAML. T
 
 `controls.launch` takes in a `sim` argument to indicate whether it is running in the simulation or on the robot.
 
-Only the most recently sent goal received by a Desired State Action Server will be used in movement. Therefore any new goals will preempt existing goals for any of the three control actions and override the current movement of the robot.
+Only the most recently updated Desired State Topic will be used in movement. Therefore any updates will override the current movement of the robot. Controls will warn you if more than one Desired State Topic is being published to at any given time to prevent such issues. If Controls stops receiving Desired State messages at a high enough rate (at the moment, 10 Hz), it will warn you and will output zero power for safety purposes.
 
 The controls algorithm will output all 0's unless it is enabled with a call to rosservice as detailed in the setup. Sending the disable call to the service acts as a software emergency stop that cuts off all power to the thrusters.
 
@@ -61,29 +61,25 @@ roslaunch controls controls.launch sim:=true
 `test_state_publisher.py` is where we specify the desired state of the robot. Alternatively, you can publish to any of the desired state topics directly using your own code. The second command launches the entire controls node in simulation mode.
 
 
-## Interface
+## Topics
 
 ### Listening
 
-Desired State Action Servers:
+Desired State Topics:
 
   - ```controls/desired_pose```
-    + Type: ```custom_msgs/ControlsDesiredPoseAction```
-    + Goal: ```custom_msgs/ControlsDesiredPoseGoal```
-      - Contains a ```geometry_msgs/Pose```
-      - Pose has fields for a point and quaternion representing the robot's desired global xyz position and rpy orientation.
+    + A point and quaternion representing the robot's desired global xyz position and rpy orientation.
+    + Type: geometry_msgs/Pose
 
   - ```controls/desired_twist```
-    + Type: ```custom_msgs/ControlsDesiredTwistAction```
-    + Goal: ```custom_msgs/ControlsDesiredTwistGoal```
-      - Contains a ```geometry_msgs/Twist``` which has fields for the robot's desired local linear and angular velocities.
+    + A twist with representing the robot's desired local linear and angular velocities.
+    + Type: geometry_msgs/Twist
 
   - ```controls/desired_power```
-    + Type: ```custom_msgs/ControlsDesiredPowerAction```
-    + Goal: ```custom_msgs/ControlsDesiredPowerGoal```
-      - Contains a ```geometry_msgs/Twist``` with values [-1,1] corresponding to effort the robot should exert in each local axis. 1 is full speed in a positive direction, -1 is full speed in the negative direction.
-      - This option stabilizes velocity on all axes with values of 0. It is mainly for use with joysticks (velocity control should be used in almost every other case).
-      - For instance, a `desired_power` goal of [1, 0, -0.5, 0, 0, 0], the robot will move full speed in the +x direction, half speed in the -z direction, and stabilize velocities on all other axes.
+    + A twist with values [-1,1] corresponding to effort the robot should exert in each local axis. 1 is full speed in a positive direction, -1 is full speed in the negative direction.
+    + This option stabilizes velocity on all axes with values of 0. It is mainly for use with joysticks (velocity control should be used in almost every other case).
+    + For instance, a `desired_power` message of [1, 0, -0.5, 0, 0, 0], the robot will move full speed in the +x direction, half speed in the -z direction, and stabilize velocities on all other axes.
+    + Type: geometry_msgs/Twist
 
 Current State Topics:
 
@@ -142,17 +138,16 @@ This package has the following launch files:
 
 ### PID Flow
 
-This package uses nested PID Loops. When using Position Control, the desired state input is used as the setpoint for the position loop and the output of the position loops is used as a setpoint for the velocity loops. When using Velocity Control, the position loop is bypassed and the desired state input is used as a setpoint for the velocity loops. When using Power Control both of the PID loops are bypassed and the input is directly published to thruster_controls. 
-```
+This package uses two PID Loops. When using Position Control, the desired state input is used as the setpoint for the position loop. When using Velocity Control, the desired state input is used as a setpoint for the velocity loops. When using Power Control both of the PID loops are bypassed and the input is directly published to thruster_controls. 
 
-                      Velocity Control
-      +-----------------------------------------------+
-      |                                               |
-      |                                               v
-desired_state ---------------> position_pid ---> velocity_pid ---> thruster_controls
-              Position Control
 ```
+                    Position Control
+desired_state -------> position_pid -------> thruster_controls
 
+
+                    Velocity Control
+desired_state -------> velocity_pid -------> thruster_controls        
+```
 
 ### Configuration
 

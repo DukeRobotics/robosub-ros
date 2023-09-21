@@ -5,6 +5,7 @@ import numpy as np
 import sonar_utils
 from geometry_msgs.msg import Pose
 from tf import TransformListener
+import subprocess
 
 
 class Sonar:
@@ -12,23 +13,49 @@ class Sonar:
     Class to interface with the Sonar device.
     """
 
-    # PORT of the salea is ttyUSB2 for testing
-    DEFAULT_SERIAL_PORT = 2
-    SERIAL_PORT_NAME = "/dev/ttyUSB"
     BAUD_RATE = 2000000  # hz
     SAMPLE_PERIOD_TICK_DURATION = 25e-9  # s
     SPEED_OF_SOUND_IN_WATER = 1480  # m/s
     # number of values to filter TODO figure out where the noise starts
     FILTER_INDEX = 100
     DEFAULT_RANGE = 5
+    SONAR_STRING_CTHULU = "usb-FTDI_FT230X_Basic_UART_DK0C1WF7-if00-port0"
+    SONAR_STRING_OOGWAY = "usb-FTDI_FT230X_Basic_UART_D2011831-if00-port0"
 
     def __init__(self, range=DEFAULT_RANGE, number_of_samples=1200,
-                 serial_port_name=SERIAL_PORT_NAME, baud_rate=BAUD_RATE,
-                 serial_port_number=DEFAULT_SERIAL_PORT):
+                 baud_rate=BAUD_RATE):
         self.ping360 = Ping360()
-        # TODO: Add try except for connecting to device
-        self.ping360.connect_serial(f'{serial_port_name}{serial_port_number}',
-                                    baud_rate)
+
+        # Run the lsusb command and capture the output
+        usb_output = subprocess.check_output(['ls', '-l',
+                                              '/dev/serial/by-id/'])
+        usb_lines = usb_output.decode().split('\n')
+
+        sonar_usb = ""
+
+        # Iterate over each line and get the device path
+        for line in usb_lines[1:]:
+            if line:
+                fields = line.split(' ')
+                if len(fields) >= 11:
+                    FTDI_Number = fields[8]
+                    USB_port = fields[10][-7:]
+                    if (FTDI_Number == self.SONAR_STRING_CTHULU or FTDI_Number == self.SONAR_STRING_OOGWAY):
+                        sonar_usb = "/dev/" + USB_port
+
+        for line in usb_lines[1:]:
+            if line:
+                fields = line.split(' ')
+                if len(fields) >= 12:
+                    FTDI_Number = fields[9]
+                    USB_port = fields[11][-7:]
+                    if (FTDI_Number == self.SONAR_STRING_CTHULU or FTDI_Number == self.SONAR_STRING_OOGWAY):
+                        sonar_usb = "/dev/" + USB_port
+
+        if sonar_usb == "":
+            raise RuntimeError("Sonar not found")
+
+        self.ping360.connect_serial(f'{sonar_usb}', baud_rate)
         self.ping360.initialize()
         period_and_duration = self.range_to_period_and_duration(range)
 
@@ -148,15 +175,15 @@ class Sonar:
         Returns:
             float: Average value for object sweep
         """
-        max_byte_array = self.get_max_bytes_along_sweep(int(start_angle),
-                                                        int(end_angle))
+        max_byte_array, scanned_image = self.get_max_bytes_along_sweep(int(start_angle),
+                                                                       int(end_angle))
 
         indices = [sample[0] for sample in max_byte_array]
         mean_index = sum(indices) / len(indices)
         center_angle = (start_angle + end_angle) / 2
 
         pose = self.to_robot_position(center_angle, mean_index)
-        return pose.position.x, pose.position.y
+        return pose.position.x, pose.position.y, scanned_image
 
     def get_max_bytes_along_sweep(self, start_angle, end_angle):
         """ Execute a sweep and get the largest activation for each angle
@@ -171,10 +198,12 @@ class Sonar:
         """
 
         max_byte_array = []
+        scanned_image = []
         for theta in range(start_angle, end_angle):
-            max_byte = self.get_max_byte(theta)
-            max_byte_array.append(max_byte)
-        return max_byte_array
+            max_byte_index, max_byte_filter, image_at_angle = self.get_max_byte(theta)
+            max_byte_array.append((max_byte_index, max_byte_filter))
+            scanned_image.append(image_at_angle)
+        return max_byte_array, scanned_image
 
     def get_max_byte(self, angle):
         """ Get the biggest value of the byte array of data scanned at input
@@ -190,7 +219,7 @@ class Sonar:
         split_bytes = [data[i:i+1] for i in range(len(data))]
         filteredbytes = split_bytes[self.FILTER_INDEX:]
         best = np.argmax(filteredbytes)
-        return best+self.FILTER_INDEX, filteredbytes[best]
+        return best+self.FILTER_INDEX, filteredbytes[best], data
 
     def to_robot_position(self, angle, index):
         """ Converts a point in sonar space a robot global position
@@ -208,7 +237,7 @@ class Sonar:
 
         x_pos = self.get_distance_of_sample(updated_index)*np.cos(
             sonar_utils.centered_gradians_to_radians(angle))
-        y_pos = self.get_distance_of_sample(updated_index)*np.sin(
+        y_pos = -1 * self.get_distance_of_sample(updated_index)*np.sin(
             sonar_utils.centered_gradians_to_radians(angle))
         pos_of_point = Pose()
         pos_of_point.position.x = x_pos
@@ -223,3 +252,7 @@ class Sonar:
             self.listener, pos_of_point)
 
         return transformed_pose
+
+
+if __name__ == '__main__':
+    sonar = Sonar(5)

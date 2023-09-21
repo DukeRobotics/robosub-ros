@@ -15,6 +15,11 @@ BLOCK_LIST = [
     'joystick/launch/pub_joy.launch',
     'simulation/launch/base_sim.launch',
     'simulation/launch/test_sim_comm.launch',
+    'sonar/launch/sonar.launch',
+    'task_planning/launch/task_runner.launch',
+    'vectornav/launch/vectornav.launch',
+    'execute/launch/tasks.launch',
+    'execute/launch/motion.launch'
 ]
 
 

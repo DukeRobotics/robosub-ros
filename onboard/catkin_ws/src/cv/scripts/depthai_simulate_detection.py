@@ -54,7 +54,10 @@ class DepthAISimulateDetection:
                                                               CompressedImage,
                                                               queue_size=10)
 
-        self.detection_visualizer = DetectionVisualizer(self.model['classes'])
+        self.show_class_name = rospy.get_param("~show_class_name")
+        self.show_confidence = rospy.get_param("~show_confidence")
+        self.detection_visualizer = DetectionVisualizer(self.model['classes'], self.model['colors'],
+                                                        self.show_class_name, self.show_confidence)
 
     def _build_pipeline(self):
         """

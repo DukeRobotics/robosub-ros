@@ -43,7 +43,9 @@ RUN apt-get update && \
     ffmpeg \
     nmap \
     iputils-ping \
-    python3-pandas && \
+    python3-pandas \
+    ros-noetic-foxglove-bridge \
+    nmap && \
     apt-get clean && \
     # Clear apt caches to reduce image size
     rm -rf /var/lib/apt/lists/*
@@ -54,8 +56,8 @@ RUN pip3 install --no-cache-dir \
     pyserial dependency-injector \
     gputil saleae \
     bluerobotics-ping \
-    python-nmap \
-    roboflow
+    roboflow \
+    python-nmap
 
 # Install PyTorch and Torchvision
 COPY torch_installer.sh torch_deps/torch_installer.sh

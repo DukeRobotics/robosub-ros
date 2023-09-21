@@ -2,12 +2,13 @@ from geometry_msgs.msg import Pose, Quaternion, Twist, Point, Vector3
 from tf.transformations import quaternion_from_euler
 import task_utils
 import smach
+import rospy
 
 
 class MoveToPoseGlobalTask(smach.State):
     """Move to pose given in global coordinates."""
 
-    def __init__(self, x, y, z, roll, pitch, yaw, controls):
+    def __init__(self, x, y, z, roll, pitch, yaw, controls, input_keys=[]):
         """
         Parameters:
             x (float): x-component of position
@@ -18,38 +19,39 @@ class MoveToPoseGlobalTask(smach.State):
             yaw (float): yaw-component of orientation
             controls (interface.ControlsInterface): interface to interact with controls
         """
-        super(MoveToPoseGlobalTask, self).__init__(outcomes=['done', 'continue'])
+        super(MoveToPoseGlobalTask, self).__init__(outcomes=['done', 'continue'], input_keys=input_keys)
 
         self.controls = controls
         self.last_pose = None
-        self.coords = [x, y, z, roll, pitch, yaw]
-
-    def execute(self, userdata):
         self.desired_pose = Pose()
-        self.desired_pose.position = Point(x=self.coords[0], y=self.coords[1], z=self.coords[2])
+        self.desired_pose.position = Point(x=x, y=y, z=z)
         self.desired_pose.orientation = Quaternion(
             *
             quaternion_from_euler(
-                self.coords[3],
-                self.coords[4],
-                self.coords[5]))
+                roll,
+                pitch,
+                yaw))
 
+    def execute(self, _):
         new_pose = self._get_pose()
         # Only resend the movement goal if our desired pose has changed
         if self.last_pose is None or not task_utils.at_pose(self.last_pose, new_pose, 0.0001, 0.0001):
             self.last_pose = new_pose
             self.controls.move_to_pose_global(new_pose)
 
-        if task_utils.stopped_at_pose(
-                self.controls.get_state().pose.pose,
-                new_pose,
-                self.controls.get_state().twist.twist):
-            self.controls.cancel_movement()
-            return 'done'
+    def run(self, userdata):
+        print("moving to ", self.desired_pose)
+        rate = rospy.Rate(15)
+        while not (
+            self.state and task_utils.stopped_at_pose(
+                self.state.pose.pose,
+                self.getPose(),
+                self.state.twist.twist)):
+            self.publish_desired_pose_global(self.getPose())
+            rate.sleep()
+        return "done"
 
-        return 'continue'
-
-    def _get_pose(self):
+    def getPose(self):
         return self.desired_pose
 
 
@@ -61,13 +63,11 @@ class MoveToUserDataPoseGlobalTask(MoveToPoseGlobalTask):
         Parameters:
             controls (interface.ControlsInterface): interface to interact with controls
         """
-        super(MoveToUserDataPoseGlobalTask, self).__init__(0, 0, 0, 0, 0, 0, controls)
+        super(MoveToUserDataPoseGlobalTask, self).__init__(0, 0, 0, 0, 0, 0, controls, input_keys=['pose'])
 
     def execute(self, userdata):
         # Get pose from userdata
-        arg_names = ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
-        for i in range(len(arg_names)):
-            self.coords[i] = userdata[arg_names[i]]
+        self.desired_pose = userdata.pose
 
         return super(MoveToUserDataPoseGlobalTask, self).execute(userdata)
 
@@ -75,8 +75,10 @@ class MoveToUserDataPoseGlobalTask(MoveToPoseGlobalTask):
 class MoveToPoseLocalTask(MoveToPoseGlobalTask):
     """Move to pose given in local coordinates."""
 
-    def __init__(self, x, y, z, roll, pitch, yaw, controls, listener):
+    def __init__(self, x, y, z, roll, pitch, yaw, controls, listener, input_keys=[]):
         """
+        Move to pose given in local coordinates.
+
         Parameters:
             x (float): x-component of position
             y (float): y-component of position
@@ -87,7 +89,7 @@ class MoveToPoseLocalTask(MoveToPoseGlobalTask):
             controls (interface.ControlsInterface): interface to interact with controls
             listener (tf.TransformListener): transform listener to go from local to global
         """
-        super(MoveToPoseLocalTask, self).__init__(x, y, z, roll, pitch, yaw, controls)
+        super(MoveToPoseLocalTask, self).__init__(x, y, z, roll, pitch, yaw, controls, input_keys=input_keys)
         self.listener = listener
         self.first_pose = True
 
@@ -103,17 +105,17 @@ class MoveToUserDataPoseLocalTask(MoveToPoseLocalTask):
 
     def __init__(self, controls, listener):
         """
+        Move to pose passed through userdata given in local coordinates.
+
         Parameters:
             controls (interface.ControlsInterface): interface to interact with controls
             listener (tf.TransformListener): transform listener to go from local to global
         """
-        super(MoveToUserDataPoseLocalTask, self).__init__(controls, listener)
+        super(MoveToUserDataPoseLocalTask, self).__init__(0, 0, 0, 0, 0, 0, controls, listener, input_keys=['pose'])
 
     def execute(self, userdata):
         # Get pose from userdata
-        arg_names = ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
-        for i in range(len(arg_names)):
-            self.coords[i] = userdata[arg_names[i]]
+        self.desired_pose = userdata.pose
 
         return super(MoveToUserDataPoseLocalTask, self).execute(userdata)
 
@@ -121,8 +123,10 @@ class MoveToUserDataPoseLocalTask(MoveToPoseLocalTask):
 class AllocateVelocityLocalTask(smach.State):
     """Allocate specified velocity in a direction relative to the robot"""
 
-    def __init__(self, x, y, z, roll, pitch, yaw, controls):
+    def __init__(self, x, y, z, roll, pitch, yaw, controls, input_keys=[]):
         """
+        Allocate specified velocity in a direction relative to the robot
+
         Parameters:
             x (float): x-component of linear velocity
             y (float): y-component of linear velocity
@@ -132,16 +136,14 @@ class AllocateVelocityLocalTask(smach.State):
             yaw (float): yaw-component of angular velocity
             controls (interface.ControlsInterface): interface to interact with controls
         """
-        super(AllocateVelocityLocalTask, self).__init__(outcomes=['done'])
+        super(AllocateVelocityLocalTask, self).__init__(outcomes=['done'], input_keys=input_keys)
         self.controls = controls
-        self.coords = [x, y, z, roll, pitch, yaw]
+        linear = Vector3(x, y, z)
+        angular = Vector3(roll, pitch, yaw)
+        self.desired_twist = Twist(linear=linear, angular=angular)
         self.last_twist = None
 
     def execute(self, _):
-        linear = Vector3(x=self.coords[0], y=self.coords[1], z=self.coords[2])
-        angular = Vector3(x=self.coords[3], y=self.coords[4], z=self.coords[5])
-        self.desired_twist = Twist(linear=linear, angular=angular)
-
         new_twist = self._get_twist()
 
         # Only resend the movement goal if our desired pose has changed
@@ -163,22 +165,28 @@ class AllocateUserDataVelocityLocalTask(AllocateVelocityLocalTask):
         Parameters:
             controls (interface.ControlsInterface): interface to interact with controls
         """
-        super(AllocateUserDataVelocityLocalTask, self).__init__(0, 0, 0, 0, 0, 0, controls)
+        super(AllocateUserDataVelocityLocalTask, self).__init__(0, 0, 0, 0, 0, 0, controls, input_keys=['twist'])
         self.first_pose = True
 
     def execute(self, userdata):
         # Get pose from userdata if supplied
-        arg_names = ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
-        for i in range(len(arg_names)):
-            self.coords[i] = userdata[arg_names[i]]
+        self.desired_twist = userdata.twist
 
-        return super(AllocateUserDataVelocityLocalTask, self).execute(userdata)
+    def run(self, userdata):
+        # rospy.loginfo("publishing desired twist...")
+        rate = rospy.Rate(15)
+        while True:
+            if self.preempt_requested():
+                self.service_preempt()
+                return 'preempted'
+            self.publish_desired_twist(self.desired_twist)
+            rate.sleep()
 
 
 class AllocateVelocityGlobalTask(AllocateVelocityLocalTask):
     """Allocate specified velocity in a direction relative to the global space"""
 
-    def __init__(self, x, y, z, roll, pitch, yaw, controls, listener):
+    def __init__(self, x, y, z, roll, pitch, yaw, controls, listener, input_keys=[]):
         """
         Parameters:
             x (float): x-component of linear velocity
@@ -190,7 +198,7 @@ class AllocateVelocityGlobalTask(AllocateVelocityLocalTask):
             controls (interface.ControlsInterface): interface to interact with controls
             listener (tf.TransformListener): transform listener to go from global to local
         """
-        super(AllocateVelocityGlobalTask, self).__init__(x, y, z, roll, pitch, yaw, controls)
+        super(AllocateVelocityGlobalTask, self).__init__(x, y, z, roll, pitch, yaw, controls, input_keys=input_keys)
         self.listener = listener
         self.first_twist = True
 
@@ -209,13 +217,11 @@ class AllocateUserDataVelocityGlobalTask(AllocateVelocityGlobalTask):
         Parameters:
             controls (interface.ControlsInterface): interface to interact with controls
         """
-        super(AllocateUserDataVelocityGlobalTask, self).__init__(0, 0, 0, 0, 0, 0, controls)
+        super(AllocateUserDataVelocityGlobalTask, self).__init__(0, 0, 0, 0, 0, 0, controls, input_keys=['twist'])
 
     def execute(self, userdata):
         # Get pose from userdata if supplied
-        arg_names = ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
-        for i in range(len(arg_names)):
-            self.coords[i] = userdata[arg_names[i]]
+        self.desired_twist = userdata.twist
 
         return super(AllocateUserDataVelocityGlobalTask, self).execute(userdata)
 
@@ -225,6 +231,8 @@ class HoldPositionTask(smach.State):
 
     def __init__(self, controls):
         """
+        Hold position at the place the robot is at the first time this runs
+
         Parameters:
             controls (interface.ControlsInterface): interface to interact with controls
         """
