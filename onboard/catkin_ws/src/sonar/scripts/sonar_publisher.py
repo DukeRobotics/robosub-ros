@@ -96,7 +96,10 @@ class SonarPublisher:
         return self.cv_bridge.cv2_to_compressed_imgmsg(image, dst_format=compressed_format)
     
     def publish_status(self):
-        self.status_publisher.publish("Sonar running")
+        rate = rospy.Rate(20)
+        while not rospy.is_shutdown(): 
+            self.status_publisher.publish("Sonar running")
+            rate.sleep()
 
     def run(self):
         # If debug mode is on, do constant sweeps within range
