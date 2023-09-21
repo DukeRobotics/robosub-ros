@@ -7,6 +7,7 @@ services:
     privileged: true
     ports: 
       - 2200:2200
+      - 8765:8765
     networks:
       local_net:
         ipv4_address: 192.168.1.1
