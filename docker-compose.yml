@@ -4,6 +4,8 @@ services:
   onboard:
     image: dukerobotics/robosub-ros:onboard
     container_name: onboard
+    environment:
+      - ROBOT_NAME=oogway
     privileged: true
     ports: 
       - 2200:2200

@@ -1,0 +1,22 @@
+version: "3.3"
+
+services:
+  onboard-cthulhu:
+    extends:
+      file: docker-compose.yml
+      service: onboard
+    environment:
+      - ROBOT_NAME=cthulhu
+
+  landside:
+    extends:
+      file: docker-compose.yml
+      service: landside
+
+ 
+networks:
+  local_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.1.0/23
