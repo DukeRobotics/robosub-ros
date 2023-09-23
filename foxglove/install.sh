@@ -9,7 +9,7 @@ for dir in ${extensions//;/$'\n'}; do
     cd $dir
     npm install
     npm install yarn
-    yarn install --frozen-lockfile
+    yarn install
     npm run local-install
     cd ..
 done
