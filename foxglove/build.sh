@@ -1,5 +1,5 @@
 #!/bin/bash
-# A convenience script used to automatically rebuild Foxglove extensions when changes are detected.
+# A convenience script to automatically rebuild Foxglove extensions when changes are detected.
 # Foxglove extensions are defined as any folder matching '*-extension' in the current directory.
 # Only the 'src' folder is monitored for changes.
 # NOTE: This script requires 'entr' to be installed: https://github.com/eradman/entr
