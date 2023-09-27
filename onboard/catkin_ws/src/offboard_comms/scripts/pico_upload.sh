@@ -30,10 +30,12 @@ else
     echo "Options parsed: only compiling"
 fi
 
-PKG_DIR=$(rospack find offboard_comms)
+# PKG_DIR="/root/dev/robosub-ros/onboard/catkin_ws/src/offboard_comms"
+PKG_DIR="/home/robot/robosub-ros/onboard/catkin_ws/src/offboard_comms" #outside Docker
 SRC_CODE="${PKG_DIR}/pico/pico.ino"
-
 PORT=$("${PKG_DIR}"/scripts/port_finder.sh)
+
+echo $PORT
 
 export ARDUINO_LIBRARY_ENABLE_UNSAFE_INSTALL=true
 
@@ -43,5 +45,8 @@ arduino-cli core install arduino:mbed_rp2040
 arduino-cli compile -b arduino:mbed_rp2040:pico "${SRC_CODE}"
 
 if [ "$ARD_UPLOAD" = true ]; then
+    echo $PORT
     arduino-cli upload -p "${PORT}" -b arduino:mbed_rp2040:pico "${SRC_CODE}"
 fi
+
+echo "Pico upload complete."

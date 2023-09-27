@@ -10,14 +10,18 @@ MS5837 sensor;
 #define BAUD_RATE 9600
 
 // 1 publisher for depth sensor
-ros::NodeHandle_<ArduinoHardware,1,1,128,128> nh;
-
+//ros::NodeHandle_<ArduinoHardware,1,1,128,128> nh;
+ros::NodeHandle nh;
 std_msgs::Float64 depth;
-ros::Publisher pressure_pub("/offboard/pressure", &depth);
+ros::Publisher pressure_pub = ros::Publisher("/offboard/pressure", &depth);
 
 void setup(){
 
-    Serial1.begin(BAUD_RATE);
+    Serial1.begin(0); //weird hack
+    delay(100);
+    Serial1.end(); // Close the serial port
+    Serial1.begin(9600);
+
     nh.getHardware()->setBaud(BAUD_RATE);
     nh.initNode();
     nh.advertise(pressure_pub);
@@ -38,8 +42,8 @@ void loop(){
     sensor.read();
     depth = std_msgs::Float64();
     depth.data = sensor.depth();
-
+    
     pressure_pub.publish(&depth);
-
+    Serial1.flush();
     nh.spinOnce();
 }
