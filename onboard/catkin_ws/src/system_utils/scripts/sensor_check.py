@@ -9,32 +9,31 @@ from custom_msgs.msg import CVObject, ThrusterSpeeds
 
 VERBOSE = False
 
-DVL_ODOM_TOPIC = 'sensors/dvl/odom'
-IMU_TOPIC = '/vectornav/IMU'
-PRESSURE_TOPIC = '/sensors/depth'
-STATE_TOPIC = '/state'
-CAMERA_TOPIC = '/camera/front/rgb/preview/compressed'
-SONAR_TOPIC = 'sonar/status'
+# Dictionary of all sensor topics and types: (TOPIC_NAME, MESSAGE_TYPE)
+SENSOR_SUBSCRIBE_TOPICS = {'sensors/dvl/odom': Odometry, '/vectornav/IMU': Imu, '/sensors/depth': Float64,
+                           '/state': Odometry, '/camera/front/rgb/preview/compressed': CompressedImage,
+                           'sonar/status': String, '/cv/front/buoy_earth_cetus': CVObject}
 
-CV_TOPIC = '/cv/front/buoy_earth_cetus'
 OFFBOARD_THRUSTER_SPEEDS_TOPIC = '/offboard/thruster_speeds'
 
 class SensorCheckNode:
 
     def __init__(self):
+
         rospy.init_node('sensor_check')
-        self.sensor_rate = { DVL_ODOM_TOPIC: [], IMU_TOPIC: [], PRESSURE_TOPIC: [],
-                             STATE_TOPIC: [], CAMERA_TOPIC: [], SONAR_TOPIC: [],
-                             CV_TOPIC: [], OFFBOARD_THRUSTER_SPEEDS_TOPIC: []}
+        self.test_thrusters = rospy.get_param("~thrusters")
+
         # Subscribe to all possible sensors
-        self.dvl = rospy.Subscriber(DVL_ODOM_TOPIC, Odometry, self.callback, callback_args=DVL_ODOM_TOPIC)
-        self.imu = rospy.Subscriber(IMU_TOPIC, Imu, self.callback, callback_args=IMU_TOPIC)
-        self.depth_sensor = rospy.Subscriber(PRESSURE_TOPIC, Float64, self.callback, callback_args=PRESSURE_TOPIC)
-        self.state = rospy.Subscriber(STATE_TOPIC, Odometry, self.callback, callback_args=STATE_TOPIC)
-        self.camera = rospy.Subscriber(CAMERA_TOPIC, CompressedImage, self.callback, callback_args=CAMERA_TOPIC)
-        self.sonar = rospy.Subscriber(SONAR_TOPIC, String, self.callback, callback_args=SONAR_TOPIC)
-        self.cv_detections = rospy.Subscriber(CV_TOPIC, CVObject, self.callback, callback_args=CV_TOPIC)
-        self.thrusters = rospy.Subscriber(OFFBOARD_THRUSTER_SPEEDS_TOPIC, ThrusterSpeeds, self.callback, callback_args=OFFBOARD_THRUSTER_SPEEDS_TOPIC)
+        self.sensor_subscibers = dict()
+        self.sensor_rate = dict()
+        for topic, message_type in SENSOR_SUBSCRIBE_TOPICS.items():
+            self.sensor_subscibers[topic] = rospy.Subscriber(topic, message_type, self.callback, callback_args=topic)
+            self.sensor_rate[topic] = []
+        
+        # Publish to offboard/thrusters and run thrusters at low speeds if test_thrusters is True
+        if self.test_thrusters:
+            self.thruster_tester = rospy.Publisher(OFFBOARD_THRUSTER_SPEEDS_TOPIC, ThrusterSpeeds)
+            self.spin_thrusters_at_low_speeds()
 
     def callback(self, data, topic_name):
         # Record time of response
@@ -50,6 +49,13 @@ class SensorCheckNode:
         response_times = self.sensor_rate[topic_name]
         topic_average = sum([response_times[t] - response_times[t-1] for t in range(1, len(response_times))]) / len(response_times)
         rospy.loginfo(f"\033[32m{topic_name} is up and running...  average gap between responses: {topic_average: .3f}s\033[0m")
+
+    def spin_thrusters_at_low_speeds(self):
+        # Spin for 5 seconds
+        for t in range(5000):
+            vel = ThrusterSpeeds()
+            vel.speeds = [60, 60, 60, 60, 60, 60, 60, 60]
+            self.thruster_tester.publish(vel)
 
     def run(self):
         # Sleep for 5 seconds to collect messages
