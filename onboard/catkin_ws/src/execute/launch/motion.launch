@@ -23,4 +23,6 @@
 
 	<include file="$(find vectornav)/launch/vectornav.launch" />
 
+	<include file="$(find system_utils)/launch/system_pub.launch" />
+
 </launch>
