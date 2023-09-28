@@ -1,6 +1,3 @@
 <launch>
-    <arg name="thrusters" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to test spinning thrusters or not"}'/>
-    <node name="sensor_check" pkg="system_utils" type="sensor_check.py" output="screen">
-        <param name="thrusters" value="$(arg thrusters)">
-    </node>
+    <node name="sensor_check" pkg="system_utils" type="sensor_check.py" output="screen"/>
 </launch>
