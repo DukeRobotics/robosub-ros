@@ -5,6 +5,8 @@ import serial.tools.list_ports as list_ports
 import rospy
 import yaml
 import resource_retriever as rr
+import time
+import binascii
 
 FTDI_FILE_PATH = 'package://data_pub/config/dvl_ftdi.yaml'
 BAUDRATE = 115200
@@ -41,6 +43,9 @@ def main():
             if cmd == "":
                 continue
             cmd = cmd + "\n"
+            if cmd == "break\n":
+                cmd = "þ\n"
+                allout = True
             myserial.write(cmd.encode('utf-8'))
             line = myserial.readline().decode('utf-8')
             itr = 0
@@ -55,6 +60,10 @@ def main():
                     continue
             itr = 0
             while True:
+                if allout:
+                    print(line[:-1])
+                    line = myserial.readline().decode('utf-8')
+                    continue
                 itr += 1
                 if ">" in line:
                     break
