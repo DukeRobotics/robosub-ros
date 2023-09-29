@@ -1,6 +1,6 @@
 {
-  "name": "foxglove-extension-demo",
-  "displayName": "Foxglove Example Custom Image Extension Panel",
+  "name": "foxglove-subscriber-extension",
+  "displayName": "",
   "description": "",
   "publisher": "Foxglove",
   "version": "1.1.0",
