@@ -11,5 +11,6 @@ for dir in ${extensions//;/$'\n'}; do
     npm install yarn
     yarn install
     npm run local-install
+    rm yarn.lock  # only want package-lock.json but to run local-install we need to run `yarn install` first
     cd ..
 done
