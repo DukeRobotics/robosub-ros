@@ -47,3 +47,4 @@ onboard/catkin_ws/src/cv/footage_extraction/*.yaml
 # Foxglove
 node_modules
 dist
+yarn.lock
