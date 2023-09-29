@@ -1,41 +1,46 @@
-print("hello world")
+import time
 
-line = "36087D002D00B300800080008000800000000000000000FF0080008000800080000000000F013A2F550000FF05030A"
-print(len(line))
+line = "7D002D00B300800080008000800000000000000000FF0080008000800080000000000F013A381F0000F40534083208"
+
+#calculate delta time
+
+print(int("FF",16))
+
+curTime = time.time()
 
 byte_string = bytearray.fromhex(line)
 
-print((int("007D", 16)))
+bytes = [line[i:i+2] for i in range(0, len(line), 2)]
 
-print(byte_string)
+DATA_ID = int(bytes[0], 16)
+DATA_STRUCT = int(bytes[1], 16)
+NUM_BYTES = int(bytes[3] + bytes[2], 16)
+SYS_CONFIG = int(bytes[4], 16)
+X_VEL = int(bytes[6] + bytes[5], 16)
+Y_VEL = int(bytes[8] + bytes[7], 16)
+Z_VEL = int(bytes[10] + bytes[9], 16)
+E_VEL = int(bytes[12] + bytes[11], 16)
+BM1 = int(bytes[14] + bytes[13], 16)
+BM2 = int(bytes[16] + bytes[15], 16)
+BM3 = int(bytes[18] + bytes[17], 16)
+BM4 = int(bytes[20] + bytes[19], 16)
+BOTTOM_STATUS = int(bytes[21], 16)
+VEL_1 = int(bytes[23] + bytes[22], 16)
+VEL_2 = int(bytes[25] + bytes[24], 16)
+VEL_3 = int(bytes[27] + bytes[26], 16)
+VEL_4 = int(bytes[29] + bytes[28], 16)
+REF_LAYER_START = int(bytes[31] + bytes[30], 16)
+REF_LAYER_END = int(bytes[33] + bytes[32], 16)
+REF_LAYER_STATUS = int(bytes[34], 16)
+TOFP_HOUR = int(bytes[35], 16)
+TOFP_MIN = int(bytes[36], 16)
+TOFP_SEC = int(bytes[37], 16)
+TOFP_HUNDRETH = int(bytes[38], 16)
+LEAK_SENSOR = int(bytes[40] + bytes[39], 16)
+SPEED_OF_SOUND = int(bytes[42] + bytes[41], 16)
+TEMPERATURE = int(bytes[44] + bytes[43], 16)
+CHECKSUM = int(bytes[46] + bytes[45], 16)
 
-DATA_ID = int.from_bytes(byte_string[0:2], byteorder='little')
-DATA_STRUCT = byte_string[2:4]
-NUM_BYTES = int.from_bytes(byte_string[4:8], byteorder='little')
-SYS_CONFIG = byte_string[8:10]
-X_VEL = int.from_bytes(byte_string[10:14], byteorder='little', signed=True)
-Y_VEL = int.from_bytes(byte_string[14:18], byteorder='little', signed=True)
-Z_VEL = int.from_bytes(byte_string[18:22], byteorder='little', signed=True)
-E_VEL = int.from_bytes(byte_string[22:26], byteorder='little', signed=True)
-BM1 = int.from_bytes(byte_string[26:30], byteorder='little', signed=False)
-BM2 = int.from_bytes(byte_string[30:34], byteorder='little', signed=False)
-BM3 = int.from_bytes(byte_string[34:38], byteorder='little', signed=False)
-BM4 = int.from_bytes(byte_string[38:42], byteorder='little', signed=False)
-BOTTOM_STATUS = byte_string[42:44]
-VEL_1 = int.from_bytes(byte_string[44:48], byteorder='little', signed=True)
-VEL_2 = int.from_bytes(byte_string[48:52], byteorder='little', signed=True)
-VEL_3 = int.from_bytes(byte_string[52:56], byteorder='little', signed=True)
-VEL_4 = int.from_bytes(byte_string[56:60], byteorder='little', signed=True)
-REF_LAYER_START = int.from_bytes(byte_string[60:64], byteorder='little', signed=False)
-REF_LAYER_END = int.from_bytes(byte_string[64:68], byteorder='little', signed=False)
-REF_LAYER_STATUS = byte_string[68:70]
-TOFP_HOUR = int.from_bytes(byte_string[70:72], byteorder='little', signed=False)
-TOFP_MIN = int.from_bytes(byte_string[72:74], byteorder='little', signed=False)
-TOFP_SEC = int.from_bytes(byte_string[74:76], byteorder='little', signed=False)
-TOFP_HUNDRETH = int.from_bytes(byte_string[76:78], byteorder='little', signed=False)
-LEAK_SENSOR = byte_string[78:82]
-SPEED_OF_SOUND = int.from_bytes(byte_string[82:86], byteorder='little', signed=False)
-TEMPERATURE = int.from_bytes(byte_string[86:90], byteorder='little', signed=False)
-CHECKSUM = int.from_bytes(byte_string[90:94], byteorder='little', signed=False)
+print(f"delta time: {time.time() - curTime}")
 
 print(f"DATA_ID: {DATA_ID}, DATA_STRUCT: {DATA_STRUCT}, NUM_BYTES: {NUM_BYTES}, SYS_CONFIG: {SYS_CONFIG}, X_VEL: {X_VEL}, Y_VEL: {Y_VEL}, Z_VEL: {Z_VEL}, E_VEL: {E_VEL}, BM1: {BM1}, BM2: {BM2}, BM3: {BM3}, BM4: {BM4}, BOTTOM_STATUS: {BOTTOM_STATUS}, VEL_1: {VEL_1}, VEL_2: {VEL_2}, VEL_3: {VEL_3}, VEL_4: {VEL_4}, REF_LAYER_START: {REF_LAYER_START}, REF_LAYER_END: {REF_LAYER_END}, REF_LAYER_STATUS: {REF_LAYER_STATUS}, TOFP_HOUR: {TOFP_HOUR}, TOFP_MIN: {TOFP_MIN}, TOFP_SEC: {TOFP_SEC}, TOFP_HUNDRETH: {TOFP_HUNDRETH}, LEAK_SENSOR: {LEAK_SENSOR}, SPEED_OF_SOUND: {SPEED_OF_SOUND}, TEMPERATURE: {TEMPERATURE}, CHECKSUM: {CHECKSUM}")
