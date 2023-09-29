@@ -17,7 +17,7 @@ class SystemInfoPublisher:
 
     def get_cpu(self):
         self._current_msg.cpu_percent = psutil.cpu_percent(interval=0.5)
-        self._current_msg.cpu_speed = psutil.cpu_freq().current
+        self._current_msg.cpu_speed = psutil.cpu_freq().current if psutil.cpu_freq() else 0
 
     def get_gpu(self):
         GPUs = GPUtil.getGPUs()
