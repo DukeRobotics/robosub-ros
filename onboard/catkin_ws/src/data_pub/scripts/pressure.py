@@ -12,7 +12,7 @@ from geometry_msgs.msg import PoseWithCovarianceStamped
 
 class PressureRawPublisher:
 
-    IMU_DEST_TOPIC_QUAT = 'sensors/pressure/pose'
+    DEPTH_DEST_TOPIC_QUAT = 'sensors/pressure/pose'
     FTDI_FILE_PATH = 'package://data_pub/config/pressure_ftdi.yaml'
 
     BAUDRATE = 9600
