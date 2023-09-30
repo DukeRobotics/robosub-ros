@@ -66,8 +66,9 @@ function ExamplePanel({ context }: { context: PanelExtensionContext }): JSX.Elem
 
   return (
     <div style={{ height: "100%", padding: "1rem" }}>
+      <h2>Subscribe Topic</h2>
       <div>
-        <label>Choose a topic to display:</label>
+        <label>Choose a topic to display: </label>
         <select
           value={state.topic}
           onChange={(event) => setState({ topic: event.target.value })}
