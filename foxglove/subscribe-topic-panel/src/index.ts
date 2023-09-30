@@ -1,10 +1,10 @@
 import { ExtensionContext } from "@foxglove/studio";
 
-import { initExamplePanel } from "./ExamplePanel";
+import { initExamplePanel as subscribeTopicPanel } from "./SubscribeTopicPanel";
 
 export function activate(extensionContext: ExtensionContext): void {
   extensionContext.registerPanel({
-    name: "Subscriber Extension",
-    initPanel: initExamplePanel,
+    name: "Subscribe Topic",
+    initPanel: subscribeTopicPanel,
   });
 }

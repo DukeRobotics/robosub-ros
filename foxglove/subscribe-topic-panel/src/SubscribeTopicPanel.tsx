@@ -1,6 +1,7 @@
 import { PanelExtensionContext, RenderState, Topic, MessageEvent } from "@foxglove/studio";
 import { useLayoutEffect, useEffect, useState, useRef, useMemo } from "react";
 import ReactDOM from "react-dom";
+import ReactJson from "react-json-view";
 
 type PanelState = {
   topic?: string;
@@ -79,9 +80,13 @@ function ExamplePanel({ context }: { context: PanelExtensionContext }): JSX.Elem
           ))}
         </select>
 
-        <div>
-          {JSON.stringify(message)}
-        </div>
+        <ReactJson
+          name={null}
+          src={message}
+          indentWidth={2}
+          theme={"monokai"}
+          displayDataTypes={false}
+        />
 
       </div>
     </div>
