@@ -1,4 +1,7 @@
 #!/bin/bash
+# shellcheck disable=SC1000-SC9999
+# Ignoring this file since it will be removed when the cross-platform build system is complete.
+
 # A convenience script to automatically install all Foxglove extensions.
 # Foxglove extensions are defined as any folder matching '*-panel' in the current directory.
 # Usage: ./install.sh (Must be run from the root of the Foxglove directory)
