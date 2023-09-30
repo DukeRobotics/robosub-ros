@@ -64,7 +64,7 @@ class PressureRawPublisher:
     def _parse_pressure(self):
         self._current_pressure_msg.pose.pose.position.x = 0.0
         self._current_pressure_msg.pose.pose.position.y = 0.0
-        self._current_pressure_msg.pose.pose.position.z = -1* int(self._pressure)
+        self._current_pressure_msg.pose.pose.position.z = -1* float(self._pressure)
 
         self._current_pressure_msg.pose.pose.orientation.x = 0.0
         self._current_pressure_msg.pose.pose.orientation.y = 0.0
