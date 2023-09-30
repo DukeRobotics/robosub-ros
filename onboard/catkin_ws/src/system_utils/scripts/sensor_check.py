@@ -55,8 +55,8 @@ class SensorCheckNode:
     def spin_thrusters_at_low_speeds(self):
         # Spin for 5 seconds
         desired_speed = ThrusterSpeeds()
-        desired_speed.speed = []
-        for t in range(5000):
+        desired_speed.speeds = [20,20,20,20,20,20,20,20]
+        for t in range(500):
             self.thruster_tester.publish(desired_speed)
 
     def run(self):
