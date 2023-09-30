@@ -62,14 +62,14 @@ class PressureRawPublisher:
                 self.connect()
 
     def _parse_pressure(self):
-        self._current_pressure_msg.pose.position.x = 0.0
-        self._current_pressure_msg.pose.position.y = 0.0
-        self._current_pressure_msg.pose.position.z = -1* int(self._pressure)
+        self._current_pressure_msg.pose.pose.position.x = 0.0
+        self._current_pressure_msg.pose.pose.position.y = 0.0
+        self._current_pressure_msg.pose.pose.position.z = -1* int(self._pressure)
 
-        self._current_pressure_msg.pose.orientation.x = 0.0
-        self._current_pressure_msg.pose.orientation.y = 0.0
-        self._current_pressure_msg.pose.orientation.z = 0.0
-        self._current_pressure_msg.pose.orientation.w = 1.0
+        self._current_pressure_msg.pose.pose.orientation.x = 0.0
+        self._current_pressure_msg.pose.pose.orientation.y = 0.0
+        self._current_pressure_msg.pose.pose.orientation.z = 0.0
+        self._current_pressure_msg.pose.pose.orientation.w = 1.0
 
         self._current_pressure_msg.covariance[14] = 0.01
 
