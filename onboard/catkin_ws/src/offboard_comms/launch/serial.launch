@@ -8,14 +8,14 @@
         <param name="baud" value="9600"/>
     </node>
 
-    <node pkg="rosserial_python" type="serial_node.py" name="serial_node" output="screen" >
+    <!-- <node pkg="rosserial_python" type="serial_node.py" name="serial_node" output="screen" >
         <param
             name="port"
             command = "$(find offboard_comms)/scripts/thruster_port.sh"
         />
-    </node>
+    </node> -->
 
     
 
-    <node pkg="offboard_comms" type="servo_wrapper.py" name="servo_wrapper" output="screen" />
+    <!-- <node pkg="offboard_comms" type="servo_wrapper.py" name="servo_wrapper" output="screen" /> -->
 </launch>
