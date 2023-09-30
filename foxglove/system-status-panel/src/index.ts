@@ -1,6 +1,6 @@
 import { ExtensionContext } from "@foxglove/studio";
 
-import { initExamplePanel as subscribeTopicPanel } from "./SystemStatusPanel";
+import { initSystemStatusPanel as subscribeTopicPanel } from "./SystemStatusPanel";
 
 export function activate(extensionContext: ExtensionContext): void {
   extensionContext.registerPanel({
