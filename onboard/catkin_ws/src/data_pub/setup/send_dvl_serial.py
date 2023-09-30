@@ -36,6 +36,8 @@ def main():
 
     connect()
 
+    allout = False
+
     try:
         while True:
             myserial.flush()

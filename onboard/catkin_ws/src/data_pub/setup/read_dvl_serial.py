@@ -38,9 +38,8 @@ def main():
     global serial_port, myserial
     try:
         while True:
-            line = myserial.readline().decode('utf-8')
-            if line:
-                print(line[:-1])
+            line = myserial.readline()
+            print(line[:-1])
     except KeyboardInterrupt:
         print("\nKeyboard interrupt received. Exiting.")
         myserial.close()
