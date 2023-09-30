@@ -5,7 +5,7 @@
   "publisher": "Duke Robotics",
   "homepage": "https://duke-robotics.com",
   "license": "UNLICENSED",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "main": "./dist/extension.js",
   "scripts": {
     "build": "foxglove-extension build",
