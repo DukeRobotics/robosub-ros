@@ -10,25 +10,31 @@ curTime = time.time()
 
 byte_string = bytearray.fromhex(line)
 
+def signed(i):
+    if i >= 32768:
+        return i - 65536
+    else:
+        return i
+
 bytes = [line[i:i+2] for i in range(0, len(line), 2)]
 
 DATA_ID = int(bytes[0], 16)
 DATA_STRUCT = int(bytes[1], 16)
 NUM_BYTES = int(bytes[3] + bytes[2], 16)
 SYS_CONFIG = int(bytes[4], 16)
-X_VEL = int(bytes[6] + bytes[5], 16)
-Y_VEL = int(bytes[8] + bytes[7], 16)
-Z_VEL = int(bytes[10] + bytes[9], 16)
-E_VEL = int(bytes[12] + bytes[11], 16)
+X_VEL = signed(int(bytes[6] + bytes[5], 16))
+Y_VEL = signed(int(bytes[8] + bytes[7], 16))
+Z_VEL = signed(int(bytes[10] + bytes[9], 16))
+E_VEL = signed(int(bytes[12] + bytes[11], 16))
 BM1 = int(bytes[14] + bytes[13], 16)
 BM2 = int(bytes[16] + bytes[15], 16)
 BM3 = int(bytes[18] + bytes[17], 16)
 BM4 = int(bytes[20] + bytes[19], 16)
 BOTTOM_STATUS = int(bytes[21], 16)
-VEL_1 = int(bytes[23] + bytes[22], 16)
-VEL_2 = int(bytes[25] + bytes[24], 16)
-VEL_3 = int(bytes[27] + bytes[26], 16)
-VEL_4 = int(bytes[29] + bytes[28], 16)
+VEL_1 = signed(int(bytes[23] + bytes[22], 16))
+VEL_2 = signed(int(bytes[25] + bytes[24], 16))
+VEL_3 = signed(int(bytes[27] + bytes[26], 16))
+VEL_4 = signed(int(bytes[29] + bytes[28], 16))
 REF_LAYER_START = int(bytes[31] + bytes[30], 16)
 REF_LAYER_END = int(bytes[33] + bytes[32], 16)
 REF_LAYER_STATUS = int(bytes[34], 16)
