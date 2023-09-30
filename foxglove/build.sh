@@ -1,7 +1,6 @@
 #!/bin/bash
-# shellcheck disable=all
-
-# NOTE: This script is deprecated and will be removed when the new cross-platform build system is complete.
+# shellcheck disable=SC1000-SC9999
+# Ignoring this file since it will be removed when the cross-platform build system is complete.
 
 # A convenience script to automatically rebuild Foxglove extensions when changes are detected.
 # Foxglove extensions are defined as any folder matching '*-panel' in the current directory.
