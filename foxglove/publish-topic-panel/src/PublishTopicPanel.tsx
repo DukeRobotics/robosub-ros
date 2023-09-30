@@ -55,16 +55,16 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
 
   return (
     <div style={{ padding: "1rem" }}>
-      <h2>Publish topic</h2>
+      <h2>Publish Topic</h2>
       {context.callService == undefined && (
         <p style={{ color: "red" }}>Publishing topics is not supported by this connection</p>
       )}
 
-      <h4>Topic name</h4>
+      <h4>Topic Name</h4>
       <div>
         <input
           type="text"
-          placeholder="Enter service name"
+          placeholder="Enter topic name"
           style={{ width: "100%" }}
           value={state.topicName}
           onChange={(event) => {
@@ -91,7 +91,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
             await publishTopic(state.topicName, state.request);
           }}
         >
-          {`Call ${state.topicName}`}
+          {`Publish ${state.topicName}`}
         </button>
       </div>
     </div>
