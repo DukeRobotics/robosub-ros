@@ -1,4 +1,8 @@
 #!/bin/bash
+# shellcheck disable=all
+
+# NOTE: This script is deprecated and will be removed when the new cross-platform build system is complete.
+
 # A convenience script to automatically rebuild Foxglove extensions when changes are detected.
 # Foxglove extensions are defined as any folder matching '*-panel' in the current directory.
 # Only the 'src' folder is monitored for changes.
