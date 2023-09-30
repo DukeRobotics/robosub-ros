@@ -9,14 +9,13 @@ import resource_retriever as rr
 import traceback
 
 from geometry_msgs.msg import PoseWithCovarianceStamped
-from std_msgs.msg import Float64
 
 class PressureRawPublisher:
 
     IMU_DEST_TOPIC_QUAT = 'sensors/pressure/pose'
     FTDI_FILE_PATH = 'package://data_pub/config/pressure_ftdi.yaml'
 
-    BAUDRATE = 115200
+    BAUDRATE = 9600
     NODE_NAME = 'pressure_pub'
 
     def __init__(self):
@@ -30,10 +29,13 @@ class PressureRawPublisher:
         self._serial_port = None
         self._serial = None
 
+    #read FTDI strings of all ports in list_ports.grep
+    
     def connect(self):
         while self._serial_port is None and not rospy.is_shutdown():
             try:
-                self._serial_port = next(list_ports.grep('|'.join(self._ftdi_strings))).device
+                #self._serial_port = next(list_ports.grep('|'.join(self._ftdi_strings))).device
+                self._serial_port = "/dev/ACM0"
                 self._serial = serial.Serial(self._serial_port, self.BAUDRATE,
                                              timeout=None, write_timeout=None,
                                              bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
@@ -47,7 +49,7 @@ class PressureRawPublisher:
         self.connect()
         while not rospy.is_shutdown():
             try:
-                line = self._serial.read_until()
+                line = self._serial.readline().decode('utf-8')
                 self._pressure = line[:-1]
                 self._parse_pressure()
                 self._publish_current_msg()
@@ -62,7 +64,7 @@ class PressureRawPublisher:
     def _parse_pressure(self):
         self._current_pressure_msg.pose.position.x = 0.0
         self._current_pressure_msg.pose.position.y = 0.0
-        self._current_pressure_msg.pose.position.z = -1* self._pressure
+        self._current_pressure_msg.pose.position.z = -1* int(self._pressure)
 
         self._current_pressure_msg.pose.orientation.x = 0.0
         self._current_pressure_msg.pose.orientation.y = 0.0
