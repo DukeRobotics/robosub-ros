@@ -85,6 +85,7 @@ function ExamplePanel({ context }: { context: PanelExtensionContext }): JSX.Elem
           src={message}
           indentWidth={2}
           theme={"monokai"}
+          enableClipboard={false}
           displayDataTypes={false}
         />
 
