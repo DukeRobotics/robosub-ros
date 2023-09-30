@@ -2,10 +2,10 @@
   "name": "call-service-panel",
   "displayName": "Call Service Panel",
   "description": "Example panel that lets you call services",
-  "publisher": "Duke Robotics Club",
+  "publisher": "Duke Robotics",
   "homepage": "https://duke-robotics.com",
   "license": "UNLICENSED",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "main": "./dist/extension.js",
   "keywords": [],
   "scripts": {
