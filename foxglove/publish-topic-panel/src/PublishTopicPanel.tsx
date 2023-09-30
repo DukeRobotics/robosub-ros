@@ -36,7 +36,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
       }
 
       try {
-        context.advertise(`/${topicName}`, "std_msgs/ColorRGBA");
+        context.advertise(`/${topicName}`, "std_msgs/String");
         context.publish(`/${topicName}`, JSON.parse(request));
 
         
@@ -91,7 +91,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
             await publishTopic(state.topicName, state.request);
           }}
         >
-          {`Publish ${state.topicName}`}
+          {`Publish to ${state.topicName}`}
         </button>
       </div>
     </div>
