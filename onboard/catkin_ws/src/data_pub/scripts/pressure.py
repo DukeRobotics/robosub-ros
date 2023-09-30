@@ -71,7 +71,7 @@ class PressureRawPublisher:
         self._current_pressure_msg.pose.pose.orientation.z = 0.0
         self._current_pressure_msg.pose.pose.orientation.w = 1.0
 
-        self._current_pressure_msg.covariance[14] = 0.01
+        self._current_pressure_msg.pose.covariance[14] = 0.01
 
     def _publish_current_msg(self):
         self._current_pressure_msg.header.stamp = rospy.Time.now()
