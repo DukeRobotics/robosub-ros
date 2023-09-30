@@ -53,12 +53,12 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
 
   return (
     <div style={{ padding: "1rem" }}>
-      <h2>Call service</h2>
+      <h2>Call Service</h2>
       {context.callService == undefined && (
         <p style={{ color: "red" }}>Calling services is not supported by this connection</p>
       )}
 
-      <h4>Service name</h4>
+      <h4>Service Name</h4>
       <div>
         <input
           type="text"
