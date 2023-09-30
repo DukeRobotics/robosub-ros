@@ -50,7 +50,7 @@ class PressureRawPublisher:
         while not rospy.is_shutdown():
             try:
                 line = self._serial.readline().decode('utf-8')
-                self._pressure = line[:-1]
+                self._pressure = line[:-2]
                 self._parse_pressure()
                 self._publish_current_msg()
             except Exception:
