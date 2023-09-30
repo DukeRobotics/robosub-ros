@@ -48,6 +48,7 @@
     "@fontsource/roboto": "^5.0.8",
     "@mui/icons-material": "^5.14.11",
     "@mui/material": "^5.14.11",
+    "react-json": "^0.2.1",
     "yarn": "^1.22.19"
   }
 }
