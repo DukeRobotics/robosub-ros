@@ -1,11 +1,10 @@
 {
-  "name": "call-service-panel",
-  "displayName": "Call services panel",
-  "description": "Example panel that lets you call services",
-  "publisher": "Foxglove",
-  "homepage": "https://foxglove.dev",
+  "name": "publish-topic-panel",
+  "displayName": "Publish Topic Panel",
+  "description": "Example panel that lets you publish topics",
+  "publisher": "Duke Robotics Club",
+  "homepage": "https://duke-robotics.com",
   "version": "0.0.1",
-  "license": "MIT",
   "main": "./dist/extension.js",
   "keywords": [],
   "scripts": {
@@ -45,7 +44,6 @@
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
-    "@fontsource/roboto": "^5.0.8",
     "@mui/icons-material": "^5.14.11",
     "@mui/material": "^5.14.11",
     "yarn": "^1.22.19"
