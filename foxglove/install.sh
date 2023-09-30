@@ -7,7 +7,7 @@ extensions=$(find . -type d -maxdepth 1 -name "*panel")
 
 for dir in ${extensions//;/$'\n'}; do
     cd $dir
-    npm --force install
+    npm install
     npm install yarn
     yarn install
     npm run local-install
