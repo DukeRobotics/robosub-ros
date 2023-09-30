@@ -4,6 +4,7 @@
   "description": "Example panel that lets you publish topics",
   "publisher": "Duke Robotics Club",
   "homepage": "https://duke-robotics.com",
+  "license": "UNLICENSED",
   "version": "0.0.1",
   "main": "./dist/extension.js",
   "keywords": [],
