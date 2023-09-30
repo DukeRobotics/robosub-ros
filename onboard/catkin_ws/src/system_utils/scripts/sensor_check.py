@@ -5,7 +5,7 @@ import subprocess
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Imu, CompressedImage
 from std_msgs.msg import Float64, String
-from geometry_msgs.msg import Twist
+from custom_msgs.msg import ThrusterSpeeds
 
 VERBOSE = False
 
@@ -14,7 +14,7 @@ SENSOR_SUBSCRIBE_TOPICS = {'sensors/dvl/odom': Odometry, '/vectornav/IMU': Imu, 
                            '/state': Odometry, '/camera/front/rgb/preview/compressed': CompressedImage,
                            'sonar/status': String}
 
-OFFBOARD_THRUSTER_POWER_TOPIC = '/controls/desired_power'
+OFFBOARD_THRUSTER_POWER_TOPIC = '/offboard/thruster_speeds'
 
 class SensorCheckNode:
 
@@ -34,7 +34,7 @@ class SensorCheckNode:
         # Publish to offboard/thrusters and run thrusters at low speeds if test_thrusters is True
         if self.test_thrusters == 1:
             rospy.loginfo("Testing thrusters...")
-            self.thruster_tester = rospy.Publisher(OFFBOARD_THRUSTER_POWER_TOPIC, Twist, queue_size=10)
+            self.thruster_tester = rospy.Publisher(OFFBOARD_THRUSTER_POWER_TOPIC, ThrusterSpeeds, queue_size=10)
             self.spin_thrusters_at_low_speeds()
 
     def callback(self, data, topic_name):
@@ -54,15 +54,10 @@ class SensorCheckNode:
 
     def spin_thrusters_at_low_speeds(self):
         # Spin for 5 seconds
-        desired_power = Twist()
-        desired_power.linear.x = 0.0
-        desired_power.linear.y = 0.0
-        desired_power.linear.z = 0.0
-        desired_power.angular.x = 0
-        desired_power.angular.y = 0
-        desired_power.angular.z = 1
+        desired_speed = ThrusterSpeeds()
+        desired_speed.speed = []
         for t in range(5000):
-            self.thruster_tester.publish(desired_power)
+            self.thruster_tester.publish(desired_speed)
 
     def run(self):
         # Sleep for 5 seconds to collect messages
