@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
 import rospy
-import subprocess
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Imu, CompressedImage
 from geometry_msgs.msg import PoseWithCovarianceStamped
-from std_msgs.msg import Float64, String
+from std_msgs.msg import String
 from custom_msgs.msg import ThrusterSpeeds
 
 VERBOSE = False
