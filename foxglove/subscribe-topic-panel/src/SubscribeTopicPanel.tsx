@@ -9,7 +9,7 @@ type State = {
   colorScheme?: RenderState["colorScheme"];
 };
 
-function ExamplePanel({ context }: { context: PanelExtensionContext }): JSX.Element {
+function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [topics, setTopics] = useState<readonly Topic[] | undefined>();
   const [message, setMessage] = useState<any>();
 
@@ -101,8 +101,8 @@ function ExamplePanel({ context }: { context: PanelExtensionContext }): JSX.Elem
   );
 }
 
-export function initExamplePanel(context: PanelExtensionContext): () => void {
-  ReactDOM.render(<ExamplePanel context={context} />, context.panelElement);
+export function initSubscribeTopicPanel(context: PanelExtensionContext): () => void {
+  ReactDOM.render(<SubscribeTopicPanel context={context} />, context.panelElement);
 
   // Return a function to run when the panel is removed
   return () => {
