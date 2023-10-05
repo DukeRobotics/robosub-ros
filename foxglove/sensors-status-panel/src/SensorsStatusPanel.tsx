@@ -1,3 +1,5 @@
+// TODO: (1) subscribe to all topics; (2) inside render context something update every single frame
+
 import { PanelExtensionContext, RenderState, Topic, MessageEvent } from "@foxglove/studio";
 import { useLayoutEffect, useEffect, useState, useRef, useMemo } from "react";
 import ReactDOM from "react-dom";
