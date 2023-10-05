@@ -108,7 +108,6 @@ class SonarPublisher:
             rospy.Subscriber(self.SONAR_REQUEST_TOPIC, sweepGoal, self.on_request)
             rospy.loginfo("starting sonar_publisher...")
             self.publish_status()
-            rospy.spin()
 
 
 if __name__ == '__main__':
