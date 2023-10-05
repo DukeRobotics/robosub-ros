@@ -4,7 +4,7 @@ set -eu
 
 ARD_UPLOAD=true
 while getopts ":hc" opt; do
-    case ${opt} in 
+    case ${opt} in
         h )
             echo "Usage:"
             echo "    rosrun offboard_comms upload_arduino.sh                  Compile and upload code to the arduino"

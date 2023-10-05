@@ -15,7 +15,7 @@
         />
     </node>
 
-    
+
 
     <node pkg="offboard_comms" type="servo_wrapper.py" name="servo_wrapper" output="screen" />
 </launch>
