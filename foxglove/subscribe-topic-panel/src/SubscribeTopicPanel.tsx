@@ -4,8 +4,9 @@ import ReactDOM from "react-dom";
 import ReactJson from "react-json-view";
 import Alert from '@mui/material/Alert';
 
-type PanelState = {
+type State = {
   topic?: string;
+  colorScheme?: RenderState["colorScheme"];
 };
 
 function ExamplePanel({ context }: { context: PanelExtensionContext }): JSX.Element {
@@ -15,8 +16,8 @@ function ExamplePanel({ context }: { context: PanelExtensionContext }): JSX.Elem
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
 
   // Restore our state from the layout via the context.initialState property.
-  const [state, setState] = useState<PanelState>(() => {
-    return context.initialState as PanelState;
+  const [state, setState] = useState<State>(() => {
+    return context.initialState as State;
   });
 
   // Get topics
@@ -47,6 +48,7 @@ function ExamplePanel({ context }: { context: PanelExtensionContext }): JSX.Elem
     context.onRender = (renderState: RenderState, done) => {
       setRenderDone(() => done);
       setTopics(renderState.topics);
+      setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
       
       // Save the most recent message on our topic.
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
@@ -56,6 +58,7 @@ function ExamplePanel({ context }: { context: PanelExtensionContext }): JSX.Elem
 
     context.watch("topics");
     context.watch("currentFrame");
+    context.watch("colorScheme");
 
   }, [context]);
 
@@ -88,7 +91,7 @@ function ExamplePanel({ context }: { context: PanelExtensionContext }): JSX.Elem
           name={null}
           src={message}
           indentWidth={2}
-          theme={"monokai"}
+          theme={state.colorScheme === "dark" ? "monokai" : "rjv-default"}
           enableClipboard={false}
           displayDataTypes={false}
         />
