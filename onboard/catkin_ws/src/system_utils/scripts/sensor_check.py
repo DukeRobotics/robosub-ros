@@ -53,13 +53,15 @@ class SensorCheckNode:
     def echo_status(self, topic_name):
         # Find the average intervals/gaps in between responses
         response_times = self.sensor_rate[topic_name]
-        topic_average = sum([response_times[t] - response_times[t-1] for t in range(1, len(response_times))]) / len(response_times)
-        rospy.loginfo(f"\033[32m{topic_name} is up and running...  average gap between responses: {topic_average: .3f}s\033[0m")
+        topic_average = sum([response_times[t] - response_times[t-1]
+                             for t in range(1, len(response_times))]) / len(response_times)
+        rospy.loginfo(f"\033[32m{topic_name} is up and running... \
+                      average gap between responses: {topic_average: .3f}s\033[0m")
 
     def spin_thrusters_at_low_speeds(self):
         # Spin for 5 seconds
         desired_speed = ThrusterSpeeds()
-        desired_speed.speeds = [20,20,20,20,20,20,20,20]
+        desired_speed.speeds = [20, 20, 20, 20, 20, 20, 20, 20]
         publishing_rate = rospy.Rate(10)
         curr_time = rospy.get_rostime().secs
         while not rospy.is_shutdown():
