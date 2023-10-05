@@ -97,9 +97,13 @@ class SonarPublisher:
 
     def publish_status(self):
         rate = rospy.Rate(20)
-        while not rospy.is_shutdown(): 
+        curr_time = rospy.get_rostime().secs
+        while not rospy.is_shutdown():
             self.status_publisher.publish("Sonar running")
             rate.sleep()
+            now = rospy.get_rostime().secs
+            if now - curr_time >= 5:
+                break
 
     def run(self):
         # If debug mode is on, do constant sweeps within range
