@@ -62,8 +62,8 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
   return (
     <div style={{ padding: "1rem" }}>
       <h2>Toggle Controls</h2>
-      {context.callService == undefined && (
-        <Alert variant="filled" severity="error">Calling services is not supported by this connection</Alert>
+      {(context.callService == undefined) && (
+        <Alert variant="filled" severity="error" style={{marginBottom: 20}}>Calling services is not supported by this connection</Alert>
       )}
 
       <Button
@@ -71,6 +71,7 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
         color={state.controlsEnabled ? "error" : "success"}
         endIcon={state.controlsEnabled ? <HighlightOffIcon /> : <CheckCircleOutlineIcon />}
         onClick={async () => { await toggleControls(); }}
+        disabled={context.callService == undefined}
       >
         {state.controlsEnabled ? "Disable Controls" : "Enable Controls"}
       </Button>
