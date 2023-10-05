@@ -94,7 +94,7 @@ class SonarPublisher:
         Convert any kind of image to ROS Compressed Image.
         """
         return self.cv_bridge.cv2_to_compressed_imgmsg(image, dst_format=compressed_format)
-    
+
     def publish_status(self):
         rate = rospy.Rate(20)
         while not rospy.is_shutdown(): 

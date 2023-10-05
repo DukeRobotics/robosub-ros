@@ -19,6 +19,7 @@ SENSOR_SUBSCRIBE_TOPICS = {'/sensors/dvl/odom': Odometry,
 
 OFFBOARD_THRUSTER_POWER_TOPIC = '/offboard/thruster_speeds'
 
+
 class SensorCheckNode:
 
     def __init__(self):
