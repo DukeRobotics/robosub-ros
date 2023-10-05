@@ -4,7 +4,7 @@ import { initSensorsStatusPanel as subscribeTopicPanel } from "./SensorsStatusPa
 
 export function activate(extensionContext: ExtensionContext): void {
   extensionContext.registerPanel({
-    name: "Subscribe Topic",
+    name: "Sensors Status",
     initPanel: subscribeTopicPanel,
   });
 }
