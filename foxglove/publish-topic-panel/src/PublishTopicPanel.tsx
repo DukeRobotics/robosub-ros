@@ -52,7 +52,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
   return (
     <div style={{ padding: "1rem" }}>
       <h2>Publish Topic</h2>
-      {context.advertise == undefined || context.publish == undefined && (
+      {(context.advertise == undefined || context.publish == undefined) && (
         <Alert variant="filled" severity="error">Publishing topics is not supported by this connection</Alert>
       )}
 
