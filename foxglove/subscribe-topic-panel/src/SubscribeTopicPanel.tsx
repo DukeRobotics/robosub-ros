@@ -2,6 +2,7 @@ import { PanelExtensionContext, RenderState, Topic, MessageEvent } from "@foxglo
 import { useLayoutEffect, useEffect, useState, useRef, useMemo } from "react";
 import ReactDOM from "react-dom";
 import ReactJson from "react-json-view";
+import Alert from '@mui/material/Alert';
 
 type PanelState = {
   topic?: string;
@@ -51,7 +52,6 @@ function ExamplePanel({ context }: { context: PanelExtensionContext }): JSX.Elem
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
         setMessage(renderState.currentFrame[renderState.currentFrame.length - 1]);
       }
-
     };
 
     context.watch("topics");
@@ -67,6 +67,9 @@ function ExamplePanel({ context }: { context: PanelExtensionContext }): JSX.Elem
   return (
     <div style={{ height: "100%", padding: "1rem" }}>
       <h2>Subscribe Topic</h2>
+      {context.subscribe == undefined && (
+        <Alert variant="filled" severity="error">Subscribing to topics is not supported by this connection</Alert>
+      )}
       <div>
         <label>Choose a topic to display: </label>
         <select
