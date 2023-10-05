@@ -4,15 +4,19 @@ import rospy
 import subprocess
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Imu, CompressedImage
+from geometry_msgs.msg import PoseWithCovarianceStamped
 from std_msgs.msg import Float64, String
 from custom_msgs.msg import ThrusterSpeeds
 
 VERBOSE = False
 
 # Dictionary of all sensor topics and types: (TOPIC_NAME, MESSAGE_TYPE)
-SENSOR_SUBSCRIBE_TOPICS = {'sensors/dvl/odom': Odometry, '/vectornav/IMU': Imu, '/sensors/depth': Float64,
-                           '/state': Odometry, '/camera/front/rgb/preview/compressed': CompressedImage,
-                           'sonar/status': String}
+SENSOR_SUBSCRIBE_TOPICS = {'/sensors/dvl/odom': Odometry,
+                           '/vectornav/IMU': Imu,
+                           '/sensors/depth': PoseWithCovarianceStamped,
+                           '/state': Odometry,
+                           '/camera/front/rgb/preview/compressed': CompressedImage,
+                           '/sonar/status': String}
 
 OFFBOARD_THRUSTER_POWER_TOPIC = '/offboard/thruster_speeds'
 
@@ -56,8 +60,14 @@ class SensorCheckNode:
         # Spin for 5 seconds
         desired_speed = ThrusterSpeeds()
         desired_speed.speeds = [20,20,20,20,20,20,20,20]
-        for t in range(500):
+        publishing_rate = rospy.Rate(10)
+        curr_time = rospy.get_rostime().secs
+        while not rospy.is_shutdown():
             self.thruster_tester.publish(desired_speed)
+            publishing_rate.sleep()
+            now = rospy.get_rostime().secs
+            if now - curr_time >= 5:
+                break
 
     def run(self):
         # Sleep for 5 seconds to collect messages
