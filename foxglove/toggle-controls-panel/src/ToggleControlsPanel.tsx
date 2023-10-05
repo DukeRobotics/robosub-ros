@@ -5,6 +5,7 @@ import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import ReactJson from "react-json-view";
+import Alert from '@mui/material/Alert';
 
 
 type State = {
@@ -62,7 +63,7 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
     <div style={{ padding: "1rem" }}>
       <h2>Toggle Controls</h2>
       {context.callService == undefined && (
-        <p style={{ color: "red" }}>Calling services is not supported by this connection</p>
+        <Alert variant="filled" severity="error">Calling services is not supported by this connection</Alert>
       )}
 
       <Button
