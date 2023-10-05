@@ -3,6 +3,7 @@
 # Foxglove extensions are defined as any folder matching '*-panel' in the current directory.
 # Usage: ./install.py (Must be run from the root of the foxglove directory)
 
+# TODO: Check if package.json exists before running yarn/npm
 import os
 import subprocess
 import functools
