@@ -82,5 +82,6 @@ class SensorCheckNode:
             elif 0 < len(responses) < 20:
                 rospy.logwarn(f"{topic_name} is responding slow {len(responses)} responses in the last 5 seconds")
 
+
 if __name__ == "__main__":
     SensorCheckNode().run()
