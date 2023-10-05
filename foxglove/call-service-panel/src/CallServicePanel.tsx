@@ -2,6 +2,7 @@ import { PanelExtensionContext, RenderState } from "@foxglove/studio";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import ReactJson from "react-json-view";
+import Alert from '@mui/material/Alert';
 
 
 type State = {
@@ -55,7 +56,7 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
     <div style={{ padding: "1rem" }}>
       <h2>Call Service</h2>
       {context.callService == undefined && (
-        <p style={{ color: "red" }}>Calling services is not supported by this connection</p>
+        <Alert variant="filled" severity="error">Calling services is not supported by this connection</Alert>
       )}
 
       <h4>Service Name</h4>
