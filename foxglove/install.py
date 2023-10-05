@@ -45,7 +45,7 @@ def main():
         # Build the extension
         run("npm run local-install")
 
-        print()
+    print(f"Successfully installed {len(extensions)} extensions")
 
 
 if __name__ == "__main__":
