@@ -1,0 +1,3 @@
+<launch>
+    <node name="sensor_check" pkg="system_utils" type="sensor_check.py" output="screen"></node>
+</launch>
