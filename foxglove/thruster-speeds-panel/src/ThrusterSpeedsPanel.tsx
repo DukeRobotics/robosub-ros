@@ -1,6 +1,7 @@
 import { PanelExtensionContext, RenderState } from "@foxglove/studio";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import ReactDOM from "react-dom";
+import Alert from '@mui/material/Alert';
 
 type State = {
   topicName: string;
@@ -28,18 +29,13 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
 
   const publishTopic = useCallback(
     async (topicName: string, request: string) => {
-      if (!context.advertise) {
-        return;
-      }
-      if (!context.publish) {
+      if (!context.advertise || !context.publish) {
         return
       }
 
       try {
         context.advertise(`/${topicName}`, "std_msgs/String");
         context.publish(`/${topicName}`, JSON.parse(request));
-
-        
 
         setState((oldState) => ({
           ...oldState,
@@ -50,14 +46,14 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
         console.error(error);
       }
     },
-    [context.callService],
+    [context.advertise, context.publish],
   );
 
   return (
     <div style={{ padding: "1rem" }}>
       <h2>Thruster Speeds</h2>
-      {context.callService == undefined && (
-        <p style={{ color: "red" }}>Publishing topics is not supported by this connection</p>
+      {(context.advertise == undefined || context.publish == undefined) && (
+        <Alert variant="filled" severity="error">Publishing topics is not supported by this connection</Alert>
       )}
 
       <h4>Topic Name</h4>
@@ -84,7 +80,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
       </div>
       <div>
         <button
-          disabled={context.callService == undefined || state.topicName === ""}
+          disabled={context.advertise == undefined || context.publish == undefined || state.topicName === ""}
           style={{ width: "100%", minHeight: "2rem" }}
           // eslint-disable-next-line @typescript-eslint/no-misused-promises
           onClick={async () => {
