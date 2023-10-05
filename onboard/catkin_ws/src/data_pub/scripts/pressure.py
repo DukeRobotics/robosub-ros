@@ -12,7 +12,7 @@ from geometry_msgs.msg import PoseWithCovarianceStamped
 
 class PressureRawPublisher:
 
-    DEPTH_DEST_TOPIC = 'sensors/pressure/pose'
+    DEPTH_DEST_TOPIC = 'sensors/pressure'
     FTDI_FILE_PATH = 'package://data_pub/config/pressure_ftdi.yaml'
 
     BAUDRATE = 9600
@@ -30,7 +30,7 @@ class PressureRawPublisher:
         self._serial = None
 
     #read FTDI strings of all ports in list_ports.grep
-    
+
     def connect(self):
         while self._serial_port is None and not rospy.is_shutdown():
             try:

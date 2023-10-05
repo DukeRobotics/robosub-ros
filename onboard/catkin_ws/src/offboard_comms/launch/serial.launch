@@ -1,12 +1,13 @@
 <launch>
 
-    <node pkg="rosserial_python" type="serial_node.py" name="serial_node2" output="screen" >
+    <!-- Connecting to presure arduino over serial instead of ROS. -->
+    <!-- <node pkg="rosserial_python" type="serial_node.py" name="serial_node2" output="screen" >
         <param
             name="port"
             command = "$(find offboard_comms)/scripts/pressure_port.sh"
         />
         <param name="baud" value="9600"/>
-    </node>
+    </node> -->
 
     <node pkg="rosserial_python" type="serial_node.py" name="serial_node" output="screen" >
         <param
@@ -14,8 +15,6 @@
             command = "$(find offboard_comms)/scripts/thruster_port.sh"
         />
     </node>
-
-    
 
     <node pkg="offboard_comms" type="servo_wrapper.py" name="servo_wrapper" output="screen" />
 </launch>
