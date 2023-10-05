@@ -34,7 +34,7 @@ class SensorCheckNode:
         for topic, message_type in SENSOR_SUBSCRIBE_TOPICS.items():
             self.sensor_subscibers[topic] = rospy.Subscriber(topic, message_type, self.callback, callback_args=topic)
             self.sensor_rate[topic] = []
-        
+
         # Publish to offboard/thrusters and run thrusters at low speeds if test_thrusters is True
         if self.test_thrusters == 1:
             rospy.loginfo("Testing thrusters...")
