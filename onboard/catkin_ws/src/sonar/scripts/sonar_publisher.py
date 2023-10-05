@@ -35,7 +35,6 @@ class SonarPublisher:
         self.cv_bridge = CvBridge()
         self.status_publisher = rospy.Publisher(self.SONAR_STATUS_TOPIC,
                                                 String, queue_size=1)
-        self.publish_status()
         self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC,
                                             sweepResult, queue_size=1)
         if self.stream:
@@ -97,13 +96,9 @@ class SonarPublisher:
 
     def publish_status(self):
         rate = rospy.Rate(20)
-        curr_time = rospy.get_rostime().secs
         while not rospy.is_shutdown():
             self.status_publisher.publish("Sonar running")
             rate.sleep()
-            now = rospy.get_rostime().secs
-            if now - curr_time >= 5:
-                break
 
     def run(self):
         # If debug mode is on, do constant sweeps within range
@@ -112,6 +107,7 @@ class SonarPublisher:
         else:
             rospy.Subscriber(self.SONAR_REQUEST_TOPIC, sweepGoal, self.on_request)
             rospy.loginfo("starting sonar_publisher...")
+            self.publish_status()
             rospy.spin()
 
 
