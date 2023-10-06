@@ -129,7 +129,7 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
         />
 
         <TableContainer component={Paper}>
-              <Table sx={{ minWidth: 650 }} aria-label="simple table">
+              <Table sx={{ minWidth: 100 }} aria-label="simple table">
                 <TableHead>
                   <TableRow>
                     <TableCell>Component</TableCell>
