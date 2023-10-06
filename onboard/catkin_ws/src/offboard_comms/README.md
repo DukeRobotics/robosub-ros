@@ -1,10 +1,14 @@
 # Offboard Communications Package
 
-This package provides communications and functionality for Arduinos to be integrated with our main ROS system. The Arduinos handle thruster controls, servos, pressure (depth) readings, and the camera relay. DVL and IMU interfaces are handled in `data_pub`. The Arduinos are connected to the main computer via USB.
+This package provides communications and functionality for Arduinos to be integrated with our main ROS system. The Arduinos handle thruster controls and pressure (depth) readings. 
 
-`offboard_comms` supports functionality for both a single Arduino and multiple Arduinos. Multiple Arduinos serve to run multiple ROS node handles running at different baud rates. This was necessitated by thruster publishers requiring the default 57600 baud while the pressure sensor is (from the factory) optimized for 9600 baud.
+There are two Arduinos handled by the package, one for thrusters and one for the pressure sensor. The thruster Arduino runs a ROS node while the pressure Arduino dumps data over serial to the main computer, from which the `data_pub` node publishes the data to ROS.
 
-Multiple software serial ports is supported on some Arduinos, but launching both of these nodes independently is not feasable.
+Additionally, DVL and IMU interfaces are also handled in `data_pub`. The Arduinos are connected to the main computer via USB.
+
+`offboard_comms` supports functionality for both a single Arduino and multiple Arduinos. Multiple Arduinos serve to support hardware that require different serial baud rates. This was necessitated by thruster publishers requiring the default 57600 baud while the pressure sensor is (from the factory) optimized for 9600 baud.
+
+Multiple software serial ports is supported on some Arduinos, but launching both of these nodes independently is not feasable. Only one ROS node is currently being run as to avoid issue where the master ROS node loses sync with one or both of the Arduinos. Migrating to a RP2040 (Pico) was made, but proved cumbersome for programming purposes, so it was reverted to a Nano Every.
 
 The robot is currently configured to use two Arduinos, one for thrusters and one for the pressure sensor. However, functionality is still included for a single Arduino, as described below.
 
@@ -62,6 +66,7 @@ Note that uploading to the Arduino might require restarting the Docker container
 To run successfully in `dual_upload.sh`, ensure that the Arduino serial numbers are accurately reflected in the script. These can be found by running `arduino-cli board list` with the Arduino connected.
 
 ### Manual Upload
+
 We recommend using the upload script mentioned in the previous section, but the instructions are below for manual upload if that is preferred or required.
 
 #### Generating Arduino libraries
@@ -88,11 +93,6 @@ Now to test, start sending messages to the offboard device. For instance, to run
 ```
 rostopic pub -r 10 /offboard/thruster_speeds custom_msgs/ThrusterSpeeds '{speeds: [0,0,0,0,0,0,0,0]}'
 ```
-To set the first servo to a 90 degree angle, you can execute these commands in separate terminals:
-```
-rosrun offboard_comms servo_wrapper.py
-rosservice call /offboard/set_servo_angle '{num: 0, angle: 90}'
-```
 
 ## Topics and Services
 ### Thrusters
@@ -109,48 +109,6 @@ void MultiplexedBasicESC::write(int8_t speed){writeMicroseconds(map(speed, -128,
 This correction was determined to be a hardware defect with Oogway's Blue Robotics Basic ESCs. When sending a stop/configuration PWM signal of 1500 microseconds, the thrusters would interpret the command as a spin command. The introduced offset corrects for this issue.
 
 ### Pressure/Depth Sensor
-The pressure sensor publishes to the `/offboard/pressure` topic with an odometry message.
+The pressure sensor sends raw serial data to the main computer. This data is then published to the `/sensors/depth` topic. Note that this is a separate package and will need to be run in addition to this `offboard_comms` package. The data is of type `nav_msgs/Odometry.msg`. The data is published by the `data_pub` node.
 
 All values of the odometry message are set to 0 except for the `pose.pose.position.z` value, which is set to the depth in meters. The `pose.pose.orientation` is set to the identity quaternion. Except for the `pose.pose.position.z` value, all other values are unused in sensor fusion.
-
-Additionally, the covariance matrix is set to all 0s except for the `pose.pose.position.z` value, which is set to 0.01.
-
-The data from this publisher is then stamped with the current time and published to the `/sensors/depth` topic. This is done in the `/data_pub/scripts/pressure_stamper.py` file. The data is stamped for use in the Kalman Filter, and this is not possible on the Arduino.
-
-### Camera Relay
-The camera relay is a hardware device that is used to kill and enable the power to the camera. The relay interrupts the POE power, forcing the camera to reboot when re-enabled. This is useful for when the camera is not responding to CV commands. This relay is connected to the onboard Arduino, and involves two topics and a service. The topics are `/offboard/camera_relay` and `/offboard/camera_relay_status`. The service is `rosservice call /enable_camera <true/false>`.
-
-To set up the node on the computer that will interface with to the Arduino, run:
-```
-roslaunch offboard_comms serial.launch
-```
-
-Next, the Python code for the camera relay needs to be run. This is done by running the file `camera_hard_reset.py` in the `cv/scripts` folder. This file is set up to run automatically when the `camera_hard_reset.launch` file is run from within the `cv` package. To run this file, run:
-```
-roslaunch cv camera_hard_reset.launch
-```
-From this point, interfacing with the relay requires running:
-```
-rosservice call /enable_camera false
-```
-to disable the camera. Note: this disabled state should not be maintained for more than about 3 minutes as this draws significant current from the Arduino. A warning is thrown in serial.launch indicating this. To re-enable the camera, run
-```
-rosservice call /enable_camera true
-```
-By default, the camera is enabled. The camera relay topic can be checked by running:
-```
-rostopic echo /offboard/camera_relay
-```
-This will print the current state of the topic that the Arduino is subscribed to. The camera relay status topic can be checked by running:
-```
-rostopic echo /offboard/camera_relay_status
-```
-This will print the current state of the relay itself as reported by the Arduino. The distinction between the two topics is that the camera relay topic is the state that the relay is trying to be in, while the camera relay status topic is the state that the relay is actually in. The camera relay topic is set by the service call, while the camera relay status topic is set by the Arduino. The camera relay status topic is used to check if the camera is actually enabled or disabled, while the camera relay topic is used to check if the camera is trying to be enabled or disabled. Additionally, a message is displayed in the serial.launch terminal when the camera is enabled or disabled.
-
-
-### Servos
-The servos utilize the `/offboard/set_servo_angle` service that is of type `custom_msgs/SetServo.srv`. The request to this service consists of an unsigned 8-bit integer `num` that corresponds to the pin number of the servo, and an unsigned 8 bit integer `angle` that corresponds to the desired angle (0-180). The reply consists of a bool `success` that corresponds to whether the request successfully set the angle.
-
-Values for `num` are 0-indexed (meaning the first servo corresponds to pin number 0) and values that are greater than or equal to the number of servos will result in an unsuccessfull call. Values for `angle` that are >180 will also result in an unsuccessful call.
-
-This service lives in the script `servo_wrapper.py` which communicates with the Arduino by publishing a message of type `custom_msgs/ServoAngleArray.msg`. This is an array of 8 8-bit unsigned integers, and publishes them to topic `/offboard/servo_angles`.
