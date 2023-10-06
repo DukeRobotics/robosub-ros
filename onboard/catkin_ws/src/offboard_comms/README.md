@@ -43,10 +43,18 @@ On Linux hosts, with the container running in privileged mode, you may use the f
 rosrun offboard_comms dual_upload.sh
 ```
 Running just a single Arduino would require only a single Arduino to be connected over USB. Upload with the following command:
+On Linux hosts, with the container running in privileged mode, you may use the following command to compile and upload code to both Arduinos.
+```
+rosrun offboard_comms dual_upload.sh
+```
+Running just a single Arduino would require only a single Arduino to be connected over USB. Upload with the following command:
 ```
 rosrun offboard_comms arduino_upload.sh
 ```
 
+Note that these commands requires the Arduino(s) to be an Arduino Nano using the old bootloader.
+
+If the type of Arduino is changed, the `dual_upload.sh` (or `arduino_upload.sh` ) script will need to be updated to reflect the new board type. Specifically, `arduino-cli` installation and compliation calls.
 Note that these commands requires the Arduino(s) to be an Arduino Nano using the old bootloader.
 
 If the type of Arduino is changed, the `dual_upload.sh` (or `arduino_upload.sh` ) script will need to be updated to reflect the new board type. Specifically, `arduino-cli` installation and compliation calls.
@@ -58,8 +66,17 @@ rosrun offboard_comms dual_upload.sh -c
 
 Or for a single Arduino:
 ```
+rosrun offboard_comms dual_upload.sh -c
+```
+
+Or for a single Arduino:
+```
 rosrun offboard_comms arduino_upload.sh -c
 ```
+
+Note that uploading to the Arduino might require restarting the Docker container. The same applies for the case where an Arduino is disconnected and reconnected.
+
+To run successfully in `dual_upload.sh`, ensure that the Arduino serial numbers are accurately reflected in the script. These can be found by running `arduino-cli board list` with the Arduino connected.
 
 Note that uploading to the Arduino might require restarting the Docker container. The same applies for the case where an Arduino is disconnected and reconnected.
 
