@@ -46,6 +46,7 @@
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.14.11",
     "@mui/material": "^5.14.11",
+    "react-json": "^0.2.1",
     "react-json-view": "^1.21.3"
   }
 }
