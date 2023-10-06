@@ -91,18 +91,18 @@ def controls_testing(controls, listener):
         smach.StateMachine.add('Move1', MoveToPoseLocalTask(2, 0, 0, 0, 0, 0, controls, listener),
                                transitions={'done': 'done', 'continue': 'Move1'})
         # left square
-        #smach.StateMachine.add('MoveLeft2', MoveToPoseLocalTask(0, -1.5, 0, 0, 0, 0, controls, listener),
+        # smach.StateMachine.add('MoveLeft2', MoveToPoseLocalTask(0, -1.5, 0, 0, 0, 0, controls, listener),
         #                       transitions={'done': 'MoveLeft3', 'continue': 'MoveLeft2'})
-        #smach.StateMachine.add('MoveLeft3', MoveToPoseLocalTask(1.5, 0, 0, 0, 0, 0, controls, listener),
+        # smach.StateMachine.add('MoveLeft3', MoveToPoseLocalTask(1.5, 0, 0, 0, 0, 0, controls, listener),
         #                       transitions={'done': 'MoveLeft4', 'continue': 'MoveLeft3'})
-        #smach.StateMachine.add('MoveLeft4', MoveToPoseLocalTask(0, 1.5, 0, 0, 0, 0, controls, listener),
+        # smach.StateMachine.add('MoveLeft4', MoveToPoseLocalTask(0, 1.5, 0, 0, 0, 0, controls, listener),
         #                       transitions={'done': 'finish', 'continue': 'MoveLeft4'})
         # right square
-        #smach.StateMachine.add('MoveRight2', MoveToPoseGlobalTask(2, -2, 0, 0, 0, 0, controls),
+        # smach.StateMachine.add('MoveRight2', MoveToPoseGlobalTask(2, -2, 0, 0, 0, 0, controls),
         #                     transitions={'done': 'MoveRight3', 'continue': 'MoveRight2'})
-        #smach.StateMachine.add('MoveRight3', MoveToPoseGlobalTask(0, -2, 0, 0, 0, 0, controls),
+        # smach.StateMachine.add('MoveRight3', MoveToPoseGlobalTask(0, -2, 0, 0, 0, 0, controls),
         #                      transitions={'done': 'MoveRight4', 'continue': 'MoveRight3'})
-        #smach.StateMachine.add('MoveRight4', MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0, controls),
+        # smach.StateMachine.add('MoveRight4', MoveToPoseGlobalTask(0, 0, 0, 0, 0, 0, controls),
         #                       transitions={'done': 'finish', 'continue': 'MoveRight4'})
 
     return sm

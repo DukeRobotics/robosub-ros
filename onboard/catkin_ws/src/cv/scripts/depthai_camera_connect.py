@@ -33,7 +33,25 @@ def connect(pipeline):
             break
 
         try:
-            # Try connecting with autodiscovery
+            # Scan for camera IP address using custom autodiscovery
+            ip = custom_autodiscovery()
+            device_info = dai.DeviceInfo(ip)
+
+            # Try connecting with the discovered IP address
+            device = dai.Device(pipeline, device_info)
+
+            # If the execution reaches the following return statement, the line above did not raise an exception, so a
+            # successful camera connection was made, and device should be returned
+            return device
+
+        except RuntimeError:
+            pass
+
+        if rospy.is_shutdown():
+            break
+
+        try:
+            # Try connecting with DepthAI autodiscovery
             device = dai.Device(pipeline)
 
             # If the execution reaches the following return statement, the line above did not raise an exception, so a
@@ -48,24 +66,6 @@ def connect(pipeline):
 
         try:
             # Try connecting with manual IP address
-            device = dai.Device(pipeline, device_info)
-
-            # If the execution reaches the following return statement, the line above did not raise an exception, so a
-            # successful camera connection was made, and device should be returned
-            return device
-
-        except RuntimeError:
-            pass
-
-        if rospy.is_shutdown():
-            break
-
-        try:
-            # Scan for camera IP address using custom autodiscovery
-            ip = custom_autodiscovery()
-            device_info = dai.DeviceInfo(ip)
-
-            # Try connecting with the discovered IP address
             device = dai.Device(pipeline, device_info)
 
             # If the execution reaches the following return statement, the line above did not raise an exception, so a

@@ -41,8 +41,10 @@ RUN apt-get update && \
     ros-noetic-rosserial \
     ros-noetic-rosserial-arduino \
     ffmpeg \
+    nmap \
     iputils-ping \
     python3-pandas \
+    ros-noetic-foxglove-bridge \
     nmap && \
     apt-get clean && \
     # Clear apt caches to reduce image size

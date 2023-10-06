@@ -1,4 +1,3 @@
 <launch>
-	<node name="depth_pub" pkg="data_pub" type="pressure.py" />
-	<!-- <node name="depth_pub" pkg="data_pub" type="pressure_stamper.py" /> -->
+	<node name="depth_pub" pkg="data_pub" type="pressure_stamper.py" />
 </launch>

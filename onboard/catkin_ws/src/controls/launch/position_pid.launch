@@ -18,20 +18,20 @@
     <!-- ROBOT PID Constants -->
     <group unless="$(arg sim)">
 	   <group ns="controls/x_pos/controller">
-            <param name="Kp" value="1" />
-            <param name="Ki" value="0.1" />
-            <param name="Kd" value="0.1" />
+            <param name="Kp" value="5" />
+            <param name="Ki" value="0" />
+            <param name="Kd" value="1" />
         </group>
         <group ns="controls/y_pos/controller">
-            <param name="Kp" value="1" />
-            <param name="Ki" value="0.1" />
-            <param name="Kd" value="0.1" />
+            <param name="Kp" value="5" />
+            <param name="Ki" value="0" />
+            <param name="Kd" value="1" />
         </group>
         <group ns="controls/z_pos/controller">
             <!-- Commented values are for camera pods /-->
-            <param name="Kp" value="2.32" /> <!-- 25 -->
-            <param name="Ki" value="0.3" /> <!-- 0.5 -->
-            <param name="Kd" value="3.31" /> <!--0.3 -->
+            <param name="Kp" value="3.5" /> <!-- 25 -->
+            <param name="Ki" value="0.175" /> <!-- 0.5 -->
+            <param name="Kd" value="1.5" /> <!--0.3 -->
         </group>
         <group ns="controls/roll_pos/controller">
             <param name="Kp" value="1" />

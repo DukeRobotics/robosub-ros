@@ -42,6 +42,7 @@ add_action_files(
   AcousticsWrapper.action
   Saleae.action
   AcousticsData.action
+  sweep.action
 )
 
 generate_messages(

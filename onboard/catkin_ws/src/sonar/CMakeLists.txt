@@ -4,12 +4,11 @@ project(sonar)
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
   rospy
-  actionlib
+  std_msgs
   sensor_msgs
   custom_msgs
   tf
   geometry_msgs
-  cv
   cv_bridge
 )
 
@@ -17,11 +16,10 @@ find_package(catkin REQUIRED COMPONENTS
 ## Declare things to be passed to dependent projects
 catkin_package(CATKIN_DEPENDS 
   rospy
-  actionlib
+  std_msgs
   sensor_msgs
   custom_msgs
   tf
   geometry_msgs
-  cv
   cv_bridge
 )

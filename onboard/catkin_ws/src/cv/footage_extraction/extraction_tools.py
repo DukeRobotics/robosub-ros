@@ -32,8 +32,8 @@ class ImageTools(object):
             if "[16UC1] is not a color format" in str(e):
                 raise CvBridgeError(
                     "You may be trying to use a Image method " +
-                    "(Subscriber, Publisher, conversion) on a depth image" +
-                    " message. Original exception: " + str(e))
+                    "(Subscriber, Publisher, conversion) on a depth image " +
+                    "message. Original exception: " + str(e))
             raise e
 
     def convert_ros_compressed_to_cv2(self, compressed_msg):

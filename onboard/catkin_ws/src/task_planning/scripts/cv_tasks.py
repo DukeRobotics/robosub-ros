@@ -10,7 +10,7 @@ class SpinDirectionTask(smach.State):
     def __init__(self, name: str, tolerance: float, cv: CVInterface):
         '''
         Says where to spin to center a given CV object in the frame
-        
+
         Parameters
         name : str
             Name of the CV object to center
