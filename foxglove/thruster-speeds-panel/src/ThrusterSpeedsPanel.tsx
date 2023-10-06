@@ -2,17 +2,45 @@ import { PanelExtensionContext, RenderState } from "@foxglove/studio";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import Alert from '@mui/material/Alert';
+import { TextField, Button } from "@mui/material";
+
+type ThrusterSpeeds = {
+  frontLeft: number,
+  frontRight: number,
+  backLeft: number,
+  backRight: number,
+  bottomFrontLeft: number,
+  bottomFrontRight: number,
+  bottomBackLeft: number,
+  bottomBackRight: number
+}
 
 type State = {
   topicName: string;
   request: string;
   error?: Error | undefined;
   colorScheme?: RenderState["colorScheme"];
+  thrusterSpeeds: ThrusterSpeeds;
 };
 
 function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const [state, setState] = useState<State>({ topicName: "", request: "{}" });
+  const thrusters = ["frontLeft", "frontRight", "backLeft", "backRight", 
+                     "bottomFrontLeft", "bottomFrontRight", "bottomBackLeft", "bottomBackRight"]
+  const [state, setState] = useState<State>({ 
+    topicName: "", 
+    request: "{}",
+    thrusterSpeeds: {
+      frontLeft: 0,
+      frontRight: 0,
+      backLeft: 0,
+      backRight: 0,
+      bottomFrontLeft: 0,
+      bottomFrontRight: 0,
+      bottomBackLeft: 0,
+      bottomBackRight: 0
+    } 
+  });
 
   useLayoutEffect(() => {
     context.onRender = (renderState: RenderState, done) => {
@@ -27,15 +55,25 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     renderDone?.();
   }, [renderDone]);
 
-  const publishTopic = useCallback(
-    async (topicName: string, request: string) => {
-      if (!context.advertise || !context.publish) {
+  const publishSpeeds = useCallback(
+    async () => {
+      const topicName = "offboard/thruster_speeds"
+      const messageType = "custom_msgs/ThrusterSpeeds"
+      
+      const thrustersInOrder = ["bottomFrontLeft", "frontLeft", "frontRight", "bottomFrontRight",
+                                "bottomBackLeft", "backLeft", "bottomBackRight", "backRight"]
+      const message = `speeds: ${thrustersInOrder.map((thruster) => state.thrusterSpeeds[thruster])}`
+
+      if (!context.advertise) {
+        return;
+      }
+      if (!context.publish) {
         return
       }
 
       try {
-        context.advertise(`/${topicName}`, "std_msgs/String");
-        context.publish(`/${topicName}`, JSON.parse(request));
+        context.advertise(`/${topicName}`, messageType);
+        context.publish(`/${topicName}`, JSON.parse(message));
 
         setState((oldState) => ({
           ...oldState,
@@ -49,6 +87,20 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     [context.advertise, context.publish],
   );
 
+  const validateInput = (number) => {
+    return (number >= -128 && number <= 127)
+  }
+  
+  const updateSpeeds = (event) => {
+    setState((oldState) => ({
+      ...oldState,
+      thrusterSpeeds: {
+        ...state.thrusterSpeeds,
+        [event.target.id]: event.target.value 
+      }
+    }))
+  }
+  
   return (
     <div style={{ padding: "1rem" }}>
       <h2>Thruster Speeds</h2>
@@ -58,38 +110,26 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
 
       <h4>Topic Name</h4>
       <div>
-        <input
-          type="text"
-          placeholder="Enter topic name"
-          style={{ width: "100%" }}
-          value={state.topicName}
-          onChange={(event) => {
-            setState({ ...state, topicName: event.target.value });
-          }}
+      {thrusters.map((thruster) => (
+        <TextField 
+          id={thruster}
+          error= {!validateInput(state.thrusterSpeeds[thruster])}
+          helperText={!validateInput(state.thrusterSpeeds[thruster]) ? 
+            "The value must be an int from -128 to 127" : null}            
+          label={thruster}
+          variant="outlined"
+          onChange={updateSpeeds}
         />
+      ))}
       </div>
-      <h4>Request</h4>
-      <div>
-        <textarea
-          style={{ width: "100%", minHeight: "3rem" }}
-          value={state.request}
-          onChange={(event) => {
-            setState({ ...state, request: event.target.value });
-          }}
-        />
-      </div>
-      <div>
-        <button
-          disabled={context.advertise == undefined || context.publish == undefined || state.topicName === ""}
-          style={{ width: "100%", minHeight: "2rem" }}
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          onClick={async () => {
-            await publishTopic(state.topicName, state.request);
-          }}
-        >
-          {`Publish to ${state.topicName}`}
-        </button>
-      </div>
+      <Button
+        variant="outlined"
+        color="success"
+        onClick={async () => { await publishSpeeds(); }}
+        disabled={context.callService == undefined}
+      >
+        Publish Thruster Speeds
+      </Button>
     </div>
   );
 }
