@@ -4,6 +4,35 @@ import ReactDOM from "react-dom";
 import ReactJson from "react-json-view";
 import Alert from '@mui/material/Alert';
 
+import * as React from 'react';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+
+function createData(
+  name: string,
+  usage: number,
+) {
+  return { name, usage };
+}
+
+const rows = [
+  createData('CPU', 0), //TODO: enter CPU usage
+  createData('RAM', 0), //TODO: enter ram usage
+  createData('Voltage', 0),
+  
+];
+
+export default function BasicTable() {
+  return (
+    
+  );
+}
+
 type State = {
   topic?: string;
   colorScheme?: RenderState["colorScheme"];
@@ -96,8 +125,35 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
           displayDataTypes={false}
         />
 
-      </div>
-    </div>
+        <TableContainer component={Paper}>
+              <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Component</TableCell>
+                    <TableCell align="right">Usage</TableCell>
+                    
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {rows.map((row) => (
+                    <TableRow
+                      key={row.name}
+                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                    >
+                      <TableCell component="th" scope="row">
+                        {row.name}
+                      </TableCell>
+                      <TableCell align="right">{row.usage}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            </div>
+          </div>
+
+    
   );
 }
 
