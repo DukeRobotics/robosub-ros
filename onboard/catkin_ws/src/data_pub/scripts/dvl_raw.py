@@ -5,8 +5,6 @@ import serial.tools.list_ports as list_ports
 import rospy
 import yaml
 import resource_retriever as rr
-import yaml
-import resource_retriever as rr
 import traceback
 
 from custom_msgs.msg import DVLRaw
@@ -16,17 +14,12 @@ class DvlRawPublisher:
 
     FTDI_FILE_PATH = 'package://data_pub/config/dvl_ftdi.yaml'
 
-    FTDI_FILE_PATH = 'package://data_pub/config/dvl_ftdi.yaml'
-
     BAUDRATE = 115200
     TOPIC_NAME = 'sensors/dvl/raw'
     NODE_NAME = 'dvl_raw_publisher'
     LINE_DELIM = ','
 
     def __init__(self):
-        with open(rr.get_filename(self.FTDI_FILE_PATH, use_protocol=False)) as f:
-            self._ftdi_strings = yaml.safe_load(f)
-
         with open(rr.get_filename(self.FTDI_FILE_PATH, use_protocol=False)) as f:
             self._ftdi_strings = yaml.safe_load(f)
 
@@ -45,14 +38,11 @@ class DvlRawPublisher:
             'BE': self._parse_BE,
             'BD': self._parse_BD,
             'RA': self._parse_RA
-            'BD': self._parse_BD,
-            'RA': self._parse_RA
         }
 
     def connect(self):
         while self._serial_port is None and not rospy.is_shutdown():
             try:
-                self._serial_port = next(list_ports.grep('|'.join(self._ftdi_strings))).device
                 self._serial_port = next(list_ports.grep('|'.join(self._ftdi_strings))).device
                 self._serial = serial.Serial(self._serial_port, self.BAUDRATE,
                                              timeout=0.1, write_timeout=1.0,
@@ -111,7 +101,7 @@ class DvlRawPublisher:
     def _parse_BS(self, line):
         fields = self._extract_floats(line, 0, 3)
 
-	    # Filter out error values
+        # Filter out error values
         if abs(fields[0]) > 32000 or abs(fields[1]) > 32000 or abs(fields[2]) > 32000:
             return
 
@@ -142,10 +132,6 @@ class DvlRawPublisher:
     def _parse_RA(self, line):
         pass
 
-    # Pressure and range to bottom data, currently being ignored
-    def _parse_RA(self, line):
-        pass
-
     def _extract_floats(self, num_string, start, stop):
         """Return a list of floats from a given string,
         using LINE_DELIM and going from start to stop
@@ -156,9 +142,6 @@ class DvlRawPublisher:
         """Publish the current DVL message and set the message to empty
         """
         self._pub.publish(self._current_msg)
-        # We stopped resetting the current message because we want to use the past value in case of an error
-        # See _parse_BS for relevant code
-        # self._current_msg = DVLRaw()
         # We stopped resetting the current message because we want to use the past value in case of an error
         # See _parse_BS for relevant code
         # self._current_msg = DVLRaw()
