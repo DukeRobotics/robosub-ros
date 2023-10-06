@@ -8,8 +8,8 @@ from std_msgs.msg import Float64
 class PressureStamper:
 
     NODE_NAME = "depth_pub"
-    DEPTH_DEST_TOPIC = "sensors/depth"
     PRESSURE_SUB_TOPIC = "offboard/pressure"
+    DEPTH_DEST_TOPIC = "sensors/depth"
 
     FILTER_CONSTANT = 6
 
@@ -25,25 +25,28 @@ class PressureStamper:
 
         self.pose.header.frame_id = "odom"
 
-        self.pose.pose.pose.position.x = 0.0
-        self.pose.pose.pose.position.y = 0.0
-        self.pose.pose.pose.position.z = -1 * data.data
+        self.pose.pose.position.x = 0.0
+        self.pose.pose.position.y = 0.0
+        self.pose.pose.position.z = -1* data
 
-        self.pose.pose.pose.orientation.x = 0.0
-        self.pose.pose.pose.orientation.y = 0.0
-        self.pose.pose.pose.orientation.z = 0.0
-        self.pose.pose.pose.orientation.w = 1.0
+        self.pose.pose.orientation.x = 0.0
+        self.pose.pose.orientation.y = 0.0
+        self.pose.pose.orientation.z = 0.0
+        self.pose.pose.orientation.w = 1.0
 
-        self.pose.pose.covariance[14] = 0.01
-
+        self.pose.covariance[14] = 0.01
+        
         self.pose.header.stamp = rospy.Time.now()
 
-        if self.pose.pose.pose.position.z <= self.FILTER_CONSTANT:
+    def run(self):
+        rate = rospy.Rate(20)
+        while not rospy.is_shutdown():
             self._pub_depth.publish(self.pose)
+            rate.sleep()
 
 
 if __name__ == '__main__':
     try:
-        PressureStamper()
+        PressureStamper().run
     except rospy.ROSInterruptException:
         pass

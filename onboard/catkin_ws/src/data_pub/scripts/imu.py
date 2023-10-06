@@ -75,9 +75,9 @@ class IMURawPublisher:
         return line.split(self.LINE_DELIM)
 
     def _parse_orient(self, items):
-        # x,y,z,w
+        #x,y,z,w
         quat = [float(items[1]), float(items[2]), float(items[3]), float(items[4])]
-        # For Cthulhu, transform quaternion from NED to ENU coordinates
+        # For Cthulhu, transform quaternion from NED to ENU coordinates	
         enu_quat = [0.7071068, -0.7071068, 0.0, 0.0]
         up_quat = quaternion_multiply(enu_quat, quat)
 
