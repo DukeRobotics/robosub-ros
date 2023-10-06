@@ -2,8 +2,8 @@
 #include "MultiplexedServo.h"
 #include "MultiplexedBasicESC.h"
 #include <ros.h>
-#include <custom_msgs/ThrusterSpeeds.h>
-#include <custom_msgs/ServoAngleArray.h>
+#include "/root/dev/robosub-ros/onboard/catkin_ws/src/offboard_comms/Arduino Sketchbooks/PressureArduino/ros_lib/custom_msgs/ThrusterSpeeds.h"
+#include "/root/dev/robosub-ros/onboard/catkin_ws/src/offboard_comms/Arduino Sketchbooks/PressureArduino/ros_lib/custom_msgs/ServoAngleArray.h"
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <std_msgs/Bool.h>
 #include <Arduino.h>
