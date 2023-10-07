@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # A convenience script to automatically install all Foxglove extensions.
 # Foxglove extensions are defined as any folder matching '*-panel' in the current directory.
-# Usage: ./install.py (Must be run from the root of the foxglove directory)
+# Usage: python install.py (Must be run from the root of the foxglove directory)
+
+# Dependencies: yarn and npm must both be installed and exposed on PATH.
 
 # TODO: Check if package.json exists before running yarn/npm
+
 import os
 import subprocess
 import functools
@@ -14,7 +17,12 @@ def run_at_path(command: str, directory: str, verbose: bool = True):
     if verbose:
         print(f"{directory}: {command}")
 
-    process = subprocess.Popen(command.split(' '), cwd=directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    args = command.split(' ')
+    
+    if os.name == 'nt':  # Windows
+        args[0] += ".cmd"
+
+    process = subprocess.Popen(args, cwd=directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, error = process.communicate()
     if process.returncode != 0:
         raise Exception(f"Error executing command: {command}\n{error.decode()}")
@@ -32,6 +40,7 @@ def main():
     # Find all directories that match '*-panel'
     extensions = [d for d in os.listdir(cwd) if os.path.isdir(d) and d.endswith('-panel')]
 
+    installs = 0
     for extension in extensions:
         run = functools.partial(run_at_path, directory=extension)
 
@@ -48,7 +57,9 @@ def main():
 
         print()
 
-    print(f"Successfully installed {len(extensions)} extensions")
+        installs += 1
+
+    print(f"Successfully installed {installs} extensions")
 
 
 if __name__ == "__main__":
