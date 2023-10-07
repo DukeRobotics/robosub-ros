@@ -14,27 +14,17 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 
 function createData(
-  name: string,
-  usage: number,
+  Status: string,
+  Value: number,
 ) {
-  return { name, usage };
+  return { Status, Value };
 }
 
 const rows = [
   createData('CPU', 0), //TODO: enter CPU usage
   createData('RAM', 0), //TODO: enter ram usage
-  createData('Voltage', 0),
-  
+  createData('Voltage', 0), //TODO: enter voltage remaining
 ];
-/*
-
-export default function BasicTable() {
-  return (
-    
-  );
-}
-
-*/
 
 type State = {
   topic?: string;
@@ -49,7 +39,9 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
 
   // Restore our state from the layout via the context.initialState property.
   const [state, setState] = useState<State>(() => {
-    return context.initialState as State;
+    const initialState = context.initialState as State;
+    initialState.topic = '/system/usage';
+    return initialState;
   });
 
   // Get topics
@@ -57,7 +49,7 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
     () => (topics ?? []),
     [topics],
   );
-
+  
   useEffect(() => {
     // Save our state to the layout when the topic changes.
     context.saveState({ topic: state.topic });
@@ -106,7 +98,8 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
         <Alert variant="filled" severity="error">Subscribing to topics is not supported by this connection</Alert>
       )}
       <div>
-        <label>Choose a topic to display: </label>
+        {/* <label>Choose a topic to display: </label>
+        
         <select
           value={state.topic}
           onChange={(event) => setState({ topic: event.target.value })}
@@ -117,7 +110,8 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
               {topic.name}
             </option>
           ))}
-        </select>
+        </select> */}
+        
 
         <ReactJson
           name={null}
@@ -140,13 +134,13 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
                 <TableBody>
                   {rows.map((row) => (
                     <TableRow
-                      key={row.name}
+                      key={row.Status}
                       sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                     >
                       <TableCell component="th" scope="row">
-                        {row.name}
+                        {row.Status}
                       </TableCell>
-                      <TableCell align="right">{row.usage}</TableCell>
+                      <TableCell align="right">{row.Value}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
