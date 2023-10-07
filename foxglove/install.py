@@ -56,7 +56,7 @@ def main():
 
         print()
 
-        install += 1
+        installs += 1
 
     print(f"Successfully installed {installs} extensions")
 
