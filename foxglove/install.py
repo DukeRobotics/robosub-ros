@@ -14,11 +14,14 @@ import functools
 
 def run_at_path(command: str, directory: str, verbose: bool = True):
     """Helper function to run a command in a given directory."""
+    if command == "":
+        raise ValueError("Command must not be empty")
+
     if verbose:
         print(f"{directory}: {command}")
 
     args = command.split(' ')
-    
+
     if os.name == 'nt':  # Windows
         args[0] += ".cmd"
 
