@@ -20,15 +20,11 @@ function createData(
   return { Status, Value };
 }
 
-const rows = [
-  createData('CPU', 0), //TODO: enter CPU usage
-  createData('RAM', 0), //TODO: enter ram usage
-  createData('Voltage', 0), //TODO: enter voltage remaining
-];
-
 type State = {
   topic?: string;
   colorScheme?: RenderState["colorScheme"];
+  cpuUsage?;
+  ramUsage?;
 };
 
 function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
@@ -49,6 +45,13 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
     () => (topics ?? []),
     [topics],
   );
+
+  //define values in table
+  const rows = [
+    createData('CPU', state.cpuUsage),
+    createData('RAM', state.ramUsage),
+    createData('Voltage', 0), //TODO: enter voltage remaining
+  ];
   
   useEffect(() => {
     // Save our state to the layout when the topic changes.
@@ -74,10 +77,15 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
       setTopics(renderState.topics);
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
       
-      // Save the most recent message on our topic.
+      // Updating CPU/RAM/Voltage data.
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        setMessage(renderState.currentFrame[renderState.currentFrame.length - 1]);
+        const latestFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as any;
+        setState((oldState) => ({ ...oldState,
+                                  cpuUsage : latestFrame?.message?.["cpu_percent"],
+                                  ramUsage : latestFrame?.message?.["ram"]["percentage"]}))
+        console.log(latestFrame?.message?.["cpu_percent"]);
       }
+      
     };
 
     context.watch("topics");
