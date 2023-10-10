@@ -11,7 +11,7 @@ type State = {
 
 function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [topics, setTopics] = useState<readonly Topic[] | undefined>();
-  const [message, setMessage] = useState<any>();
+  const [message, setMessage] = useState<MessageEvent<any>>();
 
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
 
@@ -89,7 +89,7 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
 
         <ReactJson
           name={null}
-          src={message}
+          src={message as object}
           indentWidth={2}
           theme={state.colorScheme === "dark" ? "monokai" : "rjv-default"}
           enableClipboard={false}
