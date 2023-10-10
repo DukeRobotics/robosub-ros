@@ -79,10 +79,10 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
       
       // Updating CPU/RAM/Voltage data.
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        const latestFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as any;
+        const latestFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<any>;
         setState((oldState) => ({ ...oldState,
-                                  cpuUsage : latestFrame?.message?.["cpu_percent"],
-                                  ramUsage : latestFrame?.message?.["ram"]["percentage"]}))
+                                  cpuUsage : latestFrame?.message?.cpu_percent,
+                                  ramUsage : latestFrame?.message?.ram.percentage}))
         console.log(latestFrame?.message?.["cpu_percent"]);
       }
       
