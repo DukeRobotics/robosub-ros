@@ -4,6 +4,7 @@ import rospy
 import cv2
 import numpy as np
 from sonar import Sonar
+from std_msgs.msg import String
 from custom_msgs.msg import sweepResult, sweepGoal
 from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge
@@ -13,6 +14,7 @@ from sonar_image_processing import build_sonar_image
 
 class SonarPublisher:
 
+    SONAR_STATUS_TOPIC = 'sonar/status'
     SONAR_REQUEST_TOPIC = 'sonar/request'
     SONAR_RESPONSE_TOPIC = 'sonar/cv/response'
     SONAR_IMAGE_TOPIC = 'sonar/image/compressed'
@@ -31,6 +33,8 @@ class SonarPublisher:
         self.debug = rospy.get_param('~debug')
         self.sonar = Sonar(5)
         self.cv_bridge = CvBridge()
+        self.status_publisher = rospy.Publisher(self.SONAR_STATUS_TOPIC,
+                                                String, queue_size=1)
         self._pub_request = rospy.Publisher(self.SONAR_RESPONSE_TOPIC,
                                             sweepResult, queue_size=1)
         if self.stream:
@@ -90,6 +94,12 @@ class SonarPublisher:
         """
         return self.cv_bridge.cv2_to_compressed_imgmsg(image, dst_format=compressed_format)
 
+    def publish_status(self):
+        rate = rospy.Rate(20)
+        while not rospy.is_shutdown():
+            self.status_publisher.publish("Sonar running")
+            rate.sleep()
+
     def run(self):
         # If debug mode is on, do constant sweeps within range
         if self.debug:
@@ -97,7 +107,7 @@ class SonarPublisher:
         else:
             rospy.Subscriber(self.SONAR_REQUEST_TOPIC, sweepGoal, self.on_request)
             rospy.loginfo("starting sonar_publisher...")
-            rospy.spin()
+            self.publish_status()
 
 
 if __name__ == '__main__':
