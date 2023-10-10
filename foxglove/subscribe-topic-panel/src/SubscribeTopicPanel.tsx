@@ -7,12 +7,11 @@ import Alert from '@mui/material/Alert';
 type State = {
   topic?: string;
   colorScheme?: RenderState["colorScheme"];
+  topics?: readonly Topic[];
+  message?: MessageEvent<any>;
 };
 
 function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
-  const [topics, setTopics] = useState<readonly Topic[] | undefined>();
-  const [message, setMessage] = useState<MessageEvent<any>>();
-
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
 
   // Restore our state from the layout via the context.initialState property.
@@ -22,8 +21,8 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
 
   // Get topics
   const imageTopics = useMemo(
-    () => (topics ?? []),
-    [topics],
+    () => (state.topics ?? []),
+    [state.topics],
   );
 
   useEffect(() => {
@@ -47,12 +46,12 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
   useLayoutEffect(() => {
     context.onRender = (renderState: RenderState, done) => {
       setRenderDone(() => done);
-      setTopics(renderState.topics);
-      setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
+      setState((oldState) => ({ ...oldState, topics: renderState.topics, colorScheme: renderState.colorScheme }));
       
       // Save the most recent message on our topic.
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        setMessage(renderState.currentFrame[renderState.currentFrame.length - 1]);
+        const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1]
+        setState((oldState) => ({ ...oldState, message: lastFrame }));
       }
     };
 
@@ -89,7 +88,7 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
 
         <ReactJson
           name={null}
-          src={message as object}
+          src={state.message as object}
           indentWidth={2}
           theme={state.colorScheme === "dark" ? "monokai" : "rjv-default"}
           enableClipboard={false}
