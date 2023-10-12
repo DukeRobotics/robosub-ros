@@ -73,7 +73,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
     }
   }, [state.topic, imageTopics]);
 
-  var lastRender = Date.now();
+  // var lastRender = renderState.currentTime?.sec;
   // Setup our onRender function and start watching topics and currentFrame for messages.
   useLayoutEffect(() => {
     context.onRender = (renderState: RenderState, done) => {
@@ -82,7 +82,27 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
       //If sensortime exists
       if (state.sensortime) {
         //TODO: Add switch statements to check what topic just published 
-        state.sensortime.DVL = Date.now()
+        switch(state.topic) {
+          case "/sensors/dvl/odom":
+            state.sensortime.DVL = (renderState.currentTime?.sec == null) ? Date.now : renderState.currentTime?.sec;
+            break;
+          case "2nd-topicname":
+            state.sensortime.IMU = renderState.currentTime?.sec as number;
+            break;
+          case "/sensors/depth":
+            state.sensortime.Depth = renderState.currentTime?.sec as number;
+            break;
+          case "/camera/front/rgb/preview/compressed":
+            state.sensortime.DepthAI = renderState.currentTime?.sec as number;
+            break;
+          case "/camera/usb_camera/compressed":
+            state.sensortime.Mono = renderState.currentTime?.sec as number;;
+            break;
+          case 
+            /sonar/status
+"" 
+            
+        }
       }
 
       
