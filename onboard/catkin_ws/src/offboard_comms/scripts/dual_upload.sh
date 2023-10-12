@@ -35,10 +35,10 @@ PKG_DIR=$(rospack find offboard_comms)
 SRC_CODE1="${PKG_DIR}/Arduino Sketchbooks/PressureArduino"
 SRC_CODE2="${PKG_DIR}/Arduino Sketchbooks/ThrusterArduino"
 ARD_DEVS=$("${PKG_DIR}"/scripts/devices.sh)
-ARDUINO1=$(echo $ARD_DEVS | awk '{print $1}')
-PORT1=$(echo $ARD_DEVS | awk '{print $3}')
-ARDUINO2=$(echo $ARD_DEVS | awk '{print $2}')
-PORT2=$(echo $ARD_DEVS | awk '{print $4}')
+ARDUINO1=$(echo $ARD_DEVS | awk "{print $1}")
+PORT1=$(echo $ARD_DEVS | awk "{print $3}")
+ARDUINO2=$(echo $ARD_DEVS | awk "{print $2}")
+PORT2=$(echo $ARD_DEVS | awk "{print $4}")
 
 export ARDUINO_LIBRARY_ENABLE_UNSAFE_INSTALL=true
 arduino-cli lib install --zip-path ros_lib.zip
