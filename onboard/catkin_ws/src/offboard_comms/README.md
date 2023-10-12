@@ -4,8 +4,6 @@ This package provides communications and functionality for Arduinos to be integr
 
 There are two Arduinos handled by the package, one for thrusters and one for the pressure sensor. The thruster Arduino runs a ROS node while the pressure Arduino dumps data over serial to the main computer, from which the `data_pub` node publishes the data to ROS.
 
-Additionally, DVL and IMU interfaces are also handled in `data_pub`. The Arduinos are connected to the main computer via USB.
-
 `offboard_comms` supports functionality for both a single Arduino and multiple Arduinos. Multiple Arduinos serve to support hardware that require different serial baud rates. This was necessitated by thruster publishers requiring the default 57600 baud while the pressure sensor is (from the factory) optimized for 9600 baud.
 
 Multiple software serial ports is supported on some Arduinos, but launching both of these nodes independently is not feasable. Only one ROS node is currently being run as to avoid issue where the master ROS node loses sync with one or both of the Arduinos. Migrating to a RP2040 (Pico) was made, but proved cumbersome for programming purposes, so it was reverted to a Nano Every.
@@ -126,6 +124,4 @@ void MultiplexedBasicESC::write(int8_t speed){writeMicroseconds(map(speed, -128,
 This correction was determined to be a hardware defect with Oogway's Blue Robotics Basic ESCs. When sending a stop/configuration PWM signal of 1500 microseconds, the thrusters would interpret the command as a spin command. The introduced offset corrects for this issue.
 
 ### Pressure/Depth Sensor
-The pressure sensor sends raw serial data to the main computer. This data is then published to the `/sensors/depth` topic. Note that this is a separate package and will need to be run in addition to this `offboard_comms` package. The data is of type `nav_msgs/Odometry.msg`. The data is published by the `data_pub` node.
-
-All values of the odometry message are set to 0 except for the `pose.pose.position.z` value, which is set to the depth in meters. The `pose.pose.orientation` is set to the identity quaternion. Except for the `pose.pose.position.z` value, all other values are unused in sensor fusion.
+The pressure arduino interprets the Blue Robotics Pressure Sensor using the MS5837 library. It sends the data over a serial line using each time the sensor gets a new reading. All of the processing for the depth data can be found in the `data_pub` package. 

@@ -66,6 +66,6 @@ You can launch both scripts using the `pub_dvl.launch` file.
 
 ## Pressure Sensor Documentation
 
-The Blue Robotics pressure sensor sends raw serial data to the main computer. This data is then published to the `/sensors/depth` topic. Note that this is a separate package and will need to be run in addition to this `offboard_comms` package. The data is of type `nav_msgs/Odometry.msg`. The data is published by the `data_pub` node.
+The Blue Robotics pressure sensor sends raw serial data through an arduino to the main computer. This data is filtered and then published to the `/sensors/depth` topic. Note that this will need to be run in addition to this `offboard_comms` package. It converts the data into an PoseWithCovarianceStamped message for use in sensor fusion. 
 
 The data in this Odometry message is set to 0 except for the `pose.pose.position.z` value, which is set to the depth in meters. The `pose.pose.orientation` is set to the identity quaternion. Except for the `pose.pose.position.z` value, all other values are unused in sensor fusion.

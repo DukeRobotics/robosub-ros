@@ -4,7 +4,6 @@
         <param
             name="port"
             command = "$(find offboard_comms)/scripts/thruster_port.sh"
-            command = "$(find offboard_comms)/scripts/thruster_port.sh"
         />
     </node>
 

@@ -8,6 +8,7 @@ import os
 import resource_retriever as rr
 import traceback
 
+#Used for sensor fusion
 from geometry_msgs.msg import PoseWithCovarianceStamped
 
 class PressureRawPublisher:
@@ -29,8 +30,7 @@ class PressureRawPublisher:
         self._serial_port = None
         self._serial = None
 
-    #read FTDI strings of all ports in list_ports.grep
-
+    # Read FTDI strings of all ports in list_ports.grep
     def connect(self):
         while self._serial_port is None and not rospy.is_shutdown():
             try:
@@ -41,7 +41,7 @@ class PressureRawPublisher:
                                              bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
                                              stopbits=serial.STOPBITS_ONE)
             except StopIteration:
-                rospy.logerr("IMU not found, trying again in 0.1 seconds.")
+                rospy.logerr("Pressure sensor not found, trying again in 0.1 seconds.")
                 rospy.sleep(0.1)
 
     def run(self):
@@ -49,12 +49,16 @@ class PressureRawPublisher:
         self.connect()
         while not rospy.is_shutdown():
             try:
+                # Direct read from device 
                 line = self._serial.readline().decode('utf-8')
-                self._pressure = line[:-2]
-                self._parse_pressure()
-                self._publish_current_msg()
+                self._pressure = line[:-2] # Remove \r\n
+                self._parse_pressure() # Parse pressure data
+                self._publish_current_msg() # Publish pressure data
+                if not line or line == '':
+                    rospy.logerr("Invalid pressure data, trying again in 0.1 seconds.")
+                    rospy.sleep(0.1)
             except Exception:
-                rospy.logerr("Error in reading and extracting information. Reconnecting.")
+                rospy.logerr("Error in reading pressure information. Reconnecting.")
                 rospy.logerr(traceback.format_exc())
                 self._serial.close()
                 self._serial = None
@@ -62,6 +66,8 @@ class PressureRawPublisher:
                 self.connect()
 
     def _parse_pressure(self):
+        # Pressure data recieved is positive so must flip sign
+
         self._current_pressure_msg.pose.pose.position.x = 0.0
         self._current_pressure_msg.pose.pose.position.y = 0.0
         self._current_pressure_msg.pose.pose.position.z = -1* float(self._pressure)
@@ -71,11 +77,12 @@ class PressureRawPublisher:
         self._current_pressure_msg.pose.pose.orientation.z = 0.0
         self._current_pressure_msg.pose.pose.orientation.w = 1.0
 
+        # Only the z,z covariance
         self._current_pressure_msg.pose.covariance[14] = 0.01
 
     def _publish_current_msg(self):
         self._current_pressure_msg.header.stamp = rospy.Time.now()
-        self._current_pressure_msg.header.frame_id = "odom"
+        self._current_pressure_msg.header.frame_id = "odom" #world frame
 
         self._pub_depth.publish(self._current_pressure_msg)
         self._current_pressure_msg = PoseWithCovarianceStamped()
