@@ -10,8 +10,8 @@ import traceback
 # Used for sensor fusion
 from geometry_msgs.msg import PoseWithCovarianceStamped
 
-class PressureRawPublisher:
 
+class PressureRawPublisher:
 
     DEPTH_DEST_TOPIC = 'sensors/depth'
     FTDI_FILE_PATH = 'package://data_pub/config/pressure_ftdi.yaml'
@@ -48,7 +48,7 @@ class PressureRawPublisher:
         self.connect()
         while not rospy.is_shutdown():
             try:
-                # Direct read from device  
+                # Direct read from device
                 line = self._serial.readline().decode('utf-8')
                 self._pressure = line[:-2]  # Remove \r\n
                 self._parse_pressure()  # Parse pressure data
