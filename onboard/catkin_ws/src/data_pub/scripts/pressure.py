@@ -4,14 +4,14 @@ import rospy
 import serial
 import serial.tools.list_ports as list_ports
 import yaml
-import os
 import resource_retriever as rr
 import traceback
 
-#Used for sensor fusion
+# Used for sensor fusion
 from geometry_msgs.msg import PoseWithCovarianceStamped
 
 class PressureRawPublisher:
+
 
     DEPTH_DEST_TOPIC = 'sensors/depth'
     FTDI_FILE_PATH = 'package://data_pub/config/pressure_ftdi.yaml'
@@ -48,11 +48,11 @@ class PressureRawPublisher:
         self.connect()
         while not rospy.is_shutdown():
             try:
-                # Direct read from device 
+                # Direct read from device  
                 line = self._serial.readline().decode('utf-8')
-                self._pressure = line[:-2] # Remove \r\n
-                self._parse_pressure() # Parse pressure data
-                self._publish_current_msg() # Publish pressure data
+                self._pressure = line[:-2]  # Remove \r\n
+                self._parse_pressure()  # Parse pressure data
+                self._publish_current_msg()  # Publish pressure data
                 if not line or line == '':
                     rospy.logerr("Invalid pressure data, trying again in 0.1 seconds.")
                     rospy.sleep(0.1)
@@ -69,7 +69,7 @@ class PressureRawPublisher:
 
         self._current_pressure_msg.pose.pose.position.x = 0.0
         self._current_pressure_msg.pose.pose.position.y = 0.0
-        self._current_pressure_msg.pose.pose.position.z = -1* float(self._pressure)
+        self._current_pressure_msg.pose.pose.position.z = -1 * float(self._pressure)
 
         self._current_pressure_msg.pose.pose.orientation.x = 0.0
         self._current_pressure_msg.pose.pose.orientation.y = 0.0
@@ -81,7 +81,7 @@ class PressureRawPublisher:
 
     def _publish_current_msg(self):
         self._current_pressure_msg.header.stamp = rospy.Time.now()
-        self._current_pressure_msg.header.frame_id = "odom" #world frame
+        self._current_pressure_msg.header.frame_id = "odom"  # World frame
 
         self._pub_depth.publish(self._current_pressure_msg)
         self._current_pressure_msg = PoseWithCovarianceStamped()
