@@ -26,7 +26,8 @@ type SensorsTime = {
 type State = {
   topic?: string;
   colorScheme?: RenderState["colorScheme"];
-  sensortime?: SensorsTime;
+  sensorstime?: SensorsTime;
+  
 };
 
 function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
@@ -38,13 +39,13 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
   // Restore our state from the layout via the context.initialState property.
   const [state, setState] = useState<State>(() => {
     var Initialstate = context.initialState as State;
-    Initialstate.sensortime = {
-      DVL: Date.now(), 
-      IMU: Date.now(), 
-      Depth: Date.now(), 
-      DepthAI: Date.now(), 
-      Mono: Date.now(), 
-      Sonar: Date.now()
+    Initialstate.sensorstime = {
+      DVL: 0, 
+      IMU: 0, 
+      Depth: 0, 
+      DepthAI: 0, 
+      Mono: 0, 
+      Sonar: 0
     }
     return Initialstate
   });
@@ -79,34 +80,30 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
     context.onRender = (renderState: RenderState, done) => {
       setRenderDone(() => done);
 
-      //If sensortime exists
-      if (state.sensortime) {
-        //TODO: Add switch statements to check what topic just published 
+      //If sensorstime exists
+      if (state.sensorstime) {
+        //Switch statements to check what topic just published 
         switch(state.topic) {
           case "/sensors/dvl/odom":
-            state.sensortime.DVL = (renderState.currentTime?.sec == null) ? Date.now : renderState.currentTime?.sec;
+            state.sensorstime.DVL = (renderState.currentTime?.sec == null) ? Date.now() : renderState.currentTime?.sec;
             break;
           case "2nd-topicname":
-            state.sensortime.IMU = renderState.currentTime?.sec as number;
+            state.sensorstime.IMU = (renderState.currentTime?.sec == null) ? Date.now() : renderState.currentTime?.sec;
             break;
           case "/sensors/depth":
-            state.sensortime.Depth = renderState.currentTime?.sec as number;
+            state.sensorstime.Depth = (renderState.currentTime?.sec == null) ? Date.now() : renderState.currentTime?.sec;
             break;
           case "/camera/front/rgb/preview/compressed":
-            state.sensortime.DepthAI = renderState.currentTime?.sec as number;
+            state.sensorstime.DepthAI = (renderState.currentTime?.sec == null) ? Date.now() : renderState.currentTime?.sec;
             break;
           case "/camera/usb_camera/compressed":
-            state.sensortime.Mono = renderState.currentTime?.sec as number;;
+            state.sensorstime.Mono = (renderState.currentTime?.sec == null) ? Date.now() : renderState.currentTime?.sec;
             break;
-          case 
-            /sonar/status
-"" 
-            
+          case "/sonar/status":
+            state.sensorstime.Sonar = (renderState.currentTime?.sec == null) ? Date.now() : renderState.currentTime?.sec;
+            break;
         }
       }
-
-      
-
       setTopics(renderState.topics);
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
       
@@ -116,7 +113,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
       }
       
     };
-
+    context.watch("currentTime")
     context.watch("topics");
     context.watch("currentFrame");
     context.watch("colorScheme");
@@ -134,14 +131,35 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
 
 (async function checkTimeSinceRender() {
     const waitInSeconds = 1;
-    var beginning = Date.now() - 0 //TODO: state.sensortime.SENSO;
+    var beginning = Date.now() - 0 //TODO: state.sensorstime.SENSO;
+    switch(state.topic) {
+      case "/sensors/dvl/odom":
+        timeDiff = renderState.currentTime?.sec - state.sensorstime.DVL;
+        if (timeDiff > )
+        break;
+      case "2nd-topicname":
+        state.sensorstime.IMU =;
+        break;
+      case "/sensors/depth":
+        state.sensorstime.Depth = ;
+        break;
+      case "/camera/front/rgb/preview/compressed":
+        state.sensorstime.DepthAI = ;
+        break;
+      case "/camera/usb_camera/compressed":
+        state.sensorstime.Mono = ;
+        break;
+      case "/sonar/status":
+        state.sensorstime.Sonar = ;
+        break;
+    }
     await sleep(waitInSeconds * 1000);
     state.topic 
     
 })();
-//TODO: Make if statement to see if sensortime exists
+//TODO: Make if statement to see if sensorstime exists
 const SensorTable = [
-  createData('DVL', '/sensors/dvl/odom', ( state.sensortime.DVL ? true : false)),
+  createData('DVL', '/sensors/dvl/odom', ( state.sensorstime.DVL ? true : false)),
   createData('IMU','/vectornav/IMU',true),
   createData('Depth', '/sensors/depth',true),
   createData('DepthAI Camera', '/camera/front/rgb/preview/compressed', true),
@@ -177,6 +195,34 @@ const SensorTable = [
           enableClipboard={false}
           displayDataTypes={false}
         />
+
+      <TableContainer component={Paper}>
+        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+          <TableHead>
+            <TableRow>
+              <TableCell>Sensor Name</TableCell>
+              <TableCell align="right">Topic Name</TableCell>
+              <TableCell align="right">Sensor Publishing?</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+          {state.sensorstime.map((row) => (
+            <TableRow
+              key={row.name}
+              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+            >
+              <TableCell component="th" scope="row">
+                {row.name}
+              </TableCell>
+              <TableCell align="right">{row.calories}</TableCell>
+              <TableCell align="right">{row.fat}</TableCell>
+              <TableCell align="right">{row.carbs}</TableCell>
+              <TableCell align="right">{row.protein}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+        </Table>
+      </TableContainer>
 
       </div>
     </div>
