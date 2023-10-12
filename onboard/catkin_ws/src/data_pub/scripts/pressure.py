@@ -34,8 +34,7 @@ class PressureRawPublisher:
     def connect(self):
         while self._serial_port is None and not rospy.is_shutdown():
             try:
-                #self._serial_port = next(list_ports.grep('|'.join(self._ftdi_strings))).device
-                self._serial_port = "/dev/ttyACM1"
+                self._serial_port = next(list_ports.grep('|'.join(self._ftdi_strings))).device
                 self._serial = serial.Serial(self._serial_port, self.BAUDRATE,
                                              timeout=None, write_timeout=None,
                                              bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
