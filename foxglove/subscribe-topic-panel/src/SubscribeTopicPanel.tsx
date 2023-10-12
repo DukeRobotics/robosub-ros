@@ -1,5 +1,5 @@
 import { PanelExtensionContext, RenderState, Topic, MessageEvent } from "@foxglove/studio";
-import { useLayoutEffect, useEffect, useState, useRef, useMemo } from "react";
+import { useLayoutEffect, useEffect, useState, useMemo } from "react";
 import ReactDOM from "react-dom";
 import ReactJson from "react-json-view";
 import Alert from '@mui/material/Alert';
@@ -7,12 +7,11 @@ import Alert from '@mui/material/Alert';
 type State = {
   topic?: string;
   colorScheme?: RenderState["colorScheme"];
+  topics?: readonly Topic[];
+  message?: MessageEvent<any>;
 };
 
 function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
-  const [topics, setTopics] = useState<readonly Topic[] | undefined>();
-  const [message, setMessage] = useState<any>();
-
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
 
   // Restore our state from the layout via the context.initialState property.
@@ -22,8 +21,8 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
 
   // Get topics
   const imageTopics = useMemo(
-    () => (topics ?? []),
-    [topics],
+    () => (state.topics ?? []),
+    [state.topics],
   );
 
   useEffect(() => {
@@ -39,7 +38,7 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
   // Choose our first available image topic as a default once we have a list of topics available.
   useEffect(() => {
     if (state.topic == undefined) {
-      setState({ topic: imageTopics[0]?.name });
+      setState((oldState) => ({ ...oldState, topic: imageTopics[0]?.name }));
     }
   }, [state.topic, imageTopics]);
 
@@ -47,12 +46,13 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
   useLayoutEffect(() => {
     context.onRender = (renderState: RenderState, done) => {
       setRenderDone(() => done);
-      setTopics(renderState.topics);
-      setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
+      setState((oldState) => ({ ...oldState, topics: renderState.topics, colorScheme: renderState.colorScheme }));
       
       // Save the most recent message on our topic.
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        setMessage(renderState.currentFrame[renderState.currentFrame.length - 1]);
+        const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<any>;
+        
+        setState((oldState) => ({ ...oldState, message: lastFrame }));
       }
     };
 
@@ -77,7 +77,7 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
         <label>Choose a topic to display: </label>
         <select
           value={state.topic}
-          onChange={(event) => setState({ topic: event.target.value })}
+          onChange={(event) => setState((oldState) => ({ ...oldState, topic: event.target.value }))}
           style={{ flex: 1 }}
         >
           {imageTopics.map((topic) => (
@@ -89,7 +89,7 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
 
         <ReactJson
           name={null}
-          src={message}
+          src={state.message as object}
           indentWidth={2}
           theme={state.colorScheme === "dark" ? "monokai" : "rjv-default"}
           enableClipboard={false}
