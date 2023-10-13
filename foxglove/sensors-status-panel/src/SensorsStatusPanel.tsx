@@ -27,7 +27,7 @@ type State = {
   topic?: string;
   colorScheme?: RenderState["colorScheme"];
   sensorstime?: SensorsTime;
-  currentTime?: Number;
+  currentTime?: number;
 };
 
 function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
@@ -79,34 +79,47 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
   useLayoutEffect(() => {
     context.onRender = (renderState: RenderState, done) => {
       setRenderDone(() => done);
-      if (State.currentTime)  {
-        State.currentTime = renderState.currentTime?.sec
+
+      //Updates CurrentTime to the current time
+      if (state.currentTime)  {
+        state.currentTime = renderState.currentTime?.sec
       }
-      //If sensorstime exists
-      if (state.sensorstime && renderState.currentFrame && renderState.currentFrame.length > 0) {
-        //Switch statements to check what topic just published 
-        const lastFrame renderState.currentFrame[-1] as MessageEvent<any>;
-        switch(renderState.currentFrame.topic) {
+      //If sensorstime exists and the current frame exists (onRender was ran due to currentFrame changing)
+      if (state.currentTime && state.sensorstime && renderState.currentFrame && renderState.currentFrame.length > 0) {
+        
+        //Define the last frame 
+        const lastFrame = renderState.currentFrame[-1] as MessageEvent<any>;
+
+        //Switch statements on the topic of the last frame 
+        switch(lastFrame.topic) {
           case "/sensors/dvl/odom":
-            state.sensorstime.DVL = (renderState.currentTime?.sec == null) ? Date.now() : renderState.currentTime?.sec;
+            state.sensorstime.DVL = state.currentTime;
             break;
-          case "2nd-topicname":
-            state.sensorstime.IMU = (renderState.currentTime?.sec == null) ? Date.now() : renderState.currentTime?.sec;
+          case "/vectornav/IMU)":
+            state.sensorstime.IMU = state.currentTime;
             break;
           case "/sensors/depth":
-            state.sensorstime.Depth = (renderState.currentTime?.sec == null) ? Date.now() : renderState.currentTime?.sec;
+            state.sensorstime.Depth = state.currentTime;
             break;
           case "/camera/front/rgb/preview/compressed":
-            state.sensorstime.DepthAI = (renderState.currentTime?.sec == null) ? Date.now() : renderState.currentTime?.sec;
+            state.sensorstime.DepthAI = state.currentTime;
             break;
           case "/camera/usb_camera/compressed":
-            state.sensorstime.Mono = (renderState.currentTime?.sec == null) ? Date.now() : renderState.currentTime?.sec;
+            state.sensorstime.Mono = state.currentTime;
             break;
           case "/sonar/status":
-            state.sensorstime.Sonar = (renderState.currentTime?.sec == null) ? Date.now() : renderState.currentTime?.sec;
+            state.sensorstime.Sonar = state.currentTime;
             break;
         }
-      }
+      
+      //Compare current time to each sensorstime attribute
+      if (state.currentTime - state.sensorstime.DVL > 5)  {/*Ahh scremaing we have an inactive sensor*/}
+      if (state.currentTime - state.sensorstime.IMU > 5)  {/*Ahh scremaing we have an inactive sensor*/}
+      if (state.currentTime - state.sensorstime.Depth > 5)  {/*Ahh scremaing we have an inactive sensor*/}  
+      if (state.currentTime - state.sensorstime.DepthAI > 5)  {/*Ahh scremaing we have an inactive sensor*/}  
+      if (state.currentTime - state.sensorstime.Mono > 5)  {/*Ahh scremaing we have an inactive sensor*/}  
+      if (state.currentTime - state.sensorstime.Sonar > 5)  {/*Ahh scremaing we have an inactive sensor*/}  
+    }
       setTopics(renderState.topics);
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
       
@@ -131,6 +144,8 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
   function sleep(ms: any) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+/*
+Might not need asynch and table?
 
 (async function checkTimeSinceRender() {
     const waitInSeconds = 1;
@@ -169,7 +184,7 @@ const SensorTable = [
   createData('Mono Camera','/camera/usb_camera/compressed',true),
   createData('Sonar', '/sonar/status', true),
 ];
-
+*/
   return (
     <div style={{ height: "100%", padding: "1rem" }}>
       <h2>Sensors Status Panel</h2>
