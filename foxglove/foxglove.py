@@ -102,7 +102,7 @@ def install_layouts(layout_path: pathlib.Path, install_path: pathlib.Path):
             "baseline": baseline,
         }
 
-        with open(LAYOUT_INSTALL_PATH / f"{id}.json", 'w') as f:
+        with open(LAYOUT_INSTALL_PATH / id, 'w') as f:
             json.dump(layout, f)
 
         print(f"{name}: installed")
