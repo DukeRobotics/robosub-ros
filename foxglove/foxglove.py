@@ -194,7 +194,6 @@ def extension_package(name: str, extension_paths: Sequence[pathlib.Path] = EXTEN
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Install/Uninstall Foxglove extensions and layouts.")
-
     subparsers = parser.add_subparsers(dest="action", required=True)
 
     install_parser = subparsers.add_parser(
