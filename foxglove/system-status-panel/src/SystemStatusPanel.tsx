@@ -3,6 +3,7 @@ import { useLayoutEffect, useEffect, useState, useRef, useMemo } from "react";
 import ReactDOM from "react-dom";
 import ReactJson from "react-json-view";
 import Alert from '@mui/material/Alert';
+import { useTheme } from '@mui/material/styles';
 
 import * as React from 'react';
 import Table from '@mui/material/Table';
@@ -32,6 +33,8 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
   const [message, setMessage] = useState<any>();
 
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
+
+  const theme = useTheme();
 
   // Restore our state from the layout via the context.initialState property.
   const [state, setState] = useState<State>(() => {
@@ -144,11 +147,12 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
                     <TableRow
                       key={row.Status}
                       sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                      style={{ backgroundColor: (row.Value >= 90) ? theme.palette.error.main : "white" }}
                     >
                       <TableCell component="th" scope="row">
                         {row.Status}
                       </TableCell>
-                      <TableCell align="right">{row.Value}</TableCell>
+                      <TableCell align="right">{row.Value}%</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
