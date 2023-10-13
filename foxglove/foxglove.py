@@ -136,6 +136,12 @@ def install_layouts(layouts_path: pathlib.Path = LAYOUTS_PATH, install_path: pat
 
     print(f"Successfully installed {successes} layout(s)\n")
 
+        print(f"{name}: installed")
+
+        successes += 1
+
+    print(f"Successfully installed {successes} layout(s)\n")
+
 
 def uninstall_extensions(install_path: pathlib.Path = EXTENSION_INSTALL_PATH):
     """
@@ -194,6 +200,9 @@ def extension_package(name: str, extension_paths: Sequence[pathlib.Path] = EXTEN
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Install/Uninstall Foxglove extensions and layouts.")
+
+    parser.add_argument('-v', '--verbose', action='store_true', help="Print verbose output.")
+
     subparsers = parser.add_subparsers(dest="action", required=True)
 
     install_parser = subparsers.add_parser(
@@ -221,6 +230,7 @@ if __name__ == "__main__":
     uninstall_parser.add_argument('-l', '--layouts', action='store_true', help="Uninstall all layouts.")
 
     args = parser.parse_args()
+    VERBOSE = args.verbose
 
     if args.action == "install":
         # Without flags, install everything
