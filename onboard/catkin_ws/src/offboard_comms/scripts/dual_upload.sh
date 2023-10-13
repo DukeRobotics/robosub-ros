@@ -4,27 +4,27 @@ set -eu
 
 ARD_UPLOAD=true
 while getopts ":hc" opt; do
-	case ${opt} in
-		h )
-			echo "Usage:"
-			echo "    rosrun offboard_comms dual_upload.sh                  Compile and upload code to the arduino"
-			echo "    rosrun offboard_comms dual_upload.sh -c               Only compile arduino code (no upload)"
-			exit 0
-		;;
-		c )
-			ARD_UPLOAD=false
-		;;
-		\? )
-			echo "Invalid Option -$OPTARG" 1>&2
-			exit 1
-		;;
-	esac
+    case ${opt} in
+        h )
+            echo "Usage:"
+            echo "    rosrun offboard_comms dual_upload.sh                  Compile and upload code to the arduino"
+            echo "    rosrun offboard_comms dual_upload.sh -c               Only compile arduino code (no upload)"
+            exit 0
+        ;;
+        c )
+            ARD_UPLOAD=false
+        ;;
+        \? )
+            echo "Invalid Option -$OPTARG" 1>&2
+            exit 1
+        ;;
+    esac
 done
 
 if [ "$ARD_UPLOAD" = true ]; then
-	echo "Options parsed: compiling and uploading to the Arduino"
+    echo "Options parsed: compiling and uploading to the Arduino"
 else
-	echo "Options parsed: only compiling"
+    echo "Options parsed: only compiling"
 fi
 
 rm -rf ros_lib
@@ -48,13 +48,13 @@ arduino-cli core install arduino:megaavr
 arduino-cli compile -b arduino:megaavr:nona4809 "$SRC_CODE1"
 arduino-cli compile -b arduino:megaavr:nona4809 "$SRC_CODE2"
 if [ "$ARD_UPLOAD" = true ]; then
-	# E49AFA8B51514C4B39202020FF024242 is thruster arduino
-	# 3FE1330851544B5933202020FF070938 is pressure arduino
-	if [ "$ARDUINO1" = "E49AFA8B51514C4B39202020FF024242" ]; then
-		TEMP=$PORT1
-		SRC_CODE1=$PORT2
-		SRC_CODE2=$TEMP
-	fi
-	arduino-cli upload -b arduino:megaavr:nona4809 -p "$PORT1" "$SRC_CODE1"
-	arduino-cli upload -b arduino:megaavr:nona4809 -p "$PORT2" "$SRC_CODE2"
+    # E49AFA8B51514C4B39202020FF024242 is thruster arduino
+    # 3FE1330851544B5933202020FF070938 is pressure arduino
+    if [ "$ARDUINO1" = "E49AFA8B51514C4B39202020FF024242" ]; then
+        TEMP=$PORT1
+        SRC_CODE1=$PORT2
+        SRC_CODE2=$TEMP
+    fi
+    arduino-cli upload -b arduino:megaavr:nona4809 -p "$PORT1" "$SRC_CODE1"
+    arduino-cli upload -b arduino:megaavr:nona4809 -p "$PORT2" "$SRC_CODE2"
 fi
