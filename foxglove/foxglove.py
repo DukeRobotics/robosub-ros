@@ -8,6 +8,7 @@
 import subprocess
 import functools
 import json
+import shutil
 import pathlib
 import datetime
 import platform
@@ -78,7 +79,6 @@ def install_layouts(layout_path: pathlib.Path, install_path: pathlib.Path):
     Args:
         layout_path: Path to layouts.
     """
-    return
     layouts = layout_path.glob("*.json")
     for layout in layouts:
         with open(layout) as f:
@@ -89,28 +89,27 @@ def install_layouts(layout_path: pathlib.Path, install_path: pathlib.Path):
             "savedAt": datetime.datetime.now().isoformat()
         }
 
+        id = f"dukerobotics.{layout.stem}"
         layout = {
-            "id": f"dukerobotics.{layout.stem}",
+            "id": id,
             "name": layout.stem,
             "permission": "CREATOR_WRITE",
             "baseline": baseline,
         }
 
-        with open('data.json', 'w') as f:
+        with open(LAYOUT_INSTALL_PATH / f"{id}.json", 'w') as f:
             json.dump(layout, f)
 
 
 def uninstall_extensions():
     extensions = [d for d in EXTENSION_INSTALL_PATH.iterdir() if d.name.startswith("dukerobotics")]
-
     for extension in extensions:
-        (extension).unlink()
+        shutil.rmtree(extension)
 
     print(f"Successfully uninstalled {len(extensions)} extension(s)")
 
 
 def uninstall_layouts():
-    return
     layouts = [d for d in LAYOUT_INSTALL_PATH.iterdir() if d.name.startswith("dukerobotics")]
     for extension in layouts:
         (extension).unlink()
@@ -158,8 +157,6 @@ if __name__ == "__main__":
     uninstall_parser.add_argument('-l', '--layouts', action='store_true', help="Uninstall all layouts.")
 
     args = parser.parse_args()
-
-    print(args)
 
     if args.action == "install":
         # Defaults
