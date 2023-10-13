@@ -37,7 +37,8 @@ def run_at_path(command: str, directory: pathlib.Path):
     if command == "":
         raise ValueError("Command must not be empty")
 
-    print(f"{directory.name}: {command}")
+    if VERBOSE:
+        print(f"{directory.name}: {command}")
 
     args = command.split(' ')
 
@@ -67,9 +68,11 @@ def install_extensions(extensions: Sequence[pathlib.Path]):
         run("npm ci --legacy-peer-deps")
         run("npm run local-install")
 
+        print(f"{extension.name}: installed")
+
         successes += 1
 
-    print(f"Successfully installed {successes} extension(s)")
+    print(f"Successfully installed {successes} extension(s)\n")
 
 
 def install_layouts(layout_path: pathlib.Path, install_path: pathlib.Path):
@@ -80,19 +83,21 @@ def install_layouts(layout_path: pathlib.Path, install_path: pathlib.Path):
         layout_path: Path to layouts.
     """
     layouts = layout_path.glob("*.json")
+    successes = 0
     for layout in layouts:
         with open(layout) as f:
             data = json.load(f)
 
         baseline = {
             "data": data,
-            "savedAt": datetime.datetime.now().isoformat()
+            "savedAt": datetime.datetime.utcnow().isoformat()
         }
 
         id = f"dukerobotics.{layout.stem}"
+        name = layout.stem
         layout = {
             "id": id,
-            "name": layout.stem,
+            "name": name,
             "permission": "CREATOR_WRITE",
             "baseline": baseline,
         }
@@ -100,21 +105,29 @@ def install_layouts(layout_path: pathlib.Path, install_path: pathlib.Path):
         with open(LAYOUT_INSTALL_PATH / f"{id}.json", 'w') as f:
             json.dump(layout, f)
 
+        print(f"{name}: installed")
+
+        successes += 1
+
+    print(f"Successfully installed {successes} layout(s)\n")
+
 
 def uninstall_extensions():
     extensions = [d for d in EXTENSION_INSTALL_PATH.iterdir() if d.name.startswith("dukerobotics")]
     for extension in extensions:
         shutil.rmtree(extension)
+        print(f"{extension.name}: uninstalled")
 
-    print(f"Successfully uninstalled {len(extensions)} extension(s)")
+    print(f"Successfully uninstalled {len(extensions)} extension(s)\n")
 
 
 def uninstall_layouts():
     layouts = [d for d in LAYOUT_INSTALL_PATH.iterdir() if d.name.startswith("dukerobotics")]
-    for extension in layouts:
-        (extension).unlink()
+    for layout in layouts:
+        layout.unlink()
+        print(f"{layout.name}: uninstalled")
 
-    print(f"Successfully uninstalled {len(layouts)} layouts(s)")
+    print(f"Successfully uninstalled {len(layouts)} layouts(s)\n")
 
 
 def extension_package(name: str):
@@ -130,6 +143,9 @@ def extension_package(name: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Install/Uninstall Foxglove extensions and layouts.")
+
+    parser.add_argument('-v', '--verbose', action='store_true', help="Print verbose output.")
+
     subparsers = parser.add_subparsers(dest="action", required=True)
 
     install_parser = subparsers.add_parser(
@@ -157,6 +173,7 @@ if __name__ == "__main__":
     uninstall_parser.add_argument('-l', '--layouts', action='store_true', help="Uninstall all layouts.")
 
     args = parser.parse_args()
+    VERBOSE = args.verbose
 
     if args.action == "install":
         # Defaults
