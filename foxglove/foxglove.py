@@ -90,7 +90,7 @@ def install_layouts(layout_path: pathlib.Path, install_path: pathlib.Path):
 
         baseline = {
             "data": data,
-            "savedAt": datetime.datetime.now(datetime.UTC).isoformat()
+            "savedAt": datetime.datetime.now(datetime.timezone.utc).isoformat()
         }
 
         id = f"dukerobotics.{layout.stem}"
