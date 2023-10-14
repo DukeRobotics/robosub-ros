@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
-# A convenience script to automatically install all Foxglove extensions.
-# Foxglove extensions are defined as any folder matching '*-panel' in the current directory.
-# Usage: python install.py (Must be run from the root of the foxglove directory)
+# A CLI to automatically install/uninstall Foxglove extensions and layouts.
+# usage: foxglove.py [--verbose] {install,uninstall} [--extensions] [--layouts]
 
-# Dependencies: yarn and npm must both be installed and exposed on PATH.
+# To install a specific extension, use the -e flag:
+# python3 foxglove.py install -e <extension_name_1> <extension_name_2> ...
+
+# For more information, use the -h flag:
+# python3 foxglove.py -h
+# python3 foxglove.py install -h
+# python3 foxglove.py uninstall -h
+
+# Dependencies: yarn, npm for extension installation
 
 import subprocess
 import functools
@@ -15,8 +22,6 @@ import platform
 import argparse
 from typing import Sequence
 
-VERBOSE = False
-
 if (SYSTEM := platform.system()) not in ("Linux", "Darwin", "Windows"):
     raise Exception(f"Unsupported platform: {SYSTEM}")
 LAYOUT_INSTALL_PATH = {
@@ -27,22 +32,33 @@ LAYOUT_INSTALL_PATH = {
 EXTENSION_INSTALL_PATH = pathlib.Path.home() / ".foxglove-studio/extensions/"
 
 FOXGLOVE_PATH = pathlib.Path(__file__).parent.resolve()
-EXTENSIONS_PATH = FOXGLOVE_PATH / "extensions"
-EXTENSION_PATHS = tuple(d for d in EXTENSIONS_PATH.iterdir() if d.is_dir())
+EXTENSION_PATHS = [d for d in (FOXGLOVE_PATH / "extensions").iterdir() if d.is_dir()]
 LAYOUTS_PATH = FOXGLOVE_PATH / "layouts"
 
 
-def run_at_path(command: str, directory: pathlib.Path):
-    """Helper function to run a command in a given directory."""
+def run_at_path(command: str, directory: pathlib.Path, system: str = SYSTEM, verbose: bool = False):
+    """
+    Run a command at a given path.
+
+    Args:
+        command: Command to run.
+        directory: Path to run command at.
+        verbose: Flag to print command output. Defaults to False.
+        windows: Windows compatability. Defaults to False.
+
+    Raises:
+        ValueError: If command empty.
+        Exception: If command returns non-zero exit code.
+    """
     if command == "":
         raise ValueError("Command must not be empty")
 
-    if VERBOSE:
+    if verbose:
         print(f"{directory.name}: {command}")
 
     args = command.split(' ')
 
-    if SYSTEM == 'Windows':
+    if system == "Windows":
         args[0] += ".cmd"
 
     process = subprocess.Popen(args, cwd=directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -50,14 +66,21 @@ def run_at_path(command: str, directory: pathlib.Path):
     if process.returncode != 0:
         raise Exception(f"Error executing command: {command}\n{error.decode()}")
 
-    if VERBOSE:
+    if verbose:
         print(output.decode())
 
 
-def install_extensions(extensions: Sequence[pathlib.Path]):
+def install_extensions(extension_paths: Sequence[pathlib.Path], verbose: bool = False):
+    """
+    Install all extensions to Foxglove.
+
+    Args:
+        extension_paths: List of extension paths to install.
+        verbose: Defaults to False.
+    """
     successes = 0
-    for extension in extensions:
-        run = functools.partial(run_at_path, directory=extension)
+    for extension in extension_paths:
+        run = functools.partial(run_at_path, directory=extension, verbose=verbose)
 
         if not (extension / "package.json").is_file():
             print(f"{extension.name}: skipped (no package.json)")
@@ -75,16 +98,15 @@ def install_extensions(extensions: Sequence[pathlib.Path]):
     print(f"Successfully installed {successes} extension(s)\n")
 
 
-def install_layouts(layout_path: pathlib.Path, install_path: pathlib.Path):
+def install_layouts(layouts_path: pathlib.Path = LAYOUTS_PATH, install_path: pathlib.Path = LAYOUT_INSTALL_PATH):
     """
     Install all layout JSON files in `layout_path` to Foxglove.
 
     Args:
         layout_path: Path to layouts.
     """
-    layouts = layout_path.glob("*.json")
     successes = 0
-    for layout in layouts:
+    for layout in layouts_path.glob("*.json"):
         with open(layout) as f:
             data = json.load(f)
 
@@ -95,15 +117,15 @@ def install_layouts(layout_path: pathlib.Path, install_path: pathlib.Path):
 
         id = f"dukerobotics.{layout.stem}"
         name = layout.stem
-        layout = {
+        packaged_layout = {
             "id": id,
             "name": name,
             "permission": "CREATOR_WRITE",
             "baseline": baseline,
         }
 
-        with open(LAYOUT_INSTALL_PATH / id, 'w') as f:
-            json.dump(layout, f)
+        with open(install_path / id, 'w') as f:
+            json.dump(packaged_layout, f)
 
         print(f"{name}: installed")
 
@@ -112,8 +134,13 @@ def install_layouts(layout_path: pathlib.Path, install_path: pathlib.Path):
     print(f"Successfully installed {successes} layout(s)\n")
 
 
-def uninstall_extensions():
-    extensions = [d for d in EXTENSION_INSTALL_PATH.iterdir() if d.name.startswith("dukerobotics")]
+def uninstall_extensions(install_path: pathlib.Path = EXTENSION_INSTALL_PATH):
+    """
+    Uninstall all Duke Robotics extensions from Foxglove.
+
+    Duke Robotics extensions are identified with the prefix 'dukerobotics'.
+    """
+    extensions = [d for d in install_path.iterdir() if d.name.startswith("dukerobotics")]
     for extension in extensions:
         shutil.rmtree(extension)
         print(f"{extension.name}: uninstalled")
@@ -121,8 +148,13 @@ def uninstall_extensions():
     print(f"Successfully uninstalled {len(extensions)} extension(s)\n")
 
 
-def uninstall_layouts():
-    layouts = [d for d in LAYOUT_INSTALL_PATH.iterdir() if d.name.startswith("dukerobotics")]
+def uninstall_layouts(install_path: pathlib.Path = LAYOUT_INSTALL_PATH):
+    """
+    Uninstall all Duke Robotics layouts from Foxglove.
+
+    Duke Robotics layouts are identified with the prefix 'dukerobotics'.
+    """
+    layouts = [d for d in install_path.iterdir() if d.name.startswith("dukerobotics")]
     for layout in layouts:
         layout.unlink()
         print(f"{layout.name}: uninstalled")
@@ -130,11 +162,21 @@ def uninstall_layouts():
     print(f"Successfully uninstalled {len(layouts)} layouts(s)\n")
 
 
-def extension_package(name: str):
+def extension_package(name: str, extension_paths: Sequence[pathlib.Path] = EXTENSION_PATHS):
     """
     Type for argparse that checks if a given extension name is valid.
+
+    Args:
+        name: Name of extension.
+        extension_paths: Defaults to EXTENSION_PATHS.
+
+    Raises:
+        argparse.ArgumentTypeError: If name is not a valid extension name.
+
+    Returns:
+        pathlib.Path: Path to extension.
     """
-    for extension in EXTENSION_PATHS:
+    for extension in extension_paths:
         if name == extension.name:
             return extension
 
@@ -173,7 +215,6 @@ if __name__ == "__main__":
     uninstall_parser.add_argument('-l', '--layouts', action='store_true', help="Uninstall all layouts.")
 
     args = parser.parse_args()
-    VERBOSE = args.verbose
 
     if args.action == "install":
         # Defaults
@@ -184,9 +225,9 @@ if __name__ == "__main__":
             args.extensions = EXTENSION_PATHS
 
         if args.extensions is not None:
-            install_extensions(args.extensions)
+            install_extensions(args.extensions, verbose=args.verbose)
         if args.layouts:
-            install_layouts(LAYOUTS_PATH, LAYOUT_INSTALL_PATH)
+            install_layouts()
 
     elif args.action == "uninstall":
         # Defaults
