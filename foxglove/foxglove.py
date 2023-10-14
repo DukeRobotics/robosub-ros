@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
-# A CLI to automatically install/uninstall Foxglove extensions and layouts.
-# usage: foxglove.py [--verbose] {install,uninstall} [--extensions] [--layouts]
+"""
+A CLI to automatically install/uninstall Foxglove extensions and layouts.
+usage: foxglove.py [--verbose] {install,uninstall} [--extensions] [--layouts]
 
-# To install a specific extension, use the -e flag:
-# python3 foxglove.py install -e <extension_name_1> <extension_name_2> ...
+To install a specific extension, use the -e flag:
+python3 foxglove.py install -e <extension_name_1> <extension_name_2> ...
 
-# For more information, use the -h flag:
-# python3 foxglove.py -h
-# python3 foxglove.py install -h
-# python3 foxglove.py uninstall -h
+For more information, use the -h flag:
+python3 foxglove.py -h
+python3 foxglove.py install -h
+python3 foxglove.py uninstall -h
 
-# Dependencies: yarn, npm for extension installation
+Dependencies: yarn, npm for extension installation
+"""
 
 import subprocess
 import functools
@@ -23,7 +25,7 @@ import argparse
 from typing import Sequence
 
 if (SYSTEM := platform.system()) not in ("Linux", "Darwin", "Windows"):
-    raise Exception(f"Unsupported platform: {SYSTEM}")
+    raise SystemExit(f"Unsupported platform: {SYSTEM}")
 LAYOUT_INSTALL_PATH = {
     "Linux": pathlib.Path.home() / ".config/Foxglove Studio/studio-datastores/layouts-local/",
     "Darwin": pathlib.Path.home() / "Library/Application Support/Foxglove Studio/studio-datastores/layouts-local/",
@@ -53,21 +55,15 @@ def run_at_path(command: str, directory: pathlib.Path, system: str = SYSTEM, ver
     if command == "":
         raise ValueError("Command must not be empty")
 
-    if verbose:
-        print(f"{directory.name}: {command}")
-
     args = command.split(' ')
-
     if system == "Windows":
         args[0] += ".cmd"
 
-    process = subprocess.Popen(args, cwd=directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    output, error = process.communicate()
-    if process.returncode != 0:
-        raise Exception(f"Error executing command: {command}\n{error.decode()}")
+    completed_process = subprocess.run(args, cwd=directory, capture_output=verbose, text=verbose)
 
     if verbose:
-        print(output.decode())
+        print(f"{directory.name}: {command}")
+        print(completed_process.stdout)
 
 
 def install_extensions(extension_paths: Sequence[pathlib.Path], verbose: bool = False):
@@ -78,6 +74,16 @@ def install_extensions(extension_paths: Sequence[pathlib.Path], verbose: bool = 
         extension_paths: List of extension paths to install.
         verbose: Defaults to False.
     """
+
+    try:
+        run_at_path("npm -v", FOXGLOVE_PATH, verbose=verbose)
+    except FileNotFoundError:
+        raise SystemExit("npm not found. Install npm and try again.")
+    try:
+        run_at_path("yarn -v", FOXGLOVE_PATH, verbose=verbose)
+    except FileNotFoundError:
+        raise SystemExit("yarn not found. Install with `npm install -g yarn` and try again.")
+
     successes = 0
     for extension in extension_paths:
         run = functools.partial(run_at_path, directory=extension, verbose=verbose)
