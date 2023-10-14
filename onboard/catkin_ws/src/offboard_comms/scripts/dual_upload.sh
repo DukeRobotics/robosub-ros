@@ -22,9 +22,9 @@ while getopts ":hc" opt; do
 done
 
 if [ "$ARD_UPLOAD" = true ]; then
-	echo "Options parsed: compiling and uploading to the Arduino"
+    echo "Options parsed: compiling and uploading to the Arduino"
 else
-	echo "Options parsed: only compiling"
+    echo "Options parsed: only compiling"
 fi
 
 rm -rf ros_lib
