@@ -30,7 +30,6 @@ ORGANIZATION = "dukerobotics"
 
 if (SYSTEM := platform.system()) not in ("Linux", "Darwin", "Windows"):
     raise SystemExit(f"Unsupported platform: {SYSTEM}")
-
 LAYOUT_INSTALL_PATH = {
     "Linux": pathlib.Path.home() / ".config/Foxglove Studio/studio-datastores/layouts-local/",
     "Darwin": pathlib.Path.home() / "Library/Application Support/Foxglove Studio/studio-datastores/layouts-local/",
