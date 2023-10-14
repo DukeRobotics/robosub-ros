@@ -230,7 +230,6 @@ if __name__ == "__main__":
     uninstall_parser.add_argument('-l', '--layouts', action='store_true', help="Uninstall all layouts.")
 
     args = parser.parse_args()
-    VERBOSE = args.verbose
 
     if args.action == "install":
         # Without flags, install everything
@@ -242,7 +241,7 @@ if __name__ == "__main__":
             args.extensions = EXTENSION_PATHS
 
         if args.extensions is not None:
-            install_extensions(args.extensions)
+            install_extensions(args.extensions, verbose=args.verbose)
         if args.layouts:
             install_layouts()
 
