@@ -53,6 +53,13 @@ python foxglove.py install -h
 python foxglove.py uninstall -h
 ```
 
+For more information, consult the usage guide of `foxglove.py` with the `-h` flag:
+```bash
+python foxglove.py -h
+python foxglove.py install -h
+python foxglove.py uninstall -h
+```
+
 ## Development
 Ensure that the extension has been installed before starting development.
 
