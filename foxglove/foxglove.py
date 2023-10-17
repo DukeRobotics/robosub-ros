@@ -10,8 +10,6 @@ For more information, use the -h flag:
 python3 foxglove.py -h
 python3 foxglove.py install -h
 python3 foxglove.py uninstall -h
-
-Dependencies: yarn, npm for extension installation
 """
 
 import subprocess
