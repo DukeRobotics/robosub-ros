@@ -14,6 +14,7 @@
     "lint:ci": "eslint --report-unused-disable-directives .",
     "lint": "eslint --report-unused-disable-directives --fix .",
     "local-install": "foxglove-extension install",
+    "watch:local-install": "nodemon --watch './src/**' -e ts,tsx --exec 'npm run local-install'",
     "package": "foxglove-extension package",
     "pretest": "foxglove-extension pretest"
   },
@@ -35,6 +36,7 @@
     "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-react": "7.32.2",
     "eslint-plugin-react-hooks": "4.6.0",
+    "nodemon": "^3.0.1",
     "prettier": "2.8.3",
     "react": "17.0.2",
     "react-dom": "17.0.2",
