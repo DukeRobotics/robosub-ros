@@ -1,7 +1,7 @@
 {
   "name": "subscribe-topic-panel",
   "displayName": "Subscribe Topic Panel",
-  "description": "Example panel that lets you subscribe to topics",
+  "description": "Example panel that lets you subscribe to topics and see the raw message feed",
   "publisher": "Duke Robotics",
   "homepage": "https://duke-robotics.com",
   "license": "UNLICENSED",
