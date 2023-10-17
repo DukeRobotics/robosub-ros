@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
 A CLI to automatically install/uninstall Foxglove extensions and layouts.
-usage: foxglove.py [--verbose] {install,uninstall} [--extensions] [--layouts]
+usage: foxglove.py {install,uninstall} [--extensions] [--layouts]
 
 To install a specific extension, use the -e flag:
-python3 foxglove.py install -e <extension_name_1> <extension_name_2> ...
+python foxglove.py install -e <extension-1> <extension-2> ...
 
 For more information, use the -h flag:
-python3 foxglove.py -h
-python3 foxglove.py install -h
-python3 foxglove.py uninstall -h
+python foxglove.py -h
+python foxglove.py install -h
+python foxglove.py uninstall -h
 """
 
 import subprocess
@@ -36,19 +36,18 @@ EXTENSION_PATHS = [d for d in (FOXGLOVE_PATH / "extensions").iterdir() if d.is_d
 LAYOUTS_PATH = FOXGLOVE_PATH / "layouts"
 
 
-def run_at_path(command: str, directory: pathlib.Path, system: str = SYSTEM, verbose: bool = False):
+def run_at_path(command: str, directory: pathlib.Path, system: str = SYSTEM):
     """
     Run a command at a given path.
 
     Args:
         command: Command to run.
         directory: Path to run command at.
-        verbose: Flag to print command output. Defaults to False.
-        windows: Windows compatability. Defaults to False.
+        system: If "Windows", run command with .cmd extension. Defaults to platform.system().
 
     Raises:
         ValueError: If command empty.
-        Exception: If command returns non-zero exit code.
+        subprocess.CalledProcessError: If command returns non-zero exit code.
     """
     if command == "":
         raise ValueError("Command must not be empty")
@@ -57,34 +56,30 @@ def run_at_path(command: str, directory: pathlib.Path, system: str = SYSTEM, ver
     if system == "Windows":
         args[0] += ".cmd"
 
-    completed_process = subprocess.run(args, cwd=directory, capture_output=verbose, text=verbose)
-
-    if verbose:
-        print(f"{directory.name}: {command}")
-        print(completed_process.stdout)
+    print(f"{directory.name}: {command}")
+    subprocess.run(args, cwd=directory, check=True)
 
 
-def install_extensions(extension_paths: Sequence[pathlib.Path], verbose: bool = False):
+def install_extensions(extension_paths: Sequence[pathlib.Path]):
     """
-    Install all extensions to Foxglove.
+    Install custom Foxglove extensions.
 
     Args:
-        extension_paths: List of extension paths to install.
-        verbose: Defaults to False.
+        extension_paths: Sequence of extension paths to install.
     """
 
     try:
-        run_at_path("npm -v", FOXGLOVE_PATH, verbose=verbose)
+        run_at_path("npm -v", FOXGLOVE_PATH)
     except FileNotFoundError:
         raise SystemExit("npm not found. Install npm and try again.")
     try:
-        run_at_path("yarn -v", FOXGLOVE_PATH, verbose=verbose)
+        run_at_path("yarn -v", FOXGLOVE_PATH)
     except FileNotFoundError:
-        raise SystemExit("yarn not found. Install with `npm install -g yarn` and try again.")
+        raise SystemExit("Yarn not found. Install Yarn and try again.")
 
     successes = 0
     for extension in extension_paths:
-        run = functools.partial(run_at_path, directory=extension, verbose=verbose)
+        run = functools.partial(run_at_path, directory=extension)
 
         if not (extension / "package.json").is_file():
             print(f"{extension.name}: skipped (no package.json)")
@@ -104,10 +99,11 @@ def install_extensions(extension_paths: Sequence[pathlib.Path], verbose: bool = 
 
 def install_layouts(layouts_path: pathlib.Path = LAYOUTS_PATH, install_path: pathlib.Path = LAYOUT_INSTALL_PATH):
     """
-    Install all layout JSON files in `layout_path` to Foxglove.
+    Install custom Foxglove layouts.
 
     Args:
-        layout_path: Path to layouts.
+        layouts_path: Path to layouts directory.
+        install_path: Path to install layouts to.
     """
     successes = 0
     for layout in layouts_path.glob("*.json"):
@@ -143,6 +139,9 @@ def uninstall_extensions(install_path: pathlib.Path = EXTENSION_INSTALL_PATH):
     Uninstall all Duke Robotics extensions from Foxglove.
 
     Duke Robotics extensions are identified with the prefix 'dukerobotics'.
+
+    Args:
+        install_path: Path where extensions are installed.
     """
     extensions = [d for d in install_path.iterdir() if d.name.startswith("dukerobotics")]
     for extension in extensions:
@@ -157,6 +156,9 @@ def uninstall_layouts(install_path: pathlib.Path = LAYOUT_INSTALL_PATH):
     Uninstall all Duke Robotics layouts from Foxglove.
 
     Duke Robotics layouts are identified with the prefix 'dukerobotics'.
+
+    Args:
+        install_path: Path where layouts are installed.
     """
     layouts = [d for d in install_path.iterdir() if d.name.startswith("dukerobotics")]
     for layout in layouts:
@@ -171,14 +173,14 @@ def extension_package(name: str, extension_paths: Sequence[pathlib.Path] = EXTEN
     Type for argparse that checks if a given extension name is valid.
 
     Args:
-        name: Name of extension.
-        extension_paths: Defaults to EXTENSION_PATHS.
+        name: Name of extension to check.
+        extension_paths: Sequence of extension paths to check against.
 
     Raises:
         argparse.ArgumentTypeError: If name is not a valid extension name.
 
     Returns:
-        pathlib.Path: Path to extension.
+        pathlib.Path: Full path to extension.
     """
     for extension in extension_paths:
         if name == extension.name:
@@ -189,8 +191,6 @@ def extension_package(name: str, extension_paths: Sequence[pathlib.Path] = EXTEN
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Install/Uninstall Foxglove extensions and layouts.")
-
-    parser.add_argument('-v', '--verbose', action='store_true', help="Print verbose output.")
 
     subparsers = parser.add_subparsers(dest="action", required=True)
 
@@ -229,7 +229,7 @@ if __name__ == "__main__":
             args.extensions = EXTENSION_PATHS
 
         if args.extensions is not None:
-            install_extensions(args.extensions, verbose=args.verbose)
+            install_extensions(args.extensions)
         if args.layouts:
             install_layouts()
 
