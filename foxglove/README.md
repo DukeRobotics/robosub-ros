@@ -1,7 +1,7 @@
 # Custom Foxglove Studio Extensions & Layouts
 
 Duke Robotics uses [Foxglove](https://foxglove.dev/studio) as its data visualization and controls platform.
-This directory contains our custom extensions and layouts.
+This directory contains Duke Robotics extensions and layouts.
 
 ## Dependencies
 - [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
@@ -9,7 +9,7 @@ This directory contains our custom extensions and layouts.
 - [Foxglove Studio](https://foxglove.dev/download) 
 
 ## Installation
-To manage local installation of our custom extensions and layouts, use the `foxglove.py` CLI.
+To manage local installation of Duke Robotics extensions and layouts, use the `foxglove.py` CLI.
 To install all Duke Robotics extensions and layouts, use:
 ```bash
 python foxglove.py install
@@ -38,7 +38,7 @@ python foxglove.py uninstall -h
 ```
 
 ## Development
-After the extension is installed, you only need to build the extension with:
+After the extension is installed, build the extension with:
 ```bash
 npm run local-install
 ```
@@ -63,9 +63,9 @@ ws://192.168.1.1:8765   # Robot
 
 ## Extensions & Layouts
 ### Panels
-- `call-service-panel`: Example panel that lets you call services
-- `publish-topic-panel`: Example panel that lets you publish topics
-- `subscribe-topic-panel`: Example panel that lets you subscribe to topics and see the raw message feed
+- `call-service-panel`: Example panel to call services
+- `publish-topic-panel`: Example panel to publish topics
+- `subscribe-topic-panel`: Example panel to subscribe to topics and see the raw message feed
 
 ### Layouts
 - `controls-monitor.json`: 6 graphs for each control axis (x, y, z, roll, pitch, yaw) plotting setpoint and control effort against time. Used to test responsiveness of robot during PID tuning.
