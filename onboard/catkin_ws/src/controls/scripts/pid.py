@@ -16,4 +16,8 @@ Context: One instance of this class will be created per axis (x, y, z, roll, pit
 (position, velocity). The first method described above will be called every time /state is published. The second
 method will be called every time a new setpoint is published to /desired_pose or /desired_twist. The PID gains will
 be updated every time a service is called to change them (this service will be advertised by separate node).
+
+IMPORTANT: Make sure to look at the ROS PID implementation at (https://bitbucket.org/AndyZe/pid/src). Pay special
+attention to the filter and determine if it is necessary for our implementation. See https://wiki.ros.org/pid for more
+information on the filter and the package in general.
 """
