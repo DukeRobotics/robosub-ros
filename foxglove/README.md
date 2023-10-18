@@ -17,7 +17,8 @@ python foxglove.py install
 Note that installation may take several minutes.
 
 To confirm installation, reload Foxglove (Command/Control+R) and check the `Add panel` button in the top left.
-Custom extensions will have the suffix `[local]`.
+Custom extensions will have the suffix `[local]`. Also, check whether custom layouts have been installed using
+the `Layout` button in the top right.
 
 To uninstall all Duke Robotics extensions and layouts, use:
 ```bash
