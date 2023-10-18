@@ -4,9 +4,9 @@ Duke Robotics uses [Foxglove](https://foxglove.dev/studio) as its data visualiza
 This directory contains Duke Robotics extensions and layouts.
 
 ## Dependencies
-- [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
-- [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)
-- [Foxglove Studio](https://foxglove.dev/download) 
+- [npm (Latest)](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+- [Yarn Classic](https://classic.yarnpkg.com/lang/en/docs/install)
+- [Foxglove Studio (Latest)](https://foxglove.dev/download) 
 
 ## Installation
 To manage local installation of Duke Robotics extensions and layouts, use the `foxglove.py` CLI.
