@@ -18,6 +18,6 @@ method will be called every time a new setpoint is published to /desired_pose or
 be updated every time a service is called to change them (this service will be advertised by separate node).
 
 IMPORTANT: Make sure to look at the ROS PID implementation at (https://bitbucket.org/AndyZe/pid/src). Pay special
-attention to the filter and determine if it is necessary for our implementation. See https://wiki.ros.org/pid for more
-information on the filter and the package in general.
+attention to the filter and determine if it is necessary for our implementation. Also determine if it is necessary
+to impose a windup limit. See https://wiki.ros.org/pid for more information on the filter and the package in general.
 """
