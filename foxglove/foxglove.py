@@ -88,6 +88,9 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
         run("yarn install")
         (extension / "yarn.lock").unlink()
         run("npm ci --legacy-peer-deps")
+
+        run("npx patch-package --patch-dir ../../patches")
+
         run("npm run local-install")
 
         print(f"{extension.name}: installed")
