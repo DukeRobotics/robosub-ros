@@ -5,6 +5,10 @@ usage: foxglove.py {install,uninstall} [--extensions] [--layouts]
 
 To install a specific extension, use the -e flag:
 python foxglove.py install -e <extension-1> <extension-2> ...
+By default, the `-e` flag without arguments will install all extensions.
+
+To install all layouts, use:
+python foxglove.py install -l
 
 For more information, use the -h flag:
 python foxglove.py -h
@@ -22,8 +26,11 @@ import platform
 import argparse
 from typing import Sequence
 
+ORGANIZATION = "dukerobotics"
+
 if (SYSTEM := platform.system()) not in ("Linux", "Darwin", "Windows"):
     raise SystemExit(f"Unsupported platform: {SYSTEM}")
+
 LAYOUT_INSTALL_PATH = {
     "Linux": pathlib.Path.home() / ".config/Foxglove Studio/studio-datastores/layouts-local/",
     "Darwin": pathlib.Path.home() / "Library/Application Support/Foxglove Studio/studio-datastores/layouts-local/",
@@ -72,6 +79,7 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
         run_at_path("npm -v", FOXGLOVE_PATH)
     except FileNotFoundError:
         raise SystemExit("npm not found. Install npm and try again.")
+
     try:
         run_at_path("yarn -v", FOXGLOVE_PATH)
     except FileNotFoundError:
@@ -118,7 +126,7 @@ def install_layouts(layouts_path: pathlib.Path = LAYOUTS_PATH, install_path: pat
             "savedAt": datetime.datetime.now(datetime.timezone.utc).isoformat()
         }
 
-        id = f"dukerobotics.{layout.stem}"
+        id = f"{ORGANIZATION}.{layout.stem}"
         name = layout.stem
         packaged_layout = {
             "id": id,
@@ -146,7 +154,7 @@ def uninstall_extensions(install_path: pathlib.Path = EXTENSION_INSTALL_PATH):
     Args:
         install_path: Path where extensions are installed.
     """
-    extensions = [d for d in install_path.iterdir() if d.name.startswith("dukerobotics")]
+    extensions = [d for d in install_path.iterdir() if d.name.startswith(ORGANIZATION)]
     for extension in extensions:
         shutil.rmtree(extension)
         print(f"{extension.name}: uninstalled")
@@ -163,7 +171,7 @@ def uninstall_layouts(install_path: pathlib.Path = LAYOUT_INSTALL_PATH):
     Args:
         install_path: Path where layouts are installed.
     """
-    layouts = [d for d in install_path.iterdir() if d.name.startswith("dukerobotics")]
+    layouts = [d for d in install_path.iterdir() if d.name.startswith(ORGANIZATION)]
     for layout in layouts:
         layout.unlink()
         print(f"{layout.name}: uninstalled")
@@ -224,10 +232,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.action == "install":
-        # Defaults
+        # Without flags, install everything
         if args.extensions is None and args.layouts is False:
             args.extensions = EXTENSION_PATHS
             args.layouts = True
+        # If only the -e flag is set without additional arguments, install all extensions
         if args.extensions == []:
             args.extensions = EXTENSION_PATHS
 
@@ -237,7 +246,7 @@ if __name__ == "__main__":
             install_layouts()
 
     elif args.action == "uninstall":
-        # Defaults
+        # Without flags, uninstall everything
         if args.extensions is False and args.layouts is False:
             args.extensions = True
             args.layouts = True
