@@ -30,6 +30,22 @@ To install only a selection of extensions, use:
 ```bash
 python foxglove.py install -e <extension-1> <extension-2> ...
 ```
+By default, the `-e` flag without arguments will install all extensions.
+
+To uninstall all extensions, use:
+```bash
+python foxglove.py uninstall -e
+```
+
+To install all layouts, use:
+```bash
+python foxglove.py install -l
+```
+To uninstall all layouts, use:
+```bash
+python foxglove.py uninstall -l
+```
+**Note:** The user must be signed out of Foxglove Desktop to uninstall layouts using this CLI. You can still uninstall layouts manually through the app.
 
 For more information, consult the usage guide of `foxglove.py` with the `-h` flag:
 ```bash
