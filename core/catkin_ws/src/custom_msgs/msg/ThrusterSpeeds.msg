@@ -3,4 +3,4 @@
 std_msgs/Header header
 
 # Array containing thruster speeds
-int8[8] speeds
+float32[8] speeds
