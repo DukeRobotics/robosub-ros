@@ -53,7 +53,6 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
   const rows = [
     createData('CPU', state.cpuUsage),
     createData('RAM', state.ramUsage),
-    createData('Voltage', 0), //TODO: enter voltage remaining
   ];
   
   useEffect(() => {
@@ -109,30 +108,6 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
         <Alert variant="filled" severity="error">Subscribing to topics is not supported by this connection</Alert>
       )}
       <div>
-        {/* <label>Choose a topic to display: </label>
-        
-        <select
-          value={state.topic}
-          onChange={(event) => setState({ topic: event.target.value })}
-          style={{ flex: 1 }}
-        >
-          {imageTopics.map((topic) => (
-            <option key={topic.name} value={topic.name}>
-              {topic.name}
-            </option>
-          ))}
-        </select> */}
-        
-
-        <ReactJson
-          name={null}
-          src={message}
-          indentWidth={2}
-          theme={state.colorScheme === "dark" ? "monokai" : "rjv-default"}
-          enableClipboard={false}
-          displayDataTypes={false}
-        />
-
         <TableContainer component={Paper}>
               <Table sx={{ minWidth: 100 }} aria-label="simple table">
                 <TableHead>
