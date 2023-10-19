@@ -90,3 +90,16 @@ ws://<hostname or IP of onboard container>:8765
 
 ### Layouts
 - `controls-monitor.json`: 6 graphs for each control axis (x, y, z, roll, pitch, yaw) plotting setpoint and control effort against time. Used to test responsiveness of robot during PID tuning.
+
+## Contributing
+### Creating a New Extension
+Fork an existing Duke Robotics example extension (`call-service-panel`, `publish-topic-panel`, or `subscribe-topic-panel`) to base the new extension off of. This ensures that all of our extensions have the same code structure and use the same core set of dependencies.
+
+### Creating a New Layout
+Follow the [documentation](https://foxglove.dev/docs/studio/layouts#personal-layouts) to export your layout as a JSON file to the robosub-ros `foxglove/layouts` directory. Manually look over the JSON to ensure that the settings are correct. For example, ensure that `splitPercentage` for each panel is set to the desired amount.
+
+## Additional Documentation
+- [ExtensionContext](https://foxglove.dev/docs/studio/extensions/extension-context): Register custom extensions for use in Foxglove
+- [PanelExtensionContext](https://foxglove.dev/docs/studio/extensions/panel-api): API for custom Foxglove panels
+- [Panel settings API](https://foxglove.dev/docs/studio/extensions/panel-settings-api): API to build a settings interface for extension panels
+- [Layouts](https://foxglove.dev/docs/studio/layouts): Documentation for Foxglove layouts
