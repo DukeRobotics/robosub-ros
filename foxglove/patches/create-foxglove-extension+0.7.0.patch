@@ -24,7 +24,6 @@ index 700c694..05a684a 100644
 +            files.add(file);
 +        }
 +    }
-+
      if (pkg.files != undefined) {
          for (const relFile of pkg.files) {
              const file = (0, path_1.join)(extensionPath, relFile);
