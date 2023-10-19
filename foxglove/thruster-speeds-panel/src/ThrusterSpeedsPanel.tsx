@@ -63,29 +63,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
 
       const thrustersInOrder = ["bottomFrontLeft", "frontLeft", "frontRight", "bottomFrontRight",
                                 "bottomBackLeft", "backLeft", "bottomBackRight", "backRight"]
-      // const message = `speeds: ${thrustersInOrder.map((thruster) => state.thrusterSpeeds[thruster])}`
-      const message = {
-        "header": {
-          "seq": 0,
-          "stamp": {
-            "secs": 0,
-            "nsecs": 0
-          },
-          "frame_id": ""
-        },
-        "speeds": thrustersInOrder.map((thruster) => state.thrusterSpeeds[thruster])
-      }
-
-      console.log(ros1["std_msgs/Header"])
-      console.log(ros1["sensor_msgs/Joy"])
-
-      if (!context.advertise) {
-        return;
-      }
-      if (!context.publish) {
-        return
-      }
-
+      
       const msg_definition = {
         name: "custom_msgs/ThrusterSpeeds",
         definitions: [
@@ -103,6 +81,25 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
             type: "int8",
           }
         ]
+      }
+
+      const message = {
+        "header": {
+          "seq": 0,
+          "stamp": {
+            "secs": 0,
+            "nsecs": 0,
+          },
+          "frame_id": ""
+        },
+        "speeds": thrustersInOrder.map((thruster) => state.thrusterSpeeds[thruster])
+      }
+
+      if (!context.advertise) {
+        return;
+      }
+      if (!context.publish) {
+        return
       }
 
       try {
