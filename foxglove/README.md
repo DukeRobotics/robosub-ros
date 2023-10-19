@@ -45,7 +45,7 @@ To uninstall all layouts, use:
 ```bash
 python foxglove.py uninstall -l
 ```
-**Note:** The user must be signed out of Foxglove Desktop to uninstall layouts using this CLI. You can still uninstall layouts manually through the app.
+**Note:** The user must be signed out of Foxglove to uninstall layouts using this CLI. You can still uninstall layouts manually through the app.
 
 For more information, consult the usage guide of `foxglove.py` with the `-h` flag:
 ```bash
@@ -55,7 +55,9 @@ python foxglove.py uninstall -h
 ```
 
 ## Development
-After the extension is installed, build the extension with:
+Ensure that the extension has been installed before starting development.
+
+To test changes made during development, rebuild the extension with:
 ```bash
 npm run local-install
 ```
@@ -67,15 +69,17 @@ npm run watch:local-install
 This will automatically execute `npm run local-install` upon `.ts` and `.tsx` file changes in the `src` directory.
 
 ## Testing
-1. On `onboard`, launch the Foxglove WebSocket bridge node:
+1. On `onboard`, launch the [Foxglove WebSocket](https://github.com/foxglove/ros-foxglove-bridge) bridge node:
 ```bash
 roslaunch --screen foxglove_bridge foxglove_bridge.launch port:=8765
 ```
+This node enables communication between the `onboard` container and the external Foxglove GUI.
 
-2. In Foxglove, open a `Foxglove WebSocket` connection using the appropriate URL:
+2. In Foxglove, open a `Foxglove WebSocket` connection using the appropriate URL with the hostname or IP of the onboard container:
 ```
 ws://localhost:8765     # Local container
-ws://192.168.1.1:8765   # Robot
+ws://192.168.1.1:8765   # Robot (Tethered)
+ws://<hostname or IP of onboard container>:8765
 ```
 
 ## Extensions & Layouts
