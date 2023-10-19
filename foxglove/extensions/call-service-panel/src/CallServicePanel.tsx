@@ -85,9 +85,8 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
         <button
           disabled={context.callService == undefined || state.serviceName === ""}
           style={{ width: "100%", minHeight: "2rem" }}
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          onClick={async () => {
-            await callService(state.serviceName, state.request);
+          onClick={() => {
+            callService(state.serviceName, state.request);
           }}
         >
           {`Call ${state.serviceName}`}

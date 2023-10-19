@@ -82,9 +82,8 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
         <button
           disabled={context.advertise == undefined || context.publish == undefined || state.topicName === ""}
           style={{ width: "100%", minHeight: "2rem" }}
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          onClick={async () => {
-            await publishTopic(state.topicName, state.request);
+          onClick={() => {
+            publishTopic(state.topicName, state.request);
           }}
         >
           {`Publish to ${state.topicName}`}

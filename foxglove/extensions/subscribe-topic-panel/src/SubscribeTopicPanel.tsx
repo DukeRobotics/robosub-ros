@@ -20,7 +20,7 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
   });
 
   // Get topics
-  const imageTopics = useMemo(
+  const topics = useMemo(
     () => (state.topics ?? []),
     [state.topics],
   );
@@ -38,9 +38,9 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
   // Choose our first available image topic as a default once we have a list of topics available.
   useEffect(() => {
     if (state.topic == undefined) {
-      setState((oldState) => ({ ...oldState, topic: imageTopics[0]?.name }));
+      setState((oldState) => ({ ...oldState, topic: topics[0]?.name }));
     }
-  }, [state.topic, imageTopics]);
+  }, [state.topic, topics]);
 
   // Setup our onRender function and start watching topics and currentFrame for messages.
   useLayoutEffect(() => {
@@ -80,7 +80,7 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
           onChange={(event) => setState((oldState) => ({ ...oldState, topic: event.target.value }))}
           style={{ flex: 1 }}
         >
-          {imageTopics.map((topic) => (
+          {topics.map((topic) => (
             <option key={topic.name} value={topic.name}>
               {topic.name}
             </option>
