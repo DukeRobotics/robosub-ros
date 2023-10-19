@@ -3,16 +3,16 @@
     "Plot!3gn30zb": {
       "paths": [
         {
-          "value": "/controls/x_pos/setpoint",
+          "value": "/controls/x_pos/setpoint.data",
           "enabled": true,
-          "timestampMethod": "headerStamp",
+          "timestampMethod": "receiveTime",
           "label": "Setpoint X",
           "showLine": true,
           "color": "#0080ff"
         },
         {
-          "timestampMethod": "headerStamp",
-          "value": "/control_effort/x",
+          "timestampMethod": "receiveTime",
+          "value": "/control_effort/x.data",
           "enabled": true,
           "label": "Control Effort X",
           "color": "#ff4000"
@@ -34,16 +34,16 @@
     "Plot!3yf78kk": {
       "paths": [
         {
-          "value": "/controls/roll_pos/setpoint",
+          "value": "/controls/roll_pos/setpoint.data",
           "enabled": true,
-          "timestampMethod": "headerStamp",
+          "timestampMethod": "receiveTime",
           "label": "Setpoint Roll",
           "showLine": true,
           "color": "#0080ff"
         },
         {
-          "timestampMethod": "headerStamp",
-          "value": "/control_effort/roll",
+          "timestampMethod": "receiveTime",
+          "value": "/control_effort/roll.data",
           "enabled": true,
           "label": "Control Effort Roll",
           "color": "#ff4000"
@@ -65,16 +65,16 @@
     "Plot!1vpzbmx": {
       "paths": [
         {
-          "value": "/controls/y_pos/setpoint",
+          "value": "/controls/y_pos/setpoint.data",
           "enabled": true,
-          "timestampMethod": "headerStamp",
+          "timestampMethod": "receiveTime",
           "label": "Setpoint Y",
           "showLine": true,
           "color": "#0080ff"
         },
         {
-          "timestampMethod": "headerStamp",
-          "value": "/control_effort/y",
+          "timestampMethod": "receiveTime",
+          "value": "/control_effort/y.data",
           "enabled": true,
           "label": "Control Effort Y",
           "color": "#ff4000"
@@ -96,16 +96,16 @@
     "Plot!266v8jj": {
       "paths": [
         {
-          "value": "/controls/pitch_pos/setpoint",
+          "value": "/controls/pitch_pos/setpoint.data",
           "enabled": true,
-          "timestampMethod": "headerStamp",
+          "timestampMethod": "receiveTime",
           "label": "Setpoint Pitch",
           "showLine": true,
           "color": "#0080ff"
         },
         {
-          "timestampMethod": "headerStamp",
-          "value": "/control_effort/pitch",
+          "timestampMethod": "receiveTime",
+          "value": "/control_effort/pitch.data",
           "enabled": true,
           "label": "Control Effort Pitch",
           "color": "#ff4000"
@@ -127,16 +127,16 @@
     "Plot!1p60d5": {
       "paths": [
         {
-          "value": "/controls/z_pos/setpoint",
+          "value": "/controls/z_pos/setpoint.data",
           "enabled": true,
-          "timestampMethod": "headerStamp",
+          "timestampMethod": "receiveTime",
           "label": "Setpoint Z",
           "showLine": true,
           "color": "#0080ff"
         },
         {
-          "timestampMethod": "headerStamp",
-          "value": "/control_effort/z",
+          "timestampMethod": "receiveTime",
+          "value": "/control_effort/z.data",
           "enabled": true,
           "label": "Control Effort Z",
           "color": "#ff4000"
@@ -158,16 +158,16 @@
     "Plot!3y2hu8l": {
       "paths": [
         {
-          "value": "/controls/yaw_pos/setpoint",
+          "value": "/controls/yaw_pos/setpoint.data",
           "enabled": true,
-          "timestampMethod": "headerStamp",
+          "timestampMethod": "receiveTime",
           "label": "Setpoint Yaw",
           "showLine": true,
           "color": "#0080ff"
         },
         {
-          "timestampMethod": "headerStamp",
-          "value": "/control_effort/yaw",
+          "timestampMethod": "receiveTime",
+          "value": "/control_effort/yaw.data",
           "enabled": true,
           "label": "Control Effort Yaw",
           "color": "#ff4000"
@@ -205,7 +205,7 @@
         "direction": "column"
       },
       "direction": "row",
-      "splitPercentage": 50.0
+      "splitPercentage": 50
     },
     "second": {
       "first": "Plot!1p60d5",
