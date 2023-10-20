@@ -1,8 +1,8 @@
 import { PanelExtensionContext, RenderState } from "@foxglove/studio";
 import Alert from "@mui/material/Alert";
+import { JsonViewer } from "@textea/json-viewer";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import ReactDOM from "react-dom";
-import ReactJson from "react-json-view";
 
 type State = {
   serviceName: string;
@@ -96,12 +96,12 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
 
       <div>
         <h4>Response</h4>
-        <ReactJson
-          name={null}
-          src={state.error ? { error: state.error.message } : state.response ?? {}}
+        <JsonViewer
+          rootName={false}
+          value={state.error ? { error: state.error.message } : state.response ?? {}}
           indentWidth={2}
+          theme={state.colorScheme}
           enableClipboard={false}
-          theme={state.colorScheme === "dark" ? "monokai" : "rjv-default"}
           displayDataTypes={false}
         />
       </div>
