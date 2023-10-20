@@ -1,14 +1,14 @@
 import { PanelExtensionContext, RenderState, Topic, MessageEvent } from "@foxglove/studio";
+import Alert from "@mui/material/Alert";
 import { useLayoutEffect, useEffect, useState, useMemo } from "react";
 import ReactDOM from "react-dom";
 import ReactJson from "react-json-view";
-import Alert from '@mui/material/Alert';
 
 type State = {
   topic?: string;
   colorScheme?: RenderState["colorScheme"];
   topics?: readonly Topic[];
-  message?: MessageEvent<any>;
+  message?: MessageEvent<unknown>;
 };
 
 function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
@@ -20,10 +20,7 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
   });
 
   // Get topics
-  const topics = useMemo(
-    () => (state.topics ?? []),
-    [state.topics],
-  );
+  const topics = useMemo(() => state.topics ?? [], [state.topics]);
 
   useEffect(() => {
     // Save our state to the layout when the topic changes.
@@ -46,12 +43,18 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
   useLayoutEffect(() => {
     context.onRender = (renderState: RenderState, done) => {
       setRenderDone(() => done);
-      setState((oldState) => ({ ...oldState, topics: renderState.topics, colorScheme: renderState.colorScheme }));
-      
+      setState((oldState) => ({
+        ...oldState,
+        topics: renderState.topics,
+        colorScheme: renderState.colorScheme,
+      }));
+
       // Save the most recent message on our topic.
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<any>;
-        
+        const lastFrame = renderState.currentFrame[
+          renderState.currentFrame.length - 1
+        ] as MessageEvent<unknown>;
+
         setState((oldState) => ({ ...oldState, message: lastFrame }));
       }
     };
@@ -59,7 +62,6 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
     context.watch("topics");
     context.watch("currentFrame");
     context.watch("colorScheme");
-
   }, [context]);
 
   // Call our done function at the end of each render.
@@ -71,7 +73,9 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
     <div style={{ height: "100%", padding: "1rem" }}>
       <h2>Subscribe Topic</h2>
       {context.subscribe == undefined && (
-        <Alert variant="filled" severity="error">Subscribing to topics is not supported by this connection</Alert>
+        <Alert variant="filled" severity="error">
+          Subscribing to topics is not supported by this connection
+        </Alert>
       )}
       <div>
         <label>Choose a topic to display: </label>
@@ -95,7 +99,6 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
           enableClipboard={false}
           displayDataTypes={false}
         />
-
       </div>
     </div>
   );
