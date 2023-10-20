@@ -1,7 +1,7 @@
 import { PanelExtensionContext, RenderState } from "@foxglove/studio";
+import Alert from "@mui/material/Alert";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import ReactDOM from "react-dom";
-import Alert from '@mui/material/Alert';
 
 type State = {
   topicName: string;
@@ -28,9 +28,9 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
   }, [renderDone]);
 
   const publishTopic = useCallback(
-    async (topicName: string, request: string) => {
+    (topicName: string, request: string) => {
       if (!context.advertise || !context.publish) {
-        return
+        return;
       }
 
       try {
@@ -46,14 +46,16 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
         console.error(error);
       }
     },
-    [context.advertise, context.publish],
+    [context],
   );
 
   return (
     <div style={{ padding: "1rem" }}>
       <h2>Publish Topic</h2>
       {(context.advertise == undefined || context.publish == undefined) && (
-        <Alert variant="filled" severity="error">Publishing topics is not supported by this connection</Alert>
+        <Alert variant="filled" severity="error">
+          Publishing topics is not supported by this connection
+        </Alert>
       )}
 
       <h4>Topic Name</h4>
@@ -80,7 +82,9 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
       </div>
       <div>
         <button
-          disabled={context.advertise == undefined || context.publish == undefined || state.topicName === ""}
+          disabled={
+            context.advertise == undefined || context.publish == undefined || state.topicName === ""
+          }
           style={{ width: "100%", minHeight: "2rem" }}
           onClick={() => {
             publishTopic(state.topicName, state.request);
