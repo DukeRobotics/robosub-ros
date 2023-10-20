@@ -24,4 +24,4 @@ overrides:
     extends:
       - plugin:@foxglove/typescript
     parserOptions:
-      project: ./tsconfig.json
+      project: foxglove/config/tsconfig.json
