@@ -23,10 +23,20 @@ type SensorsTime = {
   Sonar: number;
 }
 
+type ConnectStatus = {
+  DVL: boolean;
+  IMU: boolean;
+  Depth: boolean;
+  DepthAI: boolean;
+  Mono: boolean;
+  Sonar: boolean;
+}
+
 type State = {
   topic?: string;
   colorScheme?: RenderState["colorScheme"];
   sensorstime?: SensorsTime;
+  connectStatus?: ConnectStatus;
   currentTime?: number;
 };
 
@@ -47,6 +57,15 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
       Mono: 0, 
       Sonar: 0
     }
+    Initialstate.currentTime = 1
+    Initialstate.connectStatus = {
+      DVL: false, 
+      IMU: false, 
+      Depth: false, 
+      DepthAI: false, 
+      Mono: false, 
+      Sonar: false
+    }
     return Initialstate
   });
 
@@ -63,7 +82,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
 
     if (state.topic) {
       // Subscribe to the new image topic when a new topic is chosen.
-      context.subscribe([{ topic: state.topic }]);
+      context.subscribe([{ topic:"/sensors/dvl/odom" }, { topic: "/vectornav/IMU"}, { topic: "/sensors/depth"}, { topic: "/camera/front/rgb/preview/compressed"}, { topic: "/camera/usb_camera/compressed"}, { topic: "/sonar/status"}]);
     }
   }, [context, state.topic]);
 
@@ -79,47 +98,64 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
   useLayoutEffect(() => {
     context.onRender = (renderState: RenderState, done) => {
       setRenderDone(() => done);
-
+      
       //Updates CurrentTime to the current time
-      if (state.currentTime)  {
+      if (state.currentTime && state.currentTime >= 0)  {
         state.currentTime = renderState.currentTime?.sec
       }
-      //If sensorstime exists and the current frame exists (onRender was ran due to currentFrame changing)
-      if (state.currentTime && state.sensorstime && renderState.currentFrame && renderState.currentFrame.length > 0) {
-        
-        //Define the last frame 
-        const lastFrame = renderState.currentFrame[-1] as MessageEvent<any>;
 
+      // if (renderState.currentFrame && renderState.currentFrame.length !== 0) {
+      //   console.log(renderState.currentFrame[renderState.currentFrame.length - 1])
+      // }
+
+      //If sensorstime exists and the current frame exists (onRender was ran due to currentFrame changing)
+      if (state.currentTime && state.sensorstime && state.connectStatus && renderState.currentFrame && renderState.currentFrame.length !== 0) {
+        //Define the last frame 
+        const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<any>;
+  
         //Switch statements on the topic of the last frame 
+        
+        if(lastFrame){
         switch(lastFrame.topic) {
           case "/sensors/dvl/odom":
             state.sensorstime.DVL = state.currentTime;
+            state.connectStatus.DVL = true;
             break;
-          case "/vectornav/IMU)":
+          case "/vectornav/IMU":
             state.sensorstime.IMU = state.currentTime;
+            state.connectStatus.IMU = true;
             break;
           case "/sensors/depth":
             state.sensorstime.Depth = state.currentTime;
+            state.connectStatus.Depth = true;
             break;
           case "/camera/front/rgb/preview/compressed":
             state.sensorstime.DepthAI = state.currentTime;
+            state.connectStatus.DepthAI = true;
             break;
           case "/camera/usb_camera/compressed":
             state.sensorstime.Mono = state.currentTime;
+            state.connectStatus.Mono = true;
             break;
           case "/sonar/status":
             state.sensorstime.Sonar = state.currentTime;
+            state.connectStatus.Sonar = true;
             break;
         }
+        }
       
+    } 
+
+    if (state.connectStatus && state.sensorstime && state.currentTime){
       //Compare current time to each sensorstime attribute
-      if (state.currentTime - state.sensorstime.DVL > 5)  {/*Ahh scremaing we have an inactive sensor*/}
-      if (state.currentTime - state.sensorstime.IMU > 5)  {/*Ahh scremaing we have an inactive sensor*/}
-      if (state.currentTime - state.sensorstime.Depth > 5)  {/*Ahh scremaing we have an inactive sensor*/}  
-      if (state.currentTime - state.sensorstime.DepthAI > 5)  {/*Ahh scremaing we have an inactive sensor*/}  
-      if (state.currentTime - state.sensorstime.Mono > 5)  {/*Ahh scremaing we have an inactive sensor*/}  
-      if (state.currentTime - state.sensorstime.Sonar > 5)  {/*Ahh scremaing we have an inactive sensor*/}  
+      if (state.currentTime - state.sensorstime.DVL > 5)  {state.connectStatus.DVL = false}
+      if (state.currentTime - state.sensorstime.IMU > 5)  {state.connectStatus.IMU = false}
+      if (state.currentTime - state.sensorstime.Depth > 5)  {state.connectStatus.Depth = false}  
+      if (state.currentTime - state.sensorstime.DepthAI > 5)  {state.connectStatus.DepthAI = false}  
+      if (state.currentTime - state.sensorstime.Mono > 5)  {state.connectStatus.Mono = false}  
+      if (state.currentTime - state.sensorstime.Sonar > 5)  {state.connectStatus.Sonar = false}  
     }
+
       setTopics(renderState.topics);
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
       
@@ -129,7 +165,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
       }
       
     };
-    context.watch("currentTime")
+    context.watch("currentTime");
     context.watch("topics");
     context.watch("currentFrame");
     context.watch("colorScheme");
@@ -224,20 +260,60 @@ const SensorTable = [
             </TableRow>
           </TableHead>
           <TableBody>
-          {state.sensorstime.map((row) => (
+
             <TableRow
-              key={row.name}
+              key={"DVL"}
               sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
             >
-              <TableCell component="th" scope="row">
-                {row.name}
-              </TableCell>
-              <TableCell align="right">{row.calories}</TableCell>
-              <TableCell align="right">{row.fat}</TableCell>
-              <TableCell align="right">{row.carbs}</TableCell>
-              <TableCell align="right">{row.protein}</TableCell>
+              <TableCell>DVL</TableCell>
+              <TableCell align="right">/sensors/dvl/odom</TableCell>
+              <TableCell align="right">{state.connectStatus?.DVL ? "Connected" : "Disconnected"}</TableCell>
             </TableRow>
-          ))}
+            
+            <TableRow
+              key={"IMU"}
+              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+            >
+              <TableCell>IMU</TableCell>
+              <TableCell align="right">/sensors/imu/odom</TableCell>
+              <TableCell align="right">{state.connectStatus?.IMU ? "Connected" : "Disconnected"}</TableCell>
+            </TableRow>
+
+            <TableRow
+              key={"Depth"}
+              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+            >
+              <TableCell>Depth</TableCell>
+              <TableCell align="right">/sensors/depth</TableCell>
+              <TableCell align="right">{state.connectStatus?.Depth ? "Connected" : "Disconnected"}</TableCell>
+            </TableRow>
+            
+            <TableRow
+              key={"DepthAI Camera"}
+              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+            >
+              <TableCell>DepthAI Camera</TableCell>
+              <TableCell align="right">/camera/front/rgb/preview/compressed</TableCell>
+              <TableCell align="right">{state.connectStatus?.DepthAI ? "Connected" : "Disconnected"}</TableCell>
+            </TableRow>
+
+            <TableRow
+              key={"Mono"}
+              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+            >
+              <TableCell>Mono Camera</TableCell>
+              <TableCell align="right">/camera/usb_camera/compressed</TableCell>
+              <TableCell align="right">{state.connectStatus?.Mono ? "Connected" : "Disconnected"}</TableCell>
+            </TableRow>
+
+            <TableRow
+              key={"Sonar"}
+              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+            >
+              <TableCell>Sonar</TableCell>
+              <TableCell align="right">/sonar/status</TableCell>
+              <TableCell align="right">{state.connectStatus?.Sonar ? "Connected" : "Disconnected"}</TableCell>
+            </TableRow>
         </TableBody>
         </Table>
       </TableContainer>
