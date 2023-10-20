@@ -1,5 +1,4 @@
 import { ExtensionContext } from "@foxglove/studio";
-
 import { initCallServicePanel } from "./CallServicePanel";
 
 export function activate(extensionContext: ExtensionContext): void {
