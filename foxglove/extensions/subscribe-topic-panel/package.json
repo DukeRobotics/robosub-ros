@@ -26,7 +26,6 @@
     "@typescript-eslint/eslint-plugin": "5.30.6",
     "@typescript-eslint/parser": "5.30.6",
     "create-foxglove-extension": "0.8.6",
-    "css-loader": "^6.8.1",
     "eslint": "8.19.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-es": "4.1.0",
@@ -46,10 +45,9 @@
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.14.11",
-    "@mui/material": "^5.14.11",
-    "patch-package": "^8.0.0",
-    "react-json": "^0.2.1",
-    "react-json-view": "^1.21.3"
+    "@mui/icons-material": "^5.14.14",
+    "@mui/material": "^5.14.14",
+    "json-viewer": "^2.2.0",
+    "patch-package": "^8.0.0"
   }
 }
