@@ -1,9 +1,8 @@
 import { PanelExtensionContext, RenderState } from "@foxglove/studio";
+import Alert from "@mui/material/Alert";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import ReactJson from "react-json-view";
-import Alert from '@mui/material/Alert';
-
 
 type State = {
   serviceName: string;
@@ -31,13 +30,13 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
   }, [renderDone]);
 
   const callService = useCallback(
-    async (serviceName: string, request: string) => {
+    (serviceName: string, request: string) => {
       if (!context.callService) {
         return;
       }
 
       try {
-        const response = await context.callService(serviceName, JSON.parse(request));
+        const response = context.callService(serviceName, JSON.parse(request));
         JSON.stringify(response); // Attempt serializing the response, to throw an error on failure
         setState((oldState) => ({
           ...oldState,
@@ -49,14 +48,16 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
         console.error(error);
       }
     },
-    [context.callService],
+    [context],
   );
 
   return (
     <div style={{ padding: "1rem" }}>
       <h2>Call Service</h2>
       {context.callService == undefined && (
-        <Alert variant="filled" severity="error">Calling services is not supported by this connection</Alert>
+        <Alert variant="filled" severity="error">
+          Calling services is not supported by this connection
+        </Alert>
       )}
 
       <h4>Service Name</h4>
