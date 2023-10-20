@@ -85,6 +85,8 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
     except FileNotFoundError:
         raise SystemExit("Yarn not found. Install Yarn and try again.")
 
+    run_at_path("npm ci", FOXGLOVE_PATH)
+
     successes = 0
     for extension in extension_paths:
         run = functools.partial(run_at_path, directory=extension)
@@ -95,7 +97,7 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
 
         run("yarn install")
         (extension / "yarn.lock").unlink()
-        run("npm ci --legacy-peer-deps")
+        run("npm ci")
 
         run("npx patch-package --patch-dir ../../patches")
 

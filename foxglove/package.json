@@ -1,0 +1,9 @@
+{
+    "name": "foxglove",
+    "workspaces": [
+      "extensions/*"
+    ],
+    "devDependencies": {
+      "create-foxglove-extension": "^0.8.6"
+    }
+  }
