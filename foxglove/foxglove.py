@@ -86,6 +86,7 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
         raise SystemExit("Yarn not found. Install Yarn and try again.")
 
     run_at_path("npm ci", FOXGLOVE_PATH)
+    run_at_path("npx patch-package --patch-dir patches", FOXGLOVE_PATH)
 
     successes = 0
     for extension in extension_paths:
@@ -95,11 +96,11 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
             print(f"{extension.name}: skipped (no package.json)")
             continue
 
-        run("yarn install")
-        (extension / "yarn.lock").unlink()
-        run("npm ci")
+        # run("yarn install")
+        # (extension / "yarn.lock").unlink()
+        # run("npm ci")
 
-        run("npx patch-package --patch-dir ../../patches")
+        # run("npx patch-package --patch-dir ../../patches")
 
         run("npm run local-install")
 
