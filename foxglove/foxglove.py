@@ -83,6 +83,8 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
     run_at_path("npm ci", FOXGLOVE_PATH)
     run_at_path("npx patch-package --patch-dir patches", FOXGLOVE_PATH)
 
+    run_at_path("npm ci", FOXGLOVE_PATH)
+
     successes = 0
     for extension in extension_paths:
         run = functools.partial(run_at_path, directory=extension)
