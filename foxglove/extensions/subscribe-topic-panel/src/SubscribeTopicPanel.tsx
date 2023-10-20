@@ -1,8 +1,8 @@
 import { PanelExtensionContext, RenderState, Topic, MessageEvent } from "@foxglove/studio";
 import Alert from "@mui/material/Alert";
+import { JsonViewer } from '@textea/json-viewer'
 import { useLayoutEffect, useEffect, useState, useMemo } from "react";
 import ReactDOM from "react-dom";
-import ReactJson from "react-json-view";
 
 type State = {
   topic?: string;
@@ -91,13 +91,14 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
           ))}
         </select>
 
-        <ReactJson
-          name={null}
-          src={state.message as object}
+        <JsonViewer
+          rootName={false}
+          value={state.message as object}
           indentWidth={2}
-          theme={state.colorScheme === "dark" ? "monokai" : "rjv-default"}
+          theme={state.colorScheme}
           enableClipboard={false}
           displayDataTypes={false}
+          maxDisplayLength={10}
         />
       </div>
     </div>
