@@ -1,6 +1,6 @@
 # Offboard Communications Package
 
-This package provides communications and functionality for Arduinos to be integrated with our main ROS system. The Arduinos handle thruster controls and pressure (depth) readings. 
+This package provides communications and functionality for Arduinos to be integrated with our main ROS system. The Arduinos handle thruster controls and pressure (depth) readings.
 
 There are two Arduinos handled by the package, one for thrusters and one for the pressure sensor. The thruster Arduino runs a ROS node while the pressure Arduino dumps data over serial to the main computer, from which the `data_pub` node publishes the data to ROS.
 
@@ -106,22 +106,22 @@ roslaunch offboard_comms serial.launch
 ```
 Now to test, start sending messages to the offboard device. For instance, to run all the thrusters at speed 0, you can use:
 ```
-rostopic pub -r 10 /offboard/thruster_speeds custom_msgs/ThrusterSpeeds '{speeds: [0,0,0,0,0,0,0,0]}'
+rostopic pub -r 10 /controls/thruster_speeds custom_msgs/ThrusterAllocs '{allocs: [0,0,0,0,0,0,0,0]}'
 ```
 
 ## Topics and Services
 ### Thrusters
-The thrusters are subscribed to the `/offboard/thruster_speeds` topic that is of type `custom_msgs/ThrusterSpeeds.msg`. This is an array of 8 signed 8-bit integers, which have range of [-128,127]. Negative values correspond to reverse (<1500 microseconds PWM), and positive values correspond to forward (>1500 microseconds PWM). 
+The thrusters are subscribed to the `/controls/thruster_allocs` topic that is of type `custom_msgs/ThrusterAllocs.msg`. This is an array of 8 floats, which have range of [-1, 1]. Negative values correspond to reverse (<1500 microseconds PWM), and positive values correspond to forward (>1500 microseconds PWM).
 
-Note that an inaccuracy in the ESCs required modifying a C++ file in the Blue Robotics library (`MultiplexedBasicESC.cpp`). 
+Note that an inaccuracy in the ESCs required modifying a C++ file in the Blue Robotics library (`MultiplexedBasicESC.cpp`).
 
 ```c++
 void MultiplexedBasicESC::write(int8_t speed){writeMicroseconds(map(speed, -128, 128, 1100, 1900)+31);}
-//                                                                                               ^^^ 
+//                                                                                               ^^^
 // A 31 microsecond offset is added to the PWM signal to account for an inaccuracy in the ESCs
 ```
 
 This correction was determined to be a hardware defect with Oogway's Blue Robotics Basic ESCs. When sending a stop/configuration PWM signal of 1500 microseconds, the thrusters would interpret the command as a spin command. The introduced offset corrects for this issue.
 
 ### Pressure/Depth Sensor
-The pressure arduino interprets the Blue Robotics Pressure Sensor using the MS5837 library. It sends the data over a serial line using each time the sensor gets a new reading. All of the processing for the depth data can be found in the `data_pub` package. 
+The pressure arduino interprets the Blue Robotics Pressure Sensor using the MS5837 library. It sends the data over a serial line using each time the sensor gets a new reading. All of the processing for the depth data can be found in the `data_pub` package.
