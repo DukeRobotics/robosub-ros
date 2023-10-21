@@ -30,13 +30,13 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
   }, [renderDone]);
 
   const callService = useCallback(
-    (serviceName: string, request: string) => {
+    async (serviceName: string, request: string) => {
       if (!context.callService) {
         return;
       }
 
       try {
-        const response = context.callService(serviceName, JSON.parse(request));
+        const response = await context.callService(serviceName, JSON.parse(request));
         JSON.stringify(response); // Attempt serializing the response, to throw an error on failure
         setState((oldState) => ({
           ...oldState,
@@ -86,8 +86,8 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
         <button
           disabled={context.callService == undefined || state.serviceName === ""}
           style={{ width: "100%", minHeight: "2rem" }}
-          onClick={() => {
-            callService(state.serviceName, state.request);
+          onClick={async () => {
+            await callService(state.serviceName, state.request);
           }}
         >
           {`Call ${state.serviceName}`}
