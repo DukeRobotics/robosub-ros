@@ -18,6 +18,6 @@
     "pretest": "foxglove-extension pretest"
   },
   "dependencies": {
-    "@textea/json-viewer": "^2.2.0"
+    "@textea/json-viewer": "^3.2.2"
   }
 }
