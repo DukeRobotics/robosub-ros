@@ -11,17 +11,22 @@ find_package(catkin REQUIRED COMPONENTS
 
 add_message_files(
   FILES
+  ControlTypes.msg
+  CVObject.msg
   DVLRaw.msg
   HydrophoneSet.msg
-  ThrusterAllocs.msg
-  ServoAngleArray.msg
-  CVObject.msg
   Memory.msg
-  SystemUsage.msg
-  SimObject.msg
-  SimObjectArray.msg
+  PIDGain.msg
+  PIDGains.msg
   RemoteLaunchInfo.msg
   RunningNode.msg
+  ServoAngleArray.msg
+  SimObject.msg
+  SimObjectArray.msg
+  SonarRequest.msg
+  SonarResponse.msg
+  SystemUsage.msg
+  ThrusterAllocs.msg
 )
 
 add_service_files(
@@ -29,10 +34,12 @@ add_service_files(
   ConnectDepthAICamera.srv
   ConnectUSBCamera.srv
   EnableModel.srv
+  GetRunningNodes.srv
+  SetControlTypes.srv
+  SetPIDGains.srv
   SetServo.srv
   StartLaunch.srv
   StopLaunch.srv
-  GetRunningNodes.srv
 )
 
 add_action_files(

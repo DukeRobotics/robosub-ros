@@ -1,0 +1,26 @@
+<launch>
+
+	<arg name="sim" default="false" />
+
+    <!-- Start PID nodes for controls -->
+    <include file="$(find controls)/launch/position_pid.launch">
+        <arg name="sim" value="$(arg sim)" />
+    </include>
+
+    <!-- <include file="$(find controls)/launch/velocity_pid.launch">
+        <arg name="sim" value="$(arg sim)" />
+    </include> -->
+
+    <!-- Create a local/global transform manually. Used for testing controls without using simulation. /-->
+    <!--node pkg="tf2_ros" type="static_transform_publisher" name="base_link_publisher" args="0 0 0 0 0 0 1 odom base_link" /-->
+
+	<!-- Start controls node that republishes state to separate topics -->
+	<node pkg="controls" name="state_republisher" type="state_republisher.py" />
+
+	<!-- Start controls node that listens to PID and outputs thruster allocations -->
+	<node pkg="controls" name="thruster_controls" type="thruster_controls.py" output="screen" />
+
+	<!-- Start desired_state node that processes inputs from motion planning and outputs setpoints to PID -->
+	<node pkg="controls" name="desired_state" type="desired_state.py" output="screen" />
+
+</launch>
