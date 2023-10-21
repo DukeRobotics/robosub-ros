@@ -82,9 +82,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
       </div>
       <div>
         <button
-          disabled={
-            context.advertise == undefined || context.publish == undefined || state.topicName === ""
-          }
+          disabled={context.advertise == undefined || context.publish == undefined || state.topicName === ""}
           style={{ width: "100%", minHeight: "2rem" }}
           onClick={() => {
             publishTopic(state.topicName, state.request);

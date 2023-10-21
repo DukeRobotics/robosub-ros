@@ -1,10 +1,4 @@
-import {
-  PanelExtensionContext,
-  RenderState,
-  Topic,
-  MessageEvent,
-  Immutable,
-} from "@foxglove/studio";
+import { PanelExtensionContext, RenderState, Topic, MessageEvent, Immutable } from "@foxglove/studio";
 import { JsonViewer } from "@textea/json-viewer";
 import { useLayoutEffect, useEffect, useState, useMemo } from "react";
 import { createRoot } from "react-dom/client";
@@ -56,9 +50,7 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
 
       // Save the most recent message on our topic.
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        const lastFrame = renderState.currentFrame[
-          renderState.currentFrame.length - 1
-        ] as MessageEvent;
+        const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent;
 
         setState((oldState) => ({ ...oldState, message: lastFrame }));
       }

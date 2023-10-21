@@ -2,6 +2,7 @@ import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio"
 import Alert from "@mui/material/Alert";
 import { JsonViewer } from "@textea/json-viewer";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { JSX } from "react/jsx-runtime";
 import { createRoot } from "react-dom/client";
 
 type State = {
@@ -86,8 +87,10 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
         <button
           disabled={context.callService == undefined || state.serviceName === ""}
           style={{ width: "100%", minHeight: "2rem" }}
-          onClick={async () => {
-            await callService(state.serviceName, state.request);
+          onClick={() => {
+            void (async () => {
+              await callService(state.serviceName, state.request);
+            })();
           }}
         >
           {`Call ${state.serviceName}`}
