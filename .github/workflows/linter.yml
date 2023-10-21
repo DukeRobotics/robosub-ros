@@ -22,9 +22,10 @@ jobs:
         env:
           VALIDATE_ALL_CODEBASE: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LINTER_RULES_PATH: /
           VALIDATE_BASH: true
           VALIDATE_BASH_EXEC: true
           VALIDATE_PYTHON_FLAKE8: true
           VALIDATE_TSX: true
           VALIDATE_TYPESCRIPT_ES: true
-          TYPESCRIPT_ES_CONFIG_FILE: /home/runner/work/robosub-ros/robosub-ros/foxglove/.eslintrc.yaml
+          TYPESCRIPT_ES_CONFIG_FILE: foxglove/.eslintrc.yaml
