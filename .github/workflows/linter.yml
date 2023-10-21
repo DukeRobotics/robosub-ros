@@ -19,3 +19,5 @@ jobs:
           VALIDATE_BASH: true
           VALIDATE_BASH_EXEC: true
           VALIDATE_PYTHON_FLAKE8: true
+          VALIDATE_TSX: true
+          VALIDATE_TYPESCRIPT_ES: true

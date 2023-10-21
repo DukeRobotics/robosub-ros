@@ -1,7 +1,7 @@
 # Controls
 
 
-These are the instructions to initialize and test our controls algorithm. We take input from various topics and move the robot based on desired global position, global velocity, or power. By default, we publish thruster power outputs (thruster allocations) on a range [-128, 127].
+These are the instructions to initialize and test our controls algorithm. We take input from various topics and move the robot based on desired global position, global velocity, or power. By default, we publish thruster power outputs (thruster allocations) as floats in range [-1, 1].
 
 Thruster information is read from `*.config` files, which are written in YAML. The ordering of the thruster allocations is determined by the order in which the thrusters appear the config file.
 
@@ -43,7 +43,7 @@ rostopic echo /control_effort/<var>
 Where &lt;var&gt; is x, y, z, roll, pitch, or yaw. To check final thruster allocations:
 
 ```
-rostopic echo /offboard_comms/ThrusterSpeeds
+rostopic echo /controls/thruster_allocs
 ```
 
 
@@ -83,7 +83,7 @@ Desired State Topics:
 
 Current State Topics:
 
-  - ```/state``` 
+  - ```/state```
     + The current state of the robot or simulated robot, in global position, orientation, linear velocity, and angular velocity
     + Type: nav_msgs/Odometry
 
@@ -91,9 +91,9 @@ Current State Topics:
 
 Thruster speeds are published for the use of the simulation and Arduino.
 
-  - ```/offboard/thruster_speeds```
-    + An array of 8 8-bit integers [-128,127] describing the allocation of the thrusters sent to the Arduino
-    + Type: custom_msgs.msg/ThrusterSpeeds
+  - ```/controls/thruster_allocs```
+    + An array of 8 floats in range [-1, 1] describing the allocation of the thrusters sent to the Arduino
+    + Type: custom_msgs.msg/ThrusterAllocs
 
 
 ## How It Works
@@ -111,7 +111,7 @@ This package has the following launch files:
 * `controls.launch` is the entrypoint to the package. It takes in a `sim` argument to indicate whether we are publishing for the simulation or the Arduino. It includes the `pid.launch` file to launch the PID for position loops. It then starts the three nodes above.
 * `position_pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for position control on x, y, z, roll, pitch, and yaw. It defines the PID parameters at the top, depending on the `sim` argument passed in.
 
-* `velocity_pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for velocity control on x, y, z, roll, pitch, and yaw. 
+* `velocity_pid.launch` spins up six [ROS PID](http://wiki.ros.org/pid) nodes for velocity control on x, y, z, roll, pitch, and yaw.
 
 ### Flow
 
@@ -138,7 +138,7 @@ This package has the following launch files:
 
 ### PID Flow
 
-This package uses two PID Loops. When using Position Control, the desired state input is used as the setpoint for the position loop. When using Velocity Control, the desired state input is used as a setpoint for the velocity loops. When using Power Control both of the PID loops are bypassed and the input is directly published to thruster_controls. 
+This package uses two PID Loops. When using Position Control, the desired state input is used as the setpoint for the position loop. When using Velocity Control, the desired state input is used as a setpoint for the velocity loops. When using Power Control both of the PID loops are bypassed and the input is directly published to thruster_controls.
 
 ```
                     Position Control
@@ -146,7 +146,7 @@ desired_state -------> position_pid -------> thruster_controls
 
 
                     Velocity Control
-desired_state -------> velocity_pid -------> thruster_controls        
+desired_state -------> velocity_pid -------> thruster_controls
 ```
 
 ### Configuration
@@ -157,8 +157,9 @@ Robot frame is defined as the positive x-axis pointing in the "forward" directio
 
 A thruster's starting orientation when aligned with robot frame is defined as the positive x-axis pointing in the "forward" direction of the thruster's movement, z-axis pointing up, and y-axis following the right hand rule. Note that a roll in the thruster orientation theoretically has no effect on its direction of thrust, as it just rotates about the axis of thrust. After accounting for flipping, sending a positive power to a thruster should make it move towards its "forward" or +x direction. The ordering of the thruster power outputs is determined by the order in which the thrusters appear the config file.
 
-`cthulhu.config` is the config file for Cthulhu, our RoboSub 2019 and RoboSub 2020 robot.
+`cthulhu.config` is the config file for Cthulhu, our RoboSub 2019-2022 robot.
 
+`oogway.config` is the config file for Oogway, our RoboSub 2023-present robot.
 
 ### Scripts
 
