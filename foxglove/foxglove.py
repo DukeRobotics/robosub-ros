@@ -80,10 +80,8 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
     except FileNotFoundError:
         raise SystemExit("npm not found. Install npm and try again.")
 
-    try:
-        run_at_path("yarn -v", FOXGLOVE_PATH)
-    except FileNotFoundError:
-        raise SystemExit("Yarn not found. Install Yarn and try again.")
+    run_at_path("npm ci", FOXGLOVE_PATH)
+    run_at_path("npx patch-package --patch-dir patches", FOXGLOVE_PATH)
 
     successes = 0
     for extension in extension_paths:
@@ -92,12 +90,6 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
         if not (extension / "package.json").is_file():
             print(f"{extension.name}: skipped (no package.json)")
             continue
-
-        run("yarn install")
-        (extension / "yarn.lock").unlink()
-        run("npm ci --legacy-peer-deps")
-
-        run("npx patch-package --patch-dir ../../patches")
 
         run("npm run local-install")
 

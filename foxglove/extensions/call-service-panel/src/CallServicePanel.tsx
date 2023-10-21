@@ -1,9 +1,8 @@
-import { PanelExtensionContext, RenderState } from "@foxglove/studio";
+import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
+import Alert from "@mui/material/Alert";
+import { JsonViewer } from "@textea/json-viewer";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import ReactDOM from "react-dom";
-import ReactJson from "react-json-view";
-import Alert from '@mui/material/Alert';
-
+import { createRoot } from "react-dom/client";
 
 type State = {
   serviceName: string;
@@ -18,7 +17,7 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
   const [state, setState] = useState<State>({ serviceName: "", request: "{}" });
 
   useLayoutEffect(() => {
-    context.onRender = (renderState: RenderState, done) => {
+    context.onRender = (renderState: Immutable<RenderState>, done) => {
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
       setRenderDone(() => done);
     };
@@ -49,14 +48,16 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
         console.error(error);
       }
     },
-    [context.callService],
+    [context],
   );
 
   return (
     <div style={{ padding: "1rem" }}>
       <h2>Call Service</h2>
       {context.callService == undefined && (
-        <Alert variant="filled" severity="error">Calling services is not supported by this connection</Alert>
+        <Alert variant="filled" severity="error">
+          Calling services is not supported by this connection
+        </Alert>
       )}
 
       <h4>Service Name</h4>
@@ -85,8 +86,8 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
         <button
           disabled={context.callService == undefined || state.serviceName === ""}
           style={{ width: "100%", minHeight: "2rem" }}
-          onClick={() => {
-            callService(state.serviceName, state.request);
+          onClick={async () => {
+            await callService(state.serviceName, state.request);
           }}
         >
           {`Call ${state.serviceName}`}
@@ -95,12 +96,12 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
 
       <div>
         <h4>Response</h4>
-        <ReactJson
-          name={null}
-          src={state.error ? { error: state.error.message } : state.response ?? {}}
+        <JsonViewer
+          rootName={false}
+          value={state.error ? { error: state.error.message } : state.response ?? {}}
           indentWidth={2}
+          theme={state.colorScheme}
           enableClipboard={false}
-          theme={state.colorScheme === "dark" ? "monokai" : "rjv-default"}
           displayDataTypes={false}
         />
       </div>
@@ -109,10 +110,11 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
 }
 
 export function initCallServicePanel(context: PanelExtensionContext): () => void {
-  ReactDOM.render(<CallServicePanel context={context} />, context.panelElement);
+  const root = createRoot(context.panelElement as HTMLElement);
+  root.render(<CallServicePanel context={context} />);
 
   // Return a function to run when the panel is removed
   return () => {
-    ReactDOM.unmountComponentAtNode(context.panelElement);
+    root.unmount();
   };
 }

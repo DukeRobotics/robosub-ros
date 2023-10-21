@@ -1,14 +1,19 @@
-import { PanelExtensionContext, RenderState, Topic, MessageEvent } from "@foxglove/studio";
+import {
+  PanelExtensionContext,
+  RenderState,
+  Topic,
+  MessageEvent,
+  Immutable,
+} from "@foxglove/studio";
+import { JsonViewer } from "@textea/json-viewer";
 import { useLayoutEffect, useEffect, useState, useMemo } from "react";
-import ReactDOM from "react-dom";
-import ReactJson from "react-json-view";
-import Alert from '@mui/material/Alert';
+import { createRoot } from "react-dom/client";
 
 type State = {
   topic?: string;
   colorScheme?: RenderState["colorScheme"];
   topics?: readonly Topic[];
-  message?: MessageEvent<any>;
+  message?: MessageEvent;
 };
 
 function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
@@ -20,10 +25,7 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
   });
 
   // Get topics
-  const topics = useMemo(
-    () => (state.topics ?? []),
-    [state.topics],
-  );
+  const topics = useMemo(() => state.topics ?? [], [state.topics]);
 
   useEffect(() => {
     // Save our state to the layout when the topic changes.
@@ -44,14 +46,20 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
 
   // Setup our onRender function and start watching topics and currentFrame for messages.
   useLayoutEffect(() => {
-    context.onRender = (renderState: RenderState, done) => {
+    context.onRender = (renderState: Immutable<RenderState>, done) => {
       setRenderDone(() => done);
-      setState((oldState) => ({ ...oldState, topics: renderState.topics, colorScheme: renderState.colorScheme }));
-      
+      setState((oldState) => ({
+        ...oldState,
+        topics: renderState.topics,
+        colorScheme: renderState.colorScheme,
+      }));
+
       // Save the most recent message on our topic.
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<any>;
-        
+        const lastFrame = renderState.currentFrame[
+          renderState.currentFrame.length - 1
+        ] as MessageEvent;
+
         setState((oldState) => ({ ...oldState, message: lastFrame }));
       }
     };
@@ -59,7 +67,6 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
     context.watch("topics");
     context.watch("currentFrame");
     context.watch("colorScheme");
-
   }, [context]);
 
   // Call our done function at the end of each render.
@@ -70,14 +77,13 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
   return (
     <div style={{ height: "100%", padding: "1rem" }}>
       <h2>Subscribe Topic</h2>
-      {context.subscribe == undefined && (
-        <Alert variant="filled" severity="error">Subscribing to topics is not supported by this connection</Alert>
-      )}
       <div>
         <label>Choose a topic to display: </label>
         <select
           value={state.topic}
-          onChange={(event) => setState((oldState) => ({ ...oldState, topic: event.target.value }))}
+          onChange={(event) => {
+            setState((oldState) => ({ ...oldState, topic: event.target.value }));
+          }}
           style={{ flex: 1 }}
         >
           {topics.map((topic) => (
@@ -87,25 +93,26 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
           ))}
         </select>
 
-        <ReactJson
-          name={null}
-          src={state.message as object}
+        <JsonViewer
+          rootName={false}
+          value={state.message as object}
           indentWidth={2}
-          theme={state.colorScheme === "dark" ? "monokai" : "rjv-default"}
+          theme={state.colorScheme}
           enableClipboard={false}
           displayDataTypes={false}
+          maxDisplayLength={10}
         />
-
       </div>
     </div>
   );
 }
 
 export function initSubscribeTopicPanel(context: PanelExtensionContext): () => void {
-  ReactDOM.render(<SubscribeTopicPanel context={context} />, context.panelElement);
+  const root = createRoot(context.panelElement as HTMLElement);
+  root.render(<SubscribeTopicPanel context={context} />);
 
   // Return a function to run when the panel is removed
   return () => {
-    ReactDOM.unmountComponentAtNode(context.panelElement);
+    root.unmount();
   };
 }
