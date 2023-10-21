@@ -10,26 +10,44 @@ import Paper from '@mui/material/Paper';
 
 import { Immutable, PanelExtensionContext, RenderState, Topic, MessageEvent } from "@foxglove/studio";
 import { useLayoutEffect, useEffect, useState, useRef, useMemo } from "react";
-import ReactDOM from "react-dom";
+import * as ReactDOM from "react-dom";
 import Alert from '@mui/material/Alert';
 
-type SensorsTime = {
-  DVL: number;
-  IMU: number;
-  Depth: number;
-  DepthAI: number;
-  Mono: number;
-  Sonar: number;
+const topics_dict = {'DVL': '/sensors/dvl/odom', 
+                    'IMU': '/vectornav/IMU', 
+                    'Depth': '/sensors/depth', 
+                    'DepthAI':'/camera/front/rgb/preview/compressed', 
+                    'Mono': '/camera/usb_camera/compressed', 
+                    'Sonar': '/sonar/status'}
+
+//Reversed dictionary of topics_dict
+const topics_dict_reversed: { [key: string]: string } = {};
+for (const [key, value] of Object.entries(topics_dict)) {
+  topics_dict_reversed[value] = key;
 }
 
-type ConnectStatus = {
-  DVL: boolean;
-  IMU: boolean;
-  Depth: boolean;
-  DepthAI: boolean;
-  Mono: boolean;
-  Sonar: boolean;
-}
+type SensorsTime = {} & Record<keyof typeof topics_dict, number>;
+type ConnectStatus = {} & Record<keyof typeof topics_dict, boolean>;
+
+
+
+// type SensorsTime = {
+//   DVL: number;
+//   IMU: number;
+//   Depth: number;
+//   DepthAI: number;
+//   Mono: number;
+//   Sonar: number;
+// }
+
+// type ConnectStatus = {
+//   DVL: boolean;
+//   IMU: boolean;
+//   Depth: boolean;
+//   DepthAI: boolean;
+//   Mono: boolean;
+//   Sonar: boolean;
+// }
 
 type State = {
   topic?: string;
@@ -68,7 +86,6 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
     return Initialstate
   });
 
-
   // Get topics
   const imageTopics = useMemo(
     () => (topics ?? []),
@@ -79,10 +96,17 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
     // Save our state to the layout when the topic changes.
     context.saveState({ topic: state.topic });
 
-    if (state.topic) {
-      // Subscribe to the new image topic when a new topic is chosen.
-      context.subscribe([{ topic:"/sensors/dvl/odom" }, { topic: "/vectornav/IMU"}, { topic: "/sensors/depth"}, { topic: "/camera/front/rgb/preview/compressed"}, { topic: "/camera/usb_camera/compressed"}, { topic: "/sonar/status"}]);
+    // if (state.topic) {
+    //   // Subscribe to the new image topic when a new topic is chosen.
+    //   context.subscribe([{ topic:"/sensors/dvl/odom" }, { topic: "/vectornav/IMU"}, { topic: "/sensors/depth"}, { topic: "/camera/front/rgb/preview/compressed"}, { topic: "/camera/usb_camera/compressed"}, { topic: "/sonar/status"}]);
+    // }
+    //make a list of all topics [{topic: topic1}, {topic: topic2 }]
+    const topicList: { topic: string }[] = [];
+    for (const [key, value] of Object.entries(topics_dict)) {
+      topicList.push({topic: value})
     }
+    //Subscribe to all topics
+    context.subscribe(topicList)
   }, [context, state.topic]);
 
   // Choose our first available image topic as a default once we have a list of topics available.
@@ -115,32 +139,38 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
         //Switch statements on the topic of the last frame 
         
         if(lastFrame){
-        switch(lastFrame.topic) {
-          case "/sensors/dvl/odom":
-            state.sensorstime.DVL = state.currentTime;
-            state.connectStatus.DVL = true;
-            break;
-          case "/vectornav/IMU":
-            state.sensorstime.IMU = state.currentTime;
-            state.connectStatus.IMU = true;
-            break;
-          case "/sensors/depth":
-            state.sensorstime.Depth = state.currentTime;
-            state.connectStatus.Depth = true;
-            break;
-          case "/camera/front/rgb/preview/compressed":
-            state.sensorstime.DepthAI = state.currentTime;
-            state.connectStatus.DepthAI = true;
-            break;
-          case "/camera/usb_camera/compressed":
-            state.sensorstime.Mono = state.currentTime;
-            state.connectStatus.Mono = true;
-            break;
-          case "/sonar/status":
-            state.sensorstime.Sonar = state.currentTime;
-            state.connectStatus.Sonar = true;
-            break;
-        }
+          // switch(lastFrame.topic) {
+          //   case "/sensors/dvl/odom":
+          //     state.sensorstime.DVL = state.currentTime;
+          //     state.connectStatus.DVL = true;
+          //     break;
+          //   case "/vectornav/IMU":
+          //     state.sensorstime.IMU = state.currentTime;
+          //     state.connectStatus.IMU = true;
+          //     break;
+          //   case "/sensors/depth":
+          //     state.sensorstime.Depth = state.currentTime;
+          //     state.connectStatus.Depth = true;
+          //     break;
+          //   case "/camera/front/rgb/preview/compressed":
+          //     state.sensorstime.DepthAI = state.currentTime;
+          //     state.connectStatus.DepthAI = true;
+          //     break;
+          //   case "/camera/usb_camera/compressed":
+          //     state.sensorstime.Mono = state.currentTime;
+          //     state.connectStatus.Mono = true;
+          //     break;
+          //   case "/sonar/status":
+          //     state.sensorstime.Sonar = state.currentTime;
+          //     state.connectStatus.Sonar = true;
+          //     break;
+          // }
+          const topicKey = topics_dict_reversed[lastFrame.topic]?.toString();
+          if (topicKey !== undefined) {
+            //const topicKey = topics_dict_reversed[lastFrame.topic];
+            state.sensorstime[topicKey] = state.currentTime;
+            state.connectStatus[topicKey] = true;
+          }          
         }
       
     } 
@@ -176,9 +206,6 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
     renderDone?.();
   }, [renderDone]);
 
-  function sleep(ms: any) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 /*
 Might not need asynch and table?
 
@@ -259,7 +286,6 @@ const SensorTable = [
               <TableCell align="right">/sensors/dvl/odom</TableCell>
               <TableCell align="right">{state.connectStatus?.DVL ? "Connected" : "Disconnected"}</TableCell>
             </TableRow>
-            
             <TableRow
               key={"IMU"}
               sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -267,6 +293,7 @@ const SensorTable = [
               <TableCell>IMU</TableCell>
               <TableCell align="right">/sensors/imu/odom</TableCell>
               <TableCell align="right">{state.connectStatus?.IMU ? "Connected" : "Disconnected"}</TableCell>
+
             </TableRow>
 
             <TableRow
@@ -276,6 +303,7 @@ const SensorTable = [
               <TableCell>Depth</TableCell>
               <TableCell align="right">/sensors/depth</TableCell>
               <TableCell align="right">{state.connectStatus?.Depth ? "Connected" : "Disconnected"}</TableCell>
+
             </TableRow>
             
             <TableRow
@@ -285,6 +313,7 @@ const SensorTable = [
               <TableCell>DepthAI Camera</TableCell>
               <TableCell align="right">/camera/front/rgb/preview/compressed</TableCell>
               <TableCell align="right">{state.connectStatus?.DepthAI ? "Connected" : "Disconnected"}</TableCell>
+
             </TableRow>
 
             <TableRow
@@ -294,6 +323,7 @@ const SensorTable = [
               <TableCell>Mono Camera</TableCell>
               <TableCell align="right">/camera/usb_camera/compressed</TableCell>
               <TableCell align="right">{state.connectStatus?.Mono ? "Connected" : "Disconnected"}</TableCell>
+
             </TableRow>
 
             <TableRow
@@ -303,6 +333,8 @@ const SensorTable = [
               <TableCell>Sonar</TableCell>
               <TableCell align="right">/sonar/status</TableCell>
               <TableCell align="right">{state.connectStatus?.Sonar ? "Connected" : "Disconnected"}</TableCell>
+            
+
             </TableRow>
         </TableBody>
         </Table>
