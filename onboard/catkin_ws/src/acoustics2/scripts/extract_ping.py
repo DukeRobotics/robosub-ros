@@ -20,7 +20,7 @@ def butter_bandpass_filter(data, lowcut=LOWCUT, highcut=HIGHCUT, fs=SAMPLE_RATE,
     return y
 
 # Filter and detect peaks for each channel
-def detect_wave_packet(channel_data, channel_num):
+def detect_wave_packet(channel_data):
 
     # Filter the channel data
     filtered_signal = butter_bandpass_filter(channel_data)
@@ -28,25 +28,40 @@ def detect_wave_packet(channel_data, channel_num):
     # Find peaks in the filtered signal
     peaks, _ = find_peaks(filtered_signal, height=0.5, distance=100)
 
-# Filter and detect peaks for all channels
-timeseries = gen_timeseries(np.array([10,10,0]))
+    return peaks, filtered_signal
 
-# Plot the raw data
-plt.figure(figsize=(10, 6))
-for channel_num, channel_data in enumerate(timeseries, 1):
-    plt.subplot(2, 2, channel_num)
-    plt.plot(channel_data)
-    plt.title(f'Channel {channel_num} - Raw')
+def main():
+    # Filter and detect peaks for all channels
+    timeseries = gen_timeseries(np.array([10,10,0]))
+    
+    peaks = []
+    filtered_signals = []
+    for channel_data in timeseries:
+        channel_peaks, filtered_signal = detect_wave_packet(channel_data)
+        peaks.append(channel_peaks)
+        filtered_signals.append(filtered_signal)
 
-plt.tight_layout()
-plt.show()
+    # Plot the detected peaks against both the raw and filtered signals
+    # 2x4 subplots
 
-# Plot the filtered data
-plt.figure(figsize=(10, 6))
-for channel_num, channel_data in enumerate(timeseries, 1):
-    plt.subplot(2, 2, channel_num)
-    plt.plot(butter_bandpass_filter(channel_data))
-    plt.title(f'Channel {channel_num} - Filtered')
+    fig, ax = plt.subplots(4,2, figsize=(10,10))
 
-plt.tight_layout()
-plt.show()
+    for i in range(4):
+        ax[i,0].plot(timeseries[i])
+        ax[i,0].plot(peaks[i], timeseries[i][peaks[i]], "x")
+        ax[i,1].plot(filtered_signals[i])
+        ax[i,1].plot(peaks[i], filtered_signals[i][peaks[i]], "x")
+
+        ax[i,0].set_title(f"Hydrophone {i}")
+        ax[i,0].set_xlabel("Time (s)")
+        ax[i,0].set_ylabel("Amplitude")
+        ax[i,1].set_title(f"Hydrophone {i}")
+        ax[i,1].set_xlabel("Time (s)")
+        ax[i,1].set_ylabel("Amplitude")
+
+    plt.tight_layout()
+    plt.show()
+
+
+if __name__ == '__main__':
+    main()
