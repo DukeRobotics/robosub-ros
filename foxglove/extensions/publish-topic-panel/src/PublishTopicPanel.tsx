@@ -1,7 +1,7 @@
-import { PanelExtensionContext, RenderState } from "@foxglove/studio";
+import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
 import Alert from "@mui/material/Alert";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 
 type State = {
   topicName: string;
@@ -15,7 +15,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
   const [state, setState] = useState<State>({ topicName: "", request: "{}" });
 
   useLayoutEffect(() => {
-    context.onRender = (renderState: RenderState, done) => {
+    context.onRender = (renderState: Immutable<RenderState>, done) => {
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
       setRenderDone(() => done);
     };
@@ -98,10 +98,11 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
 }
 
 export function initPublishTopicPanel(context: PanelExtensionContext): () => void {
-  ReactDOM.render(<PublishTopicPanel context={context} />, context.panelElement);
+  const root = createRoot(context.panelElement as HTMLElement);
+  root.render(<PublishTopicPanel context={context} />);
 
   // Return a function to run when the panel is removed
   return () => {
-    ReactDOM.unmountComponentAtNode(context.panelElement);
+    root.unmount();
   };
 }
