@@ -1,2 +1,5 @@
 # Sensors Status Panel
-Panel that displays sensors status
+Description
+
+## Usage
+Description
