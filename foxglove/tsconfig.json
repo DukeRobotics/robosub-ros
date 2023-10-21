@@ -4,10 +4,11 @@
   "include": ["./extensions/*/src/*"],
   "compilerOptions": {
     "lib": ["dom"],
-    "target": "es6",
+    "composite": false,
+    "declaration": false,
 
     "noFallthroughCasesInSwitch": true,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "noImplicitReturns": true,
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": false,
