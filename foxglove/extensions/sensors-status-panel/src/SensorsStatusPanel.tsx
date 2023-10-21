@@ -8,7 +8,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 
-import { PanelExtensionContext, RenderState, Topic, MessageEvent } from "@foxglove/studio";
+import { Immutable, PanelExtensionContext, RenderState, Topic, MessageEvent } from "@foxglove/studio";
 import { useLayoutEffect, useEffect, useState, useRef, useMemo } from "react";
 import ReactDOM from "react-dom";
 import Alert from '@mui/material/Alert';
@@ -95,7 +95,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
   // var lastRender = renderState.currentTime?.sec;
   // Setup our onRender function and start watching topics and currentFrame for messages.
   useLayoutEffect(() => {
-    context.onRender = (renderState: RenderState, done) => {
+    context.onRender = (renderState: Immutable<RenderState>, done) => {
       setRenderDone(() => done);
       
       //Updates CurrentTime to the current time
