@@ -11,7 +11,6 @@ import Paper from '@mui/material/Paper';
 import { PanelExtensionContext, RenderState, Topic, MessageEvent } from "@foxglove/studio";
 import { useLayoutEffect, useEffect, useState, useRef, useMemo } from "react";
 import ReactDOM from "react-dom";
-import ReactJson from "react-json-view";
 import Alert from '@mui/material/Alert';
 
 type SensorsTime = {
@@ -204,15 +203,6 @@ const SensorTable = [
             </option>
           ))}
         </select>
-
-        <ReactJson
-          name={null}
-          src={message}
-          indentWidth={2}
-          theme={state.colorScheme === "dark" ? "monokai" : "rjv-default"}
-          enableClipboard={false}
-          displayDataTypes={false}
-        />
 
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
