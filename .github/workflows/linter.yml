@@ -16,6 +16,7 @@ jobs:
         run: |
           cd foxglove
           npm ci
+          pwd
 
       - name: Lint Code Base
         uses: github/super-linter@v3.17.0
