@@ -5,7 +5,6 @@ This directory contains Duke Robotics extensions and layouts.
 
 ## Dependencies
 - [npm (Latest)](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
-- [Yarn Classic](https://classic.yarnpkg.com/lang/en/docs/install)
 - [Foxglove Studio (Latest)](https://foxglove.dev/download)
   - **Note:** Automatic installation of custom extensions and layouts requires Foxglove Studio Desktop. For Foxglove Studio Web, layouts must be manually uploaded and custom extensions are not compatible.
 
