@@ -16,7 +16,6 @@ jobs:
         run: |
           cd foxglove
           npm ci
-          pwd
 
       - name: Lint Code Base
         uses: github/super-linter@v3.17.0
@@ -28,4 +27,4 @@ jobs:
           VALIDATE_PYTHON_FLAKE8: true
           VALIDATE_TSX: true
           VALIDATE_TYPESCRIPT_ES: true
-          TYPESCRIPT_ES_CONFIG_FILE: foxglove/.eslintrc.yaml
+          TYPESCRIPT_ES_CONFIG_FILE: /home/runner/work/robosub-ros/robosub-ros/foxglove/.eslintrc.yaml
