@@ -16,4 +16,17 @@ The remote launch node allows for nodes to launch other nodes in this workspace.
 roslaunch system_utils remote_launch.launch
 ```
 
+## Sensor Check
+The sensor check script will enable the user to automatically check if the robot's most significant sensors are publishing. The topics which `sensor_check.py` will check are 
+- DVL - `/sensors/dvl/odom`
+- IMU - `/vectornav/IMU`
+- Depth sensor - `/sensors/depth`
+- State - `/state`
+- Stereo camera - `/camera/front/rgb/preview/compressed`
+- Sonar - `/sonar/status`
+To add more sensors to check, simpply include the name of the rostopic and the message type under `SENSOR_SUBSCRIBE_TOPICS`. To run the script, use the command
+```bash
+roslaunch system_utils sensor_check.launch
+```
+
 To start a node with the `/start_node` service, provide the package, file, any args (leave empty if none), and if it is a launch file or not (are we running roslaunch or rosrun). It will return a pid in the response. To stop a node, simply provide this pid to the `/stop_node` process, and the node will then be terminated.

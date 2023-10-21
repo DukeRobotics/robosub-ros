@@ -1,0 +1,29 @@
+diff --git a/node_modules/create-foxglove-extension/dist/package.js b/node_modules/create-foxglove-extension/dist/package.js
+index 700c694..05a684a 100644
+--- a/node_modules/create-foxglove-extension/dist/package.js
++++ b/node_modules/create-foxglove-extension/dist/package.js
+@@ -157,8 +157,6 @@ async function collect(extensionPath, pkg) {
+     const files = new Set();
+     const baseFiles = [
+         (0, path_1.join)(extensionPath, "package.json"),
+-        (0, path_1.join)(extensionPath, "README.md"),
+-        (0, path_1.join)(extensionPath, "CHANGELOG.md"),
+         (0, path_1.join)(extensionPath, pkg.main),
+     ];
+     for (const file of baseFiles) {
+@@ -167,6 +165,16 @@ async function collect(extensionPath, pkg) {
+         }
+         files.add(file);
+     }
++    const optionalFiles = [
++        (0, path_1.join)(extensionPath, "README.md"),
++        (0, path_1.join)(extensionPath, "CHANGELOG.md"),
++    ]
++    for (const file of optionalFiles) {
++        if (await pathExists(file, FileType.File)) {
++            files.add(file);
++        }
++    }
+     if (pkg.files != undefined) {
+         for (const relFile of pkg.files) {
+             const file = (0, path_1.join)(extensionPath, relFile);
