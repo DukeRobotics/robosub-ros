@@ -1,6 +1,5 @@
 {
   "name": "foxglove",
-  "private": true,
   "workspaces": [
     "extensions/*"
   ],
@@ -10,8 +9,8 @@
     "@foxglove/studio": "^1.74.1",
     "@types/react": "^18.2.31",
     "@types/react-dom": "^18.2.14",
-    "@typescript-eslint/eslint-plugin": "6.8.0",
-    "@typescript-eslint/parser": "6.8.0",
+    "@typescript-eslint/eslint-plugin": "^6.8.0",
+    "@typescript-eslint/parser": "^6.8.0",
     "create-foxglove-extension": "0.8.6",
     "eslint": "^8.52.0",
     "eslint-config-prettier": "^8.0.0",
@@ -27,7 +26,6 @@
     "prettier": "^3.0.3",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "style-loader": "^3.3.3",
     "typescript": "^5.2.2"
   },
   "dependencies": {
