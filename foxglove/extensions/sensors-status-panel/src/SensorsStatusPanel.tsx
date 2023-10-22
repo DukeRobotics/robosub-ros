@@ -29,8 +29,6 @@ for (const [key, value] of Object.entries(topics_dict)) {
 type SensorsTime = {} & Record<keyof typeof topics_dict, number>;
 type ConnectStatus = {} & Record<keyof typeof topics_dict, boolean>;
 
-
-
 // type SensorsTime = {
 //   DVL: number;
 //   IMU: number;
@@ -165,24 +163,35 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
           //     state.connectStatus.Sonar = true;
           //     break;
           // }
-          const topicKey = topics_dict_reversed[lastFrame.topic]?.toString();
-          if (topicKey !== undefined) {
-            //const topicKey = topics_dict_reversed[lastFrame.topic];
-            state.sensorstime[topicKey] = state.currentTime;
-            state.connectStatus[topicKey] = true;
-          }          
+          // try catch statement to see if the topic is in the dictionary
+          //force lastFrame.topic to not be undefined
+
+          try {
+            //force sensorName to not be undefined
+            const sensorName = topics_dict_reversed[lastFrame.topic!] as keyof typeof topics_dict;
+            state.sensorstime[sensorName] = state.currentTime;
+            state.connectStatus[sensorName!] = true;
+          } catch (error) {
+            console.log(error);
+          }
+          
         }
       
     } 
 
     if (state.connectStatus && state.sensorstime && state.currentTime){
       //Compare current time to each sensorstime attribute
-      if (state.currentTime - state.sensorstime.DVL > 5)  {state.connectStatus.DVL = false}
-      if (state.currentTime - state.sensorstime.IMU > 5)  {state.connectStatus.IMU = false}
-      if (state.currentTime - state.sensorstime.Depth > 5)  {state.connectStatus.Depth = false}  
-      if (state.currentTime - state.sensorstime.DepthAI > 5)  {state.connectStatus.DepthAI = false}  
-      if (state.currentTime - state.sensorstime.Mono > 5)  {state.connectStatus.Mono = false}  
-      if (state.currentTime - state.sensorstime.Sonar > 5)  {state.connectStatus.Sonar = false}  
+      // if (state.currentTime - state.sensorstime.DVL > 5)  {state.connectStatus.DVL = false}
+      // if (state.currentTime - state.sensorstime.IMU > 5)  {state.connectStatus.IMU = false}
+      // if (state.currentTime - state.sensorstime.Depth > 5)  {state.connectStatus.Depth = false}  
+      // if (state.currentTime - state.sensorstime.DepthAI > 5)  {state.connectStatus.DepthAI = false}  
+      // if (state.currentTime - state.sensorstime.Mono > 5)  {state.connectStatus.Mono = false}  
+      // if (state.currentTime - state.sensorstime.Sonar > 5)  {state.connectStatus.Sonar = false}  
+      for (const [key, value] of Object.entries(topics_dict)) {
+        if (state.currentTime - state.sensorstime[key as keyof typeof topics_dict] > 5) {
+          state.connectStatus[key as keyof typeof topics_dict] = false;
+        }
+      }
     }
 
       setTopics(renderState.topics);
@@ -247,6 +256,10 @@ const SensorTable = [
   createData('Sonar', '/sonar/status', true),
 ];
 */
+
+//create a table of all the sensors and their status with the goal of being put into a Table component using a for loop
+
+
   return (
     <div style={{ height: "100%", padding: "1rem" }}>
       <h2>Sensors Status Panel</h2>
@@ -278,64 +291,15 @@ const SensorTable = [
           </TableHead>
           <TableBody>
 
-            <TableRow
-              key={"DVL"}
-              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-            >
-              <TableCell>DVL</TableCell>
-              <TableCell align="right">/sensors/dvl/odom</TableCell>
-              <TableCell align="right">{state.connectStatus?.DVL ? "Connected" : "Disconnected"}</TableCell>
-            </TableRow>
-            <TableRow
-              key={"IMU"}
-              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-            >
-              <TableCell>IMU</TableCell>
-              <TableCell align="right">/sensors/imu/odom</TableCell>
-              <TableCell align="right">{state.connectStatus?.IMU ? "Connected" : "Disconnected"}</TableCell>
-
-            </TableRow>
-
-            <TableRow
-              key={"Depth"}
-              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-            >
-              <TableCell>Depth</TableCell>
-              <TableCell align="right">/sensors/depth</TableCell>
-              <TableCell align="right">{state.connectStatus?.Depth ? "Connected" : "Disconnected"}</TableCell>
-
-            </TableRow>
-            
-            <TableRow
-              key={"DepthAI Camera"}
-              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-            >
-              <TableCell>DepthAI Camera</TableCell>
-              <TableCell align="right">/camera/front/rgb/preview/compressed</TableCell>
-              <TableCell align="right">{state.connectStatus?.DepthAI ? "Connected" : "Disconnected"}</TableCell>
-
-            </TableRow>
-
-            <TableRow
-              key={"Mono"}
-              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-            >
-              <TableCell>Mono Camera</TableCell>
-              <TableCell align="right">/camera/usb_camera/compressed</TableCell>
-              <TableCell align="right">{state.connectStatus?.Mono ? "Connected" : "Disconnected"}</TableCell>
-
-            </TableRow>
-
-            <TableRow
-              key={"Sonar"}
-              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-            >
-              <TableCell>Sonar</TableCell>
-              <TableCell align="right">/sonar/status</TableCell>
-              <TableCell align="right">{state.connectStatus?.Sonar ? "Connected" : "Disconnected"}</TableCell>
-            
-
-            </TableRow>
+            {Object.entries(topics_dict).map(([sensor, topic]) => (
+              <TableRow key={sensor} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                <TableCell>{sensor}</TableCell>
+                <TableCell align="right">{topic}</TableCell>
+                <TableCell align="right">
+                  {state.connectStatus?.[sensor as keyof typeof topics_dict] ? "Connected" : "Disconnected"}
+                </TableCell>
+              </TableRow>
+          ))}
         </TableBody>
         </Table>
       </TableContainer>
