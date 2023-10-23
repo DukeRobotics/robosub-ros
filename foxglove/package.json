@@ -13,10 +13,10 @@
     "@typescript-eslint/parser": "^6.8.0",
     "create-foxglove-extension": "0.8.6",
     "eslint": "^8.52.0",
-    "eslint-config-prettier": "^8.0.0",
+    "eslint-config-prettier": "^8.10.0",
     "eslint-plugin-es": "^4.1.0",
     "eslint-plugin-filenames": "^1.3.2",
-    "eslint-plugin-import": "^2.28.1",
+    "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-jest": "^27.4.3",
     "eslint-plugin-prettier": "^5.0.1",
     "eslint-plugin-react": "^7.33.2",
@@ -24,8 +24,8 @@
     "nodemon": "^3.0.1",
     "patch-package": "^8.0.0",
     "prettier": "^3.0.3",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "typescript": "^5.2.2"
   },
   "dependencies": {
