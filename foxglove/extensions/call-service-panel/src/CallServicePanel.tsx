@@ -1,7 +1,7 @@
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
 import Alert from "@mui/material/Alert";
 import { JsonViewer } from "@textea/json-viewer";
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { JSX } from "react/jsx-runtime";
 import { createRoot } from "react-dom/client";
 
@@ -30,27 +30,28 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
     renderDone?.();
   }, [renderDone]);
 
-  const callService = useCallback(
-    async (serviceName: string, request: string) => {
-      if (!context.callService) {
-        return;
-      }
+  const callService = async (serviceName: string, request: string) => {
+    if (!context.callService) {
+      return;
+    }
 
-      try {
-        const response = await context.callService(serviceName, JSON.parse(request));
-        JSON.stringify(response); // Attempt serializing the response, to throw an error on failure
-        setState((oldState) => ({
-          ...oldState,
-          response,
-          error: undefined,
-        }));
-      } catch (error) {
-        setState((oldState) => ({ ...oldState, error: error as Error }));
-        console.error(error);
-      }
-    },
-    [context],
-  );
+    try {
+      const response = await context.callService(serviceName, JSON.parse(request));
+      JSON.stringify(response); // Attempt serializing the response, to throw an error on failure
+      setState((oldState) => ({
+        ...oldState,
+        response,
+        error: undefined,
+      }));
+    } catch (error) {
+      setState((oldState) => ({ ...oldState, error: error as Error }));
+      console.error(error);
+    }
+  };
+
+  const callServiceWithRequest = () => {
+    void callService(state.serviceName, state.request);
+  };
 
   return (
     <div style={{ padding: "1rem" }}>
@@ -87,11 +88,7 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
         <button
           disabled={context.callService == undefined || state.serviceName === ""}
           style={{ width: "100%", minHeight: "2rem" }}
-          onClick={() => {
-            void (async () => {
-              await callService(state.serviceName, state.request);
-            })();
-          }}
+          onClick={callServiceWithRequest}
         >
           {`Call ${state.serviceName}`}
         </button>
