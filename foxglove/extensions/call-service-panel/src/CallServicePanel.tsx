@@ -2,8 +2,8 @@ import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio"
 import Alert from "@mui/material/Alert";
 import { JsonViewer } from "@textea/json-viewer";
 import { useEffect, useLayoutEffect, useState } from "react";
-import { JSX } from "react/jsx-runtime";
 import { createRoot } from "react-dom/client";
+import { JSX } from "react/jsx-runtime";
 
 type State = {
   serviceName: string;
