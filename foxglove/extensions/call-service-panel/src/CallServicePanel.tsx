@@ -2,8 +2,8 @@ import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio"
 import Alert from "@mui/material/Alert";
 import { JsonViewer } from "@textea/json-viewer";
 import { useEffect, useLayoutEffect, useState } from "react";
-import { createRoot } from "react-dom/client";
 import { JSX } from "react/jsx-runtime";
+import { createRoot } from "react-dom/client";
 
 type State = {
   serviceName: string;
@@ -17,19 +17,21 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
   const [state, setState] = useState<State>({ serviceName: "", request: "{}" });
 
+  // Update color scheme
   useLayoutEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
       setRenderDone(() => done);
     };
   }, [context]);
-
   context.watch("colorScheme");
 
+  // Call our done function at the end of each render
   useEffect(() => {
     renderDone?.();
   }, [renderDone]);
 
+  // Call a service with a given request
   const callService = async (serviceName: string, request: string) => {
     if (!context.callService) {
       return;
@@ -49,6 +51,7 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
     }
   };
 
+  // Close callService with the current state for use in the button
   const callServiceWithRequest = () => {
     void callService(state.serviceName, state.request);
   };
