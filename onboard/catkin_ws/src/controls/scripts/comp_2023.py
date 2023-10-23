@@ -22,7 +22,7 @@ class TaskPlanner:
         rospy.init_node('test_state_publisher')
         self.listener = TransformListener()
 
-        self.sonar_requests = rospy.Publisher("controls/desired_feature", String)
+        self.sonar_requests = rospy.Publisher("controls/desired_feature", String, queue_size=1)
 
         rospy.Subscriber("/controls/x_pos/setpoint", Float64, self._on_receive_data_x)
         rospy.Subscriber("/controls/y_pos/setpoint", Float64, self._on_receive_data_y)
