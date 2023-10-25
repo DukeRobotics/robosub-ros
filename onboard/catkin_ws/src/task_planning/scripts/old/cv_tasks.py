@@ -65,7 +65,7 @@ class MoveOneCVPointToAnotherTask(Task):
 
 
 class MoveOneCVBoxToAnotherTask(Task):
-    """Move the robot such that a given bounding box in a CV frame is moved to the specified size and location in the frame.
+    """Move the robot so a given bounding box in a CV frame is moved to the specified size and location in the frame.
     method is either "rotate" or "strafe"
     camera is either "front" or "down"
     coordinates are scaled from 0.0 to 1.0 (e.g. x_curr=0.0 is the left side of the frame), and so is the tolerance
