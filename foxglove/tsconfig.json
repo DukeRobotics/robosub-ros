@@ -4,7 +4,7 @@
   "include": ["./extensions/*/src/*"],
   "compilerOptions": {
     "lib": ["dom"],
-    "jsx": "react",
+
     // Prevent typescript from emitting .d.ts files we don't need in the compiled extension
     "composite": false,
     "declaration": false,
@@ -17,6 +17,5 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "forceConsistentCasingInFileNames": true
-    
   }
 }
