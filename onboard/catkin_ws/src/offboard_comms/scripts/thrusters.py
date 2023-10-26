@@ -9,6 +9,10 @@ CONTROL_EFFORTS_TOPIC = "controls/thruster_allocs"
 VOLTAGE_TOPIC = "controls/voltage"
 PWM_PUBLISHER_TOPIC = "offboard_comms/pwm"
 
+COEFFICIENTS = [-0.72598292, 17.51636272, -1.96635442, 341.37137439, 17.68477542,
+                -0.61271068, -42.99373034, 1.3453298]
+
+
 class ThrusterConverter:
 
     def __init__(self):
@@ -36,7 +40,12 @@ class ThrusterConverter:
     # This method is the callback for returning the thruster pwm output
     # depending on voltage and desired force
     def convert_and_publish(self, desired_effort):
-        pass
+        # Check which model we are using: discrete (lookup table) or continuous (polynomial)
+        if self.interpolation_mode == "discrete":
+            self.pwm_publisher.publish(self.lookup(desired_effort, self.voltage))
+        else:
+            # continuous, or polynomial mode
+            self.pwm_publisher.publish(self.polynomial(desired_effort, self.voltage))
 
     # This method is the callback for updating the latest voltage read
     def update_voltage(self, voltage):
@@ -54,10 +63,22 @@ class ThrusterConverter:
     def load_lookup(self):
         # Dictionary for the lookup table
         self.voltage_efforts_to_pwm = dict()
+        # Load all computed power curves from 14.0v to 18.0v
+        for voltage in range(14.0, 18.1, 0.1):
+            file_path = "./data/" + str(voltage) + "_interpolated.csv"
+            pass
 
-    # This method takes in voltage and desired control effort and outputs pwm via the fitted polynomial model
-    def polynomial(self):
+    # This method takes in voltage and desired control effort and outputs pwn
+    # via the linearly interpolated lookup tables
+    def lookup(self, voltage, force):
         pass
+
+    # This method takes in voltage and desired control effort and outputs pwm
+    # via the fitted polynomial model
+    def polynomial(self, voltage, force):
+        terms = [voltage ** 3, voltage ** 2, force ** 3, force ** 2, voltage * force,
+                 (voltage ** 2) * force, voltage * (force ** 2), (voltage ** 2) * (force ** 2)]
+        return sum([COEFFICIENTS[i] * terms[i] for i in range(len(terms))])
 
     def run(self):
         rospy.spin()
