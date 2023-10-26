@@ -30,6 +30,9 @@ def solve_position():
         return fsolve(TDOA_equation, result.x)
     return None
 
+def sqrt(x):
+    return np.sqrt(x)
+
 with open('onboard/catkin_ws/src/acoustics2/fake_data/final_calc_square2.csv2', 'w', newline='') as csvfile:
     csv_writer = csv.writer(csvfile)
     
@@ -41,7 +44,11 @@ with open('onboard/catkin_ws/src/acoustics2/fake_data/final_calc_square2.csv2', 
 
             htimes = [t1, t2, t3]
 
-            y, x = solve_position()
+            D1 = v*(t1-t2)
+            D2 = v*(t1-t3)
 
-            delta_time = time.time() - start_time 
-            csv_writer.writerow([Rx, Ry, x, y, delta_time])
+            elta_time = time.time() - start_time 
+            #csv_writer.writerow([Rx, Ry, x, y, delta_time])
+
+            #wait 1 sec
+            time.sleep(1)
