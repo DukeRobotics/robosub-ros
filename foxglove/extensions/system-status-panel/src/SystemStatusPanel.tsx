@@ -1,4 +1,4 @@
-import { PanelExtensionContext, RenderState, Topic, MessageEvent } from "@foxglove/studio";
+import { PanelExtensionContext, RenderState, Topic, MessageEvent, Immutable } from "@foxglove/studio";
 import Alert from "@mui/material/Alert";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
@@ -11,7 +11,6 @@ import { useTheme } from "@mui/material/styles";
 import { useLayoutEffect, useEffect, useState, useMemo } from "react";
 import * as React from "react";
 import { createRoot } from "react-dom/client";
-
 
 function createData(Status: string, Value: number) {
   return { Status, Value };
@@ -64,7 +63,7 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
 
   // Setup our onRender function and start watching topics and currentFrame for messages.
   useLayoutEffect(() => {
-    context.onRender = (renderState: RenderState, done) => {
+    context.onRender = (renderState: Immutable<RenderState>, done) => {
       setRenderDone(() => done);
       setTopics(renderState.topics);
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
