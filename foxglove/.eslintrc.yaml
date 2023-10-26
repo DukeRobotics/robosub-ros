@@ -16,6 +16,9 @@ extends:
   - plugin:@foxglove/react
 
 rules:
+  camelcase: 
+    - warn
+    - properties: always
   react-hooks/exhaustive-deps:
     - error
 
