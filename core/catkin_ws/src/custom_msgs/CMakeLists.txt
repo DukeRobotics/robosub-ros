@@ -23,6 +23,7 @@ add_message_files(
   RemoteLaunchInfo.msg
   RunningNode.msg
   PIDGain.msg
+  PIDGains.msg
 )
 
 add_service_files(
