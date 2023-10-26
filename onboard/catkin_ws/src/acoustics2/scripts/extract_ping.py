@@ -44,9 +44,9 @@ def main():
     # Plot the detected peaks against both the raw and filtered signals
     # 2x4 subplots
 
-    fig, ax = plt.subplots(4,2, figsize=(10,10))
+    fig, ax = plt.subplots(3,2, figsize=(10,10))
 
-    for i in range(4):
+    for i in range(3):
         ax[i,0].plot(timeseries[i])
         ax[i,0].plot(peaks[i], timeseries[i][peaks[i]], "x")
         ax[i,1].plot(filtered_signals[i])
