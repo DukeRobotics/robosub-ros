@@ -1,10 +1,16 @@
 <launch>
+    
+    <!-- Discrete: lookup table; continuous: polynomial -->
+    <arg name="interpolation" default="discrete"/>
 
     <node pkg="rosserial_python" type="serial_node.py" name="serial_node" output="screen" >
         <param
             name="port"
             command = "$(find offboard_comms)/scripts/thruster_port.sh"
         />
+    </node>
+    <node pkg="offboard_comms" type="thrusters.py" name="thrusters" output="screen" >
+        <param name="interpolation" value="$(arg interpolation)" />
     </node>
 
 </launch>
