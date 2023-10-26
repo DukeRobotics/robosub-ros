@@ -1,5 +1,4 @@
 import { PanelExtensionContext, RenderState, Topic, MessageEvent, Immutable } from "@foxglove/studio";
-import Alert from "@mui/material/Alert";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -7,7 +6,7 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
 import { useTheme } from "@mui/material/styles";
-import { useLayoutEffect, useEffect, useState, useMemo } from "react";
+import { useLayoutEffect, useEffect, useState } from "react";
 import * as React from "react";
 import { createRoot } from "react-dom/client";
 
@@ -24,7 +23,6 @@ type State = {
 
 function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [topics, setTopics] = useState<readonly Topic[] | undefined>();
-  const [message, setMessage] = useState<any>();
 
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
 
@@ -36,9 +34,6 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
     initialState.topic = "/system/usage";
     return initialState;
   });
-
-  // Get topics
-  const imageTopics = useMemo(() => topics ?? [], [topics]);
 
   //define values in table
   const rows = [createData("CPU", state.cpuUsage), createData("RAM", state.ramUsage)];
@@ -84,11 +79,6 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
 
   return (
     <div style={{ height: "100%", padding: "1rem" }}>
-      {context.subscribe == undefined && (
-        <Alert variant="filled" severity="error">
-          Subscribing to topics is not supported by this connection
-        </Alert>
-      )}
       <div>
         <TableContainer component={Paper}>
           <Table size="small" aria-label="simple table">
