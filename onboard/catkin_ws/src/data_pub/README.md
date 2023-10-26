@@ -1,6 +1,6 @@
 # Data pub
 
-The `data_pub` package contains scripts that interface with various sensors, currently interfacing with the IMU and DVL. You can launch all nodes in this package using the `pub_all.launch` file.
+The `data_pub` package contains scripts that interface with various sensors, currently interfacing with the IMU, Pressure Sensor (depth) and DVL. You can launch all nodes in this package using the `pub_all.launch` file.
 ## IMU Documentation
 
 Publishes an `sensor_msgs/IMU` message to the `sensors/imu/imu` topic that contains information about
@@ -21,8 +21,6 @@ $VNQMR,-0.017057,-0.000767,+0.056534,+0.998255,+1.0670,-0.2568,+3.0696,
 This is parsed into its individual components to be published as parts of the `IMU` and `MagneticField` messages.
 
 ### Execution
-
-In the transition from the old computer (`NUC`) to the new computer (`Jetson`), certain physical devices need to be checked before running code.
 
 First you want to make sure that both the IMU and (ADAPTER) are plugged into the robot *before* booting it up.
 
@@ -65,3 +63,9 @@ The `dvl_raw` script publishes the raw DVL data using the `dvl_raw` message from
 The `dvl_to_odom` script converts the raw dvl data to an `odometry` message for use in other scripts. It publishes to topic `sensors/dvl/odom`.
 
 You can launch both scripts using the `pub_dvl.launch` file.
+
+## Pressure Sensor Documentation
+
+The Blue Robotics pressure sensor sends raw serial data through an arduino to the main computer. This data is filtered and then published to the `/sensors/depth` topic. Note that this will need to be run in addition to this `offboard_comms` package. It converts the data into an PoseWithCovarianceStamped message for use in sensor fusion. 
+
+The data in this Odometry message is set to 0 except for the `pose.pose.position.z` value, which is set to the depth in meters. The `pose.pose.orientation` is set to the identity quaternion. Except for the `pose.pose.position.z` value, all other values are unused in sensor fusion.
