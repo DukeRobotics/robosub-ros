@@ -3,10 +3,10 @@
 from custom_msgs.msg import PIDGain, PIDGains
 from custom_msgs.srv import SetPIDGains
 import rospy
+import copy
 
 
 class PIDSim():
-
     def __init__(self):
         rospy.init_node('pid_sim')
 
@@ -17,16 +17,16 @@ class PIDSim():
             PIDGain.GAIN_FF: 0
         }
         axes = {
-            PIDGain.AXIS_X: gains,
-            PIDGain.AXIS_Y: gains,
-            PIDGain.AXIS_Z: gains,
-            PIDGain.AXIS_ROLL: gains,
-            PIDGain.AXIS_PITCH: gains,
-            PIDGain.AXIS_YAW: gains,
+            PIDGain.AXIS_X: copy.deepcopy(gains),
+            PIDGain.AXIS_Y: copy.deepcopy(gains),
+            PIDGain.AXIS_Z: copy.deepcopy(gains),
+            PIDGain.AXIS_ROLL: copy.deepcopy(gains),
+            PIDGain.AXIS_PITCH: copy.deepcopy(gains),
+            PIDGain.AXIS_YAW: copy.deepcopy(gains),
         }
         self.pid = {
-            PIDGain.POSITION_PID: axes,
-            PIDGain.VELOCITY_PID: axes
+            PIDGain.POSITION_PID: copy.deepcopy(axes),
+            PIDGain.VELOCITY_PID: copy.deepcopy(axes)
         }
 
         self.pid_pub = rospy.Publisher('current_pid', PIDGains, queue_size=1)
@@ -39,19 +39,17 @@ class PIDSim():
         rate = rospy.Rate(20)
 
         while not rospy.is_shutdown():
-            pid_gain = PIDGain()
             pid_gains = PIDGains()
 
             for pid_loop, axes in self.pid.items():
-                pid_gain.pid_loop = pid_loop
-
                 for axis, gains in axes.items():
-                    pid_gain.axis = axis
                     for gain_type, gain in gains.items():
+                        pid_gain = PIDGain()
+                        pid_gain.pid_loop = pid_loop
+                        pid_gain.axis = axis
                         pid_gain.gain_type = gain_type
                         pid_gain.gain = gain
 
-                        print(pid_gain)
                         pid_gains.pid_gains.append(pid_gain)
 
             self.pid_pub.publish(pid_gains)
