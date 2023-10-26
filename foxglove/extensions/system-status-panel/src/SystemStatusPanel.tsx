@@ -5,7 +5,6 @@ import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import { useTheme } from "@mui/material/styles";
 import { useLayoutEffect, useEffect, useState, useMemo } from "react";
@@ -85,7 +84,6 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
 
   return (
     <div style={{ height: "100%", padding: "1rem" }}>
-      <h2>System Status</h2>
       {context.subscribe == undefined && (
         <Alert variant="filled" severity="error">
           Subscribing to topics is not supported by this connection
@@ -93,13 +91,7 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
       )}
       <div>
         <TableContainer component={Paper}>
-          <Table sx={{ minWidth: 100 }} aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                <TableCell>Component</TableCell>
-                <TableCell align="right">Usage</TableCell>
-              </TableRow>
-            </TableHead>
+          <Table size="small" aria-label="simple table">
             <TableBody>
               {rows.map((row) => (
                 <TableRow
