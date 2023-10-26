@@ -10,14 +10,22 @@ jobs:
     name: Lint Code Base
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - name: Install Foxglove dependencies
+        run: |
+          cd foxglove
+          npm ci
+
       - name: Lint Code Base
-        uses: github/super-linter@v3.17.0
+        uses: super-linter/super-linter@v5.4.3
         env:
           VALIDATE_ALL_CODEBASE: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LINTER_RULES_PATH: /
           VALIDATE_BASH: true
           VALIDATE_BASH_EXEC: true
           VALIDATE_PYTHON_FLAKE8: true
           VALIDATE_TSX: true
           VALIDATE_TYPESCRIPT_ES: true
+          TYPESCRIPT_ES_CONFIG_FILE: foxglove/.eslintrc.yaml

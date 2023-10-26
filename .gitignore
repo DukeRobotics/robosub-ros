@@ -43,3 +43,7 @@ onboard/catkin_ws/src/cv/footage_extraction/extracted_footage
 onboard/catkin_ws/src/cv/footage_extraction/extracted_files
 onboard/catkin_ws/src/cv/footage_extraction/uploaded_footage
 onboard/catkin_ws/src/cv/footage_extraction/*.yaml
+
+# Foxglove
+node_modules
+dist

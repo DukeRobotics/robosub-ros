@@ -1,0 +1,21 @@
+{
+  "extends": "create-foxglove-extension/tsconfig/tsconfig.json",
+
+  "include": ["./extensions/*/src/*"],
+  "compilerOptions": {
+    "lib": ["dom"],
+
+    // Prevent typescript from emitting .d.ts files we don't need in the compiled extension
+    "composite": false,
+    "declaration": false,
+
+    // Additional error reporting checks to improve code quality
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "forceConsistentCasingInFileNames": true
+  }
+}
