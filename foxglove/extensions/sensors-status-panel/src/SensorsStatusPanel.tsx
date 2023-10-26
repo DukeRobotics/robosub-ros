@@ -1,24 +1,26 @@
 // TODO: (1) subscribe to all topics; (2) inside render context something update every single frame
-import * as React from 'react';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
+import * as React from "react";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Paper from "@mui/material/Paper";
 
 import { Immutable, PanelExtensionContext, RenderState, Topic, MessageEvent } from "@foxglove/studio";
 import { useLayoutEffect, useEffect, useState, useRef, useMemo } from "react";
 import * as ReactDOM from "react-dom";
-import Alert from '@mui/material/Alert';
+import Alert from "@mui/material/Alert";
 
-const topics_dict = {'DVL': '/sensors/dvl/odom', 
-                    'IMU': '/vectornav/IMU', 
-                    'Depth': '/sensors/depth', 
-                    'DepthAI':'/camera/front/rgb/preview/compressed', 
-                    'Mono': '/camera/usb_camera/compressed', 
-                    'Sonar': '/sonar/status'}
+const topics_dict = {
+  DVL: "/sensors/dvl/odom",
+  IMU: "/vectornav/IMU",
+  Depth: "/sensors/depth",
+  DepthAI: "/camera/front/rgb/preview/compressed",
+  Mono: "/camera/usb_camera/compressed",
+  Sonar: "/sonar/status",
+};
 
 //Reversed dictionary of topics_dict
 const topics_dict_reversed: { [key: string]: string } = {};
@@ -65,30 +67,27 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
   const [state, setState] = useState<State>(() => {
     var Initialstate = context.initialState as State;
     Initialstate.sensorstime = {
-      DVL: 0, 
-      IMU: 0, 
-      Depth: 0, 
-      DepthAI: 0, 
-      Mono: 0, 
-      Sonar: 0
-    }
-    Initialstate.currentTime = 1
+      DVL: 0,
+      IMU: 0,
+      Depth: 0,
+      DepthAI: 0,
+      Mono: 0,
+      Sonar: 0,
+    };
+    Initialstate.currentTime = 1;
     Initialstate.connectStatus = {
-      DVL: false, 
-      IMU: false, 
-      Depth: false, 
-      DepthAI: false, 
-      Mono: false, 
-      Sonar: false
-    }
-    return Initialstate
+      DVL: false,
+      IMU: false,
+      Depth: false,
+      DepthAI: false,
+      Mono: false,
+      Sonar: false,
+    };
+    return Initialstate;
   });
 
   // Get topics
-  const imageTopics = useMemo(
-    () => (topics ?? []),
-    [topics],
-  );
+  const imageTopics = useMemo(() => topics ?? [], [topics]);
 
   useEffect(() => {
     // Save our state to the layout when the topic changes.
@@ -101,10 +100,10 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
     //make a list of all topics [{topic: topic1}, {topic: topic2 }]
     const topicList: { topic: string }[] = [];
     for (const [key, value] of Object.entries(topics_dict)) {
-      topicList.push({topic: value})
+      topicList.push({ topic: value });
     }
     //Subscribe to all topics
-    context.subscribe(topicList)
+    context.subscribe(topicList);
   }, [context, state.topic]);
 
   // Choose our first available image topic as a default once we have a list of topics available.
@@ -119,10 +118,10 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
   useLayoutEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setRenderDone(() => done);
-      
+
       //Updates CurrentTime to the current time
-      if (state.currentTime && state.currentTime >= 0)  {
-        state.currentTime = renderState.currentTime?.sec
+      if (state.currentTime && state.currentTime >= 0) {
+        state.currentTime = renderState.currentTime?.sec;
       }
 
       // if (renderState.currentFrame && renderState.currentFrame.length !== 0) {
@@ -130,13 +129,19 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
       // }
 
       //If sensorstime exists and the current frame exists (onRender was ran due to currentFrame changing)
-      if (state.currentTime && state.sensorstime && state.connectStatus && renderState.currentFrame && renderState.currentFrame.length !== 0) {
-        //Define the last frame 
+      if (
+        state.currentTime &&
+        state.sensorstime &&
+        state.connectStatus &&
+        renderState.currentFrame &&
+        renderState.currentFrame.length !== 0
+      ) {
+        //Define the last frame
         const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<any>;
-  
-        //Switch statements on the topic of the last frame 
-        
-        if(lastFrame){
+
+        //Switch statements on the topic of the last frame
+
+        if (lastFrame) {
           // switch(lastFrame.topic) {
           //   case "/sensors/dvl/odom":
           //     state.sensorstime.DVL = state.currentTime;
@@ -174,40 +179,36 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
           } catch (error) {
             console.log(error);
           }
-          
-        }
-      
-    } 
-
-    if (state.connectStatus && state.sensorstime && state.currentTime){
-      //Compare current time to each sensorstime attribute
-      // if (state.currentTime - state.sensorstime.DVL > 5)  {state.connectStatus.DVL = false}
-      // if (state.currentTime - state.sensorstime.IMU > 5)  {state.connectStatus.IMU = false}
-      // if (state.currentTime - state.sensorstime.Depth > 5)  {state.connectStatus.Depth = false}  
-      // if (state.currentTime - state.sensorstime.DepthAI > 5)  {state.connectStatus.DepthAI = false}  
-      // if (state.currentTime - state.sensorstime.Mono > 5)  {state.connectStatus.Mono = false}  
-      // if (state.currentTime - state.sensorstime.Sonar > 5)  {state.connectStatus.Sonar = false}  
-      for (const [key, value] of Object.entries(topics_dict)) {
-        if (state.currentTime - state.sensorstime[key as keyof typeof topics_dict] > 5) {
-          state.connectStatus[key as keyof typeof topics_dict] = false;
         }
       }
-    }
+
+      if (state.connectStatus && state.sensorstime && state.currentTime) {
+        //Compare current time to each sensorstime attribute
+        // if (state.currentTime - state.sensorstime.DVL > 5)  {state.connectStatus.DVL = false}
+        // if (state.currentTime - state.sensorstime.IMU > 5)  {state.connectStatus.IMU = false}
+        // if (state.currentTime - state.sensorstime.Depth > 5)  {state.connectStatus.Depth = false}
+        // if (state.currentTime - state.sensorstime.DepthAI > 5)  {state.connectStatus.DepthAI = false}
+        // if (state.currentTime - state.sensorstime.Mono > 5)  {state.connectStatus.Mono = false}
+        // if (state.currentTime - state.sensorstime.Sonar > 5)  {state.connectStatus.Sonar = false}
+        for (const [key, value] of Object.entries(topics_dict)) {
+          if (state.currentTime - state.sensorstime[key as keyof typeof topics_dict] > 5) {
+            state.connectStatus[key as keyof typeof topics_dict] = false;
+          }
+        }
+      }
 
       setTopics(renderState.topics);
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
-      
+
       // Save the most recent message on our topic.
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
         setMessage(renderState.currentFrame[renderState.currentFrame.length - 1]);
       }
-      
     };
     context.watch("currentTime");
     context.watch("topics");
     context.watch("currentFrame");
     context.watch("colorScheme");
-
   }, [context]);
 
   // Call our done function at the end of each render.
@@ -215,7 +216,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
     renderDone?.();
   }, [renderDone]);
 
-/*
+  /*
 Might not need asynch and table?
 
 (async function checkTimeSinceRender() {
@@ -257,22 +258,19 @@ const SensorTable = [
 ];
 */
 
-//create a table of all the sensors and their status with the goal of being put into a Table component using a for loop
-
+  //create a table of all the sensors and their status with the goal of being put into a Table component using a for loop
 
   return (
     <div style={{ height: "100%", padding: "1rem" }}>
       <h2>Sensors Status Panel</h2>
       {context.subscribe == undefined && (
-        <Alert variant="filled" severity="error">Subscribing to topics is not supported by this connection</Alert>
+        <Alert variant="filled" severity="error">
+          Subscribing to topics is not supported by this connection
+        </Alert>
       )}
       <div>
         <label>Choose a topic to display: </label>
-        <select
-          value={state.topic}
-          onChange={(event) => setState({ topic: event.target.value })}
-          style={{ flex: 1 }}
-        >
+        <select value={state.topic} onChange={(event) => setState({ topic: event.target.value })} style={{ flex: 1 }}>
           {imageTopics.map((topic) => (
             <option key={topic.name} value={topic.name}>
               {topic.name}
@@ -280,43 +278,36 @@ const SensorTable = [
           ))}
         </select>
 
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="simple table">
-          <TableHead>
-            <TableRow>
-              <TableCell>Sensor Name</TableCell>
-              <TableCell align="right">Topic Name</TableCell>
-              <TableCell align="right">Sensor Publishing?</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-
-            {Object.entries(topics_dict).map(([sensor, topic]) => (
-              <TableRow key={sensor} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                <TableCell>{sensor}</TableCell>
-                <TableCell align="right">{topic}</TableCell>
-                <TableCell align="right">
-                  {state.connectStatus?.[sensor as keyof typeof topics_dict] ? "Connected" : "Disconnected"}
-                </TableCell>
+        <TableContainer component={Paper}>
+          <Table sx={{ minWidth: 650 }} aria-label="simple table">
+            <TableHead>
+              <TableRow>
+                <TableCell>Sensor Name</TableCell>
+                <TableCell align="right">Topic Name</TableCell>
+                <TableCell align="right">Sensor Publishing?</TableCell>
               </TableRow>
-          ))}
-        </TableBody>
-        </Table>
-      </TableContainer>
-
+            </TableHead>
+            <TableBody>
+              {Object.entries(topics_dict).map(([sensor, topic]) => (
+                <TableRow key={sensor} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+                  <TableCell>{sensor}</TableCell>
+                  <TableCell align="right">{topic}</TableCell>
+                  <TableCell align="right">
+                    {state.connectStatus?.[sensor as keyof typeof topics_dict] ? "Connected" : "Disconnected"}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </div>
     </div>
   );
 }
 
-function createData(
-  Sensor_Name: string,
-  Topic_Path: string,
-  Sensor_Publishing: boolean,
-) {
+function createData(Sensor_Name: string, Topic_Path: string, Sensor_Publishing: boolean) {
   return { Sensor_Name, Topic_Path, Sensor_Publishing };
 }
-
 
 export function initSensorsStatusPanel(context: PanelExtensionContext): () => void {
   ReactDOM.render(<SensorsStatusPanel context={context} />, context.panelElement);
