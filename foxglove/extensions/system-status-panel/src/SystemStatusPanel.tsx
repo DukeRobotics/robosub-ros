@@ -1,4 +1,4 @@
-import { PanelExtensionContext, RenderState, Topic, MessageEvent, Immutable } from "@foxglove/studio";
+import { PanelExtensionContext, RenderState, MessageEvent, Immutable } from "@foxglove/studio";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -22,8 +22,6 @@ type State = {
 };
 
 function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
-  const [topics, setTopics] = useState<readonly Topic[] | undefined>();
-
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
 
   const theme = useTheme();
@@ -52,7 +50,6 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
   useLayoutEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setRenderDone(() => done);
-      setTopics(renderState.topics);
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
 
       // Updating CPU/RAM/Voltage data.
