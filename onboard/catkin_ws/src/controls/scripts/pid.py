@@ -24,4 +24,8 @@ to impose a windup limit. See https://wiki.ros.org/pid for more information on t
 
 
 class PID:
-    pass
+    def __init__(self, Kp, Ki, Kd, Ff):
+        self.Kp = Kp
+        self.Ki = Ki
+        self.Kd = Kd
+        self.Ff = Ff
