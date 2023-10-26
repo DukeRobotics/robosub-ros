@@ -22,6 +22,7 @@ add_message_files(
   SimObjectArray.msg
   RemoteLaunchInfo.msg
   RunningNode.msg
+  PIDGain.msg
 )
 
 add_service_files(
@@ -33,6 +34,7 @@ add_service_files(
   StartLaunch.srv
   StopLaunch.srv
   GetRunningNodes.srv
+  SetPIDGains.srv
 )
 
 add_action_files(
