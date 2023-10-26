@@ -17,10 +17,10 @@ function createData(Status: string, Value: number) {
 }
 
 type State = {
-  topic?: string;
+  topic: string;
   colorScheme?: RenderState["colorScheme"];
-  cpuUsage?;
-  ramUsage?;
+  cpuUsage: number;
+  ramUsage: number;
 };
 
 function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
@@ -53,13 +53,6 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
       context.subscribe([{ topic: state.topic }]);
     }
   }, [context, state.topic]);
-
-  // Choose our first available image topic as a default once we have a list of topics available.
-  useEffect(() => {
-    if (state.topic == undefined) {
-      setState({ topic: imageTopics[0]?.name });
-    }
-  }, [state.topic, imageTopics]);
 
   // Setup our onRender function and start watching topics and currentFrame for messages.
   useLayoutEffect(() => {
