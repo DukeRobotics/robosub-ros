@@ -21,3 +21,7 @@ IMPORTANT: Make sure to look at the ROS PID implementation at (https://bitbucket
 attention to the filter and determine if it is necessary for our implementation. Also determine if it is necessary
 to impose a windup limit. See https://wiki.ros.org/pid for more information on the filter and the package in general.
 """
+
+
+class PID:
+    pass
