@@ -1,19 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable react/no-deprecated */
-/* eslint-disable prettier/prettier */
 import { Immutable, PanelExtensionContext, RenderState, Topic, MessageEvent } from "@foxglove/studio";
-import Alert from "@mui/material/Alert";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Tooltip from "@mui/material/Tooltip";
-import * as React from "react";
-import { useLayoutEffect, useEffect, useState, useRef, useMemo } from "react";
-import * as ReactDOM from "react-dom";
+import { useLayoutEffect, useEffect, useState, useMemo } from "react";
+import { createRoot } from "react-dom/client";
 
 const topics_dict = {
   DVL: "/sensors/dvl/odom",
@@ -30,8 +24,8 @@ for (const [key, value] of Object.entries(topics_dict)) {
   topics_dict_reversed[value] = key;
 }
 
-type SensorsTime = {} & Record<keyof typeof topics_dict, number>;
-type ConnectStatus = {} & Record<keyof typeof topics_dict, boolean>;
+type SensorsTime = NonNullable<unknown> & Record<keyof typeof topics_dict, number>;
+type ConnectStatus = NonNullable<unknown> & Record<keyof typeof topics_dict, boolean>;
 
 type State = {
   topic?: string;
@@ -43,7 +37,6 @@ type State = {
 
 function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [topics, setTopics] = useState<readonly Topic[] | undefined>();
-  const [message, setMessage] = useState<any>();
 
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
 
@@ -79,6 +72,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
 
     //make a list of all topics [{topic: topic1}, {topic: topic2 }]
     const topicList: { topic: string }[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const [key, value] of Object.entries(topics_dict)) {
       topicList.push({ topic: value });
     }
@@ -93,10 +87,9 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
     }
   }, [state.topic, imageTopics]);
 
-  // var lastRender = renderState.currentTime?.sec;
   // Setup our onRender function and start watching topics and currentFrame for messages.
   useLayoutEffect(() => {
-    context.onRender = (renderState: Immutable<RenderState>, done: any) => {
+    context.onRender = (renderState: Immutable<RenderState>, done: unknown) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       setRenderDone(() => done);
 
@@ -107,35 +100,33 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
 
       //If sensorstime exists and the current frame exists (onRender was ran due to currentFrame changing)
       if (
-        state.currentTime &&
+        state.currentTime != null &&
         state.sensorstime &&
         state.connectStatus &&
         renderState.currentFrame &&
         renderState.currentFrame.length !== 0
       ) {
         //Define the last frame
-        const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<any>;
+        const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<never>;
 
         //Switch statements on the topic of the last frame
 
-        if (lastFrame) {
-          // try catch statement to see if the topic is in the dictionary
-          //force lastFrame.topic to not be undefined
+        // try catch statement to see if the topic is in the dictionary
+        //force lastFrame.topic to not be undefined
 
-          try {
-            //force sensorName to not be undefined
-            const sensorName = topics_dict_reversed[lastFrame.topic] as keyof typeof topics_dict;
-            state.sensorstime[sensorName] = state.currentTime;
-            state.connectStatus[sensorName] = true;
-          } catch (error) {
-            console.log(error);
-          }
+        try {
+          //force sensorName to not be undefined
+          const sensorName = topics_dict_reversed[lastFrame.topic] as keyof typeof topics_dict;
+          state.sensorstime[sensorName] = state.currentTime;
+          state.connectStatus[sensorName] = true;
+        } catch (error) {
+          console.log(error);
         }
       }
 
-      if (state.connectStatus && state.sensorstime && state.currentTime) {
+      if (state.connectStatus && state.sensorstime && state.currentTime != null) {
         //Compare current time to each sensorstime attribute
-        for (const [key, value] of Object.entries(topics_dict)) {
+        for (const key in topics_dict) {
           if (state.currentTime - state.sensorstime[key as keyof typeof topics_dict] > 5) {
             state.connectStatus[key as keyof typeof topics_dict] = false;
           }
@@ -144,17 +135,12 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
 
       setTopics(renderState.topics);
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
-
-      // Save the most recent message on our topic.
-      if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        setMessage(renderState.currentFrame[renderState.currentFrame.length - 1]);
-      }
     };
     context.watch("currentTime");
     context.watch("topics");
     context.watch("currentFrame");
     context.watch("colorScheme");
-  }, [context]);
+  }, [context, state]);
 
   // Call our done function at the end of each render.
   useEffect(() => {
@@ -173,7 +159,9 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
                 <TableRow
                   key={sensor}
                   style={{
-                    backgroundColor: state.connectStatus?.[sensor as keyof typeof topics_dict] ? "green" : "red", }}
+                    backgroundColor:
+                      state.connectStatus?.[sensor as keyof typeof topics_dict] ?? false ? "green" : "red",
+                  }}
                   sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                 >
                   <Tooltip title={topic} arrow>
@@ -192,15 +180,12 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
   );
 }
 
-function createData(Sensor_Name: string, Topic_Path: string, Sensor_Publishing: boolean) {
-  return { Sensor_Name, Topic_Path, Sensor_Publishing };
-}
-
 export function initSensorsStatusPanel(context: PanelExtensionContext): () => void {
-  ReactDOM.render(<SensorsStatusPanel context={context} />, context.panelElement);
+  const root = createRoot(context.panelElement as HTMLElement);
+  root.render(<SensorsStatusPanel context={context} />);
 
   // Return a function to run when the panel is removed
   return () => {
-    ReactDOM.unmountComponentAtNode(context.panelElement);
+    root.unmount();
   };
 }
