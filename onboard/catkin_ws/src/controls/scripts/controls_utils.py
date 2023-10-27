@@ -1,9 +1,29 @@
+import os
+
+import resource_retriever as rr
+
 from tf.transformations import euler_from_quaternion, quaternion_multiply, quaternion_conjugate
 from geometry_msgs.msg import Vector3Stamped, Twist, PoseStamped
 
 
-def get_axes():
-    return ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
+AXES = ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
+PID_LOOPS = ['position', 'velocity']
+ROBOT_NAME = os.getenv("ROBOT_NAME", "oogway")
+CONFIG_FILE_PATH = 'package://controls/config/%s.config'
+
+
+class ConfigFileType:
+    THRUSTERS = "thrusters"
+    PID = "pid"
+
+
+def get_config_file(configFileType):
+    """Returns the name of the config file to be used based on the ROBOT_NAME environment variable.
+
+    Returns:
+        TYPE: String containing the name of the config file
+    """
+    return rr.get_filename(CONFIG_FILE_PATH % (f"{ROBOT_NAME}_{configFileType}"), use_protocol=False)
 
 
 def get_controls_move_topic(axis):
@@ -118,3 +138,4 @@ def publish_data_dictionary(publishers, vals, indexes=get_axes()):
 def publish_data_constant(publishers, val, indexes=get_axes()):
     for d in indexes:
         publishers[d].publish(val)
+
