@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 
 import rospy
+import yaml
+
 from geometry_msgs.msg import Pose, Twist
 from nav_msgs.msg import Odometry
 from std_srvs.srv import SetBool
 from std_msgs.msg import Bool
-from custom_msgs.msg import ThrusterAllocs, PIDGains, ControlTypes
+from custom_msgs.msg import ThrusterAllocs, PIDGain, PIDGains, ControlTypes
 
 from pid import PID
 from thruster_allocator import ThrusterAllocator
+import controls_utils as utils
+
 
 class Controls:
-    THRUSTER_ALLOCS_HZ = 20
-    AXES = ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
+    THRUSTER_ALLOCS_RATE = rospy.Rate(20)
 
     def __init__(self):
         rospy.init_node('controls')
@@ -44,13 +47,31 @@ class Controls:
         self.velocity_error_pub = rospy.Publisher('controls/velocity_error', Twist, queue_size=1)
         self.status_pub = rospy.Publisher('controls/status', Bool, queue_size=1)
 
-        # TODO: Initialize PID controllers
-        # Get PID gains from config file
-        # Initialize PID controllers in dictionary below
-        self.position_pid = {}
+        # Initialize PID controllers
+        self.pid_loops = {}
+        self.pid_gains = []
+        self.init_pid_controllers()
 
-        # TODO: Initialize thruster allocator with config file name
+        # Initialize thruster allocator
         self.thruster_allocator = ThrusterAllocator()
+
+    def init_pid_controllers(self):
+        """
+        Initializes all PID controllers. The PID gains are retrieved from the config file for the current robot
+        based on the ROBOT_NAME environment variable and the PID controllers are initialized with these gains.
+
+        Returns:
+            None
+        """
+        pid_config_filename = utils.get_config_file(utils.ConfigFileType.PID)
+        with open(pid_config_filename) as f:
+            pid_config_file = yaml.safe_load(f)
+
+        for pid_loop in pid_config_file:
+            self.pid_loops[pid_loop] = {}
+
+            for axis in pid_loop:
+                self.pid_loops[pid_loop][axis] = PID(axis['Kp'], axis['Ki'], axis['Kd'], axis['Ff'])
 
     def desired_pose_callback(self, desired_pose):
         pass
@@ -74,7 +95,17 @@ class Controls:
         pass
 
     def run(self):
-        pass
+        while not rospy.is_shutdown():
+
+            pid_gains = []
+            for pid_loop in utils.PID_LOOPS:
+                for axis in utils.AXES:
+                    pid_gain = PIDGain()
+                    pid_gain.pid_loop = getattr(pid_gain, f"{pid_loop.upper()}_PID")
+                    pid_gain.axis = getattr(pid_gain, f"AXIS_{axis.upper()}")
+                    self.pid_loops[pid_loop][axis] = PID(axis['Kp'], axis['Ki'], axis['Kd'], axis['Ff'])
+
+            self.THRUSTER_ALLOCS_RATE.sleep()
 
 
 if __name__ == '__main__':
