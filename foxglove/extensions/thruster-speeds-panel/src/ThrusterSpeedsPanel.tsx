@@ -1,20 +1,22 @@
-import { PanelExtensionContext, RenderState } from "@foxglove/studio";
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import ReactDOM from "react-dom";
-import Alert from '@mui/material/Alert';
-import { TextField, Button } from "@mui/material";
 import { ros1 } from "@foxglove/rosmsg-msgs-common";
+import { PanelExtensionContext, RenderState, Immutable } from "@foxglove/studio";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import { TextField, Button, Alert } from "@mui/material";
+import Grid from "@mui/material/Unstable_Grid2";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import * as React from "react";
+import { createRoot } from "react-dom/client";
 
 type ThrusterSpeeds = {
-  frontLeft: number,
-  frontRight: number,
-  backLeft: number,
-  backRight: number,
-  bottomFrontLeft: number,
-  bottomFrontRight: number,
-  bottomBackLeft: number,
-  bottomBackRight: number
-}
+  frontLeft: number;
+  frontRight: number;
+  backLeft: number;
+  backRight: number;
+  bottomFrontLeft: number;
+  bottomFrontRight: number;
+  bottomBackLeft: number;
+  bottomBackRight: number;
+};
 
 type State = {
   topicName: string;
@@ -22,15 +24,27 @@ type State = {
   error?: Error | undefined;
   colorScheme?: RenderState["colorScheme"];
   thrusterSpeeds: ThrusterSpeeds;
+  hasError: boolean;
 };
 
 function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
-  const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const thrusters = ["frontLeft", "frontRight", "backLeft", "backRight",
-                     "bottomFrontLeft", "bottomFrontRight", "bottomBackLeft", "bottomBackRight"]
+  const [renderDone, setRenderDone] = useState<() => void | undefined>();
+
+  const thrusters: (keyof ThrusterSpeeds)[] = [
+    "frontLeft",
+    "frontRight",
+    "backLeft",
+    "backRight",
+    "bottomFrontLeft",
+    "bottomFrontRight",
+    "bottomBackLeft",
+    "bottomBackRight",
+  ];
+
   const [state, setState] = useState<State>({
     topicName: "",
     request: "{}",
+    hasError: false,
     thrusterSpeeds: {
       frontLeft: 0,
       frontRight: 0,
@@ -39,12 +53,12 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
       bottomFrontLeft: 0,
       bottomFrontRight: 0,
       bottomBackLeft: 0,
-      bottomBackRight: 0
-    }
+      bottomBackRight: 0,
+    },
   });
 
   useLayoutEffect(() => {
-    context.onRender = (renderState: RenderState, done) => {
+    context.onRender = (renderState: Immutable<RenderState>, done) => {
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
       setRenderDone(() => done);
     };
@@ -56,126 +70,164 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     renderDone?.();
   }, [renderDone]);
 
-  const publishSpeeds = useCallback(
-    async () => {
-      const topicName = "offboard/thruster_speeds"
-      const messageType = "custom_msgs/ThrusterSpeeds"
+  useEffect(() => {
+    publishSpeeds();
+  }, []);
 
-      const thrustersInOrder = ["bottomFrontLeft", "frontLeft", "frontRight", "bottomFrontRight",
-                                "bottomBackLeft", "backLeft", "bottomBackRight", "backRight"]
-      
-      const msg_definition = {
-        name: "custom_msgs/ThrusterSpeeds",
-        definitions: [
-          {
-            isArray: false,
-            isComplex: true,
-            name: "header",
-            type: "std_msgs/Header",
-          },
-          {
-            isArray: true,
-            arrayLength: 8,
-            isComplex: false,
-            name: "speeds",
-            type: "int8",
-          }
-        ]
-      }
+  const publishSpeeds = useCallback(() => {
+    const topicName = "offboard/thruster_speeds";
+    const messageType = "custom_msgs/ThrusterSpeeds";
+    const thrustersInOrder: (keyof ThrusterSpeeds)[] = [
+      "bottomFrontLeft",
+      "frontLeft",
+      "frontRight",
+      "bottomFrontRight",
+      "bottomBackLeft",
+      "backLeft",
+      "bottomBackRight",
+      "backRight",
+    ];
 
-      const message = {
-        "header": {
-          "seq": 0,
-          "stamp": {
-            "secs": 0,
-            "nsecs": 0,
-          },
-          "frame_id": ""
+    const msgDefinition = {
+      name: "custom_msgs/ThrusterSpeeds",
+      definitions: [
+        {
+          isArray: false,
+          isComplex: true,
+          name: "header",
+          type: "std_msgs/Header",
         },
-        "speeds": thrustersInOrder.map((thruster) => state.thrusterSpeeds[thruster])
-      }
+        {
+          isArray: true,
+          arrayLength: 8,
+          isComplex: false,
+          name: "speeds",
+          type: "int8",
+        },
+      ],
+    };
 
-      if (!context.advertise) {
-        return;
-      }
-      if (!context.publish) {
-        return
-      }
+    const message = {
+      header: {
+        seq: 0,
+        stamp: {
+          secs: 0,
+          nsecs: 0,
+        },
+        frame_id: "",
+      },
+      speeds: thrustersInOrder.map((thruster: keyof ThrusterSpeeds) => state.thrusterSpeeds[thruster]),
+    };
 
-      try {
-        context.advertise(`/${topicName}`, messageType, {
-          datatypes: new Map([
-            ["std_msgs/Header", ros1["std_msgs/Header"]],
-            ["std_msgs/Int8", ros1["std_msgs/Int8"]],
-            ["custom_msgs/ThrusterSpeeds", msg_definition],
-          ]),
-        });
-        context.publish(`/${topicName}`, message);
+    if (!context.advertise) {
+      return;
+    }
+    if (!context.publish) {
+      return;
+    }
 
-        setState((oldState) => ({
-          ...oldState,
-          error: undefined,
-        }));
-      } catch (error) {
-        setState((oldState) => ({ ...oldState, error: error as Error }));
-        console.error(error);
-      }
-    },
-    [context.advertise, context.publish],
-  );
+    try {
+      context.advertise(`/${topicName}`, messageType, {
+        datatypes: new Map([
+          ["std_msgs/Header", ros1["std_msgs/Header"]],
+          ["std_msgs/Int8", ros1["std_msgs/Int8"]],
+          ["custom_msgs/ThrusterSpeeds", msgDefinition],
+        ]),
+      });
+      context.publish(`/${topicName}`, message);
 
-  const validateInput = (number) => {
-    return (number >= -128 && number <= 127)
-  }
+      setState((oldState) => ({
+        ...oldState,
+        error: undefined,
+      }));
+    } catch (error) {
+      setState((oldState) => ({ ...oldState, error: error as Error }));
+      console.error(error);
+    }
+  }, [context, state.thrusterSpeeds]);
 
-  const updateSpeeds = (event) => {
+  const validateInput = (number: number) => {
+    return number >= -128 && number <= 127;
+  };
+
+  const updateSpeeds = (event: React.ChangeEvent<HTMLInputElement>) => {
+    let hasError = false;
+    const value = event.target.value === "" ? "0" : event.target.value;
+
+    if (value !== "" && (Number.isNaN(Number(value)) || parseInt(value) !== parseFloat(value))) {
+      hasError = true;
+    } else {
+      thrusters.forEach((thruster: keyof ThrusterSpeeds) => {
+        const speed: number = thruster === event.target.id ? parseInt(value) : state.thrusterSpeeds[thruster];
+        if (!validateInput(speed)) {
+          hasError = true;
+        }
+      });
+    }
+
     setState((oldState) => ({
       ...oldState,
+      hasError,
       thrusterSpeeds: {
         ...state.thrusterSpeeds,
-        [event.target.id]: event.target.value
-      }
-    }))
-  }
+        [event.target.id]: value,
+      },
+    }));
+  };
 
   return (
-    <div style={{ padding: "1rem" }}>
-      <h2>Thruster Speeds</h2>
-      {(context.advertise == undefined || context.publish == undefined) && (
-        <Alert variant="filled" severity="error">Publishing topics is not supported by this connection</Alert>
-      )}
-
-      <h4>Topic Name</h4>
-      <div>
-      {thrusters.map((thruster) => (
-        <TextField
-          id={thruster}
-          error= {!validateInput(state.thrusterSpeeds[thruster])}
-          helperText={!validateInput(state.thrusterSpeeds[thruster]) ?
-            "The value must be an int from -128 to 127" : null}
-          label={thruster}
-          variant="outlined"
-          onChange={updateSpeeds}
-        />
-      ))}
+    <div style={{ padding: "6px" }}>
+      <div style={{ padding: "6px" }}>
+        {(context.advertise == undefined || context.publish == undefined) && (
+          <Alert variant="filled" severity="error">
+            Publishing topics is not supported by this connection
+          </Alert>
+        )}
       </div>
-      <Button
-        variant="outlined"
-        color="success"
-        onClick={async () => { await publishSpeeds(); }}
-        disabled={context.callService == undefined}
-      >
-        Publish Thruster Speeds
-      </Button>
+      <div>
+        <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+          {thrusters.map((thruster) => (
+            <Grid key={thruster} xs={6}>
+              <TextField
+                key={thruster}
+                id={thruster}
+                error={!validateInput(state.thrusterSpeeds[thruster])}
+                label={thruster}
+                size="small"
+                variant="outlined"
+                onChange={updateSpeeds}
+              />
+            </Grid>
+          ))}
+        </Grid>
+      </div>
+      <div style={{ display: "flex", justifyContent: "center", padding: "5px" }}>
+        {state.hasError ? (
+          <Alert variant="filled" severity="error">
+            The speed value for each thruster must be an integer between -128 and 127
+          </Alert>
+        ) : (
+          <Button
+            variant="contained"
+            color="success"
+            endIcon={<CheckCircleOutlineIcon />}
+            onClick={publishSpeeds}
+            disabled={context.callService == undefined}
+          >
+            Publish
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
 
 export function initThrusterSpeedsPanel(context: PanelExtensionContext): () => void {
-  ReactDOM.render(<ThrusterSpeedsPanel context={context} />, context.panelElement);
+  const root = createRoot(context.panelElement as HTMLElement);
+  root.render(<ThrusterSpeedsPanel context={context} />);
 
   // Return a function to run when the panel is removed
   return () => {
-    ReactDOM.unmountComponentAtNode(context.panelElement);
+    root.unmount();
   };
 }
