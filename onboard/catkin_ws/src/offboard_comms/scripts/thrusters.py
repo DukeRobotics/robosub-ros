@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 import rospy
 import numpy as np
@@ -8,7 +9,7 @@ from std_msgs.msg import Float32, Int32
 from custom_msgs.msg import ThrusterAllocs
 
 CONTROL_EFFORTS_TOPIC = "controls/thruster_allocs"
-VOLTAGE_TOPIC = "controls/voltage" # This could change
+VOLTAGE_TOPIC = "controls/voltage"  # This could change
 PWM_PUBLISHER_TOPIC = "offboard_comms/pwm"
 
 COEFFICIENTS = [-0.72598292, 17.51636272, -1.96635442, 341.37137439, 17.68477542,
