@@ -207,7 +207,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
         )}
       </div>
       <div>
-        <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+        <Grid container rowSpacing={1} columnSpacing={0}>
           {thrusters.map((thruster) => (
             <Grid key={thruster} xs={6}>
               <TextField
