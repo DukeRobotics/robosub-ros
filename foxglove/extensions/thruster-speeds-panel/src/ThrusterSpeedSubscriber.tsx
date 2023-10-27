@@ -1,30 +1,19 @@
-import { PanelExtensionContext, RenderState, Topic, MessageEvent } from "@foxglove/studio";
-import { useLayoutEffect, useEffect, useState, useRef, useMemo } from "react";
-import ReactDOM from "react-dom";
-import ReactJson from "react-json-view";
-import Alert from '@mui/material/Alert';
+import { PanelExtensionContext, RenderState, Topic, Immutable, MessageEvent } from "@foxglove/studio";
+import { TextField } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
-import Paper from '@mui/material/Paper';
-import { styled } from '@mui/material/styles';
-
-const Item = styled(Paper)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
-  ...theme.typography.body2,
-  padding: theme.spacing(1),
-  textAlign: 'center',
-  color: theme.palette.text.secondary,
-}));
+import { useLayoutEffect, useEffect, useState, useMemo } from "react";
+import { createRoot } from "react-dom/client";
 
 type ThrusterSpeeds = {
-  frontLeft: number,
-  frontRight: number,
-  backLeft: number,
-  backRight: number,
-  bottomFrontLeft: number,
-  bottomFrontRight: number,
-  bottomBackLeft: number,
-  bottomBackRight: number
-}
+  frontLeft: number;
+  frontRight: number;
+  backLeft: number;
+  backRight: number;
+  bottomFrontLeft: number;
+  bottomFrontRight: number;
+  bottomBackLeft: number;
+  bottomBackRight: number;
+};
 
 type State = {
   topic?: string;
@@ -34,18 +23,13 @@ type State = {
 
 function ThrusterSpeedsSubscriber({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [topics, setTopics] = useState<readonly Topic[] | undefined>();
-  const [message, setMessage] = useState<any>();
-
-
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
 
   // Restore our state from the layout via the context.initialState property.
-
-  const thrusters = ["frontLeft", "frontRight", "backLeft", "backRight", 
-                     "bottomFrontLeft", "bottomFrontRight", "bottomBackLeft", "bottomBackRight"];
-
-  const [state, setState] = useState<State>({
-    thrusterSpeeds: {
+  const [state, setState] = useState<State>(() => {
+    const initialState = context.initialState as State;
+    initialState.topic = "/offboard/thruster_speeds";
+    initialState.thrusterSpeeds = {
       frontLeft: 0,
       frontRight: 0,
       backLeft: 0,
@@ -53,15 +37,25 @@ function ThrusterSpeedsSubscriber({ context }: { context: PanelExtensionContext 
       bottomFrontLeft: 0,
       bottomFrontRight: 0,
       bottomBackLeft: 0,
-      bottomBackRight: 0
-    } 
+      bottomBackRight: 0,
+    };
+
+    return initialState;
   });
 
+  const thrusters: (keyof ThrusterSpeeds)[] = [
+    "frontLeft",
+    "frontRight",
+    "backLeft",
+    "backRight",
+    "bottomFrontLeft",
+    "bottomFrontRight",
+    "bottomBackLeft",
+    "bottomBackRight",
+  ];
+
   // Get topics
-  const imageTopics = useMemo(
-    () => (topics ?? []),
-    [topics],
-  );
+  const imageTopics = useMemo(() => topics ?? [], [topics]);
 
   useEffect(() => {
     // Save our state to the layout when the topic changes.
@@ -82,21 +76,46 @@ function ThrusterSpeedsSubscriber({ context }: { context: PanelExtensionContext 
 
   // Setup our onRender function and start watching topics and currentFrame for messages.
   useLayoutEffect(() => {
-    context.onRender = (renderState: RenderState, done) => {
+    context.onRender = (renderState: Immutable<RenderState>, done) => {
       setRenderDone(() => done);
       setTopics(renderState.topics);
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
-      
+
+      const thrustersInOrder: (keyof ThrusterSpeeds)[] = [
+        "bottomFrontLeft",
+        "frontLeft",
+        "frontRight",
+        "bottomFrontRight",
+        "bottomBackLeft",
+        "backLeft",
+        "bottomBackRight",
+        "backRight",
+      ];
+
       // Save the most recent message on our topic.
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        setMessage(renderState.currentFrame[renderState.currentFrame.length - 1]);
+        const latestFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<any>;
+        let newSpeeds: ThrusterSpeeds = {
+          frontLeft: 0,
+          frontRight: 0,
+          backLeft: 0,
+          backRight: 0,
+          bottomFrontLeft: 0,
+          bottomFrontRight: 0,
+          bottomBackLeft: 0,
+          bottomBackRight: 0,
+        };
+
+        thrustersInOrder.forEach((thruster: keyof ThrusterSpeeds, index) => {
+          newSpeeds = { ...newSpeeds, [thruster]: latestFrame.message?.speeds[index] };
+        });
+        setState((oldState) => ({ ...oldState, thrusterSpeeds: newSpeeds }));
       }
     };
 
     context.watch("topics");
     context.watch("currentFrame");
     context.watch("colorScheme");
-
   }, [context]);
 
   // Call our done function at the end of each render.
@@ -106,40 +125,31 @@ function ThrusterSpeedsSubscriber({ context }: { context: PanelExtensionContext 
 
   return (
     <div style={{ height: "100%", padding: "1rem" }}>
-      <h2>Subscribe Topic</h2>
-      {context.subscribe == undefined && (
-        <Alert variant="filled" severity="error">Subscribing to topics is not supported by this connection</Alert>
-      )}
-      <div>
-        <label>Choose a topic to display: </label>
-        <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-          {thrusters.map((thruster) => (
-            <Grid xs={6}>
-              <Item>{state.thrusterSpeeds[thruster]}</Item>
-            </Grid>
-          ))}
-        </Grid>
-
-        <ReactJson
-          name={null}
-          src={message}
-          indentWidth={2}
-          theme={state.colorScheme === "dark" ? "monokai" : "rjv-default"}
-          enableClipboard={false}
-          displayDataTypes={false}
-        />
-
-      </div>
+      <Grid container rowSpacing={1} columnSpacing={1}>
+        {thrusters.map((thruster) => (
+          <Grid key={thruster} xs={6}>
+            <TextField
+              key={thruster}
+              id={thruster}
+              label={thruster}
+              size="small"
+              variant="filled"
+              value={state.thrusterSpeeds[thruster]}
+              InputProps={{ readOnly: true }}
+            />
+          </Grid>
+        ))}
+      </Grid>
     </div>
   );
 }
 
 export function initThrusterSpeedsSubscriber(context: PanelExtensionContext): () => void {
-  ReactDOM.render(<ThrusterSpeedsSubscriber context={context} />, context.panelElement);
+  const root = createRoot(context.panelElement as HTMLElement);
+  root.render(<ThrusterSpeedsSubscriber context={context} />);
 
   // Return a function to run when the panel is removed
   return () => {
-    ReactDOM.unmountComponentAtNode(context.panelElement);
-
+    root.unmount();
   };
 }
