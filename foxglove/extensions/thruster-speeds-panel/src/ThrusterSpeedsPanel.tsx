@@ -24,11 +24,13 @@ type State = {
   error?: Error | undefined;
   colorScheme?: RenderState["colorScheme"];
   thrusterSpeeds: ThrusterSpeeds;
+  tempThrusterSpeeds: ThrusterSpeeds;
   hasError: boolean;
 };
 
 function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<() => void | undefined>();
+  const publishRate = 100;
 
   const thrusters: (keyof ThrusterSpeeds)[] = [
     "frontLeft",
@@ -55,6 +57,16 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
       bottomBackLeft: 0,
       bottomBackRight: 0,
     },
+    tempThrusterSpeeds: {
+      frontLeft: 0,
+      frontRight: 0,
+      backLeft: 0,
+      backRight: 0,
+      bottomFrontLeft: 0,
+      bottomFrontRight: 0,
+      bottomBackLeft: 0,
+      bottomBackRight: 0,
+    },
   });
 
   useLayoutEffect(() => {
@@ -70,9 +82,19 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     renderDone?.();
   }, [renderDone]);
 
+  // useEffect(() => {
+  //   publishSpeeds();
+  // }, []);
+
   useEffect(() => {
-    publishSpeeds();
-  }, []);
+    const repeatPublish = setInterval(() => {
+      publishSpeeds();
+    }, publishRate);
+
+    return () => {
+      clearInterval(repeatPublish);
+    };
+  }, [state.thrusterSpeeds]);
 
   const publishSpeeds = useCallback(() => {
     const topicName = "offboard/thruster_speeds";
@@ -158,7 +180,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
       hasError = true;
     } else {
       thrusters.forEach((thruster: keyof ThrusterSpeeds) => {
-        const speed: number = thruster === event.target.id ? parseInt(value) : state.thrusterSpeeds[thruster];
+        const speed: number = thruster === event.target.id ? parseInt(value) : state.tempThrusterSpeeds[thruster];
         if (!validateInput(speed)) {
           hasError = true;
         }
@@ -168,8 +190,8 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     setState((oldState) => ({
       ...oldState,
       hasError,
-      thrusterSpeeds: {
-        ...state.thrusterSpeeds,
+      tempThrusterSpeeds: {
+        ...state.tempThrusterSpeeds,
         [event.target.id]: value,
       },
     }));
@@ -191,10 +213,11 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
               <TextField
                 key={thruster}
                 id={thruster}
-                error={!validateInput(state.thrusterSpeeds[thruster])}
+                error={!validateInput(state.tempThrusterSpeeds[thruster])}
                 label={thruster}
                 size="small"
                 variant="outlined"
+                defaultValue={0}
                 onChange={updateSpeeds}
               />
             </Grid>
@@ -211,7 +234,12 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
             variant="contained"
             color="success"
             endIcon={<CheckCircleOutlineIcon />}
-            onClick={publishSpeeds}
+            onClick={() => {
+              setState((oldState) => ({
+                ...oldState,
+                thrusterSpeeds: { ...state.tempThrusterSpeeds },
+              }));
+            }}
             disabled={context.callService == undefined}
           >
             Publish
