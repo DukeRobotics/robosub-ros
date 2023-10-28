@@ -1,10 +1,9 @@
-import { PanelExtensionContext, RenderState } from "@foxglove/studio";
+import { PanelExtensionContext, RenderState, Immutable } from "@foxglove/studio";
 import Button from "@mui/material/Button/Button";
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import ReactDOM from "react-dom";
-import ReactJson from "react-json-view";
 import Alert from '@mui/material/Alert';
 
 
@@ -22,9 +21,9 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
   const [state, setState] = useState<State>({ serviceName: "", request: "{}", controlsEnabled: false });
 
   useLayoutEffect(() => {
-    context.onRender = (renderState: RenderState, done) => {
-      setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
+    context.onRender = (renderState: Immutable<RenderState>, done) => {
       setRenderDone(() => done);
+      setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
     };
   }, [context]);
 
@@ -75,18 +74,6 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
       >
         {state.controlsEnabled ? "Disable Controls" : "Enable Controls"}
       </Button>
-
-      <div>
-        <h4>Response</h4>
-        <ReactJson
-          name={null}
-          src={state.error ? { error: state.error.message } : state.response ?? {}}
-          indentWidth={2}
-          enableClipboard={false}
-          theme={state.colorScheme === "dark" ? "monokai" : "rjv-default"}
-          displayDataTypes={false}
-        />
-      </div>
     </div>
   );
 }
