@@ -127,7 +127,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
       if (state.connectStatus && state.sensorstime && state.currentTime != null) {
         //Compare current time to each sensorstime attribute
         for (const key in topics_dict) {
-          if (state.currentTime - state.sensorstime[key as keyof typeof topics_dict] > 5) {
+          if (state.currentTime - state.sensorstime[key as keyof typeof topics_dict] > 1) {
             state.connectStatus[key as keyof typeof topics_dict] = false;
           }
         }
