@@ -6,7 +6,7 @@ import tf2_ros
 from geometry_msgs.msg import Vector3, Pose, PoseStamped, PoseWithCovariance, \
     Twist, TwistStamped, TwistWithCovariance, Point, Quaternion, PointStamped
 from nav_msgs.msg import Odometry
-from tf.transformations import euler_from_quaternion, quaternion_multiply
+from tf.transformations import euler_from_quaternion, quaternion_from_euler, quaternion_multiply
 from std_msgs.msg import Header
 
 
@@ -247,33 +247,14 @@ def cv_object_position(cv_obj_data):
         return None
     return [cv_obj_data.x, cv_obj_data.y, cv_obj_data.z]
 
+def create_pose(x, y, z, roll, pitch, yaw):
+    pose = Pose()
+    pose.position = Point(x=x, y=y, z=z)
+    pose.orientation = Quaternion(*quaternion_from_euler(roll, pitch, yaw))
+    return pose
 
-class PointToPoseTask(smach.State):
-    """
-    Converts a point to a pose with the current orientation of the robot (optionally multiplied by a quaternion)
-    """
-    def __init__(self, controls, rotation=[0, 0, 0, 1]):
-        super().__init__(outcomes=["done"], input_keys=["point"], output_keys=["pose"])
-        self.rotation = rotation
-        self.controls = controls
+def local_pose_to_global(listener, pose):
+    return transform_pose(listener, 'base_link', 'odom', pose)
 
-    def execute(self, userdata):
-        pose = Pose()
-        pose.position = userdata.point
-        quat = self.controls.get_state().pose.pose.orientation
-        pose.orientation = Quaternion(*quaternion_multiply(
-            [quat.x, quat.y, quat.z, quat.w], self.rotation))
-        userdata.pose = pose
-        return "done"
-
-
-class LambdaTask(smach.State):
-    """
-    A task to wrap a function as a simple task
-    """
-    def __init__(self, func, outcomes, input_keys=[], output_keys=[]):
-        super().__init__(outcomes=outcomes, input_keys=input_keys, output_keys=output_keys)
-        self.func = func
-
-    def execute(self, userdata):
-        return self.func(userdata)
+def global_pose_to_local(listener, pose):
+    return transform_pose(listener, 'odom', 'base_link', pose)

@@ -4,7 +4,9 @@ import rospy
 import tf
 from interface.controls import ControlsInterface
 from interface.cv import CVInterface
-from buoy_task import BuoyTask
+# from buoy_task import BuoyTask
+from move_tasks import move_to_pose_local
+import task_utils
 
 def main():
     rospy.init_node("task_planning")
@@ -16,7 +18,7 @@ def main():
 
     # Fill with the tasks to do
     # For example: tasks = [gate_task(), buoy_task(), octagon_task()]
-    tasks = []
+    tasks = [move_to_pose_local(controls, task_utils.create_pose(0, 0, 0, 0, 0, 0))]
     for t in tasks:
         while not t.done and not rospy.is_shutdown():
             t.step()
