@@ -17,19 +17,21 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
   const [state, setState] = useState<State>({ serviceName: "", request: "{}", controlsEnabled: false });
 
+  // Update color scheme
   useLayoutEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setRenderDone(() => done);
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
     };
   }, [context]);
-
   context.watch("colorScheme");
 
+  // Call our done function at the end of each render
   useEffect(() => {
     renderDone?.();
   }, [renderDone]);
 
+  // Call the /enable_controls service to toggle controls
   const toggleControls = async () => {
     if (!context.callService) {
       return;
