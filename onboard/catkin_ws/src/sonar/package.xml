@@ -10,6 +10,7 @@
 
   <depend>rospy</depend>
   <depend>brping</depend>
+  <depend>std_msgs</depend>
   <depend>custom_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
