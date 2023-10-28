@@ -1,35 +1,17 @@
-import { PanelExtensionContext, RenderState, Immutable } from "@foxglove/studio";
+import { PanelExtensionContext } from "@foxglove/studio";
 import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button/Button";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useState } from "react";
 import { createRoot } from "react-dom/client";
 
 type State = {
-  serviceName: string;
-  request: string;
-  response?: unknown;
   error?: Error | undefined;
-  colorScheme?: RenderState["colorScheme"];
   controlsEnabled: boolean;
 };
 
 function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
-  const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const [state, setState] = useState<State>({ serviceName: "", request: "{}", controlsEnabled: false });
-
-  // Update color scheme
-  useLayoutEffect(() => {
-    context.onRender = (renderState: Immutable<RenderState>, done) => {
-      setRenderDone(() => done);
-      setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
-    };
-  }, [context]);
-  context.watch("colorScheme");
-
-  // Call our done function at the end of each render
-  useEffect(() => {
-    renderDone?.();
-  }, [renderDone]);
+  const [state, setState] = useState<State>({ controlsEnabled: false });
 
   // Call the /enable_controls service to toggle controls
   const toggleControls = async () => {
@@ -44,17 +26,14 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
       (response) => {
         setState({ ...state, controlsEnabled: !state.controlsEnabled });
         JSON.stringify(response);
-        console.log(response);
         setState((oldState) => ({
           ...oldState,
-          response,
           error: undefined,
         }));
       },
       (error) => {
         setState((oldState) => ({
           ...oldState,
-          response: undefined,
           error: error as Error,
         }));
       },
@@ -63,15 +42,19 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
 
   return (
     <div style={{ padding: "1rem" }}>
-      {context.callService == undefined && (
-        <Alert variant="filled" severity="error" style={{ marginBottom: 20 }}>
-          Calling services is not supported by this connection
-        </Alert>
-      )}
-      {state.error != undefined && (
-        <Alert variant="filled" severity="error" style={{ marginBottom: 20 }}>
-          {state.error.message}
-        </Alert>
+      {(context.callService == undefined || state.error != undefined) && (
+        <Box mb={1}>
+          {context.callService == undefined && (
+            <Alert variant="filled" severity="error">
+              Calling services is not supported by this connection
+            </Alert>
+          )}
+          {state.error != undefined && (
+            <Alert variant="filled" severity="error">
+              {state.error.message}
+            </Alert>
+          )}
+        </Box>
       )}
 
       <Button
