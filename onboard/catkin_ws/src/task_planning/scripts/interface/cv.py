@@ -2,6 +2,7 @@ import rospy
 import yaml
 import resource_retriever as rr
 from custom_msgs.msg import CVObject
+from geometry_msgs.msg import Pose
 
 
 class CVInterface:
@@ -14,6 +15,7 @@ class CVInterface:
 
         with open(rr.get_filename(self.MODELS_PATH, use_protocol=False)) as f:
             model = yaml.safe_load(f)[self.CV_MODEL]
+
             for model_class in model['classes']:
                 self.cv_data[model_class] = None
                 topic = f"{model['topic']}{self.CV_CAMERA}/{model_class}"
@@ -25,3 +27,15 @@ class CVInterface:
     # TODO add useful methods for getting data
     def get_data(self, name):
         return self.cv_data[name]
+
+    def get_pose(self, name):
+        data = self.get_data(name)
+        pose = Pose()
+        pose.position.x = data.coords.x
+        pose.position.y = data.coords.y
+        pose.position.z = data.coords.z
+        pose.orientation.x = 0
+        pose.orientation.y = 0
+        pose.orientation.z = 0
+        pose.orientation.w = 1
+        return pose

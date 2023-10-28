@@ -1,40 +1,10 @@
-class Yield():
-    def __await__(self):
-        return (yield self)
-
-class TaskWrapper():
-    def __init__(self, coroutine):
-        self.coroutine = coroutine
-
-    def run(self, value=None):
-        self.send(value)
-        while True:
-            try:
-                self.coroutine.send(None)
-            except StopIteration as e:
-                return e.value
-
-    def step(self):
-        try:
-            return self.coroutine.send(None)
-        except StopIteration as e:
-            return e.value
-        
-    def send(self, value):
-        try:
-            return self.coroutine.send(value)
-        except StopIteration as e:
-            return e.value
-        
-    def __await__(self):
-        return self.coroutine.__await__()
-
-def task(func):
-    def wrapper(*args, **kwargs):
-        return TaskWrapper(func(*args, **kwargs))
-    return wrapper
+from coroutines import task, Yield
 
 pose_from_elsewhere = 1
+
+def set_pose(pose):
+    global pose_from_elsewhere
+    pose_from_elsewhere = pose
 
 @task
 async def check_position():
@@ -54,4 +24,12 @@ async def move_to_pose_global(pose):
         print(f"value from check_position: {check}")
 
     print(f"move_to_pose_global finished for: {pose}")
+
+@task
+async def test_yield():
+    print(await Yield())
+
+@task
+async def no_await():
+    return 1
     
