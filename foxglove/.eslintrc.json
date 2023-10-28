@@ -37,10 +37,7 @@
         }
       }
     ],
-    "capitalized-comments": [
-      "warn",
-      "always"
-    ]
+    "capitalized-comments": ["warn", "always"]
   },
   "overrides": [
     {
