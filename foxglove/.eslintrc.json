@@ -47,7 +47,7 @@
       "files": ["*.ts", "*.tsx"],
       "extends": ["plugin:@foxglove/typescript"],
       "parserOptions": {
-        "project": "./foxglove/tsconfig.json"
+        "project": "**/tsconfig.json"
       }
     }
   ]
