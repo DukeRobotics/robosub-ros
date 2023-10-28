@@ -3,17 +3,55 @@ import Alert from "@mui/material/Alert";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
+type JoystickInputs= {
+  xAxis: number;
+  yAxis: number;
+  YawAxis: number;
+  zAxis: number;
+  pitchAxis: number;
+  rollAxis: number;
+  torpedoOne: boolean;
+  torpedoTwo: boolean;
+};
 type State = {
   topicName: string;
   request: string;
   schemaName: string;
   error?: Error | undefined;
   colorScheme?: RenderState["colorScheme"];
+  joystickInputs: JoystickInputs;
 };
 
 function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const [state, setState] = useState<State>({ topicName: "", request: "{}", schemaName: "" });
+  const publishRate = 20;
+  const Joystick: (keyof JoystickInputs)[] =[
+    "xAxis",
+    "yAxis",
+    "YawAxis",
+    "zAxis",
+    "pitchAxis",
+    "rollAxis",
+    "torpedoOne",
+    "torpedoTwo"
+  ];
+  const [state, setState] = useState<State>({
+
+    topicName: "",
+    request: "{}",
+    schemaName: "",
+    joystickInputs: {
+      xAxis: 0,
+      yAxis: 0,
+      YawAxis: 0,
+      zAxis: 0,
+      pitchAxis: 0,
+      rollAxis: 0,
+      torpedoOne: false,
+      torpedoTwo: false,
+    },
+
+    });
 
   // Update color scheme
   useLayoutEffect(() => {
