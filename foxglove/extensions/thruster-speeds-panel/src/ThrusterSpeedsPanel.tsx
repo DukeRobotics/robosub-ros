@@ -1,11 +1,27 @@
 import { ros1 } from "@foxglove/rosmsg-msgs-common";
 import { PanelExtensionContext, RenderState, Immutable } from "@foxglove/studio";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import { TextField, Button, Alert } from "@mui/material";
+import { CheckCircleOutline, HighlightOff } from "@mui/icons-material";
+import { TextField, Button, Alert, Tab, Tabs } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import * as React from "react";
 import { createRoot } from "react-dom/client";
+
+enum PanelMode {
+  SUBSCRIBING,
+  PUBLISHING,
+}
+
+type State = {
+  error?: Error | undefined;
+  colorScheme?: RenderState["colorScheme"];
+  hasError: boolean;
+  panelMode: PanelMode;
+  repeatPublish: NodeJS.Timeout | null;
+  publisherThrusterSpeeds: ThrusterSpeeds;
+  subscriberThrusterSpeeds: ThrusterSpeeds;
+  tempThrusterSpeeds: ThrusterSpeeds;
+};
 
 type ThrusterSpeeds = {
   frontLeft: number;
@@ -18,73 +34,102 @@ type ThrusterSpeeds = {
   bottomBackRight: number;
 };
 
-type State = {
-  topicName: string;
-  request: string;
-  error?: Error | undefined;
-  colorScheme?: RenderState["colorScheme"];
-  thrusterSpeeds: ThrusterSpeeds;
-  tempThrusterSpeeds: ThrusterSpeeds;
-  hasError: boolean;
+const defaultThrusterSpeeds: ThrusterSpeeds = {
+  frontLeft: 0,
+  frontRight: 0,
+  backLeft: 0,
+  backRight: 0,
+  bottomFrontLeft: 0,
+  bottomFrontRight: 0,
+  bottomBackLeft: 0,
+  bottomBackRight: 0,
+};
+
+const topicName = "offboard/thruster_speeds";
+const messageType = "custom_msgs/ThrusterSpeeds";
+const publishRate = 100;
+
+const thrustersInOrder: (keyof ThrusterSpeeds)[] = [
+  "bottomFrontLeft",
+  "frontLeft",
+  "frontRight",
+  "bottomFrontRight",
+  "bottomBackLeft",
+  "backLeft",
+  "bottomBackRight",
+  "backRight",
+];
+const thrusters: (keyof ThrusterSpeeds)[] = [
+  "frontLeft",
+  "frontRight",
+  "backLeft",
+  "backRight",
+  "bottomFrontLeft",
+  "bottomFrontRight",
+  "bottomBackLeft",
+  "bottomBackRight",
+];
+
+const msgDefinition = {
+  name: "custom_msgs/ThrusterSpeeds",
+  definitions: [
+    {
+      isArray: false,
+      isComplex: true,
+      name: "header",
+      type: "std_msgs/Header",
+    },
+    {
+      isArray: true,
+      arrayLength: 8,
+      isComplex: false,
+      name: "speeds",
+      type: "int8",
+    },
+  ],
 };
 
 function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<() => void | undefined>();
-  const publishRate = 100;
-
-  const thrusters: (keyof ThrusterSpeeds)[] = [
-    "frontLeft",
-    "frontRight",
-    "backLeft",
-    "backRight",
-    "bottomFrontLeft",
-    "bottomFrontRight",
-    "bottomBackLeft",
-    "bottomBackRight",
-  ];
-
   const [state, setState] = useState<State>({
-    topicName: "",
-    request: "{}",
     hasError: false,
-    thrusterSpeeds: {
-      frontLeft: 0,
-      frontRight: 0,
-      backLeft: 0,
-      backRight: 0,
-      bottomFrontLeft: 0,
-      bottomFrontRight: 0,
-      bottomBackLeft: 0,
-      bottomBackRight: 0,
-    },
-    tempThrusterSpeeds: {
-      frontLeft: 0,
-      frontRight: 0,
-      backLeft: 0,
-      backRight: 0,
-      bottomFrontLeft: 0,
-      bottomFrontRight: 0,
-      bottomBackLeft: 0,
-      bottomBackRight: 0,
-    },
+    panelMode: PanelMode.SUBSCRIBING,
+    repeatPublish: null,
+    publisherThrusterSpeeds: { ...defaultThrusterSpeeds },
+    subscriberThrusterSpeeds: { ...defaultThrusterSpeeds },
+    tempThrusterSpeeds: { ...defaultThrusterSpeeds },
   });
-
-  useLayoutEffect(() => {
-    context.onRender = (renderState: Immutable<RenderState>, done) => {
-      setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
-      setRenderDone(() => done);
-    };
-  }, [context]);
-
-  context.watch("colorScheme");
 
   useEffect(() => {
     renderDone?.();
   }, [renderDone]);
 
-  // useEffect(() => {
-  //   publishSpeeds();
-  // }, []);
+  useEffect(() => {
+    context.saveState({ topic: topicName });
+    context.subscribe([{ topic: topicName }]);
+  }, [context]);
+
+  useLayoutEffect(() => {
+    context.onRender = (renderState: Immutable<RenderState>, done) => {
+      setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
+      setRenderDone(() => done);
+
+      // Save the most recent message on our topic.
+      if (renderState.currentFrame && renderState.currentFrame.length > 0) {
+        const latestFrame = renderState.currentFrame[renderState.currentFrame.length - 1]?.message?.speeds;
+        let newSpeeds: ThrusterSpeeds = { ...defaultThrusterSpeeds };
+
+        thrustersInOrder.forEach((thruster: keyof ThrusterSpeeds, index) => {
+          newSpeeds = { ...newSpeeds, [thruster]: latestFrame?.message?.speeds?[index] };
+        });
+        setState((oldState) => ({ ...oldState, subscriberThrusterSpeeds: newSpeeds }));
+      }
+    };
+
+    context.watch("topics");
+    context.watch("currentFrame");
+    context.watch("colorScheme");
+  }, [context]);
 
   useEffect(() => {
     const repeatPublish = setInterval(() => {
@@ -94,41 +139,9 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     return () => {
       clearInterval(repeatPublish);
     };
-  }, [state.thrusterSpeeds]);
+  }, [state.publisherThrusterSpeeds]);
 
   const publishSpeeds = useCallback(() => {
-    const topicName = "offboard/thruster_speeds";
-    const messageType = "custom_msgs/ThrusterSpeeds";
-    const thrustersInOrder: (keyof ThrusterSpeeds)[] = [
-      "bottomFrontLeft",
-      "frontLeft",
-      "frontRight",
-      "bottomFrontRight",
-      "bottomBackLeft",
-      "backLeft",
-      "bottomBackRight",
-      "backRight",
-    ];
-
-    const msgDefinition = {
-      name: "custom_msgs/ThrusterSpeeds",
-      definitions: [
-        {
-          isArray: false,
-          isComplex: true,
-          name: "header",
-          type: "std_msgs/Header",
-        },
-        {
-          isArray: true,
-          arrayLength: 8,
-          isComplex: false,
-          name: "speeds",
-          type: "int8",
-        },
-      ],
-    };
-
     const message = {
       header: {
         seq: 0,
@@ -138,7 +151,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
         },
         frame_id: "",
       },
-      speeds: thrustersInOrder.map((thruster: keyof ThrusterSpeeds) => state.thrusterSpeeds[thruster]),
+      speeds: thrustersInOrder.map((thruster: keyof ThrusterSpeeds) => state.publisherThrusterSpeeds[thruster]),
     };
 
     if (!context.advertise) {
@@ -166,10 +179,30 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
       setState((oldState) => ({ ...oldState, error: error as Error }));
       console.error(error);
     }
-  }, [context, state.thrusterSpeeds]);
+  }, [context, state.publisherThrusterSpeeds]);
 
   const validateInput = (number: number) => {
     return number >= -128 && number <= 127;
+  };
+
+  const handleModeChange = (_: React.SyntheticEvent, mode: PanelMode) => {
+    setState((oldState) => ({ ...oldState, panelMode: mode }));
+  };
+
+  const toggleInterval = () => {
+    if (state.repeatPublish == null) {
+      setState((oldState) => ({
+        ...oldState,
+        repeatPublish: setInterval(() => {
+          publishSpeeds();
+        }, publishRate),
+      }));
+    } else {
+      setState((oldState) => ({
+        ...oldState,
+        repeatPublish: null,
+      }));
+    }
   };
 
   const updateSpeeds = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,12 +231,20 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
   };
 
   return (
-    <div style={{ padding: "6px" }}>
-      <div style={{ padding: "6px" }}>
-        {(context.advertise == undefined || context.publish == undefined) && (
-          <Alert variant="filled" severity="error">
-            Publishing topics is not supported by this connection
-          </Alert>
+    <div style={{ padding: "5px" }}>
+      <Tabs value={state.panelMode} onChange={handleModeChange} variant="fullWidth">
+        <Tab label="Subscribing" value={PanelMode.SUBSCRIBING} />
+        <Tab label="Publishing" value={PanelMode.PUBLISHING} />
+      </Tabs>
+      <div style={{ padding: "5px" }}>
+        {state.panelMode === PanelMode.SUBSCRIBING ? (
+          <></>
+        ) : (
+          (context.advertise == undefined || context.publish == undefined) && (
+            <Alert variant="filled" severity="error">
+              Publishing topics is not supported by this connection
+            </Alert>
+          )
         )}
       </div>
       <div>
@@ -213,11 +254,15 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
               <TextField
                 key={thruster}
                 id={thruster}
-                error={!validateInput(state.tempThrusterSpeeds[thruster])}
+                error={
+                  state.panelMode === PanelMode.SUBSCRIBING ? false : !validateInput(state.tempThrusterSpeeds[thruster])
+                }
                 label={thruster}
                 size="small"
-                variant="outlined"
-                defaultValue={0}
+                variant={state.panelMode === PanelMode.SUBSCRIBING ? "filled" : "outlined"}
+                value={state.panelMode === PanelMode.SUBSCRIBING ? state.subscriberThrusterSpeeds[thruster] : null}
+                InputProps={state.panelMode === PanelMode.SUBSCRIBING ? { readOnly: true } : {}}
+                defaultValue={state.panelMode === PanelMode.SUBSCRIBING ? false : 0}
                 onChange={updateSpeeds}
               />
             </Grid>
@@ -225,21 +270,28 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
         </Grid>
       </div>
       <div style={{ display: "flex", justifyContent: "center", padding: "5px" }}>
-        {state.hasError ? (
+        {state.panelMode === PanelMode.SUBSCRIBING ? (
+          <></>
+        ) : state.hasError ? (
           <Alert variant="filled" severity="error">
-            The speed value for each thruster must be an integer between -128 and 127
+            The speed value for each thruster must be an integer between -128 and 127!
           </Alert>
         ) : (
           <Button
             variant="contained"
-            color="success"
-            endIcon={<CheckCircleOutlineIcon />}
-            onClick={() => {
-              setState((oldState) => ({
-                ...oldState,
-                thrusterSpeeds: { ...state.tempThrusterSpeeds },
-              }));
-            }}
+            color={state.repeatPublish == null ? "success" : "error"}
+            endIcon={state.repeatPublish == null ? <CheckCircleOutline /> : <HighlightOff />}
+            onClick={
+              state.repeatPublish == null
+                ? () => {
+                    setState((oldState) => ({
+                      ...oldState,
+                      thrusterSpeeds: { ...state.tempThrusterSpeeds },
+                    }));
+                    toggleInterval();
+                  }
+                : toggleInterval
+            }
             disabled={context.callService == undefined}
           >
             Publish
