@@ -64,7 +64,7 @@ def callback(msg):
     odom.pose.pose = Pose(Point(x, y, z), Quaternion(*odom_quat))
     odom.child_frame_id = "dvl_link"
     # set twist (set angular velocity to (0, 0, 0), should not be used)
-    odom.twist.twist = Twist(Vector3(vx, vy, vz), Vector3(0, 0, 0))
+    odom.twist.twist = Twist(Vector3(vy, vx, vz), Vector3(0, 0, 0))
     odom.twist.covariance[0] = 0.01
     odom.twist.covariance[7] = 0.01
     odom.twist.covariance[14] = 0.01
