@@ -1,11 +1,8 @@
 import { PanelExtensionContext, RenderState, Immutable } from "@foxglove/studio";
+import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button/Button";
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import HighlightOffIcon from '@mui/icons-material/HighlightOff';
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import ReactDOM from "react-dom";
-import Alert from '@mui/material/Alert';
-
+import { useEffect, useLayoutEffect, useState } from "react";
+import { createRoot } from "react-dom/client";
 
 type State = {
   serviceName: string;
@@ -39,50 +36,62 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
     }
 
     const serviceName = "/enable_controls";
-    const request = { "data": !state.controlsEnabled };
+    const request = { data: !state.controlsEnabled };
 
-    setState({ ...state, controlsEnabled: !state.controlsEnabled })
-
-    try {
-      const response = await context.callService(serviceName, request);
-      JSON.stringify(response); // Attempt serializing the response, to throw an error on failure
-      setState((oldState) => ({
-        ...oldState,
-        response,
-        error: undefined,
-      }));
-    } catch (error) {
-      setState((oldState) => ({ ...oldState, error: error as Error }));
-      console.error(error);
-    }
-
-  }
+    await context.callService(serviceName, request).then(
+      (response) => {
+        setState({ ...state, controlsEnabled: !state.controlsEnabled });
+        JSON.stringify(response);
+        console.log(response);
+        setState((oldState) => ({
+          ...oldState,
+          response,
+          error: undefined,
+        }));
+      },
+      (error) => {
+        setState((oldState) => ({
+          ...oldState,
+          response: undefined,
+          error: error as Error,
+        }));
+      },
+    );
+  };
 
   return (
     <div style={{ padding: "1rem" }}>
-      <h2>Toggle Controls</h2>
-      {(context.callService == undefined) && (
-        <Alert variant="filled" severity="error" style={{marginBottom: 20}}>Calling services is not supported by this connection</Alert>
+      {context.callService == undefined && (
+        <Alert variant="filled" severity="error" style={{ marginBottom: 20 }}>
+          Calling services is not supported by this connection
+        </Alert>
+      )}
+      {state.error != undefined && (
+        <Alert variant="filled" severity="error" style={{ marginBottom: 20 }}>
+          {state.error.message}
+        </Alert>
       )}
 
       <Button
         variant="contained"
         color={state.controlsEnabled ? "error" : "success"}
-        endIcon={state.controlsEnabled ? <HighlightOffIcon /> : <CheckCircleOutlineIcon />}
-        onClick={async () => { await toggleControls(); }}
+        onClick={() => {
+          void toggleControls();
+        }}
         disabled={context.callService == undefined}
       >
-        {state.controlsEnabled ? "Disable Controls" : "Enable Controls"}
+        {state.controlsEnabled ? "Disable" : "Enable"}
       </Button>
     </div>
   );
 }
 
 export function initToggleControlsPanel(context: PanelExtensionContext): () => void {
-  ReactDOM.render(<ToggleControlsPanel context={context} />, context.panelElement);
+  const root = createRoot(context.panelElement as HTMLElement);
+  root.render(<ToggleControlsPanel context={context} />);
 
   // Return a function to run when the panel is removed
   return () => {
-    ReactDOM.unmountComponentAtNode(context.panelElement);
+    root.unmount();
   };
 }

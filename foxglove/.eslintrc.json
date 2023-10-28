@@ -5,16 +5,9 @@
     "es2020": true,
     "node": false
   },
-  "ignorePatterns": [
-    "dist"
-  ],
-  "plugins": [
-    "jest"
-  ],
-  "extends": [
-    "plugin:@foxglove/base",
-    "plugin:@foxglove/react"
-  ],
+  "ignorePatterns": ["dist"],
+  "plugins": ["jest"],
+  "extends": ["plugin:@foxglove/base", "plugin:@foxglove/react"],
   "rules": {
     "camelcase": [
       "warn",
@@ -22,22 +15,37 @@
         "properties": "always"
       }
     ],
-    "react-hooks/exhaustive-deps": [
-      "error"
-    ],
+    "react-hooks/exhaustive-deps": ["error"],
     "prettier/prettier": [
       "error",
       {
         "endOfLine": "auto"
       }
-]
+    ],
+    "spaced-comment": [
+      "error",
+      "always",
+      {
+        "line": {
+          "markers": ["/"],
+          "exceptions": ["-", "+"]
+        },
+        "block": {
+          "markers": ["!"],
+          "exceptions": ["*"],
+          "balanced": true
+        }
+      }
+    ],
+    "capitalized-comments": [
+      "warn",
+      "always"
+    ]
   },
   "overrides": [
     {
       "files": ["*.ts", "*.tsx"],
-      "extends": [
-        "plugin:@foxglove/typescript"
-      ],
+      "extends": ["plugin:@foxglove/typescript"],
       "parserOptions": {
         "project": "./foxglove/tsconfig.json"
       }
