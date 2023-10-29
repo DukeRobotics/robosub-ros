@@ -116,11 +116,11 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
 
       // Save the most recent message on our topic.
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        const latestFrame = renderState.currentFrame[renderState.currentFrame.length - 1]?.message?.speeds;
+        const latestFrame = renderState.currentFrame[renderState.currentFrame.length - 1];
         let newSpeeds: ThrusterSpeeds = { ...defaultThrusterSpeeds };
 
         thrustersInOrder.forEach((thruster: keyof ThrusterSpeeds, index) => {
-          newSpeeds = { ...newSpeeds, [thruster]: latestFrame?.message?.speeds?[index] };
+          newSpeeds = { ...newSpeeds, [thruster]: latestFrame?.speeds[index] };
         });
         setState((oldState) => ({ ...oldState, subscriberThrusterSpeeds: newSpeeds }));
       }
@@ -294,7 +294,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
             }
             disabled={context.callService == undefined}
           >
-            Publish
+            {state.repeatPublish == null ? "Start Publishing" : "Stop Publishing"}
           </Button>
         )}
       </div>
