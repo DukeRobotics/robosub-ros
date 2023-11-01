@@ -1,6 +1,5 @@
 import { ros1 } from "@foxglove/rosmsg-msgs-common";
-import { Time } from "@foxglove/schemas/schemas/typescript/Time";
-import { PanelExtensionContext, RenderState, Immutable } from "@foxglove/studio";
+import { PanelExtensionContext, RenderState, Immutable, MessageEvent } from "@foxglove/studio";
 import { CheckCircleOutline, HighlightOff } from "@mui/icons-material";
 import { TextField, Button, Alert, Tab, Tabs } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
@@ -14,15 +13,6 @@ enum PanelMode {
   SUBSCRIBING,
   PUBLISHING,
 }
-
-type ThrusterSpeedsMessage = {
-  header: {
-    seq: number;
-    stamp: Time;
-    frame_id: string;
-  };
-  speeds: Int8Array;
-};
 
 type State = {
   error?: Error | undefined;
@@ -57,7 +47,7 @@ const defaultThrusterSpeeds: ThrusterSpeeds = {
   bottomBackRight: 0,
 };
 
-const topicName = "offboard/thruster_speeds";
+const topicName = "/offboard/thruster_speeds";
 const messageType = "custom_msgs/ThrusterSpeeds";
 const publishRate = 100;
 
@@ -99,6 +89,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
   }, [renderDone]);
 
   useEffect(() => {
+    console.log(topicName);
     context.saveState({ topic: topicName });
     context.subscribe([{ topic: topicName }]);
   }, [context]);
@@ -114,24 +105,20 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
 
   useLayoutEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
-      setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
       setRenderDone(() => done);
+      setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
 
       // Save the most recent message on our topic.
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        const latestFrame = renderState.currentFrame[
-          renderState.currentFrame.length - 1
-        ] as unknown as MessageEvent<ThrusterSpeedsMessage>;
+        const latestFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<any>;
         let newSpeeds: ThrusterSpeeds = { ...defaultThrusterSpeeds };
-
         thrustersInOrder.forEach((thruster: keyof ThrusterSpeeds, index) => {
-          newSpeeds = { ...newSpeeds, [thruster]: latestFrame.data.speeds[index] };
+          newSpeeds = { ...newSpeeds, [thruster]: latestFrame.message?.speeds[index] };
         });
         setState((oldState) => ({ ...oldState, subscriberThrusterSpeeds: newSpeeds }));
       }
     };
 
-    context.watch("topics");
     context.watch("currentFrame");
     context.watch("colorScheme");
   }, [context]);
