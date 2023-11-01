@@ -49,13 +49,17 @@ class ThrusterConverter:
             pwm = np.zeros(8).astype(float)
             for i, desired_effort in enumerate(desired_efforts.allocs):
                 pwm[i] = self.lookup(desired_effort, self.voltage)
-            self.pwm_publisher.publish(pwm)
+            PWM_alloc = PWMAllocs()
+            PWM_alloc.allocs = pwm
+            self.pwm_publisher.publish(PWM_alloc)
         else:
             # continuous, or polynomial mode
             pwm = np.zeros(8).astype(float)
             for i, desired_effort in enumerate(desired_efforts.allocs):
                 pwm[i] = self.polynomial(desired_effort, self.voltage)
-            self.pwm_publisher.publish(pwm)
+            PWM_alloc = PWMAllocs()
+            PWM_alloc.allocs = pwm
+            self.pwm_publisher.publish(PWM_alloc)
 
     # This method is the callback for updating the latest voltage read
     def update_voltage(self, voltage):
