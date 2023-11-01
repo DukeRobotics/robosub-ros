@@ -9,10 +9,11 @@ import { createRoot } from "react-dom/client";
 const ENABLE_CONTROLS_SERVICE = "/enable_controls";
 
 type State = {
-  error?: Error | undefined;
-  controlsEnabled: boolean;
+  error?: Error | undefined; // Error object if service call fails
+  controlsEnabled: boolean; // Current state of controls
 };
 
+// Response type definition for std_srvs/SetBool.srv
 interface SetBoolResponse {
   success: boolean;
   message: string;
@@ -25,7 +26,7 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
   const toggleControls = () => {
     // Check if service calling is supported by the context
     if (!context.callService) {
-      console.warn("Calling services is not supported by this connection");
+      console.error("Calling services is not supported by this connection");
       return;
     }
 
@@ -54,6 +55,7 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
 
   return (
     <div style={{ padding: "1rem" }}>
+      {/* Error messages */}
       {(context.callService == undefined || state.error != undefined) && (
         <Box mb={1}>
           {context.callService == undefined && (
@@ -69,6 +71,7 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
         </Box>
       )}
 
+      {/* Toggle button */}
       <Button
         variant="contained"
         color={state.controlsEnabled ? "error" : "success"}
