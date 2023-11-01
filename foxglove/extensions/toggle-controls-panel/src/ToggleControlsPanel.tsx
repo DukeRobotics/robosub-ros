@@ -54,7 +54,7 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
   };
 
   return (
-    <div style={{ padding: "1rem" }}>
+    <Box m={1}>
       {/* Error messages */}
       {(context.callService == undefined || state.error != undefined) && (
         <Box mb={1}>
@@ -80,7 +80,7 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
       >
         {state.controlsEnabled ? "Disable Controls" : "Enable Controls"}
       </Button>
-    </div>
+    </Box>
   );
 }
 
