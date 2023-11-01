@@ -1,16 +1,28 @@
 import { ros1 } from "@foxglove/rosmsg-msgs-common";
+import { Time } from "@foxglove/schemas/schemas/typescript/Time";
 import { PanelExtensionContext, RenderState, Immutable } from "@foxglove/studio";
 import { CheckCircleOutline, HighlightOff } from "@mui/icons-material";
 import { TextField, Button, Alert, Tab, Tabs } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState, useRef } from "react";
 import * as React from "react";
 import { createRoot } from "react-dom/client";
+
+import { custom_msgs } from "../../../msgdefs/dist";
 
 enum PanelMode {
   SUBSCRIBING,
   PUBLISHING,
 }
+
+type ThrusterSpeedsMessage = {
+  header: {
+    seq: number;
+    stamp: Time;
+    frame_id: string;
+  };
+  speeds: Int8Array;
+};
 
 type State = {
   error?: Error | undefined;
@@ -70,27 +82,9 @@ const thrusters: (keyof ThrusterSpeeds)[] = [
   "bottomBackRight",
 ];
 
-const msgDefinition = {
-  name: "custom_msgs/ThrusterSpeeds",
-  definitions: [
-    {
-      isArray: false,
-      isComplex: true,
-      name: "header",
-      type: "std_msgs/Header",
-    },
-    {
-      isArray: true,
-      arrayLength: 8,
-      isComplex: false,
-      name: "speeds",
-      type: "int8",
-    },
-  ],
-};
-
 function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<() => void | undefined>();
+  const firstMount = useRef(true);
   const [state, setState] = useState<State>({
     hasError: false,
     panelMode: PanelMode.SUBSCRIBING,
@@ -109,6 +103,15 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     context.subscribe([{ topic: topicName }]);
   }, [context]);
 
+  useEffect(() => {
+    if (firstMount.current) {
+      firstMount.current = false;
+      return;
+    }
+
+    toggleInterval();
+  }, [state.publisherThrusterSpeeds]);
+
   useLayoutEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
@@ -116,11 +119,13 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
 
       // Save the most recent message on our topic.
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        const latestFrame = renderState.currentFrame[renderState.currentFrame.length - 1];
+        const latestFrame = renderState.currentFrame[
+          renderState.currentFrame.length - 1
+        ] as unknown as MessageEvent<ThrusterSpeedsMessage>;
         let newSpeeds: ThrusterSpeeds = { ...defaultThrusterSpeeds };
 
         thrustersInOrder.forEach((thruster: keyof ThrusterSpeeds, index) => {
-          newSpeeds = { ...newSpeeds, [thruster]: latestFrame?.speeds[index] };
+          newSpeeds = { ...newSpeeds, [thruster]: latestFrame.data.speeds[index] };
         });
         setState((oldState) => ({ ...oldState, subscriberThrusterSpeeds: newSpeeds }));
       }
@@ -130,16 +135,6 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     context.watch("currentFrame");
     context.watch("colorScheme");
   }, [context]);
-
-  useEffect(() => {
-    const repeatPublish = setInterval(() => {
-      publishSpeeds();
-    }, publishRate);
-
-    return () => {
-      clearInterval(repeatPublish);
-    };
-  }, [state.publisherThrusterSpeeds]);
 
   const publishSpeeds = useCallback(() => {
     const message = {
@@ -166,7 +161,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
         datatypes: new Map([
           ["std_msgs/Header", ros1["std_msgs/Header"]],
           ["std_msgs/Int8", ros1["std_msgs/Int8"]],
-          ["custom_msgs/ThrusterSpeeds", msgDefinition],
+          ["custom_msgs/ThrusterSpeeds", custom_msgs["custom_msgs/ThrusterSpeeds"]],
         ]),
       });
       context.publish(`/${topicName}`, message);
@@ -198,6 +193,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
         }, publishRate),
       }));
     } else {
+      clearInterval(state.repeatPublish);
       setState((oldState) => ({
         ...oldState,
         repeatPublish: null,
@@ -260,7 +256,11 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
                 label={thruster}
                 size="small"
                 variant={state.panelMode === PanelMode.SUBSCRIBING ? "filled" : "outlined"}
-                value={state.panelMode === PanelMode.SUBSCRIBING ? state.subscriberThrusterSpeeds[thruster] : null}
+                value={
+                  state.panelMode === PanelMode.SUBSCRIBING
+                    ? state.subscriberThrusterSpeeds[thruster]
+                    : state.tempThrusterSpeeds[thruster]
+                }
                 InputProps={state.panelMode === PanelMode.SUBSCRIBING ? { readOnly: true } : {}}
                 defaultValue={state.panelMode === PanelMode.SUBSCRIBING ? false : 0}
                 onChange={updateSpeeds}
@@ -286,9 +286,8 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
                 ? () => {
                     setState((oldState) => ({
                       ...oldState,
-                      thrusterSpeeds: { ...state.tempThrusterSpeeds },
+                      publisherThrusterSpeeds: { ...state.tempThrusterSpeeds },
                     }));
-                    toggleInterval();
                   }
                 : toggleInterval
             }
