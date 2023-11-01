@@ -38,7 +38,7 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
         const typedResponse = response as SetBoolResponse;
 
         // Update the state based on the service response
-        // If the service call is unsuccessful, display the response message as an error
+        // If the service responds with failure, display the response message as an error
         const error = typedResponse.success ? undefined : Error(typedResponse.message);
         setState({ error, controlsEnabled: !state.controlsEnabled });
       },
