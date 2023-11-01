@@ -6,14 +6,15 @@ import numpy as np
 from bisect import bisect_left
 
 from std_msgs.msg import Float32, Int32
-from custom_msgs.msg import ThrusterAllocs
+from custom_msgs.msg import ThrusterAllocs, PWMAllocs
 
 CONTROL_EFFORTS_TOPIC = "controls/thruster_allocs"
 VOLTAGE_TOPIC = "controls/voltage"  # This could change
 PWM_PUBLISHER_TOPIC = "offboard_comms/pwm"
 
-COEFFICIENTS = [-0.72598292, 17.51636272, -1.96635442, 341.37137439, 17.68477542,
-                -0.61271068, -42.99373034, 1.3453298]
+# Coefficients for the fitted polynomial; terms of the polynomial are shown under function polynomial
+COEFFICIENTS = [-7.65838439e-01,  1.84459825e+01, -2.01132736e+02, 7.42118554e+03,
+                7.92882050e+01, -2.70347565e+00, -9.44255430e+02, 2.95486429e+01]
 
 
 class ThrusterConverter:
@@ -25,7 +26,7 @@ class ThrusterConverter:
         # Read roslaunch params
         self.interpolation_mode = rospy.get_param("~interpolation")
 
-        # Default voltage is 15.5
+        # Default voltage is 15.6
         self.voltage = 15.6
 
         # Pre-load look-up tables
@@ -38,17 +39,23 @@ class ThrusterConverter:
         # Subscriber to read voltages; expected range is \in [14.0, 16.2], though it can handle up to 18.0v
         self.voltage_subscriber = rospy.Subscriber(VOLTAGE_TOPIC, Float32, self.update_voltage)
         # TODO: Check to see if it's better to constantly publish the last read control effort
-        self.pwm_publisher = rospy.Publisher(PWM_PUBLISHER_TOPIC, Int32, queue_size=1)
+        self.pwm_publisher = rospy.Publisher(PWM_PUBLISHER_TOPIC, PWMAllocs, queue_size=1)
 
     # This method is the callback for returning the thruster pwm output
     # depending on voltage and desired force
-    def convert_and_publish(self, desired_effort):
+    def convert_and_publish(self, desired_efforts):
         # Check which model we are using: discrete (lookup table) or continuous (polynomial)
         if self.interpolation_mode == "discrete":
-            self.pwm_publisher.publish(self.lookup(desired_effort, self.voltage))
+            pwm = np.zeros(8).astype(float)
+            for i, desired_effort in enumerate(desired_efforts.allocs):
+                pwm[i] = self.lookup(desired_effort, self.voltage)
+            self.pwm_publisher.publish(pwm)
         else:
             # continuous, or polynomial mode
-            self.pwm_publisher.publish(self.polynomial(desired_effort, self.voltage))
+            pwm = np.zeros(8).astype(float)
+            for i, desired_effort in enumerate(desired_efforts.allocs):
+                pwm[i] = self.polynomial(desired_effort, self.voltage)
+            self.pwm_publisher.publish(pwm)
 
     # This method is the callback for updating the latest voltage read
     def update_voltage(self, voltage):
@@ -66,14 +73,12 @@ class ThrusterConverter:
     def load_lookup(self):
         # Dictionary for the lookup table
         self.voltage_efforts_to_pwm = dict()
-        # Load all computed power curves from 14.0v to 18.0v
-        for voltage in range(14.0, 18.1, 0.1):
-            # Read .npy file to load pre-calculated linear interpolation data
-            file_path = "./data/" + str(voltage) + "_interpolated.npy"
-            loaded_np_array = np.load(file_path)
-            pwm, force = loaded_np_array[:, 0], loaded_np_array[:, 1]
-            # self.voltage_efforts_to_pwm[15.5] = [forces array for 15.5, pwm array for 15.5]
-            self.voltage_efforts_to_pwm[voltage] = [force, pwm]
+        # Load power curve tables for 14.0v, 16.0v, and 18.0v
+        all_14v, all_16v, all_18v = np.load("./data/14.npy"), np.load("./data/16.npy"), np.load("./data/18.npy")
+        # Save data under appropriate voltage heading/key in voltage_efforts_to_pwm
+        self.voltage_efforts_to_pwm[14.0] = [all_14v[:, 1], all_14v[:, 0]]
+        self.voltage_efforts_to_pwm[16.0] = [all_16v[:, 1], all_16v[:, 0]]
+        self.voltage_efforts_to_pwm[18.0] = [all_18v[:, 1], all_18v[:, 0]]
 
     # This method takes in voltage and desired control effort and outputs pwn
     # via the linearly interpolated lookup tables
@@ -84,7 +89,20 @@ class ThrusterConverter:
         # We use binary search to find the left insertion position of force in the associated force array
         # Note that "force" is always in sorted increasing order, so we can use an array bisection algorithm
         left_index = bisect_left(self.voltage_efforts_to_pwm[voltage][0], force)
-        return self.voltage_efforts_to_pwm[voltage][1][left_index]
+
+        # Find interpolation range
+        if 14.0 <= voltage and voltage <= 16.0:
+            interpolated_pwm = self.interpolate(14.0, self.voltage_efforts_to_pwm[14.0][left_index],
+                                                16.0, self.voltage_efforts_to_pwm[16.0][left_index], force)
+            return interpolated_pwm
+        else:
+            interpolated_pwm = self.interpolate(16.0, self.voltage_efforts_to_pwm[16.0][left_index],
+                                                18.0, self.voltage_efforts_to_pwm[18.0][left_index], force)
+            return interpolated_pwm
+
+    # Linear interpolation to process data
+    def interpolate(self, x1, y1, x2, y2, x_interpolate):
+        return y1 + ((y2 - y1) * (x_interpolate - x1))/(x2 - x1)
 
     # This method takes in voltage and desired control effort and outputs pwm
     # via the fitted polynomial model

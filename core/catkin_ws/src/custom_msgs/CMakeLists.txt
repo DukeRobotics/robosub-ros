@@ -14,6 +14,7 @@ add_message_files(
   DVLRaw.msg
   HydrophoneSet.msg
   ThrusterAllocs.msg
+  PWMAllocs.msg
   ServoAngleArray.msg
   CVObject.msg
   Memory.msg
