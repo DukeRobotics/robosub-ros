@@ -5,6 +5,7 @@ import Button from "@mui/material/Button/Button";
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
 
+// Define the service name for enabling/disabling controls
 const ENABLE_CONTROLS_SERVICE = "/enable_controls";
 
 type State = {
@@ -22,23 +23,27 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
 
   // Call the /enable_controls service to toggle controls
   const toggleControls = () => {
+    // Check if service calling is supported by the context
     if (!context.callService) {
+      console.warn("Calling services is not supported by this connection");
       return;
     }
 
+    // Request payload to toggle controls
     const request = { data: !state.controlsEnabled };
 
+    // Make the service call
     context.callService(ENABLE_CONTROLS_SERVICE, request).then(
       (response) => {
         const typedResponse = response as SetBoolResponse;
 
-        if (typedResponse.success) {
-          setState({ error: undefined, controlsEnabled: !state.controlsEnabled });
-        } else {
-          setState({ error: Error(typedResponse.message), controlsEnabled: !state.controlsEnabled });
-        }
+        // Update the state based on the service response
+        // If the service call is unsuccessful, display the response message as an error
+        const error = typedResponse.success ? undefined : Error(typedResponse.message);
+        setState({ error, controlsEnabled: !state.controlsEnabled });
       },
       (error) => {
+        // Handle service call errors (e.g., service is not advertised)
         setState((oldState) => ({
           ...oldState,
           error: error as Error,
