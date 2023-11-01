@@ -5,6 +5,8 @@ import Button from "@mui/material/Button/Button";
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
 
+const ENABLE_CONTROLS_SERVICE = "/enable_controls";
+
 type State = {
   error?: Error | undefined;
   controlsEnabled: boolean;
@@ -14,22 +16,16 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
   const [state, setState] = useState<State>({ controlsEnabled: false });
 
   // Call the /enable_controls service to toggle controls
-  const toggleControls = async () => {
+  const toggleControls = () => {
     if (!context.callService) {
       return;
     }
 
-    const serviceName = "/enable_controls";
     const request = { data: !state.controlsEnabled };
 
-    await context.callService(serviceName, request).then(
-      (response) => {
-        setState({ ...state, controlsEnabled: !state.controlsEnabled });
-        JSON.stringify(response);
-        setState((oldState) => ({
-          ...oldState,
-          error: undefined,
-        }));
+    context.callService(ENABLE_CONTROLS_SERVICE, request).then(
+      () => {
+        setState({ error: undefined, controlsEnabled: !state.controlsEnabled });
       },
       (error) => {
         setState((oldState) => ({
@@ -60,12 +56,10 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
       <Button
         variant="contained"
         color={state.controlsEnabled ? "error" : "success"}
-        onClick={() => {
-          void toggleControls();
-        }}
+        onClick={toggleControls}
         disabled={context.callService == undefined}
       >
-        {state.controlsEnabled ? "Disable" : "Enable"}
+        {state.controlsEnabled ? "Disable Controls" : "Enable Controls"}
       </Button>
     </div>
   );
