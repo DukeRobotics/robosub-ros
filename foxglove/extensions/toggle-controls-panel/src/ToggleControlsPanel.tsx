@@ -12,6 +12,11 @@ type State = {
   controlsEnabled: boolean;
 };
 
+interface SetBoolResponse {
+  success: boolean;
+  message: string;
+}
+
 function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [state, setState] = useState<State>({ controlsEnabled: false });
 
@@ -24,8 +29,14 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
     const request = { data: !state.controlsEnabled };
 
     context.callService(ENABLE_CONTROLS_SERVICE, request).then(
-      () => {
-        setState({ error: undefined, controlsEnabled: !state.controlsEnabled });
+      (response) => {
+        const typedResponse = response as SetBoolResponse;
+
+        if (typedResponse.success) {
+          setState({ error: undefined, controlsEnabled: !state.controlsEnabled });
+        } else {
+          setState({ error: Error(typedResponse.message), controlsEnabled: !state.controlsEnabled });
+        }
       },
       (error) => {
         setState((oldState) => ({
