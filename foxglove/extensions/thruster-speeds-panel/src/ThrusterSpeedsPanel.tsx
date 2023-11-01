@@ -26,14 +26,14 @@ type State = {
 };
 
 type ThrusterSpeeds = {
-  frontLeft: number;
-  frontRight: number;
-  backLeft: number;
-  backRight: number;
-  bottomFrontLeft: number;
-  bottomFrontRight: number;
-  bottomBackLeft: number;
-  bottomBackRight: number;
+  frontLeft: number | "";
+  frontRight: number | "";
+  backLeft: number | "";
+  backRight: number | "";
+  bottomFrontLeft: number | "";
+  bottomFrontRight: number | "";
+  bottomBackLeft: number | "";
+  bottomBackRight: number | "";
 };
 
 const defaultThrusterSpeeds: ThrusterSpeeds = {
@@ -81,7 +81,16 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     repeatPublish: null,
     publisherThrusterSpeeds: { ...defaultThrusterSpeeds },
     subscriberThrusterSpeeds: { ...defaultThrusterSpeeds },
-    tempThrusterSpeeds: { ...defaultThrusterSpeeds },
+    tempThrusterSpeeds: {
+      frontLeft: "",
+      frontRight: "",
+      backLeft: "",
+      backRight: "",
+      bottomFrontLeft: "",
+      bottomFrontRight: "",
+      bottomBackLeft: "",
+      bottomBackRight: "",
+    },
   });
 
   useEffect(() => {
@@ -89,7 +98,6 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
   }, [renderDone]);
 
   useEffect(() => {
-    console.log(topicName);
     context.saveState({ topic: topicName });
     context.subscribe([{ topic: topicName }]);
   }, [context]);
@@ -163,8 +171,8 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     }
   }, [context, state.publisherThrusterSpeeds]);
 
-  const validateInput = (number: number) => {
-    return number >= -128 && number <= 127;
+  const validateInput = (value: number | "") => {
+    return value === "" || (value >= -128 && value <= 127);
   };
 
   const handleModeChange = (_: React.SyntheticEvent, mode: PanelMode) => {
@@ -188,15 +196,30 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     }
   };
 
-  const updateSpeeds = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const generatePublisherSpeeds = () => {
+    const newThrusterSpeeds: ThrusterSpeeds = { ...state.tempThrusterSpeeds };
+    thrusters.forEach((thruster: keyof ThrusterSpeeds) => {
+      if (state.tempThrusterSpeeds[thruster] === "") {
+        newThrusterSpeeds[thruster] = state.subscriberThrusterSpeeds[thruster];
+      }
+    });
+
+    return newThrusterSpeeds;
+  };
+
+  const updateTempSpeeds = (event: React.ChangeEvent<HTMLInputElement>) => {
     let hasError = false;
-    const value = event.target.value === "" ? "0" : event.target.value;
+    const value = event.target.value;
+
+    console.log(state.tempThrusterSpeeds);
+    console.log(value);
 
     if (value !== "" && (Number.isNaN(Number(value)) || parseInt(value) !== parseFloat(value))) {
       hasError = true;
     } else {
       thrusters.forEach((thruster: keyof ThrusterSpeeds) => {
-        const speed: number = thruster === event.target.id ? parseInt(value) : state.tempThrusterSpeeds[thruster];
+        const speed: number | "" =
+          thruster !== event.target.id ? state.tempThrusterSpeeds[thruster] : value !== "" ? parseInt(value) : "";
         if (!validateInput(speed)) {
           hasError = true;
         }
@@ -250,7 +273,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
                 }
                 InputProps={state.panelMode === PanelMode.SUBSCRIBING ? { readOnly: true } : {}}
                 defaultValue={state.panelMode === PanelMode.SUBSCRIBING ? false : 0}
-                onChange={updateSpeeds}
+                onChange={updateTempSpeeds}
               />
             </Grid>
           ))}
@@ -273,7 +296,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
                 ? () => {
                     setState((oldState) => ({
                       ...oldState,
-                      publisherThrusterSpeeds: { ...state.tempThrusterSpeeds },
+                      publisherThrusterSpeeds: generatePublisherSpeeds(),
                     }));
                   }
                 : toggleInterval
