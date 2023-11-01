@@ -211,9 +211,6 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     let hasError = false;
     const value = event.target.value;
 
-    console.log(state.tempThrusterSpeeds);
-    console.log(value);
-
     if (value !== "" && (Number.isNaN(Number(value)) || parseInt(value) !== parseFloat(value))) {
       hasError = true;
     } else {
