@@ -9,7 +9,7 @@ import Tooltip from "@mui/material/Tooltip";
 import { useLayoutEffect, useEffect, useState, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 
-const topicsDict = {
+const TOPICS_DICT = {
   DVL: "/sensors/dvl/odom",
   IMU: "/vectornav/IMU",
   Depth: "/sensors/depth",
@@ -20,12 +20,12 @@ const topicsDict = {
 
 // Reversed dictionary of topics_dict
 const topicsDictReversed: { [key: string]: string } = {};
-for (const [key, value] of Object.entries(topicsDict)) {
+for (const [key, value] of Object.entries(TOPICS_DICT)) {
   topicsDictReversed[value] = key;
 }
 
-type SensorsTime = NonNullable<unknown> & Record<keyof typeof topicsDict, number>;
-type ConnectStatus = NonNullable<unknown> & Record<keyof typeof topicsDict, boolean>;
+type SensorsTime = NonNullable<unknown> & Record<keyof typeof TOPICS_DICT, number>;
+type ConnectStatus = NonNullable<unknown> & Record<keyof typeof TOPICS_DICT, boolean>;
 
 type State = {
   topic?: string;
@@ -72,8 +72,8 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
 
     // Make a list of all topics [{topic: topic1}, {topic: topic2 }]
     const topicList: { topic: string }[] = [];
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const [key, value] of Object.entries(topicsDict)) {
+
+    for (const [_, value] of Object.entries(TOPICS_DICT)) {
       topicList.push({ topic: value });
     }
     // Subscribe to all topics
@@ -90,7 +90,6 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
   // Setup our onRender function and start watching topics and currentFrame for messages.
   useLayoutEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done: unknown) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       setRenderDone(() => done);
 
       // Updates CurrentTime to the current time
@@ -116,7 +115,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
 
         try {
           // Force sensorName to not be undefined
-          const sensorName = topicsDictReversed[lastFrame.topic] as keyof typeof topicsDict;
+          const sensorName = topicsDictReversed[lastFrame.topic] as keyof typeof TOPICS_DICT;
           state.sensorstime[sensorName] = state.currentTime;
           state.connectStatus[sensorName] = true;
         } catch (error) {
@@ -126,9 +125,9 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
 
       if (state.connectStatus && state.sensorstime && state.currentTime != null) {
         // Compare current time to each sensorstime attribute
-        for (const key in topicsDict) {
-          if (state.currentTime - state.sensorstime[key as keyof typeof topicsDict] > 1) {
-            state.connectStatus[key as keyof typeof topicsDict] = false;
+        for (const key in TOPICS_DICT) {
+          if (state.currentTime - state.sensorstime[key as keyof typeof TOPICS_DICT] > 1) {
+            state.connectStatus[key as keyof typeof TOPICS_DICT] = false;
           }
         }
       }
@@ -154,13 +153,12 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
         <TableContainer component={Paper}>
           <Table size="small" aria-label="simple tble">
             <TableBody>
-              {Object.entries(topicsDict).map(([sensor, topic]) => (
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+              {Object.entries(TOPICS_DICT).map(([sensor, topic]) => (
                 <TableRow
                   key={sensor}
                   style={{
                     backgroundColor:
-                      state.connectStatus?.[sensor as keyof typeof topicsDict] ?? false ? "green" : "red",
+                      state.connectStatus?.[sensor as keyof typeof TOPICS_DICT] ?? false ? "green" : "red",
                   }}
                   sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                 >
