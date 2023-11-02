@@ -8,7 +8,7 @@ FREQ = 35_000 #Hz
 PACKET_SIZE = 0.005 #seconds
 SIGMA = 20 #wave packet standard deviation
 NOISE_LEVEL = 0.3 #must be below 1 to have a distinguishable signal 
-SAMPLE_RATE = 200_000 #Hz
+SAMPLE_RATE = 625_000 #Hz
 
 # H2
 # |
