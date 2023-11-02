@@ -14,6 +14,32 @@ SAMPLE_RATE = 625_000
 
 
 def butter_bandpass(lowcut, highcut, fs=SAMPLE_RATE, order=5):
+    """
+    Generates the coefficients for a Butterworth bandpass filter.
+
+    Parameters
+    ----------
+    lowcut : int
+        The lower frequency cutoff
+
+    highcut : int
+        The higher frequency cutoff
+
+    fs : int
+        The sample rate
+
+    order : int
+        The order of the filter
+
+    Returns
+    -------
+    b : np.array
+        The numerator coefficients
+
+    a : np.array
+        The denominator coefficients
+    """
+
     nyquist = 0.5 * fs
     low = lowcut / nyquist
     high = highcut / nyquist
@@ -21,12 +47,49 @@ def butter_bandpass(lowcut, highcut, fs=SAMPLE_RATE, order=5):
     return b, a
 
 def butter_bandpass_filter(data, lowcut=LOWCUT, highcut=HIGHCUT, fs=SAMPLE_RATE, order=5):
+    """
+    Filters the data using a Butterworth bandpass filter.
+    
+    Parameters
+    ----------
+    data : np.array
+        The data to be filtered
+        
+    lowcut : int
+        The lower frequency cutoff
+    
+    highcut : int
+        The higher frequency cutoff
+    
+    fs : int
+        The sample rate
+    
+    order : int
+        The order of the filter
+    """
+
     b, a = butter_bandpass(lowcut, highcut, fs, order=order)
     y = lfilter(b, a, data)
     return y
 
 # Filter and detect peaks for each channel
 def detect_wave_packet(channel_data):
+    """
+    Detects the peaks in a channel's data and returns the peak indices and the filtered signal.
+
+    Parameters
+    ----------
+    channel_data : np.array
+        The channel's data
+
+    Returns
+    -------
+    peaks : np.array
+        The peak indices
+
+    filtered_signal : np.array
+        The filtered signal
+    """
 
     # Filter the channel data
     filtered_signal = butter_bandpass_filter(channel_data)
@@ -66,10 +129,12 @@ def main():
 
     print([len(peaks[i]) for i in range(3)])
 
+    print(peaks)
+
     # Plot the detected peaks against both the raw and filtered signals
     # 2x4 subplots
 
-    fig, ax = plt.subplots(3,2, figsize=(10,10))
+    _, ax = plt.subplots(3,2, figsize=(10,10))
 
     for i in range(3):
         # Plot the raw signal

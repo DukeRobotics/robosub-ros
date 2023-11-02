@@ -19,6 +19,9 @@ ros_lib.zip
 # Acoustics
 *.csv
 
+# Include .csv files from the acoustic fake_data
+!*/catkin_ws/src/auv_common/acoustics2/fake_data/*.csv
+
 # Video and Bags
 *.avi
 *.bag
