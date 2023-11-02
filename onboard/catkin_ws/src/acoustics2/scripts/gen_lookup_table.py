@@ -7,8 +7,8 @@ v = 1500.0
 with open('onboard/catkin_ws/src/acoustics2/fake_data/temp_data_2.csv2', 'w', newline='') as csvfile:
     csv_writer = csv.writer(csvfile)
     csv_writer.writerow(['theta', 'Dt1', 'Dt2'])
-    for y in np.arange(-30, 31, 1):
-        for x in np.arange(-30, 31, 1):
+    for y in np.arange(-30, 31, 0.5):
+        for x in np.arange(-30, 31, 0.5):
             t1 = np.sqrt((x - 0)**2 + (y -0)**2)/v
             t2 = np.sqrt((x - D)**2 + (y - 0)**2)/v
             t3 = np.sqrt((x - 0)**2 + (y - D)**2)/v
