@@ -1,4 +1,5 @@
 import { Immutable, PanelExtensionContext, RenderState, Topic, MessageEvent } from "@foxglove/studio";
+import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -23,13 +24,13 @@ const topicsDictReversed: { [key: string]: string } = {};
 for (const [key, value] of Object.entries(TOPICS_DICT)) {
   topicsDictReversed[value] = key;
 }
+const TIME_THRESHOLD = 1; // Seconds until sensor is considered disconnected
 
-type SensorsTime = NonNullable<unknown> & Record<keyof typeof TOPICS_DICT, number>;
-type ConnectStatus = NonNullable<unknown> & Record<keyof typeof TOPICS_DICT, boolean>;
+type SensorsTime = Record<keyof typeof TOPICS_DICT, number>;
+type ConnectStatus = Record<keyof typeof TOPICS_DICT, boolean>;
 
 type State = {
   topic?: string;
-  colorScheme?: RenderState["colorScheme"];
   sensorstime?: SensorsTime;
   connectStatus?: ConnectStatus;
   currentTime?: number;
@@ -108,11 +109,6 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
         // Define the last frame
         const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<never>;
 
-        // Switch statements on the topic of the last frame
-
-        // Try catch statement to see if the topic is in the dictionary
-        // Force lastFrame.topic to not be undefined
-
         try {
           // Force sensorName to not be undefined
           const sensorName = topicsDictReversed[lastFrame.topic] as keyof typeof TOPICS_DICT;
@@ -126,19 +122,18 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
       if (state.connectStatus && state.sensorstime && state.currentTime != null) {
         // Compare current time to each sensorstime attribute
         for (const key in TOPICS_DICT) {
-          if (state.currentTime - state.sensorstime[key as keyof typeof TOPICS_DICT] > 1) {
+          if (state.currentTime - state.sensorstime[key as keyof typeof TOPICS_DICT] > TIME_THRESHOLD) {
             state.connectStatus[key as keyof typeof TOPICS_DICT] = false;
           }
         }
       }
 
       setTopics(renderState.topics);
-      setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
     };
+
     context.watch("currentTime");
     context.watch("topics");
     context.watch("currentFrame");
-    context.watch("colorScheme");
   }, [context, state]);
 
   // Call our done function at the end of each render.
@@ -148,10 +143,10 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
 
   // Create a table of all the sensors and their status with the goal of being put into a Table component using a for loop
   return (
-    <div style={{ height: "100%", padding: "1rem" }}>
+    <Box m={1}>
       <div>
         <TableContainer component={Paper}>
-          <Table size="small" aria-label="simple tble">
+          <Table size="small">
             <TableBody>
               {Object.entries(TOPICS_DICT).map(([sensor, topic]) => (
                 <TableRow
@@ -162,19 +157,18 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
                   }}
                   sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                 >
-                  <Tooltip title={topic} arrow>
-                    <TableCell sx={{ color: "white" }}>
-                      {" "}
-                      <b> {sensor} </b>
-                    </TableCell>
-                  </Tooltip>
+                  <TableCell sx={{ color: "white" }}>
+                    <Tooltip title={topic} arrow placement="right">
+                      <b>{sensor}</b>
+                    </Tooltip>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
       </div>
-    </div>
+    </Box>
   );
 }
 
