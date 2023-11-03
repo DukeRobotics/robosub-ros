@@ -20,18 +20,17 @@ const TOPICS_DICT = {
   Sonar: "/sonar/status",
 };
 
-// Reversed dictionary of topics_dict
-const topicsDictReversed: { [key: string]: string } = {};
+const TOPICS_DICT_REVERSED: { [key: string]: string } = {};
 for (const [key, value] of Object.entries(TOPICS_DICT)) {
-  topicsDictReversed[value] = key;
+  TOPICS_DICT_REVERSED[value] = key;
 }
-const TIME_THRESHOLD = 1; // Seconds until sensor is considered disconnected
+const SECONDS_SENSOR_DOWN_THRESHOLD = 1; // Seconds until sensor is considered disconnected
 
 type SensorsTime = Record<keyof typeof TOPICS_DICT, number>;
 type ConnectStatus = Record<keyof typeof TOPICS_DICT, boolean>;
 
 type State = {
-  sensorstime?: SensorsTime;
+  sensorsTime?: SensorsTime;
   connectStatus?: ConnectStatus;
   currentTime?: number;
 };
@@ -41,7 +40,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
 
   const defaultState = useCallback(() => {
     const initialState = {} as State;
-    initialState.sensorstime = {
+    initialState.sensorsTime = {
       DVL: 0,
       IMU: 0,
       Depth: 0,
@@ -88,13 +87,16 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
 
       // Updates CurrentTime to the current time
       if (state.currentTime != null && state.currentTime >= 0) {
-        state.currentTime = renderState.currentTime?.sec;
+        setState((prevState) => ({
+          ...prevState,
+          currentTime: renderState.currentTime?.sec,
+        }));
       }
 
       // If sensorstime exists and the current frame exists (onRender was ran due to currentFrame changing)
       if (
         state.currentTime != null &&
-        state.sensorstime &&
+        state.sensorsTime &&
         state.connectStatus &&
         renderState.currentFrame &&
         renderState.currentFrame.length !== 0
@@ -104,18 +106,18 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
 
         try {
           // Force sensorName to not be undefined
-          const sensorName = topicsDictReversed[lastFrame.topic] as keyof typeof TOPICS_DICT;
-          state.sensorstime[sensorName] = state.currentTime;
+          const sensorName = TOPICS_DICT_REVERSED[lastFrame.topic] as keyof typeof TOPICS_DICT;
+          state.sensorsTime[sensorName] = state.currentTime;
           state.connectStatus[sensorName] = true;
         } catch (error) {
           console.log(error);
         }
       }
 
-      if (state.connectStatus && state.sensorstime && state.currentTime != null) {
+      if (state.connectStatus && state.sensorsTime && state.currentTime != null) {
         // Compare current time to each sensorstime attribute
         for (const key in TOPICS_DICT) {
-          if (state.currentTime - state.sensorstime[key as keyof typeof TOPICS_DICT] > TIME_THRESHOLD) {
+          if (state.currentTime - state.sensorsTime[key as keyof typeof TOPICS_DICT] > SECONDS_SENSOR_DOWN_THRESHOLD) {
             state.connectStatus[key as keyof typeof TOPICS_DICT] = false;
           }
         }
