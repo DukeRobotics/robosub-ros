@@ -8,7 +8,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
 import Tooltip from "@mui/material/Tooltip";
 import { useTheme } from "@mui/material/styles";
-import { useLayoutEffect, useEffect, useState, useMemo } from "react";
+import { useLayoutEffect, useEffect, useState, useMemo, useCallback } from "react";
 import { createRoot } from "react-dom/client";
 
 const TOPICS_DICT = {
@@ -42,10 +42,9 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
 
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
 
-  // Restore our state from the layout via the context.initialState property.
-  const [state, setState] = useState<State>(() => {
-    const Initialstate = context.initialState as State;
-    Initialstate.sensorstime = {
+  const defaultState = useCallback(() => {
+    const initialState = context.initialState as State;
+    initialState.sensorstime = {
       DVL: 0,
       IMU: 0,
       Depth: 0,
@@ -53,8 +52,8 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
       Mono: 0,
       Sonar: 0,
     };
-    Initialstate.currentTime = 1;
-    Initialstate.connectStatus = {
+    initialState.currentTime = 1;
+    initialState.connectStatus = {
       DVL: false,
       IMU: false,
       Depth: false,
@@ -62,7 +61,12 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
       Mono: false,
       Sonar: false,
     };
-    return Initialstate;
+    return initialState;
+  }, [context.initialState]);
+
+  // Restore our state from the layout via the context.initialState property.
+  const [state, setState] = useState<State>(() => {
+    return defaultState();
   });
 
   // Get topics
@@ -75,7 +79,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
     // Make a list of all topics [{topic: topic1}, {topic: topic2 }]
     const topicList: { topic: string }[] = [];
 
-    for (const [_, value] of Object.entries(TOPICS_DICT)) {
+    for (const value of Object.values(TOPICS_DICT)) {
       topicList.push({ topic: value });
     }
     // Subscribe to all topics
@@ -93,6 +97,10 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
   useLayoutEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done: unknown) => {
       setRenderDone(() => done);
+
+      if (renderState.didSeek ?? false) {
+        setState(defaultState());
+      }
 
       // Updates CurrentTime to the current time
       if (state.currentTime != null && state.currentTime >= 0) {
@@ -135,7 +143,8 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
     context.watch("currentTime");
     context.watch("topics");
     context.watch("currentFrame");
-  }, [context, state]);
+    context.watch("didSeek");
+  }, [context, defaultState, state]);
 
   // Call our done function at the end of each render.
   useEffect(() => {
