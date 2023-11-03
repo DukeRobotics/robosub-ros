@@ -1,9 +1,10 @@
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
-import Alert from "@mui/material/Alert";
 import { JsonViewer } from "@textea/json-viewer";
 import { useEffect, useLayoutEffect, useState } from "react";
+import { TextField, Button, Alert, Tab, Tabs, Grid } from "@mui/material";
 import { JSX } from "react/jsx-runtime";
 import { createRoot } from "react-dom/client";
+import React = require("react");
 
 type State = {
   serviceName: string;
@@ -11,11 +12,19 @@ type State = {
   response?: unknown;
   error?: Error | undefined;
   colorScheme?: RenderState["colorScheme"];
+  panelMode: PanelMode;
 };
+
+const topicName = "/current-pid";
+
+enum PanelMode {
+  SUBSCRIBING,
+  EDITING,
+}
 
 function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const [state, setState] = useState<State>({ serviceName: "", request: "{}" });
+  const [state, setState] = useState<State>({ serviceName: "", request: "{}", panelMode: PanelMode.SUBSCRIBING });
 
   // Update color scheme
   useLayoutEffect(() => {
@@ -25,6 +34,12 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     };
   }, [context]);
   context.watch("colorScheme");
+  context.watch("currentTime");
+
+  useEffect(() => {
+    context.saveState({ topic: topicName });
+    context.subscribe([{ topic: topicName }]);
+  }, [context]);
 
   // Call our done function at the end of each render
   useEffect(() => {
@@ -51,6 +66,10 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     }
   };
 
+  const handleModeChange = (_: React.SyntheticEvent, mode: PanelMode) => {
+    setState((oldState) => ({ ...oldState, panelMode: mode }));
+  };
+
   // Close callService with the current state for use in the button
   const callServiceWithRequest = () => {
     void callService(state.serviceName, state.request);
@@ -58,58 +77,43 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
 
   return (
     <div style={{ padding: "1rem" }}>
-      <h2>Call Service</h2>
       {context.callService == undefined && (
         <Alert variant="filled" severity="error">
           Calling services is not supported by this connection
         </Alert>
       )}
+      <Tabs value={state.panelMode} onChange={handleModeChange} variant="fullWidth">
+        <Tab label="Subscribing" value={PanelMode.SUBSCRIBING} />
+        <Tab label="Editing" value={PanelMode.EDITING} />
+      </Tabs>
+      <h2>{state.panelMode === PanelMode.EDITING ? "Mode -- Editing" : "Mode -- Subscribing"}</h2>
+      <div>
+        {/* check state and give different outputs */}
+        {state.panelMode === PanelMode.EDITING ? (
+          // create a 6x4 grid
+          <div>
+          <Grid container spacing={6} columns={4}>
+            <Grid item>
+            
+            </Grid>
+          </Grid>
+          <Button variant="contained" onClick={callServiceWithRequest}>
+            Submit
+          </Button>
+          </div>
+        ) : (
+          <Grid container spacing={6} columns={4}>
+            <Grid item>
 
-      <h4>Service Name</h4>
-      <div>
-        <input
-          type="text"
-          placeholder="Enter service name"
-          style={{ width: "100%" }}
-          value={state.serviceName}
-          onChange={(event) => {
-            setState({ ...state, serviceName: event.target.value });
-          }}
-        />
+            </Grid>
+          </Grid>
+        )}
       </div>
-      <h4>Request</h4>
-      <div>
-        <textarea
-          style={{ width: "100%", minHeight: "3rem" }}
-          value={state.request}
-          onChange={(event) => {
-            setState({ ...state, request: event.target.value });
-          }}
-        />
-      </div>
-      <div>
-        <button
-          disabled={context.callService == undefined || state.serviceName === ""}
-          style={{ width: "100%", minHeight: "2rem" }}
-          onClick={callServiceWithRequest}
-        >
-          {`Call ${state.serviceName}`}
-        </button>
-      </div>
-
-      <div>
-        <h4>Response</h4>
-        <JsonViewer
-          rootName={false}
-          value={state.error ? { error: state.error.message } : state.response ?? {}}
-          indentWidth={2}
-          theme={state.colorScheme}
-          enableClipboard={false}
-          displayDataTypes={false}
-        />
-      </div>
+      
     </div>
+
   );
+  
 }
 
 export function initPIDPanel(context: PanelExtensionContext): () => void {
