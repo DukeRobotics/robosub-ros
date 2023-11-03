@@ -51,7 +51,8 @@ const defaultState = () => {
   }
   state.connectStatus = connectStatus as ConnectStatus;
 
-  state.currentTime = 0;
+  // Initialize currentTime with Infinity so that sensorsTime - currentTime > SECONDS_SENSOR_DOWN_THRESHOLD is always true
+  state.currentTime = Infinity;
 
   return state as State;
 };
@@ -92,13 +93,10 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
         }));
       }
 
-      // If sensorstime exists and the current frame exists (onRender was ran due to currentFrame changing)
       if (renderState.currentFrame && renderState.currentFrame.length !== 0) {
-        // Define the last frame
-        const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<never>;
+        const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent;
 
         try {
-          // Force sensorName to not be undefined
           const sensorName = TOPICS_DICT_REVERSED[lastFrame.topic] as keyof typeof TOPICS_DICT;
           state.sensorsTime[sensorName] = state.currentTime;
           state.connectStatus[sensorName] = true;
