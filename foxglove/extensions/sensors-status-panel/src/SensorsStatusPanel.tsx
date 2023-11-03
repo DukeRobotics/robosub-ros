@@ -96,25 +96,36 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
       if (renderState.currentFrame && renderState.currentFrame.length !== 0) {
         const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent;
 
-        try {
-          const sensorName = TOPICS_DICT_REVERSED[lastFrame.topic] as keyof typeof TOPICS_DICT;
-          state.sensorsTime[sensorName] = state.currentTime;
-          state.connectStatus[sensorName] = true;
-        } catch (error) {
-          console.log(error);
-        }
+        const sensorName = TOPICS_DICT_REVERSED[lastFrame.topic] as keyof typeof TOPICS_DICT;
+
+        setState((prevState) => ({
+          ...prevState,
+          sensorsTime: {
+            ...prevState.sensorsTime,
+            [sensorName]: state.currentTime,
+          },
+          connectStatus: {
+            ...prevState.connectStatus,
+            [sensorName]: true,
+          },
+        }));
       }
 
       // Compare current time to each sensorstime attribute
       for (const key in TOPICS_DICT) {
         if (state.currentTime - state.sensorsTime[key as keyof typeof TOPICS_DICT] > SECONDS_SENSOR_DOWN_THRESHOLD) {
-          state.connectStatus[key as keyof typeof TOPICS_DICT] = false;
+          setState((prevState) => ({
+            ...prevState,
+            connectStatus: {
+              ...prevState.connectStatus,
+              [key as keyof typeof TOPICS_DICT]: false,
+            },
+          }));
         }
       }
     };
 
     context.watch("currentTime");
-    context.watch("topics");
     context.watch("currentFrame");
     context.watch("didSeek");
   }, [context, state]);
