@@ -15,8 +15,8 @@ X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, r
 
 # Define the neural network architecture
 model = keras.Sequential([
-    keras.layers.Dense(64, activation='relu', input_shape=(2,)),  # Input layer with 2 features (Dt1 and Dt2)
-    keras.layers.Dense(64, activation='relu'),
+    keras.layers.Dense(16, activation='tanh', input_shape=(2,)),
+    keras.layers.Dense(16, activation='relu'),
     keras.layers.Dense(1)  # Output layer for theta prediction
 ])
 
