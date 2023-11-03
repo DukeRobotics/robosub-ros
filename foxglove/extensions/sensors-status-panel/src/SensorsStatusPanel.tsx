@@ -8,7 +8,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
 import Tooltip from "@mui/material/Tooltip";
 import { useTheme } from "@mui/material/styles";
-import { useLayoutEffect, useEffect, useState, useCallback } from "react";
+import { useLayoutEffect, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 const TOPICS_DICT = {
@@ -19,8 +19,7 @@ const TOPICS_DICT = {
   Mono: "/camera/usb_camera/compressed",
   Sonar: "/sonar/status",
 };
-
-const TOPICS_DICT_REVERSED: { [key: string]: string } = {};
+const TOPICS_DICT_REVERSED: Record<string, string> = {};
 for (const [key, value] of Object.entries(TOPICS_DICT)) {
   TOPICS_DICT_REVERSED[value] = key;
 }
@@ -29,36 +28,36 @@ const SECONDS_SENSOR_DOWN_THRESHOLD = 1; // Seconds until sensor is considered d
 type SensorsTime = Record<keyof typeof TOPICS_DICT, number>;
 type ConnectStatus = Record<keyof typeof TOPICS_DICT, boolean>;
 
-type State = {
+interface State {
   sensorsTime?: SensorsTime;
   connectStatus?: ConnectStatus;
   currentTime?: number;
+}
+
+const defaultState = () => {
+  const state: Partial<State> = {};
+
+  // Initialize sensorsTime with 0's
+  const sensorsTime: Partial<SensorsTime> = {};
+  for (const key of Object.keys(TOPICS_DICT)) {
+    sensorsTime[key as keyof SensorsTime] = 0;
+  }
+  state.sensorsTime = sensorsTime as SensorsTime;
+
+  // Initialize connectStatus with false's
+  const connectStatus: Partial<ConnectStatus> = {};
+  for (const key of Object.keys(TOPICS_DICT)) {
+    connectStatus[key as keyof ConnectStatus] = false;
+  }
+  state.connectStatus = connectStatus as ConnectStatus;
+
+  state.currentTime = 0;
+
+  return state as State;
 };
 
 function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-
-  const defaultState = useCallback(() => {
-    const initialState = {} as State;
-    initialState.sensorsTime = {
-      DVL: 0,
-      IMU: 0,
-      Depth: 0,
-      DepthAI: 0,
-      Mono: 0,
-      Sonar: 0,
-    };
-    initialState.currentTime = 1;
-    initialState.connectStatus = {
-      DVL: false,
-      IMU: false,
-      Depth: false,
-      DepthAI: false,
-      Mono: false,
-      Sonar: false,
-    };
-    return initialState;
-  }, []);
 
   // Restore our state from the layout via the context.initialState property.
   const [state, setState] = useState<State>(() => {
@@ -128,7 +127,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
     context.watch("topics");
     context.watch("currentFrame");
     context.watch("didSeek");
-  }, [context, defaultState, state]);
+  }, [context, state]);
 
   // Call our done function at the end of each render.
   useEffect(() => {
