@@ -1,4 +1,5 @@
 import { Immutable, PanelExtensionContext, RenderState, MessageEvent } from "@foxglove/studio";
+import { Typography } from "@mui/material";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
@@ -159,9 +160,11 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
                       : theme.palette.error.main,
                   }}
                 >
-                  <TableCell sx={{ color: "white" }}>
+                  <TableCell>
                     <Tooltip title={topic} arrow placement="right">
-                      <span>{sensor}</span>
+                      <Typography variant="subtitle2" color={theme.palette.common.white}>
+                        {sensor}
+                      </Typography>
                     </Tooltip>
                   </TableCell>
                 </TableRow>
