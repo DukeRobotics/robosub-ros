@@ -3,10 +3,11 @@ import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
+import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
 import Tooltip from "@mui/material/Tooltip";
+import { useTheme } from "@mui/material/styles";
 import { useLayoutEffect, useEffect, useState, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 
@@ -142,24 +143,33 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
   }, [renderDone]);
 
   // Create a table of all the sensors and their status with the goal of being put into a Table component using a for loop
+  const theme = useTheme();
   return (
     <Box m={1}>
       <div>
         <TableContainer component={Paper}>
-          <Table size="small">
+          <Table
+            size="small"
+            sx={{
+              [`& .${tableCellClasses.root}`]: {
+                borderBottom: "none",
+              },
+            }}
+          >
             <TableBody>
               {Object.entries(TOPICS_DICT).map(([sensor, topic]) => (
                 <TableRow
                   key={sensor}
                   style={{
                     backgroundColor:
-                      state.connectStatus?.[sensor as keyof typeof TOPICS_DICT] ?? false ? "green" : "red",
+                      state.connectStatus?.[sensor as keyof typeof TOPICS_DICT] ?? false
+                        ? theme.palette.success.main
+                        : theme.palette.error.main,
                   }}
-                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                 >
                   <TableCell sx={{ color: "white" }}>
                     <Tooltip title={topic} arrow placement="right">
-                      <b>{sensor}</b>
+                      <span>{sensor}</span>
                     </Tooltip>
                   </TableCell>
                 </TableRow>
