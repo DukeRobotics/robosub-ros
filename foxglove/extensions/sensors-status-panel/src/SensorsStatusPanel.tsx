@@ -29,9 +29,9 @@ type SensorsTime = Record<keyof typeof TOPICS_DICT, number>;
 type ConnectStatus = Record<keyof typeof TOPICS_DICT, boolean>;
 
 interface State {
-  sensorsTime?: SensorsTime;
-  connectStatus?: ConnectStatus;
-  currentTime?: number;
+  sensorsTime: SensorsTime;
+  connectStatus: ConnectStatus;
+  currentTime: number;
 }
 
 const defaultState = () => {
@@ -85,21 +85,15 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
       }
 
       // Updates CurrentTime to the current time
-      if (state.currentTime != null && state.currentTime >= 0) {
+      if (renderState.currentTime != undefined) {
         setState((prevState) => ({
           ...prevState,
-          currentTime: renderState.currentTime?.sec,
+          currentTime: renderState.currentTime!.sec,
         }));
       }
 
       // If sensorstime exists and the current frame exists (onRender was ran due to currentFrame changing)
-      if (
-        state.currentTime != null &&
-        state.sensorsTime &&
-        state.connectStatus &&
-        renderState.currentFrame &&
-        renderState.currentFrame.length !== 0
-      ) {
+      if (renderState.currentFrame && renderState.currentFrame.length !== 0) {
         // Define the last frame
         const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<never>;
 
@@ -113,12 +107,10 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
         }
       }
 
-      if (state.connectStatus && state.sensorsTime && state.currentTime != null) {
-        // Compare current time to each sensorstime attribute
-        for (const key in TOPICS_DICT) {
-          if (state.currentTime - state.sensorsTime[key as keyof typeof TOPICS_DICT] > SECONDS_SENSOR_DOWN_THRESHOLD) {
-            state.connectStatus[key as keyof typeof TOPICS_DICT] = false;
-          }
+      // Compare current time to each sensorstime attribute
+      for (const key in TOPICS_DICT) {
+        if (state.currentTime - state.sensorsTime[key as keyof typeof TOPICS_DICT] > SECONDS_SENSOR_DOWN_THRESHOLD) {
+          state.connectStatus[key as keyof typeof TOPICS_DICT] = false;
         }
       }
     };
@@ -153,10 +145,9 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
                 <TableRow
                   key={sensor}
                   style={{
-                    backgroundColor:
-                      state.connectStatus?.[sensor as keyof typeof TOPICS_DICT] ?? false
-                        ? theme.palette.success.main
-                        : theme.palette.error.main,
+                    backgroundColor: state.connectStatus[sensor as keyof typeof TOPICS_DICT]
+                      ? theme.palette.success.main
+                      : theme.palette.error.main,
                   }}
                 >
                   <TableCell sx={{ color: "white" }}>
