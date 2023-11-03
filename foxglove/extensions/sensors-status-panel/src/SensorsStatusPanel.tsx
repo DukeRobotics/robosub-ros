@@ -1,4 +1,4 @@
-import { Immutable, PanelExtensionContext, RenderState, Topic, MessageEvent } from "@foxglove/studio";
+import { Immutable, PanelExtensionContext, RenderState, MessageEvent } from "@foxglove/studio";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
@@ -8,7 +8,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
 import Tooltip from "@mui/material/Tooltip";
 import { useTheme } from "@mui/material/styles";
-import { useLayoutEffect, useEffect, useState, useMemo, useCallback } from "react";
+import { useLayoutEffect, useEffect, useState, useCallback } from "react";
 import { createRoot } from "react-dom/client";
 
 const TOPICS_DICT = {
@@ -31,19 +31,16 @@ type SensorsTime = Record<keyof typeof TOPICS_DICT, number>;
 type ConnectStatus = Record<keyof typeof TOPICS_DICT, boolean>;
 
 type State = {
-  topic?: string;
   sensorstime?: SensorsTime;
   connectStatus?: ConnectStatus;
   currentTime?: number;
 };
 
 function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
-  const [topics, setTopics] = useState<readonly Topic[] | undefined>();
-
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
 
   const defaultState = useCallback(() => {
-    const initialState = context.initialState as State;
+    const initialState = {} as State;
     initialState.sensorstime = {
       DVL: 0,
       IMU: 0,
@@ -62,20 +59,14 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
       Sonar: false,
     };
     return initialState;
-  }, [context.initialState]);
+  }, []);
 
   // Restore our state from the layout via the context.initialState property.
   const [state, setState] = useState<State>(() => {
     return defaultState();
   });
 
-  // Get topics
-  const imageTopics = useMemo(() => topics ?? [], [topics]);
-
   useEffect(() => {
-    // Save our state to the layout when the topic changes.
-    context.saveState({ topic: state.topic });
-
     // Make a list of all topics [{topic: topic1}, {topic: topic2 }]
     const topicList: { topic: string }[] = [];
 
@@ -84,14 +75,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
     }
     // Subscribe to all topics
     context.subscribe(topicList);
-  }, [context, state.topic]);
-
-  // Choose our first available image topic as a default once we have a list of topics available.
-  useEffect(() => {
-    if (state.topic == undefined) {
-      setState({ topic: imageTopics[0]?.name });
-    }
-  }, [state.topic, imageTopics]);
+  }, [context]);
 
   // Setup our onRender function and start watching topics and currentFrame for messages.
   useLayoutEffect(() => {
@@ -136,8 +120,6 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
           }
         }
       }
-
-      setTopics(renderState.topics);
     };
 
     context.watch("currentTime");
