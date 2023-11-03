@@ -1,9 +1,13 @@
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
+import { Table, TableBody, TableCell, TableContainer, TableRow } from "@mui/material";
+import Paper from "@mui/material/Paper";
 import Alert from "@mui/material/Alert";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { SetStateAction, useEffect, useLayoutEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
-type JoystickInputs= {
+const PUBLISH_RATE = 20;
+
+type JoystickInputs = {
   xAxis: number;
   yAxis: number;
   YawAxis: number;
@@ -24,8 +28,7 @@ type State = {
 
 function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const publishRate = 20;
-  const Joystick: (keyof JoystickInputs)[] =[
+  const Joystick: (keyof JoystickInputs)[] = [
     "xAxis",
     "yAxis",
     "YawAxis",
@@ -36,7 +39,6 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     "torpedoTwo"
   ];
   const [state, setState] = useState<State>({
-
     topicName: "",
     request: "{}",
     schemaName: "",
@@ -50,8 +52,9 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
       torpedoOne: false,
       torpedoTwo: false,
     },
+  });
 
-    });
+  const [joystick, setJoystick] = useState<any>([null]);
 
   // Update color scheme
   useLayoutEffect(() => {
@@ -82,58 +85,35 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     publishTopic(state.topicName, state.request, state.schemaName);
   };
 
-  return (
-    <div style={{ padding: "1rem" }}>
-      <h2>Publish Topic</h2>
-      {(context.advertise == undefined || context.publish == undefined) && (
-        <Alert variant="filled" severity="error">
-          Publishing topics is not supported by this connection
-        </Alert>
-      )}
+  // GAMEPAD STUFF
+  window.addEventListener("gamepadconnected", (e) => {
+    console.log("connected");
+    queryJoystick(setState, setJoystick);
+  });
 
-      <h4>Topic Name</h4>
-      <div>
-        <input
-          type="text"
-          placeholder="Enter topic name"
-          style={{ width: "100%" }}
-          value={state.topicName}
-          onChange={(event) => {
-            setState({ ...state, topicName: event.target.value });
-          }}
-        />
-      </div>
-      <h4>Schema Name</h4>
-      <div>
-        <input
-          type="text"
-          placeholder="Enter schema name"
-          style={{ width: "100%" }}
-          value={state.schemaName}
-          onChange={(event) => {
-            setState({ ...state, schemaName: event.target.value });
-          }}
-        />
-      </div>
-      <h4>Request</h4>
-      <div>
-        <textarea
-          style={{ width: "100%", minHeight: "3rem" }}
-          value={state.request}
-          onChange={(event) => {
-            setState({ ...state, request: event.target.value });
-          }}
-        />
-      </div>
-      <div>
-        <button
-          disabled={context.advertise == undefined || context.publish == undefined || state.topicName === ""}
-          style={{ width: "100%", minHeight: "2rem" }}
-          onClick={publishTopicWithRequest}
-        >
-          {`Publish to ${state.topicName}`}
-        </button>
-      </div>
+  window.addEventListener("gamepaddisconnected", () => {
+    console.log("disconnected");
+  });
+
+  return (
+    <div style={{ height: "100%", padding: "1rem" }}>
+      <TableContainer component={Paper}>
+        <Table size="small" aria-label="simple table">
+          <TableBody>
+            {joystick[0]?.axes.map((axis: number, i: number) => (
+              <TableRow
+                key={i}
+                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                style={{ backgroundColor: "white" }}
+              >
+                <TableCell component="th" scope="row">
+                  {axis}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </div>
   );
 }
@@ -146,4 +126,14 @@ export function initToggleJoystickPanel(context: PanelExtensionContext): () => v
   return () => {
     root.unmount();
   };
+}
+
+function queryJoystick(setState: SetStateAction<any>, setJoystick: SetStateAction<any>) {
+  const joystick = navigator.getGamepads();
+  setJoystick(joystick);
+
+  setTimeout(() => {
+    queryJoystick(setState, setJoystick);
+  }, 1000 / PUBLISH_RATE);
+  // requestAnimationFrame(queryJoystick);
 }
