@@ -6,12 +6,17 @@ import { SetStateAction, useEffect, useLayoutEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 const PUBLISH_RATE = 20;
+const AXIS_MAP = {
+  rightX: 1,
+  rightY: 0,
+  leftX: 2,
+};
 
 type JoystickInputs = {
   xAxis: number;
   yAxis: number;
-  YawAxis: number;
   zAxis: number;
+  YawAxis: number;
   pitchAxis: number;
   rollAxis: number;
   torpedoOne: boolean;
@@ -23,6 +28,7 @@ type State = {
   schemaName: string;
   error?: Error | undefined;
   colorScheme?: RenderState["colorScheme"];
+  joyStickEnabled: boolean;
   joystickInputs: JoystickInputs;
 };
 
@@ -42,6 +48,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     topicName: "",
     request: "{}",
     schemaName: "",
+    joyStickEnabled: false,
     joystickInputs: {
       xAxis: 0,
       yAxis: 0,
