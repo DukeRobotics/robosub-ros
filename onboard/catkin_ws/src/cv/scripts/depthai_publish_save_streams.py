@@ -141,7 +141,7 @@ class DepthAIStreamsPublisherAndSaver:
         if self.publish_rgb_video or self.publish_rgb_preview or self.save_rgb_video or self.save_rgb_preview:
             camRgb = self.pipeline.create(dai.node.ColorCamera)
             camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
-            camRgb.setBoardSocket(dai.CameraBoardSocket.RGB)
+            camRgb.setBoardSocket(dai.CameraBoardSocket.CAM_A)
 
             if self.publish_rgb_video or self.save_rgb_video:
                 camRgb.setVideoSize(self.rgb_video_resolution)
@@ -174,7 +174,7 @@ class DepthAIStreamsPublisherAndSaver:
         if self.publish_left or self.publish_disparity or self.publish_depth or self.save_left or self.save_disparity:
             camLeft = self.pipeline.create(dai.node.MonoCamera)
             camLeft.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)  # Resolution: 640 x 400
-            camLeft.setBoardSocket(dai.CameraBoardSocket.LEFT)
+            camLeft.setBoardSocket(dai.CameraBoardSocket.CAM_B)
             camLeft.setFps(self.framerate)
 
         if self.save_left:
@@ -187,7 +187,7 @@ class DepthAIStreamsPublisherAndSaver:
         if self.publish_right or self.publish_disparity or self.publish_depth or self.save_right or self.save_disparity:
             camRight = self.pipeline.create(dai.node.MonoCamera)
             camRight.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)  # Resolution: 640 x 400
-            camRight.setBoardSocket(dai.CameraBoardSocket.RIGHT)
+            camRight.setBoardSocket(dai.CameraBoardSocket.CAM_C)
             camRight.setFps(self.framerate)
 
         if self.save_right:

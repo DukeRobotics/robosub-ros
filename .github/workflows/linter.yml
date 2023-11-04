@@ -28,4 +28,4 @@ jobs:
           VALIDATE_PYTHON_FLAKE8: true
           VALIDATE_TSX: true
           VALIDATE_TYPESCRIPT_ES: true
-          TYPESCRIPT_ES_CONFIG_FILE: foxglove/.eslintrc.yaml
+          TYPESCRIPT_ES_CONFIG_FILE: foxglove/.eslintrc.json
