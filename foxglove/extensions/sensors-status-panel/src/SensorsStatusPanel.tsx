@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
-import TableCell, { tableCellClasses } from "@mui/material/TableCell";
+import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
 import Tooltip from "@mui/material/Tooltip";
@@ -12,22 +12,24 @@ import { useTheme } from "@mui/material/styles";
 import { useLayoutEffect, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
-const TOPICS_DICT = {
+// Map of sensor name to topic name
+const TOPICS_MAP = {
   DVL: "/sensors/dvl/odom",
   IMU: "/vectornav/IMU",
-  Depth: "/sensors/depth",
+  Pressure: "/sensors/depth",
   DepthAI: "/camera/front/rgb/preview/compressed",
   Mono: "/camera/usb_camera/compressed",
   Sonar: "/sonar/status",
 };
-const TOPICS_DICT_REVERSED: Record<string, string> = {};
-for (const [key, value] of Object.entries(TOPICS_DICT)) {
-  TOPICS_DICT_REVERSED[value] = key;
-}
-const SECONDS_SENSOR_DOWN_THRESHOLD = 1; // Seconds until sensor is considered disconnected
+const SENSOR_DOWN_THRESHOLD = 1; // Seconds until sensor is considered disconnected
 
-type SensorsTime = Record<keyof typeof TOPICS_DICT, number>;
-type ConnectStatus = Record<keyof typeof TOPICS_DICT, boolean>;
+const TOPICS_MAP_REVERSED: Record<string, keyof typeof TOPICS_MAP> = {};
+for (const [key, value] of Object.entries(TOPICS_MAP)) {
+  TOPICS_MAP_REVERSED[value] = key as keyof typeof TOPICS_MAP;
+}
+
+type SensorsTime = Record<keyof typeof TOPICS_MAP, number>; // Time of last message received from sensor
+type ConnectStatus = Record<keyof typeof TOPICS_MAP, boolean>; // True if SensorsTime is within SENSOR_DOWN_THRESHOLD seconds
 
 interface State {
   sensorsTime: SensorsTime;
@@ -40,19 +42,20 @@ const defaultState = () => {
 
   // Initialize sensorsTime with 0's
   const sensorsTime: Partial<SensorsTime> = {};
-  for (const key of Object.keys(TOPICS_DICT)) {
+  for (const key of Object.keys(TOPICS_MAP)) {
     sensorsTime[key as keyof SensorsTime] = 0;
   }
   state.sensorsTime = sensorsTime as SensorsTime;
 
   // Initialize connectStatus with false's
   const connectStatus: Partial<ConnectStatus> = {};
-  for (const key of Object.keys(TOPICS_DICT)) {
+  for (const key of Object.keys(TOPICS_MAP)) {
     connectStatus[key as keyof ConnectStatus] = false;
   }
   state.connectStatus = connectStatus as ConnectStatus;
 
-  // Initialize currentTime with Infinity so that sensorsTime - currentTime > SECONDS_SENSOR_DOWN_THRESHOLD is always true
+  // Initialize currentTime with Infinity
+  // This ensures that (currentTime - sensorsTime > SENSOR_DOWN_THRESHOLD) so that the sensor is initially considered disconnected
   state.currentTime = Infinity;
 
   return state as State;
@@ -61,16 +64,13 @@ const defaultState = () => {
 function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
 
-  // Restore our state from the layout via the context.initialState property.
-  const [state, setState] = useState<State>(() => {
-    return defaultState();
-  });
+  const [state, setState] = useState<State>(defaultState());
 
   useEffect(() => {
     // Make a list of all topics [{topic: topic1}, {topic: topic2 }]
     const topicList: { topic: string }[] = [];
 
-    for (const value of Object.values(TOPICS_DICT)) {
+    for (const value of Object.values(TOPICS_MAP)) {
       topicList.push({ topic: value });
     }
     // Subscribe to all topics
@@ -96,8 +96,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
 
       if (renderState.currentFrame && renderState.currentFrame.length !== 0) {
         const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent;
-
-        const sensorName = TOPICS_DICT_REVERSED[lastFrame.topic] as keyof typeof TOPICS_DICT;
+        const sensorName = TOPICS_MAP_REVERSED[lastFrame.topic] as string;
 
         setState((prevState) => ({
           ...prevState,
@@ -113,19 +112,18 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
       }
 
       // Compare current time to each sensorstime attribute
-      for (const key in TOPICS_DICT) {
-        if (state.currentTime - state.sensorsTime[key as keyof typeof TOPICS_DICT] > SECONDS_SENSOR_DOWN_THRESHOLD) {
+      for (const key in TOPICS_MAP) {
+        if (state.currentTime - state.sensorsTime[key as keyof typeof TOPICS_MAP] > SENSOR_DOWN_THRESHOLD) {
           setState((prevState) => ({
             ...prevState,
             connectStatus: {
               ...prevState.connectStatus,
-              [key as keyof typeof TOPICS_DICT]: false,
+              [key as keyof typeof TOPICS_MAP]: false,
             },
           }));
         }
       }
     };
-
     context.watch("currentTime");
     context.watch("currentFrame");
     context.watch("didSeek");
@@ -142,25 +140,18 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
     <Box m={1}>
       <div>
         <TableContainer component={Paper}>
-          <Table
-            size="small"
-            sx={{
-              [`& .${tableCellClasses.root}`]: {
-                borderBottom: "none",
-              },
-            }}
-          >
+          <Table size="small">
             <TableBody>
-              {Object.entries(TOPICS_DICT).map(([sensor, topic]) => (
+              {Object.entries(TOPICS_MAP).map(([sensor, topic]) => (
                 <TableRow
                   key={sensor}
                   style={{
-                    backgroundColor: state.connectStatus[sensor as keyof typeof TOPICS_DICT]
+                    backgroundColor: state.connectStatus[sensor as keyof typeof TOPICS_MAP]
                       ? theme.palette.success.main
                       : theme.palette.error.main,
                   }}
                 >
-                  <TableCell>
+                  <TableCell style={{ borderBottom: "none" }}>
                     <Tooltip title={topic} arrow placement="right">
                       <Typography variant="subtitle2" color={theme.palette.common.white}>
                         {sensor}
