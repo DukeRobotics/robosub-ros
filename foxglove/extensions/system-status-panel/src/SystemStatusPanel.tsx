@@ -104,7 +104,7 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
                 </TableCell>
                 <TableCell align="right">
                   <Typography variant="subtitle2" color={theme.palette.common.white}>
-                    {row.value}%
+                    {row.value?.toFixed(1)}%
                   </Typography>
                 </TableCell>
               </TableRow>
