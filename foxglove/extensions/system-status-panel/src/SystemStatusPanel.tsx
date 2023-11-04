@@ -10,7 +10,7 @@ import { useTheme } from "@mui/material/styles";
 import { useLayoutEffect, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
-const SYSTEM_USAGE_TOPIC = "/system/usage";
+const SYSTEM_USAGE_TOPIC = "/system/usage"; // Topic to watch for system usage data
 
 interface SystemUsage {
   cpu_percent: number;
