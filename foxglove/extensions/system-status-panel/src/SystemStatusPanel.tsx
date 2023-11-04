@@ -22,13 +22,13 @@ interface SystemUsage {
   disk: Memory;
 }
 interface Memory {
-  used: number; // In GB
-  total: number; // In GB
-  percentage: number; // As a percentage value, e.g., 50 for 50%
+  used: number;
+  total: number;
+  percentage: number;
 }
 
 function createData(status: string, value?: number) {
-  return { Status: status, Value: value };
+  return { status, value };
 }
 
 type State = {
@@ -38,16 +38,14 @@ type State = {
 
 function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
+  const [state, setState] = useState<State>({});
 
   context.subscribe([{ topic: SYSTEM_USAGE_TOPIC }]);
-
-  // Restore our state from the layout via the context.initialState property.
-  const [state, setState] = useState<State>({});
 
   // Define values in table
   const rows = [createData("CPU", state.cpuUsage), createData("RAM", state.ramUsage)];
 
-  // Setup our onRender function and start watching topics and currentFrame for messages.
+  // Watch system usage topic and update state
   useLayoutEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setRenderDone(() => done);
@@ -57,7 +55,7 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
         setState({});
       }
 
-      // Updating CPU/RAM/Voltage data.
+      // Update system usage state
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
         const latestFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<SystemUsage>;
         setState((oldState) => ({
@@ -68,7 +66,6 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
       }
     };
 
-    context.watch("topics");
     context.watch("currentFrame");
     context.watch("didSeek");
   }, [context]);
@@ -94,19 +91,20 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
           <TableBody>
             {rows.map((row) => (
               <TableRow
-                key={row.Status}
+                key={row.status}
                 style={{
-                  backgroundColor: (row.Value ?? 100) >= 90 ? theme.palette.error.main : theme.palette.success.main,
+                  backgroundColor:
+                    row.value == undefined || row.value >= 90 ? theme.palette.error.main : theme.palette.success.main,
                 }}
               >
-                <TableCell component="th" scope="row">
+                <TableCell>
                   <Typography variant="subtitle2" color={theme.palette.common.white}>
-                    {row.Status}
+                    {row.status}
                   </Typography>
                 </TableCell>
                 <TableCell align="right">
                   <Typography variant="subtitle2" color={theme.palette.common.white}>
-                    {row.Value}%
+                    {row.value}%
                   </Typography>
                 </TableCell>
               </TableRow>
