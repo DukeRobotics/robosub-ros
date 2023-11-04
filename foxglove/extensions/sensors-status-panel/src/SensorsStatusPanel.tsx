@@ -1,5 +1,6 @@
+import { drcTheme } from "@duke-robotics/theme/src";
 import { Immutable, PanelExtensionContext, RenderState, MessageEvent } from "@foxglove/studio";
-import { Typography } from "@mui/material";
+import { Typography, useTheme } from "@mui/material";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
@@ -8,7 +9,7 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
 import Tooltip from "@mui/material/Tooltip";
-import { useTheme } from "@mui/material/styles";
+import { ThemeProvider } from "@mui/material/styles";
 import { useLayoutEffect, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
@@ -136,32 +137,34 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
   // Create a table of all the sensors and their status
   const theme = useTheme();
   return (
-    <Box m={1}>
-      <TableContainer component={Paper}>
-        <Table size="small">
-          <TableBody>
-            {Object.entries(TOPICS_MAP).map(([sensor, topic]) => (
-              <TableRow
-                key={sensor}
-                style={{
-                  backgroundColor: state.connectStatus[sensor as keyof typeof TOPICS_MAP]
-                    ? theme.palette.success.main
-                    : theme.palette.error.main,
-                }}
-              >
-                <TableCell style={{ borderBottom: "none" }}>
-                  <Tooltip title={topic} arrow placement="right">
-                    <Typography variant="subtitle2" color={theme.palette.common.white}>
-                      {sensor}
-                    </Typography>
-                  </Tooltip>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
+    <ThemeProvider theme={drcTheme}>
+      <Box m={1}>
+        <TableContainer component={Paper}>
+          <Table size="small">
+            <TableBody>
+              {Object.entries(TOPICS_MAP).map(([sensor, topic]) => (
+                <TableRow
+                  key={sensor}
+                  style={{
+                    backgroundColor: state.connectStatus[sensor as keyof typeof TOPICS_MAP]
+                      ? theme.palette.success.main
+                      : theme.palette.error.main,
+                  }}
+                >
+                  <TableCell>
+                    <Tooltip title={topic} arrow placement="right">
+                      <Typography variant="subtitle2" color={theme.palette.common.white}>
+                        {sensor}
+                      </Typography>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </ThemeProvider>
   );
 }
 

@@ -1,7 +1,8 @@
 {
   "name": "foxglove",
   "workspaces": [
-    "extensions/*"
+    "extensions/*",
+    "theme"
   ],
   "devDependencies": {
     "@foxglove/eslint-plugin": "^1.0.0",
@@ -32,6 +33,7 @@
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.14.14",
-    "@mui/material": "^5.14.14"
+    "@mui/material": "^5.14.14",
+    "theme": "1.0.0"
   }
 }
