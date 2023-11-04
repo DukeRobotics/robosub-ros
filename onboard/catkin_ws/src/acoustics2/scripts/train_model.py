@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 from tensorflow import keras
 
 # Load and preprocess the data (as shown previously)
-data = pd.read_csv('your_data.csv')  # Replace 'your_data.csv' with your actual data file
+data = pd.read_csv('/home/drc/robosub-ros/onboard/catkin_ws/src/acoustics2/fake_data/temp_data_2.csv2')  # Replace 'your_data.csv' with your actual data file
 X = data[['Dt1', 'Dt2']].values
 y = data['theta'].values
 
@@ -24,7 +24,7 @@ model = keras.Sequential([
 model.compile(optimizer='adam', loss='mean_squared_error')
 
 # Train the model (as shown previously)
-history = model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_val, y_val))
+history = model.fit(X_train, y_train, epochs=100, batch_size=32, validation_data=(X_val, y_val))
 
 # Evaluate the model on the testing set (as shown previously)
 test_loss = model.evaluate(X_test, y_test)
@@ -34,3 +34,5 @@ print("Test loss:", test_loss)
 predicted_theta = model.predict(X_test)
 print("Predicted theta values:")
 print(predicted_theta)
+
+model.save("tdoa_model_2.h5")
