@@ -1,4 +1,5 @@
 import { PanelExtensionContext, RenderState, MessageEvent, Immutable } from "@foxglove/studio";
+import { Box } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -7,8 +8,22 @@ import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
 import { useTheme } from "@mui/material/styles";
 import { useLayoutEffect, useEffect, useState } from "react";
-import * as React from "react";
 import { createRoot } from "react-dom/client";
+
+interface SystemUsage {
+  cpu_percent: number;
+  cpu_speed: number;
+  gpu_percent: number;
+  gpu_speed: number;
+  gpu_memory: Memory;
+  ram: Memory;
+  disk: Memory;
+}
+interface Memory {
+  used: number; // In GB
+  total: number; // In GB
+  percentage: number; // As a percentage value, e.g., 50 for 50%
+}
 
 function createData(Status: string, Value: number) {
   return { Status, Value };
@@ -54,11 +69,11 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
 
       // Updating CPU/RAM/Voltage data.
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        const latestFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent;
+        const latestFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<SystemUsage>;
         setState((oldState) => ({
           ...oldState,
-          cpuUsage: latestFrame?.message?.cpu_percent,
-          ramUsage: latestFrame?.message?.ram.percentage,
+          cpuUsage: latestFrame.message.cpu_percent,
+          ramUsage: latestFrame.message.ram.percentage,
         }));
       }
     };
@@ -74,28 +89,25 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
   }, [renderDone]);
 
   return (
-    <div style={{ height: "100%", padding: "1rem" }}>
-      <div>
-        <TableContainer component={Paper}>
-          <Table size="small" aria-label="simple table">
-            <TableBody>
-              {rows.map((row) => (
-                <TableRow
-                  key={row.Status}
-                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                  style={{ backgroundColor: row.Value >= 90 ? theme.palette.error.main : "white" }}
-                >
-                  <TableCell component="th" scope="row">
-                    {row.Status}
-                  </TableCell>
-                  <TableCell align="right">{row.Value}%</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </div>
-    </div>
+    <Box m={1}>
+      <TableContainer component={Paper}>
+        <Table size="small">
+          <TableBody>
+            {rows.map((row) => (
+              <TableRow
+                key={row.Status}
+                style={{ backgroundColor: row.Value >= 90 ? theme.palette.error.main : "white" }}
+              >
+                <TableCell component="th" scope="row" style={{ borderBottom: "none" }}>
+                  {row.Status}
+                </TableCell>
+                <TableCell align="right">{row.Value}%</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
   );
 }
 
