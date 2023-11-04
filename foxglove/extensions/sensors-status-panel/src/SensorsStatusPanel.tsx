@@ -37,7 +37,7 @@ interface State {
   currentTime: number;
 }
 
-const defaultState = () => {
+const initState = () => {
   const state: Partial<State> = {};
 
   // Initialize sensorsTime with 0's
@@ -63,30 +63,27 @@ const defaultState = () => {
 
 function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
+  const [state, setState] = useState<State>(initState());
 
-  const [state, setState] = useState<State>(defaultState());
+  // Array of all topics: [{topic: topic1}, {topic: topic2}, ... ]
+  const topicList = [];
+  for (const value of Object.values(TOPICS_MAP)) {
+    topicList.push({ topic: value });
+  }
+  // Subscribe to all topics
+  context.subscribe(topicList);
 
-  useEffect(() => {
-    // Make a list of all topics [{topic: topic1}, {topic: topic2 }]
-    const topicList: { topic: string }[] = [];
-
-    for (const value of Object.values(TOPICS_MAP)) {
-      topicList.push({ topic: value });
-    }
-    // Subscribe to all topics
-    context.subscribe(topicList);
-  }, [context]);
-
-  // Setup our onRender function and start watching topics and currentFrame for messages.
+  // Watch currentFrame for messages from each sensor
   useLayoutEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done: unknown) => {
       setRenderDone(() => done);
 
+      // Reset state when the user seeks the video
       if (renderState.didSeek ?? false) {
-        setState(defaultState());
+        setState(initState());
       }
 
-      // Updates CurrentTime to the current time
+      // Updates currentTime
       if (renderState.currentTime != undefined) {
         setState((prevState) => ({
           ...prevState,
@@ -98,6 +95,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
         const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent;
         const sensorName = TOPICS_MAP_REVERSED[lastFrame.topic] as string;
 
+        // Update sensorsTime to the current time and set connectStatus to true
         setState((prevState) => ({
           ...prevState,
           sensorsTime: {
@@ -111,7 +109,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
         }));
       }
 
-      // Compare current time to each sensorstime attribute
+      // Compare current time to each sensorsTime and set connectStatus to false if the sensor is down
       for (const key in TOPICS_MAP) {
         if (state.currentTime - state.sensorsTime[key as keyof typeof TOPICS_MAP] > SENSOR_DOWN_THRESHOLD) {
           setState((prevState) => ({
@@ -124,6 +122,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
         }
       }
     };
+
     context.watch("currentTime");
     context.watch("currentFrame");
     context.watch("didSeek");
@@ -134,36 +133,34 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
     renderDone?.();
   }, [renderDone]);
 
-  // Create a table of all the sensors and their status with the goal of being put into a Table component using a for loop
+  // Create a table of all the sensors and their status
   const theme = useTheme();
   return (
     <Box m={1}>
-      <div>
-        <TableContainer component={Paper}>
-          <Table size="small">
-            <TableBody>
-              {Object.entries(TOPICS_MAP).map(([sensor, topic]) => (
-                <TableRow
-                  key={sensor}
-                  style={{
-                    backgroundColor: state.connectStatus[sensor as keyof typeof TOPICS_MAP]
-                      ? theme.palette.success.main
-                      : theme.palette.error.main,
-                  }}
-                >
-                  <TableCell style={{ borderBottom: "none" }}>
-                    <Tooltip title={topic} arrow placement="right">
-                      <Typography variant="subtitle2" color={theme.palette.common.white}>
-                        {sensor}
-                      </Typography>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </div>
+      <TableContainer component={Paper}>
+        <Table size="small">
+          <TableBody>
+            {Object.entries(TOPICS_MAP).map(([sensor, topic]) => (
+              <TableRow
+                key={sensor}
+                style={{
+                  backgroundColor: state.connectStatus[sensor as keyof typeof TOPICS_MAP]
+                    ? theme.palette.success.main
+                    : theme.palette.error.main,
+                }}
+              >
+                <TableCell style={{ borderBottom: "none" }}>
+                  <Tooltip title={topic} arrow placement="right">
+                    <Typography variant="subtitle2" color={theme.palette.common.white}>
+                      {sensor}
+                    </Typography>
+                  </Tooltip>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Box>
   );
 }
