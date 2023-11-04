@@ -5,10 +5,6 @@ import { mkdir, readdir, readFile, writeFile } from "fs/promises";
 import { join, basename, sep } from "path";
 import { format, Options } from "prettier";
 
-const LICENSE = `// This Source Code Form is subject to the terms of the MIT
-// License. If a copy of the MIT license was not distributed with this
-// file, You can obtain one at https://opensource.org/license/mit/`;
-
 const PRETTIER_OPTS: Options = {
   parser: "babel",
   arrowParens: "always",
@@ -18,14 +14,14 @@ const PRETTIER_OPTS: Options = {
   semi: true,
 };
 
-async function main() {
+export async function writeMessageDefinitions(): Promise<Map<string, Record<string, MessageDefinition>>> {
   // Following paths are relative to the foxglove/msgdefs/src directory
   // For the script to work correclty, the script must be run from the foxglove/msgdefs/src directory
   const msgdefsPath = "../../../core/catkin_ws/src/custom_msgs/msg";
-  const distDir = "../dist";
-  const libFile = join(distDir, "index.js");
-  const esmFile = join(distDir, "index.esm.js");
-  const declFile = join(distDir, "index.d.ts");
+  const saveDir = "../custom_msgs";
+  const libFile = join(saveDir, "index.js");
+  const esmFile = join(saveDir, "index.esm.js");
+  const declFile = join(saveDir, "index.d.ts");
   const definitionsByGroup = new Map<string, Record<string, MessageDefinition>>([["custom_msgs", {}]]);
 
   await loadDefinitions(msgdefsPath, definitionsByGroup.get("custom_msgs")!, { skipTypeFixup: true });
@@ -34,10 +30,12 @@ async function main() {
   const esmOutput = await generateEsmLibrary(definitionsByGroup);
   const declOutput = generateDefinitions(definitionsByGroup);
 
-  await mkdir(distDir, { recursive: true });
+  await mkdir(saveDir, { recursive: true });
   await writeFile(libFile, libOutput);
   await writeFile(esmFile, esmOutput);
   await writeFile(declFile, declOutput);
+
+  return definitionsByGroup;
 }
 
 async function getMsgFiles(dir: string): Promise<string[]> {
@@ -108,7 +106,7 @@ function dataTypeToTypeName(dataType: string): string {
 }
 
 async function generateCjsLibrary(definitionsByGroup: Map<string, Record<string, MessageDefinition>>): Promise<string> {
-  let lib = `${LICENSE}\n`;
+  let lib = "";
   for (const [groupName, definitions] of definitionsByGroup.entries()) {
     lib += `
 const ${groupName}Definitions = ${JSON.stringify(definitions)}
@@ -119,7 +117,7 @@ module.exports.${groupName} = ${groupName}Definitions
 }
 
 async function generateEsmLibrary(definitionsByGroup: Map<string, Record<string, MessageDefinition>>): Promise<string> {
-  let lib = `${LICENSE}\n`;
+  let lib = "";
   for (const [groupName, definitions] of definitionsByGroup.entries()) {
     lib += `
 const ${groupName}Definitions = ${JSON.stringify(definitions)}
@@ -134,10 +132,7 @@ export { ${groupName}Definitions as ${groupName} }
 }
 
 function generateDefinitions(definitionsByGroup: Map<string, Record<string, MessageDefinition>>): string {
-  let output = `${LICENSE}
-
-import { MessageDefinition } from "@foxglove/message-definition";
-`;
+  let output = `import { MessageDefinition } from "@foxglove/message-definition";`;
 
   for (const [groupName, definitions] of definitionsByGroup.entries()) {
     const entries = Object.keys(definitions)
@@ -145,10 +140,10 @@ import { MessageDefinition } from "@foxglove/message-definition";
       .map((key) => `  "${key}": MessageDefinition;`)
       .join("\n");
     output += `
-export type ${exportedTypeName(groupName)} = {
-${entries}
-};
-`;
+      export type ${exportedTypeName(groupName)} = {
+        ${entries}
+      };
+    `;
   }
 
   output += `\n`;
@@ -163,7 +158,7 @@ ${entries}
   ${groupExportTypes.join(",\n  ")}
 }`;
   output += `\nexport default _default;\n`;
-  return output;
+  return output
 }
 
 function exportedTypeName(groupName: string): string {
@@ -173,5 +168,3 @@ function exportedTypeName(groupName: string): string {
     .replace(/([0-9])([a-z])/, (m) => m[0]! + m[1]!.toUpperCase())}`;
   return `${camelCase}MsgCommonDefinitions`;
 }
-
-void main();
