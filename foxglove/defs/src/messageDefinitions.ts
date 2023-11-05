@@ -14,23 +14,24 @@ const PRETTIER_OPTS: Options = {
   semi: true,
 };
 
-export async function writeMessageDefinitions(): Promise<Map<string, Record<string, MessageDefinition>>> {
-  // Following paths are relative to the foxglove/msgdefs/src directory
-  // For the script to work correclty, the script must be run from the foxglove/msgdefs/src directory
-  const msgdefsPath = "../../../core/catkin_ws/src/custom_msgs/msg";
-  const saveDir = "../custom_msgs";
-  const libFile = join(saveDir, "index.js");
-  const esmFile = join(saveDir, "index.esm.js");
-  const declFile = join(saveDir, "index.d.ts");
-  const definitionsByGroup = new Map<string, Record<string, MessageDefinition>>([["custom_msgs", {}]]);
+const CUSTOM_MSGS_GROUP_NAME = "custom_msgs";
 
-  await loadDefinitions(msgdefsPath, definitionsByGroup.get("custom_msgs")!, { skipTypeFixup: true });
+export async function writeMessageDefinitions(
+  msgdefsPath: string,
+  msgdefsSaveDir: string,
+): Promise<Map<string, Record<string, MessageDefinition>>> {
+  const libFile = join(msgdefsSaveDir, "index.js");
+  const esmFile = join(msgdefsSaveDir, "index.esm.js");
+  const declFile = join(msgdefsSaveDir, "index.d.ts");
+  const definitionsByGroup = new Map<string, Record<string, MessageDefinition>>([[CUSTOM_MSGS_GROUP_NAME, {}]]);
+
+  await loadDefinitions(msgdefsPath, definitionsByGroup.get(CUSTOM_MSGS_GROUP_NAME)!, { skipTypeFixup: true });
 
   const libOutput = await generateCjsLibrary(definitionsByGroup);
   const esmOutput = await generateEsmLibrary(definitionsByGroup);
   const declOutput = generateDefinitions(definitionsByGroup);
 
-  await mkdir(saveDir, { recursive: true });
+  await mkdir(msgdefsSaveDir, { recursive: true });
   await writeFile(libFile, libOutput);
   await writeFile(esmFile, esmOutput);
   await writeFile(declFile, declOutput);
@@ -61,7 +62,7 @@ async function loadDefinitions(
     const typeName = dataTypeToTypeName(dataType);
     const msgdef = await readFile(filename, { encoding: "utf8" });
     const schema = parse(msgdef, parseOptions);
-    (schema[0] as MessageDefinition).name = typeName;
+    schema[0]!.name = typeName;
     for (const entry of schema) {
       if (entry.name == undefined) {
         throw new Error(`Failed to parse ${dataType} from ${filename}`);
@@ -69,6 +70,7 @@ async function loadDefinitions(
       definitions[entry.name] = entry;
     }
   }
+
   // Array of MessageDefinitions including all ros1 and custom_msgs
   // This is used to fixup type names in the definitions
   // For example, Header is changed to std_msgs/Header
@@ -140,9 +142,9 @@ function generateDefinitions(definitionsByGroup: Map<string, Record<string, Mess
       .map((key) => `  "${key}": MessageDefinition;`)
       .join("\n");
     output += `
-      export type ${exportedTypeName(groupName)} = {
-        ${entries}
-      };
+export type ${exportedTypeName(groupName)} = {
+${entries}
+};
     `;
   }
 
@@ -158,7 +160,7 @@ function generateDefinitions(definitionsByGroup: Map<string, Record<string, Mess
   ${groupExportTypes.join(",\n  ")}
 }`;
   output += `\nexport default _default;\n`;
-  return output
+  return output;
 }
 
 function exportedTypeName(groupName: string): string {
