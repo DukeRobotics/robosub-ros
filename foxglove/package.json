@@ -1,8 +1,7 @@
 {
   "name": "foxglove",
   "workspaces": [
-    "extensions/*",
-    "theme"
+    "extensions/*"
   ],
   "devDependencies": {
     "@foxglove/eslint-plugin": "^1.0.0",
@@ -30,6 +29,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
+    "@duke-robotics/theme": "file:local_modules/duke-robotics-theme-0.0.0.tgz",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.14.14",

@@ -1,4 +1,4 @@
-import { drcTheme } from "@duke-robotics/theme/src";
+import { drcTheme } from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState, MessageEvent } from "@foxglove/studio";
 import { Typography, useTheme } from "@mui/material";
 import Box from "@mui/material/Box";

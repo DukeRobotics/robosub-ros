@@ -1,7 +1,11 @@
 {
   "extends": "../tsconfig.json",
+
   "compilerOptions": {
-    "outDir": "../node_modules/@duke-robotics/theme",
+    "declaration": true,
+
+    "rootDir": "./src",
+    "outDir": "./dist"
   },
-  "include": ["./src/*"]
+  "include": ["./src/*"],
 }
