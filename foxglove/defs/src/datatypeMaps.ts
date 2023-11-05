@@ -34,26 +34,28 @@ const PRETTIER_OPTS: Options = {
 
 const EXPORT_VAR_NAME = "allDatatypeMaps";
 const EXPORT_TYPE_NAME = "AllDatatypeMapsType";
-const JS_IMPORT_STATEMENTS = `import { ros1 } from "@foxglove/rosmsg-msgs-common";
-import { custom_msgs } from "../../custom_msg_defs/dist";\n\n`;
 const TS_IMPORT_STATEMENTS = `import { MessageDefinition } from "@foxglove/message-definition";\n\n`;
 
 export async function writeAllDatatypeMaps(
   definitionsByGroup: Map<string, Record<string, MessageDefinition>>,
   allDatatypeMapsSaveDir: string,
+  relativePathToCustomMsgs: string,
 ): Promise<[AllDatatypeMaps, string]> {
   const libFile = join(allDatatypeMapsSaveDir, "index.js");
   const esmFile = join(allDatatypeMapsSaveDir, "index.esm.js");
   const tsFile = join(allDatatypeMapsSaveDir, "index.d.ts");
+
+  const [commonJsImportStatements, esmImportStatements]: [string, string] =
+    getImportStatementsStrings(relativePathToCustomMsgs);
 
   const getImportGroupNameFromDefinitionName = getImportGroupNameFromDefinitionNameClosure(definitionsByGroup);
 
   const allDatatypeMaps = generateDatatypeMaps(definitionsByGroup);
   const allDatatypeMapsString = generateAllDatatypeMapsString(allDatatypeMaps, getImportGroupNameFromDefinitionName);
 
-  const libOutput = await generateCjsLibrary(allDatatypeMapsString);
-  const esmOutput = await generateEsmLibrary(allDatatypeMapsString);
-  const tsOutput = await generateTsLibrary(allDatatypeMaps);
+  const libOutput = await generateCjsLibrary(allDatatypeMapsString, commonJsImportStatements);
+  const esmOutput = await generateEsmLibrary(allDatatypeMapsString, esmImportStatements);
+  const tsOutput = await generateTsLibrary(allDatatypeMaps, TS_IMPORT_STATEMENTS);
 
   await mkdir(allDatatypeMapsSaveDir, { recursive: true });
   await writeFile(libFile, libOutput);
@@ -61,6 +63,15 @@ export async function writeAllDatatypeMaps(
   await writeFile(tsFile, tsOutput);
 
   return [allDatatypeMaps, allDatatypeMapsString];
+}
+
+function getImportStatementsStrings(relativePathToCustomMsgs: string): [string, string] {
+  return [
+    `const ros1 = require("@foxglove/rosmsg-msgs-common").ros1;
+const custom_msgs = require("${relativePathToCustomMsgs}").custom_msgs;\n\n`,
+    `import { ros1 } from "@foxglove/rosmsg-msgs-common";
+import { custom_msgs } from "${relativePathToCustomMsgs}";\n\n`,
+  ];
 }
 
 function generateDatatypeMaps(definitionsByGroup: Map<string, Record<string, MessageDefinition>>): AllDatatypeMaps {
@@ -164,24 +175,24 @@ function getImportGroupNameFromDefinitionNameClosure(
   };
 }
 
-async function generateCjsLibrary(allDatatypeMapsString: string): Promise<string> {
-  let output = JS_IMPORT_STATEMENTS;
+async function generateCjsLibrary(allDatatypeMapsString: string, importStatements: string): Promise<string> {
+  let output = importStatements;
 
   output += allDatatypeMapsString;
   output += `\nmodule.exports.${EXPORT_VAR_NAME} = ${EXPORT_VAR_NAME};`;
   return await format(output, PRETTIER_OPTS);
 }
 
-async function generateEsmLibrary(allDatatypeMapsString: string): Promise<string> {
-  let output = JS_IMPORT_STATEMENTS;
+async function generateEsmLibrary(allDatatypeMapsString: string, importStatements: string): Promise<string> {
+  let output = importStatements;
 
   output += allDatatypeMapsString;
   output += `\nexport { ${EXPORT_VAR_NAME} };\nexport default { ${EXPORT_VAR_NAME} };`;
   return await format(output, PRETTIER_OPTS);
 }
 
-async function generateTsLibrary(allDatatypeMaps: AllDatatypeMaps): Promise<string> {
-  let output = TS_IMPORT_STATEMENTS;
+async function generateTsLibrary(allDatatypeMaps: AllDatatypeMaps, importStatements: string): Promise<string> {
+  let output = importStatements;
 
   for (const [groupName, groupMaps] of Object.entries(allDatatypeMaps)) {
     output += `export type ${groupName}DatatypeMaps = {\n`;
