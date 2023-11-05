@@ -1,6 +1,6 @@
 import { createTheme } from "@mui/material/styles";
 
-const drcTheme = createTheme({
+const theme = createTheme({
   components: {
     MuiTableCell: {
       styleOverrides: {
@@ -12,4 +12,4 @@ const drcTheme = createTheme({
   },
 });
 
-export default drcTheme;
+export default theme;

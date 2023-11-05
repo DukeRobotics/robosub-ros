@@ -1,6 +1,6 @@
-import { drcTheme } from "@duke-robotics/theme";
+import theme from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState, MessageEvent } from "@foxglove/studio";
-import { Typography, useTheme } from "@mui/material";
+import { Typography } from "@mui/material";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
@@ -135,9 +135,8 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
   }, [renderDone]);
 
   // Create a table of all the sensors and their status
-  const theme = useTheme();
   return (
-    <ThemeProvider theme={drcTheme}>
+    <ThemeProvider theme={theme}>
       <Box m={1}>
         <TableContainer component={Paper}>
           <Table size="small">
