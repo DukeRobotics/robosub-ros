@@ -5,6 +5,10 @@
   "compilerOptions": {
     "lib": ["dom"],
 
+    // Prevent typescript from emitting .d.ts files we don't need in the compiled extension
+    "composite": false,
+    "declaration": false,
+
     // Additional error reporting checks to improve code quality
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
