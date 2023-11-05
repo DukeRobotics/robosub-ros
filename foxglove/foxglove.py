@@ -84,7 +84,7 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
     run_at_path("npx patch-package --patch-dir patches", FOXGLOVE_PATH)
 
     # Foxglove custom message definitions
-    run_at_path("npx ts-node index.ts", FOXGLOVE_PATH / "msgdefs/src")
+    run_at_path("npx ts-node index.ts", FOXGLOVE_PATH / "defs/src")
 
     successes = 0
     for extension in extension_paths:
