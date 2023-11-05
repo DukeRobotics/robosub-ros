@@ -49,7 +49,6 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>
-        <h2>Publish Topic</h2>
         {(context.advertise == undefined || context.publish == undefined) && (
           <Alert variant="filled" severity="error">
             Publishing topics is not supported by this connection

@@ -61,7 +61,6 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>
-        <h2>Call Service</h2>
         {context.callService == undefined && (
           <Alert variant="filled" severity="error">
             Calling services is not supported by this connection

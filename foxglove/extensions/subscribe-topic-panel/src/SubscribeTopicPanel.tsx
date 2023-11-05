@@ -71,7 +71,6 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>
-        <h2>Subscribe Topic</h2>
         <div>
           <label>Choose a topic to display: </label>
           <select
