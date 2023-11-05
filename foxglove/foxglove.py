@@ -80,18 +80,18 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
     except (FileNotFoundError, subprocess.CalledProcessError):
         raise SystemExit("npm not found. Install npm and try again.")
 
+    # Install dependencies
+    run_at_path("npm ci", FOXGLOVE_PATH)
+
+    # Patch dependencies
+    run_at_path("npx patch-package --patch-dir patches", FOXGLOVE_PATH)
+
     # Create local_modules directory if it doesn't exist
     (FOXGLOVE_PATH / "local_modules").mkdir(exist_ok=True)
 
     # Compile @duke-robotics/theme to local_modules
     run_at_path("npx tsc", FOXGLOVE_PATH / "theme")
     run_at_path("npm pack --pack-destination ../local_modules", FOXGLOVE_PATH / "theme")
-
-    # Install dependencies
-    run_at_path("npm ci", FOXGLOVE_PATH)
-
-    # Patch dependencies
-    run_at_path("npx patch-package --patch-dir patches", FOXGLOVE_PATH)
 
     successes = 0
     for extension in extension_paths:
