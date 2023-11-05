@@ -80,7 +80,8 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
     except (FileNotFoundError, subprocess.CalledProcessError):
         raise SystemExit("npm not found. Install npm and try again.")
 
-    run_at_path("npm cache clean", FOXGLOVE_PATH)
+    # Clean cache (to avoid caching old versions of local_modules)
+    run_at_path("npm cache clean --force", FOXGLOVE_PATH)
 
     # Install dependencies
     run_at_path("npm ci", FOXGLOVE_PATH)
@@ -94,6 +95,11 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
     # Compile @duke-robotics/theme to local_modules
     run_at_path("npx tsc", FOXGLOVE_PATH / "theme")
     run_at_path("npm pack --pack-destination ../local_modules", FOXGLOVE_PATH / "theme")
+
+    # Install local_modules
+    tarballs = (FOXGLOVE_PATH / "local_modules").glob("*.tgz")
+    for tarball in tarballs:
+        run_at_path(f"npm install --no-save {tarball.absolute()}", FOXGLOVE_PATH)
 
     successes = 0
     for extension in extension_paths:
