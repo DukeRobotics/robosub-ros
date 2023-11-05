@@ -71,14 +71,10 @@ def run_at_path(command: str | Sequence[str], directory: pathlib.Path, system: s
     subprocess.run(args, cwd=directory, check=True)
 
 
-def install_extensions(extension_paths: Sequence[pathlib.Path]):
+def build_deps():
     """
-    Install custom Foxglove extensions.
-
-    Args:
-        extension_paths: Sequence of extension paths to install.
+    Build all necessary dependencies for Foxglove.
     """
-
     run = functools.partial(run_at_path, directory=FOXGLOVE_PATH)
 
     try:
@@ -106,6 +102,20 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
     tarballs = (FOXGLOVE_PATH / "local_modules").glob("*.tgz")
     for tarball in tarballs:
         run(["npm", "install", "--no-save", f'{tarball.absolute()}'])
+
+
+def install_extensions(extension_paths: Sequence[pathlib.Path]):
+    """
+    Install custom Foxglove extensions.
+
+    Args:
+        extension_paths: Sequence of extension paths to install.
+    """
+
+    try:
+        run_at_path("npm -v", FOXGLOVE_PATH)
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        raise SystemExit("npm not found. Install npm and try again.")
 
     successes = 0
     for extension in extension_paths:
@@ -245,6 +255,12 @@ if __name__ == "__main__":
     uninstall_parser.add_argument('-e', '--extensions', action='store_true', help="Uninstall all extensions.")
     uninstall_parser.add_argument('-l', '--layouts', action='store_true', help="Uninstall all layouts.")
 
+    build_parser = subparsers.add_parser(
+        'build',
+        aliases=['b'],
+        help='Build all necessary dependencies for Foxglove.'
+    )
+
     args = parser.parse_args()
 
     if args.action in ("install", "i"):
@@ -257,6 +273,7 @@ if __name__ == "__main__":
             args.extensions = EXTENSION_PATHS
 
         if args.extensions is not None:
+            build_deps()
             install_extensions(args.extensions)
         if args.layouts:
             install_layouts()
@@ -271,3 +288,6 @@ if __name__ == "__main__":
             uninstall_extensions()
         if args.layouts:
             uninstall_layouts()
+
+    elif args.action in ("build", "b"):
+        build_deps()

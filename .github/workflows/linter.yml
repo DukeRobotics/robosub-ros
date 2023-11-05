@@ -15,7 +15,7 @@ jobs:
       - name: Install Foxglove dependencies
         run: |
           cd foxglove
-          npm ci
+          ./foxglove.py build
 
       - name: Lint Code Base
         uses: super-linter/super-linter@v5.4.3

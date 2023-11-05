@@ -1,0 +1,17 @@
+name: Foxglove Build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Foxglove Build
+        run: |
+          cd foxglove
+          ./foxglove.py install
