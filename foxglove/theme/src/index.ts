@@ -1,1 +1,1 @@
-export { default as drcTheme } from "./drcTheme";
+export { default } from "./theme";
