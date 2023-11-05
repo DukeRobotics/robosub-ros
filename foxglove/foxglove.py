@@ -99,7 +99,7 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
     # Install local_modules
     tarballs = (FOXGLOVE_PATH / "local_modules").glob("*.tgz")
     for tarball in tarballs:
-        run_at_path(f"npm install --no-save {tarball.absolute()}", FOXGLOVE_PATH)
+        run_at_path(f'npm install --no-save "{tarball.absolute()}"', FOXGLOVE_PATH)
 
     successes = 0
     for extension in extension_paths:
