@@ -1,4 +1,6 @@
+import theme from "@duke-robotics/theme";
 import { PanelExtensionContext, RenderState, Topic, MessageEvent, Immutable } from "@foxglove/studio";
+import { Box, ThemeProvider } from "@mui/material";
 import { JsonViewer } from "@textea/json-viewer";
 import { useLayoutEffect, useEffect, useState, useMemo } from "react";
 import { createRoot } from "react-dom/client";
@@ -67,35 +69,37 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
   }, [renderDone]);
 
   return (
-    <div style={{ height: "100%", padding: "1rem" }}>
-      <h2>Subscribe Topic</h2>
-      <div>
-        <label>Choose a topic to display: </label>
-        <select
-          value={state.topic}
-          onChange={(event) => {
-            setState((oldState) => ({ ...oldState, topic: event.target.value }));
-          }}
-          style={{ flex: 1 }}
-        >
-          {topics.map((topic) => (
-            <option key={topic.name} value={topic.name}>
-              {topic.name}
-            </option>
-          ))}
-        </select>
+    <ThemeProvider theme={theme}>
+      <Box m={1}>
+        <h2>Subscribe Topic</h2>
+        <div>
+          <label>Choose a topic to display: </label>
+          <select
+            value={state.topic}
+            onChange={(event) => {
+              setState((oldState) => ({ ...oldState, topic: event.target.value }));
+            }}
+            style={{ flex: 1 }}
+          >
+            {topics.map((topic) => (
+              <option key={topic.name} value={topic.name}>
+                {topic.name}
+              </option>
+            ))}
+          </select>
 
-        <JsonViewer
-          rootName={false}
-          value={state.message as object}
-          indentWidth={2}
-          theme={state.colorScheme}
-          enableClipboard={false}
-          displayDataTypes={false}
-          maxDisplayLength={10}
-        />
-      </div>
-    </div>
+          <JsonViewer
+            rootName={false}
+            value={state.message as object}
+            indentWidth={2}
+            theme={state.colorScheme}
+            enableClipboard={false}
+            displayDataTypes={false}
+            maxDisplayLength={10}
+          />
+        </div>
+      </Box>
+    </ThemeProvider>
   );
 }
 

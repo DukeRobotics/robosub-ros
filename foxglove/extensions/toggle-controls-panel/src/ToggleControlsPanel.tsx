@@ -1,3 +1,5 @@
+import theme from "@duke-robotics/theme";
+import { ThemeProvider } from "@emotion/react";
 import { PanelExtensionContext } from "@foxglove/studio";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -54,33 +56,35 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
   };
 
   return (
-    <Box m={1}>
-      {/* Error messages */}
-      {(context.callService == undefined || state.error != undefined) && (
-        <Box mb={1}>
-          {context.callService == undefined && (
-            <Alert variant="filled" severity="error">
-              Calling services is not supported by this connection
-            </Alert>
-          )}
-          {state.error != undefined && (
-            <Alert variant="filled" severity="error">
-              {state.error.message}
-            </Alert>
-          )}
-        </Box>
-      )}
+    <ThemeProvider theme={theme}>
+      <Box m={1}>
+        {/* Error messages */}
+        {(context.callService == undefined || state.error != undefined) && (
+          <Box mb={1}>
+            {context.callService == undefined && (
+              <Alert variant="filled" severity="error">
+                Calling services is not supported by this connection
+              </Alert>
+            )}
+            {state.error != undefined && (
+              <Alert variant="filled" severity="error">
+                {state.error.message}
+              </Alert>
+            )}
+          </Box>
+        )}
 
-      {/* Toggle button */}
-      <Button
-        variant="contained"
-        color={state.controlsEnabled ? "error" : "success"}
-        onClick={toggleControls}
-        disabled={context.callService == undefined}
-      >
-        {state.controlsEnabled ? "Disable Controls" : "Enable Controls"}
-      </Button>
-    </Box>
+        {/* Toggle button */}
+        <Button
+          variant="contained"
+          color={state.controlsEnabled ? "error" : "success"}
+          onClick={toggleControls}
+          disabled={context.callService == undefined}
+        >
+          {state.controlsEnabled ? "Disable Controls" : "Enable Controls"}
+        </Button>
+      </Box>
+    </ThemeProvider>
   );
 }
 
