@@ -95,8 +95,8 @@ def build_deps():
     (FOXGLOVE_PATH / "local_modules").mkdir(exist_ok=True)
 
     # Compile @duke-robotics/theme to local_modules
-    run_at_path("npx tsc", FOXGLOVE_PATH / "theme")
-    run_at_path("npm pack --pack-destination ../local_modules", FOXGLOVE_PATH / "theme")
+    run_at_path("npx tsc", FOXGLOVE_PATH / "shared/theme")
+    run_at_path("npm pack --pack-destination ../../local_modules", FOXGLOVE_PATH / "shared/theme")
 
     # Install local_modules
     tarballs = (FOXGLOVE_PATH / "local_modules").glob("*.tgz")
