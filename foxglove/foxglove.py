@@ -82,9 +82,6 @@ def build_deps():
     except (FileNotFoundError, subprocess.CalledProcessError):
         raise SystemExit("npm not found. Install npm and try again.")
 
-    # Clean cache (to avoid caching old versions of local_modules)
-    run("npm cache clean --force")
-
     # Install dependencies
     run("npm ci")
 
