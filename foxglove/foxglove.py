@@ -91,17 +91,10 @@ def build_deps():
     # Patch dependencies
     run("npx patch-package --patch-dir patches")
 
-    # Create local_modules directory if it doesn't exist
-    (FOXGLOVE_PATH / "local_modules").mkdir(exist_ok=True)
-
-    # Compile @duke-robotics/theme to local_modules
-    run_at_path("npx tsc", FOXGLOVE_PATH / "shared/theme")
-    run_at_path("npm pack --pack-destination ../../local_modules", FOXGLOVE_PATH / "shared/theme")
-
-    # Install local_modules
-    tarballs = (FOXGLOVE_PATH / "local_modules").glob("*.tgz")
-    for tarball in tarballs:
-        run(["npm", "install", "--no-save", f'{tarball.absolute()}'])
+    # Compile local shared dependencies
+    dependencies = [d for d in (FOXGLOVE_PATH / "shared").iterdir() if d.is_dir()]
+    for dep in dependencies:
+        run_at_path("npx tsc", dep)
 
 
 def install_extensions(extension_paths: Sequence[pathlib.Path]):
