@@ -91,7 +91,7 @@ def build_deps():
     # Compile local shared dependencies
     dependencies = [d for d in (FOXGLOVE_PATH / "shared").iterdir() if d.is_dir()]
     for dep in dependencies:
-        run_at_path("npx tsc", dep)
+        run_at_path("npm run build", dep)
 
 
 def install_extensions(extension_paths: Sequence[pathlib.Path]):
