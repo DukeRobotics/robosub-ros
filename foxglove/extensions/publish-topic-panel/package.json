@@ -1,5 +1,5 @@
 {
-  "name": "publish-topic-panel",
+  "name": "@duke-robotics/publish-topic-panel",
   "publisher": "Duke Robotics",
   "version": "1.0.0",
   "main": "./dist/extension.js",

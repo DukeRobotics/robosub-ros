@@ -1,5 +1,5 @@
 {
-  "name": "call-service-panel",
+  "name": "@duke-robotics/call-service-panel",
   "publisher": "Duke Robotics",
   "version": "1.0.0",
   "main": "./dist/extension.js",

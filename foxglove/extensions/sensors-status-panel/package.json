@@ -1,5 +1,5 @@
 {
-  "name": "sensors-status-panel",
+  "name": "@duke-robotics/sensors-status-panel",
   "publisher": "Duke Robotics",
   "version": "1.0.0",
   "main": "./dist/extension.js",
