@@ -15,4 +15,15 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
-catkin_package(CATKIN_DEPENDS rospy std_msgs nav_msgs geometry_msgs std_srvs custom_msgs tf pid resource_retriever)
+catkin_package(
+  CATKIN_DEPENDS roscpp rospy std_msgs nav_msgs geometry_msgs std_srvs custom_msgs tf pid resource_retriever
+)
+
+## Specify additional locations of header files
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+)
+
+## Build C++ executables and libraries
+add_executable(hello_world_publisher scripts/test.cpp)
+target_link_libraries(hello_world_publisher ${catkin_LIBRARIES})

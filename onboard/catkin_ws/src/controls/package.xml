@@ -10,6 +10,7 @@
 
   <license>MIT</license>
 
+  <depend>roscpp</depend>
   <depend>rospy</depend>
   <depend>custom_msgs</depend>
   <depend>std_msgs</depend>
