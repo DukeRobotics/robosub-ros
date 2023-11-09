@@ -10,7 +10,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
 import Tooltip from "@mui/material/Tooltip";
 import { ThemeProvider } from "@mui/material/styles";
-import { useLayoutEffect, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 // Map of sensor name to topic name
