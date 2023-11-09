@@ -7,7 +7,7 @@ import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
 import { useTheme } from "@mui/material/styles";
-import { useLayoutEffect, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 const SYSTEM_USAGE_TOPIC = "/system/usage"; // Topic to watch for system usage data
@@ -37,7 +37,6 @@ type State = {
 };
 
 function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
-  const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
   const [state, setState] = useState<State>({});
 
   context.subscribe([{ topic: SYSTEM_USAGE_TOPIC }]);
@@ -48,8 +47,6 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
   // Watch system usage topic and update state
   useEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
-      setRenderDone(() => done);
-
       // Reset state when the user seeks the video
       if (renderState.didSeek ?? false) {
         setState({});
@@ -64,16 +61,13 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
           ramUsage: latestFrame.message.ram.percentage,
         }));
       }
-    };
 
-    context.watch("currentFrame");
-    context.watch("didSeek");
+      done();
+    };
   }, [context]);
 
-  // Call our done function at the end of each render
-  useEffect(() => {
-    renderDone?.();
-  }, [renderDone]);
+  context.watch("currentFrame");
+  context.watch("didSeek");
 
   // Render a table with the current system usage data
   const theme = useTheme();
