@@ -64,10 +64,9 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
 
       done();
     };
+    context.watch("currentFrame");
+    context.watch("didSeek");
   }, [context]);
-
-  context.watch("currentFrame");
-  context.watch("didSeek");
 
   // Render a table with the current system usage data
   const theme = useTheme();
