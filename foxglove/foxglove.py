@@ -71,7 +71,7 @@ def run_at_path(command: str | Sequence[str], directory: pathlib.Path, system: s
     subprocess.run(args, cwd=directory, check=True)
 
 
-def build_deps():
+def build_deps(skip_ci: bool = False):
     """
     Build all necessary dependencies for Foxglove.
     """
@@ -83,7 +83,8 @@ def build_deps():
         raise SystemExit("npm not found. Install npm and try again.")
 
     # Install dependencies
-    run("npm ci")
+    if not skip_ci:
+        run("npm ci")
 
     # Patch dependencies
     run("npx patch-package --patch-dir patches")
@@ -236,6 +237,11 @@ if __name__ == "__main__":
         action='store_true',
         help="Install all layouts."
     )
+    install_parser.add_argument(
+        '--skip-ci',
+        action='store_true',
+        help="Use existing node_modules instead of clean installing external dependencies."
+    )
 
     uninstall_parser = subparsers.add_parser(
         'uninstall',
@@ -250,6 +256,11 @@ if __name__ == "__main__":
         aliases=['b'],
         help='Build all necessary dependencies for Foxglove.'
     )
+    build_parser.add_argument(
+        '--skip-ci',
+        action='store_true',
+        help="Use existing node_modules instead of clean installing external dependencies."
+    )
 
     args = parser.parse_args()
 
@@ -263,7 +274,7 @@ if __name__ == "__main__":
             args.extensions = EXTENSION_PATHS
 
         if args.extensions is not None:
-            build_deps()
+            build_deps(skip_ci=args.skip_ci)
             install_extensions(args.extensions)
         if args.layouts:
             install_layouts()
@@ -280,4 +291,4 @@ if __name__ == "__main__":
             uninstall_layouts()
 
     elif args.action in ("build", "b"):
-        build_deps()
+        build_deps(skip_ci=args.skip_ci)
