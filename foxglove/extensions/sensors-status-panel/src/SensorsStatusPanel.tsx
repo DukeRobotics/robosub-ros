@@ -75,7 +75,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
   context.subscribe(topicList);
 
   // Watch currentFrame for messages from each sensor
-  useLayoutEffect(() => {
+  useEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done: unknown) => {
       setRenderDone(() => done);
 
