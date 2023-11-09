@@ -37,6 +37,7 @@ type State = {
 };
 
 function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
+  const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
   const [state, setState] = useState<State>({});
 
   context.subscribe([{ topic: SYSTEM_USAGE_TOPIC }]);
@@ -47,6 +48,8 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
   // Watch system usage topic and update state
   useEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
+      setRenderDone(() => done);
+
       // Reset state when the user seeks the video
       if (renderState.didSeek ?? false) {
         setState({});
@@ -61,12 +64,15 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
           ramUsage: latestFrame.message.ram.percentage,
         }));
       }
-
-      done();
     };
     context.watch("currentFrame");
     context.watch("didSeek");
   }, [context]);
+
+  // Call our done function at the end of each render
+  useEffect(() => {
+    renderDone?.();
+  }, [renderDone]);
 
   // Render a table with the current system usage data
   const theme = useTheme();
