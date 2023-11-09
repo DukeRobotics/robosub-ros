@@ -2,10 +2,12 @@ import { createTheme } from "@mui/material/styles";
 
 const theme = createTheme({
   components: {
-    MuiTableCell: {
+    MuiTableRow: {
       styleOverrides: {
         root: {
-          borderBottom: 0,
+          "&:last-child td, &:last-child th": {
+            border: 0,
+          },
         },
       },
     },
