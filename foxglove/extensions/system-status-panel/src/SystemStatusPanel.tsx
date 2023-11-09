@@ -46,7 +46,7 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
   const rows = [createData("CPU", state.cpuUsage), createData("RAM", state.ramUsage)];
 
   // Watch system usage topic and update state
-  useLayoutEffect(() => {
+  useEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setRenderDone(() => done);
 
