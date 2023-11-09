@@ -10,7 +10,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
 import Tooltip from "@mui/material/Tooltip";
 import { ThemeProvider } from "@mui/material/styles";
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 // Map of sensor name to topic name
@@ -63,6 +63,7 @@ const initState = () => {
 };
 
 function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
+  const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
   const [state, setState] = useState<State>(initState());
 
   // Array of all topics: [{topic: topic1}, {topic: topic2}, ... ]
@@ -75,7 +76,9 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
 
   // Watch currentFrame for messages from each sensor
   useEffect(() => {
-    context.onRender = (renderState: Immutable<RenderState>, done) => {
+    context.onRender = (renderState: Immutable<RenderState>, done: unknown) => {
+      setRenderDone(() => done);
+
       // Reset state when the user seeks the video
       if (renderState.didSeek ?? false) {
         setState(initState());
@@ -119,14 +122,17 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
           }));
         }
       }
-
-      done();
     };
 
     context.watch("currentTime");
     context.watch("currentFrame");
     context.watch("didSeek");
   }, [context, state]);
+
+  // Call our done function at the end of each render.
+  useEffect(() => {
+    renderDone?.();
+  }, [renderDone]);
 
   // Create a table of all the sensors and their status
   return (
