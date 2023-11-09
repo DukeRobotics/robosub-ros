@@ -1,8 +1,15 @@
 #include <ros/ros.h>
 #include <std_msgs/String.h>
+#include "yaml-cpp/yaml.h"
 
 int main(int argc, char** argv)
 {
+  YAML::Emitter out;
+  out << "Hello, World!";
+
+  std::cout << "Here's the output YAML:\n" << out.c_str(); // prints "Hello, World!"
+  return 0;
+
   // Initialize the ROS node
   ros::init(argc, argv, "hello_world_publisher");
 
