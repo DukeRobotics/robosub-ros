@@ -36,7 +36,6 @@ SRC_CODE1="${PKG_DIR}/Arduino Sketchbooks/PressureArduino"
 SRC_CODE2="${PKG_DIR}/Arduino Sketchbooks/ThrusterArduino"
 IFS=$'\n' read -r -d '' -a ARD_DEVS < <("${PKG_DIR}"/scripts/devices.sh && printf '\0')
 ARDUINO1="${ARD_DEVS[0]}"
-ARDUINO2="${ARD_DEVS[1]}"
 PORT1="${ARD_DEVS[2]}"
 PORT2="${ARD_DEVS[3]}"
 

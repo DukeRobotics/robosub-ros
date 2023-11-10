@@ -83,7 +83,7 @@ class PressureRawPublisher:
         if abs(self._current_pressure_msg.pose.pose.position.z) > 7:
             self._current_pressure_msg = PoseWithCovarianceStamped()
             return
-       
+
         self._current_pressure_msg.header.stamp = rospy.Time.now()
         self._current_pressure_msg.header.frame_id = "odom"  # World frame
 

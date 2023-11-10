@@ -36,7 +36,7 @@ class TaskPlanner:
         rospy.Subscriber("/cv/front/buoy_abydos_taurus", CVObject, self._on_receive_data_cv_taurus)
         rospy.Subscriber("/cv/front/gate_abydos", CVObject, self._on_receive_data_cv_gate)
         rospy.Subscriber("/state", Odometry, self._on_receive_state)
-        
+
         self.MOVE_OFFSET_CONSTANT_LINEAR = [0.2, 0.2, 0.2]
         self.MOVE_OFFSET_CONSTANT_ANGULAR = 0.1
 
