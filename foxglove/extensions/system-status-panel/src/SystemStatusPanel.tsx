@@ -1,16 +1,21 @@
 import { PanelExtensionContext, RenderState, MessageEvent, Immutable } from "@foxglove/studio";
-import { Box, Typography } from "@mui/material";
-import Paper from "@mui/material/Paper";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell, { tableCellClasses } from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableRow from "@mui/material/TableRow";
-import { useTheme } from "@mui/material/styles";
+import {
+  Box,
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  tableCellClasses,
+  TableContainer,
+  TableRow,
+  useTheme,
+} from "@mui/material";
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
-const SYSTEM_USAGE_TOPIC = "/system/usage"; // Topic to watch for system usage data
+// Topic to watch for system usage data
+const SYSTEM_USAGE_TOPIC = "/system/usage";
 
 interface SystemUsage {
   cpu_percent: number;
@@ -21,29 +26,29 @@ interface SystemUsage {
   ram: Memory;
   disk: Memory;
 }
+
 interface Memory {
   used: number;
   total: number;
   percentage: number;
 }
 
-function createData(status: string, value?: number) {
-  return { status, value };
-}
-
-type State = {
+type SystemStatusPanelState = {
   cpuUsage?: number;
   ramUsage?: number;
 };
 
 function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const [state, setState] = useState<State>({});
+  const [state, setState] = useState<SystemStatusPanelState>({});
 
   context.subscribe([{ topic: SYSTEM_USAGE_TOPIC }]);
 
   // Define values in table
-  const rows = [createData("CPU", state.cpuUsage), createData("RAM", state.ramUsage)];
+  const rows = [
+    { statusName: "CPU", value: state.cpuUsage },
+    { statusName: "RAM", value: state.ramUsage },
+  ];
 
   // Watch system usage topic and update state
   useEffect(() => {
@@ -57,9 +62,8 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
 
       // Update system usage state
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        const latestFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<SystemUsage>;
-        setState((oldState) => ({
-          ...oldState,
+        const latestFrame = renderState.currentFrame.at(-1) as MessageEvent<SystemUsage>;
+        setState(() => ({
           cpuUsage: latestFrame.message.cpu_percent,
           ramUsage: latestFrame.message.ram.percentage,
         }));
@@ -90,7 +94,7 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
           <TableBody>
             {rows.map((row) => (
               <TableRow
-                key={row.status}
+                key={row.statusName}
                 style={{
                   backgroundColor:
                     row.value == undefined || row.value >= 90 ? theme.palette.error.main : theme.palette.success.main,
@@ -98,7 +102,7 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
               >
                 <TableCell>
                   <Typography variant="subtitle2" color={theme.palette.common.white}>
-                    {row.status}
+                    {row.statusName}
                   </Typography>
                 </TableCell>
                 <TableCell align="right">
