@@ -25,5 +25,8 @@ include_directories(
 )
 
 ## Build C++ executables and libraries
-add_executable(hello_world_publisher scripts/test.cpp)
-target_link_libraries(hello_world_publisher yaml-cpp ${catkin_LIBRARIES})
+add_executable(test_cpp scripts/test.cpp)
+target_link_libraries(test_cpp yaml-cpp ${catkin_LIBRARIES})
+
+add_executable(controls_cpp scripts/controls.cpp)
+target_link_libraries(controls_cpp yaml-cpp ${catkin_LIBRARIES})
