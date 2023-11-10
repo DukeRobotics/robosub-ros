@@ -1,27 +1,37 @@
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
-import { Table, TableBody, TableCell, TableContainer, TableRow } from "@mui/material";
-import Paper from "@mui/material/Paper";
-import Alert from "@mui/material/Alert";
+import { Table, TableBody, TableCell, TableContainer, TableRow, Paper, Typography } from "@mui/material";
 import { SetStateAction, useEffect, useLayoutEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 const PUBLISH_RATE = 20;
+
+// indices of specific axes in the joystick axes list
 const AXIS_MAP = {
-  rightX: 1,
-  rightY: 0,
-  leftX: 2,
+  xIndex: 1, // forward and backward, inverted
+  yIndex: 0, // left and right
+  zIndex: 2, // up and down, inverted
+  yawIndex: 5, // twist CW and CCW
+};
+
+// indices of specific buttons in the joystick buttons list
+const BUTTON_MAP = {
+  torpedoActivateIndex: 1,
+  torpedoOneLaunchIndex: 4,
+  torpedoTwoLaunchIndex: 5,
 };
 
 type JoystickInputs = {
   xAxis: number;
   yAxis: number;
   zAxis: number;
-  YawAxis: number;
+  yawAxis: number;
   pitchAxis: number;
   rollAxis: number;
-  torpedoOne: boolean;
-  torpedoTwo: boolean;
+  torpedoActivate: boolean;
+  torpedoOneLaunch: boolean;
+  torpedoTwoLaunch: boolean;
 };
+
 type State = {
   topicName: string;
   request: string;
@@ -32,18 +42,20 @@ type State = {
   joystickInputs: JoystickInputs;
 };
 
+const JoystickKeys: (keyof JoystickInputs)[] = [
+  "xAxis",
+  "yAxis",
+  "yawAxis",
+  "zAxis",
+  "pitchAxis",
+  "rollAxis",
+  "torpedoActivate",
+  "torpedoOneLaunch",
+  "torpedoTwoLaunch",
+];
+
 function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const Joystick: (keyof JoystickInputs)[] = [
-    "xAxis",
-    "yAxis",
-    "YawAxis",
-    "zAxis",
-    "pitchAxis",
-    "rollAxis",
-    "torpedoOne",
-    "torpedoTwo"
-  ];
   const [state, setState] = useState<State>({
     topicName: "",
     request: "{}",
@@ -52,16 +64,15 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     joystickInputs: {
       xAxis: 0,
       yAxis: 0,
-      YawAxis: 0,
+      yawAxis: 0,
       zAxis: 0,
       pitchAxis: 0,
       rollAxis: 0,
-      torpedoOne: false,
-      torpedoTwo: false,
+      torpedoActivate: false,
+      torpedoOneLaunch: false,
+      torpedoTwoLaunch: false,
     },
   });
-
-  const [joystick, setJoystick] = useState<any>([null]);
 
   // Update color scheme
   useLayoutEffect(() => {
@@ -92,10 +103,9 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     publishTopic(state.topicName, state.request, state.schemaName);
   };
 
-  // GAMEPAD STUFF
-  window.addEventListener("gamepadconnected", (e) => {
+  window.addEventListener("gamepadconnected", () => {
     console.log("connected");
-    queryJoystick(setState, setJoystick);
+    queryJoystick(state, setState);
   });
 
   window.addEventListener("gamepaddisconnected", () => {
@@ -107,14 +117,17 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
       <TableContainer component={Paper}>
         <Table size="small" aria-label="simple table">
           <TableBody>
-            {joystick[0]?.axes.map((axis: number, i: number) => (
+            {JoystickKeys.map((key: keyof JoystickInputs, i: number) => (
               <TableRow
                 key={i}
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                 style={{ backgroundColor: "white" }}
               >
-                <TableCell component="th" scope="row">
-                  {axis}
+                <TableCell>
+                  <Typography variant="subtitle2">{key}</Typography>
+                </TableCell>
+                <TableCell align="right">
+                  <Typography variant="subtitle2">{state.joystickInputs[key].toString()}</Typography>
                 </TableCell>
               </TableRow>
             ))}
@@ -135,12 +148,31 @@ export function initToggleJoystickPanel(context: PanelExtensionContext): () => v
   };
 }
 
-function queryJoystick(setState: SetStateAction<any>, setJoystick: SetStateAction<any>) {
+function queryJoystick(state: State, setState: React.Dispatch<SetStateAction<State>>) {
   const joystick = navigator.getGamepads();
-  setJoystick(joystick);
+  if (joystick[0]) {
+    const axes = joystick[0].axes;
+    const buttons = joystick[0].buttons;
+
+    // update state
+    setState((previousState) => ({
+      ...previousState,
+      joystickInputs: {
+        ...previousState.joystickInputs,
+        xAxis: axes[AXIS_MAP.xIndex] ?? 0,
+        yAxis: axes[AXIS_MAP.yIndex] ?? 0,
+        zAxis: axes[AXIS_MAP.zIndex] ?? 0,
+        yawAxis: axes[AXIS_MAP.yawIndex] ?? 0,
+        pitchAxis: 0, // TODO
+        rollAxis: 0, // TODO
+        torpedoActivate: buttons[BUTTON_MAP.torpedoActivateIndex]?.value === 1 ? true : false,
+        torpedoOneLaunch: buttons[BUTTON_MAP.torpedoOneLaunchIndex]?.value === 1 ? true : false,
+        torpedoTwoLaunch: buttons[BUTTON_MAP.torpedoTwoLaunchIndex]?.value === 1 ? true : false,
+      },
+    }));
+  }
 
   setTimeout(() => {
-    queryJoystick(setState, setJoystick);
+    queryJoystick(state, setState);
   }, 1000 / PUBLISH_RATE);
-  // requestAnimationFrame(queryJoystick);
 }
