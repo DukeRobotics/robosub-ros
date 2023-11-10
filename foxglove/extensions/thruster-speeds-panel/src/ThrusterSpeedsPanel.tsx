@@ -1,8 +1,9 @@
 import { ros1 } from "@foxglove/rosmsg-msgs-common";
 import { PanelExtensionContext, RenderState, Immutable, MessageEvent } from "@foxglove/studio";
 import { CheckCircleOutline, HighlightOff } from "@mui/icons-material";
-import { TextField, Button, Alert, Tab, Tabs } from "@mui/material";
+import { TextField, Button, Alert, Tab, Tabs, CssBaseline, useMediaQuery } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useCallback, useEffect, useLayoutEffect, useState, useRef } from "react";
 import * as React from "react";
 import { createRoot } from "react-dom/client";
@@ -92,6 +93,18 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
       bottomBackRight: "",
     },
   });
+
+  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+
+  const theme = React.useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode: prefersDarkMode ? "dark" : "light",
+        },
+      }),
+    [prefersDarkMode],
+  );
 
   useEffect(() => {
     renderDone?.();
@@ -234,77 +247,82 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
   };
 
   return (
-    <div style={{ padding: "5px" }}>
-      <Tabs value={state.panelMode} onChange={handleModeChange} variant="fullWidth">
-        <Tab label="Subscribing" value={PanelMode.SUBSCRIBING} />
-        <Tab label="Publishing" value={PanelMode.PUBLISHING} />
-      </Tabs>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
       <div style={{ padding: "5px" }}>
-        {state.panelMode === PanelMode.SUBSCRIBING ? (
-          <></>
-        ) : (
-          (context.advertise == undefined || context.publish == undefined) && (
-            <Alert variant="filled" severity="error">
-              Publishing topics is not supported by this connection
-            </Alert>
-          )
-        )}
-      </div>
-      <div>
-        <Grid container rowSpacing={1} columnSpacing={0}>
-          {thrusters.map((thruster) => (
-            <Grid key={thruster} xs={6}>
-              <TextField
-                key={thruster}
-                id={thruster}
-                error={
-                  state.panelMode === PanelMode.SUBSCRIBING ? false : !validateInput(state.tempThrusterSpeeds[thruster])
-                }
-                label={thruster}
-                size="small"
-                variant={state.panelMode === PanelMode.SUBSCRIBING ? "filled" : "outlined"}
-                value={
-                  state.panelMode === PanelMode.SUBSCRIBING
-                    ? state.subscriberThrusterSpeeds[thruster]
-                    : state.tempThrusterSpeeds[thruster]
-                }
-                InputProps={state.panelMode === PanelMode.SUBSCRIBING ? { readOnly: true } : {}}
-                defaultValue={state.panelMode === PanelMode.SUBSCRIBING ? false : 0}
-                onChange={updateTempSpeeds}
-              />
-            </Grid>
-          ))}
-        </Grid>
-      </div>
-      <div style={{ display: "flex", justifyContent: "center", padding: "5px" }}>
-        {state.panelMode === PanelMode.SUBSCRIBING ? (
-          <></>
-        ) : state.hasError ? (
-          <Alert variant="filled" severity="error">
-            The speed value for each thruster must be an integer between -128 and 127!
-          </Alert>
-        ) : (
-          <Button
-            variant="contained"
-            color={state.repeatPublish == null ? "success" : "error"}
-            endIcon={state.repeatPublish == null ? <CheckCircleOutline /> : <HighlightOff />}
-            onClick={
-              state.repeatPublish == null
-                ? () => {
-                    setState((oldState) => ({
-                      ...oldState,
-                      publisherThrusterSpeeds: generatePublisherSpeeds(),
-                    }));
+        <Tabs value={state.panelMode} onChange={handleModeChange} variant="fullWidth">
+          <Tab label="Subscribing" value={PanelMode.SUBSCRIBING} />
+          <Tab label="Publishing" value={PanelMode.PUBLISHING} />
+        </Tabs>
+        <div style={{ padding: "5px" }}>
+          {state.panelMode === PanelMode.SUBSCRIBING ? (
+            <></>
+          ) : (
+            (context.advertise == undefined || context.publish == undefined) && (
+              <Alert variant="filled" severity="error">
+                Publishing topics is not supported by this connection
+              </Alert>
+            )
+          )}
+        </div>
+        <div>
+          <Grid container rowSpacing={1} columnSpacing={0}>
+            {thrusters.map((thruster) => (
+              <Grid key={thruster} xs={6}>
+                <TextField
+                  key={thruster}
+                  id={thruster}
+                  error={
+                    state.panelMode === PanelMode.SUBSCRIBING
+                      ? false
+                      : !validateInput(state.tempThrusterSpeeds[thruster])
                   }
-                : toggleInterval
-            }
-            disabled={context.callService == undefined}
-          >
-            {state.repeatPublish == null ? "Start Publishing" : "Stop Publishing"}
-          </Button>
-        )}
+                  label={thruster}
+                  size="small"
+                  variant={state.panelMode === PanelMode.SUBSCRIBING ? "filled" : "outlined"}
+                  value={
+                    state.panelMode === PanelMode.SUBSCRIBING
+                      ? state.subscriberThrusterSpeeds[thruster]
+                      : state.tempThrusterSpeeds[thruster]
+                  }
+                  InputProps={state.panelMode === PanelMode.SUBSCRIBING ? { readOnly: true } : {}}
+                  defaultValue={state.panelMode === PanelMode.SUBSCRIBING ? false : 0}
+                  onChange={updateTempSpeeds}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </div>
+        <div style={{ display: "flex", justifyContent: "center", padding: "5px" }}>
+          {state.panelMode === PanelMode.SUBSCRIBING ? (
+            <></>
+          ) : state.hasError ? (
+            <Alert variant="filled" severity="error">
+              The speed value for each thruster must be an integer between -128 and 127!
+            </Alert>
+          ) : (
+            <Button
+              variant="contained"
+              color={state.repeatPublish == null ? "success" : "error"}
+              endIcon={state.repeatPublish == null ? <CheckCircleOutline /> : <HighlightOff />}
+              onClick={
+                state.repeatPublish == null
+                  ? () => {
+                      setState((oldState) => ({
+                        ...oldState,
+                        publisherThrusterSpeeds: generatePublisherSpeeds(),
+                      }));
+                    }
+                  : toggleInterval
+              }
+              disabled={context.callService == undefined}
+            >
+              {state.repeatPublish == null ? "Start Publishing" : "Stop Publishing"}
+            </Button>
+          )}
+        </div>
       </div>
-    </div>
+    </ThemeProvider>
   );
 }
 
