@@ -1,6 +1,6 @@
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
-import { TextField, Button, Alert, Tab, Tabs, Grid } from "@mui/material";
-import { JsonViewer } from "@textea/json-viewer";
+import { Alert, Tab, Tabs, TableBody, TableContainer, TableCell, TableRow, TableHead, Table } from "@mui/material";
+// X import { JsonViewer } from "@textea/json-viewer";
 import { useEffect, useLayoutEffect, useState } from "react";
 import React = require("react");
 import { JSX } from "react/jsx-runtime";
@@ -34,8 +34,12 @@ const pid: Record<string, Record<string, Record<string, number>>> = {
   VELOCITY_PID: { ...axes },
 };
 
-
 const topicName = "/current-pid";
+const pidTypeToUpdate = "POSITION_PID";
+
+if (!pid[pidTypeToUpdate]) {
+  pid[pidTypeToUpdate] = {};
+}
 
 enum PanelMode {
   SUBSCRIBING,
@@ -67,33 +71,33 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   }, [renderDone]);
 
   // Call a service with a given request
-  const callService = async (serviceName: string, request: string) => {
-    if (!context.callService) {
-      return;
-    }
+  // const callService = async (serviceName: string, request: string) => {
+  //   if (!context.callService) {
+  //     return;
+  //   }
 
-    try {
-      const response = await context.callService(serviceName, JSON.parse(request));
-      JSON.stringify(response); // Attempt serializing the response, to throw an error on failure
-      setState((oldState) => ({
-        ...oldState,
-        response,
-        error: undefined,
-      }));
-    } catch (error) {
-      setState((oldState) => ({ ...oldState, error: error as Error }));
-      console.error(error);
-    }
-  };
+  //   try {
+  //     const response = await context.callService(serviceName, JSON.parse(request));
+  //     JSON.stringify(response); // Attempt serializing the response, to throw an error on failure
+  //     setState((oldState) => ({
+  //       ...oldState,
+  //       response,
+  //       error: undefined,
+  //     }));
+  //   } catch (error) {
+  //     setState((oldState) => ({ ...oldState, error: error as Error }));
+  //     console.error(error);
+  //   }
+  // };
 
   const handleModeChange = (_: React.SyntheticEvent, mode: PanelMode) => {
     setState((oldState) => ({ ...oldState, panelMode: mode }));
   };
 
   // Close callService with the current state for use in the button
-  const callServiceWithRequest = () => {
-    void callService(state.serviceName, state.request);
-  };
+  // Const callServiceWithRequest = () => {
+  //   Void callService(state.serviceName, state.request);
+  // };
 
   return (
     <div style={{ padding: "1rem" }}>
@@ -108,22 +112,41 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
       </Tabs>
       <h2>{state.panelMode === PanelMode.EDITING ? "Mode -- Editing" : "Mode -- Subscribing"}</h2>
       <div>
-        {/* check state and give different outputs */}
-        {state.panelMode === PanelMode.EDITING ? (
-          // create a 6x4 grid
-          <div>
-            <Grid container spacing={6} columns={4}>
-              <Grid item></Grid>
-            </Grid>
-            <Button variant="contained" onClick={callServiceWithRequest}>
-              Submit
-            </Button>
-          </div>
-        ) : (
-          <Grid container spacing={6} columns={4}>
-            <Grid item></Grid>
-          </Grid>
-        )}
+        <TableContainer>
+          <Table sx={{ minWidth: 650 }} aria-label="simple table">
+            <TableHead>
+              <TableRow>
+                <TableCell align="center" width="50px"></TableCell>
+                <TableCell align="center" width="50px">
+                  Gain_KP
+                </TableCell>
+                <TableCell align="center" width="50px">
+                  Gain_KI
+                </TableCell>
+                <TableCell align="center" width="50px">
+                  Gain_KD
+                </TableCell>
+                <TableCell align="center" width="50px">
+                  Gain_FF
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {/* https://www.reddit.com/media?url=https%3A%2F%2Fi.redd.it%2Fzxb4zyl864xb1.png honest opinion on this language */}
+              {pid[pidTypeToUpdate] &&
+                Object.entries(pid[pidTypeToUpdate]).map(([axis, g]) => (
+                  <TableRow key={axis}>
+                    <TableCell width="50px">{axis}</TableCell>
+                    {Object.values(g).map((gain, index) => (
+                      <TableCell key={index} width="50px">
+                        {gain}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </div>
     </div>
   );
@@ -142,7 +165,7 @@ export function initPIDPanel(context: PanelExtensionContext): () => void {
 /*
 
 
-const updatePID = (event: React.ChangeEvent<HTMLInputElement>) => {
+Const updatePID = (event: React.ChangeEvent<HTMLInputElement>) => {
   let hasError = false;
   const value = event.target.value;
 
@@ -158,4 +181,4 @@ const updatePID = (event: React.ChangeEvent<HTMLInputElement>) => {
     });
   }
 
-  *\
+  */
