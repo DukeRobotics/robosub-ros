@@ -1,4 +1,3 @@
-import { ros1 } from "@foxglove/rosmsg-msgs-common";
 import { PanelExtensionContext, RenderState, Immutable, MessageEvent } from "@foxglove/studio";
 import { CheckCircleOutline, HighlightOff } from "@mui/icons-material";
 import { TextField, Button, Alert, Tab, Tabs, CssBaseline, useMediaQuery } from "@mui/material";
@@ -122,6 +121,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     }
 
     toggleInterval();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.publisherThrusterSpeeds]);
 
   useLayoutEffect(() => {
