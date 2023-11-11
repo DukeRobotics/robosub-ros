@@ -1,3 +1,4 @@
+import theme from "@duke-robotics/theme";
 import { PanelExtensionContext, RenderState, MessageEvent, Immutable } from "@foxglove/studio";
 import {
   Box,
@@ -6,10 +7,9 @@ import {
   Table,
   TableBody,
   TableCell,
-  tableCellClasses,
   TableContainer,
   TableRow,
-  useTheme,
+  ThemeProvider,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -79,43 +79,37 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
   }, [renderDone]);
 
   // Render a table with the current system usage data
-  const theme = useTheme();
   return (
-    <Box m={1}>
-      <TableContainer component={Paper}>
-        <Table
-          size="small"
-          sx={{
-            [`& .${tableCellClasses.root}`]: {
-              borderBottom: "none",
-            },
-          }}
-        >
-          <TableBody>
-            {rows.map((row) => (
-              <TableRow
-                key={row.statusName}
-                style={{
-                  backgroundColor:
-                    row.value == undefined || row.value >= 90 ? theme.palette.error.main : theme.palette.success.main,
-                }}
-              >
-                <TableCell>
-                  <Typography variant="subtitle2" color={theme.palette.common.white}>
-                    {row.statusName}
-                  </Typography>
-                </TableCell>
-                <TableCell align="right">
-                  <Typography variant="subtitle2" color={theme.palette.common.white}>
-                    {row.value?.toFixed(1)}%
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
+    <ThemeProvider theme={theme}>
+      <Box m={1}>
+        <TableContainer component={Paper}>
+          <Table size="small">
+            <TableBody>
+              {rows.map((row) => (
+                <TableRow
+                  key={row.statusName}
+                  style={{
+                    backgroundColor:
+                      row.value == undefined || row.value >= 90 ? theme.palette.error.main : theme.palette.success.main,
+                  }}
+                >
+                  <TableCell>
+                    <Typography variant="subtitle2" color={theme.palette.common.white}>
+                      {row.statusName}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="subtitle2" color={theme.palette.common.white}>
+                      {row.value?.toFixed(1)}%
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </ThemeProvider>
   );
 }
 
