@@ -8,7 +8,7 @@ import { useCallback, useEffect, useLayoutEffect, useState, useRef } from "react
 import * as React from "react";
 import { createRoot } from "react-dom/client";
 
-import { custom_msgs } from "../../../msgdefs/dist";
+import { allDatatypeMaps } from "../../../defs/datatype_maps/dist";
 
 enum PanelMode {
   SUBSCRIBING,
@@ -166,11 +166,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
 
     try {
       context.advertise(`/${topicName}`, messageType, {
-        datatypes: new Map([
-          ["std_msgs/Header", ros1["std_msgs/Header"]],
-          ["std_msgs/Int8", ros1["std_msgs/Int8"]],
-          ["custom_msgs/ThrusterSpeeds", custom_msgs["custom_msgs/ThrusterSpeeds"]],
-        ]),
+        datatypes: allDatatypeMaps["custom_msgs"][messageType],
       });
       context.publish(`/${topicName}`, message);
 
