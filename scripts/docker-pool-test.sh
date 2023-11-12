@@ -20,7 +20,7 @@ tmux split-window -v -p 33
 
 tmux select-pane -t 0
 tmux send-keys 'ssh robot@192.168.1.1' 'Enter'
-tmux send-keys 'docker run -td --privileged --net=host -v /home/robot/robosub-ros:/root/dev/robosub-ros -v /dev:/dev dukerobotics/robosub-ros:onboard' 'Enter'
+tmux send-keys 'docker run -td --privileged --net=host -e ROBOT_NAME=oogway -v /home/robot/robosub-ros:/root/dev/robosub-ros -v /dev:/dev dukerobotics/robosub-ros:onboard' 'Enter'
 tmux send-keys 'cd robosub-ros' 'Enter'
 tmux send-keys 'docker run --privileged --net=host -td -p 2201:2201 -v ${PWD}:/root/dev/robosub-ros dukerobotics/robosub-ros:landside' 'Enter'
 

@@ -22,7 +22,9 @@ class TaskPlanner:
         rospy.init_node('test_state_publisher')
         self.listener = TransformListener()
 
-        self.sonar_requests = rospy.Publisher("controls/desired_feature", String)
+        self.sonar_requests = rospy.Publisher("controls/desired_feature", String, queue_size=1)
+
+        self.current_setpoint = [100.0, 100.0, 100.0, 0.0, 0.0, 0.0]
 
         rospy.Subscriber("/controls/x_pos/setpoint", Float64, self._on_receive_data_x)
         rospy.Subscriber("/controls/y_pos/setpoint", Float64, self._on_receive_data_y)
@@ -35,7 +37,6 @@ class TaskPlanner:
         rospy.Subscriber("/cv/front/gate_abydos", CVObject, self._on_receive_data_cv_gate)
         rospy.Subscriber("/state", Odometry, self._on_receive_state)
 
-        self.current_setpoint = [100.0, 100.0, 100.0, 0.0, 0.0, 0.0]
         self.MOVE_OFFSET_CONSTANT_LINEAR = [0.2, 0.2, 0.2]
         self.MOVE_OFFSET_CONSTANT_ANGULAR = 0.1
 
@@ -486,14 +487,14 @@ class TaskPlanner:
         temp_state = copy.deepcopy(self.state)
 
         self.taurus_pose_transformed.position.x = self.taurus_pose_transformed.position.x + 0.25
-        self.taurus_pose_transformed.position.y = self.taurus_pose_transformed.position.y - 0.5
+        self.taurus_pose_transformed.position.y = self.taurus_pose_transformed.position.y
         self.taurus_pose_transformed.orientation = temp_state.pose.pose.orientation
 
         self._pub_desired_pose.publish(self.taurus_pose_transformed)
 
         while not rospy.is_shutdown():
             self.taurus_pose_transformed.position.x = self.taurus_pose_transformed.position.x + 0.25
-            self.taurus_pose_transformed.position.y = self.taurus_pose_transformed.position.y - 0.5
+            self.taurus_pose_transformed.position.y = self.taurus_pose_transformed.position.y
             self.taurus_pose_transformed.orientation = temp_state.pose.pose.orientation
             self._pub_desired_pose.publish(self.taurus_pose_transformed)
 
@@ -613,12 +614,19 @@ class TaskPlanner:
 
 def main():
     task_planner = TaskPlanner()
-    rospy.sleep(10)
 
-    task_planner.gate_task_with_style(10, -2)
-    rospy.sleep(1)
-    task_planner.buoy_task(0)
-    task_planner.octagon_task()
+    # task_planner.buoy_task(-0.75)
+
+    # task_planner.move_to_local_pos_and_stop(0, 0, -1)
+    # task_planner.move_to_local_pos_and_stop(1, 0, 0)
+
+    # Competition code below
+    # rospy.sleep(10)
+
+    task_planner.gate_task_with_style(3, -0.5)
+    # rospy.sleep(1)
+    # task_planner.buoy_task(0)
+    # task_planner.octagon_task()
 
 
 if __name__ == '__main__':
