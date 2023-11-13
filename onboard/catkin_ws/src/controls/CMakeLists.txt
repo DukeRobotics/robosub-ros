@@ -30,13 +30,15 @@ catkin_package(
 )
 
 ## Build C++ executables and libraries
-add_executable(test_cpp scripts/test.cpp)
-target_link_libraries(test_cpp yaml-cpp ${catkin_LIBRARIES})
+add_executable(test src/test.cpp)
+target_link_libraries(test yaml-cpp ${catkin_LIBRARIES})
 
-add_executable(thruster_allocator_cpp scripts/thruster_allocator.cpp)
-target_link_libraries(thruster_allocator_cpp Eigen3::Eigen ${catkin_LIBRARIES})
+set(SOURCES
+  src/controls.cpp
+  src/thruster_allocator.cpp
+)
 
-add_executable(controls_cpp scripts/controls.cpp)
-target_link_libraries(controls_cpp yaml-cpp Eigen3::Eigen ${catkin_LIBRARIES})
+add_executable(controls ${SOURCES})
+target_link_libraries(controls yaml-cpp Eigen3::Eigen ${catkin_LIBRARIES})
 
 

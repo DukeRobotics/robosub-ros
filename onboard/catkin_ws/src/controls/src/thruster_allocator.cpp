@@ -84,11 +84,3 @@ void ThrusterAllocator::allocate_thrusters(Eigen::VectorXd set_power, Eigen::Vec
 
     *actual_power = wrench * (*allocs);
 }
-
-int main(int argc, char **argv)
-{
-    ThrusterAllocator thruster_allocator = ThrusterAllocator("../config/oogway_wrench.csv", "../config/oogway_wrench_pinv.csv");
-    std::cout << thruster_allocator.wrench << std::endl;
-    std::cout << thruster_allocator.wrench_pinv << std::endl;
-    return 0;
-}
