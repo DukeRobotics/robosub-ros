@@ -9,7 +9,7 @@ from geometry_msgs.msg import Vector3Stamped, Twist, PoseStamped
 AXES = ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
 PID_LOOPS = ['position', 'velocity']
 ROBOT_NAME = os.getenv("ROBOT_NAME", "oogway")
-CONFIG_FILE_PATH = 'package://controls/config/%s.config'
+CONFIG_FILE_PATH = 'package://controls/config/%s.yaml'
 
 
 class ConfigFileType:
@@ -23,8 +23,10 @@ def get_config_file(configFileType):
     Returns:
         TYPE: String containing the name of the config file
     """
-    return rr.get_filename(CONFIG_FILE_PATH % (f"{ROBOT_NAME}_{configFileType}"), use_protocol=False)
+    return rr.get_filename(CONFIG_FILE_PATH % (f"{ROBOT_NAME}"), use_protocol=False)
 
+def get_axes():
+    return ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
 
 def get_controls_move_topic(axis):
     return '/control_effort/' + axis
