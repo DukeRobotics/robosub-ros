@@ -72,7 +72,7 @@ public:
   Controls(int argc, char **argv):
     // Initialize thruster allocator
     // TODO: Get csv file paths from robot config file
-    thruster_allocator("../config/oogway_wrench.csv", "../config/oogway_wrench_pinv.csv")
+    thruster_allocator("/root/dev/robosub-ros/onboard/catkin_ws/src/controls/config/oogway_wrench.csv", "/root/dev/robosub-ros/onboard/catkin_ws/src/controls/config/oogway_wrench_pinv.csv")
   {
     // Initialize ROS node
     ros::init(argc, argv, "controls");
