@@ -33,7 +33,7 @@ class ThrusterAllocator:
 
         # Loop over each thruster, calculating its force and torque vectors, and adding them to the wrench matrix
         # Negates force and torque vectors if thruster is flipped
-        self.wrenchmat = np.empty((6, len(self.thrusters)))
+        self.wrenchmat = np.empty((6, len(vehicle['thrusters'])))
         for index, thruster in enumerate(vehicle['thrusters']):
             force_hat, torque = self.calc_thruster_force_hat_torque(
                 thruster['pos'],
