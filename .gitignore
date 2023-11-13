@@ -47,3 +47,6 @@ onboard/catkin_ws/src/cv/footage_extraction/*.yaml
 # Foxglove
 node_modules
 dist
+
+# Don't ignore controls matrices
+!onboard/catkin_ws/src/controls/config/*.csv
