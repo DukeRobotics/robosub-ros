@@ -82,9 +82,7 @@ void ThrusterAllocator::allocate_thrusters(Eigen::VectorXd set_power, Eigen::Vec
     // so that the maximum absolute value allocation is 1 and ratios between all allocations remain the same
     double max_alloc = allocs->array().abs().maxCoeff();
     if (max_alloc > 1)
-    {
         *allocs /= max_alloc;
-    }
 
     // Compute the power actually being delivered along each axis
     *actual_power = wrench * (*allocs);
