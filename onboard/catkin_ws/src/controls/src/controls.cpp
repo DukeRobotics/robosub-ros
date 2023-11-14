@@ -1,5 +1,6 @@
 #include <map>
 #include <string>
+#include <array>
 #include <Eigen/Dense>
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
@@ -15,26 +16,36 @@
 #include <custom_msgs/SetControlTypes.h>
 #include "thruster_allocator.h"
 
+enum ControlTypesEnum
+{
+  DESIRED_POSE = custom_msgs::ControlTypes::DESIRED_POSE,
+  DESIRED_TWIST = custom_msgs::ControlTypes::DESIRED_TWIST,
+  DESIRED_POWER = custom_msgs::ControlTypes::DESIRED_POWER
+};
+
+bool value_in_control_types_enum(uint8_t value)
+{
+  return value == ControlTypesEnum::DESIRED_POSE ||
+         value == ControlTypesEnum::DESIRED_TWIST ||
+         value == ControlTypesEnum::DESIRED_POWER;
+}
+
+const int AXES_COUNT = 6;
+const std::string AXES[AXES_COUNT] = {"x", "y", "z", "roll", "pitch", "yaw"};
+void twist_to_map(const geometry_msgs::Twist *twist, std::map<std::string, double> *map)
+{
+  (*map)["x"] = twist->linear.x;
+  (*map)["y"] = twist->linear.y;
+  (*map)["z"] = twist->linear.z;
+  (*map)["roll"] = twist->angular.x;
+  (*map)["pitch"] = twist->angular.y;
+  (*map)["yaw"] = twist->angular.z;
+}
+
 class Controls
 {
-private:
-  bool update_control_types(custom_msgs::ControlTypes new_control_types)
-  {
-    // TODO: Make sure all values in new_control_types are from ControlTypes enum; if not, return false
-
-    control_types["x"] = new_control_types.x;
-    control_types["y"] = new_control_types.y;
-    control_types["z"] = new_control_types.z;
-    control_types["roll"] = new_control_types.roll;
-    control_types["pitch"] = new_control_types.pitch;
-    control_types["yaw"] = new_control_types.yaw;
-
-    return true;
-  }
-
 public:
-  static const int THRUSTER_ALLOCS_RATE;
-  static const std::string AXES[6];
+  static const int THRUSTER_ALLOCS_RATE = 20;
 
   bool debug;
   bool enable_position_pid;
@@ -49,7 +60,6 @@ public:
 
   geometry_msgs::Pose desired_position;
   geometry_msgs::Twist desired_velocity;
-  geometry_msgs::Twist desired_power;
   nav_msgs::Odometry state;
 
   ros::ServiceServer enable_controls_srv;
@@ -66,13 +76,14 @@ public:
   ros::Publisher status_pub;
 
   bool controls_enabled = false;
-  std::map<std::string, int> control_types;
   int num_thrusters;
 
-  Controls(int argc, char **argv):
-    // Initialize thruster allocator
-    // TODO: Get csv file paths from robot config file
-    thruster_allocator("/root/dev/robosub-ros/onboard/catkin_ws/src/controls/config/oogway_wrench.csv", "/root/dev/robosub-ros/onboard/catkin_ws/src/controls/config/oogway_wrench_pinv.csv")
+  std::map<std::string, ControlTypesEnum> control_types;
+  std::map<std::string, double> position_pid_outputs;
+  std::map<std::string, double> velocity_pid_outputs;
+  std::map<std::string, double> desired_power;
+
+  Controls(int argc, char **argv)
   {
     // Initialize ROS node
     ros::init(argc, argv, "controls");
@@ -107,13 +118,16 @@ public:
     status_pub = nh.advertise<std_msgs::Bool>("controls/status", 1);
 
     // Use desired pose as the default control type for all axes
-    for (const auto &axis : AXES)
-    {
-      control_types[axis] = custom_msgs::ControlTypes::DESIRED_POSE;
-    }
+    for (const std::string &axis : AXES)
+      control_types[axis] = ControlTypesEnum::DESIRED_POSE;
 
     // TODO: Get number of thrusters from robot config file
     num_thrusters = 8;
+
+    // TODO: Get csv file paths from robot config file
+    thruster_allocator = ThrusterAllocator(
+        "/root/dev/robosub-ros/onboard/catkin_ws/src/controls/config/oogway_wrench.csv",
+        "/root/dev/robosub-ros/onboard/catkin_ws/src/controls/config/oogway_wrench_pinv.csv");
   }
 
   void desired_position_callback(const geometry_msgs::Pose msg)
@@ -128,12 +142,14 @@ public:
 
   void desired_power_callback(const geometry_msgs::Twist msg)
   {
-    desired_power = msg;
+    twist_to_map(&msg, &desired_power);
   }
 
   void state_callback(const nav_msgs::Odometry msg)
   {
     state = msg;
+    // TODO: compute position and velocity errors and run PID controllers
+    // TODO: publish position and velocity errors
   }
 
   bool enable_controls_callback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
@@ -145,8 +161,26 @@ public:
 
   bool set_control_types_callback(custom_msgs::SetControlTypes::Request &req, custom_msgs::SetControlTypes::Response &res)
   {
-    res.success = update_control_types(req.control_types);
-    res.message = res.success ? "Updated control types successfully." : "One or more control types was invalid.";
+    uint8_t new_control_types[AXES_COUNT] = {req.control_types.x, req.control_types.y, req.control_types.z,
+                                             req.control_types.roll, req.control_types.pitch, req.control_types.yaw};
+
+    for (int i = 0; i < AXES_COUNT; i++)
+    {
+      if (!value_in_control_types_enum(new_control_types[i]))
+      {
+        res.success = false;
+        res.message = "One or more control types was invalid.";
+        return true;
+      }
+    }
+
+    for (int i = 0; i < 6; i++)
+    {
+      control_types[AXES[i]] = static_cast<ControlTypesEnum>(new_control_types[i]);
+    }
+
+    res.success = true;
+    res.message = "Updated control types successfully.";
     return true;
   }
 
@@ -160,10 +194,26 @@ public:
   {
     ros::Rate rate(THRUSTER_ALLOCS_RATE);
 
-    while(ros::ok()) {
+    while (ros::ok())
+    {
       // TODO: compute set_power using control_types and PID outputs/desired power
-      Eigen::VectorXd set_power(6);
-      set_power << 1.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+      Eigen::VectorXd set_power(AXES_COUNT);
+
+      for (int i = 0; i < AXES_COUNT; i++)
+      {
+        switch (control_types[AXES[i]])
+        {
+        case custom_msgs::ControlTypes::DESIRED_POSE:
+          set_power[i] = position_pid_outputs[AXES[i]];
+          break;
+        case custom_msgs::ControlTypes::DESIRED_TWIST:
+          set_power[i] = velocity_pid_outputs[AXES[i]];
+          break;
+        case custom_msgs::ControlTypes::DESIRED_POWER:
+          set_power[i] = desired_power[AXES[i]];
+          break;
+        }
+      }
 
       Eigen::VectorXd actual_power;
       Eigen::VectorXd allocs;
@@ -171,15 +221,15 @@ public:
       thruster_allocator.allocate_thrusters(set_power, &allocs, &actual_power);
 
       custom_msgs::ThrusterAllocs t;
-      for (int i = 0; i < num_thrusters; i++) {
+      for (int i = 0; i < num_thrusters; i++)
         t.allocs[i] = allocs(i);
-      }
 
-      if (controls_enabled) {
+      if (controls_enabled)
         thruster_allocs_pub.publish(t);
-      }
 
       desired_thruster_allocs_pub.publish(t);
+
+      // TODO: Publish set power, PID gains, control types, and status
 
       ros::spinOnce();
 
@@ -187,9 +237,6 @@ public:
     }
   }
 };
-
-const int Controls::THRUSTER_ALLOCS_RATE = 20;
-const std::string Controls::AXES[6] = {"x", "y", "z", "roll", "pitch", "yaw"};
 
 int main(int argc, char **argv)
 {
