@@ -15,32 +15,7 @@
 #include <custom_msgs/SetPIDGains.h>
 #include <custom_msgs/SetControlTypes.h>
 #include "thruster_allocator.h"
-
-enum ControlTypesEnum
-{
-  DESIRED_POSE = custom_msgs::ControlTypes::DESIRED_POSE,
-  DESIRED_TWIST = custom_msgs::ControlTypes::DESIRED_TWIST,
-  DESIRED_POWER = custom_msgs::ControlTypes::DESIRED_POWER
-};
-
-bool value_in_control_types_enum(uint8_t value)
-{
-  return value == ControlTypesEnum::DESIRED_POSE ||
-         value == ControlTypesEnum::DESIRED_TWIST ||
-         value == ControlTypesEnum::DESIRED_POWER;
-}
-
-const int AXES_COUNT = 6;
-const std::string AXES[AXES_COUNT] = {"x", "y", "z", "roll", "pitch", "yaw"};
-void twist_to_map(const geometry_msgs::Twist *twist, std::map<std::string, double> *map)
-{
-  (*map)["x"] = twist->linear.x;
-  (*map)["y"] = twist->linear.y;
-  (*map)["z"] = twist->linear.z;
-  (*map)["roll"] = twist->angular.x;
-  (*map)["pitch"] = twist->angular.y;
-  (*map)["yaw"] = twist->angular.z;
-}
+#include "controls_utils.h"
 
 class Controls
 {
@@ -142,7 +117,7 @@ public:
 
     void desired_power_callback(const geometry_msgs::Twist msg)
     {
-        twist_to_map(&msg, &desired_power);
+        ControlsUtils::twist_to_map(&msg, &desired_power);
     }
 
     void state_callback(const nav_msgs::Odometry msg)
@@ -166,7 +141,7 @@ public:
 
         for (int i = 0; i < AXES_COUNT; i++)
         {
-            if (!value_in_control_types_enum(new_control_types[i]))
+            if (!ControlsUtils::value_in_control_types_enum(new_control_types[i]))
             {
                 res.success = false;
                 res.message = "One or more control types was invalid.";
