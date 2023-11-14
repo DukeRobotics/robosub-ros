@@ -19,8 +19,8 @@ const std::string AXES[AXES_COUNT] = {"x", "y", "z", "roll", "pitch", "yaw"};
 class ControlsUtils
 {
     public:
-        bool value_in_control_types_enum(uint8_t value);
-        void twist_to_map(const geometry_msgs::Twist *twist, std::map<std::string, double> *map);
+        static bool value_in_control_types_enum(uint8_t value);
+        static void twist_to_map(const geometry_msgs::Twist *twist, std::map<std::string, double> *map);
 };
 
 #endif
