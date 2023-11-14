@@ -53,7 +53,7 @@ Controls::Controls(int argc, char **argv)
     status_pub = nh.advertise<std_msgs::Bool>("controls/status", 1);
 
     // Use desired pose as the default control type for all axes
-    for (const std::string &axis : AXES)
+    for (const AxisEnum &axis : AXES)
         control_types[axis] = ControlTypesEnum::DESIRED_POSE;
 
     // TODO: Get number of thrusters from robot config file
@@ -96,26 +96,8 @@ bool Controls::enable_controls_callback(std_srvs::SetBool::Request &req, std_srv
 
 bool Controls::set_control_types_callback(custom_msgs::SetControlTypes::Request &req, custom_msgs::SetControlTypes::Response &res)
 {
-    uint8_t new_control_types[AXES_COUNT] = {req.control_types.x, req.control_types.y, req.control_types.z,
-                                             req.control_types.roll, req.control_types.pitch, req.control_types.yaw};
-
-    for (int i = 0; i < AXES_COUNT; i++)
-    {
-        if (!ControlsUtils::value_in_control_types_enum(new_control_types[i]))
-        {
-            res.success = false;
-            res.message = "One or more control types was invalid.";
-            return true;
-        }
-    }
-
-    for (int i = 0; i < 6; i++)
-    {
-        control_types[AXES[i]] = static_cast<ControlTypesEnum>(new_control_types[i]);
-    }
-
-    res.success = true;
-    res.message = "Updated control types successfully.";
+    res.success = ControlsUtils::control_types_to_map(&req.control_types, &control_types);
+    res.message = res.success ? "Updated control types successfully." : "Failed to update control types. One or more control types was invalid.";
     return true;
 }
 
@@ -165,7 +147,19 @@ void Controls::run()
 
         desired_thruster_allocs_pub.publish(t);
 
-        // TODO: Publish set power, PID gains, control types, and status
+        geometry_msgs::Twist set_power_msg;
+        ControlsUtils::eigen_vector_to_twist(&set_power, &set_power_msg);
+        set_power_pub.publish(set_power_msg);
+
+        custom_msgs::ControlTypes control_types_msg;
+        ControlsUtils::map_to_control_types(&control_types, &control_types_msg);
+        control_types_pub.publish(control_types_msg);
+
+        std_msgs::Bool status_msg;
+        status_msg.data = controls_enabled;
+        status_pub.publish(status_msg);
+
+        // TODO: Publish PID gains
 
         ros::spinOnce();
 

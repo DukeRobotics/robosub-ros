@@ -56,10 +56,10 @@ public:
     bool controls_enabled = false;
     int num_thrusters;
 
-    std::map<std::string, ControlTypesEnum> control_types;
-    std::map<std::string, double> position_pid_outputs;
-    std::map<std::string, double> velocity_pid_outputs;
-    std::map<std::string, double> desired_power;
+    std::map<AxisEnum, ControlTypesEnum> control_types;
+    std::map<AxisEnum, double> position_pid_outputs;
+    std::map<AxisEnum, double> velocity_pid_outputs;
+    std::map<AxisEnum, double> desired_power;
 
     Controls(int argc, char **argv);
     void desired_position_callback(const geometry_msgs::Pose msg);
