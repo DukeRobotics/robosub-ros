@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <Eigen/Dense>
+#include <ros/ros.h>
 
 #include "thruster_allocator.h"
 
@@ -13,9 +14,7 @@ void ThrusterAllocator::read_matrix_from_csv(std::string file_path, Eigen::Matri
     std::ifstream file(file_path);
 
     if (!file.is_open())
-    {
-        std::cerr << "Error opening the file!" << std::endl;
-    }
+        ROS_ASSERT_MSG(false, "Could not open file %s", file_path);
 
     // Read data from the CSV file and initialize the matrix
     std::vector<std::vector<double>> data;
@@ -62,15 +61,20 @@ void ThrusterAllocator::read_matrix_from_csv(std::string file_path, Eigen::Matri
     }
 }
 
+ThrusterAllocator::ThrusterAllocator() {}
+
 ThrusterAllocator::ThrusterAllocator(std::string wrench_file_path, std::string wrench_pinv_file_path)
 {
     read_matrix_from_csv(wrench_file_path, &wrench);
     read_matrix_from_csv(wrench_pinv_file_path, &wrench_pinv);
+
+    ROS_ASSERT_MSG(wrench.rows() == wrench_pinv.cols() && wrench.cols() == wrench_pinv.rows(),
+                   "If wrench is m x n, wrench_pinv must be n x m.");
 }
 
 void ThrusterAllocator::allocate_thrusters(Eigen::VectorXd set_power, Eigen::VectorXd *allocs, Eigen::VectorXd *actual_power)
 {
-    assert((set_power.rows() == 6 && set_power.cols() == 1, "Set power vector must be 6 x 1."));
+    ROS_ASSERT_MSG(wrench_pinv.rows() == set_power.rows(), "Set power must have the same number of rows as wrench_pinv.");
 
     *allocs = wrench_pinv * set_power;
 
@@ -82,5 +86,6 @@ void ThrusterAllocator::allocate_thrusters(Eigen::VectorXd set_power, Eigen::Vec
         *allocs /= max_alloc;
     }
 
+    // Compute the power actually being delivered along each axis
     *actual_power = wrench * (*allocs);
 }
