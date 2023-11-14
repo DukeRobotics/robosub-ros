@@ -18,7 +18,7 @@ find_package(Eigen3 REQUIRED)
 ## Specify additional locations of header files
 include_directories(
   include
-  ${EIGEN3_INCLUDE_DIR}
+  ${EIGEN3_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -26,19 +26,23 @@ include_directories(
 ## Declare things to be passed to dependent projects
 catkin_package(
   CATKIN_DEPENDS roscpp rospy std_msgs nav_msgs geometry_msgs std_srvs custom_msgs tf pid resource_retriever
-  DEPENDS Eigen3
 )
 
 ## Build C++ executables and libraries
-add_executable(test src/test.cpp)
-target_link_libraries(test yaml-cpp ${catkin_LIBRARIES})
+add_executable(controls_test src/test.cpp)
+target_link_libraries(controls_test yaml-cpp ${catkin_LIBRARIES})
 
 set(SOURCES
   src/controls.cpp
   src/thruster_allocator.cpp
+  src/controls_utils.cpp
 )
 
 add_executable(controls ${SOURCES})
-target_link_libraries(controls yaml-cpp Eigen3::Eigen ${catkin_LIBRARIES})
+target_link_libraries(controls
+  yaml-cpp
+  Eigen3::Eigen
+  ${catkin_LIBRARIES}
+)
 
 
