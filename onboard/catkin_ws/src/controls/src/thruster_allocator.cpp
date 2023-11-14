@@ -14,7 +14,7 @@ void ThrusterAllocator::read_matrix_from_csv(std::string file_path, Eigen::Matri
     std::ifstream file(file_path);
 
     if (!file.is_open())
-        ROS_ASSERT_MSG(false, "Could not open file %s", file_path);
+        ROS_ASSERT_MSG(false, "Could not open file %s", file_path.c_str());
 
     // Read data from the CSV file and initialize the matrix
     std::vector<std::vector<double>> data;
