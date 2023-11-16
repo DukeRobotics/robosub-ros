@@ -2,15 +2,18 @@
 #define PID_H
 
 #include <map>
+#include <Eigen/Dense>
 #include "controls_utils.h"
 
 class PID
 {
 public:
     std::map<PIDGainTypesEnum, double> *pid_gains;
-    double integralClamp;
-    double cutoffFreq;
-    bool angleCorrection;
+    double integral_clamp;
+    double cutoff_freq;
+    bool angle_correction;
+    Eigen::Matrix<double, 3, 3> prev_values;
+    double integral;
 
     PID();
     PID(std::map<PIDGainTypesEnum, double> &pid_gains,
