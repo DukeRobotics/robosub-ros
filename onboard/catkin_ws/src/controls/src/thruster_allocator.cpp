@@ -74,7 +74,7 @@ ThrusterAllocator::ThrusterAllocator(std::string wrench_file_path, std::string w
 
 void ThrusterAllocator::allocate_thrusters(Eigen::VectorXd set_power, Eigen::VectorXd &allocs, Eigen::VectorXd &actual_power)
 {
-    ROS_ASSERT_MSG(wrench_pinv.rows() == set_power.rows(), "Set power must have the same number of rows as wrench_pinv.");
+    ROS_ASSERT_MSG(wrench_pinv.cols() == set_power.rows(), "Set power must have the same number of rows as wrench_pinv.");
 
     allocs = wrench_pinv * set_power;
 
