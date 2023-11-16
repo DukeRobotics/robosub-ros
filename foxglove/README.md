@@ -1,4 +1,4 @@
-# Custom Foxglove Studio Extensions & Layouts
+# Duke Robotics Foxglove Extensions & Layouts
 
 Duke Robotics uses [Foxglove](https://foxglove.dev/studio) as its data visualization and controls platform.
 This directory contains Duke Robotics extensions and layouts.
