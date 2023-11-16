@@ -1,7 +1,7 @@
 #ifndef CONTROLS_H
 #define CONTROLS_H
 
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <array>
 #include <Eigen/Dense>
@@ -55,15 +55,15 @@ public:
     bool controls_enabled = false;
     int num_thrusters;
 
-    std::map<PIDLoopTypesEnum, std::map<AxisEnum, std::map<PIDGainTypesEnum, double>>> all_pid_gains;
-    std::map<PIDLoopTypesEnum, PIDManager> pid_managers;
+    std::unordered_map<PIDLoopTypesEnum, std::unordered_map<AxisEnum, std::unordered_map<PIDGainTypesEnum, double>>> all_pid_gains;
+    std::unordered_map<PIDLoopTypesEnum, PIDManager> pid_managers;
 
     ThrusterAllocator thruster_allocator;
 
-    std::map<AxisEnum, ControlTypesEnum> control_types;
-    std::map<AxisEnum, double> position_pid_outputs;
-    std::map<AxisEnum, double> velocity_pid_outputs;
-    std::map<AxisEnum, double> desired_power;
+    std::unordered_map<AxisEnum, ControlTypesEnum> control_types;
+    std::unordered_map<AxisEnum, double> position_pid_outputs;
+    std::unordered_map<AxisEnum, double> velocity_pid_outputs;
+    std::unordered_map<AxisEnum, double> desired_power;
 
     Controls(int argc, char **argv);
     void desired_position_callback(const geometry_msgs::Pose msg);

@@ -1,4 +1,4 @@
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <geometry_msgs/Twist.h>
 #include <custom_msgs/ControlTypes.h>
@@ -13,7 +13,7 @@ bool ControlsUtils::value_in_control_types_enum(uint8_t value)
            value == ControlTypesEnum::DESIRED_POWER;
 }
 
-void ControlsUtils::twist_to_map(const geometry_msgs::Twist &twist, std::map<AxisEnum, double> &map)
+void ControlsUtils::twist_to_map(const geometry_msgs::Twist &twist, std::unordered_map<AxisEnum, double> &map)
 {
     map[AxisEnum::X] = twist.linear.x;
     map[AxisEnum::Y] = twist.linear.y;
@@ -34,9 +34,9 @@ void ControlsUtils::eigen_vector_to_twist(const Eigen::VectorXd &vector, geometr
 }
 
 bool ControlsUtils::control_types_to_map(const custom_msgs::ControlTypes &control_types,
-                                         std::map<AxisEnum, ControlTypesEnum> &map)
+                                         std::unordered_map<AxisEnum, ControlTypesEnum> &map)
 {
-    std::map<AxisEnum, uint8_t> new_control_types;
+    std::unordered_map<AxisEnum, uint8_t> new_control_types;
     new_control_types[AxisEnum::X] = control_types.x;
     new_control_types[AxisEnum::Y] = control_types.y;
     new_control_types[AxisEnum::Z] = control_types.z;
@@ -54,7 +54,7 @@ bool ControlsUtils::control_types_to_map(const custom_msgs::ControlTypes &contro
     return true;
 }
 
-void ControlsUtils::map_to_control_types(const std::map<AxisEnum, ControlTypesEnum> &map,
+void ControlsUtils::map_to_control_types(const std::unordered_map<AxisEnum, ControlTypesEnum> &map,
                                          custom_msgs::ControlTypes &control_types)
 {
     control_types.x = static_cast<uint8_t>(map.at(AxisEnum::X));

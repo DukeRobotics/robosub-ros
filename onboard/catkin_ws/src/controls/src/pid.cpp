@@ -1,8 +1,9 @@
+#include <unordered_map>
 #include "pid.h"
 
 PID::PID() {};
 
-PID::PID(std::map<PIDGainTypesEnum, double> &pid_gains,
+PID::PID(std::unordered_map<PIDGainTypesEnum, double> &pid_gains,
          double integral_clamp,
          double cutoff_freq,
          bool angle_correction)
