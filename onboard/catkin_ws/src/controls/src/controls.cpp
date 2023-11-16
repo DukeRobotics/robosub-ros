@@ -29,6 +29,7 @@ Controls::Controls(int argc, char **argv)
     ros::NodeHandle nh;
 
     // Get parameters from launch file
+    nh.param<bool>("sim", sim, false);
     nh.param<bool>("debug", debug, false);
     nh.param<bool>("enable_position_pid", enable_position_pid, false);
     nh.param<bool>("enable_velocity_pid", enable_velocity_pid, false);

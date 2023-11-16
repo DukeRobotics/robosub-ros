@@ -26,6 +26,7 @@ class Controls
 public:
     static const int THRUSTER_ALLOCS_RATE = 20;
 
+    bool sim;
     bool debug;
     bool enable_position_pid;
     bool enable_velocity_pid;
