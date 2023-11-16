@@ -113,7 +113,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
       <h2>{state.panelMode === PanelMode.EDITING ? "Mode -- Editing" : "Mode -- Subscribing"}</h2>
       <div>
         <TableContainer>
-          <Table sx={{ minWidth: 650 }} aria-label="simple table">
+          <Table size="small" aria-label="simple table">
             <TableHead>
               <TableRow>
                 <TableCell align="center" width="50px"></TableCell>
