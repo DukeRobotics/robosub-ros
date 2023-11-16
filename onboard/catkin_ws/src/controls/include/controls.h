@@ -19,6 +19,7 @@
 #include <custom_msgs/SetControlTypes.h>
 #include "thruster_allocator.h"
 #include "controls_utils.h"
+#include "pid_manager.h"
 
 class Controls
 {
@@ -28,8 +29,6 @@ public:
     bool debug;
     bool enable_position_pid;
     bool enable_velocity_pid;
-
-    ThrusterAllocator thruster_allocator;
 
     ros::Subscriber desired_position_sub;
     ros::Subscriber desired_velocity_sub;
@@ -55,6 +54,11 @@ public:
 
     bool controls_enabled = false;
     int num_thrusters;
+
+    std::map<PIDLoopTypesEnum, std::map<AxisEnum, std::map<PIDGainTypesEnum, double>>> all_pid_gains;
+    std::map<PIDLoopTypesEnum, PIDManager> pid_managers;
+
+    ThrusterAllocator thruster_allocator;
 
     std::map<AxisEnum, ControlTypesEnum> control_types;
     std::map<AxisEnum, double> position_pid_outputs;

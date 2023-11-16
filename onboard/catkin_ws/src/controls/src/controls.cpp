@@ -59,6 +59,12 @@ Controls::Controls(int argc, char **argv)
     // TODO: Get number of thrusters from robot config file
     num_thrusters = 8;
 
+    // TODO: Get PID gains from robot config file
+
+    // TODO: Instantiate PID managers for each PID loop type
+    for(const PIDLoopTypesEnum& pid_loop_type : PID_LOOP_TYPES)
+        pid_managers[pid_loop_type] = PIDManager(all_pid_gains[pid_loop_type]);
+
     // TODO: Get csv file paths from robot config file
     thruster_allocator = ThrusterAllocator(
         "/root/dev/robosub-ros/onboard/catkin_ws/src/controls/config/oogway_wrench.csv",
