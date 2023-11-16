@@ -83,7 +83,7 @@ void Controls::desired_velocity_callback(const geometry_msgs::Twist msg)
 
 void Controls::desired_power_callback(const geometry_msgs::Twist msg)
 {
-    ControlsUtils::twist_to_map(&msg, &desired_power);
+    ControlsUtils::twist_to_map(msg, desired_power);
 }
 
 void Controls::state_callback(const nav_msgs::Odometry msg)
@@ -102,7 +102,7 @@ bool Controls::enable_controls_callback(std_srvs::SetBool::Request &req, std_srv
 
 bool Controls::set_control_types_callback(custom_msgs::SetControlTypes::Request &req, custom_msgs::SetControlTypes::Response &res)
 {
-    res.success = ControlsUtils::control_types_to_map(&req.control_types, &control_types);
+    res.success = ControlsUtils::control_types_to_map(req.control_types, control_types);
     res.message = res.success ? "Updated control types successfully." : "Failed to update control types. One or more control types was invalid.";
     return true;
 }
@@ -154,11 +154,11 @@ void Controls::run()
         desired_thruster_allocs_pub.publish(t);
 
         geometry_msgs::Twist set_power_msg;
-        ControlsUtils::eigen_vector_to_twist(&set_power, &set_power_msg);
+        ControlsUtils::eigen_vector_to_twist(set_power, set_power_msg);
         set_power_pub.publish(set_power_msg);
 
         custom_msgs::ControlTypes control_types_msg;
-        ControlsUtils::map_to_control_types(&control_types, &control_types_msg);
+        ControlsUtils::map_to_control_types(control_types, control_types_msg);
         control_types_pub.publish(control_types_msg);
 
         std_msgs::Bool status_msg;
