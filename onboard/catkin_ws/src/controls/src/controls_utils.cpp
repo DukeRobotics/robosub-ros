@@ -74,11 +74,12 @@ void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd 
     // Open the CSV file
     std::ifstream file(file_path);
 
-    ROS_ASSERT_MSG(file.is_open(), "Could not open file %s", file_path.c_str());
+    ROS_ASSERT_MSG(file.is_open(), "Could not open file. %s", file_path.c_str());
 
     // Read data from the CSV file and initialize the matrix
     std::vector<std::vector<double>> data;
     std::string line;
+    int cols = -1;
 
     while (std::getline(file, line))
     {
@@ -93,10 +94,16 @@ void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd 
             row.push_back(value);
 
             iss >> comma;
-            ROS_ASSERT_MSG((iss.good() || iss.eof()) && comma == ',', "CSV file has invalid format %s", file_path.c_str());
+            ROS_ASSERT_MSG((iss.good() || iss.eof()) && comma == ',', "File is not in valid CSV format. %s", file_path.c_str());
         }
 
         data.push_back(row);
+
+        // Ensure all rows have the same number of columns
+        if (cols == -1)
+            cols = row.size();
+        else
+            ROS_ASSERT_MSG(row.size() == cols, "CSV file must have same number of columns in all rows. %s", file_path.c_str());
     }
 
     // Close the file
@@ -104,7 +111,6 @@ void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd 
 
     // Determine the matrix size
     int rows = data.size();
-    int cols = (rows > 0) ? data[0].size() : 0;
 
     // Initialize the Eigen matrix
     matrix.resize(rows, cols);
