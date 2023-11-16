@@ -15,8 +15,10 @@
 #include <custom_msgs/SetPIDGains.h>
 #include <custom_msgs/SetControlTypes.h>
 #include "thruster_allocator.h"
+#include "pid_manager.h"
 #include "controls_utils.h"
 #include "controls.h"
+
 
 Controls::Controls(int argc, char **argv)
 {
