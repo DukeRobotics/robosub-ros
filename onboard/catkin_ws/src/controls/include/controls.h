@@ -54,7 +54,6 @@ public:
     ros::Publisher status_pub;
 
     bool controls_enabled = false;
-    int num_thrusters;
 
     std::unordered_map<PIDLoopTypesEnum, std::unordered_map<AxisEnum, std::unordered_map<PIDGainTypesEnum, double>>> all_pid_gains;
     std::unordered_map<PIDLoopTypesEnum, PIDManager> pid_managers;

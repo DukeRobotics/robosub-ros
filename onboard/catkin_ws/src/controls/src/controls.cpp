@@ -59,9 +59,6 @@ Controls::Controls(int argc, char **argv)
     for (const AxisEnum &axis : AXES)
         control_types[axis] = ControlTypesEnum::DESIRED_POSE;
 
-    // TODO: Get number of thrusters from robot config file
-    num_thrusters = 8;
-
     // TODO: Get PID gains from robot config file
 
     // TODO: Instantiate PID managers for each PID loop type
@@ -121,11 +118,17 @@ void Controls::run()
 {
     ros::Rate rate(THRUSTER_ALLOCS_RATE);
 
+    Eigen::VectorXd set_power(AXES_COUNT);
+    Eigen::VectorXd actual_power;
+    Eigen::VectorXd allocs;
+
+    custom_msgs::ThrusterAllocs t;
+    geometry_msgs::Twist set_power_msg;
+    custom_msgs::ControlTypes control_types_msg;
+    std_msgs::Bool status_msg;
+
     while (ros::ok())
     {
-        // TODO: compute set_power using control_types and PID outputs/desired power
-        Eigen::VectorXd set_power(AXES_COUNT);
-
         for (int i = 0; i < AXES_COUNT; i++)
         {
             switch (control_types[AXES[i]])
@@ -142,29 +145,23 @@ void Controls::run()
             }
         }
 
-        Eigen::VectorXd actual_power;
-        Eigen::VectorXd allocs;
-
         thruster_allocator.allocate_thrusters(set_power, allocs, actual_power);
 
-        custom_msgs::ThrusterAllocs t;
-        for (int i = 0; i < num_thrusters; i++)
-            t.allocs[i] = allocs(i);
+        t.allocs.clear();
+        for (int i = 0; i < allocs.rows(); i++)
+            t.allocs.push_back(allocs[i]);
 
         if (controls_enabled)
             thruster_allocs_pub.publish(t);
 
         desired_thruster_allocs_pub.publish(t);
 
-        geometry_msgs::Twist set_power_msg;
         ControlsUtils::eigen_vector_to_twist(set_power, set_power_msg);
         set_power_pub.publish(set_power_msg);
 
-        custom_msgs::ControlTypes control_types_msg;
         ControlsUtils::map_to_control_types(control_types, control_types_msg);
         control_types_pub.publish(control_types_msg);
 
-        std_msgs::Bool status_msg;
         status_msg.data = controls_enabled;
         status_pub.publish(status_msg);
 

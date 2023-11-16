@@ -3,4 +3,4 @@
 std_msgs/Header header
 
 # Array containing thruster allocations
-float64[8] allocs
+float64[] allocs
