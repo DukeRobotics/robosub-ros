@@ -1,3 +1,4 @@
+#include "pid.h"
 #include "pid_manager.h"
 #include "controls_utils.h"
 
