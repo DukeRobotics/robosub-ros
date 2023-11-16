@@ -30,7 +30,7 @@ class ThrusterController:
         tm: The ThrusterManager object used to calculate thruster allocations
     """
 
-    CONFIG_FILE_PATH = 'package://controls/config/%s.config'
+    CONFIG_FILE_PATH = 'package://controls/config/%s.yaml'
     ROBOT_PUB_TOPIC = '/controls/thruster_allocs'
     RUN_LOOP_RATE = 10  # 10 Hz
     POWER_SCALING_FACTOR = 0.5
