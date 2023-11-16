@@ -1,7 +1,8 @@
 {
   "name": "foxglove",
   "workspaces": [
-    "extensions/*"
+    "extensions/*",
+    "shared/*"
   ],
   "devDependencies": {
     "@foxglove/eslint-plugin": "^1.0.0",

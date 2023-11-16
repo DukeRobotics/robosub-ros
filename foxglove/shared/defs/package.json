@@ -1,0 +1,7 @@
+{
+  "name": "@duke-robotics/defs",
+  "version": "0.0.0",
+  "scripts": {
+    "build": "rm -rf custom_msg_defs datatype_maps && npx ts-node src/index.ts"
+  }
+}
