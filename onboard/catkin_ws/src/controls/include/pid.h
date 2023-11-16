@@ -19,7 +19,7 @@ public:
         bool angle_correction = true);
 
     void reset();
-    double calcControlEffort(double error, double deltaTime);
+    double run_loop(double error, double deltaTime);
 };
 
 #endif
