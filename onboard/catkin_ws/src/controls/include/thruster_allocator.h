@@ -7,9 +7,6 @@
 
 class ThrusterAllocator
 {
-    private:
-        void read_matrix_from_csv(std::string file_path, Eigen::MatrixXd &matrix);
-
     public:
         Eigen::MatrixXd wrench;
         Eigen::MatrixXd wrench_pinv;

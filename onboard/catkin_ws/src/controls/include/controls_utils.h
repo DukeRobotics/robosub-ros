@@ -57,6 +57,7 @@ public:
                                      std::unordered_map<AxisEnum, ControlTypesEnum> &map);
     static void map_to_control_types(const std::unordered_map<AxisEnum, ControlTypesEnum> &map,
                                      custom_msgs::ControlTypes &control_types);
+    static void read_matrix_from_csv(std::string file_path, Eigen::MatrixXd &matrix);
 };
 
 #endif

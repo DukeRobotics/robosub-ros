@@ -1,5 +1,9 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
 #include <unordered_map>
 #include <string>
+#include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <custom_msgs/ControlTypes.h>
 #include <Eigen/Dense>
@@ -44,11 +48,11 @@ bool ControlsUtils::control_types_to_map(const custom_msgs::ControlTypes &contro
     new_control_types[AxisEnum::PITCH] = control_types.pitch;
     new_control_types[AxisEnum::YAW] = control_types.yaw;
 
-    for (const auto& pair : new_control_types)
+    for (const auto &pair : new_control_types)
         if (!value_in_control_types_enum(pair.second))
             return false;
 
-    for (const auto& pair : new_control_types)
+    for (const auto &pair : new_control_types)
         map[pair.first] = static_cast<ControlTypesEnum>(pair.second);
 
     return true;
@@ -63,4 +67,50 @@ void ControlsUtils::map_to_control_types(const std::unordered_map<AxisEnum, Cont
     control_types.roll = map.at(AxisEnum::ROLL);
     control_types.pitch = map.at(AxisEnum::PITCH);
     control_types.yaw = map.at(AxisEnum::YAW);
+}
+
+void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd &matrix)
+{
+    // Open the CSV file
+    std::ifstream file(file_path);
+
+    ROS_ASSERT_MSG(file.is_open(), "Could not open file %s", file_path.c_str());
+
+    // Read data from the CSV file and initialize the matrix
+    std::vector<std::vector<double>> data;
+    std::string line;
+
+    while (std::getline(file, line))
+    {
+        std::istringstream iss(line);
+        std::vector<double> row;
+
+        double value;
+        char comma;
+
+        while (iss >> value)
+        {
+            row.push_back(value);
+
+            iss >> comma;
+            ROS_ASSERT_MSG((iss.good() || iss.eof()) && comma == ',', "CSV file has invalid format %s", file_path.c_str());
+        }
+
+        data.push_back(row);
+    }
+
+    // Close the file
+    file.close();
+
+    // Determine the matrix size
+    int rows = data.size();
+    int cols = (rows > 0) ? data[0].size() : 0;
+
+    // Initialize the Eigen matrix
+    matrix.resize(rows, cols);
+
+    // Copy the data from the vector of vectors to the Eigen matrix
+    for (int i = 0; i < rows; ++i)
+        for (int j = 0; j < cols; ++j)
+            matrix(i, j) = data[i][j];
 }
