@@ -112,6 +112,10 @@ void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd 
     // Determine the matrix size
     int rows = data.size();
 
+    // Ensure the matrix has at least one row and one column
+    ROS_ASSERT_MSG(cols >= 1, "CSV file must have at least one column. %s", file_path.c_str());
+    ROS_ASSERT_MSG(rows >= 1, "CSV file must have at least one row. %s", file_path.c_str());
+
     // Initialize the Eigen matrix
     matrix.resize(rows, cols);
 
