@@ -35,6 +35,7 @@ target_link_libraries(controls_test yaml-cpp ${catkin_LIBRARIES})
 set(SOURCES
   src/controls.cpp
   src/thruster_allocator.cpp
+  src/pid_manager.cpp
   src/controls_utils.cpp
 )
 
