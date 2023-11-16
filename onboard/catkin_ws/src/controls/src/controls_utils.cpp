@@ -57,10 +57,10 @@ bool ControlsUtils::control_types_to_map(const custom_msgs::ControlTypes &contro
 void ControlsUtils::map_to_control_types(const std::unordered_map<AxisEnum, ControlTypesEnum> &map,
                                          custom_msgs::ControlTypes &control_types)
 {
-    control_types.x = static_cast<uint8_t>(map.at(AxisEnum::X));
-    control_types.y = static_cast<uint8_t>(map.at(AxisEnum::Y));
-    control_types.z = static_cast<uint8_t>(map.at(AxisEnum::Z));
-    control_types.roll = static_cast<uint8_t>(map.at(AxisEnum::ROLL));
-    control_types.pitch = static_cast<uint8_t>(map.at(AxisEnum::PITCH));
-    control_types.yaw = static_cast<uint8_t>(map.at(AxisEnum::YAW));
+    control_types.x = map.at(AxisEnum::X);
+    control_types.y = map.at(AxisEnum::Y);
+    control_types.z = map.at(AxisEnum::Z);
+    control_types.roll = map.at(AxisEnum::ROLL);
+    control_types.pitch = map.at(AxisEnum::PITCH);
+    control_types.yaw = map.at(AxisEnum::YAW);
 }
