@@ -28,6 +28,20 @@ const int AXES_COUNT = 6;
 const AxisEnum AXES[AXES_COUNT] = {AxisEnum::X, AxisEnum::Y, AxisEnum::Z,
                                    AxisEnum::ROLL, AxisEnum::PITCH, AxisEnum::YAW};
 
+enum PIDLoopTypesEnum
+{
+    POSITION = 0,
+    VELOCITY = 1
+};
+
+enum PIDGainTypesEnum
+{
+    KP = 0,
+    KI = 1,
+    KD = 2,
+    FF = 3
+};
+
 class ControlsUtils
 {
 public:
