@@ -50,12 +50,12 @@ class ControlsUtils
 {
 public:
     static bool value_in_control_types_enum(uint8_t value);
-    static void twist_to_map(const geometry_msgs::Twist *twist, std::map<AxisEnum, double> *map);
-    static void eigen_vector_to_twist(const Eigen::VectorXd *vector, geometry_msgs::Twist *twist);
-    static bool control_types_to_map(const custom_msgs::ControlTypes *control_types,
-                                     std::map<AxisEnum, ControlTypesEnum> *map);
-    static void map_to_control_types(const std::map<AxisEnum, ControlTypesEnum> *map,
-                                     custom_msgs::ControlTypes *control_types);
+    static void twist_to_map(const geometry_msgs::Twist &twist, std::map<AxisEnum, double> &map);
+    static void eigen_vector_to_twist(const Eigen::VectorXd &vector, geometry_msgs::Twist &twist);
+    static bool control_types_to_map(const custom_msgs::ControlTypes &control_types,
+                                     std::map<AxisEnum, ControlTypesEnum> &map);
+    static void map_to_control_types(const std::map<AxisEnum, ControlTypesEnum> &map,
+                                     custom_msgs::ControlTypes &control_types);
 };
 
 #endif

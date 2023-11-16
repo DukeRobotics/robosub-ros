@@ -142,7 +142,7 @@ void Controls::run()
         Eigen::VectorXd actual_power;
         Eigen::VectorXd allocs;
 
-        thruster_allocator.allocate_thrusters(set_power, &allocs, &actual_power);
+        thruster_allocator.allocate_thrusters(set_power, allocs, actual_power);
 
         custom_msgs::ThrusterAllocs t;
         for (int i = 0; i < num_thrusters; i++)

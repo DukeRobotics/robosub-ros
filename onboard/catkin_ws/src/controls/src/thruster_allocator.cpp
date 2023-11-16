@@ -8,7 +8,7 @@
 
 #include "thruster_allocator.h"
 
-void ThrusterAllocator::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd *matrix)
+void ThrusterAllocator::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd &matrix)
 {
     // Open the CSV file
     std::ifstream file(file_path);
@@ -49,14 +49,14 @@ void ThrusterAllocator::read_matrix_from_csv(std::string file_path, Eigen::Matri
     int cols = (rows > 0) ? data[0].size() : 0;
 
     // Initialize the Eigen matrix
-    matrix->resize(rows, cols);
+    matrix.resize(rows, cols);
 
     // Copy the data from the vector of vectors to the Eigen matrix
     for (int i = 0; i < rows; ++i)
     {
         for (int j = 0; j < cols; ++j)
         {
-            (*matrix)(i, j) = data[i][j];
+            matrix(i, j) = data[i][j];
         }
     }
 }
@@ -65,25 +65,25 @@ ThrusterAllocator::ThrusterAllocator() {}
 
 ThrusterAllocator::ThrusterAllocator(std::string wrench_file_path, std::string wrench_pinv_file_path)
 {
-    read_matrix_from_csv(wrench_file_path, &wrench);
-    read_matrix_from_csv(wrench_pinv_file_path, &wrench_pinv);
+    read_matrix_from_csv(wrench_file_path, wrench);
+    read_matrix_from_csv(wrench_pinv_file_path, wrench_pinv);
 
     ROS_ASSERT_MSG(wrench.rows() == wrench_pinv.cols() && wrench.cols() == wrench_pinv.rows(),
                    "If wrench is m x n, wrench_pinv must be n x m.");
 }
 
-void ThrusterAllocator::allocate_thrusters(Eigen::VectorXd set_power, Eigen::VectorXd *allocs, Eigen::VectorXd *actual_power)
+void ThrusterAllocator::allocate_thrusters(Eigen::VectorXd set_power, Eigen::VectorXd &allocs, Eigen::VectorXd &actual_power)
 {
     ROS_ASSERT_MSG(wrench_pinv.rows() == set_power.rows(), "Set power must have the same number of rows as wrench_pinv.");
 
-    *allocs = wrench_pinv * set_power;
+    allocs = wrench_pinv * set_power;
 
     // If maximum absolute value allocation is greater than 1, normalize all allocations
     // so that the maximum absolute value allocation is 1 and ratios between all allocations remain the same
-    double max_alloc = allocs->array().abs().maxCoeff();
+    double max_alloc = allocs.array().abs().maxCoeff();
     if (max_alloc > 1)
-        *allocs /= max_alloc;
+        allocs /= max_alloc;
 
     // Compute the power actually being delivered along each axis
-    *actual_power = wrench * (*allocs);
+    actual_power = wrench * allocs;
 }
