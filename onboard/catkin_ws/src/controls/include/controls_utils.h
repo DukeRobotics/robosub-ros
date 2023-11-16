@@ -23,7 +23,6 @@ enum AxisEnum
     PITCH = 4,
     YAW = 5
 };
-
 const int AXES_COUNT = 6;
 const AxisEnum AXES[AXES_COUNT] = {AxisEnum::X, AxisEnum::Y, AxisEnum::Z,
                                    AxisEnum::ROLL, AxisEnum::PITCH, AxisEnum::YAW};
@@ -33,6 +32,8 @@ enum PIDLoopTypesEnum
     POSITION = 0,
     VELOCITY = 1
 };
+const int PID_LOOP_TYPES_COUNT = 2;
+const PIDLoopTypesEnum PID_LOOP_TYPES[PID_LOOP_TYPES_COUNT] = {PIDLoopTypesEnum::POSITION, PIDLoopTypesEnum::VELOCITY};
 
 enum PIDGainTypesEnum
 {
@@ -41,6 +42,9 @@ enum PIDGainTypesEnum
     KD = 2,
     FF = 3
 };
+const int PID_GAIN_TYPES_COUNT = 4;
+const PIDGainTypesEnum PID_GAIN_TYPES[PID_GAIN_TYPES_COUNT] = {PIDGainTypesEnum::KP, PIDGainTypesEnum::KI,
+                                                               PIDGainTypesEnum::KD, PIDGainTypesEnum::FF};
 
 class ControlsUtils
 {
