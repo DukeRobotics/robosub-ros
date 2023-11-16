@@ -3,12 +3,13 @@
 Duke Robotics uses [Foxglove](https://foxglove.dev/studio) as its data visualization and controls platform.
 This directory contains Duke Robotics extensions and layouts.
 
-## Dependencies
+## Setup
+### Dependencies
 - [npm (Latest)](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 - [Foxglove Studio (Latest)](https://foxglove.dev/download)
   - **Note:** Automatic installation of custom extensions and layouts requires Foxglove Studio Desktop. For Foxglove Studio Web, layouts must be manually uploaded and custom extensions are not compatible.
 
-## Installation
+### Installation
 To manage local installation of Duke Robotics extensions and layouts, use the `foxglove.py` CLI.
 To install all Duke Robotics extensions and layouts, use:
 ```bash
@@ -53,7 +54,7 @@ python foxglove.py install -h
 python foxglove.py uninstall -h
 ```
 
-## Development
+### Development
 Ensure that the extension has been installed before starting development.
 
 To test changes made during development, rebuild the extension with:
@@ -67,7 +68,7 @@ npm run watch:local-install
 ```
 This will automatically execute `npm run local-install` upon `.ts` and `.tsx` file changes in the `src` directory.
 
-## Testing
+### Testing
 1. On `onboard`, launch the [Foxglove WebSocket](https://github.com/foxglove/ros-foxglove-bridge) bridge node:
 ```bash
 roslaunch --screen foxglove_bridge foxglove_bridge.launch port:=8765
@@ -106,7 +107,7 @@ Fork an existing Duke Robotics example extension (`call-service-panel`, `publish
 ### Creating a New Layout
 Follow the [documentation](https://foxglove.dev/docs/studio/layouts#personal-layouts) to export your layout as a JSON file to the robosub-ros `foxglove/layouts` directory. Manually look over the JSON to ensure that the settings are correct. For example, ensure that `splitPercentage` for each panel is set to the desired amount.
 
-### Creating a Local Dependency
+### Creating a New Local Dependency
 Fork an existing local dependency (e.g., `theme`). All local dependencies must use TypeScript and an `npm run build` command must be defined in `package.json` so that `foxglove.py` can automatically compile each local dependency to `node_modules`.
 
 ## Additional Documentation
