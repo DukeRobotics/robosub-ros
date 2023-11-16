@@ -24,7 +24,7 @@ import pathlib
 import datetime
 import platform
 import argparse
-from typing import Sequence
+from typing import Sequence, Union
 
 ORGANIZATION = "dukerobotics"
 
@@ -43,7 +43,7 @@ EXTENSION_PATHS = [d for d in (FOXGLOVE_PATH / "extensions").iterdir() if d.is_d
 LAYOUTS_PATH = FOXGLOVE_PATH / "layouts"
 
 
-def run_at_path(command: str | Sequence[str], directory: pathlib.Path, system: str = SYSTEM):
+def run_at_path(command: Union[str, Sequence[str]], directory: pathlib.Path, system: str = SYSTEM):
     """
     Run a command at a given path.
 
