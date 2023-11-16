@@ -1,5 +1,5 @@
-int8 POSITION_PID = 0
-int8 VELOCITY_PID = 1
+int8 LOOP_POSITION = 0
+int8 LOOP_VELOCITY = 1
 
 int8 AXIS_X = 0
 int8 AXIS_Y = 1
