@@ -18,7 +18,7 @@ const TOPICS_MAP = {
   DVL: "/sensors/dvl/raw",
   IMU: "/vectornav/IMU",
   Pressure: "/sensors/depth",
-  DepthAI: "/camera/front/rgb/preview/compressed",
+  "Front Camera": "/camera/front/rgb/preview/compressed",
   Mono: "/camera/usb_camera/compressed",
   Sonar: "/sonar/status",
 };
