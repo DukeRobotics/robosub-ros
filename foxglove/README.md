@@ -86,9 +86,18 @@ ws://<hostname or IP of onboard container>:8765
 - `call-service-panel`: Example panel to call services
 - `publish-topic-panel`: Example panel to publish topics
 - `subscribe-topic-panel`: Example panel to subscribe to topics and see the raw message feed
+- `toggle-controls-panel`: Panel to toggle controls on/off
+- `system-status-panel`: Panel that displays system usage of the onboard computer
+- `sensors-status-panel`: Panel that displays the connected/disconnected status of Oogway's sensors
+
 
 ### Layouts
 - `controls-monitor.json`: 6 graphs for each control axis (x, y, z, roll, pitch, yaw) plotting setpoint and control effort against time. Used to test responsiveness of robot during PID tuning.
+
+## Local Dependencies
+Shared components and styles are located in the `shared` directory.
+
+- `theme`: Duke Robotics MUI Theme
 
 ## Contributing
 ### Creating a New Extension
@@ -96,6 +105,9 @@ Fork an existing Duke Robotics example extension (`call-service-panel`, `publish
 
 ### Creating a New Layout
 Follow the [documentation](https://foxglove.dev/docs/studio/layouts#personal-layouts) to export your layout as a JSON file to the robosub-ros `foxglove/layouts` directory. Manually look over the JSON to ensure that the settings are correct. For example, ensure that `splitPercentage` for each panel is set to the desired amount.
+
+### Creating a Local Dependency
+Fork an existing local dependency (e.g., `theme`). All local dependencies must use TypeScript and an `npm run build` command must be defined in `package.json` so that `foxglove.py` can automatically compile each local dependency to `node_modules`.
 
 ## Additional Documentation
 - [ExtensionContext](https://foxglove.dev/docs/studio/extensions/extension-context): Register custom extensions for use in Foxglove
