@@ -1,7 +1,7 @@
 {
   "extends": "create-foxglove-extension/tsconfig/tsconfig.json",
 
-  "include": ["./extensions/*/src/*", "./defs/src/*"],
+  "include": ["./extensions/*/src/**/*"],
   "compilerOptions": {
     "lib": ["dom"],
 
