@@ -1,14 +1,6 @@
 import theme from "@duke-robotics/theme";
-import { Immutable, PanelExtensionContext, RenderState, MessageEvent } from "@foxglove/studio";
-import { Typography } from "@mui/material";
-import Box from "@mui/material/Box";
-import Paper from "@mui/material/Paper";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableRow from "@mui/material/TableRow";
-import Tooltip from "@mui/material/Tooltip";
+import { Immutable, PanelExtensionContext, RenderState, MessageEvent, Subscription } from "@foxglove/studio";
+import { Box, Paper, Table, TableBody, TableCell, TableContainer, TableRow, Typography, Tooltip } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -22,35 +14,48 @@ const TOPICS_MAP = {
   Mono: "/camera/usb_camera/compressed",
   Sonar: "/sonar/status",
 };
-const SENSOR_DOWN_THRESHOLD = 1; // Seconds until sensor is considered disconnected
 
-const TOPICS_MAP_REVERSED: Record<string, keyof typeof TOPICS_MAP> = {};
+type topicMapType = keyof typeof TOPICS_MAP;
+
+// Seconds until sensor is considered disconnected
+const SENSOR_DOWN_THRESHOLD = 1;
+
+const TOPICS_MAP_REVERSED: Record<string, topicMapType> = {};
 for (const [key, value] of Object.entries(TOPICS_MAP)) {
-  TOPICS_MAP_REVERSED[value] = key as keyof typeof TOPICS_MAP;
+  TOPICS_MAP_REVERSED[value] = key as topicMapType;
 }
 
-type SensorsTime = Record<keyof typeof TOPICS_MAP, number>; // Time of last message received from sensor
-type ConnectStatus = Record<keyof typeof TOPICS_MAP, boolean>; // True if SensorsTime is within SENSOR_DOWN_THRESHOLD seconds
+// Array of all topics: [{topic: topic1}, {topic: topic2}, ... ]
 
-interface State {
+const TOPICS_LIST: Subscription[] = [];
+for (const value of Object.values(TOPICS_MAP)) {
+  TOPICS_LIST.push({ topic: value });
+}
+
+// Time of last message received from sensor
+type SensorsTime = Record<topicMapType, number>;
+// True if SensorsTime is within SENSOR_DOWN_THRESHOLD seconds
+type ConnectStatus = Record<topicMapType, boolean>;
+
+interface SensorsStatusPanelState {
   sensorsTime: SensorsTime;
   connectStatus: ConnectStatus;
   currentTime: number;
 }
 
 const initState = () => {
-  const state: Partial<State> = {};
+  const state: Partial<SensorsStatusPanelState> = {};
 
   // Initialize sensorsTime with 0's
   const sensorsTime: Partial<SensorsTime> = {};
-  for (const key of Object.keys(TOPICS_MAP)) {
+  for (const key in TOPICS_MAP) {
     sensorsTime[key as keyof SensorsTime] = 0;
   }
   state.sensorsTime = sensorsTime as SensorsTime;
 
   // Initialize connectStatus with false's
   const connectStatus: Partial<ConnectStatus> = {};
-  for (const key of Object.keys(TOPICS_MAP)) {
+  for (const key in TOPICS_MAP) {
     connectStatus[key as keyof ConnectStatus] = false;
   }
   state.connectStatus = connectStatus as ConnectStatus;
@@ -59,20 +64,15 @@ const initState = () => {
   // This ensures that (currentTime - sensorsTime > SENSOR_DOWN_THRESHOLD) so that the sensor is initially considered disconnected
   state.currentTime = Infinity;
 
-  return state as State;
+  return state as SensorsStatusPanelState;
 };
 
 function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const [state, setState] = useState<State>(initState());
+  const [state, setState] = useState<SensorsStatusPanelState>(initState());
 
-  // Array of all topics: [{topic: topic1}, {topic: topic2}, ... ]
-  const topicList = [];
-  for (const value of Object.values(TOPICS_MAP)) {
-    topicList.push({ topic: value });
-  }
   // Subscribe to all topics
-  context.subscribe(topicList);
+  context.subscribe(TOPICS_LIST);
 
   // Watch currentFrame for messages from each sensor
   useEffect(() => {
@@ -101,7 +101,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
           ...prevState,
           sensorsTime: {
             ...prevState.sensorsTime,
-            [sensorName]: state.currentTime,
+            [sensorName]: prevState.currentTime,
           },
           connectStatus: {
             ...prevState.connectStatus,
@@ -112,12 +112,12 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
 
       // Compare current time to each sensorsTime and set connectStatus to false if the sensor is down
       for (const key in TOPICS_MAP) {
-        if (state.currentTime - state.sensorsTime[key as keyof typeof TOPICS_MAP] > SENSOR_DOWN_THRESHOLD) {
+        if (state.currentTime - state.sensorsTime[key as topicMapType] > SENSOR_DOWN_THRESHOLD) {
           setState((prevState) => ({
             ...prevState,
             connectStatus: {
               ...prevState.connectStatus,
-              [key as keyof typeof TOPICS_MAP]: false,
+              [key as topicMapType]: false,
             },
           }));
         }
@@ -145,7 +145,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
                 <TableRow
                   key={sensor}
                   style={{
-                    backgroundColor: state.connectStatus[sensor as keyof typeof TOPICS_MAP]
+                    backgroundColor: state.connectStatus[sensor as topicMapType]
                       ? theme.palette.success.main
                       : theme.palette.error.main,
                   }}
