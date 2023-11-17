@@ -15,7 +15,7 @@ from std_msgs.msg import Float32, Int32
 from custom_msgs.msg import ThrusterAllocs, PWMAllocs
 
 CONTROL_EFFORTS_TOPIC = "controls/thruster_allocs"
-VOLTAGE_TOPIC = "controls/voltage"  # This could change
+VOLTAGE_TOPIC = "sensors/voltage"  # This could change
 PWM_PUBLISHER_TOPIC = "offboard_comms/pwm"
 
 # Coefficients for the fitted polynomial; terms of the polynomial are shown under function polynomial
@@ -56,7 +56,7 @@ class ThrusterConverter:
     def convert_and_publish(self, desired_efforts):
         # Check which model we are using: discrete (lookup table) or continuous (polynomial)
         if self.interpolation_mode == "discrete":
-            pwm = np.zeros(8).astype(float)
+            pwm = np.zeros(len(desired_efforts.allocs)).astype(float)
             for i, desired_effort in enumerate(desired_efforts.allocs):
                 pwm[i] = self.lookup(desired_effort, self.voltage)
             # Publish to ros-topic
@@ -68,7 +68,7 @@ class ThrusterConverter:
             self.myserial.write(pwm.array2string().encode('utf-8'))
         else:
             # continuous, or polynomial mode
-            pwm = np.zeros(8).astype(float)
+            pwm = np.zeros(len(desired_efforts.allocs)).astype(float)
             for i, desired_effort in enumerate(desired_efforts.allocs):
                 pwm[i] = self.polynomial(desired_effort, self.voltage)
             # Publish to ros-topic
