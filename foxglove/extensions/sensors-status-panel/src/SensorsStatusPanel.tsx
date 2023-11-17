@@ -15,14 +15,14 @@ const TOPICS_MAP = {
   Sonar: "/sonar/status",
 };
 
-type topicMapType = keyof typeof TOPICS_MAP;
+type topicsMapKeys = keyof typeof TOPICS_MAP;
 
 // Seconds until sensor is considered disconnected
 const SENSOR_DOWN_THRESHOLD = 1;
 
-const TOPICS_MAP_REVERSED: Record<string, topicMapType> = {};
+const TOPICS_MAP_REVERSED: Record<string, topicsMapKeys> = {};
 for (const [key, value] of Object.entries(TOPICS_MAP)) {
-  TOPICS_MAP_REVERSED[value] = key as topicMapType;
+  TOPICS_MAP_REVERSED[value] = key as topicsMapKeys;
 }
 
 // Array of all topics: [{topic: topic1}, {topic: topic2}, ... ]
@@ -33,9 +33,9 @@ for (const value of Object.values(TOPICS_MAP)) {
 }
 
 // Time of last message received from sensor
-type SensorsTime = Record<topicMapType, number>;
+type SensorsTime = Record<topicsMapKeys, number>;
 // True if SensorsTime is within SENSOR_DOWN_THRESHOLD seconds
-type ConnectStatus = Record<topicMapType, boolean>;
+type ConnectStatus = Record<topicsMapKeys, boolean>;
 
 interface SensorsStatusPanelState {
   sensorsTime: SensorsTime;
@@ -112,12 +112,12 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
 
       // Compare current time to each sensorsTime and set connectStatus to false if the sensor is down
       for (const key in TOPICS_MAP) {
-        if (state.currentTime - state.sensorsTime[key as topicMapType] > SENSOR_DOWN_THRESHOLD) {
+        if (state.currentTime - state.sensorsTime[key as topicsMapKeys] > SENSOR_DOWN_THRESHOLD) {
           setState((prevState) => ({
             ...prevState,
             connectStatus: {
               ...prevState.connectStatus,
-              [key as topicMapType]: false,
+              [key as topicsMapKeys]: false,
             },
           }));
         }
@@ -145,7 +145,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
                 <TableRow
                   key={sensor}
                   style={{
-                    backgroundColor: state.connectStatus[sensor as topicMapType]
+                    backgroundColor: state.connectStatus[sensor as topicsMapKeys]
                       ? theme.palette.success.main
                       : theme.palette.error.main,
                   }}
