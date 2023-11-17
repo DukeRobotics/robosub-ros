@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 
 import rospy
+import yaml
+
+import serial
+import serial.tools.list_ports as list_ports
+
 import numpy as np
+import resource_retriever as rr
 
 from bisect import bisect_left
 
@@ -16,6 +22,8 @@ PWM_PUBLISHER_TOPIC = "offboard_comms/pwm"
 COEFFICIENTS = [-7.65838439e-01,  1.84459825e+01, -2.01132736e+02, 7.42118554e+03,
                 7.92882050e+01, -2.70347565e+00, -9.44255430e+02, 2.95486429e+01]
 
+FTDI_FILE_PATH = 'package://data_pub/config/dvl_ftdi.yaml'
+BAUDRATE = 115200
 
 class ThrusterConverter:
 
@@ -26,6 +34,8 @@ class ThrusterConverter:
         # Read roslaunch params
         self.interpolation_mode = rospy.get_param("~interpolation")
 
+        # Instance variables for connecting to/publishing to serial
+        self.serial_port, self.myserial, self.ftdi_strings = None, None, None
         # Default voltage is 15.6
         self.voltage = 15.6
 
@@ -49,17 +59,25 @@ class ThrusterConverter:
             pwm = np.zeros(8).astype(float)
             for i, desired_effort in enumerate(desired_efforts.allocs):
                 pwm[i] = self.lookup(desired_effort, self.voltage)
+            # Publish to ros-topic
             PWM_alloc = PWMAllocs()
             PWM_alloc.allocs = pwm
             self.pwm_publisher.publish(PWM_alloc)
+            # Publish to serial
+            self.myserial.flush()
+            self.myserial.write(pwm.array2string().encode('utf-8'))
         else:
             # continuous, or polynomial mode
             pwm = np.zeros(8).astype(float)
             for i, desired_effort in enumerate(desired_efforts.allocs):
                 pwm[i] = self.polynomial(desired_effort, self.voltage)
+            # Publish to ros-topic
             PWM_alloc = PWMAllocs()
             PWM_alloc.allocs = pwm
             self.pwm_publisher.publish(PWM_alloc)
+            # Publish to serial
+            self.myserial.flush()
+            self.myserial.write(pwm.array2string().encode('utf-8'))
 
     # This method is the callback for updating the latest voltage read
     def update_voltage(self, voltage):
@@ -116,6 +134,19 @@ class ThrusterConverter:
         return sum([COEFFICIENTS[i] * terms[i] for i in range(len(terms))])
 
     def run(self):
+        # Connect to the serial output port
+        with open(rr.get_filename(FTDI_FILE_PATH, use_protocol=False)) as f:
+            self.ftdi_strings = yaml.safe_load(f)
+        while self.serial_port is None and not rospy.is_shutdown():
+            try:
+                self.serial_port = next(list_ports.grep('|'.join(self.ftdi_strings))).device
+                self.myserial = serial.Serial(self.serial_port, BAUDRATE,
+                                                timeout=0.1, write_timeout=1.0,
+                                                bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
+                                                stopbits=serial.STOPBITS_ONE)
+            except StopIteration:
+                rospy.logerr("Thrusters not found, trying again in 0.1 seconds.")
+                rospy.sleep(0.1)
         rospy.spin()
 
 if __name__ == '__main__':
