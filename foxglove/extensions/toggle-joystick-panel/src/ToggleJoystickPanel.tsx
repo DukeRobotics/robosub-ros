@@ -41,7 +41,7 @@ type Vector3 = {
   x: number;
   y: number;
   z: number;
-}
+};
 
 type State = {
   topicName: string;
