@@ -32,6 +32,17 @@ type JoystickInputs = {
   torpedoTwoLaunch: boolean;
 };
 
+type Twist = {
+  linear: Vector3;
+  angular: Vector3;
+};
+
+type Vector3 = {
+  x: number;
+  y: number;
+  z: number;
+}
+
 type State = {
   topicName: string;
   request: string;
