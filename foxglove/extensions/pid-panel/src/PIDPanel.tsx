@@ -26,8 +26,8 @@ enum AxesTypes {
 
 // Enum for PID types
 enum PIDTypes {
-  POSITION_PID,
-  VELOCITY_PID,
+  LOOP_POSITION,
+  LOOP_VELOCITY,
 }
 
 // Type for the gains
@@ -101,7 +101,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
         const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<PID>;
 
-        console.log(lastFrame.message[PIDTypes.POSITION_PID][AxesTypes.AXIS_X][GainTypes.GAIN_KP]);
+        console.log(lastFrame.message[PIDTypes.LOOP_POSITION][AxesTypes.AXIS_X][GainTypes.GAIN_KP]);
 
         setState((oldState) => ({ ...oldState, message: lastFrame }));
       }
