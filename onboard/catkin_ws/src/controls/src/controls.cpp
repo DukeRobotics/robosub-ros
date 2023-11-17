@@ -49,6 +49,7 @@ Controls::Controls(int argc, char **argv)
     thruster_allocs_pub = nh.advertise<custom_msgs::ThrusterAllocs>("controls/thruster_allocs", 1);
     desired_thruster_allocs_pub = nh.advertise<custom_msgs::ThrusterAllocs>("controls/desired_thruster_allocs", 1);
     set_power_pub = nh.advertise<geometry_msgs::Twist>("controls/set_power", 1);
+    actual_power_pub = nh.advertise<geometry_msgs::Twist>("controls/actual_power", 1);
     pid_gains_pub = nh.advertise<custom_msgs::PIDGains>("controls/pid_gains", 1);
     control_types_pub = nh.advertise<custom_msgs::ControlTypes>("controls/control_types", 1);
     position_error_pub = nh.advertise<geometry_msgs::Pose>("controls/position/error", 1);
@@ -124,6 +125,7 @@ void Controls::run()
 
     custom_msgs::ThrusterAllocs t;
     geometry_msgs::Twist set_power_msg;
+    geometry_msgs::Twist actual_power_msg;
     custom_msgs::ControlTypes control_types_msg;
     std_msgs::Bool status_msg;
 
@@ -158,6 +160,9 @@ void Controls::run()
 
         ControlsUtils::eigen_vector_to_twist(set_power, set_power_msg);
         set_power_pub.publish(set_power_msg);
+
+        ControlsUtils::eigen_vector_to_twist(actual_power, actual_power_msg);
+        actual_power_pub.publish(actual_power_msg);
 
         ControlsUtils::map_to_control_types(control_types, control_types_msg);
         control_types_pub.publish(control_types_msg);
