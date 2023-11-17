@@ -182,3 +182,13 @@ jobs:
         run: |
           source ${{ matrix.workspace }}/catkin_ws/devel/setup.bash
           ./scripts/test-launch.py
+
+  build-foxglove:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build all Foxglove extensions
+        run: |
+          cd foxglove
+          ./foxglove.py install -e
