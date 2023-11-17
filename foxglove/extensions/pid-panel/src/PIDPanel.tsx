@@ -1,10 +1,49 @@
-import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
+import { Immutable, PanelExtensionContext, RenderState, MessageEvent } from "@foxglove/studio";
 import { Alert, Tab, Tabs, TableBody, TableContainer, TableCell, TableRow, TableHead, Table } from "@mui/material";
 // X import { JsonViewer } from "@textea/json-viewer";
 import { useEffect, useLayoutEffect, useState } from "react";
 import React = require("react");
 import { JSX } from "react/jsx-runtime";
 import { createRoot } from "react-dom/client";
+
+// Enum for gain types
+enum GainTypes {
+  GAIN_KP,
+  GAIN_KI,
+  GAIN_KD,
+  GAIN_FF,
+}
+
+// Enum for axes
+enum AxesTypes {
+  AXIS_X,
+  AXIS_Y,
+  AXIS_Z,
+  AXIS_ROLL,
+  AXIS_PITCH,
+  AXIS_YAW,
+}
+
+// Enum for PID types
+enum PIDTypes {
+  POSITION_PID,
+  VELOCITY_PID,
+}
+
+// Type for the gains
+type Gain = {
+  [key in GainTypes]: number;
+};
+
+// Type for the axes
+type Axes = {
+  [key in AxesTypes]: Gain;
+};
+
+// Type for the PID object
+type PID = {
+  [key in PIDTypes]: Axes;
+};
 
 type State = {
   serviceName: string;
@@ -14,6 +53,7 @@ type State = {
   colorScheme?: RenderState["colorScheme"];
   panelMode: PanelMode;
 };
+
 // Triple nested dictionary to get PID values
 const gains: Record<string, number> = {
   GAIN_KP: 0,
@@ -50,11 +90,21 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
   const [state, setState] = useState<State>({ serviceName: "", request: "{}", panelMode: PanelMode.SUBSCRIBING });
 
+
+
   // Update color scheme
   useLayoutEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
-      setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
       setRenderDone(() => done);
+      setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
+
+      if (renderState.currentFrame && renderState.currentFrame.length > 0) {
+        const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<PID>;
+
+        console.log(lastFrame.message[PIDTypes.POSITION_PID][AxesTypes.AXIS_X][GainTypes.GAIN_KP]);
+
+        setState((oldState) => ({ ...oldState, message: lastFrame }));
+      }
     };
   }, [context]);
   context.watch("colorScheme");
@@ -132,7 +182,6 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
               </TableRow>
             </TableHead>
             <TableBody>
-              {/* https://www.reddit.com/media?url=https%3A%2F%2Fi.redd.it%2Fzxb4zyl864xb1.png honest opinion on this language */}
               {pid[pidTypeToUpdate] &&
                 Object.entries(pid[pidTypeToUpdate]).map(([axis, g]) => (
                   <TableRow key={axis}>
