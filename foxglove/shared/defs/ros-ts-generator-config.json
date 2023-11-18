@@ -3,6 +3,10 @@
   "rosVersion": 1,
   "input": [
     {
+      "namespace": "custom_msgs",
+      "path": "../../../core/catkin_ws/src/custom_msgs"
+    },
+    {
       "namespace": "rosmaster",
       "path": "./share/rosmaster"
     },
