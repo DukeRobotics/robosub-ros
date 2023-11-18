@@ -24,7 +24,7 @@ import pathlib
 import datetime
 import platform
 import argparse
-from typing import Sequence
+from typing import Sequence, Union
 
 ORGANIZATION = "dukerobotics"
 
@@ -43,7 +43,7 @@ EXTENSION_PATHS = [d for d in (FOXGLOVE_PATH / "extensions").iterdir() if d.is_d
 LAYOUTS_PATH = FOXGLOVE_PATH / "layouts"
 
 
-def run_at_path(command: str, directory: pathlib.Path, system: str = SYSTEM):
+def run_at_path(command: Union[str, Sequence[str]], directory: pathlib.Path, system: str = SYSTEM):
     """
     Run a command at a given path.
 
@@ -56,15 +56,43 @@ def run_at_path(command: str, directory: pathlib.Path, system: str = SYSTEM):
         ValueError: If command empty.
         subprocess.CalledProcessError: If command returns non-zero exit code.
     """
-    if command == "":
+    if not command:
         raise ValueError("Command must not be empty")
 
-    args = command.split(' ')
+    if isinstance(command, str):
+        args = command.split(' ')
+    else:
+        args = list(command)
+
     if system == "Windows":
         args[0] += ".cmd"
 
     print(f"{directory.name}: {command}")
     subprocess.run(args, cwd=directory, check=True)
+
+
+def build_deps(skip_ci: bool = False):
+    """
+    Build all necessary dependencies for Foxglove.
+    """
+    run = functools.partial(run_at_path, directory=FOXGLOVE_PATH)
+
+    try:
+        run("npm -v")
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        raise SystemExit("npm not found. Install npm and try again.")
+
+    # Install dependencies
+    if not skip_ci:
+        run("npm ci")
+
+    # Patch dependencies
+    run("npx patch-package --patch-dir patches")
+
+    # Compile local shared dependencies
+    dependencies = [d for d in (FOXGLOVE_PATH / "shared").iterdir() if d.is_dir()]
+    for dep in dependencies:
+        run_at_path("npm run build", dep)
 
 
 def install_extensions(extension_paths: Sequence[pathlib.Path]):
@@ -80,21 +108,13 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
     except (FileNotFoundError, subprocess.CalledProcessError):
         raise SystemExit("npm not found. Install npm and try again.")
 
-    run_at_path("npm ci", FOXGLOVE_PATH)
-    run_at_path("npx patch-package --patch-dir patches", FOXGLOVE_PATH)
-
-    # Foxglove custom message definitions
-    run_at_path("npx ts-node index.ts", FOXGLOVE_PATH / "defs/src")
-
     successes = 0
     for extension in extension_paths:
-        run = functools.partial(run_at_path, directory=extension)
-
         if not (extension / "package.json").is_file():
             print(f"{extension.name}: skipped (no package.json)")
             continue
 
-        run("npm run local-install")
+        run_at_path("npm run local-install", extension)
 
         print(f"{extension.name}: installed")
 
@@ -202,6 +222,7 @@ if __name__ == "__main__":
 
     install_parser = subparsers.add_parser(
         'install',
+        aliases=['i'],
         help='Install Foxglove extensions and layouts. By default, all extensions and layouts are installed.'
     )
     install_parser.add_argument(
@@ -216,17 +237,34 @@ if __name__ == "__main__":
         action='store_true',
         help="Install all layouts."
     )
+    install_parser.add_argument(
+        '--skip-ci',
+        action='store_true',
+        help="Use existing node_modules instead of clean installing external dependencies."
+    )
 
     uninstall_parser = subparsers.add_parser(
         'uninstall',
+        aliases=['u'],
         help='Uninstall Foxglove extensions and layouts. By default, all extensions and layouts are uninstalled.'
     )
     uninstall_parser.add_argument('-e', '--extensions', action='store_true', help="Uninstall all extensions.")
     uninstall_parser.add_argument('-l', '--layouts', action='store_true', help="Uninstall all layouts.")
 
+    build_parser = subparsers.add_parser(
+        'build',
+        aliases=['b'],
+        help='Build all necessary dependencies for Foxglove.'
+    )
+    build_parser.add_argument(
+        '--skip-ci',
+        action='store_true',
+        help="Use existing node_modules instead of clean installing external dependencies."
+    )
+
     args = parser.parse_args()
 
-    if args.action == "install":
+    if args.action in ("install", "i"):
         # Without flags, install everything
         if args.extensions is None and args.layouts is False:
             args.extensions = EXTENSION_PATHS
@@ -236,11 +274,12 @@ if __name__ == "__main__":
             args.extensions = EXTENSION_PATHS
 
         if args.extensions is not None:
+            build_deps(skip_ci=args.skip_ci)
             install_extensions(args.extensions)
         if args.layouts:
             install_layouts()
 
-    elif args.action == "uninstall":
+    elif args.action in ("uninstall", "u"):
         # Without flags, uninstall everything
         if args.extensions is False and args.layouts is False:
             args.extensions = True
@@ -250,3 +289,6 @@ if __name__ == "__main__":
             uninstall_extensions()
         if args.layouts:
             uninstall_layouts()
+
+    elif args.action in ("build", "b"):
+        build_deps(skip_ci=args.skip_ci)

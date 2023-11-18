@@ -3,10 +3,7 @@
   "version": "0.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist/"
-  ],
   "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json"
   }
 }
