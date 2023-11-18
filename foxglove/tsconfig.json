@@ -3,6 +3,8 @@
 
   "include": ["./extensions/*/src/**/*", "./shared/*/src/**/*"],
   "compilerOptions": {
+    "moduleResolution": "NodeNext",
+
     "lib": ["dom"],
 
     // Prevent typescript from emitting .d.ts files we don't need in the compiled extension

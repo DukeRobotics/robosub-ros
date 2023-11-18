@@ -3,5 +3,15 @@
   "version": "0.0.0",
   "scripts": {
     "build": "rimraf custom_msg_defs datatype_maps && npx ts-node src/index.ts"
+  },
+  "exports": {
+    "./datatype_maps": {
+      "import": "./datatype_maps/dist/index.js",
+      "types": "./datatype_maps/dist/index.d.ts"
+    },
+    "./custom_msg_defs": {
+      "import": "./custom_msg_defs/dist/index.js",
+      "types": "./custom_msg_defs/dist/index.d.ts"
+    }
   }
 }

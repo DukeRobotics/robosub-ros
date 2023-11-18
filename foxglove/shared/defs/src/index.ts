@@ -9,7 +9,7 @@ const MSGDEFS_PATH = "../../../core/catkin_ws/src/custom_msgs/msg";
 const MSGDEFS_SAVE_DIR = "custom_msg_defs/dist";
 
 const DATATYPE_MAPS_SAVE_DIR = "datatype_maps/dist";
-const MSG_DEFS_RELATIVE_PATH = "../custom_msg_defs/dist";
+const MSG_DEFS_RELATIVE_PATH = "../../custom_msg_defs/dist";
 
 async function main() {
   const definitionsByGroup = await writeMessageDefinitions(MSGDEFS_PATH, MSGDEFS_SAVE_DIR);
