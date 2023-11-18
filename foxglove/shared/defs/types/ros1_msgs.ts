@@ -51,17 +51,9 @@ export interface ActionlibTestAction {
 }
 
 export interface ActionlibTestActionFeedback {
-  feedback: number;
-}
-
-export interface ActionlibTestActionFeedback {
   header: StdMsgsHeader;
   status: ActionlibMsgsGoalStatus;
   feedback: ActionlibTestFeedback;
-}
-
-export interface ActionlibTestActionGoal {
-  goal: number;
 }
 
 export interface ActionlibTestActionGoal {
@@ -74,10 +66,6 @@ export interface ActionlibTestActionResult {
   header: StdMsgsHeader;
   status: ActionlibMsgsGoalStatus;
   result: ActionlibTestResult;
-}
-
-export interface ActionlibTestActionResult {
-  result: number;
 }
 
 export interface ActionlibTestFeedback {
