@@ -4,6 +4,7 @@
   "include": ["./extensions/*/src/**/*", "./shared/*/src/**/*"],
   "compilerOptions": {
     "moduleResolution": "NodeNext",
+    "module": "NodeNext",
 
     "lib": ["dom"],
 
