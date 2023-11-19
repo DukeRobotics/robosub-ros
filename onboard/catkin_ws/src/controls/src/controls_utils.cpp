@@ -19,14 +19,14 @@ bool ControlsUtils::value_in_control_types_enum(uint8_t value)
            value == ControlTypesEnum::DESIRED_POWER;
 }
 
-void ControlsUtils::twist_to_map(const geometry_msgs::Twist &twist, std::unordered_map<AxisEnum, double> &map)
+void ControlsUtils::twist_to_map(const geometry_msgs::Twist &twist, std::unordered_map<AxesEnum, double> &map)
 {
-    map[AxisEnum::X] = twist.linear.x;
-    map[AxisEnum::Y] = twist.linear.y;
-    map[AxisEnum::Z] = twist.linear.z;
-    map[AxisEnum::ROLL] = twist.angular.x;
-    map[AxisEnum::PITCH] = twist.angular.y;
-    map[AxisEnum::YAW] = twist.angular.z;
+    map[AxesEnum::X] = twist.linear.x;
+    map[AxesEnum::Y] = twist.linear.y;
+    map[AxesEnum::Z] = twist.linear.z;
+    map[AxesEnum::ROLL] = twist.angular.x;
+    map[AxesEnum::PITCH] = twist.angular.y;
+    map[AxesEnum::YAW] = twist.angular.z;
 }
 
 void ControlsUtils::eigen_vector_to_twist(const Eigen::VectorXd &vector, geometry_msgs::Twist &twist)
@@ -40,15 +40,15 @@ void ControlsUtils::eigen_vector_to_twist(const Eigen::VectorXd &vector, geometr
 }
 
 bool ControlsUtils::control_types_to_map(const custom_msgs::ControlTypes &control_types,
-                                         std::unordered_map<AxisEnum, ControlTypesEnum> &map)
+                                         std::unordered_map<AxesEnum, ControlTypesEnum> &map)
 {
-    std::unordered_map<AxisEnum, uint8_t> new_control_types;
-    new_control_types[AxisEnum::X] = control_types.x;
-    new_control_types[AxisEnum::Y] = control_types.y;
-    new_control_types[AxisEnum::Z] = control_types.z;
-    new_control_types[AxisEnum::ROLL] = control_types.roll;
-    new_control_types[AxisEnum::PITCH] = control_types.pitch;
-    new_control_types[AxisEnum::YAW] = control_types.yaw;
+    std::unordered_map<AxesEnum, uint8_t> new_control_types;
+    new_control_types[AxesEnum::X] = control_types.x;
+    new_control_types[AxesEnum::Y] = control_types.y;
+    new_control_types[AxesEnum::Z] = control_types.z;
+    new_control_types[AxesEnum::ROLL] = control_types.roll;
+    new_control_types[AxesEnum::PITCH] = control_types.pitch;
+    new_control_types[AxesEnum::YAW] = control_types.yaw;
 
     for (const auto &pair : new_control_types)
         if (!value_in_control_types_enum(pair.second))
@@ -60,15 +60,15 @@ bool ControlsUtils::control_types_to_map(const custom_msgs::ControlTypes &contro
     return true;
 }
 
-void ControlsUtils::map_to_control_types(const std::unordered_map<AxisEnum, ControlTypesEnum> &map,
+void ControlsUtils::map_to_control_types(const std::unordered_map<AxesEnum, ControlTypesEnum> &map,
                                          custom_msgs::ControlTypes &control_types)
 {
-    control_types.x = map.at(AxisEnum::X);
-    control_types.y = map.at(AxisEnum::Y);
-    control_types.z = map.at(AxisEnum::Z);
-    control_types.roll = map.at(AxisEnum::ROLL);
-    control_types.pitch = map.at(AxisEnum::PITCH);
-    control_types.yaw = map.at(AxisEnum::YAW);
+    control_types.x = map.at(AxesEnum::X);
+    control_types.y = map.at(AxesEnum::Y);
+    control_types.z = map.at(AxesEnum::Z);
+    control_types.roll = map.at(AxesEnum::ROLL);
+    control_types.pitch = map.at(AxesEnum::PITCH);
+    control_types.yaw = map.at(AxesEnum::YAW);
 }
 
 void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd &matrix)

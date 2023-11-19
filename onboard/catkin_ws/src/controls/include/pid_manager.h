@@ -9,11 +9,11 @@
 class PIDManager
 {
     public:
-        std::unordered_map<AxisEnum, PID> pid_controllers;
+        std::unordered_map<AxesEnum, PID> pid_controllers;
 
         PIDManager();
         PIDManager(AxesPIDGainsMap pid_gains_for_axes);
-        void run_loops(std::unordered_map<AxisEnum, double> errors, std::unordered_map<AxisEnum, double> deltaTimes);
+        void run_loops(std::unordered_map<AxesEnum, double> errors, std::unordered_map<AxesEnum, double> deltaTimes);
 };
 
 #endif

@@ -54,7 +54,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     status_pub = nh.advertise<std_msgs::Bool>("controls/status", 1);
 
     // Use desired pose as the default control type for all axes
-    for (const AxisEnum &axis : AXES)
+    for (const AxesEnum &axis : AXES)
         control_types[axis] = ControlTypesEnum::DESIRED_POSE;
 
     // Get PID gains from robot config file

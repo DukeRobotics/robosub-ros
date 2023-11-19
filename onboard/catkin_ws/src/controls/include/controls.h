@@ -65,10 +65,10 @@ public:
 
     ThrusterAllocator thruster_allocator;
 
-    std::unordered_map<AxisEnum, ControlTypesEnum> control_types;
-    std::unordered_map<AxisEnum, double> position_pid_outputs;
-    std::unordered_map<AxisEnum, double> velocity_pid_outputs;
-    std::unordered_map<AxisEnum, double> desired_power;
+    std::unordered_map<AxesEnum, ControlTypesEnum> control_types;
+    std::unordered_map<AxesEnum, double> position_pid_outputs;
+    std::unordered_map<AxesEnum, double> velocity_pid_outputs;
+    std::unordered_map<AxesEnum, double> desired_power;
 
     Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<tf::TransformListener> tf_listener);
     void desired_position_callback(const geometry_msgs::Pose msg);

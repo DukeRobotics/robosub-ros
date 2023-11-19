@@ -17,7 +17,7 @@ enum ControlTypesEnum : uint8_t
     DESIRED_POWER = custom_msgs::ControlTypes::DESIRED_POWER
 };
 
-enum AxisEnum : uint8_t
+enum AxesEnum : uint8_t
 {
     X = custom_msgs::PIDGain::AXIS_X,
     Y = custom_msgs::PIDGain::AXIS_Y,
@@ -27,16 +27,16 @@ enum AxisEnum : uint8_t
     YAW = custom_msgs::PIDGain::AXIS_YAW
 };
 const int AXES_COUNT = 6;
-const AxisEnum AXES[AXES_COUNT] = {AxisEnum::X, AxisEnum::Y, AxisEnum::Z,
-                                   AxisEnum::ROLL, AxisEnum::PITCH, AxisEnum::YAW};
+const AxesEnum AXES[AXES_COUNT] = {AxesEnum::X, AxesEnum::Y, AxesEnum::Z,
+                                   AxesEnum::ROLL, AxesEnum::PITCH, AxesEnum::YAW};
 
-const std::unordered_map<AxisEnum, std::string> AXES_NAMES = {
-    {AxisEnum::X, "x"},
-    {AxisEnum::Y, "y"},
-    {AxisEnum::Z, "z"},
-    {AxisEnum::ROLL, "roll"},
-    {AxisEnum::PITCH, "pitch"},
-    {AxisEnum::YAW, "yaw"}};
+const std::unordered_map<AxesEnum, std::string> AXES_NAMES = {
+    {AxesEnum::X, "x"},
+    {AxesEnum::Y, "y"},
+    {AxesEnum::Z, "z"},
+    {AxesEnum::ROLL, "roll"},
+    {AxesEnum::PITCH, "pitch"},
+    {AxesEnum::YAW, "yaw"}};
 
 enum PIDLoopTypesEnum : uint8_t
 {
@@ -68,18 +68,18 @@ const std::unordered_map<PIDGainTypesEnum, std::string> PID_GAIN_TYPES_NAMES = {
 const std::string ROBOT_CONFIG_FILE_PATH = "/root/dev/robosub-ros/onboard/catkin_ws/src/controls/config/" + std::string(std::getenv("ROBOT_NAME")) + ".yaml";
 
 typedef std::unordered_map<PIDGainTypesEnum, double> PIDGainsMap;
-typedef std::unordered_map<AxisEnum, std::shared_ptr<PIDGainsMap>> AxesPIDGainsMap;
+typedef std::unordered_map<AxesEnum, std::shared_ptr<PIDGainsMap>> AxesPIDGainsMap;
 typedef std::unordered_map<PIDLoopTypesEnum, AxesPIDGainsMap> LoopsAxesPIDGainsMap;
 
 class ControlsUtils
 {
 public:
     static bool value_in_control_types_enum(uint8_t value);
-    static void twist_to_map(const geometry_msgs::Twist &twist, std::unordered_map<AxisEnum, double> &map);
+    static void twist_to_map(const geometry_msgs::Twist &twist, std::unordered_map<AxesEnum, double> &map);
     static void eigen_vector_to_twist(const Eigen::VectorXd &vector, geometry_msgs::Twist &twist);
     static bool control_types_to_map(const custom_msgs::ControlTypes &control_types,
-                                     std::unordered_map<AxisEnum, ControlTypesEnum> &map);
-    static void map_to_control_types(const std::unordered_map<AxisEnum, ControlTypesEnum> &map,
+                                     std::unordered_map<AxesEnum, ControlTypesEnum> &map);
+    static void map_to_control_types(const std::unordered_map<AxesEnum, ControlTypesEnum> &map,
                                      custom_msgs::ControlTypes &control_types);
     static void read_matrix_from_csv(std::string file_path, Eigen::MatrixXd &matrix);
     static void read_robot_config(std::string file_path, LoopsAxesPIDGainsMap &robot_config, std::string &wrench_matrix_file_path, std::string &wrench_matrix_pinv_file_path);
