@@ -1,4 +1,4 @@
-import { CustomMsgsSystemUsage } from "@duke-robotics/defs/types/ros1";
+import { CustomMsgsSystemUsage } from "@duke-robotics/defs/types";
 import theme from "@duke-robotics/theme";
 import { PanelExtensionContext, RenderState, MessageEvent, Immutable } from "@foxglove/studio";
 import {

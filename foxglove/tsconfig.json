@@ -23,7 +23,7 @@
 
     "baseUrl": ".",
     "paths": {
-      "@duke-robotics/defs/types/ros1": ["shared/defs/types/dist/types.ts"],
-    },
+      "@duke-robotics/defs/types": ["shared/defs/types/dist/types.ts"]
+    }
   }
 }
