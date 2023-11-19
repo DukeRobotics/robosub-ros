@@ -58,15 +58,16 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
         control_types[axis] = ControlTypesEnum::DESIRED_POSE;
 
     // TODO: Get PID gains from robot config file
+    std::string wrench_matrix_file_path;
+    std::string wrench_matrix_pinv_file_path;
+    ControlsUtils::read_robot_config("/root/dev/robosub-ros/onboard/catkin_ws/src/controls/config/oogway.yaml", all_pid_gains, wrench_matrix_file_path, wrench_matrix_pinv_file_path);
 
     // TODO: Instantiate PID managers for each PID loop type
     for(const PIDLoopTypesEnum& pid_loop_type : PID_LOOP_TYPES)
         pid_managers[pid_loop_type] = PIDManager(all_pid_gains[pid_loop_type]);
 
     // TODO: Get csv file paths from robot config file
-    thruster_allocator = ThrusterAllocator(
-        "/root/dev/robosub-ros/onboard/catkin_ws/src/controls/config/oogway_wrench.csv",
-        "/root/dev/robosub-ros/onboard/catkin_ws/src/controls/config/oogway_wrench_pinv.csv");
+    thruster_allocator = ThrusterAllocator(wrench_matrix_file_path, wrench_matrix_pinv_file_path);
 }
 
 void Controls::desired_position_callback(const geometry_msgs::Pose msg)
