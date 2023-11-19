@@ -5,7 +5,7 @@
     "clean": "rimraf --glob custom_msg_defs/dist/* datatype_maps/dist/* types/dist/* && mkdirp types/dist",
     "build-ts": "npx ts-node src/index.ts",
     "generate-types": "npx ros-typescript-generator --config custom-msgs-ts-generator-config.json",
-    "concatenate-types": "concat-cli -f 'types/dist/custom_msgs.ts' 'types/ros1_msgs.ts' -o 'types/dist/types.ts'",
+    "concatenate-types": "concat-cli -f types/dist/custom_msgs.ts types/ros1_msgs.ts -o types/dist/types.ts",
     "build": "npm run clean && npm run build-ts && npm run generate-types && npm run concatenate-types"
   },
   "exports": {
