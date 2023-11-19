@@ -1,12 +1,14 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <memory>
 #include <unordered_map>
 #include <string>
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <custom_msgs/ControlTypes.h>
 #include <Eigen/Dense>
+#include <yaml-cpp/yaml.h>
 
 #include "controls_utils.h"
 
@@ -123,4 +125,42 @@ void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd 
     for (int i = 0; i < rows; ++i)
         for (int j = 0; j < cols; ++j)
             matrix(i, j) = data[i][j];
+}
+
+void ControlsUtils::read_robot_config(std::string file_path,
+                                      LoopsAxesPIDGainsMap &robot_config,
+                                      std::string &wrench_matrix_file_path,
+                                      std::string &wrench_matrix_pinv_file_path)
+{
+    try
+    {
+        YAML::Node config = YAML::LoadFile(file_path);
+
+        // Read PID gains
+        YAML::Node pid = config["pid"];
+
+        for (const auto &loop_type : PID_LOOP_TYPES)
+        {
+            YAML::Node loop = pid[PID_LOOP_TYPES_NAMES.at(loop_type)];
+            for (const auto &axis : AXES)
+            {
+                YAML::Node axis_node = loop[AXES_NAMES.at(axis)];
+                std::shared_ptr<PIDGainsMap> gains = std::make_shared<PIDGainsMap>();
+
+                for (const auto &gain : PID_GAIN_TYPES)
+                    (*gains)[gain] = axis_node[PID_GAIN_TYPES_NAMES.at(gain)].as<double>();
+
+                robot_config[loop_type][axis] = gains;
+            }
+        }
+
+        // Read wrench matrix file paths
+        wrench_matrix_file_path = config["wrench_matrix_file_path"].as<std::string>();
+        wrench_matrix_pinv_file_path = config["wrench_matrix_pinv_file_path"].as<std::string>();
+    }
+    catch
+    {
+        ROS_ERROR("Could not read robot config file. %s", file_path.c_str());
+        throw;
+    }
 }
