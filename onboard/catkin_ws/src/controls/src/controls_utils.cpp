@@ -136,7 +136,6 @@ void ControlsUtils::read_robot_config(std::string file_path,
     {
         YAML::Node config = YAML::LoadFile(file_path);
 
-        // Read PID gains
         YAML::Node pid = config["pid"];
 
         for (const auto &loop_type : PID_LOOP_TYPES)
@@ -158,9 +157,9 @@ void ControlsUtils::read_robot_config(std::string file_path,
         wrench_matrix_file_path = config["wrench_matrix_file_path"].as<std::string>();
         wrench_matrix_pinv_file_path = config["wrench_matrix_pinv_file_path"].as<std::string>();
     }
-    catch
+    catch (const std::exception &e)
     {
-        ROS_ERROR("Could not read robot config file. %s", file_path.c_str());
+        ROS_ERROR("Could not read robot config file. Make sure it is in the correct format. %s", file_path.c_str());
         throw;
     }
 }
