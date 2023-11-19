@@ -1,11 +1,10 @@
-import { parse, fixupTypes } from '@foxglove/rosmsg';
-import { ros1 } from "@foxglove/rosmsg-msgs-common";
 import { MessageDefinitionField } from '@foxglove/message-definition';
+import { parse, fixupTypes } from '@foxglove/rosmsg';
+import { ros1 } from '@foxglove/rosmsg-msgs-common';
 import { camelCase, compact, partition, upperFirst } from 'lodash';
 
-import { IConfig } from '../types/config';
-
 import { primitives1, primitives2 } from './primitives';
+import { IConfig } from '../types/config';
 
 const SUPPORTED_ROS_VERSIONS = [1, 2];
 
@@ -16,16 +15,21 @@ const rosNameToTypeName = (rosName: string, prefix = '') =>
 export const generateFromRosMsg = (
   rosDefinition: string,
   typePrefix = '',
-  rosVersion: IConfig['rosVersion'] = 2
+  rosVersion: IConfig['rosVersion'] = 2,
 ) => {
   if (!SUPPORTED_ROS_VERSIONS.includes(rosVersion)) {
     throw new Error('Unsupported rosVersion');
   }
 
-  const messageDefinitions = parse(rosDefinition, { ros2: rosVersion === 2, skipTypeFixup: true });
+  const messageDefinitions = parse(rosDefinition, {
+    ros2: rosVersion === 2,
+    skipTypeFixup: true,
+  });
   const primitives = rosVersion === 1 ? primitives1 : primitives2;
 
-  const allMessageDefinitions = Object.values(messageDefinitions).concat(Object.values(ros1));
+  const allMessageDefinitions = Object.values(messageDefinitions).concat(
+    Object.values(ros1),
+  );
   fixupTypes(allMessageDefinitions);
 
   function isOfNoneEmptyType(field: MessageDefinitionField): boolean {
@@ -42,7 +46,7 @@ export const generateFromRosMsg = (
     }
 
     throw new Error(
-      `Field with type "${field.type}" doesn't exist in message definitions`
+      `Field with type "${field.type}" doesn't exist in message definitions`,
     );
   }
 
@@ -70,7 +74,7 @@ export const generateFromRosMsg = (
       // Find the constant and variable definitions
       const [defConstants, defTypes] = partition(
         definition.definitions,
-        (field) => field.isConstant
+        (field) => field.isConstant,
       );
 
       // Generate the ts types for the key val items

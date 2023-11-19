@@ -1,12 +1,9 @@
 import { readdir, readFile, writeFile } from 'fs/promises';
-import { join } from 'path';
-import { basename } from 'path';
-
-/* eslint-disable functional/prefer-readonly-type,functional/no-let,functional/no-loop-statement,functional/immutable-data */
+import { join, basename } from 'path';
 
 export const generateMsgsFromSrvFiles = async (
   inputFilePath: string,
-  tmpDir: string
+  tmpDir: string,
 ): Promise<string[]> => {
   try {
     const srvName = basename(inputFilePath, '.srv');
@@ -20,15 +17,13 @@ export const generateMsgsFromSrvFiles = async (
 
     // Check if a part is empty or consists only of lines starting with #
     const isRequestValid =
-      !request ||
-      !request.trim() ||
+      !request?.trim() ||
       request
         .trim()
         .split('\n')
         .every((line) => line.trim().startsWith('#'));
     const isResponseValid =
-      !response ||
-      !response.trim() ||
+      !response?.trim() ||
       response
         .trim()
         .split('\n')
@@ -56,7 +51,7 @@ export const generateMsgsFromSrvFiles = async (
 
 export const generateMsgsFromActionsFiles = async (
   inputFilePath: string,
-  tmpDir: string
+  tmpDir: string,
 ): Promise<string[]> => {
   try {
     const srvName = basename(inputFilePath, '.action');
@@ -115,7 +110,7 @@ export const generateMsgsFromActionsFiles = async (
 
 export const getMsgFiles = async (
   dir: string,
-  tmpDir: string
+  tmpDir: string,
 ): Promise<string[]> => {
   let output: string[] = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
@@ -126,33 +121,32 @@ export const getMsgFiles = async (
     } else if (entry.isFile() && entry.name.endsWith('.srv')) {
       const srvFiles = await generateMsgsFromSrvFiles(
         dir + '/' + entry.name,
-        tmpDir
+        tmpDir,
       );
       output.push(...srvFiles);
     } else if (entry.isFile() && entry.name.endsWith('.action')) {
       const actionFiles = await generateMsgsFromActionsFiles(
         dir + '/' + entry.name,
-        tmpDir
+        tmpDir,
       );
       output.push(...actionFiles);
     }
   }
   return output;
 };
-/* eslint-enable functional/prefer-readonly-type,functional/no-let,functional/no-loop-statement,functional/immutable-data */
 
 export const getMsgFilesData = async (
   dir: string,
   namespace: string,
-  tmpDir: string
+  tmpDir: string,
 ) => {
   const filePaths = await getMsgFiles(dir, tmpDir);
-  return Promise.all(
+  return await Promise.all(
     filePaths.map(async (filePath) => ({
       path: filePath,
       data: await readFile(filePath, { encoding: 'utf-8' }),
       namespace,
       name: basename(filePath, '.msg'),
-    }))
+    })),
   );
 };
