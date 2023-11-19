@@ -16,7 +16,7 @@ export const generateFromRosMsg = (
   rosDefinition: string,
   typePrefix = '',
   rosVersion: IConfig['rosVersion'] = 2,
-) => {
+): boolean | string => {
   if (!SUPPORTED_ROS_VERSIONS.includes(rosVersion)) {
     throw new Error('Unsupported rosVersion');
   }
@@ -33,12 +33,12 @@ export const generateFromRosMsg = (
   fixupTypes(allMessageDefinitions);
 
   function isOfNoneEmptyType(field: MessageDefinitionField): boolean {
-    if (!field.isComplex) {
+    if (!(field.isComplex ?? false)) {
       return true;
     }
 
-    const definition = allMessageDefinitions.find((definition) => {
-      return definition.name === field.type;
+    const definition = allMessageDefinitions.find((def) => {
+      return def.name === field.type;
     });
 
     if (definition) {
@@ -69,7 +69,7 @@ export const generateFromRosMsg = (
   return messageDefinitions
     .map((definition) => {
       // Get the interface key
-      const typeName = rosNameToTypeName(definition.name || '', typePrefix);
+      const typeName = rosNameToTypeName(definition.name ?? '', typePrefix);
 
       // Find the constant and variable definitions
       const [defConstants, defTypes] = partition(
@@ -86,7 +86,7 @@ export const generateFromRosMsg = (
               ? primitives[param.type as keyof typeof primitives]
               : rosNameToTypeName(param.type, typePrefix);
 
-          const arrayMarker = param.isArray ? '[]' : '';
+          const arrayMarker = param.isArray ?? false ? '[]' : '';
           return `  ${param.name}: ${paramType}${arrayMarker};`;
         })
         .join('\n');

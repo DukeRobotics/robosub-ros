@@ -139,7 +139,9 @@ export const getMsgFilesData = async (
   dir: string,
   namespace: string,
   tmpDir: string,
-) => {
+): Promise<
+  Array<{ path: string; data: string; namespace: string; name: string }>
+> => {
   const filePaths = await getMsgFiles(dir, tmpDir);
   return await Promise.all(
     filePaths.map(async (filePath) => ({

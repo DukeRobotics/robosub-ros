@@ -7,7 +7,9 @@ import { generateFromRosMsg } from './generateFromRosMsg';
 import { getMsgFilesData } from './readMsgFiles';
 import { IConfig } from '../types/config';
 
-export const rosTypescriptGenerator = async (config: IConfig) => {
+export const rosTypescriptGenerator = async (
+  config: IConfig,
+): Promise<boolean | string> => {
   // TMP dir for generated msg files from action and srv files
   const tempDir = await mkdtemp(join(tmpdir(), 'ros-typescript-generator-'));
 
