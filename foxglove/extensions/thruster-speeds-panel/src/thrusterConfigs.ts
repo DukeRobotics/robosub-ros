@@ -1,4 +1,4 @@
-import { readFile, writeFile } from "fs/promises";
+import { readFile, writeFile, mkdir } from "fs/promises";
 import { load } from "js-yaml";
 import { join } from "path";
 import { format, Options } from "prettier";
@@ -96,6 +96,7 @@ async function writeThrusterConfigs(thrusterConfigsSaveDir: string): Promise<voi
 
   const tsOutput = await generateTsLibrary(EXPORT_VAR_NAME_CONFIGS, EXPORT_VAR_NAME_ORDERS);
 
+  await mkdir(thrusterConfigsSaveDir, { recursive: true });
   await writeFile(libFile, libOutput);
   await writeFile(esmFile, esmOutput);
   await writeFile(tsFile, tsOutput);
