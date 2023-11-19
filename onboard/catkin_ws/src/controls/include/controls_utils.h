@@ -1,6 +1,7 @@
 #ifndef CONTROLS_UTILS_H
 #define CONTROLS_UTILS_H
 
+#include <cstdlib>
 #include <memory>
 #include <unordered_map>
 #include <string>
@@ -63,6 +64,8 @@ const std::unordered_map<PIDGainTypesEnum, std::string> PID_GAIN_TYPES_NAMES = {
     {PIDGainTypesEnum::KI, "Ki"},
     {PIDGainTypesEnum::KD, "Kd"},
     {PIDGainTypesEnum::FF, "Ff"}};
+
+const std::string ROBOT_CONFIG_FILE_PATH = "/root/dev/robosub-ros/onboard/catkin_ws/src/controls/config/" + std::string(std::getenv("ROBOT_NAME")) + ".yaml";
 
 typedef std::unordered_map<PIDGainTypesEnum, double> PIDGainsMap;
 typedef std::unordered_map<AxisEnum, std::shared_ptr<PIDGainsMap>> AxesPIDGainsMap;
