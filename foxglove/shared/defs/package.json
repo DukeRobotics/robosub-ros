@@ -4,9 +4,6 @@
   "scripts": {
     "build": "rimraf custom_msg_defs datatype_maps && npx ts-node src/index.ts"
   },
-  "devDependencies": {
-    "ros-typescript-generator": "^1.7.0"
-  },
   "exports": {
     "./datatype_maps": {
       "import": "./datatype_maps/dist/index.js",
