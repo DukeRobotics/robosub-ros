@@ -1,14 +1,14 @@
 #ifndef PID_H
 #define PID_H
 
-#include <unordered_map>
+#include <memory>
 #include <Eigen/Dense>
 #include "controls_utils.h"
 
 class PID
 {
 public:
-    PIDGainsMap *pid_gains;
+    std::shared_ptr<PIDGainsMap> pid_gains;
     double integral_clamp;
     double cutoff_freq;
     bool angle_correction;
@@ -16,7 +16,7 @@ public:
     double integral;
 
     PID();
-    PID(PIDGainsMap &pid_gains,
+    PID(std::shared_ptr<PIDGainsMap> pid_gains,
         double integral_clamp = 1000.0,
         double cutoff_freq = 5.0,
         bool angle_correction = true);

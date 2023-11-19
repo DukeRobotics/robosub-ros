@@ -10,7 +10,7 @@ PIDManager::PIDManager()
         pid_controllers[axis] = PID();
 }
 
-PIDManager::PIDManager(AxesPIDGainsMap &pid_gains_for_axes)
+PIDManager::PIDManager(AxesPIDGainsMap pid_gains_for_axes)
 {
     // Initialize PID controllers
     for (const AxisEnum &axis : AXES)

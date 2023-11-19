@@ -1,14 +1,14 @@
-#include <unordered_map>
+#include <memory>
 #include "pid.h"
 
 PID::PID() {};
 
-PID::PID(PIDGainsMap &pid_gains,
+PID::PID(std::shared_ptr<PIDGainsMap> pid_gains,
          double integral_clamp,
          double cutoff_freq,
          bool angle_correction)
 {
-    this->pid_gains = &pid_gains;
+    this->pid_gains = pid_gains;
     this->integral_clamp = integral_clamp;
     this->cutoff_freq = cutoff_freq;
     this->angle_correction = angle_correction;

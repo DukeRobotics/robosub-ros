@@ -1,6 +1,7 @@
 #ifndef CONTROLS_UTILS_H
 #define CONTROLS_UTILS_H
 
+#include <memory>
 #include <unordered_map>
 #include <string>
 #include <geometry_msgs/Twist.h>
@@ -48,7 +49,7 @@ const PIDGainTypesEnum PID_GAIN_TYPES[PID_GAIN_TYPES_COUNT] = {PIDGainTypesEnum:
                                                                PIDGainTypesEnum::KD, PIDGainTypesEnum::FF};
 
 typedef std::unordered_map<PIDGainTypesEnum, double> PIDGainsMap;
-typedef std::unordered_map<AxisEnum, PIDGainsMap> AxesPIDGainsMap;
+typedef std::unordered_map<AxisEnum, std::shared_ptr<PIDGainsMap>> AxesPIDGainsMap;
 typedef std::unordered_map<PIDLoopTypesEnum, AxesPIDGainsMap> LoopsAxesPIDGainsMap;
 
 
