@@ -29,6 +29,14 @@ const int AXES_COUNT = 6;
 const AxisEnum AXES[AXES_COUNT] = {AxisEnum::X, AxisEnum::Y, AxisEnum::Z,
                                    AxisEnum::ROLL, AxisEnum::PITCH, AxisEnum::YAW};
 
+const std::unordered_map<AxisEnum, std::string> AXES_NAMES = {
+    {AxisEnum::X, "x"},
+    {AxisEnum::Y, "y"},
+    {AxisEnum::Z, "z"},
+    {AxisEnum::ROLL, "roll"},
+    {AxisEnum::PITCH, "pitch"},
+    {AxisEnum::YAW, "yaw"}};
+
 enum PIDLoopTypesEnum : uint8_t
 {
     POSITION = custom_msgs::PIDGain::LOOP_POSITION,
@@ -36,6 +44,9 @@ enum PIDLoopTypesEnum : uint8_t
 };
 const int PID_LOOP_TYPES_COUNT = 2;
 const PIDLoopTypesEnum PID_LOOP_TYPES[PID_LOOP_TYPES_COUNT] = {PIDLoopTypesEnum::POSITION, PIDLoopTypesEnum::VELOCITY};
+const std::unordered_map<PIDLoopTypesEnum, std::string> PID_LOOP_TYPES_NAMES = {
+    {PIDLoopTypesEnum::POSITION, "position"},
+    {PIDLoopTypesEnum::VELOCITY, "velocity"}};
 
 enum PIDGainTypesEnum : uint8_t
 {
@@ -47,11 +58,15 @@ enum PIDGainTypesEnum : uint8_t
 const int PID_GAIN_TYPES_COUNT = 4;
 const PIDGainTypesEnum PID_GAIN_TYPES[PID_GAIN_TYPES_COUNT] = {PIDGainTypesEnum::KP, PIDGainTypesEnum::KI,
                                                                PIDGainTypesEnum::KD, PIDGainTypesEnum::FF};
+const std::unordered_map<PIDGainTypesEnum, std::string> PID_GAIN_TYPES_NAMES = {
+    {PIDGainTypesEnum::KP, "Kp"},
+    {PIDGainTypesEnum::KI, "Ki"},
+    {PIDGainTypesEnum::KD, "Kd"},
+    {PIDGainTypesEnum::FF, "Ff"}};
 
 typedef std::unordered_map<PIDGainTypesEnum, double> PIDGainsMap;
 typedef std::unordered_map<AxisEnum, std::shared_ptr<PIDGainsMap>> AxesPIDGainsMap;
 typedef std::unordered_map<PIDLoopTypesEnum, AxesPIDGainsMap> LoopsAxesPIDGainsMap;
-
 
 class ControlsUtils
 {
@@ -64,6 +79,7 @@ public:
     static void map_to_control_types(const std::unordered_map<AxisEnum, ControlTypesEnum> &map,
                                      custom_msgs::ControlTypes &control_types);
     static void read_matrix_from_csv(std::string file_path, Eigen::MatrixXd &matrix);
+    static void read_robot_config(std::string file_path, LoopsAxesPIDGainsMap &robot_config, std::string &wrench_matrix_file_path, std::string &wrench_matrix_pinv_file_path);
 };
 
 #endif
