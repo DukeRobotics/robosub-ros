@@ -3,11 +3,11 @@ import { CheckCircleOutline, HighlightOff } from "@mui/icons-material";
 import { TextField, Button, Alert, Tab, Tabs, CssBaseline, useMediaQuery } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { useCallback, useEffect, useLayoutEffect, useState, useRef } from "react";
-import * as React from "react";
+import { useCallback, useEffect, useLayoutEffect, useState, useRef, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 
 import { allDatatypeMaps } from "../../../defs/datatype_maps/dist";
+import { allThrusterOrders } from "../dist";
 
 enum PanelMode {
   SUBSCRIBING,
@@ -25,7 +25,7 @@ type State = {
   tempThrusterSpeeds: ThrusterSpeeds;
 };
 
-type ThrusterSpeeds = {
+export type ThrusterSpeeds = {
   frontLeft: number | "";
   frontRight: number | "";
   backLeft: number | "";
@@ -47,20 +47,11 @@ const defaultThrusterSpeeds: ThrusterSpeeds = {
   bottomBackRight: 0,
 };
 
+const ROBOT = "OOGWAY";
 const topicName = "/offboard/thruster_speeds";
 const messageType = "custom_msgs/ThrusterSpeeds";
 const publishRate = 100;
 
-const thrustersInOrder: (keyof ThrusterSpeeds)[] = [
-  "bottomFrontLeft",
-  "frontLeft",
-  "frontRight",
-  "bottomFrontRight",
-  "bottomBackLeft",
-  "backLeft",
-  "bottomBackRight",
-  "backRight",
-];
 const thrusters: (keyof ThrusterSpeeds)[] = [
   "frontLeft",
   "frontRight",
@@ -71,6 +62,7 @@ const thrusters: (keyof ThrusterSpeeds)[] = [
   "bottomBackLeft",
   "bottomBackRight",
 ];
+const thrustersInOrder: (keyof ThrusterSpeeds)[] = allThrusterOrders[ROBOT] as (keyof ThrusterSpeeds)[];
 
 function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<() => void | undefined>();
@@ -95,7 +87,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
 
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
 
-  const theme = React.useMemo(
+  const theme = useMemo(
     () =>
       createTheme({
         palette: {
