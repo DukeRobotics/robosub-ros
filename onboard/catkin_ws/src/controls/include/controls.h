@@ -4,8 +4,10 @@
 #include <unordered_map>
 #include <string>
 #include <array>
+#include <memory>
 #include <Eigen/Dense>
 #include <ros/ros.h>
+#include <tf/transform_listener.h>
 #include <std_msgs/Bool.h>
 #include <std_srvs/SetBool.h>
 #include <geometry_msgs/Pose.h>
@@ -30,6 +32,8 @@ public:
     bool debug;
     bool enable_position_pid;
     bool enable_velocity_pid;
+
+    std::unique_ptr<tf::TransformListener> tf_listener;
 
     ros::Subscriber desired_position_sub;
     ros::Subscriber desired_velocity_sub;
@@ -66,7 +70,7 @@ public:
     std::unordered_map<AxisEnum, double> velocity_pid_outputs;
     std::unordered_map<AxisEnum, double> desired_power;
 
-    Controls(int argc, char **argv);
+    Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<tf::TransformListener> tf_listener);
     void desired_position_callback(const geometry_msgs::Pose msg);
     void desired_velocity_callback(const geometry_msgs::Twist msg);
     void desired_power_callback(const geometry_msgs::Twist msg);

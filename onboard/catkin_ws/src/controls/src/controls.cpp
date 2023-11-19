@@ -1,6 +1,7 @@
 #include <unordered_map>
 #include <string>
 #include <array>
+#include <memory>
 #include <Eigen/Dense>
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
@@ -19,20 +20,16 @@
 #include "controls_utils.h"
 #include "controls.h"
 
-
-Controls::Controls(int argc, char **argv)
+Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<tf::TransformListener> tf_listener)
 {
-    // Initialize ROS node
-    ros::init(argc, argv, "controls");
-
-    // Create a ROS node handle
-    ros::NodeHandle nh;
 
     // Get parameters from launch file
     nh.param<bool>("sim", sim, false);
     nh.param<bool>("debug", debug, false);
     nh.param<bool>("enable_position_pid", enable_position_pid, false);
     nh.param<bool>("enable_velocity_pid", enable_velocity_pid, false);
+
+    this->tf_listener = std::move(tf_listener);
 
     // Subscribe to input topics
     desired_position_sub = nh.subscribe("controls/desired_position", 1, &Controls::desired_position_callback, this);
@@ -180,7 +177,15 @@ void Controls::run()
 
 int main(int argc, char **argv)
 {
-    Controls controls = Controls(argc, argv);
+    // Initialize ROS node
+    ros::init(argc, argv, "controls");
+
+    ros::NodeHandle nh;
+
+    std::unique_ptr<tf::TransformListener> tf_listener(new tf::TransformListener());
+    
+    Controls controls = Controls(argc, argv, nh, std::move(tf_listener));
     controls.run();
+
     return 0;
 }
