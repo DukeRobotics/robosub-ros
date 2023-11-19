@@ -90,9 +90,9 @@ def build_deps(skip_ci: bool = False):
     run("npx patch-package --patch-dir patches")
 
     # Compile local shared dependencies
-    dependencies = [d for d in (FOXGLOVE_PATH / "shared").iterdir() if d.is_dir()]
+    dependencies = ["ros-typescript-generator", "defs", "theme"]
     for dep in dependencies:
-        run_at_path("npm run build", dep)
+        run_at_path("npm run build", pathlib.Path("shared") / dep)
 
 
 def install_extensions(extension_paths: Sequence[pathlib.Path]):
