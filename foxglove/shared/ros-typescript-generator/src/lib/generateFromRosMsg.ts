@@ -51,7 +51,7 @@ export const generateFromRosMsg = (
   }
 
   function toEnumValue(field: MessageDefinitionField) {
-    if (field.type === 'bool') {
+    if (field.type === 'bool' && typeof field.value === 'boolean') {
       return field.value ? 1 : 0;
     }
     if (

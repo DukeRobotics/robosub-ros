@@ -1,5 +1,6 @@
 import chalk from 'chalk';
 import { Command } from 'commander';
+import { PathLike } from 'fs';
 import { readFile } from 'fs/promises';
 import ora from 'ora';
 
@@ -19,7 +20,9 @@ void (async () => {
 
   const options = program.opts();
 
-  const configRaw = await readFile(options.config, { encoding: 'utf-8' });
+  const configRaw = await readFile(options.config as PathLike, {
+    encoding: 'utf-8',
+  });
   const config = JSON.parse(configRaw) as IConfig;
 
   const spinner = ora('Generating typescript interfaces').start();
