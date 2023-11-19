@@ -8,7 +8,7 @@
 class PID
 {
 public:
-    std::unordered_map<PIDGainTypesEnum, double> *pid_gains;
+    PIDGainsMap *pid_gains;
     double integral_clamp;
     double cutoff_freq;
     bool angle_correction;
@@ -16,7 +16,7 @@ public:
     double integral;
 
     PID();
-    PID(std::unordered_map<PIDGainTypesEnum, double> &pid_gains,
+    PID(PIDGainsMap &pid_gains,
         double integral_clamp = 1000.0,
         double cutoff_freq = 5.0,
         bool angle_correction = true);

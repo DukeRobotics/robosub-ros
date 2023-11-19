@@ -60,7 +60,7 @@ public:
 
     bool controls_enabled = false;
 
-    std::unordered_map<PIDLoopTypesEnum, std::unordered_map<AxisEnum, std::unordered_map<PIDGainTypesEnum, double>>> all_pid_gains;
+    LoopsAxesPIDGainsMap all_pid_gains;
     std::unordered_map<PIDLoopTypesEnum, PIDManager> pid_managers;
 
     ThrusterAllocator thruster_allocator;

@@ -47,6 +47,11 @@ const int PID_GAIN_TYPES_COUNT = 4;
 const PIDGainTypesEnum PID_GAIN_TYPES[PID_GAIN_TYPES_COUNT] = {PIDGainTypesEnum::KP, PIDGainTypesEnum::KI,
                                                                PIDGainTypesEnum::KD, PIDGainTypesEnum::FF};
 
+typedef std::unordered_map<PIDGainTypesEnum, double> PIDGainsMap;
+typedef std::unordered_map<AxisEnum, PIDGainsMap> AxesPIDGainsMap;
+typedef std::unordered_map<PIDLoopTypesEnum, AxesPIDGainsMap> LoopsAxesPIDGainsMap;
+
+
 class ControlsUtils
 {
 public:

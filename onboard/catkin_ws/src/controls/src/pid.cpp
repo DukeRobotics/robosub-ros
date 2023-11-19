@@ -3,7 +3,7 @@
 
 PID::PID() {};
 
-PID::PID(std::unordered_map<PIDGainTypesEnum, double> &pid_gains,
+PID::PID(PIDGainsMap &pid_gains,
          double integral_clamp,
          double cutoff_freq,
          bool angle_correction)
