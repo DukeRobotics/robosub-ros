@@ -1,19 +1,18 @@
-import { readFile } from 'fs/promises';
-
 import chalk from 'chalk';
 import { Command } from 'commander';
+import { readFile } from 'fs/promises';
 import ora from 'ora';
 
 import { rosTypescriptGenerator } from '../lib/rosTypescriptGenerator';
 import { IConfig } from '../types/config';
 
-(async () => {
+void (async () => {
   const program = new Command();
 
   program.option(
     '-c, --config <type>',
     'path to the config file',
-    'ros-ts-generator-config.json'
+    'ros-ts-generator-config.json',
   );
 
   program.parse(process.argv);

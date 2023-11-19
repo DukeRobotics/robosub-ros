@@ -14,7 +14,7 @@ test('generateFromRosMsg with comments', (t) => {
   uint32 size    # size of given dimension (in type units)
   uint32 stride  # stride of given dimension
   `,
-    'RosType'
+    'RosType',
   );
   const expected = `export interface RosTypeGeometryMsgsPoint {
   label: string;
@@ -42,7 +42,7 @@ test('generateFromRosMsg multi message', (t) => {
   float64 y
   float64 z
   float64 w`,
-    'RosType'
+    'RosType',
   );
 
   const expected = `export interface RosTypeGeometryMsgsPoint {
@@ -74,7 +74,7 @@ test('generateFromRosMsg with enum', (t) => {
   uint8 NEUTRAL=3
   uint8 DRIVE=4
   uint8 LOW=5
-  uint8 gear`
+  uint8 gear`,
   );
 
   const expected = `export interface ExampleMessage {
@@ -129,7 +129,7 @@ test.skip('generateFromRosMsg with enum which are prefixed', (t) => {
   uint8 VEHICLE_MODE_COMPLETE_AUTO_DRIVE = 1
   uint8 VEHICLE_MODE_AUTO_STEER_ONLY = 2
   uint8 VEHICLE_MODE_AUTO_SPEED_ONLY = 3
-  uint8 VEHICLE_MODE_EMERGENCY_MODE = 4`
+  uint8 VEHICLE_MODE_EMERGENCY_MODE = 4`,
   );
 
   const expected = ` `;
@@ -151,7 +151,7 @@ test('generateFromRosMsg with ROS1 msg', (t) => {
   uint32 binning_y
   `,
     '',
-    rosVersion
+    rosVersion,
   );
 
   const expected = `export interface  {
@@ -173,7 +173,7 @@ float64 x
 float64 y
 float64 z
 `,
-    'Prefix'
+    'Prefix',
   );
 
   const expected = `export interface PrefixPackageType {
@@ -198,7 +198,7 @@ test('generateFromRosMsg with empty type', (t) => {
   MSG: test_msgs/Normal
   float64 x
   float64 y`,
-    'Prefix'
+    'Prefix',
   );
 
   const expected = `export interface PrefixTestMsgsHasOneEmpty {
@@ -218,7 +218,7 @@ test('generateFromRosMsg with bool enum', (t) => {
     `MSG: test_msgs/State
   bool OFF = 0
   bool ON = 1
-`
+`,
   );
 
   const expected = `export enum TestMsgsStateConst {
@@ -234,7 +234,7 @@ test('generateFromRosMsg with string enum', (t) => {
     `MSG: test_msgs/State
   string OFF = 'off'
   string ON = 'on'
-`
+`,
   );
 
   const expected = `export enum TestMsgsStateConst {
@@ -252,7 +252,7 @@ test('generateFromRosMsg with duration & time (ROS 1)', (t) => {
   time stamp
 `,
     '',
-    1
+    1,
   );
 
   const expected = `export interface TestMsgsTime {
@@ -270,7 +270,7 @@ test('generateFromRosMsg with duration & time (ROS 2)', (t) => {
   time stamp
 `,
     '',
-    2
+    2,
   );
 
   const expected = `export interface TestMsgsTime {
