@@ -183,7 +183,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     std::unique_ptr<tf::TransformListener> tf_listener(new tf::TransformListener());
-    
+
     Controls controls = Controls(argc, argv, nh, std::move(tf_listener));
     controls.run();
 
