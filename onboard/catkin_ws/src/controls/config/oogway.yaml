@@ -114,5 +114,5 @@ thrusters:
         rpy: [0, 0, 135]
         flipped: true
 
-
-
+wrench_matrix_file_path: /root/dev/robosub-ros/onboard/catkin_ws/src/controls/config/oogway_wrench.csv
+wrench_matrix_pinv_file_path: /root/dev/robosub-ros/onboard/catkin_ws/src/controls/config/oogway_wrench_pinv.csv
