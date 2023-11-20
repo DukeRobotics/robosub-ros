@@ -90,12 +90,17 @@ def build_deps(skip_ci: bool = False):
     """
     run = functools.partial(run_at_path, directory=FOXGLOVE_PATH)
 
-    # Create necessary directories
-    dirs = [
+    # Create necessary paths (either directories or empty files)
+    # Files must have a suffix, otherwise they are treated as directories
+    paths = [
         FOXGLOVE_PATH / "shared/ros-typescript-generator/build/main/cli/cli.js",  # npm ci symlinks this to .bin
     ]
-    for dir in dirs:
-        dir.mkdir(parents=True, exist_ok=True)
+    for path in paths:
+        if path.suffix:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.touch()
+        else:
+            path.mkdir(parents=True, exist_ok=True)
 
     # Install dependencies
     if not skip_ci:
