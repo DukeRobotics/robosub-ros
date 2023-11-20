@@ -90,10 +90,10 @@ def build_deps(skip_ci: bool = False):
     """
     run = functools.partial(run_at_path, directory=FOXGLOVE_PATH)
 
-    # Create necessary paths (either directories or empty files)
+    # Create necessary paths (either directories or empty files) so that npm ci can symlink them to node_modules
     # Files must have a suffix, otherwise they are treated as directories
     paths = [
-        FOXGLOVE_PATH / "shared/ros-typescript-generator/build/main/cli/cli.js",  # npm ci symlinks this to .bin
+        FOXGLOVE_PATH / "shared/ros-typescript-generator/build/main/cli/cli.js",
     ]
     for path in paths:
         if path.suffix:
@@ -102,11 +102,11 @@ def build_deps(skip_ci: bool = False):
         else:
             path.mkdir(parents=True, exist_ok=True)
 
-    # Install dependencies
+    # Install external dependencies and symlink local dependencies
     if not skip_ci:
         run("npm ci")
 
-    # Patch dependencies
+    # Patch external dependencies
     run("npx patch-package --patch-dir patches")
 
     # Compile local shared dependencies
