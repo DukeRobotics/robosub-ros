@@ -1,5 +1,5 @@
 {
-  "output": "types/dist/custom_msgs.ts",
+  "output": "types/dist/customMsgs.ts",
   "rosVersion": 1,
   "input": [
     {

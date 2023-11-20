@@ -1,5 +1,5 @@
 {
-  "output": "types/ros1_msgs.ts",
+  "output": "types/ros1Msgs.ts",
   "rosVersion": 1,
   "input": [
     {
