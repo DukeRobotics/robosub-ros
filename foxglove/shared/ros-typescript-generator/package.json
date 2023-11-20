@@ -38,7 +38,7 @@
     "prepare-release": "run-s reset-hard test doc:html version doc:publish"
   },
   "bin": {
-    "ros-typescript-generator": "./build/main/cli/cli.js"
+    "ros-typescript-generator": "./.bin/ros-typescript-generator"
   },
   "engines": {
     "node": ">=10"
