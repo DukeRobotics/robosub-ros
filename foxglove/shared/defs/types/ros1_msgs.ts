@@ -1,5 +1,5 @@
 /* eslint-disable */
-// These files were generated using "ros-typescript-generator"
+// All ROS 1 messages, services, and actions are defined here.
 export enum BondConstantsConst {
   DEAD_PUBLISH_PERIOD = 0.05,
   DEFAULT_CONNECT_TIMEOUT = 10,
