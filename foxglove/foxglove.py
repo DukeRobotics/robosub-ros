@@ -71,16 +71,24 @@ def run_at_path(command: Union[str, Sequence[str]], directory: pathlib.Path, sys
     subprocess.run(args, cwd=directory, check=True)
 
 
+def check_npm():
+    """
+    Check if npm is installed.
+
+    Raises:
+        SystemExit: If npm not found.
+    """
+    try:
+        run_at_path("npm -v", FOXGLOVE_PATH)
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        raise SystemExit("npm not found. Install npm and try again.")
+
+
 def build_deps(skip_ci: bool = False):
     """
     Build all necessary dependencies for Foxglove.
     """
     run = functools.partial(run_at_path, directory=FOXGLOVE_PATH)
-
-    try:
-        run("npm -v")
-    except (FileNotFoundError, subprocess.CalledProcessError):
-        raise SystemExit("npm not found. Install npm and try again.")
 
     # Install dependencies
     if not skip_ci:
@@ -90,7 +98,7 @@ def build_deps(skip_ci: bool = False):
     run("npx patch-package --patch-dir patches")
 
     # Compile local shared dependencies
-    dependencies = ["ros-typescript-generator", "defs", "theme"]
+    dependencies = ["ros-typescript-generator", "defs", "theme"]  # Specify build order
     for dep in dependencies:
         run_at_path("npm run build", pathlib.Path("shared") / dep)
 
@@ -102,12 +110,6 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
     Args:
         extension_paths: Sequence of extension paths to install.
     """
-
-    try:
-        run_at_path("npm -v", FOXGLOVE_PATH)
-    except (FileNotFoundError, subprocess.CalledProcessError):
-        raise SystemExit("npm not found. Install npm and try again.")
-
     successes = 0
     for extension in extension_paths:
         if not (extension / "package.json").is_file():
@@ -274,6 +276,7 @@ if __name__ == "__main__":
             args.extensions = EXTENSION_PATHS
 
         if args.extensions is not None:
+            check_npm()
             build_deps(skip_ci=args.skip_ci)
             install_extensions(args.extensions)
         if args.layouts:
@@ -291,4 +294,5 @@ if __name__ == "__main__":
             uninstall_layouts()
 
     elif args.action in ("build", "b"):
+        check_npm()
         build_deps(skip_ci=args.skip_ci)
