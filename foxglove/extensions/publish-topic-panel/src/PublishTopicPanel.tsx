@@ -1,4 +1,4 @@
-import theme from "@duke-robotics/theme";
+import useTheme from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
 import { Box, ThemeProvider } from "@mui/material";
 import Alert from "@mui/material/Alert";
@@ -46,6 +46,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
     publishTopic(state.topicName, state.request, state.schemaName);
   };
 
+  const theme = useTheme();
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>

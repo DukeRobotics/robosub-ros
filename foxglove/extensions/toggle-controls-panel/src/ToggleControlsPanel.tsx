@@ -1,5 +1,5 @@
 import { StdSrvsSetBoolRequest, StdSrvsSetBoolResponse } from "@duke-robotics/defs/types";
-import theme from "@duke-robotics/theme";
+import useTheme from "@duke-robotics/theme";
 import { ThemeProvider } from "@emotion/react";
 import { PanelExtensionContext } from "@foxglove/studio";
 import Alert from "@mui/material/Alert";
@@ -50,6 +50,7 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
     );
   };
 
+  const theme = useTheme();
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>

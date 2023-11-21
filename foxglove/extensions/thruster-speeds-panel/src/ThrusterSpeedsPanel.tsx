@@ -1,11 +1,12 @@
 import { allDatatypeMaps } from "@duke-robotics/defs/datatype_maps";
 import { CustomMsgsThrusterSpeeds } from "@duke-robotics/defs/types";
+import useTheme from "@duke-robotics/theme";
 import { PanelExtensionContext, RenderState, Immutable, MessageEvent } from "@foxglove/studio";
 import { CheckCircleOutline, HighlightOff } from "@mui/icons-material";
-import { TextField, Button, Alert, Tab, Tabs, CssBaseline, useMediaQuery } from "@mui/material";
+import { TextField, Button, Alert, Tab, Tabs, CssBaseline } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { useCallback, useEffect, useLayoutEffect, useState, useRef, useMemo } from "react";
+import { ThemeProvider } from "@mui/material/styles";
+import { useCallback, useEffect, useLayoutEffect, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
 
 import { allThrusterOrders } from "../dist";
@@ -85,18 +86,6 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
       bottomBackRight: "",
     },
   });
-
-  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
-
-  const theme = useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode: prefersDarkMode ? "dark" : "light",
-        },
-      }),
-    [prefersDarkMode],
-  );
 
   useEffect(() => {
     renderDone?.();
@@ -237,6 +226,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     }));
   };
 
+  const theme = useTheme();
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
