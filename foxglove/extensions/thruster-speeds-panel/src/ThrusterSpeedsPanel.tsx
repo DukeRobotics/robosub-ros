@@ -1,3 +1,4 @@
+import { CustomMsgsThrusterSpeeds } from "@duke-robotics/defs/types";
 import { PanelExtensionContext, RenderState, Immutable, MessageEvent } from "@foxglove/studio";
 import { CheckCircleOutline, HighlightOff } from "@mui/icons-material";
 import { TextField, Button, Alert, Tab, Tabs, CssBaseline, useMediaQuery } from "@mui/material";
@@ -123,10 +124,12 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
 
       // Save the most recent message on our topic.
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        const latestFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<any>;
+        const latestFrame = renderState.currentFrame[
+          renderState.currentFrame.length - 1
+        ] as MessageEvent<CustomMsgsThrusterSpeeds>;
         let newSpeeds: ThrusterSpeeds = { ...defaultThrusterSpeeds };
         thrustersInOrder.forEach((thruster: keyof ThrusterSpeeds, index) => {
-          newSpeeds = { ...newSpeeds, [thruster]: latestFrame.message?.speeds[index] };
+          newSpeeds = { ...newSpeeds, [thruster]: latestFrame.message.speeds[index] };
         });
         setState((oldState) => ({ ...oldState, subscriberThrusterSpeeds: newSpeeds }));
       }

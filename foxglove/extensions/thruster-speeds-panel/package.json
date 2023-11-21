@@ -1,13 +1,8 @@
 {
-  "name": "thruster-speeds-panel",
-  "displayName": "Thruster Speeds Panel",
-  "description": "Panel that lets you publish thruster speeds",
+  "name": "@duke-robotics/thruster-speeds-panel",
   "publisher": "Duke Robotics",
-  "homepage": "https://duke-robotics.com",
-  "license": "UNLICENSED",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "main": "./dist/extension.js",
-  "keywords": [],
   "scripts": {
     "build": "foxglove-extension build",
     "foxglove:prepublish": "foxglove-extension build --mode production",

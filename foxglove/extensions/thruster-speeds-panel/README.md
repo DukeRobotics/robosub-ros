@@ -11,8 +11,8 @@ publish these values to the topic `offboard/thruster_speeds`. Each input must ei
 or left blank. If left blank, the input value for that thruster will be the value of the current actual speed 
 as subscribed from `offboard/thruster_speeds` for that thruster. 
 Click `START_PUBLISHING` to start publishing the values, and `STOP PUBLISHING` to stop publishing. Note that while 
-the panel is publishing, if you want to start publishing new values, you have to click `STOP_PUBLISHING` and then click
-`START_PUBLISHING` again.
+the panel is publishing, if you want to start publishing new values, you have to click `STOP PUBLISHING` and then click
+`START PUBLISHING` again.
 
 ## Configuration
 The following constants can be modified:
