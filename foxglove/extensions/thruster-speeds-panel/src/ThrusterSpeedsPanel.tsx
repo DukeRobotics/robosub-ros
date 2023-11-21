@@ -1,3 +1,4 @@
+import { allDatatypeMaps } from "@duke-robotics/defs/datatype_maps";
 import { CustomMsgsThrusterSpeeds } from "@duke-robotics/defs/types";
 import { PanelExtensionContext, RenderState, Immutable, MessageEvent } from "@foxglove/studio";
 import { CheckCircleOutline, HighlightOff } from "@mui/icons-material";
@@ -7,7 +8,6 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useCallback, useEffect, useLayoutEffect, useState, useRef, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 
-import { allDatatypeMaps } from "../../../shared/defs/datatype_maps/dist";
 import { allThrusterOrders } from "../dist";
 
 enum PanelMode {
