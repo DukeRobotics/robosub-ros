@@ -84,9 +84,12 @@ def check_npm():
         raise SystemExit("npm not found. Install npm and try again.")
 
 
-def build_deps(skip_ci: bool = False):
+def build_deps(skip_ci: bool = False, extension_paths: Sequence[pathlib.Path] = EXTENSION_PATHS):
     """
     Build all necessary dependencies for Foxglove.
+
+    Args:
+        extension_paths: Sequence of extension paths to build.
     """
     run = functools.partial(run_at_path, directory=FOXGLOVE_PATH)
 
@@ -115,7 +118,7 @@ def build_deps(skip_ci: bool = False):
         run_at_path("npm run build", pathlib.Path("shared") / dep)
 
     # Compile local nonshared dependencies
-    for extension in EXTENSION_PATHS:
+    for extension in extension_paths:
         run_at_path("npm run build-deps --if-present", extension)
 
 
@@ -293,7 +296,7 @@ if __name__ == "__main__":
 
         if args.extensions is not None:
             check_npm()
-            build_deps(skip_ci=args.skip_ci)
+            build_deps(skip_ci=args.skip_ci, extension_paths=args.extensions)
             install_extensions(args.extensions)
         if args.layouts:
             install_layouts()
