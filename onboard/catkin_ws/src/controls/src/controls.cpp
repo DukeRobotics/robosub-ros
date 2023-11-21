@@ -172,8 +172,6 @@ void Controls::run()
         ControlsUtils::pid_loops_axes_gains_map_to_msg(all_pid_gains, pid_gains_msg);
         pid_gains_pub.publish(pid_gains_msg);
 
-        pid_managers[PIDLoopTypesEnum::POSITION].pid_controllers[AxesEnum::X].print_gains();
-
         ros::spinOnce();
 
         rate.sleep();
