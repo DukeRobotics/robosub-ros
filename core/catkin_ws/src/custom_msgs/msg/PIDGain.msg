@@ -16,4 +16,4 @@ uint8 GAIN_FF = 3
 uint8 loop
 uint8 axis
 uint8 gain
-float32 value
+float64 value
