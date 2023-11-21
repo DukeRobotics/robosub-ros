@@ -16,12 +16,13 @@ from custom_msgs.msg import ThrusterAllocs, PWMAllocs
 
 CONTROL_EFFORTS_TOPIC = "controls/thruster_allocs"
 VOLTAGE_TOPIC = "sensors/voltage"  # This could change
-PWM_PUBLISHER_TOPIC = "offboard_comms/pwm"
+PWM_PUBLISHER_TOPIC = "offboard/pwm"
 
 # Coefficients for the fitted polynomial; terms of the polynomial are shown under function polynomial
 COEFFICIENTS = [-7.65838439e-01,  1.84459825e+01, -2.01132736e+02, 7.42118554e+03,
                 7.92882050e+01, -2.70347565e+00, -9.44255430e+02, 2.95486429e+01]
 
+DATA_DIR_PATH = 'package://offboard_comms/data/'
 FTDI_FILE_PATH = 'package://data_pub/config/dvl_ftdi.yaml'
 BAUDRATE = 115200
 
@@ -96,7 +97,7 @@ class ThrusterConverter:
         # Dictionary for the lookup table
         self.voltage_efforts_to_pwm = dict()
         # Load power curve tables for 14.0v, 16.0v, and 18.0v
-        all_14v, all_16v, all_18v = np.load("./data/14.npy"), np.load("./data/16.npy"), np.load("./data/18.npy")
+        all_14v, all_16v, all_18v = tuple(np.load(rr.get_filename(DATA_DIR_PATH + f"{v}.npy", use_protocol=False)) for v in [14, 16, 18])
         # Save data under appropriate voltage heading/key in voltage_efforts_to_pwm
         self.voltage_efforts_to_pwm[14.0] = [all_14v[:, 1], all_14v[:, 0]]
         self.voltage_efforts_to_pwm[16.0] = [all_16v[:, 1], all_16v[:, 0]]
