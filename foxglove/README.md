@@ -90,6 +90,7 @@ ws://<hostname or IP of onboard container>:8765
 - `toggle-controls-panel`: Panel to toggle controls on/off
 - `system-status-panel`: Panel that displays system usage of the onboard computer
 - `sensors-status-panel`: Panel that displays the connected/disconnected status of Oogway's sensors
+- `thruster-speeds-panel`: Panel that displays the current thruster speeds and publishes desired thruster speeds
 
 
 ### Layouts
