@@ -13,7 +13,7 @@ int8 GAIN_KI = 1
 int8 GAIN_KD = 2
 int8 GAIN_FF = 3
 
-int8 pid_loop
+int8 loop
 int8 axis
-int8 gain_type
-float32 gain
+int8 gain
+float32 value
