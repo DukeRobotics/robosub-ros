@@ -14,6 +14,6 @@ bool MultiplexedBasicESC::attached(){return driver.attached();}
 
 void MultiplexedBasicESC::detach(){driver.detach();}
 
-void MultiplexedBasicESC::write(int8_t speed){writeMicroseconds(speed+31);} //apply offset of +31 for oogway, remove for cthulhu
+void MultiplexedBasicESC::write(int16_t speed){writeMicroseconds(speed);}
 
 void MultiplexedBasicESC::writeMicroseconds(uint16_t uS){driver.writeMicroseconds(uS);}

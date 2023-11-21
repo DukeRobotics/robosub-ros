@@ -14,7 +14,7 @@ public:
   void attach(uint8_t);
   bool attached();
   void detach();
-  void write(int8_t);
+  void write(int16_t);
   void writeMicroseconds(uint16_t);
 };
 
