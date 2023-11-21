@@ -126,6 +126,7 @@ void Controls::run()
     geometry_msgs::Twist actual_power_msg;
     custom_msgs::ControlTypes control_types_msg;
     std_msgs::Bool status_msg;
+    custom_msgs::PIDGains pid_gains_msg;
 
     while (ros::ok())
     {
@@ -168,7 +169,10 @@ void Controls::run()
         status_msg.data = controls_enabled;
         status_pub.publish(status_msg);
 
-        // TODO: Publish PID gains
+        ControlsUtils::pid_loops_axes_gains_map_to_msg(all_pid_gains, pid_gains_msg);
+        pid_gains_pub.publish(pid_gains_msg);
+
+        pid_managers[PIDLoopTypesEnum::POSITION].pid_controllers[AxesEnum::X].print_gains();
 
         ros::spinOnce();
 

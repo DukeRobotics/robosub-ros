@@ -7,6 +7,8 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <custom_msgs/ControlTypes.h>
+#include <custom_msgs/PIDGain.h>
+#include <custom_msgs/PIDGains.h>
 #include <Eigen/Dense>
 #include <yaml-cpp/yaml.h>
 
@@ -125,6 +127,23 @@ bool ControlsUtils::update_pid_loops_axes_gains_map(LoopsAxesPIDGainsMap &all_pi
     }
 
     return true;
+}
+
+void ControlsUtils::pid_loops_axes_gains_map_to_msg(const LoopsAxesPIDGainsMap &all_pid_gains, custom_msgs::PIDGains &pid_gains_msg)
+{
+    pid_gains_msg.pid_gains.clear();
+
+    for (const PIDLoopTypesEnum &loop : PID_LOOP_TYPES)
+        for (const AxesEnum &axis : AXES)
+            for (const PIDGainTypesEnum &gain : PID_GAIN_TYPES)
+            {
+                custom_msgs::PIDGain pid_gain;
+                pid_gain.loop = loop;
+                pid_gain.axis = axis;
+                pid_gain.gain = gain;
+                pid_gain.value = all_pid_gains.at(loop).at(axis)->at(gain);
+                pid_gains_msg.pid_gains.push_back(pid_gain);
+            }
 }
 
 void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd &matrix)
