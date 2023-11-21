@@ -13,7 +13,7 @@
     "foxglove:prepublish": "foxglove-extension build --mode production",
     "lint:ci": "eslint --report-unused-disable-directives .",
     "lint": "eslint --report-unused-disable-directives --fix .",
-    "local-install": "foxglove-extension install",
+    "local-install": "npx ts-node src/thrusterConfigs.ts && foxglove-extension install && npx ts-node src/thrusterConfigs.ts",
     "watch:local-install": "nodemon --watch './src/**' -e ts,tsx --exec 'npm run local-install'",
     "package": "foxglove-extension package",
     "pretest": "foxglove-extension pretest"
