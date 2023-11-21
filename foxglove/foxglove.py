@@ -109,8 +109,8 @@ def build_deps(skip_ci: bool = False, extension_paths: Sequence[pathlib.Path] = 
     if not skip_ci:
         run("npm ci")
 
-    # Patch external dependencies
-    run("npx patch-package --patch-dir patches")
+        # Patch external dependencies
+        run("npx patch-package --patch-dir patches")
 
     # Compile local shared dependencies
     dependencies = ["ros-typescript-generator", "defs", "theme"]  # Specify build order
