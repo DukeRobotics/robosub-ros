@@ -108,8 +108,8 @@ bool Controls::set_control_types_callback(custom_msgs::SetControlTypes::Request 
 
 bool Controls::set_pid_gains_callback(custom_msgs::SetPIDGains::Request &req, custom_msgs::SetPIDGains::Response &res)
 {
-    // TODO: Update PID gains
-    res.success = true;
+    res.success = ControlsUtils::update_pid_loops_axes_gains_map(all_pid_gains, req.pid_gains);
+    res.message = res.success ? "Updated PID gains successfully." : "Failed to update PID gains. One or more PID gains was invalid.";
     return true;
 }
 

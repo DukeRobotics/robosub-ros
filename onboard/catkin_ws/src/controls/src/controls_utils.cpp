@@ -19,6 +19,46 @@ bool ControlsUtils::value_in_control_types_enum(uint8_t value)
            value == ControlTypesEnum::DESIRED_POWER;
 }
 
+bool ControlsUtils::value_in_axes_enum(uint8_t value)
+{
+    return value == AxesEnum::X ||
+           value == AxesEnum::Y ||
+           value == AxesEnum::Z ||
+           value == AxesEnum::ROLL ||
+           value == AxesEnum::PITCH ||
+           value == AxesEnum::YAW;
+}
+
+bool ControlsUtils::value_in_pid_loop_types_enum(uint8_t value)
+{
+    return value == PIDLoopTypesEnum::POSITION ||
+           value == PIDLoopTypesEnum::VELOCITY;
+}
+
+bool ControlsUtils::value_in_pid_gain_types_enum(uint8_t value)
+{
+    return value == PIDGainTypesEnum::KP ||
+           value == PIDGainTypesEnum::KI ||
+           value == PIDGainTypesEnum::KD ||
+           value == PIDGainTypesEnum::FF;
+}
+
+bool ControlsUtils::pid_gain_valid(const custom_msgs::PIDGain &pid_gain)
+{
+    return value_in_pid_loop_types_enum(pid_gain.loop) &&
+           value_in_axes_enum(pid_gain.axis) &&
+           value_in_pid_gain_types_enum(pid_gain.gain);
+}
+
+bool ControlsUtils::pid_gains_valid(const std::vector<custom_msgs::PIDGain> &pid_gains)
+{
+    for (const custom_msgs::PIDGain &pid_gain : pid_gains)
+        if (!pid_gain_valid(pid_gain))
+            return false;
+
+    return true;
+}
+
 void ControlsUtils::twist_to_map(const geometry_msgs::Twist &twist, std::unordered_map<AxesEnum, double> &map)
 {
     map[AxesEnum::X] = twist.linear.x;
@@ -69,6 +109,22 @@ void ControlsUtils::map_to_control_types(const std::unordered_map<AxesEnum, Cont
     control_types.roll = map.at(AxesEnum::ROLL);
     control_types.pitch = map.at(AxesEnum::PITCH);
     control_types.yaw = map.at(AxesEnum::YAW);
+}
+
+bool ControlsUtils::update_pid_loops_axes_gains_map(LoopsAxesPIDGainsMap &all_pid_gains, const std::vector<custom_msgs::PIDGain> &pid_gain_updates)
+{
+    if (!ControlsUtils::pid_gains_valid(pid_gain_updates))
+        return false;
+
+    for (const custom_msgs::PIDGain &pid_gain_update : pid_gain_updates)
+    {
+        PIDLoopTypesEnum loop = static_cast<PIDLoopTypesEnum>(pid_gain_update.loop);
+        AxesEnum axis = static_cast<AxesEnum>(pid_gain_update.axis);
+        PIDGainTypesEnum gain = static_cast<PIDGainTypesEnum>(pid_gain_update.gain);
+        (*all_pid_gains[loop][axis])[gain] = pid_gain_update.value;
+    }
+
+    return true;
 }
 
 void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd &matrix)
