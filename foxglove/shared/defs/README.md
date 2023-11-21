@@ -1,14 +1,14 @@
 # Foxglove Definitions
-This package exports datatype mappings and TypeScript type definitions for both ROS 1 and Duke Robotics custom message defintions.
-Datatype mappings are needed to advertise topics. TypeScript types are used for static type checking.
+This package exports datatype maps and TypeScript interfaces/enums for both ROS 1 and Duke Robotics custom definitions.
+Datatype maps are needed to advertise topics. TypeScript interfaces are used for static type checking.
 
 ## Usage
-### Datatype Mappings
+### Datatype Maps
 Foxglove requires a [datatype map](https://docs.foxglove.dev/docs/visualization/extensions/api/panel-api#native-ros-1) 
-when advertising a topic in an extension. Instead of manually constructing the `MessageDefinition`s or `datatypes`,
-this package generates the dataype mappings of all ROS 1 and Duke Robotics custom messages.
+when advertising a topic in an extension. Instead of manually constructing the `MessageDefinition` definitions or `datatypes`,
+this package generates the dataype maps of all ROS 1 and Duke Robotics custom definitions.
 
-Import using
+Import with
 ```js
 import { allDatatypeMaps } from "@duke-robotics/defs/datatype_maps";
 ```
@@ -19,10 +19,12 @@ context.advertise(`<Topic Name>`, "custom_msgs/ThrusterSpeeds", {
 });
 ```
 
-### TypeScript Types and Enums
-This package also export 
+### TypeScript Interfaces/Enums
+To enforce static type checking of ROS messages in Foxglove extensions, an interface must be specified
+that describes the message's shape. This package exports all ROS 1 and Duke Robotics custom definitions
+as TypeScript interfaces. Any constants in the definition are exported as a TypeScript `enum`.
 
-Import using
+Import with
 ```js
 import { <TypeName> } from "@duke-robotics/defs/types";
 ```
@@ -43,7 +45,7 @@ cd foxglove
 python foxglove build
 ```
 2. Start the onboard docker container
-3. Copy over the ROS 1 shared directory using `scp`
+3. Copy over the ROS 1 `share` directory using `scp`
 ```bash
 cd foxglove/shared/defs/
 scp -P 2200 -r root@localhost:/opt/ros/noetic/share/ share

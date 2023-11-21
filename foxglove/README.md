@@ -98,7 +98,9 @@ ws://<hostname or IP of onboard container>:8765
 ## Local Dependencies
 Shared components and styles are located in the `shared` directory.
 
-- `theme`: Duke Robotics MUI Theme
+- `theme`: Exports the Duke Robotics MUI Theme
+- `defs`: Exports Foxglove datatype maps and TypeScript interfaces/enums for both ROS 1 and Duke Robotics custom definitions
+- `ros-typescript-generator`: CLI that generates TypeScript interfaces/enums from ROS definitions
 
 ## Contributing
 ### Creating a New Extension
