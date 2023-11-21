@@ -14,6 +14,8 @@ Adafruit_PWMServoDriver pwm_multiplexer(0x40);
 #define THRUSTER_TIMEOUT_MS 500
 #define THRUSTER_STOP_PWM 1500
 #define THRUSTER_PWM_OFFSET 31 // Apply offset of +31 for oogway, remove for cthulhu
+#define THRUSTER_PWM_MIN 1100
+#define THRUSTER_PWM_MAX 1900
 
 uint64_t last_cmd_ms_ts;
 
@@ -53,8 +55,18 @@ void setup(){
 void loop(){
     // Check if last version of data has timed out, if so, stop all thrusters
     bool timeout = last_cmd_ms_ts + THRUSTER_TIMEOUT_MS < millis();
+    
     for (uint8_t i = 0; i < NUM_THRUSTERS; ++i) {
         int16_t pwm = timeout ? THRUSTER_STOP_PWM : pwms[i];
+        
+        // If PWM is out of bounds, log error and stop thruster
+        if (pwm < THRUSTER_PWM_MIN || pwm > THRUSTER_PWM_MAX) {
+            String msg = "Stopping thruster " + String(i) + ". PWM out of bounds: " + String(pwm);
+            nh.logerror(msg.c_str());
+            
+            pwm = THRUSTER_STOP_PWM;
+        }
+
         thrusters[i].write(pwm + THRUSTER_PWM_OFFSET);
     }
 
