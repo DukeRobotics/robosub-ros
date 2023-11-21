@@ -50,5 +50,5 @@ scp -P 2200 -r root@localhost:/opt/ros/noetic/share/ share
 ```
 4. Generate the types
 ```bash
-npx ros-typescript-generator --config ros_typescript_generator_configs/ros1.json
+npx ros-typescript-generator --config ros_ts_generator_configs/ros1.json
 ```
