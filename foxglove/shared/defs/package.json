@@ -10,12 +10,12 @@
   },
   "exports": {
     "./datatype_maps": {
-      "import": "./datatype_maps/dist/index.js",
-      "types": "./datatype_maps/dist/index.d.ts"
+      "types": "./datatype_maps/dist/index.d.ts",
+      "default": "./datatype_maps/dist/index.js"
     },
     "./custom_msg_defs": {
-      "import": "./custom_msg_defs/dist/index.js",
-      "types": "./custom_msg_defs/dist/index.d.ts"
+      "types": "./custom_msg_defs/dist/index.d.ts",
+      "default": "./custom_msg_defs/dist/index.js"
     }
   },
   "devDependencies": {
