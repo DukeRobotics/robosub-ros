@@ -1,4 +1,6 @@
+import theme from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
+import { Box, ThemeProvider } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import { JsonViewer } from "@textea/json-viewer";
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -57,58 +59,59 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
   };
 
   return (
-    <div style={{ padding: "1rem" }}>
-      <h2>Call Service</h2>
-      {context.callService == undefined && (
-        <Alert variant="filled" severity="error">
-          Calling services is not supported by this connection
-        </Alert>
-      )}
+    <ThemeProvider theme={theme}>
+      <Box m={1}>
+        {context.callService == undefined && (
+          <Alert variant="filled" severity="error">
+            Calling services is not supported by this connection
+          </Alert>
+        )}
 
-      <h4>Service Name</h4>
-      <div>
-        <input
-          type="text"
-          placeholder="Enter service name"
-          style={{ width: "100%" }}
-          value={state.serviceName}
-          onChange={(event) => {
-            setState({ ...state, serviceName: event.target.value });
-          }}
-        />
-      </div>
-      <h4>Request</h4>
-      <div>
-        <textarea
-          style={{ width: "100%", minHeight: "3rem" }}
-          value={state.request}
-          onChange={(event) => {
-            setState({ ...state, request: event.target.value });
-          }}
-        />
-      </div>
-      <div>
-        <button
-          disabled={context.callService == undefined || state.serviceName === ""}
-          style={{ width: "100%", minHeight: "2rem" }}
-          onClick={callServiceWithRequest}
-        >
-          {`Call ${state.serviceName}`}
-        </button>
-      </div>
+        <h4>Service Name</h4>
+        <div>
+          <input
+            type="text"
+            placeholder="Enter service name"
+            style={{ width: "100%" }}
+            value={state.serviceName}
+            onChange={(event) => {
+              setState({ ...state, serviceName: event.target.value });
+            }}
+          />
+        </div>
+        <h4>Request</h4>
+        <div>
+          <textarea
+            style={{ width: "100%", minHeight: "3rem" }}
+            value={state.request}
+            onChange={(event) => {
+              setState({ ...state, request: event.target.value });
+            }}
+          />
+        </div>
+        <div>
+          <button
+            disabled={context.callService == undefined || state.serviceName === ""}
+            style={{ width: "100%", minHeight: "2rem" }}
+            onClick={callServiceWithRequest}
+          >
+            {`Call ${state.serviceName}`}
+          </button>
+        </div>
 
-      <div>
-        <h4>Response</h4>
-        <JsonViewer
-          rootName={false}
-          value={state.error ? { error: state.error.message } : state.response ?? {}}
-          indentWidth={2}
-          theme={state.colorScheme}
-          enableClipboard={false}
-          displayDataTypes={false}
-        />
-      </div>
-    </div>
+        <div>
+          <h4>Response</h4>
+          <JsonViewer
+            rootName={false}
+            value={state.error ? { error: state.error.message } : state.response ?? {}}
+            indentWidth={2}
+            theme={state.colorScheme}
+            enableClipboard={false}
+            displayDataTypes={false}
+          />
+        </div>
+      </Box>
+    </ThemeProvider>
   );
 }
 

@@ -1,3 +1,6 @@
+import { StdSrvsSetBoolRequest, StdSrvsSetBoolResponse } from "@duke-robotics/defs/types";
+import theme from "@duke-robotics/theme";
+import { ThemeProvider } from "@emotion/react";
 import { PanelExtensionContext } from "@foxglove/studio";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -13,12 +16,6 @@ type State = {
   controlsEnabled: boolean; // Current state of controls
 };
 
-// Response type definition for std_srvs/SetBool.srv
-interface SetBoolResponse {
-  success: boolean;
-  message: string;
-}
-
 function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [state, setState] = useState<State>({ controlsEnabled: false });
 
@@ -31,12 +28,12 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
     }
 
     // Request payload to toggle controls
-    const request = { data: !state.controlsEnabled };
+    const request: StdSrvsSetBoolRequest = { data: !state.controlsEnabled };
 
     // Make the service call
     context.callService(ENABLE_CONTROLS_SERVICE, request).then(
       (response) => {
-        const typedResponse = response as SetBoolResponse;
+        const typedResponse = response as StdSrvsSetBoolResponse;
 
         // Update the state based on the service response
         // If the service responds with failure, display the response message as an error
@@ -54,33 +51,35 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
   };
 
   return (
-    <Box m={1}>
-      {/* Error messages */}
-      {(context.callService == undefined || state.error != undefined) && (
-        <Box mb={1}>
-          {context.callService == undefined && (
-            <Alert variant="filled" severity="error">
-              Calling services is not supported by this connection
-            </Alert>
-          )}
-          {state.error != undefined && (
-            <Alert variant="filled" severity="error">
-              {state.error.message}
-            </Alert>
-          )}
-        </Box>
-      )}
+    <ThemeProvider theme={theme}>
+      <Box m={1}>
+        {/* Error messages */}
+        {(context.callService == undefined || state.error != undefined) && (
+          <Box mb={1}>
+            {context.callService == undefined && (
+              <Alert variant="filled" severity="error">
+                Calling services is not supported by this connection
+              </Alert>
+            )}
+            {state.error != undefined && (
+              <Alert variant="filled" severity="error">
+                {state.error.message}
+              </Alert>
+            )}
+          </Box>
+        )}
 
-      {/* Toggle button */}
-      <Button
-        variant="contained"
-        color={state.controlsEnabled ? "error" : "success"}
-        onClick={toggleControls}
-        disabled={context.callService == undefined}
-      >
-        {state.controlsEnabled ? "Disable Controls" : "Enable Controls"}
-      </Button>
-    </Box>
+        {/* Toggle button */}
+        <Button
+          variant="contained"
+          color={state.controlsEnabled ? "error" : "success"}
+          onClick={toggleControls}
+          disabled={context.callService == undefined}
+        >
+          {state.controlsEnabled ? "Disable Controls" : "Enable Controls"}
+        </Button>
+      </Box>
+    </ThemeProvider>
   );
 }
 
