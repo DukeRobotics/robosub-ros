@@ -1,2 +1,2 @@
 # Array containing PWM allocations for each thruster
-int32[8] allocs
+int16[8] allocs
