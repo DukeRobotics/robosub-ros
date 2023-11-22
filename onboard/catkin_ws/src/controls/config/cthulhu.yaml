@@ -1,114 +1,106 @@
 pid:
-    position:
-        x:
-            Kp: 0.1
-            Ki: 0.001
-            Kd: 0.001
-            Ff: 0.0
-        y:
-            Kp: 0.1
-            Ki: 0.001
-            Kd: 0.001
-            Ff: 0.0
-        z:
-            Kp: 15.0
-            Ki: 0.3
-            Kd: 0.12
-            Ff: 0.0
-        roll:
-            Kp: 0.1
-            Ki: 0.001
-            Kd: 0.001
-            Ff: 0.0
-        pitch:
-            Kp: 0.1
-            Ki: 0.001
-            Kd: 0.001
-            Ff: 0.0
-        yaw:
-            Kp: 0.5
-            Ki: 0.0
-            Kd: 0.15
-            Ff: 0.0
-
-    velocity:
-        x:
-            Kp: 3.0
-            Ki: 0.02
-            Kd: 0.05
-            Ff: 0.0
-        y:
-            Kp: 3.0
-            Ki: 0.02
-            Kd: 0.05
-            Ff: 0.0
-        z:
-            Kp: 10.0
-            Ki: 0.1
-            Kd: 1.0
-            Ff: 0.0
-        roll:
-            Kp: 0.01
-            Ki: 0.001
-            Kd: 0.05
-            Ff: 0.0
-        pitch:
-            Kp: 0.25
-            Ki: 0.001
-            Kd: 0.01
-            Ff: 0.0
-        yaw:
-            Kp: 2.0
-            Ki: 0.001
-            Kd: 0.005
-            Ff: 0.0
-
+  position:
+    x:
+      Kp: 0.1
+      Ki: 0.001
+      Kd: 0.001
+      Ff: 0
+    y:
+      Kp: 0.1
+      Ki: 0.001
+      Kd: 0.001
+      Ff: 0
+    z:
+      Kp: 15
+      Ki: 0.3
+      Kd: 0.12
+      Ff: 0
+    roll:
+      Kp: 0.1
+      Ki: 0.001
+      Kd: 0.001
+      Ff: 0
+    pitch:
+      Kp: 0.1
+      Ki: 0.001
+      Kd: 0.001
+      Ff: 0
+    yaw:
+      Kp: 0.5
+      Ki: 0
+      Kd: 0.15
+      Ff: 0
+  velocity:
+    x:
+      Kp: 3
+      Ki: 0.02
+      Kd: 0.05
+      Ff: 0
+    y:
+      Kp: 3
+      Ki: 0.02
+      Kd: 0.05
+      Ff: 0
+    z:
+      Kp: 10
+      Ki: 0.1
+      Kd: 1
+      Ff: 0
+    roll:
+      Kp: 0.01
+      Ki: 0.001
+      Kd: 0.05
+      Ff: 0
+    pitch:
+      Kp: 0.25
+      Ki: 0.001
+      Kd: 0.01
+      Ff: 0
+    yaw:
+      Kp: 2
+      Ki: 0.001
+      Kd: 0.005
+      Ff: 0
 thrusters:
-    -
-        name: front_right
-        type: T200
-        pos: [0.29845, -0.1778, 0]
-        rpy: [0, 0, 45]
-        flipped: true
-    -
-        name: front_left
-        type: T200
-        pos: [0.29845, 0.1778, 0]
-        rpy: [0, 0, -45]
-        flipped: true
-    -
-        name: back_right
-        type: T200
-        pos: [-0.29845, -0.1778, 0]
-        rpy: [0, 0, 135]
-        flipped: false
-    -
-        name: back_left
-        type: T200
-        pos: [-0.29845, 0.1778, 0]
-        rpy: [0, 0, -135]
-        flipped: true
-    -
-        name: bottom_front_right
-        type: T200
-        pos: [0.3048, -0.1651, -0.077875]
-        rpy: [0, 90, 0]
-        flipped: false
-    -
-        name: bottom_front_left
-        type: T200
-        pos: [0.3048, 0.1651, -0.077875]
-        rpy: [0, 90, 0]
-        flipped: true
-    -
-        name: bottom_back_right
-        type: T200
-        pos: [-0.3048, -0.1651, -0.077875]
-        rpy: [0, 90, 0]
-        flipped: true
-    -
-        name: bottom_back_left
-        type: T200
-        pos: [-0.3048, 0.1651, -0.077875]
-        rpy: [0, 90, 0]
-        flipped: false
+  - name: front_right
+    type: T200
+    pos: [0.29845, -0.1778, 0]
+    rpy: [0, 0, 45]
+    flipped: true
+  - name: front_left
+    type: T200
+    pos: [0.29845, 0.1778, 0]
+    rpy: [0, 0, -45]
+    flipped: true
+  - name: back_right
+    type: T200
+    pos: [-0.29845, -0.1778, 0]
+    rpy: [0, 0, 135]
+    flipped: false
+  - name: back_left
+    type: T200
+    pos: [-0.29845, 0.1778, 0]
+    rpy: [0, 0, -135]
+    flipped: true
+  - name: bottom_front_right
+    type: T200
+    pos: [0.3048, -0.1651, -0.077875]
+    rpy: [0, 90, 0]
+    flipped: false
+  - name: bottom_front_left
+    type: T200
+    pos: [0.3048, 0.1651, -0.077875]
+    rpy: [0, 90, 0]
+    flipped: true
+  - name: bottom_back_right
+    type: T200
+    pos: [-0.3048, -0.1651, -0.077875]
+    rpy: [0, 90, 0]
+    flipped: true
+  - name: bottom_back_left
+    type: T200
+    pos: [-0.3048, 0.1651, -0.077875]
+    rpy: [0, 90, 0]
+    flipped: false
+wrench_matrix_file_path: /root/dev/robosub-ros/onboard/catkin_ws/src/controls/config/cthulhu_wrench.csv
+wrench_matrix_pinv_file_path: /root/dev/robosub-ros/onboard/catkin_ws/src/controls/config/cthulhu_wrench_pinv.csv
