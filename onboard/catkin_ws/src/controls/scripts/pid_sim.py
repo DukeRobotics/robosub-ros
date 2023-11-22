@@ -41,14 +41,14 @@ class PIDSim():
         while not rospy.is_shutdown():
             pid_gains = PIDGains()
 
-            for pid_loop, axes in self.pid.items():
+            for loop, axes in self.pid.items():
                 for axis, gains in axes.items():
-                    for gain_type, gain in gains.items():
+                    for gain, value in gains.items():
                         pid_gain = PIDGain()
-                        pid_gain.pid_loop = pid_loop
+                        pid_gain.loop = loop
                         pid_gain.axis = axis
-                        pid_gain.gain_type = gain_type
                         pid_gain.gain = gain
+                        pid_gain.value = value
 
                         pid_gains.pid_gains.append(pid_gain)
 
@@ -58,7 +58,7 @@ class PIDSim():
 
     def handle_set_pid(self, req):
         for pid_gain in req.pid_gains:
-            self.pid[pid_gain.pid_loop][pid_gain.axis][pid_gain.gain_type] = pid_gain.gain
+            self.pid[pid_gain.loop][pid_gain.axis][pid_gain.gain] = pid_gain.value
         return {'success': True}
 
 
