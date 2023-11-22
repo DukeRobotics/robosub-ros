@@ -88,10 +88,16 @@ public:
                                      std::unordered_map<AxesEnum, ControlTypesEnum> &map);
     static void map_to_control_types(const std::unordered_map<AxesEnum, ControlTypesEnum> &map,
                                      custom_msgs::ControlTypes &control_types);
-    static bool update_pid_loops_axes_gains_map(LoopsAxesPIDGainsMap &all_pid_gains, const std::vector<custom_msgs::PIDGain> &pid_gain_updates);
-    static void pid_loops_axes_gains_map_to_msg(const LoopsAxesPIDGainsMap &all_pid_gains, custom_msgs::PIDGains &pid_gains_msg);
+    static bool update_pid_loops_axes_gains_map(LoopsAxesPIDGainsMap &all_pid_gains,
+                                                const std::vector<custom_msgs::PIDGain> &pid_gain_updates);
+    static void pid_loops_axes_gains_map_to_msg(const LoopsAxesPIDGainsMap &all_pid_gains,
+                                                custom_msgs::PIDGains &pid_gains_msg);
     static void read_matrix_from_csv(std::string file_path, Eigen::MatrixXd &matrix);
-    static void read_robot_config(std::string file_path, LoopsAxesPIDGainsMap &robot_config, std::string &wrench_matrix_file_path, std::string &wrench_matrix_pinv_file_path);
+    static void read_robot_config(std::string file_path,
+                                  LoopsAxesPIDGainsMap &robot_config,
+                                  std::string &wrench_matrix_file_path,
+                                  std::string &wrench_matrix_pinv_file_path);
+    static void update_robot_pid_gains(std::string file_path, const LoopsAxesPIDGainsMap &all_pid_gains);
 };
 
 #endif

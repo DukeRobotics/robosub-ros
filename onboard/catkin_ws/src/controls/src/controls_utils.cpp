@@ -151,7 +151,7 @@ void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd 
     // Open the CSV file
     std::ifstream file(file_path);
 
-    ROS_ASSERT_MSG(file.is_open(), "Could not open file. %s", file_path.c_str());
+    ROS_ASSERT_MSG(file.is_open(), "Could not open CSV file. %s", file_path.c_str());
 
     // Read data from the CSV file and initialize the matrix
     std::vector<std::vector<double>> data;
@@ -234,7 +234,49 @@ void ControlsUtils::read_robot_config(std::string file_path,
     }
     catch (const std::exception &e)
     {
-        ROS_ERROR("Could not read robot config file. Make sure it is in the correct format. %s", file_path.c_str());
-        throw;
+        ROS_ERROR("Exception: %s", e.what());
+        ROS_ASSERT_MSG(false, "Could not read robot config file. Make sure it is in the correct format. '%s'",
+                       file_path.c_str());
+    }
+}
+
+void ControlsUtils::update_robot_pid_gains(std::string file_path, const LoopsAxesPIDGainsMap &all_pid_gains)
+{
+    try
+    {
+        YAML::Node config = YAML::LoadFile(file_path);
+
+        YAML::Node pid = config["pid"];
+
+        for (const auto &loop_type : PID_LOOP_TYPES)
+        {
+            YAML::Node loop = pid[PID_LOOP_TYPES_NAMES.at(loop_type)];
+            for (const auto &axis : AXES)
+            {
+                YAML::Node axis_node = loop[AXES_NAMES.at(axis)];
+                for (const auto &gain : PID_GAIN_TYPES)
+                    axis_node[PID_GAIN_TYPES_NAMES.at(gain)] = all_pid_gains.at(loop_type).at(axis)->at(gain);
+            }
+        }
+
+        std::ofstream fout(file_path);
+
+        if (!fout.is_open())
+            throw;
+
+        fout.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+
+        fout << config;
+
+        if (fout.fail())
+            throw;
+
+        fout.close();
+    }
+    catch (const std::exception &e)
+    {
+        ROS_ERROR("Exception: %s", e.what());
+        ROS_ASSERT_MSG(false, "Could not update pid gains in robot config file. Make sure it is in the correct format. '%s'",
+                       file_path.c_str());
     }
 }

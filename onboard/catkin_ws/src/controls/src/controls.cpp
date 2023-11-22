@@ -63,7 +63,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     ControlsUtils::read_robot_config(ROBOT_CONFIG_FILE_PATH, all_pid_gains, wrench_matrix_file_path, wrench_matrix_pinv_file_path);
 
     // Instantiate PID managers for each PID loop type
-    for(const PIDLoopTypesEnum& pid_loop_type : PID_LOOP_TYPES)
+    for (const PIDLoopTypesEnum &pid_loop_type : PID_LOOP_TYPES)
         pid_managers[pid_loop_type] = PIDManager(all_pid_gains[pid_loop_type]);
 
     // Instantiate thruster allocator
@@ -109,7 +109,21 @@ bool Controls::set_control_types_callback(custom_msgs::SetControlTypes::Request 
 bool Controls::set_pid_gains_callback(custom_msgs::SetPIDGains::Request &req, custom_msgs::SetPIDGains::Response &res)
 {
     res.success = ControlsUtils::update_pid_loops_axes_gains_map(all_pid_gains, req.pid_gains);
+
+    // Update robot config file if PID gains were updated successfully
+    // Logs an error if file could not be updated and shuts down the node.
+    // Why throw an exception if file could not be updated, but not if PID gains were invalid?
+    // Answer: because if the PID gains were invalid, then we give the user another chance to enter valid PID gains
+    // and don't make any changes. If the file could not be updated successfully, then we don't want to give the user
+    // another chance to enter valid PID gains because the file will likely still not be updated successfully and
+    // despite being incomplete, we have no way of undoing the changes (if any) that were made to the file. It is likely
+    // users will make frequent mistakes when calling this service, but it is unlikely writing to config file will
+    // frequently fail.
+    if (res.success)
+        ControlsUtils::update_robot_pid_gains(ROBOT_CONFIG_FILE_PATH, all_pid_gains);
+
     res.message = res.success ? "Updated PID gains successfully." : "Failed to update PID gains. One or more PID gains was invalid.";
+
     return true;
 }
 
