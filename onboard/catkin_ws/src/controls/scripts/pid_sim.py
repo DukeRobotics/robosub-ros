@@ -25,8 +25,8 @@ class PIDSim():
             PIDGain.AXIS_YAW: copy.deepcopy(gains),
         }
         self.pid = {
-            PIDGain.POSITION_PID: copy.deepcopy(axes),
-            PIDGain.VELOCITY_PID: copy.deepcopy(axes)
+            PIDGain.LOOP_POSITION: copy.deepcopy(axes),
+            PIDGain.LOOP_VELOCITY: copy.deepcopy(axes)
         }
 
         self.pid_pub = rospy.Publisher('current_pid', PIDGains, queue_size=1)
