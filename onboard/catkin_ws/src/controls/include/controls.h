@@ -7,7 +7,7 @@
 #include <memory>
 #include <Eigen/Dense>
 #include <ros/ros.h>
-#include <tf/transform_listener.h>
+#include <tf2_ros/transform_listener.h>
 #include <std_msgs/Bool.h>
 #include <std_srvs/SetBool.h>
 #include <geometry_msgs/Pose.h>
@@ -33,7 +33,7 @@ public:
     bool enable_position_pid;
     bool enable_velocity_pid;
 
-    std::unique_ptr<tf::TransformListener> tf_listener;
+    std::unique_ptr<tf2_ros::Buffer> tfl_buffer;
 
     ros::Subscriber desired_position_sub;
     ros::Subscriber desired_velocity_sub;
@@ -70,7 +70,7 @@ public:
     std::unordered_map<AxesEnum, double> velocity_pid_outputs;
     std::unordered_map<AxesEnum, double> desired_power;
 
-    Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<tf::TransformListener> tf_listener);
+    Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<tf2_ros::Buffer> tfl_buffer);
     void desired_position_callback(const geometry_msgs::Pose msg);
     void desired_velocity_callback(const geometry_msgs::Twist msg);
     void desired_power_callback(const geometry_msgs::Twist msg);

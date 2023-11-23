@@ -4,10 +4,12 @@
 #include <memory>
 #include <Eigen/Dense>
 #include <ros/ros.h>
+#include <tf2_ros/transform_listener.h>
 #include <std_msgs/Bool.h>
 #include <std_srvs/SetBool.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <nav_msgs/Odometry.h>
 #include <custom_msgs/ThrusterAllocs.h>
 #include <custom_msgs/PIDGain.h>
@@ -20,7 +22,7 @@
 #include "controls_utils.h"
 #include "controls.h"
 
-Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<tf::TransformListener> tf_listener)
+Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<tf2_ros::Buffer> tfl_buffer)
 {
 
     // Get parameters from launch file
@@ -29,7 +31,8 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     nh.param<bool>("enable_position_pid", enable_position_pid, false);
     nh.param<bool>("enable_velocity_pid", enable_velocity_pid, false);
 
-    this->tf_listener = std::move(tf_listener);
+    // Initialize TransformListener
+    this->tfl_buffer = std::move(tfl_buffer);
 
     // Subscribe to input topics
     desired_position_sub = nh.subscribe("controls/desired_position", 1, &Controls::desired_position_callback, this);
@@ -90,6 +93,22 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     state = msg;
     // TODO: compute position and velocity errors and run PID controllers
     // TODO: publish position and velocity errors
+
+    geometry_msgs::TransformStamped transformStamped;
+    try
+    {
+        tfl_buffer->lookupTransform("odom", "base_link", ros::Time(0));
+    }
+    catch(tf2::TransformException &ex)
+    {
+        ROS_WARN("Could not get transform from odom to base_link. %s", ex.what());
+        return;
+    }
+
+    geometry_msgs::Pose desired_position_local;
+    tf2::doTransform(desired_position, desired_position_local, transformStamped);
+
+    // TODO: Use desired_position_local and desired_velocity to compute position and velocity errors
 }
 
 bool Controls::enable_controls_callback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
@@ -199,9 +218,10 @@ int main(int argc, char **argv)
 
     ros::NodeHandle nh;
 
-    std::unique_ptr<tf::TransformListener> tf_listener(new tf::TransformListener());
+    std::unique_ptr<tf2_ros::Buffer> tfl_buffer(new tf2_ros::Buffer());
+    std::unique_ptr<tf2_ros::TransformListener> tfl(new tf2_ros::TransformListener(*tfl_buffer));
 
-    Controls controls = Controls(argc, argv, nh, std::move(tf_listener));
+    Controls controls = Controls(argc, argv, nh, std::move(tfl_buffer));
     controls.run();
 
     return 0;
