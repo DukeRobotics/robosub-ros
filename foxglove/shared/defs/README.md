@@ -1,5 +1,5 @@
 # Foxglove Definitions
-This package exports datatype maps and TypeScript interfaces/enums for both ROS 1 and Duke Robotics custom definitions.
+This package exports datatype maps and TypeScript interfaces/enums for both ROS 1 and Duke Robotics custom message definitions.
 Datatype maps are needed to advertise topics. TypeScript interfaces are used for static type checking.
 
 ## Usage
@@ -54,3 +54,4 @@ scp -P 2200 -r root@localhost:/opt/ros/noetic/share/ share
 ```bash
 npx ros-typescript-generator --config ros_ts_generator_configs/ros1.json
 ```
+The `share` folder can now be safely deleted.
