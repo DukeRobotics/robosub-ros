@@ -161,7 +161,7 @@ void ControlsUtils::pid_loops_axes_gains_map_to_msg(const LoopsAxesPIDGainsMap &
             }
 }
 
-void populate_axes_map(std::unordered_map<AxesEnum, double> &map, double value)
+void ControlsUtils::populate_axes_map(std::unordered_map<AxesEnum, double> &map, double value)
 {
     for (const AxesEnum &axis : AXES)
         map[axis] = value;
