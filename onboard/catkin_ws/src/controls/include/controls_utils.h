@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
 #include <custom_msgs/ControlTypes.h>
 #include <custom_msgs/PIDGain.h>
@@ -82,6 +83,7 @@ public:
     static bool value_in_pid_gain_types_enum(uint8_t value);
     static bool pid_gain_valid(const custom_msgs::PIDGain &pid_gain);
     static bool pid_gains_valid(const std::vector<custom_msgs::PIDGain> &pid_gains);
+    static void pose_to_map(const geometry_msgs::Pose &pose, std::unordered_map<AxesEnum, double> &map);
     static void twist_to_map(const geometry_msgs::Twist &twist, std::unordered_map<AxesEnum, double> &map);
     static void eigen_vector_to_twist(const Eigen::VectorXd &vector, geometry_msgs::Twist &twist);
     static bool control_types_to_map(const custom_msgs::ControlTypes &control_types,
@@ -92,6 +94,7 @@ public:
                                                 const std::vector<custom_msgs::PIDGain> &pid_gain_updates);
     static void pid_loops_axes_gains_map_to_msg(const LoopsAxesPIDGainsMap &all_pid_gains,
                                                 custom_msgs::PIDGains &pid_gains_msg);
+    static void populate_axes_map(std::unordered_map<AxesEnum, double> &map, double value);
     static void read_matrix_from_csv(std::string file_path, Eigen::MatrixXd &matrix);
     static void read_robot_config(std::string file_path,
                                   LoopsAxesPIDGainsMap &robot_config,

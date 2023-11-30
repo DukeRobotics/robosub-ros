@@ -5,6 +5,9 @@
 #include <unordered_map>
 #include <string>
 #include <ros/ros.h>
+#include <tf2/LinearMath/Matrix3x3.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
 #include <custom_msgs/ControlTypes.h>
 #include <custom_msgs/PIDGain.h>
@@ -59,6 +62,18 @@ bool ControlsUtils::pid_gains_valid(const std::vector<custom_msgs::PIDGain> &pid
             return false;
 
     return true;
+}
+
+void ControlsUtils::pose_to_map(const geometry_msgs::Pose &pose, std::unordered_map<AxesEnum, double> &map)
+{
+    map[AxesEnum::X] = pose.position.x;
+    map[AxesEnum::Y] = pose.position.y;
+    map[AxesEnum::Z] = pose.position.z;
+
+    tf2::Quaternion q;
+    tf2::fromMsg(pose.orientation, q);
+    tf2::Matrix3x3 m(q);
+    m.getRPY(map[AxesEnum::ROLL], map[AxesEnum::PITCH], map[AxesEnum::YAW]);
 }
 
 void ControlsUtils::twist_to_map(const geometry_msgs::Twist &twist, std::unordered_map<AxesEnum, double> &map)
@@ -144,6 +159,12 @@ void ControlsUtils::pid_loops_axes_gains_map_to_msg(const LoopsAxesPIDGainsMap &
                 pid_gain.value = all_pid_gains.at(loop).at(axis)->at(gain);
                 pid_gains_msg.pid_gains.push_back(pid_gain);
             }
+}
+
+void populate_axes_map(std::unordered_map<AxesEnum, double> &map, double value)
+{
+    for (const AxesEnum &axis : AXES)
+        map[axis] = value;
 }
 
 void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd &matrix)
