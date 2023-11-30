@@ -1,7 +1,7 @@
 # ROS TypeScript Generator
 A CLI for generating typescript interfaces and enums from ros `.msg`, `.srv`, and `.action` files.
 
-This package has been modified to provide support for the conversion of custom messages without ROS message dependencies. The [original package](https://github.com/Greenroom-Robotics/ros-typescript-generator) was created by Greenroom Robotics.
+This package has been modified to provide support for the conversion of custom messages without ROS message dependencies. Note that `@foxglove/rosmsg` has been updated from `^1.0.1` to `^5.0.2` in order to make the necessary modifications. The [original package](https://github.com/Greenroom-Robotics/ros-typescript-generator) was created by Greenroom Robotics.
 
 ## Example
 This `RemoteLaunchInfo.msg`
