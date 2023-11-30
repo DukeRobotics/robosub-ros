@@ -59,6 +59,8 @@ public:
     ros::Publisher status_pub;
 
     bool controls_enabled = false;
+    
+    ros::Time last_state_msg_time;
 
     LoopsAxesPIDGainsMap all_pid_gains;
     std::unordered_map<PIDLoopTypesEnum, PIDManager> pid_managers;

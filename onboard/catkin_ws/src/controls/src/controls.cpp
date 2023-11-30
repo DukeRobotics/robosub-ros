@@ -95,6 +95,11 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
 {
     state = msg;
 
+    // Get current time, compute delta time, and update last state message time
+    ros::Time current_time = ros::Time::now();
+    double delta_time = (current_time - last_state_msg_time).toSec();
+    last_state_msg_time = current_time;
+
     // Get transform from odom to base_link
     geometry_msgs::TransformStamped transformStamped;
     try
@@ -111,25 +116,44 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     geometry_msgs::PoseStamped desired_position_stamped;
     desired_position_stamped.pose = desired_position;
     desired_position_stamped.header.frame_id = "odom";
-
     geometry_msgs::PoseStamped position_error;
-    
     tf2::doTransform(desired_position_stamped, position_error, transformStamped);
 
     // Compute linear velocity error
     geometry_msgs::Vector3Stamped desired_velocity_stamped_linear;
     desired_velocity_stamped_linear.vector = desired_velocity.linear;
     geometry_msgs::Vector3Stamped velocity_error_linear;
-
     tf2::doTransform(desired_velocity_stamped_linear, velocity_error_linear, transformStamped);
 
     // Compute angular velocity error
     geometry_msgs::Vector3Stamped desired_velocity_stamped_angular;
     desired_velocity_stamped_angular.vector = desired_velocity.angular;
-
     geometry_msgs::Vector3Stamped velocity_error_angular;    
-
     tf2::doTransform(desired_velocity_stamped_angular, velocity_error_angular, transformStamped);
+
+    // Combine linear and angular velocity errors
+    geometry_msgs::Twist velocity_error;
+    velocity_error.linear = velocity_error_linear.vector;
+    velocity_error.angular = velocity_error_angular.vector;
+
+    // Convert error messages to maps
+    std::unordered_map<AxesEnum, double> position_error_map;
+    ControlsUtils::pose_to_map(position_error.pose, position_error_map);
+
+    std::unordered_map<AxesEnum, double> velocity_error_map;
+    ControlsUtils::twist_to_map(velocity_error, velocity_error_map);
+
+    // Get delta time map
+    std::unordered_map<AxesEnum, double> delta_time_map;
+    ControlsUtils::populate_axes_map(delta_time_map, delta_time);
+
+    // Run PID loops
+    if (enable_position_pid)
+        pid_managers[PIDLoopTypesEnum::POSITION].run_loops(position_error_map, delta_time_map, position_pid_outputs);
+    
+    if (enable_velocity_pid)
+        pid_managers[PIDLoopTypesEnum::VELOCITY].run_loops(velocity_error_map, delta_time_map, velocity_pid_outputs);
+
 }
 
 bool Controls::enable_controls_callback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
