@@ -6,7 +6,7 @@ import { CheckCircleOutline, HighlightOff } from "@mui/icons-material";
 import { TextField, Button, Alert, Tab, Tabs, CssBaseline } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
 import { ThemeProvider } from "@mui/material/styles";
-import { useCallback, useEffect, useLayoutEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
 
 import { allThrusterOrders } from "../dist";
@@ -16,9 +16,10 @@ enum PanelMode {
   PUBLISHING,
 }
 
-type State = {
+type ThrusterSpeedsPanelState = {
   error?: Error | undefined;
   colorScheme?: RenderState["colorScheme"];
+  currentTime?: RenderState["currentTime"];
   hasError: boolean;
   panelMode: PanelMode;
   repeatPublish: NodeJS.Timeout | null;
@@ -50,8 +51,13 @@ const defaultThrusterSpeeds: ThrusterSpeeds = {
 };
 
 const ROBOT = "OOGWAY";
-const topicName = "/offboard/thruster_speeds";
-const messageType = "custom_msgs/ThrusterSpeeds";
+const MIN_THRUSTER_SPEED = -128;
+const MAX_THRUSTER_SPEED = 127;
+const THRUSTER_SPEEDS_TOPIC = "/offboard/thruster_speeds";
+const THRUSTER_SPEEDS_MESSAGE_TYPE = "custom_msgs/ThrusterSpeeds";
+
+// This is the delay, in miliseconds, between two consecutive messages published by the panel.
+// A 100ms delay means the panel is publishing messages at 10Hz.
 const publishRate = 100;
 
 const thrusters: (keyof ThrusterSpeeds)[] = [
@@ -69,7 +75,8 @@ const thrustersInOrder: (keyof ThrusterSpeeds)[] = allThrusterOrders[ROBOT] as (
 function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<() => void | undefined>();
   const firstMount = useRef(true);
-  const [state, setState] = useState<State>({
+  const theme = useTheme();
+  const [state, setState] = useState<ThrusterSpeedsPanelState>({
     hasError: false,
     panelMode: PanelMode.SUBSCRIBING,
     repeatPublish: null,
@@ -92,8 +99,8 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
   }, [renderDone]);
 
   useEffect(() => {
-    context.saveState({ topic: topicName });
-    context.subscribe([{ topic: topicName }]);
+    context.saveState({ topic: THRUSTER_SPEEDS_TOPIC });
+    context.subscribe([{ topic: THRUSTER_SPEEDS_TOPIC }]);
   }, [context]);
 
   useEffect(() => {
@@ -106,19 +113,24 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.publisherThrusterSpeeds]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setRenderDone(() => done);
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
+
+      if (renderState.currentTime != undefined) {
+        console.log(renderState.currentTime);
+        setState((oldState) => ({ ...oldState, currentTime: renderState.currentTime }));
+      }
 
       // Save the most recent message on our topic.
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
         const latestFrame = renderState.currentFrame[
           renderState.currentFrame.length - 1
         ] as MessageEvent<CustomMsgsThrusterSpeeds>;
-        let newSpeeds: ThrusterSpeeds = { ...defaultThrusterSpeeds };
+        const newSpeeds: ThrusterSpeeds = { ...defaultThrusterSpeeds };
         thrustersInOrder.forEach((thruster: keyof ThrusterSpeeds, index) => {
-          newSpeeds = { ...newSpeeds, [thruster]: latestFrame.message.speeds[index] };
+          newSpeeds[thruster] = latestFrame.message.speeds[index] as number | "";
         });
         setState((oldState) => ({ ...oldState, subscriberThrusterSpeeds: newSpeeds }));
       }
@@ -126,15 +138,17 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
 
     context.watch("currentFrame");
     context.watch("colorScheme");
+    context.watch("currentTime");
   }, [context]);
 
   const publishSpeeds = useCallback(() => {
+    console.log(state.currentTime);
     const message = {
       header: {
         seq: 0,
         stamp: {
-          secs: 0,
-          nsecs: 0,
+          secs: state.currentTime?.sec ?? 0,
+          nsecs: state.currentTime?.nsec ?? 0,
         },
         frame_id: "",
       },
@@ -149,10 +163,10 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     }
 
     try {
-      context.advertise(`/${topicName}`, messageType, {
-        datatypes: allDatatypeMaps["custom_msgs"][messageType],
+      context.advertise(`/${THRUSTER_SPEEDS_TOPIC}`, THRUSTER_SPEEDS_MESSAGE_TYPE, {
+        datatypes: allDatatypeMaps["custom_msgs"][THRUSTER_SPEEDS_MESSAGE_TYPE],
       });
-      context.publish(`/${topicName}`, message);
+      context.publish(`/${THRUSTER_SPEEDS_TOPIC}`, message);
 
       setState((oldState) => ({
         ...oldState,
@@ -162,10 +176,12 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
       setState((oldState) => ({ ...oldState, error: error as Error }));
       console.error(error);
     }
-  }, [context, state.publisherThrusterSpeeds]);
+  }, [context, state.publisherThrusterSpeeds, state.currentTime]);
 
   const validateInput = (value: number | "") => {
-    return value === "" || (value >= -128 && value <= 127);
+    return (
+      value === "" || (Number.isInteger(Number(value)) && value >= MIN_THRUSTER_SPEED && value <= MAX_THRUSTER_SPEED)
+    );
   };
 
   const handleModeChange = (_: React.SyntheticEvent, mode: PanelMode) => {
@@ -226,7 +242,6 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     }));
   };
 
-  const theme = useTheme();
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -253,11 +268,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
                 <TextField
                   key={thruster}
                   id={thruster}
-                  error={
-                    state.panelMode === PanelMode.SUBSCRIBING
-                      ? false
-                      : !validateInput(state.tempThrusterSpeeds[thruster])
-                  }
+                  error={state.panelMode === PanelMode.PUBLISHING && !validateInput(state.tempThrusterSpeeds[thruster])}
                   label={thruster}
                   size="small"
                   variant={state.panelMode === PanelMode.SUBSCRIBING ? "filled" : "outlined"}
