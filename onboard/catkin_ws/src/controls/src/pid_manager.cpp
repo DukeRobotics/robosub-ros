@@ -17,9 +17,11 @@ PIDManager::PIDManager(AxesPIDGainsMap pid_gains_for_axes)
         pid_controllers[axis] = PID(pid_gains_for_axes[axis]);
 }
 
-void PIDManager::run_loops(std::unordered_map<AxesEnum, double> errors, std::unordered_map<AxesEnum, double> deltaTimes)
+void PIDManager::run_loops(const std::unordered_map<AxesEnum, double> &errors,
+                           const std::unordered_map<AxesEnum, double> &deltaTimes,
+                           std::unordered_map<AxesEnum, double> &outputs)
 {
     // Run PID loops
     for (const AxesEnum &axis : AXES)
-        pid_controllers[axis].run_loop(errors[axis], deltaTimes[axis]);
+        outputs[axis] = pid_controllers.at(axis).run_loop(errors.at(axis), deltaTimes.at(axis));
 }
