@@ -95,12 +95,10 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
   }, [renderDone]);
 
   // Pubish a request with a given schema to a topic
-  const publishTopic = (topicName: string, request: string, schemaName: string) => {
+  const publishSpeeds = () => {
     if (!context.advertise || !context.publish) {
       return;
     }
-
-    context.advertise(`/${topicName}`, schemaName);
 
     // TODO: Update once foxglove-custom-msgs is merged to master
     context.advertise(TOPIC_NAME, SCHEMA_NAME, {
@@ -110,12 +108,11 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         ["std_msgs/Float64", ros1["std_msgs/Float64"]],
       ]),
     });
-    context.publish(`/${topicName}`, JSON.parse(request));
-  };
 
-  // Close publishTopic with the current state for use in the button
-  const publishTopicWithRequest = () => {
-    publishTopic(state.topicName, state.request, state.schemaName);
+    // TODO: Populate request with transformed joystick inputs
+    const request: GeometryMsgsTwist = {};
+
+    context.publish(TOPIC_NAME, request);
   };
 
   window.addEventListener("gamepadconnected", () => {
