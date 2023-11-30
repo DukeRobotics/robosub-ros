@@ -2,6 +2,8 @@
 This package exports datatype maps and TypeScript interfaces/enums for both ROS 1 and Duke Robotics custom message definitions.
 Datatype maps are needed to advertise topics. TypeScript interfaces are used for static type checking.
 
+This package is based off of the Foxglove [rosmsg-msgs-common](https://github.com/foxglove/rosmsg-msgs-common) repository.
+
 ## Usage
 ### Datatype Maps
 Foxglove requires a [datatype map](https://docs.foxglove.dev/docs/visualization/extensions/api/panel-api#native-ros-1) 
