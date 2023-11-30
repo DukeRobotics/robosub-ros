@@ -5,9 +5,12 @@
 #include <Eigen/Dense>
 #include <ros/ros.h>
 #include <tf2_ros/transform_listener.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <std_msgs/Bool.h>
 #include <std_srvs/SetBool.h>
 #include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Vector3Stamped.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <nav_msgs/Odometry.h>
@@ -91,9 +94,8 @@ void Controls::desired_power_callback(const geometry_msgs::Twist msg)
 void Controls::state_callback(const nav_msgs::Odometry msg)
 {
     state = msg;
-    // TODO: compute position and velocity errors and run PID controllers
-    // TODO: publish position and velocity errors
 
+    // Get transform from odom to base_link
     geometry_msgs::TransformStamped transformStamped;
     try
     {
@@ -105,10 +107,29 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
         return;
     }
 
-    geometry_msgs::Pose desired_position_local;
-    tf2::doTransform(desired_position, desired_position_local, transformStamped);
+    // Compute position error
+    geometry_msgs::PoseStamped desired_position_stamped;
+    desired_position_stamped.pose = desired_position;
+    desired_position_stamped.header.frame_id = "odom";
 
-    // TODO: Use desired_position_local and desired_velocity to compute position and velocity errors
+    geometry_msgs::PoseStamped position_error;
+    
+    tf2::doTransform(desired_position_stamped, position_error, transformStamped);
+
+    // Compute linear velocity error
+    geometry_msgs::Vector3Stamped desired_velocity_stamped_linear;
+    desired_velocity_stamped_linear.vector = desired_velocity.linear;
+    geometry_msgs::Vector3Stamped velocity_error_linear;
+
+    tf2::doTransform(desired_velocity_stamped_linear, velocity_error_linear, transformStamped);
+
+    // Compute angular velocity error
+    geometry_msgs::Vector3Stamped desired_velocity_stamped_angular;
+    desired_velocity_stamped_angular.vector = desired_velocity.angular;
+
+    geometry_msgs::Vector3Stamped velocity_error_angular;    
+
+    tf2::doTransform(desired_velocity_stamped_angular, velocity_error_angular, transformStamped);
 }
 
 bool Controls::enable_controls_callback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
