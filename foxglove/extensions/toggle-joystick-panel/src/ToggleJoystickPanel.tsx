@@ -1,7 +1,10 @@
+import { ros1 } from "@foxglove/rosmsg-msgs-common";
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
 import { Table, TableBody, TableCell, TableContainer, TableRow, Paper, Typography } from "@mui/material";
 import { SetStateAction, useEffect, useLayoutEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
+
+import { GeometryMsgsTwist } from "./types";
 
 const PUBLISH_RATE = 20;
 
@@ -32,17 +35,6 @@ type JoystickInputs = {
   torpedoTwoLaunch: boolean;
 };
 
-type Twist = {
-  linear: Vector3;
-  angular: Vector3;
-};
-
-type Vector3 = {
-  x: number;
-  y: number;
-  z: number;
-};
-
 type State = {
   topicName: string;
   request: string;
@@ -64,6 +56,9 @@ const JoystickKeys: (keyof JoystickInputs)[] = [
   "torpedoOneLaunch",
   "torpedoTwoLaunch",
 ];
+
+const SCHEMA_NAME = "geometry_msgs/Twist";
+const TOPIC_NAME = "/TEST_TOPIC";
 
 function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
@@ -106,6 +101,15 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     }
 
     context.advertise(`/${topicName}`, schemaName);
+
+    // TODO: Update once foxglove-custom-msgs is merged to master
+    context.advertise(TOPIC_NAME, SCHEMA_NAME, {
+      datatypes: new Map([
+        ["geometry_msgs/Twist", ros1["geometry_msgs/Twist"]],
+        ["geometry_msgs/Vector3", ros1["geometry_msgs/Vector3"]],
+        ["std_msgs/Float64", ros1["std_msgs/Float64"]],
+      ]),
+    });
     context.publish(`/${topicName}`, JSON.parse(request));
   };
 
