@@ -39,7 +39,7 @@ Additionally, the type is suffixed if it describes a ROS service, action, or con
 has 2 types: `StdSrvsSetBoolRequest` and `StdSrvsSetBoolResponse`.
 
 ## Generating ROS 1 Types
-The `types/ros1Msgs.ts` file exports the types of all ROS 1 messages, services, and actions. To regenerate this file, follow the following steps:
+The `types/ros1Msgs.ts` file exports the types of all ROS 1 messages, services, and actions. In the rare case that this file needs to be regenerated (e.g., ROS message definitions change, TypeScript type generation algorithm changes), follow the following steps:
 
 1. Build necessary dependencies
 ```bash
