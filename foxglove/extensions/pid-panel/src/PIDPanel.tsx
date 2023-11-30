@@ -6,52 +6,22 @@ import React = require("react");
 import { JSX } from "react/jsx-runtime";
 import { createRoot } from "react-dom/client";
 
-// Enum for gain types
-enum GainTypes {
-  GAIN_KP,
-  GAIN_KI,
-  GAIN_KD,
-  GAIN_FF,
-}
+import {
+  CustomMsgsPidGain,
+  CustomMsgsPidGainConst,
+  CustomMsgsPidGains,
+  CustomMsgsSetPidGainsRequest,
+  CustomMsgsSetPidGainsResponse,
+} from "./types";
 
-// Enum for axes
-enum AxesTypes {
-  AXIS_X,
-  AXIS_Y,
-  AXIS_Z,
-  AXIS_ROLL,
-  AXIS_PITCH,
-  AXIS_YAW,
-}
-
-// Enum for PID types
-enum PIDTypes {
-  LOOP_POSITION,
-  LOOP_VELOCITY,
-}
-
-// Type for the gains
-type Gain = {
-  [key in GainTypes]: number;
-};
-
-// Type for the axes
-type Axes = {
-  [key in AxesTypes]: Gain;
-};
-
-// Type for the PID object
-type PID = {
-  [key in PIDTypes]: Axes;
-};
-
-type State = {
+type PIDPanelState = {
   serviceName: string;
   request: string;
   response?: unknown;
   error?: Error | undefined;
   colorScheme?: RenderState["colorScheme"];
   panelMode: PanelMode;
+  message?: MessageEvent<CustomMsgsPidGains>;
 };
 
 // Triple nested dictionary to get PID values
@@ -70,12 +40,13 @@ const axes: Record<string, Record<string, number>> = {
   AXIS_YAW: { ...gains },
 };
 const pid: Record<string, Record<string, Record<string, number>>> = {
-  POSITION_PID: { ...axes },
-  VELOCITY_PID: { ...axes },
+  LOOP_POSITION: { ...axes },
+  LOOP_VELOCITY: { ...axes },
 };
 
-const topicName = "/current-pid";
-const pidTypeToUpdate = "POSITION_PID";
+const topicName = "/current_pid";
+const serviceName = "/set_pid";
+const pidTypeToUpdate = "LOOP_POSITION";
 
 if (!pid[pidTypeToUpdate]) {
   pid[pidTypeToUpdate] = {};
@@ -88,32 +59,34 @@ enum PanelMode {
 
 function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const [state, setState] = useState<State>({ serviceName: "", request: "{}", panelMode: PanelMode.SUBSCRIBING });
+  const [state, setState] = useState<PIDPanelState>({
+    serviceName,
+    request: "{}",
+    panelMode: PanelMode.SUBSCRIBING,
+  });
 
+  context.subscribe([{ topic: topicName }]);
 
-
-  // Update color scheme
   useLayoutEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setRenderDone(() => done);
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
 
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<PID>;
+        const lastFrame = renderState.currentFrame.at(-1) as MessageEvent<CustomMsgsPidGains>;
 
-        console.log(lastFrame.message[PIDTypes.LOOP_POSITION][AxesTypes.AXIS_X][GainTypes.GAIN_KP]);
+        // Loop through lastFrame and update PID values
+        const pidGains = lastFrame.message.pid_gains;
+        for (const pidGain of pidGains) {
+          console.log(pidGain);
+        }
 
         setState((oldState) => ({ ...oldState, message: lastFrame }));
       }
     };
   }, [context]);
   context.watch("colorScheme");
-  context.watch("currentTime");
-
-  useEffect(() => {
-    context.saveState({ topic: topicName });
-    context.subscribe([{ topic: topicName }]);
-  }, [context]);
+  context.watch("currentFrame");
 
   // Call our done function at the end of each render
   useEffect(() => {
