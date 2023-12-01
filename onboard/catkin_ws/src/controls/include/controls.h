@@ -28,10 +28,10 @@ class Controls
 public:
     static const int THRUSTER_ALLOCS_RATE = 20;
 
-    bool sim;
-    bool debug;
-    bool enable_position_pid;
-    bool enable_velocity_pid;
+    bool sim = false;
+    bool debug = false;
+    bool enable_position_pid = false;
+    bool enable_velocity_pid = false;
 
     std::unique_ptr<tf2_ros::Buffer> tfl_buffer;
 
