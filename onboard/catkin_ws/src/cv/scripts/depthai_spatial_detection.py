@@ -127,13 +127,13 @@ class DepthAISpatialDetector:
         cam_rgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
 
         mono_left.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
-        mono_left.setBoardSocket(dai.CameraBoardSocket.LEFT)
+        mono_left.setBoardSocket(dai.CameraBoardSocket.CAM_B)
         mono_right.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
-        mono_right.setBoardSocket(dai.CameraBoardSocket.RIGHT)
+        mono_right.setBoardSocket(dai.CameraBoardSocket.CAM_C)
 
         # setting node configs
         stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
-        stereo.setDepthAlign(dai.CameraBoardSocket.RGB)
+        stereo.setDepthAlign(dai.CameraBoardSocket.CAM_A)
 
         spatial_detection_network.setBlobPath(nn_blob_path)
         spatial_detection_network.setConfidenceThreshold(model['confidence_threshold'])

@@ -1,8 +1,9 @@
 {
-  "name": "@duke-robotics/publish-topic-panel",
+  "name": "@duke-robotics/toggle-controls-panel",
   "publisher": "Duke Robotics",
   "version": "0.0.0",
   "main": "./dist/extension.js",
+  "keywords": [],
   "scripts": {
     "build": "foxglove-extension build",
     "foxglove:prepublish": "foxglove-extension build --mode production",
