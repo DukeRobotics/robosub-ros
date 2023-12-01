@@ -2,7 +2,6 @@
 
 import rospy
 import time
-import re
 import serial
 import serial.tools.list_ports as list_ports
 import yaml
