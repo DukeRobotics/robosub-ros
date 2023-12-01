@@ -16,7 +16,7 @@ Thrusters::Thrusters(int argc, char **argv, ros::NodeHandle &nh)
   voltage_sub = nh.subscribe("/sensors/voltage", 1, &Thrusters::voltage_callback, this);
   thruster_allocs_sub = nh.subscribe("/controls/thruster_allocs", 1, &Thrusters::thruster_allocs_callback, this);
 
-  pwm_pub = nh.advertise<custom_msgs::PWMAllocs>("offboard_comms/pwm", 1);
+  pwm_pub = nh.advertise<custom_msgs::PWMAllocs>("/offboard/pwm", 1);
 }
 
 void Thrusters::load_lookup_tables()
