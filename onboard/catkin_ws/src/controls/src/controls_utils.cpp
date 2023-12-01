@@ -70,6 +70,9 @@ void ControlsUtils::pose_to_map(const geometry_msgs::Pose &pose, std::unordered_
     map[AxesEnum::Y] = pose.position.y;
     map[AxesEnum::Z] = pose.position.z;
 
+    // Get roll, pitch, yaw from quaternion
+    // The order of rotation is roll, pitch, yaw
+    // Roll, pitch, yaw are in radians with range [-pi, pi]
     tf2::Quaternion q;
     tf2::fromMsg(pose.orientation, q);
     tf2::Matrix3x3 m(q);
