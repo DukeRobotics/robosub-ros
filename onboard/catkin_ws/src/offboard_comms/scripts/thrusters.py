@@ -9,8 +9,6 @@ import serial.tools.list_ports as list_ports
 import numpy as np
 import resource_retriever as rr
 
-from bisect import bisect_left
-
 from std_msgs.msg import Float32, Int32
 from custom_msgs.msg import ThrusterAllocs, PWMAllocs
 
@@ -106,21 +104,18 @@ class ThrusterConverter:
     # This method takes in voltage and desired control effort and outputs pwn
     # via the linearly interpolated lookup tables
     def lookup(self, voltage, force):
-        # Round voltage to the nearest tenth decimal place
-        voltage = round(voltage, 1)
-        # Efficiently look up the requested index for a given query (voltage, force) in table via binary search
-        # We use binary search to find the left insertion position of force in the associated force array
-        # Note that "force" is always in sorted increasing order, so we can use an array bisection algorithm
-        left_index = bisect_left(self.voltage_efforts_to_pwm[voltage][0], force)
+        # Round force to the nearest hundredth decimal place
+        force = round(force, 2)
 
         # Find interpolation range
         if 14.0 <= voltage and voltage <= 16.0:
-            interpolated_pwm = self.interpolate(14.0, self.voltage_efforts_to_pwm[14.0][left_index],
-                                                16.0, self.voltage_efforts_to_pwm[16.0][left_index], force)
+            # Interpolate between voltage and pwm
+            interpolated_pwm = self.interpolate(14.0, self.voltage_efforts_to_pwm[14.0][force],
+                                                16.0, self.voltage_efforts_to_pwm[16.0][force], voltage)
             return interpolated_pwm
         else:
-            interpolated_pwm = self.interpolate(16.0, self.voltage_efforts_to_pwm[16.0][left_index],
-                                                18.0, self.voltage_efforts_to_pwm[18.0][left_index], force)
+            interpolated_pwm = self.interpolate(16.0, self.voltage_efforts_to_pwm[16.0][force],
+                                                18.0, self.voltage_efforts_to_pwm[18.0][force], voltage)
             return interpolated_pwm
 
     # Linear interpolation to process data

@@ -44,6 +44,9 @@ onboard/catkin_ws/src/cv/footage_extraction/extracted_files
 onboard/catkin_ws/src/cv/footage_extraction/uploaded_footage
 onboard/catkin_ws/src/cv/footage_extraction/*.yaml
 
+# Exclude CSV files in offboard_comms/data
+!onboard/catkin_ws/src/offboard_comms/data/*.csv
+
 # Foxglove
 node_modules
 dist

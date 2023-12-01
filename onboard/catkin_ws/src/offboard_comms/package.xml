@@ -11,6 +11,7 @@
   <license>MIT</license>
 
   <depend>roscpp</depend>
+  <depend>roslib</depend>
   <depend>rosserial</depend>
   <depend>rosserial_arduino</depend>
   <depend>custom_msgs</depend>

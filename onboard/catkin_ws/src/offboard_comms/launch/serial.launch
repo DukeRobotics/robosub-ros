@@ -1,5 +1,5 @@
 <launch>
-    
+
     <!-- Discrete: lookup table; continuous: polynomial -->
     <arg name="interpolation" default="discrete"/>
 
@@ -9,8 +9,7 @@
             command = "$(find offboard_comms)/scripts/thruster_port.sh"
         />
     </node>
-    <node pkg="offboard_comms" type="thrusters.py" name="thrusters" output="screen" >
-        <param name="interpolation" value="$(arg interpolation)" />
-    </node>
+
+    <include file="$(find offboard_comms)/launch/thrusters.launch" />
 
 </launch>

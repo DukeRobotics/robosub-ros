@@ -4,6 +4,7 @@ project(offboard_comms)
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  roslib
   rosserial_arduino
   rosserial_client
   rosserial_python
@@ -15,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
-catkin_package(CATKIN_DEPENDS roscpp rosserial rosserial_arduino std_msgs custom_msgs sensor_msgs geometry_msgs)
+catkin_package(CATKIN_DEPENDS roscpp roslib rosserial rosserial_arduino std_msgs custom_msgs sensor_msgs geometry_msgs)
 
 include_directories(
   include
