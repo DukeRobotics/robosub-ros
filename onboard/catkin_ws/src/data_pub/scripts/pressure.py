@@ -45,7 +45,7 @@ class PressureRawPublisher:
                 rospy.sleep(0.1)
 
     # Read line from serial port without blocking
-    def readline_nonblocking(self, tout = 1):
+    def readline_nonblocking(self, tout=1):
         start = time.time()
         buff = b''
         while ((time.time() - start) < tout) and (b'\r\n' not in buff):
