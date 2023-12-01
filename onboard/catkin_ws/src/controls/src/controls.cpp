@@ -27,15 +27,20 @@
 
 Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<tf2_ros::Buffer> tfl_buffer)
 {
-
     // Get parameters from launch file
-    nh.param<bool>("sim", sim, false);
-    nh.param<bool>("debug", debug, false);
-    nh.param<bool>("enable_position_pid", enable_position_pid, false);
-    nh.param<bool>("enable_velocity_pid", enable_velocity_pid, false);
+    ros::param::get("~sim", enable_position_pid);
+    ros::param::get("~debug", enable_position_pid);
+    ros::param::get("~enable_position_pid", enable_position_pid);
+    ros::param::get("~enable_velocity_pid", enable_velocity_pid);
 
     // Initialize TransformListener
     this->tfl_buffer = std::move(tfl_buffer);
+
+    // Initialize last state message time
+    last_state_msg_time = ros::Time::now();
+
+    // Initialize desired position to have valid orientation
+    desired_position.orientation.w = 1.0;
 
     // Subscribe to input topics
     desired_position_sub = nh.subscribe("controls/desired_position", 1, &Controls::desired_position_callback, this);
@@ -104,7 +109,7 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     geometry_msgs::TransformStamped transformStamped;
     try
     {
-        tfl_buffer->lookupTransform("odom", "base_link", ros::Time(0));
+        transformStamped = tfl_buffer->lookupTransform("odom", "base_link", ros::Time(0));
     }
     catch(tf2::TransformException &ex)
     {
@@ -119,22 +124,15 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     geometry_msgs::PoseStamped position_error;
     tf2::doTransform(desired_position_stamped, position_error, transformStamped);
 
-    // Compute linear velocity error
-    geometry_msgs::Vector3Stamped desired_velocity_stamped_linear;
-    desired_velocity_stamped_linear.vector = desired_velocity.linear;
-    geometry_msgs::Vector3Stamped velocity_error_linear;
-    tf2::doTransform(desired_velocity_stamped_linear, velocity_error_linear, transformStamped);
-
-    // Compute angular velocity error
-    geometry_msgs::Vector3Stamped desired_velocity_stamped_angular;
-    desired_velocity_stamped_angular.vector = desired_velocity.angular;
-    geometry_msgs::Vector3Stamped velocity_error_angular;    
-    tf2::doTransform(desired_velocity_stamped_angular, velocity_error_angular, transformStamped);
-
-    // Combine linear and angular velocity errors
+    // Compute velocity error
+    // No transform is required because the state and desired velocities are in the base_link frame
     geometry_msgs::Twist velocity_error;
-    velocity_error.linear = velocity_error_linear.vector;
-    velocity_error.angular = velocity_error_angular.vector;
+    velocity_error.linear.x = desired_velocity.linear.x - state.twist.twist.linear.x;
+    velocity_error.linear.y = desired_velocity.linear.y - state.twist.twist.linear.y;
+    velocity_error.linear.z = desired_velocity.linear.z - state.twist.twist.linear.z;
+    velocity_error.angular.x = desired_velocity.angular.x - state.twist.twist.angular.x;
+    velocity_error.angular.y = desired_velocity.angular.y - state.twist.twist.angular.y;
+    velocity_error.angular.z = desired_velocity.angular.z - state.twist.twist.angular.z;
 
     // Convert error messages to maps
     std::unordered_map<AxesEnum, double> position_error_map;
@@ -154,6 +152,9 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     if (enable_velocity_pid)
         pid_managers[PIDLoopTypesEnum::VELOCITY].run_loops(velocity_error_map, delta_time_map, velocity_pid_outputs);
 
+    // Publish error messages
+    position_error_pub.publish(position_error.pose);
+    velocity_error_pub.publish(velocity_error);
 }
 
 bool Controls::enable_controls_callback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
