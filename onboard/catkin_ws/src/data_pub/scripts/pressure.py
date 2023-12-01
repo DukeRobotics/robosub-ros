@@ -39,6 +39,7 @@ class PressureRawPublisher:
                                              timeout=None, write_timeout=None,
                                              bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
                                              stopbits=serial.STOPBITS_ONE)
+                self._serial.timeout = 2  # Seconds
             except StopIteration:
                 rospy.logerr("Pressure sensor not found, trying again in 0.1 seconds.")
                 rospy.sleep(0.1)
@@ -50,12 +51,13 @@ class PressureRawPublisher:
             try:
                 # Direct read from device
                 line = self._serial.readline().decode('utf-8')
+                if not line or line == '':
+                    rospy.logerr("Timeout in pressure serial read, trying again in 2 seconds.")
+                    rospy.sleep(0.1)
+                    continue  # Skip and retry
                 self._pressure = line[:-2]  # Remove \r\n
                 self._parse_pressure()  # Parse pressure data
                 self._publish_current_msg()  # Publish pressure data
-                if not line or line == '':
-                    rospy.logerr("Invalid pressure data, trying again in 0.1 seconds.")
-                    rospy.sleep(0.1)
             except Exception:
                 rospy.logerr("Error in reading pressure information. Reconnecting.")
                 rospy.logerr(traceback.format_exc())

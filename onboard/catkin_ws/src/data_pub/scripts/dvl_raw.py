@@ -48,6 +48,7 @@ class DvlRawPublisher:
                                              timeout=0.1, write_timeout=1.0,
                                              bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
                                              stopbits=serial.STOPBITS_ONE)
+                self._serial.timeout = 2  # Seconds
             except StopIteration:
                 rospy.logerr("DVL not found, trying again in 0.1 seconds.")
                 rospy.sleep(0.1)
@@ -59,6 +60,10 @@ class DvlRawPublisher:
         while not rospy.is_shutdown():
             try:
                 line = self._serial.readline().decode('utf-8')
+                if not line or line == '':
+                    rospy.logerr("Timeout in DVL serial read, trying again in 2 seconds.")
+                    rospy.sleep(0.1)
+                    continue  # Skip and retry
                 if line.strip() and line[0] == ':':
                     self._parse_line(line)
             except Exception:
