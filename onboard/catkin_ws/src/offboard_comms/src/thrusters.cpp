@@ -97,11 +97,11 @@ double Thrusters::lookup(float voltage, float force)
   ROS_ASSERT_MSG(14.0 <= voltage && voltage <= 18.0, "Voltage must be in [14.0, 18.0]");
 
   float rounded_force = roundf(force * 100) / 100;
-  int index = (int)(rounded_force + 1) * 100;
+  int index = (int)((rounded_force + 1) * 100);
   if (14.0 <= voltage && voltage <= 16.0)
-    return interpolate(14.0, v14_lookup_table[index], 16.0, v16_lookup_table[index], voltage);
+    return interpolate(14.0, v14_lookup_table.at(index), 16.0, v16_lookup_table.at(index), voltage);
   else
-    return interpolate(16.0, v16_lookup_table[index], 18.0, v18_lookup_table[index], voltage);
+    return interpolate(16.0, v16_lookup_table.at(index), 18.0, v18_lookup_table.at(index), voltage);
 }
 
 double Thrusters::interpolate(float x1, float y1, float x2, float y2, float x_interpolate)
