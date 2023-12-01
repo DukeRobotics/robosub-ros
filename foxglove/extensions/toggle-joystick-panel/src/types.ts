@@ -81,6 +81,21 @@ export interface CustomMsgsConnectUsbCameraResponse {
   success: boolean;
 }
 
+export interface CustomMsgsControlTypes {
+  x: number;
+  y: number;
+  z: number;
+  roll: number;
+  pitch: number;
+  yaw: number;
+}
+
+export enum CustomMsgsControlTypesConst {
+  DESIRED_POSE = 0,
+  DESIRED_TWIST = 1,
+  DESIRED_POWER = 2,
+}
+
 export interface CustomMsgsCvObject {
   header: StdMsgsHeader;
   xmin: number;
@@ -155,32 +170,6 @@ export interface CustomMsgsMemory {
   percentage: number;
 }
 
-export interface CustomMsgsPidGain {
-  loop: number;
-  axis: number;
-  gain: number;
-  value: number;
-}
-
-export enum CustomMsgsPidGainConst {
-  LOOP_POSITION = 0,
-  LOOP_VELOCITY = 1,
-  AXIS_X = 0,
-  AXIS_Y = 1,
-  AXIS_Z = 2,
-  AXIS_ROLL = 3,
-  AXIS_PITCH = 4,
-  AXIS_YAW = 5,
-  GAIN_KP = 0,
-  GAIN_KI = 1,
-  GAIN_KD = 2,
-  GAIN_FF = 3,
-}
-
-export interface CustomMsgsPidGains {
-  pid_gains: CustomMsgsPidGain[];
-}
-
 export interface CustomMsgsRemoteLaunchInfo {
   msg_type: number;
   running_node_info: CustomMsgsRunningNode;
@@ -224,11 +213,11 @@ export interface CustomMsgsServoAngleArray {
   angles: number[];
 }
 
-export interface CustomMsgsSetPidGainsRequest {
-  pid_gains: CustomMsgsPidGain[];
+export interface CustomMsgsSetControlTypesRequest {
+  control_types: CustomMsgsControlTypes;
 }
 
-export interface CustomMsgsSetPidGainsResponse {
+export interface CustomMsgsSetControlTypesResponse {
   success: boolean;
 }
 
