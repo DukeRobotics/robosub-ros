@@ -1,6 +1,7 @@
 {
   "name": "foxglove",
   "workspaces": [
+    "shared/*",
     "extensions/*"
   ],
   "devDependencies": {
