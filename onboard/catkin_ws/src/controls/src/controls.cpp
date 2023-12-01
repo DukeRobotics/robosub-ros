@@ -36,9 +36,6 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     // Initialize TransformListener
     this->tfl_buffer = std::move(tfl_buffer);
 
-    // Initialize last state message time
-    last_state_msg_time = ros::Time::now();
-
     // Initialize desired position to have valid orientation
     desired_position.orientation.w = 1.0;
 
@@ -101,8 +98,9 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     state = msg;
 
     // Get current time, compute delta time, and update last state message time
+    // If last state message time is zero, then this is the first state message received, so delta time is zero
     ros::Time current_time = ros::Time::now();
-    double delta_time = (current_time - last_state_msg_time).toSec();
+    double delta_time = last_state_msg_time.is_zero() ? 0 : (current_time - last_state_msg_time).toSec();
     last_state_msg_time = current_time;
 
     // Get transform from odom to base_link
@@ -155,6 +153,8 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     // Publish error messages
     position_error_pub.publish(position_error.pose);
     velocity_error_pub.publish(velocity_error);
+
+    // TODO: Add publish for delta time
 }
 
 bool Controls::enable_controls_callback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
