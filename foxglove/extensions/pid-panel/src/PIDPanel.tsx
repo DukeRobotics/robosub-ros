@@ -25,32 +25,29 @@ type PIDPanelState = {
 };
 
 // Triple nested dictionary to get PID values
-const gains: Record<string, number> = {
-  GAIN_KP: 0,
-  GAIN_KI: 0,
-  GAIN_KD: 0,
-  GAIN_FF: 0,
+const gains: Record<number, number> = {
+  [CustomMsgsPidGainConst.GAIN_KP]: 2.0, // GAIN_KP
+  [CustomMsgsPidGainConst.GAIN_KI]: 0.0, // GAIN_KI
+  [CustomMsgsPidGainConst.GAIN_KD]: 0.0, // GAIN_KD
+  [CustomMsgsPidGainConst.GAIN_FF]: 0.0, // GAIN_KF
 };
-const axes: Record<string, Record<string, number>> = {
-  AXIS_X: { ...gains },
-  AXIS_Y: { ...gains },
-  AXIS_Z: { ...gains },
-  AXIS_ROLL: { ...gains },
-  AXIS_PITCH: { ...gains },
-  AXIS_YAW: { ...gains },
+
+const axes: Record<number, Record<number, number>> = {
+  [CustomMsgsPidGainConst.AXIS_X]: { ...gains }, // X
+  [CustomMsgsPidGainConst.AXIS_Y]: { ...gains }, // Y
+  [CustomMsgsPidGainConst.AXIS_Z]: { ...gains }, // Z
+  [CustomMsgsPidGainConst.AXIS_ROLL]: { ...gains }, // Roll
+  [CustomMsgsPidGainConst.AXIS_PITCH]: { ...gains }, // Pitch
+  [CustomMsgsPidGainConst.AXIS_YAW]: { ...gains }, // Yaw
 };
-const pid: Record<string, Record<string, Record<string, number>>> = {
-  LOOP_POSITION: { ...axes },
-  LOOP_VELOCITY: { ...axes },
+const pid: Record<number, Record<number, Record<number, number>>> = {
+  [CustomMsgsPidGainConst.LOOP_POSITION]: { ...axes }, // Loop Position
+  [CustomMsgsPidGainConst.LOOP_VELOCITY]: { ...axes }, // Loop Velocity
 };
 
 const topicName = "/current_pid";
 const serviceName = "/set_pid";
-const pidTypeToUpdate = "LOOP_POSITION";
-
-if (!pid[pidTypeToUpdate]) {
-  pid[pidTypeToUpdate] = {};
-}
+const pidTypeToUpdate = CustomMsgsPidGainConst.LOOP_POSITION;
 
 enum PanelMode {
   SUBSCRIBING,
@@ -74,13 +71,22 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
 
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
         const lastFrame = renderState.currentFrame.at(-1) as MessageEvent<CustomMsgsPidGains>;
-
         // Loop through lastFrame and update PID values
         const pidGains = lastFrame.message.pid_gains;
         for (const pidGain of pidGains) {
           console.log(pidGain);
-        }
+          pid[pidGain.loop]![pidGain.axis] = {
+            ...pid[pidGain.loop]![pidGain.axis],
+            [pidGain.gain]: pidGain.value,
+          };
+          console.log(pidGain.value);
+          console.log(pid);
+          console.log("Loop", pidGain.loop);
+          console.log("Axis", pidGain.axis);
+          console.log("Gain", pidGain.gain);
 
+          console.log(pid[pidGain.loop]![pidGain.axis]![pidGain.gain]);
+        }
         setState((oldState) => ({ ...oldState, message: lastFrame }));
       }
     };
