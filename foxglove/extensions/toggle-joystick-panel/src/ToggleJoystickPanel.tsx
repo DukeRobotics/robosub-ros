@@ -1,10 +1,10 @@
 import { ros1 } from "@foxglove/rosmsg-msgs-common";
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
-import { Table, TableBody, TableCell, TableContainer, TableRow, Paper, Typography } from "@mui/material";
+import { Table, TableBody, TableCell, TableContainer, TableRow, Paper, Typography, Button, Box } from "@mui/material";
 import { SetStateAction, useEffect, useLayoutEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
-import { GeometryMsgsTwist } from "./types";
+import { GeometryMsgsTwist, CustomMsgsSetControlTypesRequest, CustomMsgsSetControlTypesResponse, CustomMsgsControlTypesConst } from "./types";
 
 const PUBLISH_RATE = 20;
 
@@ -39,7 +39,7 @@ type State = {
   topicName: string;
   request: string;
   schemaName: string;
-  error?: Error | undefined;
+  error?: Error;
   colorScheme?: RenderState["colorScheme"];
   joyStickEnabled: boolean;
   joystickInputs: JoystickInputs;
@@ -59,6 +59,7 @@ const JoystickKeys: (keyof JoystickInputs)[] = [
 
 const SCHEMA_NAME = "geometry_msgs/Twist";
 const TOPIC_NAME = "/TEST_TOPIC";
+const SET_CONTROL_TYPES_SERVICE = "/controls/set_control_types";
 
 function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
@@ -96,7 +97,9 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
 
   // Pubish a request with a given schema to a topic
   const publishSpeeds = () => {
+    console.log("publishSpeeds!");
     if (!context.advertise || !context.publish) {
+      console.log("return");
       return;
     }
 
@@ -109,16 +112,92 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
       ]),
     });
 
-    // TODO: Populate request with transformed joystick inputs
-    const request: GeometryMsgsTwist = {};
+    const joystickInputs = state.joystickInputs;
+
+    const request: GeometryMsgsTwist = {
+      linear: {
+        x: -1 * joystickInputs.xAxis,
+        y: joystickInputs.yAxis,
+        z: -1 * joystickInputs.zAxis,
+      },
+      angular: {
+        x: 0,
+        y: 0,
+        z: joystickInputs.yawAxis,
+      },
+    };
+    console.log(request);
 
     context.publish(TOPIC_NAME, request);
   };
 
+  const toggleJoystick = () => {
+    // Check if service calling is supported by the context
+    if (!context.callService) {
+      console.error("Calling services is not supported by this connection");
+      return;
+    }
+
+    setState((oldState) => ({ ...oldState, joyStickEnabled: !oldState.joyStickEnabled }));
+
+    console.log("toggle joystick");
+    console.log("enabled: ", state.joyStickEnabled);
+
+    // Request payload to toggle controls
+    const desiredControl: CustomMsgsControlTypesConst = state.joyStickEnabled
+      ? CustomMsgsControlTypesConst.DESIRED_POWER
+      : CustomMsgsControlTypesConst.DESIRED_POSE;
+    const request: CustomMsgsSetControlTypesRequest = {
+      control_types: {
+        x: desiredControl,
+        y: desiredControl,
+        z: desiredControl,
+        roll: desiredControl,
+        pitch: desiredControl,
+        yaw: desiredControl,
+      },
+    };
+
+    // Make the service call
+    // context.callService(SET_CONTROL_TYPES_SERVICE, request).then(
+    //   (response) => {
+    //     const typedResponse = response as CustomMsgsSetControlTypesResponse;
+
+    //     console.log("toggle joystick response received");
+
+    //     // Update the state based on the service response
+    //     // If the service responds with failure, display the response message as an error
+    //     const error = typedResponse.success ? undefined : Error("SetControlTypes has failed.");
+    //     setState((oldState) => ({ ...oldState, error, joyStickEnabled: !state.joyStickEnabled }));
+    //   },
+    //   (error) => {
+    //     // Handle service call errors (e.g., service is not advertised)
+    //     setState((oldState) => ({
+    //       ...oldState,
+    //       error: error as Error,
+    //     }));
+    //   },
+    // );
+  };
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      queryJoystick(state, setState, publishSpeeds);
+    }, 50);
+
+    return () => {clearInterval(intervalId)};
+  }, []);
+
   window.addEventListener("gamepadconnected", () => {
     console.log("connected");
-    queryJoystick(state, setState);
   });
+
+  // const callQueryJoystick = () => {
+  //   queryJoystick(state, setState, publishSpeeds);
+  //   setTimeout(() => {
+  //     callQueryJoystick();
+  //   }, 1000 / PUBLISH_RATE);
+  // };
 
   window.addEventListener("gamepaddisconnected", () => {
     console.log("disconnected");
@@ -126,6 +205,17 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
 
   return (
     <div style={{ height: "100%", padding: "1rem" }}>
+      {/* Toggle button */}
+      <Box m={1}>
+        <Button
+          variant="contained"
+          color={state.joyStickEnabled ? "error" : "success"}
+          onClick={toggleJoystick}
+          disabled={context.callService == undefined}
+        >
+          {state.joyStickEnabled ? "Disable Joystick" : "Enable Joystick"}
+        </Button>
+      </Box>
       <TableContainer component={Paper}>
         <Table size="small" aria-label="simple table">
           <TableBody>
@@ -160,7 +250,7 @@ export function initToggleJoystickPanel(context: PanelExtensionContext): () => v
   };
 }
 
-function queryJoystick(state: State, setState: React.Dispatch<SetStateAction<State>>) {
+function queryJoystick(state: State, setState: React.Dispatch<SetStateAction<State>>, publishSpeeds: () => void) {
   const joystick = navigator.getGamepads();
   if (joystick[0]) {
     const axes = joystick[0].axes;
@@ -184,7 +274,10 @@ function queryJoystick(state: State, setState: React.Dispatch<SetStateAction<Sta
     }));
   }
 
-  setTimeout(() => {
-    queryJoystick(state, setState);
-  }, 1000 / PUBLISH_RATE);
+  // publish
+  console.log(state.joyStickEnabled);
+  if (state.joyStickEnabled) {
+    console.log("calling publish");
+    publishSpeeds();
+  }
 }
