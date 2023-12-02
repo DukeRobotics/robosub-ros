@@ -4,6 +4,7 @@
 #include <vector>
 #include <ros/ros.h>
 #include <ros/package.h>
+#include <ros/assert.h>
 #include <custom_msgs/PWMAllocs.h>
 
 #include "thrusters.h"
@@ -31,11 +32,7 @@ void Thrusters::load_lookup_tables()
 void Thrusters::read_lookup_table_csv(const std::string &filename, std::array<int16_t, 201> &lookup_table)
 {
   std::ifstream file(filename);
-  if (!file.is_open())
-  {
-    std::cerr << "Error opening file " << filename << std::endl;
-    return;
-  }
+  ROS_ASSERT_MSG(file.is_open(), "Error opening file %s", filename.c_str());
 
   std::string line, col;
   std::getline(file, line); // Read header line (assuming headers exist and need to be skipped)
@@ -61,13 +58,9 @@ void Thrusters::read_lookup_table_csv(const std::string &filename, std::array<in
 
       // Check if the index is within bounds of the array
       if (index >= 0 && index < lookup_table.size())
-      {
         lookup_table[index] = pwm;
-      }
       else
-      {
-        std::cerr << "Index out of bounds: " << index << std::endl;
-      }
+        ROS_ASSERT_MSG(false, "Error while reading CSV. Index %d is out of bounds.", index);
     }
   }
   file.close();
