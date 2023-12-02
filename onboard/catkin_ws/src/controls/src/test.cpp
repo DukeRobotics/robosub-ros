@@ -5,6 +5,14 @@
 
 int main(int argc, char** argv)
 {
+  tf2::Vector3 v_orig(0, 0, -1) ;
+  tf2::Quaternion q( 0, 0.7071068, 0, 0.7071068 ) ;
+  tf2::Vector3 v_new = quatRotate(q.inverse(), v_orig);
+  std::cout << "v_orig: " << v_orig.getX() << ", " << v_orig.getY() << ", " << v_orig.getZ() << std::endl;
+  std::cout << "q: " << q.getX() << ", " << q.getY() << ", " << q.getZ() << ", " << q.getW() << std::endl;
+  std::cout << "v_new: " << v_new.getX() << ", " << v_new.getY() << ", " << v_new.getZ() << std::endl;
+  return 0;
+
   // Get rpy from quaternion
   double roll, pitch, yaw;
   tf2::Matrix3x3(tf2::Quaternion(1, 0.5, 0, 0)).getRPY(roll, pitch, yaw);
