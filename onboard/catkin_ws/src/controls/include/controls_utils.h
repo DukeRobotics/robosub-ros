@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <ros/package.h>
+#include <tf2/LinearMath/Vector3.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
 #include <custom_msgs/ControlTypes.h>
@@ -92,6 +93,7 @@ public:
                                      std::unordered_map<AxesEnum, ControlTypesEnum> &map);
     static void map_to_control_types(const std::unordered_map<AxesEnum, ControlTypesEnum> &map,
                                      custom_msgs::ControlTypes &control_types);
+    static void tf_linear_vector_to_map(const tf2::Vector3 &vector, std::unordered_map<AxesEnum, double> &map);
     static bool update_pid_loops_axes_gains_map(LoopsAxesPIDGainsMap &all_pid_gains,
                                                 const std::vector<custom_msgs::PIDGain> &pid_gain_updates);
     static void pid_loops_axes_gains_map_to_msg(const LoopsAxesPIDGainsMap &all_pid_gains,

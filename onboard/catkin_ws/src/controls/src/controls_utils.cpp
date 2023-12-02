@@ -6,6 +6,8 @@
 #include <string>
 #include <ros/ros.h>
 #include <tf2/LinearMath/Matrix3x3.h>
+#include <tf2/LinearMath/Vector3.h>
+#include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
@@ -129,6 +131,16 @@ void ControlsUtils::map_to_control_types(const std::unordered_map<AxesEnum, Cont
     control_types.roll = map.at(AxesEnum::ROLL);
     control_types.pitch = map.at(AxesEnum::PITCH);
     control_types.yaw = map.at(AxesEnum::YAW);
+}
+
+void ControlsUtils::tf_linear_vector_to_map(const tf2::Vector3 &vector, std::unordered_map<AxesEnum, double> &map)
+{
+    map[AxesEnum::X] = vector.getX();
+    map[AxesEnum::Y] = vector.getY();
+    map[AxesEnum::Z] = vector.getZ();
+    map[AxesEnum::ROLL] = 0.0;
+    map[AxesEnum::PITCH] = 0.0;
+    map[AxesEnum::YAW] = 0.0;
 }
 
 bool ControlsUtils::update_pid_loops_axes_gains_map(LoopsAxesPIDGainsMap &all_pid_gains, const std::vector<custom_msgs::PIDGain> &pid_gain_updates)

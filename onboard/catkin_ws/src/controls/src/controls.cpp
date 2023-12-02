@@ -4,6 +4,8 @@
 #include <memory>
 #include <Eigen/Dense>
 #include <ros/ros.h>
+#include <tf2/LinearMath/Vector3.h>
+#include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <std_msgs/Bool.h>
@@ -147,15 +149,21 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     ControlsUtils::populate_axes_map(delta_time_map, delta_time);
 
     // Rotate static power to equivalent vector in robot's local frame
-    tf2::Quaternion orientation = tf2::fromMsg(state.pose.pose.orientation);
-    tf2::Vector3 static_power_rotated = quatRotate(orientation.inverse(), static_power)
+    tf2::Quaternion orientation_tf2;
+    tf2::fromMsg(state.pose.pose.orientation, orientation_tf2);
+    tf2::Vector3 static_power_rotated = quatRotate(orientation_tf2.inverse(), static_power);
+
+    std::unordered_map<AxesEnum, double> static_power_rotated_map;
+    ControlsUtils::tf_linear_vector_to_map(static_power_rotated, static_power_rotated_map);
 
     // Run PID loops
     if (enable_position_pid)
-        pid_managers[PIDLoopTypesEnum::POSITION].run_loops(position_error_map, delta_time_map, position_pid_outputs);
+        pid_managers[PIDLoopTypesEnum::POSITION].run_loops(position_error_map, delta_time_map,
+                                                           static_power_rotated_map, position_pid_outputs);
 
     if (enable_velocity_pid)
-        pid_managers[PIDLoopTypesEnum::VELOCITY].run_loops(velocity_error_map, delta_time_map, velocity_pid_outputs);
+        pid_managers[PIDLoopTypesEnum::VELOCITY].run_loops(velocity_error_map, delta_time_map,
+                                                           static_power_rotated_map, velocity_pid_outputs);
 
     // Publish error messages
     position_error_pub.publish(position_error.pose);
