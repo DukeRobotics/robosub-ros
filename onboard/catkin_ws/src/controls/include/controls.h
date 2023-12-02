@@ -10,6 +10,7 @@
 #include <tf2_ros/transform_listener.h>
 #include <std_msgs/Bool.h>
 #include <std_srvs/SetBool.h>
+#include <std_srvs/Trigger.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
@@ -47,6 +48,7 @@ public:
     ros::ServiceServer enable_controls_srv;
     ros::ServiceServer set_control_types_srv;
     ros::ServiceServer set_pid_gains_srv;
+    ros::ServiceServer reset_pid_loops_srv;
 
     ros::Publisher thruster_allocs_pub;
     ros::Publisher desired_thruster_allocs_pub;
@@ -80,6 +82,7 @@ public:
     bool enable_controls_callback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
     bool set_control_types_callback(custom_msgs::SetControlTypes::Request &req, custom_msgs::SetControlTypes::Response &res);
     bool set_pid_gains_callback(custom_msgs::SetPIDGains::Request &req, custom_msgs::SetPIDGains::Response &res);
+    bool reset_pid_loops_callback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
     void run();
 };
 

@@ -4,7 +4,7 @@
 #include <memory>
 #include <unordered_map>
 #include "controls_utils.h"
-#include "pid.h"
+#include "drc_pid.h"
 
 class PIDManager
 {
@@ -16,6 +16,7 @@ public:
     void run_loops(const std::unordered_map<AxesEnum, double> &errors,
                    const std::unordered_map<AxesEnum, double> &deltaTimes,
                    std::unordered_map<AxesEnum, double> &outputs);
+    void reset(AxesEnum axis_to_reset);
 };
 
 #endif

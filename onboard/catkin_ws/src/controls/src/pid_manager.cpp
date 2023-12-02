@@ -1,5 +1,5 @@
 #include <unordered_map>
-#include "pid.h"
+#include "drc_pid.h"
 #include "pid_manager.h"
 #include "controls_utils.h"
 
@@ -24,4 +24,10 @@ void PIDManager::run_loops(const std::unordered_map<AxesEnum, double> &errors,
     // Run PID loops
     for (const AxesEnum &axis : AXES)
         outputs[axis] = pid_controllers.at(axis).run_loop(errors.at(axis), deltaTimes.at(axis));
+}
+
+void PIDManager::reset(AxesEnum axis_to_reset)
+{
+    // Reset PID loop
+    pid_controllers.at(axis_to_reset).reset();
 }

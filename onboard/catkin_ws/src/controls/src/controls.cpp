@@ -8,6 +8,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <std_msgs/Bool.h>
 #include <std_srvs/SetBool.h>
+#include <std_srvs/Trigger.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
@@ -49,6 +50,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     enable_controls_srv = nh.advertiseService("controls/enable", &Controls::enable_controls_callback, this);
     set_control_types_srv = nh.advertiseService("controls/set_control_types", &Controls::set_control_types_callback, this);
     set_pid_gains_srv = nh.advertiseService("controls/set_pid_gains", &Controls::set_pid_gains_callback, this);
+    reset_pid_loops_srv = nh.advertiseService("controls/reset_pid_loops", &Controls::reset_pid_loops_callback, this);
 
     // Initialize publishers for output topics
     thruster_allocs_pub = nh.advertise<custom_msgs::ThrusterAllocs>("controls/thruster_allocs", 1);
@@ -189,6 +191,22 @@ bool Controls::set_pid_gains_callback(custom_msgs::SetPIDGains::Request &req, cu
 
     res.message = res.success ? "Updated PID gains successfully." : "Failed to update PID gains. One or more PID gains was invalid.";
 
+    return true;
+}
+
+bool Controls::reset_pid_loops_callback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
+{
+    // Reset all active PID loops
+    for (const AxesEnum &axis : AXES)
+    {
+        if (control_types[axis] == ControlTypesEnum::DESIRED_POSE)
+            pid_managers[PIDLoopTypesEnum::POSITION].reset(axis);
+        else if (control_types[axis] == ControlTypesEnum::DESIRED_TWIST)
+            pid_managers[PIDLoopTypesEnum::VELOCITY].reset(axis);
+    }
+
+    res.success = true;
+    res.message = "Reset PID loops successfully.";
     return true;
 }
 
