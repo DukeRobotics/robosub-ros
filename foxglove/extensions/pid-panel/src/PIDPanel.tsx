@@ -11,6 +11,7 @@ import {
   TableHead,
   Table,
   Box,
+  Button,
 } from "@mui/material";
 // X import { JsonViewer } from "@textea/json-viewer";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
@@ -25,6 +26,7 @@ import {
   CustomMsgsSetPidGainsRequest,
   CustomMsgsSetPidGainsResponse,
 } from "./types";
+
 
 type PIDPanelState = {
   serviceName: string;
@@ -64,6 +66,10 @@ const pidTypeToUpdate = CustomMsgsPidGainConst.LOOP_POSITION;
 enum PanelMode {
   SUBSCRIBING,
   EDITING,
+}
+
+function submitGains(pos = 0, axis, gain, newValue) {
+  
 }
 
 function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
@@ -190,36 +196,58 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
             <Table size="small" aria-label="simple table">
               <TableHead>
                 <TableRow>
-                  <TableCell align="center" width="50px"></TableCell>
-                  <TableCell align="center" width="50px">
+                  <TableCell align="center" width="10px"></TableCell>
+                  <TableCell align="center" width="10px">
                     Gain_KP
                   </TableCell>
-                  <TableCell align="center" width="50px">
+                  <TableCell align="center" width="10px">
                     Gain_KI
                   </TableCell>
-                  <TableCell align="center" width="50px">
+                  <TableCell align="center" width="10px">
                     Gain_KD
                   </TableCell>
-                  <TableCell align="center" width="50px">
+                  <TableCell align="center" width="10px">
                     Gain_FF
                   </TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody>
-                {pid[pidTypeToUpdate] &&
-                  Object.entries(pid[pidTypeToUpdate]).map(([axis, g]) => (
-                    <TableRow key={axis}>
-                      <TableCell width="50px">{getAxisEnumName(Number(axis))}</TableCell>
-                      {Object.values(g).map((gain, index) => (
-                        <TableCell key={index} width="50px">
-                          {gain}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-              </TableBody>
+              {state.panelMode === PanelMode.SUBSCRIBING ? (
+                // Table for Subscribing
+                <TableBody>
+                  {pid[pidTypeToUpdate] &&
+                    Object.entries(pid[pidTypeToUpdate]).map(([axis, g]) => (
+                      <TableRow key={axis}>
+                        <TableCell width="10px">{getAxisEnumName(Number(axis))}</TableCell>
+                        {Object.values(g).map((gain, index) => (
+                          <TableCell key={index} width="10px">
+                            {gain}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                </TableBody>
+              ) : (
+                // Editing
+                <TableBody>
+                  {pid[pidTypeToUpdate] &&
+                    Object.entries(pid[pidTypeToUpdate]).map(([axis, g]) => (
+                      <TableRow key={axis}>
+                        <TableCell width="10px">{getAxisEnumName(Number(axis))}</TableCell>
+                        {Object.values(g).map((gain, index) => (
+                          <TableCell width="10px" key={index}>
+                            {gain} <input type="text" id="fname" name={String([axis, g])} size={1}></input>
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                </TableBody>
+              )}
             </Table>
           </TableContainer>
+          
+          <form id="updateform">
+            <input type="submit" value="Update"></input>
+          </form>
         </div>
       </Box>
     </ThemeProvider>
