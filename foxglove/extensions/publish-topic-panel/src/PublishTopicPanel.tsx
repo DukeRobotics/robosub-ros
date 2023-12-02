@@ -5,7 +5,7 @@ import Alert from "@mui/material/Alert";
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
-type State = {
+type PublishTopicPanelState = {
   topicName: string;
   request: string;
   schemaName: string;
@@ -15,7 +15,7 @@ type State = {
 
 function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const [state, setState] = useState<State>({ topicName: "", request: "{}", schemaName: "" });
+  const [state, setState] = useState<PublishTopicPanelState>({ topicName: "", request: "{}", schemaName: "" });
 
   // Update color scheme
   useEffect(() => {

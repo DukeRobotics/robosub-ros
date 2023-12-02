@@ -5,7 +5,7 @@ import { JsonViewer } from "@textea/json-viewer";
 import { useEffect, useState, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 
-type State = {
+type SubscribeTopicPanelState = {
   topic?: string;
   colorScheme?: RenderState["colorScheme"];
   topics?: readonly Topic[];
@@ -16,8 +16,8 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
 
   // Restore our state from the layout via the context.initialState property.
-  const [state, setState] = useState<State>(() => {
-    return context.initialState as State;
+  const [state, setState] = useState<SubscribeTopicPanelState>(() => {
+    return context.initialState as SubscribeTopicPanelState;
   });
 
   // Get topics

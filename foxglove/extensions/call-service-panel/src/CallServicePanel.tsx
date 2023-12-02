@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { JSX } from "react/jsx-runtime";
 import { createRoot } from "react-dom/client";
 
-type State = {
+type CallServicePanelState = {
   serviceName: string;
   request: string;
   response?: unknown;
@@ -17,7 +17,7 @@ type State = {
 
 function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const [state, setState] = useState<State>({ serviceName: "", request: "{}" });
+  const [state, setState] = useState<CallServicePanelState>({ serviceName: "", request: "{}" });
 
   // Update color scheme
   useEffect(() => {
