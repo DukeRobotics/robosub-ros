@@ -107,7 +107,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
       return;
     }
 
-    setState((oldState) => ({ ...oldState, joyStickEnabled: !oldState.joyStickEnabled }));
+    // setState((oldState) => ({ ...oldState, joyStickEnabled: !oldState.joyStickEnabled }));
 
     // Request payload to toggle controls
     const desiredControl: CustomMsgsControlTypesConst = state.joyStickEnabled
@@ -125,25 +125,26 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     };
 
     // Make the service call
-    // context.callService(SET_CONTROL_TYPES_SERVICE, request).then(
-    //   (response) => {
-    //     const typedResponse = response as CustomMsgsSetControlTypesResponse;
+    context.callService(SET_CONTROL_TYPES_SERVICE, request).then(
+      (response) => {
+        const typedResponse = response as CustomMsgsSetControlTypesResponse;
 
-    //     console.log("toggle joystick response received");
+        console.log("/controls/set_control_types response:");
+        console.log(response);
 
-    //     // Update the state based on the service response
-    //     // If the service responds with failure, display the response message as an error
-    //     const error = typedResponse.success ? undefined : Error("SetControlTypes has failed.");
-    //     setState((oldState) => ({ ...oldState, error, joyStickEnabled: !state.joyStickEnabled }));
-    //   },
-    //   (error) => {
-    //     // Handle service call errors (e.g., service is not advertised)
-    //     setState((oldState) => ({
-    //       ...oldState,
-    //       error: error as Error,
-    //     }));
-    //   },
-    // );
+        // Update the state based on the service response
+        // If the service responds with failure, display the response message as an error
+        const error = typedResponse.success ? undefined : Error("/controls/set_control_types has failed");
+        setState((oldState) => ({ ...oldState, error, joyStickEnabled: !oldState.joyStickEnabled }));
+      },
+      (error) => {
+        // Handle service call errors (e.g., service is not advertised)
+        setState((oldState) => ({
+          ...oldState,
+          error: error as Error,
+        }));
+      },
+    );
   };
 
   useEffect(() => {
