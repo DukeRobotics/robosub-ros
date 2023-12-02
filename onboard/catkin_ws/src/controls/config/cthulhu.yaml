@@ -102,5 +102,5 @@ thrusters:
     pos: [-0.3048, 0.1651, -0.077875]
     rpy: [0, 90, 0]
     flipped: false
-wrench_matrix_file_path: /root/dev/robosub-ros/onboard/catkin_ws/src/controls/config/cthulhu_wrench.csv
-wrench_matrix_pinv_file_path: /root/dev/robosub-ros/onboard/catkin_ws/src/controls/config/cthulhu_wrench_pinv.csv
+wrench_matrix_file_path: data/cthulhu_wrench.csv
+wrench_matrix_pinv_file_path: data/cthulhu_wrench_pinv.csv

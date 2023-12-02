@@ -9,7 +9,8 @@ import os
 import resource_retriever as rr
 import rospy
 
-CONFIG_FILE_PATH_TEMPLATE = 'package://controls/config/%s.yaml'    
+CONTROLS_PACKAGE_PATH = 'package://controls/'
+CONFIG_FILE_PATH_TEMPLATE = CONTROLS_PACKAGE_PATH + 'config/%s.yaml'
 
 class ComputeWrenchMatrix:
     """
@@ -101,9 +102,13 @@ class ComputeWrenchMatrix:
         self.wrench_matrix_df = self.wrench_matrix_df.replace(-0.0, 0.0)
         self.wrench_matrix_pinv_df = self.wrench_matrix_pinv_df.replace(-0.0, 0.0)
 
+        # Get full paths to CSV files
+        wrench_matrix_file_path = rr.get_filename(CONTROLS_PACKAGE_PATH + vehicle["wrench_matrix_file_path"], use_protocol=False)
+        wrench_matrix_pinv_file_path = rr.get_filename(CONTROLS_PACKAGE_PATH + vehicle["wrench_matrix_pinv_file_path"], use_protocol=False)
+
         # Export data to CSV files
-        self.wrench_matrix_df.to_csv(vehicle["wrench_matrix_file_path"], index=False, header=False)
-        self.wrench_matrix_pinv_df.to_csv(vehicle["wrench_matrix_pinv_file_path"], index=False, header=False)
+        self.wrench_matrix_df.to_csv(wrench_matrix_file_path, index=False, header=False)
+        self.wrench_matrix_pinv_df.to_csv(wrench_matrix_pinv_file_path, index=False, header=False)
 
         # Print data to console
         print("Wrench matrix:")
@@ -112,8 +117,8 @@ class ComputeWrenchMatrix:
         print("Wrench matrix pseudoinverse:")
         print(self.wrench_matrix_pinv_df)
         print()
-        print("Saved wrench matrix to %s" % vehicle["wrench_matrix_file_path"])
-        print("Saved wrench matrix pseudoinverse to %s" % vehicle["wrench_matrix_pinv_file_path"])
+        print("Saved wrench matrix to %s" % wrench_matrix_file_path)
+        print("Saved wrench matrix pseudoinverse to %s" % wrench_matrix_pinv_file_path)
 
 if __name__ == '__main__':
     try:

@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include <ros/package.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
 #include <custom_msgs/ControlTypes.h>
@@ -68,7 +69,8 @@ const std::unordered_map<PIDGainTypesEnum, std::string> PID_GAIN_TYPES_NAMES = {
     {PIDGainTypesEnum::KD, "Kd"},
     {PIDGainTypesEnum::FF, "Ff"}};
 
-const std::string ROBOT_CONFIG_FILE_PATH = "/root/dev/robosub-ros/onboard/catkin_ws/src/controls/config/" + std::string(std::getenv("ROBOT_NAME")) + ".yaml";
+const std::string CONTROLS_PACKAGE_PATH = ros::package::getPath("controls");
+const std::string ROBOT_CONFIG_FILE_PATH = CONTROLS_PACKAGE_PATH + "/config/" + std::string(std::getenv("ROBOT_NAME")) + ".yaml";
 
 typedef std::unordered_map<PIDGainTypesEnum, double> PIDGainsMap;
 typedef std::unordered_map<AxesEnum, std::shared_ptr<PIDGainsMap>> AxesPIDGainsMap;

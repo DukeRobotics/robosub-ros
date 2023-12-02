@@ -255,6 +255,10 @@ void ControlsUtils::read_robot_config(std::string file_path,
         // Read wrench matrix file paths
         wrench_matrix_file_path = config["wrench_matrix_file_path"].as<std::string>();
         wrench_matrix_pinv_file_path = config["wrench_matrix_pinv_file_path"].as<std::string>();
+
+        // Convert wrench matrix file paths to absolute paths
+        wrench_matrix_file_path = CONTROLS_PACKAGE_PATH + "/" + wrench_matrix_file_path;
+        wrench_matrix_pinv_file_path = CONTROLS_PACKAGE_PATH + "/" + wrench_matrix_pinv_file_path;
     }
     catch (const std::exception &e)
     {
