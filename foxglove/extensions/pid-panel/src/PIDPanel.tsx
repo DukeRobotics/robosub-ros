@@ -15,7 +15,6 @@ import {
 // X import { JsonViewer } from "@textea/json-viewer";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { useEffect, useLayoutEffect, useState } from "react";
-import React = require("react");
 import { JSX } from "react/jsx-runtime";
 import { createRoot } from "react-dom/client";
 
