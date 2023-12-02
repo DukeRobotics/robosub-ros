@@ -1,6 +1,19 @@
 import { Immutable, PanelExtensionContext, RenderState, MessageEvent } from "@foxglove/studio";
-import { Alert, Tab, Tabs, TableBody, TableContainer, TableCell, TableRow, TableHead, Table } from "@mui/material";
+import {
+  useMediaQuery,
+  Alert,
+  Tab,
+  Tabs,
+  TableBody,
+  TableContainer,
+  TableCell,
+  TableRow,
+  TableHead,
+  Table,
+  Box,
+} from "@mui/material";
 // X import { JsonViewer } from "@textea/json-viewer";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { useEffect, useLayoutEffect, useState } from "react";
 import React = require("react");
 import { JSX } from "react/jsx-runtime";
@@ -128,55 +141,75 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   //   Void callService(state.serviceName, state.request);
   // };
 
+  // TODO: Import this theme once thruster-speeds-panel is merged
+  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+  const theme = createTheme({
+    palette: {
+      mode: prefersDarkMode ? "dark" : "light",
+    },
+    components: {
+      MuiTableRow: {
+        styleOverrides: {
+          root: {
+            "&:last-child td, &:last-child th": {
+              border: 0,
+            },
+          },
+        },
+      },
+    },
+  });
+
   return (
-    <div style={{ padding: "1rem" }}>
-      {context.callService == undefined && (
-        <Alert variant="filled" severity="error">
-          Calling services is not supported by this connection
-        </Alert>
-      )}
-      <Tabs value={state.panelMode} onChange={handleModeChange} variant="fullWidth">
-        <Tab label="Subscribing" value={PanelMode.SUBSCRIBING} />
-        <Tab label="Editing" value={PanelMode.EDITING} />
-      </Tabs>
-      <h2>{state.panelMode === PanelMode.EDITING ? "Mode -- Editing" : "Mode -- Subscribing"}</h2>
-      <div>
-        <TableContainer>
-          <Table size="small" aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                <TableCell align="center" width="50px"></TableCell>
-                <TableCell align="center" width="50px">
-                  Gain_KP
-                </TableCell>
-                <TableCell align="center" width="50px">
-                  Gain_KI
-                </TableCell>
-                <TableCell align="center" width="50px">
-                  Gain_KD
-                </TableCell>
-                <TableCell align="center" width="50px">
-                  Gain_FF
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {pid[pidTypeToUpdate] &&
-                Object.entries(pid[pidTypeToUpdate]).map(([axis, g]) => (
-                  <TableRow key={axis}>
-                    <TableCell width="50px">{axis}</TableCell>
-                    {Object.values(g).map((gain, index) => (
-                      <TableCell key={index} width="50px">
-                        {gain}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </div>
-    </div>
+    <ThemeProvider theme={theme}>
+      <Box m={1}>
+        {context.callService == undefined && (
+          <Alert variant="filled" severity="error">
+            Calling services is not supported by this connection
+          </Alert>
+        )}
+        <Tabs value={state.panelMode} onChange={handleModeChange} variant="fullWidth">
+          <Tab label="Subscribing" value={PanelMode.SUBSCRIBING} />
+          <Tab label="Editing" value={PanelMode.EDITING} />
+        </Tabs>
+        <div>
+          <TableContainer>
+            <Table size="small" aria-label="simple table">
+              <TableHead>
+                <TableRow>
+                  <TableCell align="center" width="50px"></TableCell>
+                  <TableCell align="center" width="50px">
+                    Gain_KP
+                  </TableCell>
+                  <TableCell align="center" width="50px">
+                    Gain_KI
+                  </TableCell>
+                  <TableCell align="center" width="50px">
+                    Gain_KD
+                  </TableCell>
+                  <TableCell align="center" width="50px">
+                    Gain_FF
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {pid[pidTypeToUpdate] &&
+                  Object.entries(pid[pidTypeToUpdate]).map(([axis, g]) => (
+                    <TableRow key={axis}>
+                      <TableCell width="50px">{axis}</TableCell>
+                      {Object.values(g).map((gain, index) => (
+                        <TableCell key={index} width="50px">
+                          {gain}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </div>
+      </Box>
+    </ThemeProvider>
   );
 }
 
