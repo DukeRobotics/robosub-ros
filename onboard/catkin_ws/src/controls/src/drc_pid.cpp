@@ -1,6 +1,6 @@
 #include <memory>
 #include <ros/ros.h>
-#include "pid.h"
+#include "drc_pid.h"
 #include "controls_utils.h"
 
 PID::PID(){};
@@ -13,7 +13,6 @@ PID::PID(std::shared_ptr<PIDGainsMap> pid_gains)
 void PID::reset()
 {
     integral = 0.0;
-    // TODO: reset prev values
 }
 
 double PID::clip(const double value, const double min, const double max)

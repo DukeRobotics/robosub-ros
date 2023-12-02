@@ -1,5 +1,6 @@
-#ifndef PID_H
-#define PID_H
+// Named DRC_PID to not conflict with ROS pid package
+#ifndef DRC_PID_H
+#define DRC_PID_H
 
 #include <memory>
 #include <array>
