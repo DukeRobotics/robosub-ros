@@ -70,7 +70,8 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     // Get PID gains from robot config file
     std::string wrench_matrix_file_path;
     std::string wrench_matrix_pinv_file_path;
-    ControlsUtils::read_robot_config(ROBOT_CONFIG_FILE_PATH, all_pid_gains, wrench_matrix_file_path, wrench_matrix_pinv_file_path);
+    ControlsUtils::read_robot_config(ROBOT_CONFIG_FILE_PATH, all_pid_gains, static_power,
+                                     wrench_matrix_file_path, wrench_matrix_pinv_file_path);
 
     // Instantiate PID managers for each PID loop type
     for (const PIDLoopTypesEnum &pid_loop_type : PID_LOOP_TYPES)
@@ -111,7 +112,7 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     {
         transformStamped = tfl_buffer->lookupTransform("odom", "base_link", ros::Time(0));
     }
-    catch(tf2::TransformException &ex)
+    catch (tf2::TransformException &ex)
     {
         ROS_WARN("Could not get transform from odom to base_link. %s", ex.what());
         return;
@@ -148,7 +149,7 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     // Run PID loops
     if (enable_position_pid)
         pid_managers[PIDLoopTypesEnum::POSITION].run_loops(position_error_map, delta_time_map, position_pid_outputs);
-    
+
     if (enable_velocity_pid)
         pid_managers[PIDLoopTypesEnum::VELOCITY].run_loops(velocity_error_map, delta_time_map, velocity_pid_outputs);
 

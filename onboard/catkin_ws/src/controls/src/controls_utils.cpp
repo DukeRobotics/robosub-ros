@@ -227,7 +227,8 @@ void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd 
 }
 
 void ControlsUtils::read_robot_config(std::string file_path,
-                                      LoopsAxesPIDGainsMap &robot_config,
+                                      LoopsAxesPIDGainsMap &all_pid_gains,
+                                      std::unordered_map<AxesEnum, double> &static_power,
                                       std::string &wrench_matrix_file_path,
                                       std::string &wrench_matrix_pinv_file_path)
 {
@@ -235,22 +236,27 @@ void ControlsUtils::read_robot_config(std::string file_path,
     {
         YAML::Node config = YAML::LoadFile(file_path);
 
-        YAML::Node pid = config["pid"];
+        YAML::Node pid_node = config["pid"];
 
         for (const auto &loop_type : PID_LOOP_TYPES)
         {
-            YAML::Node loop = pid[PID_LOOP_TYPES_NAMES.at(loop_type)];
+            YAML::Node loop_node = pid_node[PID_LOOP_TYPES_NAMES.at(loop_type)];
             for (const auto &axis : AXES)
             {
-                YAML::Node axis_node = loop[AXES_NAMES.at(axis)];
+                YAML::Node axis_node = loop_node[AXES_NAMES.at(axis)];
                 std::shared_ptr<PIDGainsMap> gains = std::make_shared<PIDGainsMap>();
 
                 for (const auto &gain : PID_GAIN_TYPES)
                     (*gains)[gain] = axis_node[PID_GAIN_TYPES_NAMES.at(gain)].as<double>();
 
-                robot_config[loop_type][axis] = gains;
+                all_pid_gains[loop_type][axis] = gains;
             }
         }
+
+        // Read static power vector
+        YAML::Node static_power_node = config["static_power"];
+        for (const auto &axis : AXES)
+            static_power[axis] = static_power_node[AXES_NAMES.at(axis)].as<double>();
 
         // Read wrench matrix file paths
         wrench_matrix_file_path = config["wrench_matrix_file_path"].as<std::string>();
