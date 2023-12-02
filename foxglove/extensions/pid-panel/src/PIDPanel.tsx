@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 // X import { JsonViewer } from "@textea/json-viewer";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { useEffect, useLayoutEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import { JSX } from "react/jsx-runtime";
 import { createRoot } from "react-dom/client";
 
@@ -159,6 +159,20 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     },
   });
 
+  // TODO: Maybe refactor this
+  function getAxisEnumName(enumValue: number): string {
+    const filteredEnumEntries = Object.entries(CustomMsgsPidGainConst).filter(([key, value]) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+      return key.startsWith("AXIS") && value === enumValue;
+    });
+
+    if (filteredEnumEntries.length > 0 && filteredEnumEntries[0] != null) {
+      return filteredEnumEntries[0][0];
+    } else {
+      return "Unknown";
+    }
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>
@@ -195,7 +209,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
                 {pid[pidTypeToUpdate] &&
                   Object.entries(pid[pidTypeToUpdate]).map(([axis, g]) => (
                     <TableRow key={axis}>
-                      <TableCell width="50px">{axis}</TableCell>
+                      <TableCell width="50px">{getAxisEnumName(Number(axis))}</TableCell>
                       {Object.values(g).map((gain, index) => (
                         <TableCell key={index} width="50px">
                           {gain}
