@@ -2,7 +2,7 @@ import theme from "@duke-robotics/theme";
 import { PanelExtensionContext, RenderState, Topic, MessageEvent, Immutable } from "@foxglove/studio";
 import { Box, ThemeProvider } from "@mui/material";
 import { JsonViewer } from "@textea/json-viewer";
-import { useLayoutEffect, useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 
 type State = {
@@ -41,7 +41,7 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
   }, [state.topic, topics]);
 
   // Setup our onRender function and start watching topics and currentFrame for messages.
-  useLayoutEffect(() => {
+  useEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setRenderDone(() => done);
       setState((oldState) => ({

@@ -3,7 +3,7 @@ import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio"
 import { Box, ThemeProvider } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import { JsonViewer } from "@textea/json-viewer";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { JSX } from "react/jsx-runtime";
 import { createRoot } from "react-dom/client";
 
@@ -20,7 +20,7 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
   const [state, setState] = useState<State>({ serviceName: "", request: "{}" });
 
   // Update color scheme
-  useLayoutEffect(() => {
+  useEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
       setRenderDone(() => done);
