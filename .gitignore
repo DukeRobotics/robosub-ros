@@ -49,4 +49,4 @@ node_modules
 dist
 
 # Don't ignore controls matrices
-!onboard/catkin_ws/src/controls/config/*.csv
+!onboard/catkin_ws/src/controls/data/*.csv
