@@ -9,10 +9,12 @@
 #include <tf2_ros/transform_listener.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/Float64.h>
 #include <std_srvs/SetBool.h>
 #include <std_srvs/Trigger.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Vector3.h>
 #include <geometry_msgs/Vector3Stamped.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/TransformStamped.h>
@@ -64,6 +66,8 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     position_error_pub = nh.advertise<geometry_msgs::Pose>("controls/position/error", 1);
     velocity_error_pub = nh.advertise<geometry_msgs::Twist>("controls/velocity/error", 1);
     status_pub = nh.advertise<std_msgs::Bool>("controls/status", 1);
+    delta_time_pub = nh.advertise<std_msgs::Float64>("controls/delta_time", 1);
+    static_power_rotated_pub = nh.advertise<geometry_msgs::Vector3>("controls/static_power_rotated", 1);
 
     // Use desired pose as the default control type for all axes
     for (const AxesEnum &axis : AXES)
@@ -107,6 +111,11 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     ros::Time current_time = ros::Time::now();
     double delta_time = last_state_msg_time.is_zero() ? 0 : (current_time - last_state_msg_time).toSec();
     last_state_msg_time = current_time;
+
+    // Publish delta time
+    std_msgs::Float64 delta_time_msg;
+    delta_time_msg.data = delta_time;
+    delta_time_pub.publish(delta_time_msg);
 
     // Get transform from odom to base_link
     geometry_msgs::TransformStamped transformStamped;
@@ -156,6 +165,10 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     std::unordered_map<AxesEnum, double> static_power_rotated_map;
     ControlsUtils::tf_linear_vector_to_map(static_power_rotated, static_power_rotated_map);
 
+    // Publish static power rotated
+    geometry_msgs::Vector3 static_power_rotated_msg = tf2::toMsg(static_power_rotated);
+    static_power_rotated_pub.publish(static_power_rotated_msg);
+
     // Run PID loops
     if (enable_position_pid)
         pid_managers[PIDLoopTypesEnum::POSITION].run_loops(position_error_map, delta_time_map,
@@ -168,8 +181,6 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     // Publish error messages
     position_error_pub.publish(position_error.pose);
     velocity_error_pub.publish(velocity_error);
-
-    // TODO: Add publish for delta time
 }
 
 bool Controls::enable_controls_callback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)

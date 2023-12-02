@@ -59,6 +59,8 @@ public:
     ros::Publisher position_error_pub;
     ros::Publisher velocity_error_pub;
     ros::Publisher status_pub;
+    ros::Publisher delta_time_pub;
+    ros::Publisher static_power_rotated_pub;
 
     bool controls_enabled = false;
 
