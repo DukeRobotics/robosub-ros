@@ -21,7 +21,7 @@ const AXIS_MAP = {
   yawIndex: 5, // Twist CW and CCW
 };
 
-// indices of specific buttons in the joystick buttons list
+// Indices of specific buttons in the joystick buttons list
 const BUTTON_MAP = {
   torpedoActivateIndex: 1,
   torpedoOneLaunchIndex: 4,
@@ -250,7 +250,7 @@ function queryJoystick(state: State, setState: React.Dispatch<SetStateAction<Sta
     const axes = joystick[0].axes;
     const buttons = joystick[0].buttons;
 
-    // update state
+    // Update state
     setState((previousState) => ({
       ...previousState,
       joystickInputs: {
@@ -268,7 +268,7 @@ function queryJoystick(state: State, setState: React.Dispatch<SetStateAction<Sta
     }));
   }
 
-  // publish
+  // Publish
   if (state.joyStickEnabled) {
     publishSpeeds();
   }
