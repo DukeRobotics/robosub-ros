@@ -31,7 +31,7 @@ ros::NodeHandle_<ArduinoHardware, 1, 1, 128, 128> nh;
 void thruster_pwm_callback(const custom_msgs::PWMAllocs &pwm_msg)
 {
     // Copy the contents of the pwm message to the local array
-    if (pwm_msg.allocs.size() != NUM_THRUSTERS)
+    if (pwm_msg.allocs_length != NUM_THRUSTERS)
     {
         nh.logerror("Received PWM message with incorrect number of allocations. Recieved: " + String(pwm_msg.allocs.size()) + ", expected: " + String(NUM_THRUSTERS) + ".");
         return;
