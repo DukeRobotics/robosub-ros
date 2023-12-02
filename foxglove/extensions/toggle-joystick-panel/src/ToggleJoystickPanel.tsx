@@ -13,12 +13,12 @@ import {
 
 const PUBLISH_RATE = 20;
 
-// indices of specific axes in the joystick axes list
+// Indices of specific axes in the joystick axes list
 const AXIS_MAP = {
-  xIndex: 1, // forward and backward, inverted
-  yIndex: 0, // left and right
-  zIndex: 2, // up and down, inverted
-  yawIndex: 5, // twist CW and CCW
+  xIndex: 1, // Forward and backward, inverted
+  yIndex: 0, // Left and right
+  zIndex: 2, // Up and down, inverted
+  yawIndex: 5, // Twist CW and CCW
 };
 
 // indices of specific buttons in the joystick buttons list
