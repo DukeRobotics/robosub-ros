@@ -228,7 +228,7 @@ void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd 
 
 void ControlsUtils::read_robot_config(std::string file_path,
                                       LoopsAxesPIDGainsMap &all_pid_gains,
-                                      std::unordered_map<AxesEnum, double> &static_power,
+                                      tf2::Vector3 &static_power,
                                       std::string &wrench_matrix_file_path,
                                       std::string &wrench_matrix_pinv_file_path)
 {
@@ -255,8 +255,9 @@ void ControlsUtils::read_robot_config(std::string file_path,
 
         // Read static power vector
         YAML::Node static_power_node = config["static_power"];
-        for (const auto &axis : AXES)
-            static_power[axis] = static_power_node[AXES_NAMES.at(axis)].as<double>();
+        static_power.setX(static_power_node[AXES_NAMES.at(AxesEnum::X)].as<double>());
+        static_power.setY(static_power_node[AXES_NAMES.at(AxesEnum::Y)].as<double>());
+        static_power.setZ(static_power_node[AXES_NAMES.at(AxesEnum::Z)].as<double>());
 
         // Read wrench matrix file paths
         wrench_matrix_file_path = config["wrench_matrix_file_path"].as<std::string>();

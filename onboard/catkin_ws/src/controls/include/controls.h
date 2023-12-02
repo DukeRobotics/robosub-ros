@@ -67,7 +67,7 @@ public:
     LoopsAxesPIDGainsMap all_pid_gains;
     std::unordered_map<PIDLoopTypesEnum, PIDManager> pid_managers;
 
-    std::unordered_map<AxesEnum, double> static_power;
+    tf2::Vector3 static_power;
 
     ThrusterAllocator thruster_allocator;
 

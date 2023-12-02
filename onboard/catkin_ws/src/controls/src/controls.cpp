@@ -146,6 +146,10 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     std::unordered_map<AxesEnum, double> delta_time_map;
     ControlsUtils::populate_axes_map(delta_time_map, delta_time);
 
+    // Rotate static power to equivalent vector in robot's local frame
+    tf2::Quaternion orientation = tf2::fromMsg(state.pose.pose.orientation);
+    tf2::Vector3 static_power_rotated = quatRotate(orientation.inverse(), static_power)
+
     // Run PID loops
     if (enable_position_pid)
         pid_managers[PIDLoopTypesEnum::POSITION].run_loops(position_error_map, delta_time_map, position_pid_outputs);

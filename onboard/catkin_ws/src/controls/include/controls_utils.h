@@ -100,7 +100,7 @@ public:
     static void read_matrix_from_csv(std::string file_path, Eigen::MatrixXd &matrix);
     static void read_robot_config(std::string file_path,
                                   LoopsAxesPIDGainsMap &all_pid_gains,
-                                  std::unordered_map<AxesEnum, double> &static_power,
+                                  tf2::Vector3 &static_power,
                                   std::string &wrench_matrix_file_path,
                                   std::string &wrench_matrix_pinv_file_path);
     static void update_robot_pid_gains(std::string file_path, const LoopsAxesPIDGainsMap &all_pid_gains);
