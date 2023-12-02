@@ -37,11 +37,11 @@ type SensorsTime = Record<topicsMapKeys, number>;
 // True if SensorsTime is within SENSOR_DOWN_THRESHOLD seconds
 type ConnectStatus = Record<topicsMapKeys, boolean>;
 
-interface SensorsStatusPanelState {
+type SensorsStatusPanelState = {
   sensorsTime: SensorsTime;
   connectStatus: ConnectStatus;
   currentTime: number;
-}
+};
 
 const initState = () => {
   const state: Partial<SensorsStatusPanelState> = {};
