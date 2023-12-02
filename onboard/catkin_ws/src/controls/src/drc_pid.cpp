@@ -83,7 +83,7 @@ double PID::run_loop(double error, double delta_time)
     double control_effort = p + i + d + f;
 
     // Clip control effort to be within limits
-    control_effort = clip(control_effort, -1.0, 1.0);
+    control_effort = clip(control_effort, control_effort_min, control_effort_max);
 
     return control_effort;
 }

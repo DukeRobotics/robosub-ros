@@ -14,6 +14,8 @@ public:
     double integral_clamp = 1000.0;
     double c = 1.0;
     double integral = 0;
+    double control_effort_max = 1.0;
+    double control_effort_min = -1.0;
 
     std::array<double, 3> errors;
     std::array<double, 3> filtered_errors;
