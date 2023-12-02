@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import time
 import serial
 import serial.tools.list_ports as list_ports
 import yaml
@@ -36,12 +37,20 @@ class PressureRawPublisher:
             try:
                 self._serial_port = next(list_ports.grep('|'.join(self._ftdi_strings))).device
                 self._serial = serial.Serial(self._serial_port, self.BAUDRATE,
-                                             timeout=None, write_timeout=None,
+                                             timeout=1, write_timeout=None,
                                              bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
                                              stopbits=serial.STOPBITS_ONE)
             except StopIteration:
                 rospy.logerr("Pressure sensor not found, trying again in 0.1 seconds.")
                 rospy.sleep(0.1)
+
+    # Read line from serial port without blocking
+    def readline_nonblocking(self, tout=1):
+        start = time.time()
+        buff = b''
+        while ((time.time() - start) < tout) and (b'\r\n' not in buff):
+            buff += self._serial.read(1)
+        return buff.decode('utf-8', errors='ignore')
 
     def run(self):
         rospy.init_node(self.NODE_NAME)
@@ -49,13 +58,14 @@ class PressureRawPublisher:
         while not rospy.is_shutdown():
             try:
                 # Direct read from device
-                line = self._serial.readline().decode('utf-8')
-                self._pressure = line[:-2]  # Remove \r\n
+                line = self.readline_nonblocking().strip()
+                if not line or line == '':
+                    rospy.logerr("Timeout in pressure serial read, trying again in 2 seconds.")
+                    rospy.sleep(0.1)
+                    continue  # Skip and retry
+                self._pressure = line  # Remove \r\n
                 self._parse_pressure()  # Parse pressure data
                 self._publish_current_msg()  # Publish pressure data
-                if not line or line == '':
-                    rospy.logerr("Invalid pressure data, trying again in 0.1 seconds.")
-                    rospy.sleep(0.1)
             except Exception:
                 rospy.logerr("Error in reading pressure information. Reconnecting.")
                 rospy.logerr(traceback.format_exc())
@@ -80,6 +90,10 @@ class PressureRawPublisher:
         self._current_pressure_msg.pose.covariance[14] = 0.01
 
     def _publish_current_msg(self):
+        if abs(self._current_pressure_msg.pose.pose.position.z) > 7:
+            self._current_pressure_msg = PoseWithCovarianceStamped()
+            return
+
         self._current_pressure_msg.header.stamp = rospy.Time.now()
         self._current_pressure_msg.header.frame_id = "odom"  # World frame
 
