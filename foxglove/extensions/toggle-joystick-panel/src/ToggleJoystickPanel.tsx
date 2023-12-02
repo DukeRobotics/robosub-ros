@@ -4,7 +4,12 @@ import { Table, TableBody, TableCell, TableContainer, TableRow, Paper, Typograph
 import { SetStateAction, useEffect, useLayoutEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
-import { GeometryMsgsTwist, CustomMsgsSetControlTypesRequest, CustomMsgsSetControlTypesResponse, CustomMsgsControlTypesConst } from "./types";
+import {
+  GeometryMsgsTwist,
+  CustomMsgsSetControlTypesRequest,
+  CustomMsgsSetControlTypesResponse,
+  CustomMsgsControlTypesConst,
+} from "./types";
 
 const PUBLISH_RATE = 20;
 
@@ -58,7 +63,7 @@ const JoystickKeys: (keyof JoystickInputs)[] = [
 ];
 
 const SCHEMA_NAME = "geometry_msgs/Twist";
-const TOPIC_NAME = "/TEST_TOPIC";
+const DESIRED_POWER_TOPIC = "/controls/desired_power";
 const SET_CONTROL_TYPES_SERVICE = "/controls/set_control_types";
 
 function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
@@ -97,14 +102,13 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
 
   // Pubish a request with a given schema to a topic
   const publishSpeeds = () => {
-    console.log("publishSpeeds!");
     if (!context.advertise || !context.publish) {
       console.log("return");
       return;
     }
 
     // TODO: Update once foxglove-custom-msgs is merged to master
-    context.advertise(TOPIC_NAME, SCHEMA_NAME, {
+    context.advertise(DESIRED_POWER_TOPIC, SCHEMA_NAME, {
       datatypes: new Map([
         ["geometry_msgs/Twist", ros1["geometry_msgs/Twist"]],
         ["geometry_msgs/Vector3", ros1["geometry_msgs/Vector3"]],
@@ -113,22 +117,19 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     });
 
     const joystickInputs = state.joystickInputs;
-
     const request: GeometryMsgsTwist = {
       linear: {
-        x: -1 * joystickInputs.xAxis,
+        x: -joystickInputs.xAxis,
         y: joystickInputs.yAxis,
-        z: -1 * joystickInputs.zAxis,
+        z: -joystickInputs.zAxis,
       },
       angular: {
         x: 0,
         y: 0,
-        z: joystickInputs.yawAxis,
+        z: -joystickInputs.yawAxis,
       },
     };
-    console.log(request);
-
-    context.publish(TOPIC_NAME, request);
+    context.publish(DESIRED_POWER_TOPIC, request);
   };
 
   const toggleJoystick = () => {
@@ -140,13 +141,10 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
 
     setState((oldState) => ({ ...oldState, joyStickEnabled: !oldState.joyStickEnabled }));
 
-    console.log("toggle joystick");
-    console.log("enabled: ", state.joyStickEnabled);
-
     // Request payload to toggle controls
     const desiredControl: CustomMsgsControlTypesConst = state.joyStickEnabled
-      ? CustomMsgsControlTypesConst.DESIRED_POWER
-      : CustomMsgsControlTypesConst.DESIRED_POSE;
+      ? CustomMsgsControlTypesConst.DESIRED_POSE
+      : CustomMsgsControlTypesConst.DESIRED_POWER;
     const request: CustomMsgsSetControlTypesRequest = {
       control_types: {
         x: desiredControl,
@@ -181,24 +179,19 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
   };
 
   useEffect(() => {
+    const intervalDelay = 1000 / PUBLISH_RATE; // Convert Hz to milliseconds
     const intervalId = setInterval(() => {
       queryJoystick(state, setState, publishSpeeds);
-    }, 50);
+    }, intervalDelay);
 
-    return () => {clearInterval(intervalId)};
-  }, []);
+    return () => {
+      clearInterval(intervalId); // Clear the interval on component unmount
+    };
+  }, [state, setState, publishSpeeds]); // Include dependencies that the effect uses
 
   window.addEventListener("gamepadconnected", () => {
     console.log("connected");
   });
-
-  // const callQueryJoystick = () => {
-  //   queryJoystick(state, setState, publishSpeeds);
-  //   setTimeout(() => {
-  //     callQueryJoystick();
-  //   }, 1000 / PUBLISH_RATE);
-  // };
-
   window.addEventListener("gamepaddisconnected", () => {
     console.log("disconnected");
   });
@@ -275,9 +268,7 @@ function queryJoystick(state: State, setState: React.Dispatch<SetStateAction<Sta
   }
 
   // publish
-  console.log(state.joyStickEnabled);
   if (state.joyStickEnabled) {
-    console.log("calling publish");
     publishSpeeds();
   }
 }
