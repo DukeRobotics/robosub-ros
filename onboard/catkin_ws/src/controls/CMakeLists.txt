@@ -36,7 +36,7 @@ set(SOURCES
   src/controls.cpp
   src/thruster_allocator.cpp
   src/pid_manager.cpp
-  src/pid.cpp
+  src/drc_pid.cpp
   src/controls_utils.cpp
 )
 
