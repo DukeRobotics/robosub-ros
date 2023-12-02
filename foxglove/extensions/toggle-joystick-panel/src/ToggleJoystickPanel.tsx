@@ -100,38 +100,6 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     renderDone?.();
   }, [renderDone]);
 
-  // Pubish a request with a given schema to a topic
-  const publishSpeeds = () => {
-    if (!context.advertise || !context.publish) {
-      console.log("return");
-      return;
-    }
-
-    // TODO: Update once foxglove-custom-msgs is merged to master
-    context.advertise(DESIRED_POWER_TOPIC, SCHEMA_NAME, {
-      datatypes: new Map([
-        ["geometry_msgs/Twist", ros1["geometry_msgs/Twist"]],
-        ["geometry_msgs/Vector3", ros1["geometry_msgs/Vector3"]],
-        ["std_msgs/Float64", ros1["std_msgs/Float64"]],
-      ]),
-    });
-
-    const joystickInputs = state.joystickInputs;
-    const request: GeometryMsgsTwist = {
-      linear: {
-        x: -joystickInputs.xAxis,
-        y: joystickInputs.yAxis,
-        z: -joystickInputs.zAxis,
-      },
-      angular: {
-        x: 0,
-        y: 0,
-        z: -joystickInputs.yawAxis,
-      },
-    };
-    context.publish(DESIRED_POWER_TOPIC, request);
-  };
-
   const toggleJoystick = () => {
     // Check if service calling is supported by the context
     if (!context.callService) {
@@ -179,6 +147,38 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
   };
 
   useEffect(() => {
+    // Pubish a request with a given schema to a topic
+    const publishSpeeds = () => {
+      if (!context.advertise || !context.publish) {
+        console.log("return");
+        return;
+      }
+
+      // TODO: Update once foxglove-custom-msgs is merged to master
+      context.advertise(DESIRED_POWER_TOPIC, SCHEMA_NAME, {
+        datatypes: new Map([
+          ["geometry_msgs/Twist", ros1["geometry_msgs/Twist"]],
+          ["geometry_msgs/Vector3", ros1["geometry_msgs/Vector3"]],
+          ["std_msgs/Float64", ros1["std_msgs/Float64"]],
+        ]),
+      });
+
+      const joystickInputs = state.joystickInputs;
+      const request: GeometryMsgsTwist = {
+        linear: {
+          x: -joystickInputs.xAxis,
+          y: joystickInputs.yAxis,
+          z: -joystickInputs.zAxis,
+        },
+        angular: {
+          x: 0,
+          y: 0,
+          z: -joystickInputs.yawAxis,
+        },
+      };
+      context.publish(DESIRED_POWER_TOPIC, request);
+    };
+
     const intervalDelay = 1000 / PUBLISH_RATE; // Convert Hz to milliseconds
     const intervalId = setInterval(() => {
       queryJoystick(state, setState, publishSpeeds);
@@ -187,7 +187,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     return () => {
       clearInterval(intervalId); // Clear the interval on component unmount
     };
-  }, [state, setState, publishSpeeds]); // Include dependencies that the effect uses
+  }, [state, setState, context]); // Include dependencies that the effect uses
 
   window.addEventListener("gamepadconnected", () => {
     console.log("connected");
