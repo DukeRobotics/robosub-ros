@@ -1,9 +1,19 @@
 #include <ros/ros.h>
+#include <tf2/LinearMath/Matrix3x3.h>
 #include <std_msgs/String.h>
 #include "yaml-cpp/yaml.h"
 
 int main(int argc, char** argv)
 {
+  // Get rpy from quaternion
+  double roll, pitch, yaw;
+  tf2::Matrix3x3(tf2::Quaternion(1, 0.5, 0, 0)).getRPY(roll, pitch, yaw);
+  std::cout << "roll: " << roll << std::endl;
+  std::cout << "pitch: " << pitch << std::endl;
+  std::cout << "yaw: " << yaw << std::endl;
+
+  return 0;
+
   YAML::Emitter out;
   out << "Hello, World!";
 
