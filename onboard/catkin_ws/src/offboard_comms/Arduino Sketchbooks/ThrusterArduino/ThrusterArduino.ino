@@ -30,6 +30,11 @@ ros::NodeHandle_<ArduinoHardware,1,1,128,128> nh;
 
 void thruster_pwm_callback(const custom_msgs::PWMAllocs &pwm_msg){
     // Copy the contents of the pwm message to the local array
+    if (pwm_msg.allocs.size() != NUM_THRUSTERS) {
+        nh.logerror("Received PWM message with incorrect number of allocations. Recieved: " + String(pwm_msg.allocs.size()) + ", expected: " + String(NUM_THRUSTERS) + ".");
+        return;
+    }
+
     memcpy(pwms, pwm_msg.allocs, sizeof(pwms));
     last_cmd_ms_ts = millis();
 }
@@ -55,15 +60,15 @@ void setup(){
 void loop(){
     // Check if last version of data has timed out, if so, stop all thrusters
     bool timeout = last_cmd_ms_ts + THRUSTER_TIMEOUT_MS < millis();
-    
+
     for (uint8_t i = 0; i < NUM_THRUSTERS; ++i) {
         int16_t pwm = timeout ? THRUSTER_STOP_PWM : pwms[i];
-        
+
         // If PWM is out of bounds, log error and stop thruster
         if (pwm < THRUSTER_PWM_MIN || pwm > THRUSTER_PWM_MAX) {
             String msg = "Stopping thruster " + String(i) + ". PWM out of bounds: " + String(pwm);
             nh.logerror(msg.c_str());
-            
+
             pwm = THRUSTER_STOP_PWM;
         }
 
