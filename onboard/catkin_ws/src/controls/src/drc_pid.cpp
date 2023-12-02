@@ -43,7 +43,7 @@ double PID::run_loop(double error, double delta_time)
     // If delta time is nonpositive, return 0 and print error
     if (delta_time <= 0)
     {
-        ROS_ERROR("Delta time must be positive.");
+        ROS_WARN("Delta time must be positive.");
         return 0;
     }
 
