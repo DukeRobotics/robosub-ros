@@ -31,7 +31,6 @@ public:
     static const int THRUSTER_ALLOCS_RATE = 20;
 
     bool sim = false;
-    bool debug = false;
     bool enable_position_pid = false;
     bool enable_velocity_pid = false;
 

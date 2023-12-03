@@ -34,8 +34,7 @@
 Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<tf2_ros::Buffer> tfl_buffer)
 {
     // Get parameters from launch file
-    ros::param::get("~sim", enable_position_pid);
-    ros::param::get("~debug", enable_position_pid);
+    ros::param::get("~sim", sim);
     ros::param::get("~enable_position_pid", enable_position_pid);
     ros::param::get("~enable_velocity_pid", enable_velocity_pid);
 
