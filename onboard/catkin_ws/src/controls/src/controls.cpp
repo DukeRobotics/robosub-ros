@@ -61,6 +61,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     // Initialize publishers for output topics
     thruster_allocs_pub = nh.advertise<custom_msgs::ThrusterAllocs>("controls/thruster_allocs", 1);
     desired_thruster_allocs_pub = nh.advertise<custom_msgs::ThrusterAllocs>("controls/desired_thruster_allocs", 1);
+    unconstrained_thruster_allocs_pub = nh.advertise<custom_msgs::ThrusterAllocs>("controls/unconstrained_thruster_allocs", 1);
     set_power_pub = nh.advertise<geometry_msgs::Twist>("controls/set_power", 1);
     actual_power_pub = nh.advertise<geometry_msgs::Twist>("controls/actual_power", 1);
     pid_gains_pub = nh.advertise<custom_msgs::PIDGains>("controls/pid_gains", 1);
@@ -274,9 +275,11 @@ void Controls::run()
 
     Eigen::VectorXd set_power(AXES_COUNT);
     Eigen::VectorXd actual_power;
-    Eigen::VectorXd allocs;
+    Eigen::VectorXd unconstrained_allocs;
+    Eigen::VectorXd constrained_allocs;
 
-    custom_msgs::ThrusterAllocs t;
+    custom_msgs::ThrusterAllocs unconstrained_t;
+    custom_msgs::ThrusterAllocs constrained_t;
     geometry_msgs::Twist set_power_msg;
     geometry_msgs::Twist actual_power_msg;
     custom_msgs::ControlTypes control_types_msg;
@@ -302,16 +305,18 @@ void Controls::run()
             }
         }
 
-        thruster_allocator.allocate_thrusters(set_power, power_multiplier, allocs, actual_power);
+        thruster_allocator.allocate_thrusters(set_power, power_multiplier, unconstrained_allocs,
+                                              constrained_allocs, actual_power);
 
-        t.allocs.clear();
-        for (int i = 0; i < allocs.rows(); i++)
-            t.allocs.push_back(allocs[i]);
+        ControlsUtils::eigen_vector_to_thruster_allocs(constrained_allocs, constrained_t);
 
         if (controls_enabled)
-            thruster_allocs_pub.publish(t);
+            thruster_allocs_pub.publish(constrained_t);
 
-        desired_thruster_allocs_pub.publish(t);
+        desired_thruster_allocs_pub.publish(constrained_t);
+
+        ControlsUtils::eigen_vector_to_thruster_allocs(unconstrained_allocs, unconstrained_t);
+        unconstrained_thruster_allocs_pub.publish(unconstrained_t);
 
         ControlsUtils::eigen_vector_to_twist(set_power, set_power_msg);
         set_power_pub.publish(set_power_msg);

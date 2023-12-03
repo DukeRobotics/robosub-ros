@@ -14,6 +14,7 @@
 #include <custom_msgs/ControlTypes.h>
 #include <custom_msgs/PIDGain.h>
 #include <custom_msgs/PIDGains.h>
+#include <custom_msgs/ThrusterAllocs.h>
 #include <Eigen/Dense>
 #include <yaml-cpp/yaml.h>
 
@@ -111,6 +112,13 @@ void ControlsUtils::twist_to_map(const geometry_msgs::Twist &twist, std::unorder
     map[AxesEnum::ROLL] = twist.angular.x;
     map[AxesEnum::PITCH] = twist.angular.y;
     map[AxesEnum::YAW] = twist.angular.z;
+}
+
+void ControlsUtils::eigen_vector_to_thruster_allocs(const Eigen::VectorXd &vector, custom_msgs::ThrusterAllocs &thruster_allocs)
+{
+    thruster_allocs.allocs.clear();
+    for (int i = 0; i < vector.rows(); ++i)
+        thruster_allocs.allocs.push_back(vector(i));
 }
 
 void ControlsUtils::eigen_vector_to_twist(const Eigen::VectorXd &vector, geometry_msgs::Twist &twist)

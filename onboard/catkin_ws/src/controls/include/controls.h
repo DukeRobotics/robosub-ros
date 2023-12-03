@@ -54,6 +54,7 @@ public:
 
     ros::Publisher thruster_allocs_pub;
     ros::Publisher desired_thruster_allocs_pub;
+    ros::Publisher unconstrained_thruster_allocs_pub;
     ros::Publisher set_power_pub;
     ros::Publisher actual_power_pub;
     ros::Publisher pid_gains_pub;
