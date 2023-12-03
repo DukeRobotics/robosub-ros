@@ -127,6 +127,9 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     delta_time_msg.data = delta_time;
     delta_time_pub.publish(delta_time_msg);
 
+    if (delta_time <= 0.0)
+        return;
+
     // Get transform from odom to base_link
     geometry_msgs::TransformStamped transformStamped;
     try
