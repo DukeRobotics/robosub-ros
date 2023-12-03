@@ -54,7 +54,10 @@ void Thrusters::read_lookup_table_csv(const std::string &filename, std::array<in
       double pwm = std::stod(row[1]);
 
       // Multiply the force value by 100 and add 100
-      int index = static_cast<int>((force * 100) + 100);
+      // This is done to convert the force value to an index for the lookup table
+      // It is important to use std::lround() instead of type casting to int directly because a direct typecast
+      // can result in the incorrect index being calculated (an error of +/- 1)
+      int index = static_cast<int>(std::lround((force * 100) + 100));
 
       // Check if the index is within bounds of the array
       if (index >= 0 && index < lookup_table.size())
