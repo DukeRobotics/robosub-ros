@@ -14,9 +14,7 @@ import {
   Button,
   Grid,
 } from "@mui/material";
-// X import { JsonViewer } from "@textea/json-viewer";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { JsonViewer } from "@textea/json-viewer";
 import React, { useEffect, useLayoutEffect, useState } from "react";
 import { JSX } from "react/jsx-runtime";
 import { createRoot } from "react-dom/client";
@@ -138,11 +136,6 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     handleReset();
   };
 
-  // Close callService with the current state for use in the button
-  // Const callServiceWithRequest = () => {
-  //   Void callService(state.serviceName, state.request);
-  // };
-
   // TODO: Import this theme once thruster-speeds-panel is merged
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const theme = createTheme({
@@ -216,7 +209,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     const request: CustomMsgsSetPidGainsRequest = {
       pid_gains: [],
     };
-    console.log(state.panelMode)
+    console.log(state.panelMode);
     Object.entries(state.editedValues).forEach(([axis, gains]) => {
       Object.entries(gains).forEach(([gain, value]) => {
         request.pid_gains.push({
@@ -285,7 +278,9 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
                               onFocus={() => {
                                 handleFocus(Number(axis), index);
                               }}
-                              onChange={(event) => handleInputChange(event, Number(axis), index)}
+                              onChange={(event) => {
+                                handleInputChange(event, Number(axis), index);
+                              }}
                             />
                           </TableCell>
                         );
@@ -308,15 +303,6 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
               </Button>
             </Grid>
           </Grid>
-
-          <JsonViewer
-            rootName={false}
-            value={state.focusStatus}
-            indentWidth={2}
-            theme={state.colorScheme}
-            enableClipboard={false}
-            displayDataTypes={false}
-          />
         </div>
       </Box>
     </ThemeProvider>
@@ -332,24 +318,3 @@ export function initPIDPanel(context: PanelExtensionContext): () => void {
     root.unmount();
   };
 }
-
-/*
-
-
-Const updatePID = (event: React.ChangeEvent<HTMLInputElement>) => {
-  let hasError = false;
-  const value = event.target.value;
-
-  if (value !== "" && (Number.isNaN(Number(value)) || parseInt(value) !== parseFloat(value))) {
-    hasError = true;
-  } else {
-      pid.forEach((thruster: keyof pid) => {
-      const speed: number | "" =
-        thruster !== event.target.id ? state.tempThrusterSpeeds[thruster] : value !== "" ? parseInt(value) : "";
-      if (!validateInput(speed)) {
-        hasError = true;
-      }
-    });
-  }
-
-  */
