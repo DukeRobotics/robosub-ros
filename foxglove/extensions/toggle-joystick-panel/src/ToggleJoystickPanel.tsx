@@ -171,9 +171,6 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     //   (response) => {
     //     const typedResponse = response as CustomMsgsSetControlTypesResponse;
 
-    //     console.log("/controls/set_control_types response:");
-    //     console.log(response);
-
     //     // Update the state based on the service response
     //     // If the service responds with failure, display the response message as an error
     //     const error = typedResponse.success ? undefined : Error("/controls/set_control_types has failed");
@@ -210,7 +207,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
       const request: GeometryMsgsTwist = {
         linear: {
           x: -joystickInputs.xAxis,
-          y: joystickInputs.yAxis,
+          y: -joystickInputs.yAxis,
           z: -joystickInputs.zAxis,
         },
         angular: {
@@ -293,7 +290,6 @@ function queryJoystick(state: State, setState: React.Dispatch<SetStateAction<Sta
     const buttons = joystick[0].buttons;
 
     // Update state
-    console.log(axes)
     setState((previousState) => ({
       ...previousState,
       joystickInputs: {
