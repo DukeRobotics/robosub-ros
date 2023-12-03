@@ -202,6 +202,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     setState((prevState) => ({
       ...prevState,
       focusStatus: {},
+      editedValues: {},
     }));
   };
 
