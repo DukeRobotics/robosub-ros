@@ -76,7 +76,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     // Get PID gains from robot config file
     std::string wrench_matrix_file_path;
     std::string wrench_matrix_pinv_file_path;
-    ControlsUtils::read_robot_config(ROBOT_CONFIG_FILE_PATH, all_pid_gains, static_power,
+    ControlsUtils::read_robot_config(ROBOT_CONFIG_FILE_PATH, all_pid_gains, static_power, power_multiplier,
                                      wrench_matrix_file_path, wrench_matrix_pinv_file_path);
 
     // Instantiate PID managers for each PID loop type
@@ -277,7 +277,7 @@ void Controls::run()
             }
         }
 
-        thruster_allocator.allocate_thrusters(set_power, allocs, actual_power);
+        thruster_allocator.allocate_thrusters(set_power, power_multiplier, allocs, actual_power);
 
         t.allocs.clear();
         for (int i = 0; i < allocs.rows(); i++)

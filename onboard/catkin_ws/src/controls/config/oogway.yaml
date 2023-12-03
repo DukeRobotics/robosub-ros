@@ -65,6 +65,7 @@ static_power:
   x: 0
   y: 0
   z: 0
+power_multiplier: 0.5
 thrusters:
   - name: bottom_front_left
     type: T200

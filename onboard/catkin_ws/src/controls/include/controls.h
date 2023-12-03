@@ -71,6 +71,8 @@ public:
 
     tf2::Vector3 static_power;
 
+    double power_multiplier;
+
     ThrusterAllocator thruster_allocator;
 
     std::unordered_map<AxesEnum, ControlTypesEnum> control_types;
