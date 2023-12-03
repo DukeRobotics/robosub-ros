@@ -22,7 +22,6 @@ import { JSX } from "react/jsx-runtime";
 import { createRoot } from "react-dom/client";
 
 import {
-  CustomMsgsPidGain,
   CustomMsgsPidGainConst,
   CustomMsgsPidGains,
   CustomMsgsSetPidGainsRequest,
@@ -35,7 +34,7 @@ type PIDPanelState = {
   response?: CustomMsgsSetPidGainsResponse;
   error?: Error | undefined;
   colorScheme?: RenderState["colorScheme"];
-  panelMode: PanelMode;
+  panelMode: CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY;
   message?: MessageEvent<CustomMsgsPidGains>;
   focusStatus: Record<number, Record<number, boolean>>;
   editedValues: Record<number, Record<number, number>>;
@@ -68,19 +67,13 @@ const pid = defaultPid();
 
 const READ_PID_TOPIC = "/controls/pid_gains";
 const SET_PID_SERVICE = "/controls/set_pid_gains";
-const pidTypeToUpdate = CustomMsgsPidGainConst.LOOP_POSITION;
-
-enum PanelMode {
-  SUBSCRIBING,
-  EDITING,
-}
 
 function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
   const [state, setState] = useState<PIDPanelState>({
     serviceName: SET_PID_SERVICE,
     request: "{}",
-    panelMode: PanelMode.SUBSCRIBING,
+    panelMode: CustomMsgsPidGainConst.LOOP_POSITION,
     focusStatus: {},
     editedValues: {},
   });
@@ -136,8 +129,13 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     }
   };
 
-  const handleModeChange = (_: React.SyntheticEvent, mode: PanelMode) => {
+  const handleModeChange = (
+    _: React.SyntheticEvent,
+    mode: CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY,
+  ) => {
     setState((oldState) => ({ ...oldState, panelMode: mode }));
+
+    handleReset();
   };
 
   // Close callService with the current state for use in the button
@@ -218,33 +216,17 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     const request: CustomMsgsSetPidGainsRequest = {
       pid_gains: [],
     };
-
+    console.log(state.panelMode)
     Object.entries(state.editedValues).forEach(([axis, gains]) => {
       Object.entries(gains).forEach(([gain, value]) => {
         request.pid_gains.push({
-          loop: pidTypeToUpdate,
+          loop: state.panelMode,
           axis: Number(axis),
           gain: Number(gain),
           value: Number(value),
         });
       });
     });
-
-    // if (pid[pidTypeToUpdate] != undefined) {
-    //   Object.entries(pid[pidTypeToUpdate]).forEach(([axis, gains]) => {
-    //     Object.entries(gains).forEach(([gain, value]) => {
-    //       const isFocused = state.focusStatus[Number(axis)]?.[Number(gain)] ?? false;
-    //       if (isFocused) {
-    //         request.pid_gains.push({
-    //           loop: pidTypeToUpdate,
-    //           axis: Number(axis),
-    //           gain: Number(gain),
-    //           value: Number(value),
-    //         });
-    //       }
-    //     });
-    //   });
-    // }
 
     void callService(SET_PID_SERVICE, request);
 
@@ -260,8 +242,8 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
           </Alert>
         )}
         <Tabs value={state.panelMode} onChange={handleModeChange} variant="fullWidth">
-          <Tab label="Subscribing" value={PanelMode.SUBSCRIBING} />
-          <Tab label="Editing" value={PanelMode.EDITING} />
+          <Tab label="Position" value={CustomMsgsPidGainConst.LOOP_POSITION} />
+          <Tab label="Velocity" value={CustomMsgsPidGainConst.LOOP_VELOCITY} />
         </Tabs>
         <div>
           <TableContainer>
@@ -283,52 +265,34 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
                   </TableCell>
                 </TableRow>
               </TableHead>
-              {state.panelMode === PanelMode.SUBSCRIBING ? (
-                // Table for Subscribing
-                <TableBody>
-                  {pid[pidTypeToUpdate] &&
-                    Object.entries(pid[pidTypeToUpdate]).map(([axis, g]) => (
-                      <TableRow key={axis}>
-                        <TableCell width="10px">{getAxisEnumName(Number(axis))}</TableCell>
-                        {Object.values(g).map((gain, index) => {
-                          const isFocused = state.focusStatus[Number(axis)]?.[index] ?? false;
-                          return (
-                            <TableCell key={index} width="10px">
-                              <input
-                                type="text"
-                                style={{
-                                  width: "100%",
-                                  boxSizing: "border-box",
-                                  borderColor: isFocused ? "red" : "",
-                                }}
-                                value={isFocused ? undefined : gain.toFixed(4)}
-                                onFocus={() => {
-                                  handleFocus(Number(axis), index);
-                                }}
-                                onChange={(event) => handleInputChange(event, Number(axis), index)}
-                              />
-                            </TableCell>
-                          );
-                        })}
-                      </TableRow>
-                    ))}
-                </TableBody>
-              ) : (
-                // Editing`
-                <TableBody>
-                  {pid[pidTypeToUpdate] &&
-                    Object.entries(pid[pidTypeToUpdate]).map(([axis, g]) => (
-                      <TableRow key={axis}>
-                        <TableCell width="10px">{getAxisEnumName(Number(axis))}</TableCell>
-                        {Object.values(g).map((gain, index) => (
-                          <TableCell width="10px" key={index}>
-                            {gain} <input type="text" name={String([axis, g])} size={1}></input>
+              <TableBody>
+                {pid[state.panelMode] &&
+                  Object.entries(pid[state.panelMode] ?? {}).map(([axis, g]) => (
+                    <TableRow key={axis}>
+                      <TableCell width="10px">{getAxisEnumName(Number(axis))}</TableCell>
+                      {Object.values(g).map((gain, index) => {
+                        const isFocused = state.focusStatus[Number(axis)]?.[index] ?? false;
+                        return (
+                          <TableCell key={index} width="10px">
+                            <input
+                              type="text"
+                              style={{
+                                width: "100%",
+                                boxSizing: "border-box",
+                                borderColor: isFocused ? "red" : "",
+                              }}
+                              value={isFocused ? undefined : gain}
+                              onFocus={() => {
+                                handleFocus(Number(axis), index);
+                              }}
+                              onChange={(event) => handleInputChange(event, Number(axis), index)}
+                            />
                           </TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                </TableBody>
-              )}
+                        );
+                      })}
+                    </TableRow>
+                  ))}
+              </TableBody>
             </Table>
           </TableContainer>
 

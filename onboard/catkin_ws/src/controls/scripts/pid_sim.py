@@ -29,8 +29,8 @@ class PIDSim():
             PIDGain.LOOP_VELOCITY: copy.deepcopy(axes)
         }
 
-        self.pid_pub = rospy.Publisher('current_pid', PIDGains, queue_size=1)
-        self.set_pid = rospy.Service('set_pid', SetPIDGains, self.handle_set_pid)
+        self.pid_pub = rospy.Publisher('/controls/pid_gains', PIDGains, queue_size=1)
+        self.set_pid = rospy.Service('/controls/set_pid_gains', SetPIDGains, self.handle_set_pid)
 
         rospy.loginfo("pid_sim initialized")
         self.pid_publish_loop()
