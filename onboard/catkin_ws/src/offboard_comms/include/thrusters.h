@@ -20,7 +20,7 @@ public:
   ros::Publisher pwm_pub;
 
   Thrusters(int argc, char **argv, ros::NodeHandle &nh);
-  double interpolate(float x1, float y1, float x2, float y2, float x_interpolate);
+  double interpolate(double x1, int16_t y1, double x2, int16_t y2, double x_interpolate);
   double lookup(float voltage, float force);
   void load_lookup_tables();
   void read_lookup_table_csv(const std::string &filename, std::array<int16_t, 201> &lookup_table);

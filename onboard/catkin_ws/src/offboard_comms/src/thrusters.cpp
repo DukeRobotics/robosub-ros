@@ -100,7 +100,7 @@ double Thrusters::lookup(float voltage, float force)
     return interpolate(16.0, v16_lookup_table.at(index), 18.0, v18_lookup_table.at(index), voltage);
 }
 
-double Thrusters::interpolate(float x1, float y1, float x2, float y2, float x_interpolate)
+double Thrusters::interpolate(double x1, int16_t y1, double x2, int16_t y2, double x_interpolate)
 {
   return y1 + ((y2 - y1) * (x_interpolate - x1)) / (x2 - x1);
 }
