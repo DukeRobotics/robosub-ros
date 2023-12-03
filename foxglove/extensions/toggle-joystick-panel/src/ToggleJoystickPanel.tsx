@@ -26,39 +26,40 @@ const AXIS_MAP = {
 const pitchMapping = (value: number): number => {
   const stationary = 3.2857141494750977;
 
-  if (value != stationary) {
-    if (value > 0.7142857313156128 || value < -0.4285714030265808){
+  if (value !== stationary && value !== 0) {
+    if (value > 0.7142857313156128 || value < -0.4285714030265808) {
       return 0.5;
-    }
-    else if (value < 0.7142857313156128 && value > -0.4285714030265808) {
+    } else if (value < 0.7142857313156128 && value > -0.4285714030265808) {
       return -0.5;
-    }
-    else {
+    } else {
       return 0;
     }
-  }
-  else{
+  } else {
     return 0;
   }
 };
 const rollMapping = (value: number): number => {
   const stationary = 3.2857141494750977;
-  if (value != stationary) {
-    if (value > -1 && value < 0.14285719394683838){
+  if (value !== stationary && value !== 0) {
+    if (value > -1 && value < 0.14285719394683838) {
       return 0.5;
-    }
-    else if (value > 0.14285719394683838) {
+    } else if (value > 0.14285719394683838) {
       return -0.5;
-    }
-    else {
+    } else {
       return 0;
     }
-  }
-  else{
+  } else {
     return 0;
   }
 };
 
+const linearMapping = (value: number, { negate = false }: { negate: boolean }): number => {
+  const threshold = 0.01;
+  if (Math.abs(value) < threshold) {
+    return 0;
+  }
+  return negate ? -1 * value : value;
+};
 
 // Indices of specific buttons in the joystick buttons list
 const BUTTON_MAP = {
@@ -146,11 +147,10 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
       return;
     }
 
-
     // Request payload to toggle controls
     const desiredControl: CustomMsgsControlTypesConst = state.joyStickEnabled
-    ? CustomMsgsControlTypesConst.DESIRED_POSE
-    : CustomMsgsControlTypesConst.DESIRED_POWER;
+      ? CustomMsgsControlTypesConst.DESIRED_POSE
+      : CustomMsgsControlTypesConst.DESIRED_POWER;
     const request: CustomMsgsSetControlTypesRequest = {
       control_types: {
         x: desiredControl,
@@ -163,27 +163,27 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     };
 
     // TODO: Comment this out
-    setState((oldState) => ({ ...oldState, joyStickEnabled: !oldState.joyStickEnabled }));
+    // setState((oldState) => ({ ...oldState, joyStickEnabled: !oldState.joyStickEnabled }));
 
     // TODO: Uncomment this
     // Make the service call
-    // context.callService(SET_CONTROL_TYPES_SERVICE, request).then(
-    //   (response) => {
-    //     const typedResponse = response as CustomMsgsSetControlTypesResponse;
+    context.callService(SET_CONTROL_TYPES_SERVICE, request).then(
+      (response) => {
+        const typedResponse = response as CustomMsgsSetControlTypesResponse;
 
-    //     // Update the state based on the service response
-    //     // If the service responds with failure, display the response message as an error
-    //     const error = typedResponse.success ? undefined : Error("/controls/set_control_types has failed");
-    //     setState((oldState) => ({ ...oldState, error, joyStickEnabled: !oldState.joyStickEnabled }));
-    //   },
-    //   (error) => {
-    //     // Handle service call errors (e.g., service is not advertised)
-    //     setState((oldState) => ({
-    //       ...oldState,
-    //       error: error as Error,
-    //     }));
-    //   },
-    // );
+        // Update the state based on the service response
+        // If the service responds with failure, display the response message as an error
+        const error = typedResponse.success ? undefined : Error("/controls/set_control_types has failed");
+        setState((oldState) => ({ ...oldState, error, joyStickEnabled: !oldState.joyStickEnabled }));
+      },
+      (error) => {
+        // Handle service call errors (e.g., service is not advertised)
+        setState((oldState) => ({
+          ...oldState,
+          error: error as Error,
+        }));
+      },
+    );
   };
 
   useEffect(() => {
@@ -206,14 +206,14 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
       const joystickInputs = state.joystickInputs;
       const request: GeometryMsgsTwist = {
         linear: {
-          x: -joystickInputs.xAxis,
-          y: -joystickInputs.yAxis,
-          z: -joystickInputs.zAxis,
+          x: joystickInputs.xAxis,
+          y: joystickInputs.yAxis,
+          z: joystickInputs.zAxis,
         },
         angular: {
           x: joystickInputs.rollAxis,
           y: joystickInputs.pitchAxis,
-          z: -joystickInputs.yawAxis,
+          z: joystickInputs.yawAxis,
         },
       };
       context.publish(DESIRED_POWER_TOPIC, request);
@@ -294,12 +294,12 @@ function queryJoystick(state: State, setState: React.Dispatch<SetStateAction<Sta
       ...previousState,
       joystickInputs: {
         ...previousState.joystickInputs,
-        xAxis: axes[AXIS_MAP.xIndex] ?? 0,
-        yAxis: axes[AXIS_MAP.yIndex] ?? 0,
-        zAxis: axes[AXIS_MAP.zIndex] ?? 0,
-        yawAxis: axes[AXIS_MAP.yawIndex] ?? 0,
-        pitchAxis: pitchMapping(axes[AXIS_MAP.pitchIndex] ?? 0), // TODO
-        rollAxis: rollMapping(axes[AXIS_MAP.rollIndex] ?? 0), // TODO
+        xAxis: linearMapping(axes[AXIS_MAP.xIndex] ?? 0, { negate: true }),
+        yAxis: linearMapping(axes[AXIS_MAP.yIndex] ?? 0, { negate: true }),
+        zAxis: linearMapping(axes[AXIS_MAP.zIndex] ?? 0, { negate: true }),
+        yawAxis: linearMapping(axes[AXIS_MAP.yawIndex] ?? 0, { negate: true }),
+        pitchAxis: pitchMapping(axes[AXIS_MAP.pitchIndex] ?? 0),
+        rollAxis: rollMapping(axes[AXIS_MAP.rollIndex] ?? 0),
         torpedoActivate: buttons[BUTTON_MAP.torpedoActivateIndex]?.value === 1 ? true : false,
         torpedoOneLaunch: buttons[BUTTON_MAP.torpedoOneLaunchIndex]?.value === 1 ? true : false,
         torpedoTwoLaunch: buttons[BUTTON_MAP.torpedoTwoLaunchIndex]?.value === 1 ? true : false,
