@@ -61,7 +61,7 @@ pid:
       Ki: 0.001
       Kd: 0.005
       Ff: 0
-static_power:
+static_power_global:
   x: 0
   y: 0
   z: 0

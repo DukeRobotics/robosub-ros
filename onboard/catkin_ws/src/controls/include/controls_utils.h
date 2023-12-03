@@ -10,6 +10,7 @@
 #include <tf2/LinearMath/Vector3.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/Vector3.h>
 #include <custom_msgs/ControlTypes.h>
 #include <custom_msgs/PIDGain.h>
 #include <custom_msgs/PIDGains.h>
@@ -104,11 +105,12 @@ public:
     static void read_matrix_from_csv(std::string file_path, Eigen::MatrixXd &matrix);
     static void read_robot_config(std::string file_path,
                                   LoopsAxesPIDGainsMap &all_pid_gains,
-                                  tf2::Vector3 &static_power,
+                                  tf2::Vector3 &static_power_global,
                                   double &power_multiplier,
                                   std::string &wrench_matrix_file_path,
                                   std::string &wrench_matrix_pinv_file_path);
     static void update_robot_pid_gains(std::string file_path, const LoopsAxesPIDGainsMap &all_pid_gains);
+    static void update_robot_static_power_global(std::string file_path, const tf2::Vector3 &static_power_global);
 };
 
 #endif

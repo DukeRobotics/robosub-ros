@@ -262,7 +262,7 @@ void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd 
 
 void ControlsUtils::read_robot_config(std::string file_path,
                                       LoopsAxesPIDGainsMap &all_pid_gains,
-                                      tf2::Vector3 &static_power,
+                                      tf2::Vector3 &static_power_global,
                                       double &power_multiplier,
                                       std::string &wrench_matrix_file_path,
                                       std::string &wrench_matrix_pinv_file_path)
@@ -289,10 +289,10 @@ void ControlsUtils::read_robot_config(std::string file_path,
         }
 
         // Read static power vector
-        YAML::Node static_power_node = config["static_power"];
-        static_power.setX(static_power_node[AXES_NAMES.at(AxesEnum::X)].as<double>());
-        static_power.setY(static_power_node[AXES_NAMES.at(AxesEnum::Y)].as<double>());
-        static_power.setZ(static_power_node[AXES_NAMES.at(AxesEnum::Z)].as<double>());
+        YAML::Node static_power_global_node = config["static_power_global"];
+        static_power_global.setX(static_power_global_node[AXES_NAMES.at(AxesEnum::X)].as<double>());
+        static_power_global.setY(static_power_global_node[AXES_NAMES.at(AxesEnum::Y)].as<double>());
+        static_power_global.setZ(static_power_global_node[AXES_NAMES.at(AxesEnum::Z)].as<double>());
 
         // Read power multiplier
         power_multiplier = config["power_multiplier"].as<double>();
@@ -350,6 +350,39 @@ void ControlsUtils::update_robot_pid_gains(std::string file_path, const LoopsAxe
     {
         ROS_ERROR("Exception: %s", e.what());
         ROS_ASSERT_MSG(false, "Could not update pid gains in robot config file. Make sure it is in the correct format. '%s'",
+                       file_path.c_str());
+    }
+}
+
+void ControlsUtils::update_robot_static_power_global(std::string file_path, const tf2::Vector3 &static_power_global)
+{
+    try
+    {
+        YAML::Node config = YAML::LoadFile(file_path);
+
+        YAML::Node static_power_global_node = config["static_power_global"];
+        static_power_global_node[AXES_NAMES.at(AxesEnum::X)] = static_power_global.getX();
+        static_power_global_node[AXES_NAMES.at(AxesEnum::Y)] = static_power_global.getY();
+        static_power_global_node[AXES_NAMES.at(AxesEnum::Z)] = static_power_global.getZ();
+
+        std::ofstream fout(file_path);
+
+        if (!fout.is_open())
+            throw;
+
+        fout.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+
+        fout << config;
+
+        if (fout.fail())
+            throw;
+
+        fout.close();
+    }
+    catch (const std::exception &e)
+    {
+        ROS_ERROR("Exception: %s", e.what());
+        ROS_ASSERT_MSG(false, "Could not update static power in robot config file. Make sure it is in the correct format. '%s'",
                        file_path.c_str());
     }
 }

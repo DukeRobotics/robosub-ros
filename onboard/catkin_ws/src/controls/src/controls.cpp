@@ -25,6 +25,7 @@
 #include <custom_msgs/ControlTypes.h>
 #include <custom_msgs/SetPIDGains.h>
 #include <custom_msgs/SetControlTypes.h>
+#include <custom_msgs/SetStaticPower.h>
 #include "thruster_allocator.h"
 #include "pid_manager.h"
 #include "controls_utils.h"
@@ -55,6 +56,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     set_control_types_srv = nh.advertiseService("controls/set_control_types", &Controls::set_control_types_callback, this);
     set_pid_gains_srv = nh.advertiseService("controls/set_pid_gains", &Controls::set_pid_gains_callback, this);
     reset_pid_loops_srv = nh.advertiseService("controls/reset_pid_loops", &Controls::reset_pid_loops_callback, this);
+    set_static_power_global_srv = nh.advertiseService("controls/set_static_power_global", &Controls::set_static_power_global_callback, this);
 
     // Initialize publishers for output topics
     thruster_allocs_pub = nh.advertise<custom_msgs::ThrusterAllocs>("controls/thruster_allocs", 1);
@@ -67,7 +69,8 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     velocity_error_pub = nh.advertise<geometry_msgs::Twist>("controls/velocity_error", 1);
     status_pub = nh.advertise<std_msgs::Bool>("controls/status", 1);
     delta_time_pub = nh.advertise<std_msgs::Float64>("controls/delta_time", 1);
-    static_power_rotated_pub = nh.advertise<geometry_msgs::Vector3>("controls/static_power_rotated", 1);
+    static_power_global_pub = nh.advertise<geometry_msgs::Vector3>("controls/static_power_global", 1);
+    static_power_local_pub = nh.advertise<geometry_msgs::Vector3>("controls/static_power_local", 1);
 
     // Use desired pose as the default control type for all axes
     for (const AxesEnum &axis : AXES)
@@ -76,7 +79,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     // Get PID gains from robot config file
     std::string wrench_matrix_file_path;
     std::string wrench_matrix_pinv_file_path;
-    ControlsUtils::read_robot_config(ROBOT_CONFIG_FILE_PATH, all_pid_gains, static_power, power_multiplier,
+    ControlsUtils::read_robot_config(ROBOT_CONFIG_FILE_PATH, all_pid_gains, static_power_global, power_multiplier,
                                      wrench_matrix_file_path, wrench_matrix_pinv_file_path);
 
     // Instantiate PID managers for each PID loop type
@@ -170,23 +173,23 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     // Rotate static power to equivalent vector in robot's local frame
     tf2::Quaternion orientation_tf2;
     tf2::fromMsg(state.pose.pose.orientation, orientation_tf2);
-    tf2::Vector3 static_power_rotated = quatRotate(orientation_tf2.inverse(), static_power);
+    tf2::Vector3 static_power_local = quatRotate(orientation_tf2.inverse(), static_power_global);
 
-    std::unordered_map<AxesEnum, double> static_power_rotated_map;
-    ControlsUtils::tf_linear_vector_to_map(static_power_rotated, static_power_rotated_map);
+    std::unordered_map<AxesEnum, double> static_power_local_map;
+    ControlsUtils::tf_linear_vector_to_map(static_power_local, static_power_local_map);
 
     // Publish static power rotated
-    geometry_msgs::Vector3 static_power_rotated_msg = tf2::toMsg(static_power_rotated);
-    static_power_rotated_pub.publish(static_power_rotated_msg);
+    geometry_msgs::Vector3 static_power_local_msg = tf2::toMsg(static_power_local);
+    static_power_local_pub.publish(static_power_local_msg);
 
     // Run PID loops
     if (enable_position_pid)
         pid_managers[PIDLoopTypesEnum::POSITION].run_loops(position_error_map, delta_time_map,
-                                                           static_power_rotated_map, position_pid_outputs);
+                                                           static_power_local_map, position_pid_outputs);
 
     if (enable_velocity_pid)
         pid_managers[PIDLoopTypesEnum::VELOCITY].run_loops(velocity_error_map, delta_time_map,
-                                                           static_power_rotated_map, velocity_pid_outputs);
+                                                           static_power_local_map, velocity_pid_outputs);
 
     // Publish error messages
     position_error_pub.publish(position_error_msg);
@@ -244,6 +247,27 @@ bool Controls::reset_pid_loops_callback(std_srvs::Trigger::Request &req, std_srv
     return true;
 }
 
+bool Controls::set_static_power_global_callback(custom_msgs::SetStaticPower::Request &req, custom_msgs::SetStaticPower::Response &res)
+{
+    tf2::fromMsg(req.static_power, static_power_global);
+
+    // Update robot config file if static power was updated successfully
+    // Logs an error if file could not be updated and shuts down the node.
+    // Why throw an exception if file could not be updated, but not if static power was invalid?
+    // Answer: because if the static power was invalid, then we give the user another chance to enter valid static power
+    // and don't make any changes. If the file could not be updated successfully, then we don't want to give the user
+    // another chance to enter valid static power because the file will likely still not be updated successfully and
+    // despite being incomplete, we have no way of undoing the changes (if any) that were made to the file. It is likely
+    // users will make frequent mistakes when calling this service, but it is unlikely writing to config file will
+    // frequently fail.
+    ControlsUtils::update_robot_static_power_global(ROBOT_CONFIG_FILE_PATH, static_power_global);
+
+    res.success = true;
+    res.message = res.success ? "Updated static power successfully." : "Failed to update static power. Static power was invalid.";
+
+    return true;
+}
+
 void Controls::run()
 {
     ros::Rate rate(THRUSTER_ALLOCS_RATE);
@@ -258,6 +282,7 @@ void Controls::run()
     custom_msgs::ControlTypes control_types_msg;
     std_msgs::Bool status_msg;
     custom_msgs::PIDGains pid_gains_msg;
+    geometry_msgs::Vector3 static_power_global_msg;
 
     while (ros::ok())
     {
@@ -302,6 +327,9 @@ void Controls::run()
 
         ControlsUtils::pid_loops_axes_gains_map_to_msg(all_pid_gains, pid_gains_msg);
         pid_gains_pub.publish(pid_gains_msg);
+
+        static_power_global_msg = tf2::toMsg(static_power_global);
+        static_power_global_pub.publish(static_power_global_msg);
 
         ros::spinOnce();
 

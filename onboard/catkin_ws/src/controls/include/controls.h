@@ -20,6 +20,7 @@
 #include <custom_msgs/ControlTypes.h>
 #include <custom_msgs/SetPIDGains.h>
 #include <custom_msgs/SetControlTypes.h>
+#include <custom_msgs/SetStaticPower.h>
 #include "thruster_allocator.h"
 #include "controls_utils.h"
 #include "pid_manager.h"
@@ -49,6 +50,7 @@ public:
     ros::ServiceServer set_control_types_srv;
     ros::ServiceServer set_pid_gains_srv;
     ros::ServiceServer reset_pid_loops_srv;
+    ros::ServiceServer set_static_power_global_srv;
 
     ros::Publisher thruster_allocs_pub;
     ros::Publisher desired_thruster_allocs_pub;
@@ -60,7 +62,8 @@ public:
     ros::Publisher velocity_error_pub;
     ros::Publisher status_pub;
     ros::Publisher delta_time_pub;
-    ros::Publisher static_power_rotated_pub;
+    ros::Publisher static_power_global_pub;
+    ros::Publisher static_power_local_pub;
 
     bool controls_enabled = false;
 
@@ -69,7 +72,7 @@ public:
     LoopsAxesPIDGainsMap all_pid_gains;
     std::unordered_map<PIDLoopTypesEnum, PIDManager> pid_managers;
 
-    tf2::Vector3 static_power;
+    tf2::Vector3 static_power_global;
 
     double power_multiplier;
 
@@ -89,6 +92,7 @@ public:
     bool set_control_types_callback(custom_msgs::SetControlTypes::Request &req, custom_msgs::SetControlTypes::Response &res);
     bool set_pid_gains_callback(custom_msgs::SetPIDGains::Request &req, custom_msgs::SetPIDGains::Response &res);
     bool reset_pid_loops_callback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
+    bool set_static_power_global_callback(custom_msgs::SetStaticPower::Request &req, custom_msgs::SetStaticPower::Response &res);
     void run();
 };
 

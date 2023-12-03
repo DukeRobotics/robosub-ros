@@ -38,6 +38,7 @@ add_service_files(
   SetControlTypes.srv
   SetPIDGains.srv
   SetServo.srv
+  SetStaticPower.srv
   StartLaunch.srv
   StopLaunch.srv
 )
