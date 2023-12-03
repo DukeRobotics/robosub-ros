@@ -66,11 +66,14 @@ bool ControlsUtils::pid_gains_valid(const std::vector<custom_msgs::PIDGain> &pid
     return true;
 }
 
-void ControlsUtils::pose_to_map(const geometry_msgs::Pose &pose, std::unordered_map<AxesEnum, double> &map)
+void ControlsUtils::pose_to_twist(const geometry_msgs::Pose &pose, geometry_msgs::Twist &twist)
 {
-    map[AxesEnum::X] = pose.position.x;
-    map[AxesEnum::Y] = pose.position.y;
-    map[AxesEnum::Z] = pose.position.z;
+    twist.linear.x = pose.position.x;
+    twist.linear.y = pose.position.y;
+    twist.linear.z = pose.position.z;
+    twist.angular.x = 0.0;
+    twist.angular.y = 0.0;
+    twist.angular.z = 0.0;
 
     // Get roll, pitch, yaw from quaternion
     // The order of rotation is roll, pitch, yaw
@@ -78,7 +81,7 @@ void ControlsUtils::pose_to_map(const geometry_msgs::Pose &pose, std::unordered_
     tf2::Quaternion q;
     tf2::fromMsg(pose.orientation, q);
     tf2::Matrix3x3 m(q);
-    m.getRPY(map[AxesEnum::ROLL], map[AxesEnum::PITCH], map[AxesEnum::YAW]);
+    m.getRPY(twist.angular.x, twist.angular.y, twist.angular.z);
 }
 
 void ControlsUtils::twist_to_map(const geometry_msgs::Twist &twist, std::unordered_map<AxesEnum, double> &map)

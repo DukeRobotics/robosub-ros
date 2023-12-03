@@ -63,8 +63,8 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     actual_power_pub = nh.advertise<geometry_msgs::Twist>("controls/actual_power", 1);
     pid_gains_pub = nh.advertise<custom_msgs::PIDGains>("controls/pid_gains", 1);
     control_types_pub = nh.advertise<custom_msgs::ControlTypes>("controls/control_types", 1);
-    position_error_pub = nh.advertise<geometry_msgs::Pose>("controls/position/error", 1);
-    velocity_error_pub = nh.advertise<geometry_msgs::Twist>("controls/velocity/error", 1);
+    position_error_pub = nh.advertise<geometry_msgs::Twist>("controls/position_error", 1);
+    velocity_error_pub = nh.advertise<geometry_msgs::Twist>("controls/velocity_error", 1);
     status_pub = nh.advertise<std_msgs::Bool>("controls/status", 1);
     delta_time_pub = nh.advertise<std_msgs::Float64>("controls/delta_time", 1);
     static_power_rotated_pub = nh.advertise<geometry_msgs::Vector3>("controls/static_power_rotated", 1);
@@ -147,8 +147,11 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     velocity_error.angular.z = desired_velocity.angular.z - state.twist.twist.angular.z;
 
     // Convert error messages to maps
+    geometry_msgs::Twist position_error_msg;
+    ControlsUtils::pose_to_twist(position_error.pose, position_error_msg);
+
     std::unordered_map<AxesEnum, double> position_error_map;
-    ControlsUtils::pose_to_map(position_error.pose, position_error_map);
+    ControlsUtils::twist_to_map(position_error_msg, position_error_map);
 
     std::unordered_map<AxesEnum, double> velocity_error_map;
     ControlsUtils::twist_to_map(velocity_error, velocity_error_map);
@@ -179,7 +182,7 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
                                                            static_power_rotated_map, velocity_pid_outputs);
 
     // Publish error messages
-    position_error_pub.publish(position_error.pose);
+    position_error_pub.publish(position_error_msg);
     velocity_error_pub.publish(velocity_error);
 }
 

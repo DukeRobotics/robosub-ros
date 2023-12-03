@@ -86,7 +86,7 @@ public:
     static bool value_in_pid_gain_types_enum(uint8_t value);
     static bool pid_gain_valid(const custom_msgs::PIDGain &pid_gain);
     static bool pid_gains_valid(const std::vector<custom_msgs::PIDGain> &pid_gains);
-    static void pose_to_map(const geometry_msgs::Pose &pose, std::unordered_map<AxesEnum, double> &map);
+    static void pose_to_twist(const geometry_msgs::Pose &pose, geometry_msgs::Twist &twist);
     static void twist_to_map(const geometry_msgs::Twist &twist, std::unordered_map<AxesEnum, double> &map);
     static void eigen_vector_to_twist(const Eigen::VectorXd &vector, geometry_msgs::Twist &twist);
     static bool control_types_to_map(const custom_msgs::ControlTypes &control_types,
