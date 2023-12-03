@@ -89,7 +89,10 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
 
 void Controls::desired_position_callback(const geometry_msgs::Pose msg)
 {
-    desired_position = msg;
+    if (ControlsUtils::quaternion_valid(msg.orientation))
+        desired_position = msg;
+    else
+        ROS_WARN("Invalid desired position orientation. Quaternion must have length 1.");
 }
 
 void Controls::desired_velocity_callback(const geometry_msgs::Twist msg)
@@ -99,7 +102,11 @@ void Controls::desired_velocity_callback(const geometry_msgs::Twist msg)
 
 void Controls::desired_power_callback(const geometry_msgs::Twist msg)
 {
-    ControlsUtils::twist_to_map(msg, desired_power);
+    // Make sure desired power is within range [-1, 1]
+    if (ControlsUtils::twist_in_range(msg, -1, 1))
+        ControlsUtils::twist_to_map(msg, desired_power);
+    else
+        ROS_WARN("Invalid desired power. Desired power must be within range [-1, 1].");
 }
 
 void Controls::state_callback(const nav_msgs::Odometry msg)

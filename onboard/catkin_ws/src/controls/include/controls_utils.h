@@ -84,6 +84,8 @@ public:
     static bool value_in_axes_enum(uint8_t value);
     static bool value_in_pid_loop_types_enum(uint8_t value);
     static bool value_in_pid_gain_types_enum(uint8_t value);
+    static bool quaternion_valid(const geometry_msgs::Quaternion &quaternion);
+    static bool twist_in_range(const geometry_msgs::Twist &twist, double min, double max);
     static bool pid_gain_valid(const custom_msgs::PIDGain &pid_gain);
     static bool pid_gains_valid(const std::vector<custom_msgs::PIDGain> &pid_gains);
     static void pose_to_twist(const geometry_msgs::Pose &pose, geometry_msgs::Twist &twist);

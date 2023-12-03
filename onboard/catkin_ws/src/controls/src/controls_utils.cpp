@@ -50,6 +50,25 @@ bool ControlsUtils::value_in_pid_gain_types_enum(uint8_t value)
            value == PIDGainTypesEnum::FF;
 }
 
+bool ControlsUtils::quaternion_valid(const geometry_msgs::Quaternion &quaternion)
+{
+    // Ensure quaternion has length 1
+    // Otherwise it is not a valid rotation
+    tf2::Quaternion q;
+    tf2::fromMsg(quaternion, q);
+    return std::abs(q.length() - 1.0) < 1e-6;
+}
+
+bool ControlsUtils::twist_in_range(const geometry_msgs::Twist &twist, double min, double max)
+{
+    return twist.linear.x >= min && twist.linear.x <= max &&
+           twist.linear.y >= min && twist.linear.y <= max &&
+           twist.linear.z >= min && twist.linear.z <= max &&
+           twist.angular.x >= min && twist.angular.x <= max &&
+           twist.angular.y >= min && twist.angular.y <= max &&
+           twist.angular.z >= min && twist.angular.z <= max;
+}
+
 bool ControlsUtils::pid_gain_valid(const custom_msgs::PIDGain &pid_gain)
 {
     return value_in_pid_loop_types_enum(pid_gain.loop) &&
