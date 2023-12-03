@@ -29,7 +29,7 @@ void Thrusters::load_lookup_tables()
   read_lookup_table_csv(package_path + "/data/18.csv", v18_lookup_table);
 }
 
-void Thrusters::read_lookup_table_csv(const std::string &filename, std::array<int16_t, 201> &lookup_table)
+void Thrusters::read_lookup_table_csv(const std::string &filename, std::array<int16_t, NUM_LOOKUP_ENTRIES> &lookup_table)
 {
   std::ifstream file(filename);
   ROS_ASSERT_MSG(file.is_open(), "Error opening file %s", filename.c_str());
@@ -82,18 +82,19 @@ void Thrusters::thruster_allocs_callback(const custom_msgs::ThrusterAllocs &msg)
   pwm_msg.allocs.resize(msg.allocs.size());
 
   for (int i = 0; i < msg.allocs.size(); i++)
-    pwm_msg.allocs[i] = lookup(voltage, msg.allocs[i]);
+    pwm_msg.allocs[i] = lookup(msg.allocs[i]);
 
   pwm_pub.publish(pwm_msg);
 }
 
-double Thrusters::lookup(float voltage, float force)
+double Thrusters::lookup(double force)
 {
   ROS_ASSERT_MSG(-1.0 <= force && force <= 1.0, "Force must be in [-1.0, 1.0]");
   ROS_ASSERT_MSG(14.0 <= voltage && voltage <= 18.0, "Voltage must be in [14.0, 18.0]");
 
-  float rounded_force = roundf(force * 100) / 100;
-  int index = (int)((rounded_force + 1) * 100);
+  int index = static_cast<int>(std::lround((force * 100) + 100));
+  ROS_ASSERT_MSG(0 <= index && index < NUM_LOOKUP_ENTRIES, "Error in PWM lookup. Index %d is out of bounds.", index);
+
   if (14.0 <= voltage && voltage <= 16.0)
     return interpolate(14.0, v14_lookup_table.at(index), 16.0, v16_lookup_table.at(index), voltage);
   else
