@@ -12,9 +12,11 @@ import {
   Table,
   Box,
   Button,
+  Grid,
 } from "@mui/material";
 // X import { JsonViewer } from "@textea/json-viewer";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { JsonViewer } from "@textea/json-viewer";
 import React, { useEffect, useLayoutEffect, useState } from "react";
 import { JSX } from "react/jsx-runtime";
 import { createRoot } from "react-dom/client";
@@ -27,40 +29,45 @@ import {
   CustomMsgsSetPidGainsResponse,
 } from "./types";
 
-
 type PIDPanelState = {
   serviceName: string;
   request: string;
-  response?: unknown;
+  response?: CustomMsgsSetPidGainsResponse;
   error?: Error | undefined;
   colorScheme?: RenderState["colorScheme"];
   panelMode: PanelMode;
   message?: MessageEvent<CustomMsgsPidGains>;
+  focusStatus: Record<number, Record<number, boolean>>;
+  editedValues: Record<number, Record<number, number>>;
 };
 
 // Triple nested dictionary to get PID values
-const gains: Record<number, number> = {
-  [CustomMsgsPidGainConst.GAIN_KP]: 2.0, // GAIN_KP
-  [CustomMsgsPidGainConst.GAIN_KI]: 0.0, // GAIN_KI
-  [CustomMsgsPidGainConst.GAIN_KD]: 0.0, // GAIN_KD
-  [CustomMsgsPidGainConst.GAIN_FF]: 0.0, // GAIN_KF
-};
+const defaultPid = () => {
+  const gains: Record<number, number> = {
+    [CustomMsgsPidGainConst.GAIN_KP]: -1, // GAIN_KP
+    [CustomMsgsPidGainConst.GAIN_KI]: -1, // GAIN_KI
+    [CustomMsgsPidGainConst.GAIN_KD]: -1, // GAIN_KD
+    [CustomMsgsPidGainConst.GAIN_FF]: -1, // GAIN_KF
+  };
+  const axes: Record<number, Record<number, number>> = {
+    [CustomMsgsPidGainConst.AXIS_X]: { ...gains }, // X
+    [CustomMsgsPidGainConst.AXIS_Y]: { ...gains }, // Y
+    [CustomMsgsPidGainConst.AXIS_Z]: { ...gains }, // Z
+    [CustomMsgsPidGainConst.AXIS_ROLL]: { ...gains }, // Roll
+    [CustomMsgsPidGainConst.AXIS_PITCH]: { ...gains }, // Pitch
+    [CustomMsgsPidGainConst.AXIS_YAW]: { ...gains }, // Yaw
+  };
+  const pid: Record<number, Record<number, Record<number, number>>> = {
+    [CustomMsgsPidGainConst.LOOP_POSITION]: { ...axes }, // Loop Position
+    [CustomMsgsPidGainConst.LOOP_VELOCITY]: { ...axes }, // Loop Velocity
+  };
 
-const axes: Record<number, Record<number, number>> = {
-  [CustomMsgsPidGainConst.AXIS_X]: { ...gains }, // X
-  [CustomMsgsPidGainConst.AXIS_Y]: { ...gains }, // Y
-  [CustomMsgsPidGainConst.AXIS_Z]: { ...gains }, // Z
-  [CustomMsgsPidGainConst.AXIS_ROLL]: { ...gains }, // Roll
-  [CustomMsgsPidGainConst.AXIS_PITCH]: { ...gains }, // Pitch
-  [CustomMsgsPidGainConst.AXIS_YAW]: { ...gains }, // Yaw
+  return pid;
 };
-const pid: Record<number, Record<number, Record<number, number>>> = {
-  [CustomMsgsPidGainConst.LOOP_POSITION]: { ...axes }, // Loop Position
-  [CustomMsgsPidGainConst.LOOP_VELOCITY]: { ...axes }, // Loop Velocity
-};
+const pid = defaultPid();
 
-const topicName = "/current_pid";
-const serviceName = "/set_pid";
+const READ_PID_TOPIC = "/controls/pid_gains";
+const SET_PID_SERVICE = "/controls/set_pid_gains";
 const pidTypeToUpdate = CustomMsgsPidGainConst.LOOP_POSITION;
 
 enum PanelMode {
@@ -68,19 +75,17 @@ enum PanelMode {
   EDITING,
 }
 
-function submitGains(pos = 0, axis, gain, newValue) {
-  
-}
-
 function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
   const [state, setState] = useState<PIDPanelState>({
-    serviceName,
+    serviceName: SET_PID_SERVICE,
     request: "{}",
     panelMode: PanelMode.SUBSCRIBING,
+    focusStatus: {},
+    editedValues: {},
   });
 
-  context.subscribe([{ topic: topicName }]);
+  context.subscribe([{ topic: READ_PID_TOPIC }]);
 
   useLayoutEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
@@ -92,18 +97,10 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
         // Loop through lastFrame and update PID values
         const pidGains = lastFrame.message.pid_gains;
         for (const pidGain of pidGains) {
-          console.log(pidGain);
           pid[pidGain.loop]![pidGain.axis] = {
             ...pid[pidGain.loop]![pidGain.axis],
             [pidGain.gain]: pidGain.value,
           };
-          console.log(pidGain.value);
-          console.log(pid);
-          console.log("Loop", pidGain.loop);
-          console.log("Axis", pidGain.axis);
-          console.log("Gain", pidGain.gain);
-
-          console.log(pid[pidGain.loop]![pidGain.axis]![pidGain.gain]);
         }
         setState((oldState) => ({ ...oldState, message: lastFrame }));
       }
@@ -118,24 +115,26 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   }, [renderDone]);
 
   // Call a service with a given request
-  // const callService = async (serviceName: string, request: string) => {
-  //   if (!context.callService) {
-  //     return;
-  //   }
+  const callService = async (serviceName: string, request: unknown) => {
+    if (!context.callService) {
+      return;
+    }
 
-  //   try {
-  //     const response = await context.callService(serviceName, JSON.parse(request));
-  //     JSON.stringify(response); // Attempt serializing the response, to throw an error on failure
-  //     setState((oldState) => ({
-  //       ...oldState,
-  //       response,
-  //       error: undefined,
-  //     }));
-  //   } catch (error) {
-  //     setState((oldState) => ({ ...oldState, error: error as Error }));
-  //     console.error(error);
-  //   }
-  // };
+    console.log("Calling service", serviceName, request);
+
+    try {
+      const response = await context.callService(serviceName, request);
+      const typedResponse = response as CustomMsgsSetPidGainsResponse;
+      setState((oldState) => ({
+        ...oldState,
+        typedResponse,
+        error: undefined,
+      }));
+    } catch (error) {
+      setState((oldState) => ({ ...oldState, error: error as Error }));
+      console.error(error);
+    }
+  };
 
   const handleModeChange = (_: React.SyntheticEvent, mode: PanelMode) => {
     setState((oldState) => ({ ...oldState, panelMode: mode }));
@@ -179,6 +178,79 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     }
   }
 
+  const handleFocus = (axis: number, index: number) => {
+    setState((prevState) => ({
+      ...prevState,
+      focusStatus: {
+        ...prevState.focusStatus,
+        [axis]: {
+          ...prevState.focusStatus[axis],
+          [index]: true,
+        },
+      },
+    }));
+  };
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>, axis: number, gain: number) => {
+    const isFocused = state.focusStatus[Number(axis)]?.[Number(gain)] ?? false;
+    if (isFocused) {
+      setState((prevState) => ({
+        ...prevState,
+        editedValues: {
+          ...prevState.editedValues,
+          [axis]: {
+            ...prevState.editedValues[axis],
+            [gain]: Number(event.target.value),
+          },
+        },
+      }));
+    }
+  };
+
+  const handleReset = () => {
+    setState((prevState) => ({
+      ...prevState,
+      focusStatus: {},
+    }));
+  };
+
+  const handleSubmit = () => {
+    const request: CustomMsgsSetPidGainsRequest = {
+      pid_gains: [],
+    };
+
+    Object.entries(state.editedValues).forEach(([axis, gains]) => {
+      Object.entries(gains).forEach(([gain, value]) => {
+        request.pid_gains.push({
+          loop: pidTypeToUpdate,
+          axis: Number(axis),
+          gain: Number(gain),
+          value: Number(value),
+        });
+      });
+    });
+
+    // if (pid[pidTypeToUpdate] != undefined) {
+    //   Object.entries(pid[pidTypeToUpdate]).forEach(([axis, gains]) => {
+    //     Object.entries(gains).forEach(([gain, value]) => {
+    //       const isFocused = state.focusStatus[Number(axis)]?.[Number(gain)] ?? false;
+    //       if (isFocused) {
+    //         request.pid_gains.push({
+    //           loop: pidTypeToUpdate,
+    //           axis: Number(axis),
+    //           gain: Number(gain),
+    //           value: Number(value),
+    //         });
+    //       }
+    //     });
+    //   });
+    // }
+
+    void callService(SET_PID_SERVICE, request);
+
+    handleReset();
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>
@@ -218,16 +290,31 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
                     Object.entries(pid[pidTypeToUpdate]).map(([axis, g]) => (
                       <TableRow key={axis}>
                         <TableCell width="10px">{getAxisEnumName(Number(axis))}</TableCell>
-                        {Object.values(g).map((gain, index) => (
-                          <TableCell key={index} width="10px">
-                            {gain}
-                          </TableCell>
-                        ))}
+                        {Object.values(g).map((gain, index) => {
+                          const isFocused = state.focusStatus[Number(axis)]?.[index] ?? false;
+                          return (
+                            <TableCell key={index} width="10px">
+                              <input
+                                type="text"
+                                style={{
+                                  width: "100%",
+                                  boxSizing: "border-box",
+                                  borderColor: isFocused ? "red" : "",
+                                }}
+                                value={isFocused ? undefined : gain.toFixed(4)}
+                                onFocus={() => {
+                                  handleFocus(Number(axis), index);
+                                }}
+                                onChange={(event) => handleInputChange(event, Number(axis), index)}
+                              />
+                            </TableCell>
+                          );
+                        })}
                       </TableRow>
                     ))}
                 </TableBody>
               ) : (
-                // Editing
+                // Editing`
                 <TableBody>
                   {pid[pidTypeToUpdate] &&
                     Object.entries(pid[pidTypeToUpdate]).map(([axis, g]) => (
@@ -235,7 +322,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
                         <TableCell width="10px">{getAxisEnumName(Number(axis))}</TableCell>
                         {Object.values(g).map((gain, index) => (
                           <TableCell width="10px" key={index}>
-                            {gain} <input type="text" id="fname" name={String([axis, g])} size={1}></input>
+                            {gain} <input type="text" name={String([axis, g])} size={1}></input>
                           </TableCell>
                         ))}
                       </TableRow>
@@ -244,10 +331,28 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
               )}
             </Table>
           </TableContainer>
-          
-          <form id="updateform">
-            <input type="submit" value="Update"></input>
-          </form>
+
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <Button variant="contained" fullWidth onClick={handleSubmit}>
+                Submit
+              </Button>
+            </Grid>
+            <Grid item xs={6}>
+              <Button variant="contained" fullWidth onClick={handleReset}>
+                Reset
+              </Button>
+            </Grid>
+          </Grid>
+
+          <JsonViewer
+            rootName={false}
+            value={state.focusStatus}
+            indentWidth={2}
+            theme={state.colorScheme}
+            enableClipboard={false}
+            displayDataTypes={false}
+          />
         </div>
       </Box>
     </ThemeProvider>
