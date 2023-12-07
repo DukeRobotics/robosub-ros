@@ -26,6 +26,9 @@ import {
   CustomMsgsSetPidGainsResponse,
 } from "./types";
 
+const PID_TOPIC = "/controls/pid_gains";
+const SET_PID_SERVICE = "/controls/set_pid_gains";
+
 type PIDPanelState = {
   serviceName: string;
   request: string;
@@ -61,9 +64,6 @@ const initPid = () => {
   return pid;
 };
 const pid = initPid();
-
-const PID_TOPIC = "/controls/pid_gains";
-const SET_PID_SERVICE = "/controls/set_pid_gains";
 
 function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
