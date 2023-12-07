@@ -39,7 +39,7 @@ type PIDPanelState = {
 };
 
 // Triple nested dictionary to get PID values
-const defaultPid = () => {
+const initPid = () => {
   const gains: Record<number, number> = {
     [CustomMsgsPidGainConst.GAIN_KP]: -1, // GAIN_KP
     [CustomMsgsPidGainConst.GAIN_KI]: -1, // GAIN_KI
@@ -61,7 +61,7 @@ const defaultPid = () => {
 
   return pid;
 };
-const pid = defaultPid();
+const pid = initPid();
 
 const READ_PID_TOPIC = "/controls/pid_gains";
 const SET_PID_SERVICE = "/controls/set_pid_gains";
@@ -106,31 +106,34 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   }, [renderDone]);
 
   // Call a service with a given request
-  const callService = async (serviceName: string, request: unknown) => {
+  const callService = (serviceName: string, request: unknown) => {
     if (!context.callService) {
       return;
     }
 
-    console.log("Calling service", serviceName, request);
+    context.callService(serviceName, request).then(
+      (response) => {
+        const typedResponse = response as CustomMsgsSetPidGainsResponse;
 
-    try {
-      const response = await context.callService(serviceName, request);
-      const typedResponse = response as CustomMsgsSetPidGainsResponse;
-      setState((oldState) => ({
-        ...oldState,
-        typedResponse,
-        error: undefined,
-      }));
-    } catch (error) {
-      setState((oldState) => ({ ...oldState, error: error as Error }));
-      console.error(error);
-    }
+        // Update the state based on the service response
+        // If the service responds with failure, display the response message as an error
+        const error = typedResponse.success ? undefined : Error(typedResponse.message);
+        setState((oldState) => ({
+          ...oldState,
+          error,
+        }));
+      },
+      (error) => {
+        // Handle service call errors (e.g., service is not advertised)
+        setState((oldState) => ({
+          ...oldState,
+          error: error as Error,
+        }));
+      },
+    );
   };
 
-  const handleModeChange = (
-    _: React.SyntheticEvent,
-    mode: CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY,
-  ) => {
+  const handleModeChange = (_, mode: CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY) => {
     setState((oldState) => ({ ...oldState, panelMode: mode }));
 
     handleReset();
@@ -210,7 +213,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     const request: CustomMsgsSetPidGainsRequest = {
       pid_gains: [],
     };
-    console.log(state.panelMode);
+
     Object.entries(state.editedValues).forEach(([axis, gains]) => {
       Object.entries(gains).forEach(([gain, value]) => {
         request.pid_gains.push({
@@ -222,7 +225,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
       });
     });
 
-    void callService(SET_PID_SERVICE, request);
+    callService(SET_PID_SERVICE, request);
 
     handleReset();
   };
@@ -230,81 +233,84 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>
-        {context.callService == undefined && (
-          <Alert variant="filled" severity="error">
-            Calling services is not supported by this connection
-          </Alert>
+        {/* Error messages */}
+        {(context.callService == undefined || state.error != undefined) && (
+          <Box mb={1}>
+            {context.callService == undefined && (
+              <Alert variant="filled" severity="error">
+                Calling services is not supported by this connection
+              </Alert>
+            )}
+            {state.error != undefined && (
+              <Alert variant="filled" severity="error">
+                {state.error.message}
+              </Alert>
+            )}
+          </Box>
         )}
+
+        {/* PID Loop Tabs */}
         <Tabs value={state.panelMode} onChange={handleModeChange} variant="fullWidth">
           <Tab label="Position" value={CustomMsgsPidGainConst.LOOP_POSITION} />
           <Tab label="Velocity" value={CustomMsgsPidGainConst.LOOP_VELOCITY} />
         </Tabs>
-        <div>
-          <TableContainer>
-            <Table size="small" aria-label="simple table">
-              <TableHead>
-                <TableRow>
-                  <TableCell align="center" width="10px"></TableCell>
-                  <TableCell align="center" width="10px">
-                    Gain_KP
-                  </TableCell>
-                  <TableCell align="center" width="10px">
-                    Gain_KI
-                  </TableCell>
-                  <TableCell align="center" width="10px">
-                    Gain_KD
-                  </TableCell>
-                  <TableCell align="center" width="10px">
-                    Gain_FF
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {pid[state.panelMode] &&
-                  Object.entries(pid[state.panelMode] ?? {}).map(([axis, g]) => (
-                    <TableRow key={axis}>
-                      <TableCell width="10px">{getAxisEnumName(Number(axis))}</TableCell>
-                      {Object.values(g).map((gain, index) => {
-                        const isFocused = state.focusStatus[Number(axis)]?.[index] ?? false;
-                        return (
-                          <TableCell key={index} width="10px">
-                            <input
-                              type="text"
-                              style={{
-                                width: "100%",
-                                boxSizing: "border-box",
-                                borderColor: isFocused ? "red" : "",
-                              }}
-                              value={isFocused ? undefined : gain}
-                              onFocus={() => {
-                                handleFocus(Number(axis), index);
-                              }}
-                              onChange={(event) => {
-                                handleInputChange(event, Number(axis), index);
-                              }}
-                            />
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
 
-          <Grid container spacing={2}>
-            <Grid item xs={6}>
-              <Button variant="contained" fullWidth onClick={handleSubmit}>
-                Submit
-              </Button>
-            </Grid>
-            <Grid item xs={6}>
-              <Button variant="contained" fullWidth onClick={handleReset}>
-                Reset
-              </Button>
-            </Grid>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell />
+                <TableCell align="center">GAIN_KP</TableCell>
+                <TableCell align="center">GAIN_KI</TableCell>
+                <TableCell align="center">GAIN_KD</TableCell>
+                <TableCell align="center">GAIN_FF</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {pid[state.panelMode] &&
+                Object.entries(pid[state.panelMode] ?? {}).map(([axis, g]) => (
+                  <TableRow key={axis}>
+                    <TableCell style={{ whiteSpace: "nowrap", width: "1%" }}>{getAxisEnumName(Number(axis))}</TableCell>
+                    {Object.values(g).map((gain, index) => {
+                      const isFocused = state.focusStatus[Number(axis)]?.[index] ?? false;
+                      return (
+                        <TableCell key={index}>
+                          <input
+                            type="text"
+                            style={{
+                              width: "100%",
+                              boxSizing: "border-box",
+                              border: isFocused ? `2px solid ${theme.palette.error.main}` : undefined,
+                            }}
+                            value={isFocused ? undefined : gain}
+                            onFocus={() => {
+                              handleFocus(Number(axis), index);
+                            }}
+                            onChange={(event) => {
+                              handleInputChange(event, Number(axis), index);
+                            }}
+                          />
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <Grid container spacing={2}>
+          <Grid item xs={6}>
+            <Button variant="contained" fullWidth onClick={handleSubmit} color="success">
+              Submit
+            </Button>
           </Grid>
-        </div>
+          <Grid item xs={6}>
+            <Button variant="contained" fullWidth onClick={handleReset} color="error">
+              Reset
+            </Button>
+          </Grid>
+        </Grid>
       </Box>
     </ThemeProvider>
   );
