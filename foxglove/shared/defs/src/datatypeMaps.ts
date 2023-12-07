@@ -23,7 +23,6 @@ const primitiveToStandardTypeNameMap: { [key: string]: string } = {
 type AllDatatypeMaps = { [key: string]: { [key: string]: [string, MessageDefinition][] } };
 
 const PRETTIER_OPTS: Options = {
-  parser: "babel",
   arrowParens: "always",
   printWidth: 100,
   trailingComma: "all",
@@ -178,7 +177,7 @@ async function generateCjsLibrary(allDatatypeMapsString: string, importStatement
 
   output += allDatatypeMapsString;
   output += `\nmodule.exports.${EXPORT_VAR_NAME} = ${EXPORT_VAR_NAME};`;
-  return await format(output, PRETTIER_OPTS);
+  return await format(output, { ...PRETTIER_OPTS, parser: "babel" });
 }
 
 async function generateEsmLibrary(allDatatypeMapsString: string, importStatements: string): Promise<string> {
@@ -186,7 +185,7 @@ async function generateEsmLibrary(allDatatypeMapsString: string, importStatement
 
   output += allDatatypeMapsString;
   output += `\nexport { ${EXPORT_VAR_NAME} };\nexport default { ${EXPORT_VAR_NAME} };`;
-  return await format(output, PRETTIER_OPTS);
+  return await format(output, { ...PRETTIER_OPTS, parser: "babel" });
 }
 
 async function generateTsLibrary(allDatatypeMaps: AllDatatypeMaps, importStatements: string): Promise<string> {
