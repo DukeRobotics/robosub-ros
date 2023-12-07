@@ -1,3 +1,6 @@
+// Refactored this file to be compatible with @foxglove/rosmsg 5.0.2 and our linter
+
+// Use MessageDefinitionField instead of RosMsgField
 import { MessageDefinitionField } from '@foxglove/message-definition';
 import { parse, fixupTypes } from '@foxglove/rosmsg';
 import { ros1 } from '@foxglove/rosmsg-msgs-common';
@@ -21,12 +24,15 @@ export const generateFromRosMsg = (
     throw new Error('Unsupported rosVersion');
   }
 
+  // Skip type fixup because it will fail as we don't use gentools to include all dependent types
   const messageDefinitions = parse(rosDefinition, {
     ros2: rosVersion === 2,
     skipTypeFixup: true,
   });
   const primitives = rosVersion === 1 ? primitives1 : primitives2;
 
+  // Create a new array including the current defintion and all ros1 message definitions and fixup types on that
+  // This modifies the original messageDefinitions array
   const allMessageDefinitions = Object.values(messageDefinitions).concat(
     Object.values(ros1),
   );
@@ -37,6 +43,7 @@ export const generateFromRosMsg = (
       return true;
     }
 
+    // Use allMessageDefinitions instead of messageDefinitions so ros1 message definitions can be found
     const definition = allMessageDefinitions.find((def) => {
       return def.name === field.type;
     });
