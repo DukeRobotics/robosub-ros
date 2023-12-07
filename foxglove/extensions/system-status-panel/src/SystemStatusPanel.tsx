@@ -1,3 +1,4 @@
+import { CustomMsgsSystemUsage } from "@duke-robotics/defs/types";
 import theme from "@duke-robotics/theme";
 import { PanelExtensionContext, RenderState, MessageEvent, Immutable } from "@foxglove/studio";
 import {
@@ -16,22 +17,6 @@ import { createRoot } from "react-dom/client";
 
 // Topic to watch for system usage data
 const SYSTEM_USAGE_TOPIC = "/system/usage";
-
-interface SystemUsage {
-  cpu_percent: number;
-  cpu_speed: number;
-  gpu_percent: number;
-  gpu_speed: number;
-  gpu_memory: Memory;
-  ram: Memory;
-  disk: Memory;
-}
-
-interface Memory {
-  used: number;
-  total: number;
-  percentage: number;
-}
 
 type SystemStatusPanelState = {
   cpuUsage?: number;
@@ -62,7 +47,7 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
 
       // Update system usage state
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        const latestFrame = renderState.currentFrame.at(-1) as MessageEvent<SystemUsage>;
+        const latestFrame = renderState.currentFrame.at(-1) as MessageEvent<CustomMsgsSystemUsage>;
         setState({
           cpuUsage: latestFrame.message.cpu_percent,
           ramUsage: latestFrame.message.ram.percentage,

@@ -1,3 +1,4 @@
+import { StdSrvsSetBoolRequest, StdSrvsSetBoolResponse } from "@duke-robotics/defs/types";
 import theme from "@duke-robotics/theme";
 import { ThemeProvider } from "@emotion/react";
 import { PanelExtensionContext } from "@foxglove/studio";
@@ -15,12 +16,6 @@ type State = {
   controlsEnabled: boolean; // Current state of controls
 };
 
-// Response type definition for std_srvs/SetBool.srv
-interface SetBoolResponse {
-  success: boolean;
-  message: string;
-}
-
 function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [state, setState] = useState<State>({ controlsEnabled: false });
 
@@ -33,12 +28,12 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
     }
 
     // Request payload to toggle controls
-    const request = { data: !state.controlsEnabled };
+    const request: StdSrvsSetBoolRequest = { data: !state.controlsEnabled };
 
     // Make the service call
     context.callService(ENABLE_CONTROLS_SERVICE, request).then(
       (response) => {
-        const typedResponse = response as SetBoolResponse;
+        const typedResponse = response as StdSrvsSetBoolResponse;
 
         // Update the state based on the service response
         // If the service responds with failure, display the response message as an error
