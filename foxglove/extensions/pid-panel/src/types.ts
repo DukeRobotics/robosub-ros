@@ -230,6 +230,7 @@ export interface CustomMsgsSetPidGainsRequest {
 
 export interface CustomMsgsSetPidGainsResponse {
   success: boolean;
+  message: string;
 }
 
 export interface CustomMsgsSetServoRequest {

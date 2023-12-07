@@ -59,7 +59,7 @@ class PIDSim():
     def handle_set_pid(self, req):
         for pid_gain in req.pid_gains:
             self.pid[pid_gain.loop][pid_gain.axis][pid_gain.gain] = pid_gain.value
-        return {'success': True}
+        return {'success': True, 'message': 'Dummy message'}
 
 
 def main():
