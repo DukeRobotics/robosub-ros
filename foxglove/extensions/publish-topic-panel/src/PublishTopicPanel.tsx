@@ -2,10 +2,10 @@ import theme from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
 import { Box, ThemeProvider } from "@mui/material";
 import Alert from "@mui/material/Alert";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
-type State = {
+type PublishTopicPanelState = {
   topicName: string;
   request: string;
   schemaName: string;
@@ -15,10 +15,10 @@ type State = {
 
 function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const [state, setState] = useState<State>({ topicName: "", request: "{}", schemaName: "" });
+  const [state, setState] = useState<PublishTopicPanelState>({ topicName: "", request: "{}", schemaName: "" });
 
   // Update color scheme
-  useLayoutEffect(() => {
+  useEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
       setRenderDone(() => done);

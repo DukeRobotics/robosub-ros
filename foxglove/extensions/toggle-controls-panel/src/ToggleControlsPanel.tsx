@@ -11,13 +11,13 @@ import { createRoot } from "react-dom/client";
 // Define the service name for enabling/disabling controls
 const ENABLE_CONTROLS_SERVICE = "/enable_controls";
 
-type State = {
+type ToggleControlsPanel = {
   error?: Error | undefined; // Error object if service call fails
   controlsEnabled: boolean; // Current state of controls
 };
 
 function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
-  const [state, setState] = useState<State>({ controlsEnabled: false });
+  const [state, setState] = useState<ToggleControlsPanel>({ controlsEnabled: false });
 
   // Call the /enable_controls service to toggle controls
   const toggleControls = () => {
