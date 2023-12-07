@@ -1,5 +1,4 @@
 import { MessageDefinition } from "@foxglove/message-definition";
-import { ros1 } from "@foxglove/rosmsg-msgs-common";
 import { mkdir, writeFile } from "fs/promises";
 import { join } from "path";
 import { format, Options } from "prettier";
@@ -83,7 +82,6 @@ function generateDatatypeMaps(definitionsByGroup: Map<string, Record<string, Mes
   for (const [_, definitions] of definitionsByGroup.entries()) {
     allDefinitions = { ...allDefinitions, ...definitions };
   }
-  allDefinitions = { ...allDefinitions, ...ros1 };
 
   for (const [groupName, definitions] of definitionsByGroup.entries()) {
     // All datatype maps for the current group
