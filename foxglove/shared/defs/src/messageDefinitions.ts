@@ -16,13 +16,13 @@ const PRETTIER_OPTS: Options = {
 const CUSTOM_MSGS_GROUP_NAME = "custom_msgs";
 
 export async function writeMessageDefinitions(
-  msgdefsPath: string,
-  msgdefsSaveDir: string,
+  customMsgsDefsPath: string,
+  customMsgsSaveDir: string,
 ): Promise<Map<string, Record<string, MessageDefinition>>> {
   // Get paths to save generated message definition files
-  const libFile = join(msgdefsSaveDir, "index.js");
-  const esmFile = join(msgdefsSaveDir, "index.esm.js");
-  const declFile = join(msgdefsSaveDir, "index.d.ts");
+  const libFile = join(customMsgsSaveDir, "index.js");
+  const esmFile = join(customMsgsSaveDir, "index.esm.js");
+  const declFile = join(customMsgsSaveDir, "index.d.ts");
 
   // Map of group to definitions for that group
   // We only have one group, custom_msgs
@@ -31,7 +31,7 @@ export async function writeMessageDefinitions(
   // Load all message definitions from msgdefsPath
   // This will populate definitionsByGroup
   // We skip type fixup because we will do that later
-  await loadDefinitions(msgdefsPath, definitionsByGroup.get(CUSTOM_MSGS_GROUP_NAME)!, { skipTypeFixup: true });
+  await loadDefinitions(customMsgsDefsPath, definitionsByGroup.get(CUSTOM_MSGS_GROUP_NAME)!, { skipTypeFixup: true });
 
   // Generate message definition files
   const libOutput = await generateCjsLibrary(definitionsByGroup);
@@ -39,7 +39,7 @@ export async function writeMessageDefinitions(
   const declOutput = await generateDefinitions(definitionsByGroup);
 
   // Make sure the save directory exists (if not, create it) and write the files
-  await mkdir(msgdefsSaveDir, { recursive: true });
+  await mkdir(customMsgsSaveDir, { recursive: true });
   await writeFile(libFile, libOutput);
   await writeFile(esmFile, esmOutput);
   await writeFile(declFile, declOutput);
