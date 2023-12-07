@@ -30,12 +30,11 @@ type PIDPanelState = {
   serviceName: string;
   request: string;
   response?: CustomMsgsSetPidGainsResponse;
-  error?: Error | undefined;
-  colorScheme?: RenderState["colorScheme"];
-  panelMode: CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY;
-  message?: MessageEvent<CustomMsgsPidGains>;
-  focusStatus: Record<number, Record<number, boolean>>;
-  editedValues: Record<number, Record<number, number>>;
+  error: Error | undefined;
+  loopType: CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY;
+  lastPidMessage?: MessageEvent<CustomMsgsPidGains>;
+  focusStatus: Record<number, Record<number, boolean>>; // Whether a cell has been focused
+  editedValues: Record<number, Record<number, number>>; // Values that will be submitted to the service
 };
 
 // Triple nested dictionary to get PID values
@@ -71,9 +70,10 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   const [state, setState] = useState<PIDPanelState>({
     serviceName: SET_PID_SERVICE,
     request: "{}",
-    panelMode: CustomMsgsPidGainConst.LOOP_POSITION,
+    loopType: CustomMsgsPidGainConst.LOOP_POSITION,
     focusStatus: {},
     editedValues: {},
+    error: undefined,
   });
 
   context.subscribe([{ topic: READ_PID_TOPIC }]);
@@ -81,8 +81,6 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   useLayoutEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setRenderDone(() => done);
-      setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
-
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
         const lastFrame = renderState.currentFrame.at(-1) as MessageEvent<CustomMsgsPidGains>;
         // Loop through lastFrame and update PID values
@@ -93,7 +91,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
             [pidGain.gain]: pidGain.value,
           };
         }
-        setState((oldState) => ({ ...oldState, message: lastFrame }));
+        setState((oldState) => ({ ...oldState, lastPidMessage: lastFrame }));
       }
     };
   }, [context]);
@@ -134,7 +132,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   };
 
   const handleModeChange = (_, mode: CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY) => {
-    setState((oldState) => ({ ...oldState, panelMode: mode }));
+    setState((oldState) => ({ ...oldState, loopType: mode }));
 
     handleReset();
   };
@@ -158,11 +156,9 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     },
   });
 
-  // TODO: Maybe refactor this
   function getAxisEnumName(enumValue: number): string {
     const filteredEnumEntries = Object.entries(CustomMsgsPidGainConst).filter(([key, value]) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-      return key.startsWith("AXIS") && value === enumValue;
+      return key.startsWith("AXIS") && Number(value) === enumValue;
     });
 
     if (filteredEnumEntries.length > 0 && filteredEnumEntries[0] != null) {
@@ -217,7 +213,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     Object.entries(state.editedValues).forEach(([axis, gains]) => {
       Object.entries(gains).forEach(([gain, value]) => {
         request.pid_gains.push({
-          loop: state.panelMode,
+          loop: state.loopType,
           axis: Number(axis),
           gain: Number(gain),
           value: Number(value),
@@ -250,7 +246,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
         )}
 
         {/* PID Loop Tabs */}
-        <Tabs value={state.panelMode} onChange={handleModeChange} variant="fullWidth">
+        <Tabs value={state.loopType} onChange={handleModeChange} variant="fullWidth">
           <Tab label="Position" value={CustomMsgsPidGainConst.LOOP_POSITION} />
           <Tab label="Velocity" value={CustomMsgsPidGainConst.LOOP_VELOCITY} />
         </Tabs>
@@ -267,8 +263,8 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
               </TableRow>
             </TableHead>
             <TableBody>
-              {pid[state.panelMode] &&
-                Object.entries(pid[state.panelMode] ?? {}).map(([axis, g]) => (
+              {pid[state.loopType] &&
+                Object.entries(pid[state.loopType] ?? {}).map(([axis, g]) => (
                   <TableRow key={axis}>
                     <TableCell style={{ whiteSpace: "nowrap", width: "1%" }}>{getAxisEnumName(Number(axis))}</TableCell>
                     {Object.values(g).map((gain, index) => {
