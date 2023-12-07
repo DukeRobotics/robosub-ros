@@ -62,7 +62,7 @@ const initPid = () => {
 };
 const pid = initPid();
 
-const READ_PID_TOPIC = "/controls/pid_gains";
+const PID_TOPIC = "/controls/pid_gains";
 const SET_PID_SERVICE = "/controls/set_pid_gains";
 
 function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
@@ -76,7 +76,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     error: undefined,
   });
 
-  context.subscribe([{ topic: READ_PID_TOPIC }]);
+  context.subscribe([{ topic: PID_TOPIC }]);
 
   useLayoutEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
