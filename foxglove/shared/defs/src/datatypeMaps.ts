@@ -91,11 +91,6 @@ function generateDatatypeMaps(definitionsByGroup: Map<string, Record<string, Mes
       const typesSet = new Set<string>();
 
       for (const definitionField of definition.definitions) {
-        // Ensure that each type name is only added once to mapArray
-        if (typesSet.has(definitionField.type)) {
-          continue;
-        }
-
         // Get the standard type name for the current definition field
         // If the field is complex, the standard type name is the field's type
         // If the field is primitive, the standard type name is the field's type mapped to a standard type name
@@ -104,6 +99,11 @@ function generateDatatypeMaps(definitionsByGroup: Map<string, Record<string, Mes
           standardTypeName = definitionField.type;
         } else {
           standardTypeName = primitiveToStandardTypeNameMap[definitionField.type]!;
+        }
+
+        // Ensure that each type name is only added once to mapArray
+        if (typesSet.has(standardTypeName)) {
+          continue;
         }
 
         // Get the MessageDefintion for the standard type name
