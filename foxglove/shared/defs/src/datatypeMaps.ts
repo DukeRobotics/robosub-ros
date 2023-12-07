@@ -42,7 +42,6 @@ export async function writeAllDatatypeMaps(
   allDatatypeMapsSaveDir: string,
   relativePathToCustomMsgs: string,
 ): Promise<[AllDatatypeMaps, string]> {
-
   // Get paths to save generated datatype map files
   const libFile = join(allDatatypeMapsSaveDir, "index.js");
   const esmFile = join(allDatatypeMapsSaveDir, "index.esm.js");
