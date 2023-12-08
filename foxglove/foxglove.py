@@ -96,7 +96,7 @@ def build_deps(skip_ci: bool = False, extension_paths: Sequence[pathlib.Path] = 
     # Create necessary paths (either directories or empty files) so that npm ci can symlink them to node_modules
     # Files must have a suffix, otherwise they are treated as directories
     paths = [
-        FOXGLOVE_PATH / "shared/ros-typescript-generator/build/main/cli/cli.js",
+        FOXGLOVE_PATH / "shared/ros-typescript-generator/build/main/cli/cli.js"
     ]
     for path in paths:
         if path.suffix:
