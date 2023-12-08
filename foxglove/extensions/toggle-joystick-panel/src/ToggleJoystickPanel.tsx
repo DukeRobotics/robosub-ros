@@ -11,7 +11,7 @@ import {
   CustomMsgsControlTypesConst,
 } from "./types";
 
-const PUBLISH_RATE = 20;
+const PUBLISH_RATE = 20; // Publish rate in Hz
 
 // Indices of specific axes in the joystick axes list
 const AXIS_MAP = {
@@ -23,7 +23,13 @@ const AXIS_MAP = {
   rollIndex: 9,
 };
 
+/**
+ * Calculate power to publish to /controls/desired_power for pitch from thumb joystick input
+ * @param value joystick value for thumb joystick
+ * @returns desired power
+ */
 const pitchMapping = (value: number): number => {
+  // Thumb joystick input initialized at 0 but returns to this stationary value after being touched and released
   const stationary = 3.2857141494750977;
 
   if (value !== stationary && value !== 0) {
@@ -38,8 +44,16 @@ const pitchMapping = (value: number): number => {
     return 0;
   }
 };
+
+/**
+ * Calculate power to publish to /controls/desired_power for roll from thumb joystick input
+ * @param value joystick value for thumb joystick
+ * @returns desired power
+ */
 const rollMapping = (value: number): number => {
+  // Thumb joystick input initialized at 0 but returns to this stationary value after being touched and released
   const stationary = 3.2857141494750977;
+
   if (value !== stationary && value !== 0) {
     if (value > -1 && value < 0.14285719394683838) {
       return 0.5;
@@ -162,10 +176,6 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
       },
     };
 
-    // TODO: Comment this out
-    // setState((oldState) => ({ ...oldState, joyStickEnabled: !oldState.joyStickEnabled }));
-
-    // TODO: Uncomment this
     // Make the service call
     context.callService(SET_CONTROL_TYPES_SERVICE, request).then(
       (response) => {
@@ -203,6 +213,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         ]),
       });
 
+      // Create and publish request with values from joystick input stored in the state
       const joystickInputs = state.joystickInputs;
       const request: GeometryMsgsTwist = {
         linear: {
@@ -232,6 +243,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
   window.addEventListener("gamepadconnected", () => {
     console.log("connected");
   });
+
   window.addEventListener("gamepaddisconnected", () => {
     console.log("disconnected");
   });
@@ -249,6 +261,8 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
           {state.joyStickEnabled ? "Disable Joystick" : "Enable Joystick"}
         </Button>
       </Box>
+
+      {/* Table of joystick inputs */}
       <TableContainer component={Paper}>
         <Table size="small" aria-label="simple table">
           <TableBody>
@@ -283,6 +297,12 @@ export function initToggleJoystickPanel(context: PanelExtensionContext): () => v
   };
 }
 
+/**
+ * Query joystick for current state to read input from joystick
+ * @param state state object containing joystick inputs and whether the joystick is enabled
+ * @param setState method to update the state
+ * @param publishSpeeds method to publish joystick inputs
+ */
 function queryJoystick(state: State, setState: React.Dispatch<SetStateAction<State>>, publishSpeeds: () => void) {
   const joystick = navigator.getGamepads();
   if (joystick[0]) {
