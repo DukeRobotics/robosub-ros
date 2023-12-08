@@ -1,5 +1,6 @@
 import rospy
 
+from std_srvs.srv import Trigger
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose, Twist
 from custom_msgs.msg import ControlTypes
@@ -10,6 +11,7 @@ class ControlsInterface:
     STATE_TOPIC = 'state'
 
     CONTROL_TYPES_SERVICE = 'controls/set_control_types'
+    RESET_PID_LOOPS_SERVICE = 'controls/reset_pid_loops'
     DESIRED_POSITION_TOPIC = 'controls/desired_position'
     DESIRED_VELOCITY_TOPIC = 'controls/desired_velocity'
 
@@ -21,6 +23,9 @@ class ControlsInterface:
         # Note: if this variable gets out of sync with the actual control types,
         # bad things may happen
         self._all_axes_control_type = None
+
+        rospy.wait_for_service(self.RESET_PID_LOOPS_SERVICE)
+        self._reset_pid_loops = rospy.ServiceProxy(self.RESET_PID_LOOPS_SERVICE, Trigger)
 
         rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state)
 
@@ -41,6 +46,11 @@ class ControlsInterface:
             yaw=type
         ))
         self._all_axes_control_type = type
+        self.start_new_move()
+
+    # Resets the PID loops. Should be called for every "new" movement
+    def start_new_move(self):
+        self._reset_pid_loops()
 
     # In global coordinates
     def publish_desired_position(self, pose):

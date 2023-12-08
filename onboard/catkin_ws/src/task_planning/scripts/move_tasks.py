@@ -1,26 +1,29 @@
 import task_utils
+from interface.controls import ControlsInterface
 from coroutines import task, Yield, Transform
 
 @task
-async def move_to_pose_global(controls, pose):
+async def move_to_pose_global(controls: ControlsInterface, pose):
+    controls.start_new_move()
+    controls.publish_desired_position(pose)
     while not (
         controls.state and task_utils.stopped_at_pose(
             controls.state.pose.pose,
             pose,
             controls.state.twist.twist)):
-        controls.publish_desired_position(pose)
         # Allow users of this task to update the pose
         new_pose = await Yield()
         if new_pose is not None:
             pose = new_pose
+            controls.publish_desired_position(pose)
 
 @task
-async def move_to_pose_local(controls, pose):
+async def move_to_pose_local(controls: ControlsInterface, pose):
     local_pose = task_utils.local_pose_to_global(controls.listener, pose)
     await Transform(
         move_to_pose_global(controls, local_pose),
         input_transformer=lambda p: task_utils.local_pose_to_global(controls.listener, p))
 
 @task
-async def hold_position(controls):
+async def hold_position(controls: ControlsInterface):
     await move_to_pose_global(controls, controls.state.pose.pose)
