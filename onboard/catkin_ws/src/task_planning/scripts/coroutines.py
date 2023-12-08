@@ -58,7 +58,11 @@ class Transform:
         output = None
         while not self.task.done:
             # Run the inner task for one step and transform what it gives us
-            output = self.output_transformer(self.task.send(input))
+            output = self.task.send(input)
+            if self.output_transformer is not None:
+                output = self.output_transformer(output)
             # Yield that output outwards, and transform whatever is "send()"ed back inwards
-            input = self.input_transformer((yield output))
+            input = (yield output)
+            if self.input_transformer is not None:
+                input = self.input_transformer(input)
         return output

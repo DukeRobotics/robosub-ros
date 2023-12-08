@@ -1,41 +1,59 @@
 import rospy
-import actionlib
 
 from nav_msgs.msg import Odometry
-from custom_msgs.msg import ControlsDesiredPoseAction, ControlsDesiredTwistAction, \
-    ControlsDesiredPoseGoal, ControlsDesiredTwistGoal
+from geometry_msgs.msg import Pose, Twist
+from custom_msgs.msg import ControlTypes
+from custom_msgs.srv import SetControlTypes
 
 
 class ControlsInterface:
     STATE_TOPIC = 'state'
-    DESIRED_POSE_ACTION = 'controls/desired_pose'
-    DESIRED_TWIST_ACTION = 'controls/desired_twist'
+
+    CONTROL_TYPES_SERVICE = 'controls/set_control_types'
+    DESIRED_POSITION_TOPIC = 'controls/desired_position'
+    DESIRED_VELOCITY_TOPIC = 'controls/desired_velocity'
 
     def __init__(self, listener):
-        self.listener = listener
+        self._listener = listener
+
+        rospy.wait_for_service(self.CONTROL_TYPES_SERVICE)
+        self._set_control_types = rospy.ServiceProxy(self.CONTROL_TYPES_SERVICE, SetControlTypes)
+        # Note: if this variable gets out of sync with the actual control types,
+        # bad things may happen
+        self._all_axes_control_type = None
 
         rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state)
-        self.desired_pose_client = actionlib.SimpleActionClient(
-            self.DESIRED_POSE_ACTION, ControlsDesiredPoseAction)
-        self.desired_twist_client = actionlib.SimpleActionClient(
-            self.DESIRED_TWIST_ACTION, ControlsDesiredTwistAction)
-        self.state = None
 
-        self.desired_pose_client.wait_for_server()
-        self.desired_twist_client.wait_for_server()
+        self._desired_position_pub = rospy.Publisher(self.DESIRED_POSITION_TOPIC, Pose)
+        self._desired_velocity_pub = rospy.Publisher(self.DESIRED_VELOCITY_TOPIC, Twist)
+        self._state = None
 
-    def move_to_pose_global(self, pose):
-        self.desired_pose_client.send_goal(ControlsDesiredPoseGoal(pose=pose))
+    def _set_all_axes_control_type(self, type):
+        if self._all_axes_control_type == type:
+            return
+        # TODO what if this doesn't return success?
+        self._set_control_types(ControlTypes(
+            x=type,
+            y=type,
+            z=type,
+            roll=type,
+            pitch=type,
+            yaw=type
+        ))
+        self._all_axes_control_type = type
 
-    def move_with_velocity(self, twist):
-        self.desired_twist_client.send_goal(ControlsDesiredTwistGoal(twist=twist))
+    # In global coordinates
+    def publish_desired_position(self, pose):
+        self._set_all_axes_control_type(ControlTypes.DESIRED_POSE)
+        self._desired_position_pub.publish(pose)
 
-    def cancel_movement(self):
-        self.desired_pose_client.cancel_goal()
-        self.desired_twist_client.cancel_goal()
+    # In local coordinates
+    def publish_desired_velocity(self, twist):
+        self._set_all_axes_control_type(ControlTypes.DESIRED_TWIST)
+        self._desired_velocity_pub.publish(twist)
 
     def _on_receive_state(self, state):
-        self.state = state
+        self._state = state
 
     def get_state(self):
-        return self.state
+        return self._state

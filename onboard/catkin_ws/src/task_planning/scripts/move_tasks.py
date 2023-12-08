@@ -8,13 +8,12 @@ async def move_to_pose_global(controls, pose):
             controls.state.pose.pose,
             pose,
             controls.state.twist.twist)):
-        controls.publish_desired_pose_global(pose)
+        controls.publish_desired_position(pose)
         # Allow users of this task to update the pose
         new_pose = await Yield()
         if new_pose is not None:
             pose = new_pose
 
-# TODO implement task_utils.global_pose_to_local
 @task
 async def move_to_pose_local(controls, pose):
     local_pose = task_utils.local_pose_to_global(controls.listener, pose)

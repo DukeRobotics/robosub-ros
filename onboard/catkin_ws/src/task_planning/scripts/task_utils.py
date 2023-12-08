@@ -111,9 +111,6 @@ def stopped_at_pose(current_pose, desired_pose, current_twist):
     Returns:
     Boolean: true if stopped (current_twist = 0) at desired_pose
     """
-    # FIXME revert hackfix
-    current_pose.position.z = 0
-    desired_pose.position.z = 0
     at_desired_pose = at_pose(current_pose, desired_pose, 0.2, 12)
     at_desired_vel = at_vel(current_twist, Twist(), 0.6, 6)
 
