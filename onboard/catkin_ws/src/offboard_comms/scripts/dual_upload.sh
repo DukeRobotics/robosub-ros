@@ -34,11 +34,10 @@ zip -r ros_lib.zip ros_lib
 PKG_DIR=$(rospack find offboard_comms)
 SRC_CODE1="${PKG_DIR}/Arduino Sketchbooks/PressureArduino"
 SRC_CODE2="${PKG_DIR}/Arduino Sketchbooks/ThrusterArduino"
-ARD_DEVS=$("${PKG_DIR}"/scripts/devices.sh)
-ARDUINO1=$(echo "$ARD_DEVS" | awk "{print $1}")
-PORT1=$(echo "$ARD_DEVS" | awk "{print $3}")
-# ARDUINO2=$(echo "$ARD_DEVS" | awk "{print $2}")
-PORT2=$(echo "$ARD_DEVS" | awk "{print $4}")
+IFS=$'\n' read -r -d '' -a ARD_DEVS < <("${PKG_DIR}"/scripts/devices.sh && printf '\0')
+ARDUINO1="${ARD_DEVS[0]}"
+PORT1="${ARD_DEVS[2]}"
+PORT2="${ARD_DEVS[3]}"
 
 export ARDUINO_LIBRARY_ENABLE_UNSAFE_INSTALL=true
 arduino-cli lib install --zip-path ros_lib.zip
@@ -51,10 +50,16 @@ if [ "$ARD_UPLOAD" = true ]; then
     # E49AFA8B51514C4B39202020FF024242 is thruster arduino
     # 3FE1330851544B5933202020FF070938 is pressure arduino
     if [ "$ARDUINO1" = "E49AFA8B51514C4B39202020FF024242" ]; then
-        TEMP=$PORT1
-        SRC_CODE1=$PORT2
+        TEMP=$SRC_CODE1
+        SRC_CODE1=$SRC_CODE2
         SRC_CODE2=$TEMP
     fi
+
+    # Upload to Arduino boards
+    echo "PORT1: $PORT1"
+    echo "PORT2: $PORT2"
+    echo "SRC_CODE1: $SRC_CODE1"
+    echo "SRC_CODE2: $SRC_CODE2"
     arduino-cli upload -b arduino:megaavr:nona4809 -p "$PORT1" "$SRC_CODE1"
     arduino-cli upload -b arduino:megaavr:nona4809 -p "$PORT2" "$SRC_CODE2"
 fi

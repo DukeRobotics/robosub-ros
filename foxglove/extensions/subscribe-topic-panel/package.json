@@ -1,7 +1,7 @@
 {
-  "name": "subscribe-topic-panel",
+  "name": "@duke-robotics/subscribe-topic-panel",
   "publisher": "Duke Robotics",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "main": "./dist/extension.js",
   "scripts": {
     "build": "foxglove-extension build",
@@ -14,6 +14,6 @@
     "pretest": "foxglove-extension pretest"
   },
   "dependencies": {
-    "@textea/json-viewer": "^3.2.2"
+    "@textea/json-viewer": "^3.2.3"
   }
 }

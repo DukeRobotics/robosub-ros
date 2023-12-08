@@ -1,9 +1,11 @@
+import useTheme from "@duke-robotics/theme";
 import { PanelExtensionContext, RenderState, Topic, MessageEvent, Immutable } from "@foxglove/studio";
+import { Box, ThemeProvider } from "@mui/material";
 import { JsonViewer } from "@textea/json-viewer";
-import { useLayoutEffect, useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 
-type State = {
+type SubscribeTopicPanelState = {
   topic?: string;
   colorScheme?: RenderState["colorScheme"];
   topics?: readonly Topic[];
@@ -14,8 +16,8 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
 
   // Restore our state from the layout via the context.initialState property.
-  const [state, setState] = useState<State>(() => {
-    return context.initialState as State;
+  const [state, setState] = useState<SubscribeTopicPanelState>(() => {
+    return context.initialState as SubscribeTopicPanelState;
   });
 
   // Get topics
@@ -39,7 +41,7 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
   }, [state.topic, topics]);
 
   // Setup our onRender function and start watching topics and currentFrame for messages.
-  useLayoutEffect(() => {
+  useEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setRenderDone(() => done);
       setState((oldState) => ({
@@ -66,36 +68,38 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
     renderDone?.();
   }, [renderDone]);
 
+  const theme = useTheme();
   return (
-    <div style={{ height: "100%", padding: "1rem" }}>
-      <h2>Subscribe Topic</h2>
-      <div>
-        <label>Choose a topic to display: </label>
-        <select
-          value={state.topic}
-          onChange={(event) => {
-            setState((oldState) => ({ ...oldState, topic: event.target.value }));
-          }}
-          style={{ flex: 1 }}
-        >
-          {topics.map((topic) => (
-            <option key={topic.name} value={topic.name}>
-              {topic.name}
-            </option>
-          ))}
-        </select>
+    <ThemeProvider theme={theme}>
+      <Box m={1}>
+        <div>
+          <label>Choose a topic to display: </label>
+          <select
+            value={state.topic}
+            onChange={(event) => {
+              setState((oldState) => ({ ...oldState, topic: event.target.value }));
+            }}
+            style={{ flex: 1 }}
+          >
+            {topics.map((topic) => (
+              <option key={topic.name} value={topic.name}>
+                {topic.name}
+              </option>
+            ))}
+          </select>
 
-        <JsonViewer
-          rootName={false}
-          value={state.message as object}
-          indentWidth={2}
-          theme={state.colorScheme}
-          enableClipboard={false}
-          displayDataTypes={false}
-          maxDisplayLength={10}
-        />
-      </div>
-    </div>
+          <JsonViewer
+            rootName={false}
+            value={state.message as object}
+            indentWidth={2}
+            theme={state.colorScheme}
+            enableClipboard={false}
+            displayDataTypes={false}
+            maxDisplayLength={10}
+          />
+        </div>
+      </Box>
+    </ThemeProvider>
   );
 }
 
