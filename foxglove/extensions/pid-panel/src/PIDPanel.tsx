@@ -86,6 +86,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
         // Loop through lastFrame and update PID values
         const pidGains = lastFrame.message.pid_gains;
         for (const pidGain of pidGains) {
+          // The reason we do it like this is due to a bug where modifying a value in our triple nested dictionary wouldn't work
           pid[pidGain.loop]![pidGain.axis] = {
             ...pid[pidGain.loop]![pidGain.axis],
             [pidGain.gain]: pidGain.value,
@@ -263,10 +264,12 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
               </TableRow>
             </TableHead>
             <TableBody>
+              {/* Looping through All Axis */}
               {pid[state.loopType] &&
                 Object.entries(pid[state.loopType] ?? {}).map(([axis, g]) => (
                   <TableRow key={axis}>
                     <TableCell style={{ whiteSpace: "nowrap", width: "1%" }}>{getAxisEnumName(Number(axis))}</TableCell>
+                    {/* Looping through All Gains */}
                     {Object.values(g).map((gain, index) => {
                       const isFocused = state.focusStatus[Number(axis)]?.[index] ?? false;
                       return (
