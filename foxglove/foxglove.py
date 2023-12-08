@@ -115,7 +115,7 @@ def build_deps(skip_ci: bool = False, extension_paths: Sequence[pathlib.Path] = 
     # Compile local shared dependencies
     dependencies = ["ros-typescript-generator", "defs", "theme"]  # Specify build order
     for dep in dependencies:
-        run_at_path("npm run build", pathlib.Path("shared") / dep)
+        run_at_path("npm run build  --if-present", pathlib.Path("shared") / dep)
 
     # Compile local nonshared dependencies
     for extension in extension_paths:

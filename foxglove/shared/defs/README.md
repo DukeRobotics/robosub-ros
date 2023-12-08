@@ -1,6 +1,8 @@
 # Foxglove Definitions
-This package exports datatype maps and TypeScript interfaces/enums for both ROS 1 and Duke Robotics custom definitions.
+This package exports datatype maps and TypeScript interfaces/enums for both ROS 1 and Duke Robotics custom message definitions.
 Datatype maps are needed to advertise topics. TypeScript interfaces are used for static type checking.
+
+This package is based off of the Foxglove [rosmsg-msgs-common](https://github.com/foxglove/rosmsg-msgs-common) repository.
 
 ## Usage
 ### Datatype Maps
@@ -31,13 +33,33 @@ import { <TypeName> } from "@duke-robotics/defs/types";
 
 To view all available types, see `foxglove/shared/defs/types/dist/types.ts`.
 
-Note that the type is prefixed by its package name. For example, `GeometryMsgsTwist` comes from the `geometry_msgs` ROS 1 package.
+#### Interface Translation
+Interface names are translated from snake_case to PascalCase.
+The interface is prefixed by its package name. For example, `GeometryMsgsTwist` comes from the `geometry_msgs` ROS 1 package.
 
-Additionally, the type is suffixed if it describes a ROS service, action, or constant. For example, the `SetBool` service
-has 2 types: `StdSrvsSetBoolRequest` and `StdSrvsSetBoolResponse`.
+##### Messages
+[ROS messages](http://wiki.ros.org/msg) are translated directly to one interface (with no suffix).
+
+##### Services
+[ROS services](http://wiki.ros.org/Services) are split into two interfaces.
+- The *request* (before the `---`) has the suffix `request`.
+- The *reply* (after the `---`) has the suffix `response`.
+
+##### Actions
+[ROS actions](http://wiki.ros.org/actionlib) are split into three interfaces.
+- The *goal* has the suffix `ActionGoal`
+- The *feedback* has the suffix `ActionFeedback`
+- The *result* has the suffix `ActionResult`
+
+##### Constants
+Constants are translated into an enum with the suffix `Const`.
 
 ## Generating ROS 1 Types
-The `types/ros1Msgs.ts` file exports the types of all ROS 1 messages, services, and actions. To regenerate this file, follow the following steps:
+The `types/ros1Msgs.ts` file exports the types of all ROS 1 messages, services, and actions. In the rare case that this file needs to be regenerated (e.g., ROS message definitions change, TypeScript type generation algorithm changes), follow the following steps:
+
+**NOTE:** There are some duplicates in the `ros1Msgs.ts` file! (e.g., `ActionlibTestRequestActionGoal`.)
+However, all duplicates come from ROS actions and Foxglove does not currently support ROS actions.
+Therefore, this conflict can be ignored for now.
 
 1. Build necessary dependencies
 ```bash
@@ -54,3 +76,4 @@ scp -P 2200 -r root@localhost:/opt/ros/noetic/share/ share
 ```bash
 npx ros-typescript-generator --config ros_ts_generator_configs/ros1.json
 ```
+The `share` folder can now be safely deleted.

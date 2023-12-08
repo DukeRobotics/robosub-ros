@@ -6,7 +6,6 @@ import { join, basename, sep } from "path";
 import { format, Options } from "prettier";
 
 const PRETTIER_OPTS: Options = {
-  parser: "babel",
   arrowParens: "always",
   printWidth: 100,
   trailingComma: "all",
@@ -17,28 +16,39 @@ const PRETTIER_OPTS: Options = {
 const CUSTOM_MSGS_GROUP_NAME = "custom_msgs";
 
 export async function writeMessageDefinitions(
-  msgdefsPath: string,
-  msgdefsSaveDir: string,
+  customMsgsDefsPath: string,
+  customMsgsSaveDir: string,
 ): Promise<Map<string, Record<string, MessageDefinition>>> {
-  const libFile = join(msgdefsSaveDir, "index.js");
-  const esmFile = join(msgdefsSaveDir, "index.esm.js");
-  const declFile = join(msgdefsSaveDir, "index.d.ts");
+  // Get paths to save generated message definition files
+  const libFile = join(customMsgsSaveDir, "index.js");
+  const esmFile = join(customMsgsSaveDir, "index.esm.js");
+  const declFile = join(customMsgsSaveDir, "index.d.ts");
+
+  // Map of group to definitions for that group
+  // We only have one group, custom_msgs
   const definitionsByGroup = new Map<string, Record<string, MessageDefinition>>([[CUSTOM_MSGS_GROUP_NAME, {}]]);
 
-  await loadDefinitions(msgdefsPath, definitionsByGroup.get(CUSTOM_MSGS_GROUP_NAME)!, { skipTypeFixup: true });
+  // Load all message definitions from msgdefsPath
+  // This will populate definitionsByGroup
+  // We skip type fixup because we will do that later
+  await loadDefinitions(customMsgsDefsPath, definitionsByGroup.get(CUSTOM_MSGS_GROUP_NAME)!, { skipTypeFixup: true });
 
+  // Generate message definition files
   const libOutput = await generateCjsLibrary(definitionsByGroup);
   const esmOutput = await generateEsmLibrary(definitionsByGroup);
-  const declOutput = generateDefinitions(definitionsByGroup);
+  const declOutput = await generateDefinitions(definitionsByGroup);
 
-  await mkdir(msgdefsSaveDir, { recursive: true });
+  // Make sure the save directory exists (if not, create it) and write the files
+  await mkdir(customMsgsSaveDir, { recursive: true });
   await writeFile(libFile, libOutput);
   await writeFile(esmFile, esmOutput);
   await writeFile(declFile, declOutput);
 
+  // Return the definitions
   return definitionsByGroup;
 }
 
+// Recursively get all .msg files in a directory
 async function getMsgFiles(dir: string): Promise<string[]> {
   let output: string[] = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
@@ -51,6 +61,7 @@ async function getMsgFiles(dir: string): Promise<string[]> {
   return output;
 }
 
+// Read all message definitions from msgdefsPath, convert them to MessageDefinition objects, and add them to definitions
 async function loadDefinitions(
   msgdefsPath: string,
   definitions: Record<string, MessageDefinition>,
@@ -74,12 +85,13 @@ async function loadDefinitions(
   // Array of MessageDefinitions including all ros1 and custom_msgs
   // This is used to fixup type names in the definitions
   // For example, Header is changed to std_msgs/Header
-  // ros1 is included because some custom_msgs use non-primitive ros1 types, and fixupTypes cannot resolve those
-  // without including ros1 types
+  // Included ros1 so that fixupTypes can resolve standard ROS 1 types
+  // This allows us to fixup type names in custom msg definitions without having to use gentools
   const allTypes = Object.values(definitions).concat(Object.values(ros1));
   fixupTypes(allTypes);
 }
 
+// Extract the data type from a filename
 function filenameToDataType(filename: string): string {
   const parts = filename.split(sep);
   const newParts: string[] = [];
@@ -94,6 +106,7 @@ function filenameToDataType(filename: string): string {
   return `${newParts.join("/")}/${baseTypeName}`;
 }
 
+// Convert a data type to a type name
 function dataTypeToTypeName(dataType: string): string {
   const parts = dataType.split("/");
   if (parts.length < 2) {
@@ -107,6 +120,7 @@ function dataTypeToTypeName(dataType: string): string {
   return `${pkg}/${name}`;
 }
 
+// Generate a CommonJS library for the message definitions
 async function generateCjsLibrary(definitionsByGroup: Map<string, Record<string, MessageDefinition>>): Promise<string> {
   let lib = "";
   for (const [groupName, definitions] of definitionsByGroup.entries()) {
@@ -115,9 +129,10 @@ const ${groupName}Definitions = ${JSON.stringify(definitions)}
 module.exports.${groupName} = ${groupName}Definitions
 `;
   }
-  return await format(lib, PRETTIER_OPTS);
+  return await format(lib, { ...PRETTIER_OPTS, parser: "babel" });
 }
 
+// Generate an ES Module library for the message definitions
 async function generateEsmLibrary(definitionsByGroup: Map<string, Record<string, MessageDefinition>>): Promise<string> {
   let lib = "";
   for (const [groupName, definitions] of definitionsByGroup.entries()) {
@@ -130,10 +145,13 @@ export { ${groupName}Definitions as ${groupName} }
     .map((groupName) => `${groupName}: ${groupName}Definitions`)
     .join(", ")} }`;
 
-  return await format(lib, PRETTIER_OPTS);
+  return await format(lib, { ...PRETTIER_OPTS, parser: "babel" });
 }
 
-function generateDefinitions(definitionsByGroup: Map<string, Record<string, MessageDefinition>>): string {
+// Generate a TypeScript definitions file for the message definitions
+async function generateDefinitions(
+  definitionsByGroup: Map<string, Record<string, MessageDefinition>>,
+): Promise<string> {
   let output = `import { MessageDefinition } from "@foxglove/message-definition";`;
 
   for (const [groupName, definitions] of definitionsByGroup.entries()) {
@@ -160,7 +178,7 @@ ${entries}
   ${groupExportTypes.join(",\n  ")}
 }`;
   output += `\nexport default _default;\n`;
-  return output;
+  return await format(output, { ...PRETTIER_OPTS, parser: "typescript" });
 }
 
 function exportedTypeName(groupName: string): string {

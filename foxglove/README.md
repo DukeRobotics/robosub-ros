@@ -97,7 +97,9 @@ ws://<hostname or IP of onboard container>:8765
 - `controls-monitor.json`: 6 graphs for each control axis (x, y, z, roll, pitch, yaw) plotting setpoint and control effort against time. Used to test responsiveness of robot during PID tuning.
 
 ## Local Dependencies
-Shared components and styles are located in the `shared` directory.
+Shared dependencies are located in the `shared` directory.
+
+Running `python foxglove.py install` will automatically build all local dependencies before installing extensions.
 
 - `theme`: Exports the Duke Robotics MUI Theme
 - `defs`: Exports Foxglove datatype maps and TypeScript interfaces/enums for both ROS 1 and Duke Robotics custom definitions

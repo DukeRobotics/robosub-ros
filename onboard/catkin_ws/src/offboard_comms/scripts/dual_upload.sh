@@ -50,14 +50,16 @@ if [ "$ARD_UPLOAD" = true ]; then
     # E49AFA8B51514C4B39202020FF024242 is thruster arduino
     # 3FE1330851544B5933202020FF070938 is pressure arduino
     if [ "$ARDUINO1" = "E49AFA8B51514C4B39202020FF024242" ]; then
-        TEMP=$PORT1
-        SRC_CODE1=$PORT2
+        TEMP=$SRC_CODE1
+        SRC_CODE1=$SRC_CODE2
         SRC_CODE2=$TEMP
     fi
 
     # Upload to Arduino boards
     echo "PORT1: $PORT1"
     echo "PORT2: $PORT2"
+    echo "SRC_CODE1: $SRC_CODE1"
+    echo "SRC_CODE2: $SRC_CODE2"
     arduino-cli upload -b arduino:megaavr:nona4809 -p "$PORT1" "$SRC_CODE1"
     arduino-cli upload -b arduino:megaavr:nona4809 -p "$PORT2" "$SRC_CODE2"
 fi
