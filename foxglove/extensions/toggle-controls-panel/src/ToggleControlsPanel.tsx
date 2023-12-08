@@ -1,4 +1,5 @@
-import theme from "@duke-robotics/theme";
+import { StdSrvsSetBoolRequest, StdSrvsSetBoolResponse } from "@duke-robotics/defs/types";
+import useTheme from "@duke-robotics/theme";
 import { ThemeProvider } from "@emotion/react";
 import { PanelExtensionContext } from "@foxglove/studio";
 import Alert from "@mui/material/Alert";
@@ -10,19 +11,13 @@ import { createRoot } from "react-dom/client";
 // Define the service name for enabling/disabling controls
 const ENABLE_CONTROLS_SERVICE = "/enable_controls";
 
-type State = {
+type ToggleControlsPanel = {
   error?: Error | undefined; // Error object if service call fails
   controlsEnabled: boolean; // Current state of controls
 };
 
-// Response type definition for std_srvs/SetBool.srv
-interface SetBoolResponse {
-  success: boolean;
-  message: string;
-}
-
 function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
-  const [state, setState] = useState<State>({ controlsEnabled: false });
+  const [state, setState] = useState<ToggleControlsPanel>({ controlsEnabled: false });
 
   // Call the /enable_controls service to toggle controls
   const toggleControls = () => {
@@ -33,12 +28,12 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
     }
 
     // Request payload to toggle controls
-    const request = { data: !state.controlsEnabled };
+    const request: StdSrvsSetBoolRequest = { data: !state.controlsEnabled };
 
     // Make the service call
     context.callService(ENABLE_CONTROLS_SERVICE, request).then(
       (response) => {
-        const typedResponse = response as SetBoolResponse;
+        const typedResponse = response as StdSrvsSetBoolResponse;
 
         // Update the state based on the service response
         // If the service responds with failure, display the response message as an error
@@ -55,6 +50,7 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
     );
   };
 
+  const theme = useTheme();
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>

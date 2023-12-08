@@ -90,15 +90,20 @@ ws://<hostname or IP of onboard container>:8765
 - `toggle-controls-panel`: Panel to toggle controls on/off
 - `system-status-panel`: Panel that displays system usage of the onboard computer
 - `sensors-status-panel`: Panel that displays the connected/disconnected status of Oogway's sensors
+- `thruster-speeds-panel`: Panel that displays the current thruster speeds and publishes desired thruster speeds
 
 
 ### Layouts
 - `controls-monitor.json`: 6 graphs for each control axis (x, y, z, roll, pitch, yaw) plotting setpoint and control effort against time. Used to test responsiveness of robot during PID tuning.
 
 ## Local Dependencies
-Shared components and styles are located in the `shared` directory.
+Shared dependencies are located in the `shared` directory.
 
-- `theme`: Duke Robotics MUI Theme
+Running `python foxglove.py install` will automatically build all local dependencies before installing extensions.
+
+- `theme`: Exports the Duke Robotics MUI Theme
+- `defs`: Exports Foxglove datatype maps and TypeScript interfaces/enums for both ROS 1 and Duke Robotics custom message definitions
+- `ros-typescript-generator`: CLI that generates TypeScript interfaces/enums from ROS definitions
 
 ## Contributing
 ### Creating a New Extension
