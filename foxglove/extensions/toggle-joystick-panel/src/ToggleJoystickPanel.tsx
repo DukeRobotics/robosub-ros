@@ -1,6 +1,6 @@
 import { ros1 } from "@foxglove/rosmsg-msgs-common";
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
-import { Table, TableBody, TableCell, TableContainer, TableRow, Paper, Typography, Button, Box } from "@mui/material";
+import { Table, TableBody, TableCell, TableContainer, TableRow, Paper, Typography, Button, Box, Alert } from "@mui/material";
 import { SetStateAction, useEffect, useLayoutEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
@@ -250,6 +250,22 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
 
   return (
     <div style={{ height: "100%", padding: "1rem" }}>
+      {/* Error messages */}
+      {(context.callService == undefined || state.error != undefined) && (
+        <Box mb={1}>
+          {context.callService == undefined && (
+            <Alert variant="filled" severity="error">
+              Calling services is not supported by this connection
+            </Alert>
+          )}
+          {state.error != undefined && (
+            <Alert variant="filled" severity="error">
+              {state.error.message}
+            </Alert>
+          )}
+        </Box>
+      )}
+
       {/* Toggle button */}
       <Box m={1}>
         <Button
