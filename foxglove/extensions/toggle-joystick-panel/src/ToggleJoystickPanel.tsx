@@ -1,15 +1,27 @@
-import { ros1 } from "@foxglove/rosmsg-msgs-common";
-import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
-import { Table, TableBody, TableCell, TableContainer, TableRow, Paper, Typography, Button, Box, Alert } from "@mui/material";
-import { SetStateAction, useEffect, useLayoutEffect, useState } from "react";
-import { createRoot } from "react-dom/client";
-
+import { allDatatypeMaps } from "@duke-robotics/defs/datatype_maps";
 import {
   GeometryMsgsTwist,
   CustomMsgsSetControlTypesRequest,
   CustomMsgsSetControlTypesResponse,
   CustomMsgsControlTypesConst,
-} from "./types";
+} from "@duke-robotics/defs/types";
+import useTheme from "@duke-robotics/theme";
+import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+  Paper,
+  Typography,
+  Button,
+  Box,
+  Alert,
+  ThemeProvider,
+} from "@mui/material";
+import { SetStateAction, useEffect, useLayoutEffect, useState } from "react";
+import { createRoot } from "react-dom/client";
 
 const PUBLISH_RATE = 20; // Publish rate in Hz
 
@@ -204,13 +216,8 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         return;
       }
 
-      // TODO: Update once foxglove-custom-msgs is merged to master
       context.advertise(DESIRED_POWER_TOPIC, SCHEMA_NAME, {
-        datatypes: new Map([
-          ["geometry_msgs/Twist", ros1["geometry_msgs/Twist"]],
-          ["geometry_msgs/Vector3", ros1["geometry_msgs/Vector3"]],
-          ["std_msgs/Float64", ros1["std_msgs/Float64"]],
-        ]),
+        datatypes: allDatatypeMaps.ros1[SCHEMA_NAME],
       });
 
       // Create and publish request with values from joystick input stored in the state
@@ -248,58 +255,61 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     console.log("disconnected");
   });
 
+  const theme = useTheme();
   return (
-    <div style={{ height: "100%", padding: "1rem" }}>
-      {/* Error messages */}
-      {(context.callService == undefined || state.error != undefined) && (
-        <Box mb={1}>
-          {context.callService == undefined && (
-            <Alert variant="filled" severity="error">
-              Calling services is not supported by this connection
-            </Alert>
-          )}
-          {state.error != undefined && (
-            <Alert variant="filled" severity="error">
-              {state.error.message}
-            </Alert>
-          )}
-        </Box>
-      )}
-
-      {/* Toggle button */}
+    <ThemeProvider theme={theme}>
       <Box m={1}>
-        <Button
-          variant="contained"
-          color={state.joyStickEnabled ? "error" : "success"}
-          onClick={toggleJoystick}
-          disabled={context.callService == undefined}
-        >
-          {state.joyStickEnabled ? "Disable Joystick" : "Enable Joystick"}
-        </Button>
-      </Box>
+        {/* Error messages */}
+        {(context.callService == undefined || state.error != undefined) && (
+          <Box mb={1}>
+            {context.callService == undefined && (
+              <Alert variant="filled" severity="error">
+                Calling services is not supported by this connection
+              </Alert>
+            )}
+            {state.error != undefined && (
+              <Alert variant="filled" severity="error">
+                {state.error.message}
+              </Alert>
+            )}
+          </Box>
+        )}
 
-      {/* Table of joystick inputs */}
-      <TableContainer component={Paper}>
-        <Table size="small" aria-label="simple table">
-          <TableBody>
-            {JoystickKeys.map((key: keyof JoystickInputs, i: number) => (
-              <TableRow
-                key={i}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                style={{ backgroundColor: "white" }}
-              >
-                <TableCell>
-                  <Typography variant="subtitle2">{key}</Typography>
-                </TableCell>
-                <TableCell align="right">
-                  <Typography variant="subtitle2">{state.joystickInputs[key].toString()}</Typography>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </div>
+        {/* Toggle button */}
+        <Box m={1}>
+          <Button
+            variant="contained"
+            color={state.joyStickEnabled ? "error" : "success"}
+            onClick={toggleJoystick}
+            disabled={context.callService == undefined}
+          >
+            {state.joyStickEnabled ? "Disable Joystick" : "Enable Joystick"}
+          </Button>
+        </Box>
+
+        {/* Table of joystick inputs */}
+        <TableContainer component={Paper}>
+          <Table size="small" aria-label="simple table">
+            <TableBody>
+              {JoystickKeys.map((key: keyof JoystickInputs, i: number) => (
+                <TableRow
+                  key={i}
+                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                  style={{ backgroundColor: "white" }}
+                >
+                  <TableCell>
+                    <Typography variant="subtitle2">{key}</Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="subtitle2">{state.joystickInputs[key].toString()}</Typography>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </ThemeProvider>
   );
 }
 
