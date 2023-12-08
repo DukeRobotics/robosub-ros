@@ -29,12 +29,10 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
 
     // Request payload to toggle controls
     const request: StdSrvsSetBoolRequest = { data: !state.controlsEnabled };
-    const request: StdSrvsSetBoolRequest = { data: !state.controlsEnabled };
 
     // Make the service call
     context.callService(ENABLE_CONTROLS_SERVICE, request).then(
       (response) => {
-        const typedResponse = response as StdSrvsSetBoolResponse;
         const typedResponse = response as StdSrvsSetBoolResponse;
 
         // Update the state based on the service response

@@ -48,7 +48,6 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
       // Update system usage state
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
         const latestFrame = renderState.currentFrame.at(-1) as MessageEvent<CustomMsgsSystemUsage>;
-        const latestFrame = renderState.currentFrame.at(-1) as MessageEvent<CustomMsgsSystemUsage>;
         setState({
           cpuUsage: latestFrame.message.cpu_percent,
           ramUsage: latestFrame.message.ram.percentage,
