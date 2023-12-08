@@ -1,5 +1,5 @@
 import { CustomMsgsSystemUsage } from "@duke-robotics/defs/types";
-import theme from "@duke-robotics/theme";
+import useTheme from "@duke-robotics/theme";
 import { PanelExtensionContext, RenderState, MessageEvent, Immutable } from "@foxglove/studio";
 import {
   Box,
@@ -64,6 +64,7 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
   }, [renderDone]);
 
   // Render a table with the current system usage data
+  const theme = useTheme();
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>

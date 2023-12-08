@@ -1,4 +1,4 @@
-import theme from "@duke-robotics/theme";
+import useTheme from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState, MessageEvent, Subscription } from "@foxglove/studio";
 import { Box, Paper, Table, TableBody, TableCell, TableContainer, TableRow, Typography, Tooltip } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
@@ -135,6 +135,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
   }, [renderDone]);
 
   // Create a table of all the sensors and their status
+  const theme = useTheme();
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>

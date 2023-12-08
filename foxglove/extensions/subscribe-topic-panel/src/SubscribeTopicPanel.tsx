@@ -1,4 +1,4 @@
-import theme from "@duke-robotics/theme";
+import useTheme from "@duke-robotics/theme";
 import { PanelExtensionContext, RenderState, Topic, MessageEvent, Immutable } from "@foxglove/studio";
 import { Box, ThemeProvider } from "@mui/material";
 import { JsonViewer } from "@textea/json-viewer";
@@ -68,6 +68,7 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
     renderDone?.();
   }, [renderDone]);
 
+  const theme = useTheme();
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>

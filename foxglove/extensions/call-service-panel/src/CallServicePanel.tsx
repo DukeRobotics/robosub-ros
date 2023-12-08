@@ -1,4 +1,4 @@
-import theme from "@duke-robotics/theme";
+import useTheme from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
 import { Box, ThemeProvider } from "@mui/material";
 import Alert from "@mui/material/Alert";
@@ -58,6 +58,7 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
     void callService(state.serviceName, state.request);
   };
 
+  const theme = useTheme();
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>
