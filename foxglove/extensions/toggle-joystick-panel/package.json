@@ -1,7 +1,7 @@
 {
   "name": "toggle-joystick-panel",
   "publisher": "Duke Robotics",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "main": "./dist/extension.js",
   "scripts": {
     "build": "foxglove-extension build",
