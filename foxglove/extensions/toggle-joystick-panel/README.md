@@ -14,8 +14,10 @@ Ensure that the `/controls/set_control_types` service is running. Click the butt
 
 ## Configuration
 The following constants can be modified:
-
+- `DEBUG`: If true, the transformed joystick inputs are displayed in the panel.
+- `PUBLISH_RATE`: The rate (in Hz) to publish desired power.
 - `SET_CONTROL_TYPES_SERVICE`: The service that handles enabling/disabling joystick control.
-- `DESIRED_POWER_TOPIC`: The service that joystick inputs are published to.
+- `DESIRED_POWER_TOPIC`: The topic that transformed joystick inputs are published to.
+- `DESIRED_POWER_SCHEMA`: The schema name of `DESIRED_POWER_TOPIC`.
 - `AXIS_MAP`: The map from each direction of motion to indices in the joystick axis inputs. 
 - `BUTTON_MAP`: The map from each desired action to indices in the joystick button inputs.

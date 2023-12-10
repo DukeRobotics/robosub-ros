@@ -12,21 +12,33 @@ import { JsonViewer } from "@textea/json-viewer";
 import { SetStateAction, useEffect, useLayoutEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
-const PUBLISH_RATE = 20; // Publish rate in Hz
 const DEBUG = true; // Set to true to display live transformed joystick inputs
 
-// Indices of specific axes in the joystick axes list
+const PUBLISH_RATE = 20; // Hz
+
+const SET_CONTROL_TYPES_SERVICE = "/controls/set_control_types";
+
+const DESIRED_POWER_TOPIC = "/controls/desired_power";
+const DESIRED_POWER_SCHEMA = "geometry_msgs/Twist";
+
+// Joystick axes indices
 const AXIS_MAP = {
-  xIndex: 1, // Forward and backward, inverted
-  yIndex: 0, // Left and right
-  zIndex: 2, // Up and down, inverted
-  yawIndex: 5, // Twist CW and CCW
-  pitchIndex: 9,
-  rollIndex: 9,
+  xIndex: 1, // Joystick Forward/Backward
+  yIndex: 0, // Joystick Left/Right
+  zIndex: 2, // Throttle
+  yawIndex: 5, // Joystick Twist
+  pitchIndex: 9, // Thumb Joystick Forward/Backward
+  rollIndex: 9, // Thumb Joystick Right/Left
+};
+// Joystick button indices
+const BUTTON_MAP = {
+  torpedoActivateIndex: 1, // Red/black striped button on Joystick
+  torpedoOneLaunchIndex: 4, // Button (5)
+  torpedoTwoLaunchIndex: 5, // Button (6)
 };
 
 /**
- * Calculate power to publish to /controls/desired_power for pitch from thumb joystick input
+ * Calculate power for pitch from thumb joystick input
  * @param value joystick value for thumb joystick
  * @returns desired power
  */
@@ -36,9 +48,9 @@ const pitchMapping = (value: number): number => {
 
   if (value !== stationary && value !== 0) {
     if (value > 0.7142857313156128 || value < -0.4285714030265808) {
-      return 0.5;
+      return 0.5; // Up
     } else if (value < 0.7142857313156128 && value > -0.4285714030265808) {
-      return -0.5;
+      return -0.5; // Down
     } else {
       return 0;
     }
@@ -46,9 +58,8 @@ const pitchMapping = (value: number): number => {
     return 0;
   }
 };
-
 /**
- * Calculate power to publish to /controls/desired_power for roll from thumb joystick input
+ * Calculate power for roll from thumb joystick input
  * @param value joystick value for thumb joystick
  * @returns desired power
  */
@@ -58,9 +69,9 @@ const rollMapping = (value: number): number => {
 
   if (value !== stationary && value !== 0) {
     if (value > -1 && value < 0.14285719394683838) {
-      return 0.5;
+      return 0.5; // Right
     } else if (value > 0.14285719394683838) {
-      return -0.5;
+      return -0.5; // Left
     } else {
       return 0;
     }
@@ -69,6 +80,11 @@ const rollMapping = (value: number): number => {
   }
 };
 
+/**
+ * Calculate power for linear axes
+ * @param value joystick value for linear axis
+ * @param negate whether to negate the value
+ */
 const linearMapping = (value: number, { negate = false }: { negate: boolean }): number => {
   const threshold = 0.01;
   if (Math.abs(value) < threshold) {
@@ -77,12 +93,40 @@ const linearMapping = (value: number, { negate = false }: { negate: boolean }): 
   return negate ? -1 * value : value;
 };
 
-// Indices of specific buttons in the joystick buttons list
-const BUTTON_MAP = {
-  torpedoActivateIndex: 1,
-  torpedoOneLaunchIndex: 4,
-  torpedoTwoLaunchIndex: 5,
-};
+/**
+ * Query joystick for current state to read input from joystick
+ * @param state state object containing joystick inputs and whether the joystick is enabled
+ * @param setState method to update the state
+ * @param publishSpeeds method to publish joystick inputs
+ */
+function queryJoystick(state: State, setState: React.Dispatch<SetStateAction<State>>, publishSpeeds: () => void) {
+  const joystick = navigator.getGamepads();
+  if (joystick[0]) {
+    const axes = joystick[0].axes;
+    const buttons = joystick[0].buttons;
+
+    // Update state
+    setState((previousState) => ({
+      ...previousState,
+      joystickInputs: {
+        xAxis: linearMapping(axes[AXIS_MAP.xIndex] ?? 0, { negate: true }),
+        yAxis: linearMapping(axes[AXIS_MAP.yIndex] ?? 0, { negate: true }),
+        zAxis: linearMapping(axes[AXIS_MAP.zIndex] ?? 0, { negate: true }),
+        yawAxis: linearMapping(axes[AXIS_MAP.yawIndex] ?? 0, { negate: true }),
+        pitchAxis: pitchMapping(axes[AXIS_MAP.pitchIndex] ?? 0),
+        rollAxis: rollMapping(axes[AXIS_MAP.rollIndex] ?? 0),
+        torpedoActivate: buttons[BUTTON_MAP.torpedoActivateIndex]?.value === 1,
+        torpedoOneLaunch: buttons[BUTTON_MAP.torpedoOneLaunchIndex]?.value === 1,
+        torpedoTwoLaunch: buttons[BUTTON_MAP.torpedoTwoLaunchIndex]?.value === 1,
+      },
+    }));
+  }
+
+  // Publish
+  if (state.joyStickEnabled) {
+    publishSpeeds();
+  }
+}
 
 type TransformedJoystickInputs = {
   xAxis: number;
@@ -105,10 +149,6 @@ type State = {
   joyStickEnabled: boolean;
   joystickInputs: TransformedJoystickInputs;
 };
-
-const SCHEMA_NAME = "geometry_msgs/Twist";
-const DESIRED_POWER_TOPIC = "/controls/desired_power";
-const SET_CONTROL_TYPES_SERVICE = "/controls/set_control_types";
 
 function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
@@ -193,8 +233,8 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         return;
       }
 
-      context.advertise(DESIRED_POWER_TOPIC, SCHEMA_NAME, {
-        datatypes: allDatatypeMaps.ros1[SCHEMA_NAME],
+      context.advertise(DESIRED_POWER_TOPIC, DESIRED_POWER_SCHEMA, {
+        datatypes: allDatatypeMaps.ros1[DESIRED_POWER_SCHEMA],
       });
 
       // Create and publish request with values from joystick input stored in the state
@@ -304,39 +344,4 @@ export function initToggleJoystickPanel(context: PanelExtensionContext): () => v
   return () => {
     root.unmount();
   };
-}
-
-/**
- * Query joystick for current state to read input from joystick
- * @param state state object containing joystick inputs and whether the joystick is enabled
- * @param setState method to update the state
- * @param publishSpeeds method to publish joystick inputs
- */
-function queryJoystick(state: State, setState: React.Dispatch<SetStateAction<State>>, publishSpeeds: () => void) {
-  const joystick = navigator.getGamepads();
-  if (joystick[0]) {
-    const axes = joystick[0].axes;
-    const buttons = joystick[0].buttons;
-
-    // Update state
-    setState((previousState) => ({
-      ...previousState,
-      joystickInputs: {
-        xAxis: linearMapping(axes[AXIS_MAP.xIndex] ?? 0, { negate: true }),
-        yAxis: linearMapping(axes[AXIS_MAP.yIndex] ?? 0, { negate: true }),
-        zAxis: linearMapping(axes[AXIS_MAP.zIndex] ?? 0, { negate: true }),
-        yawAxis: linearMapping(axes[AXIS_MAP.yawIndex] ?? 0, { negate: true }),
-        pitchAxis: pitchMapping(axes[AXIS_MAP.pitchIndex] ?? 0),
-        rollAxis: rollMapping(axes[AXIS_MAP.rollIndex] ?? 0),
-        torpedoActivate: buttons[BUTTON_MAP.torpedoActivateIndex]?.value === 1,
-        torpedoOneLaunch: buttons[BUTTON_MAP.torpedoOneLaunchIndex]?.value === 1,
-        torpedoTwoLaunch: buttons[BUTTON_MAP.torpedoTwoLaunchIndex]?.value === 1,
-      },
-    }));
-  }
-
-  // Publish
-  if (state.joyStickEnabled) {
-    publishSpeeds();
-  }
 }
