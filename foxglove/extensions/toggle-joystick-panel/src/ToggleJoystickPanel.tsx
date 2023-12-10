@@ -7,23 +7,13 @@ import {
 } from "@duke-robotics/defs/types";
 import useTheme from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableRow,
-  Paper,
-  Typography,
-  Button,
-  Box,
-  Alert,
-  ThemeProvider,
-} from "@mui/material";
+import { Button, Box, Alert, ThemeProvider } from "@mui/material";
+import { JsonViewer } from "@textea/json-viewer";
 import { SetStateAction, useEffect, useLayoutEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 const PUBLISH_RATE = 20; // Publish rate in Hz
+const DEBUG = true; // Set to true to display live transformed joystick inputs
 
 // Indices of specific axes in the joystick axes list
 const AXIS_MAP = {
@@ -94,7 +84,7 @@ const BUTTON_MAP = {
   torpedoTwoLaunchIndex: 5,
 };
 
-type JoystickInputs = {
+type TransformedJoystickInputs = {
   xAxis: number;
   yAxis: number;
   zAxis: number;
@@ -108,25 +98,13 @@ type JoystickInputs = {
 
 type State = {
   topicName: string;
-  request: string;
+  request?: string;
   schemaName: string;
   error?: Error;
   colorScheme?: RenderState["colorScheme"];
   joyStickEnabled: boolean;
-  joystickInputs: JoystickInputs;
+  joystickInputs: TransformedJoystickInputs;
 };
-
-const JoystickKeys: (keyof JoystickInputs)[] = [
-  "xAxis",
-  "yAxis",
-  "yawAxis",
-  "zAxis",
-  "pitchAxis",
-  "rollAxis",
-  "torpedoActivate",
-  "torpedoOneLaunch",
-  "torpedoTwoLaunch",
-];
 
 const SCHEMA_NAME = "geometry_msgs/Twist";
 const DESIRED_POWER_TOPIC = "/controls/desired_power";
@@ -136,7 +114,6 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
   const [state, setState] = useState<State>({
     topicName: "",
-    request: "{}",
     schemaName: "",
     joyStickEnabled: false,
     joystickInputs: {
@@ -247,13 +224,28 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     };
   }, [state, setState, context]); // Include dependencies that the effect uses
 
-  window.addEventListener("gamepadconnected", () => {
-    console.log("connected");
-  });
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (DEBUG) {
+      const handleJoystickConnected = () => {
+        console.log("Joystick connected");
+      };
+      const handleJoystickDisconnected = () => {
+        console.log("Joystick disconnected");
+      };
 
-  window.addEventListener("gamepaddisconnected", () => {
-    console.log("disconnected");
-  });
+      // Add event listeners
+      window.addEventListener("gamepadconnected", handleJoystickConnected);
+      window.addEventListener("gamepaddisconnected", handleJoystickDisconnected);
+
+      // Cleanup function to remove event listeners
+      return () => {
+        window.removeEventListener("gamepadconnected", handleJoystickConnected);
+        window.removeEventListener("gamepaddisconnected", handleJoystickDisconnected);
+      };
+    }
+    return;
+  }, []);
 
   const theme = useTheme();
   return (
@@ -288,26 +280,17 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         </Box>
 
         {/* Table of joystick inputs */}
-        <TableContainer component={Paper}>
-          <Table size="small" aria-label="simple table">
-            <TableBody>
-              {JoystickKeys.map((key: keyof JoystickInputs, i: number) => (
-                <TableRow
-                  key={i}
-                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                  style={{ backgroundColor: "white" }}
-                >
-                  <TableCell>
-                    <Typography variant="subtitle2">{key}</Typography>
-                  </TableCell>
-                  <TableCell align="right">
-                    <Typography variant="subtitle2">{state.joystickInputs[key].toString()}</Typography>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
+        {DEBUG && (
+          <JsonViewer
+            rootName={false}
+            value={state.joystickInputs}
+            indentWidth={2}
+            theme={state.colorScheme}
+            enableClipboard={false}
+            displayDataTypes={false}
+          />
+        )}
       </Box>
     </ThemeProvider>
   );
@@ -339,16 +322,15 @@ function queryJoystick(state: State, setState: React.Dispatch<SetStateAction<Sta
     setState((previousState) => ({
       ...previousState,
       joystickInputs: {
-        ...previousState.joystickInputs,
         xAxis: linearMapping(axes[AXIS_MAP.xIndex] ?? 0, { negate: true }),
         yAxis: linearMapping(axes[AXIS_MAP.yIndex] ?? 0, { negate: true }),
         zAxis: linearMapping(axes[AXIS_MAP.zIndex] ?? 0, { negate: true }),
         yawAxis: linearMapping(axes[AXIS_MAP.yawIndex] ?? 0, { negate: true }),
         pitchAxis: pitchMapping(axes[AXIS_MAP.pitchIndex] ?? 0),
         rollAxis: rollMapping(axes[AXIS_MAP.rollIndex] ?? 0),
-        torpedoActivate: buttons[BUTTON_MAP.torpedoActivateIndex]?.value === 1 ? true : false,
-        torpedoOneLaunch: buttons[BUTTON_MAP.torpedoOneLaunchIndex]?.value === 1 ? true : false,
-        torpedoTwoLaunch: buttons[BUTTON_MAP.torpedoTwoLaunchIndex]?.value === 1 ? true : false,
+        torpedoActivate: buttons[BUTTON_MAP.torpedoActivateIndex]?.value === 1,
+        torpedoOneLaunch: buttons[BUTTON_MAP.torpedoOneLaunchIndex]?.value === 1,
+        torpedoTwoLaunch: buttons[BUTTON_MAP.torpedoTwoLaunchIndex]?.value === 1,
       },
     }));
   }
