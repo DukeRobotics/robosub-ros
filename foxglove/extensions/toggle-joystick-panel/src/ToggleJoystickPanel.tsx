@@ -39,8 +39,8 @@ const BUTTON_MAP = {
 
 /**
  * Calculate power for pitch from thumb joystick input
- * @param value joystick value for thumb joystick
- * @returns desired power
+ * @param value Value from thumb joystick
+ * @returns Desired power
  */
 const pitchMapping = (value: number): number => {
   // Thumb joystick input initialized at 0 but returns to this stationary value after being touched and released
@@ -58,10 +58,11 @@ const pitchMapping = (value: number): number => {
     return 0;
   }
 };
+
 /**
  * Calculate power for roll from thumb joystick input
- * @param value joystick value for thumb joystick
- * @returns desired power
+ * @param value Value from thumb joystick
+ * @returns Desired power
  */
 const rollMapping = (value: number): number => {
   // Thumb joystick input initialized at 0 but returns to this stationary value after being touched and released
@@ -81,25 +82,25 @@ const rollMapping = (value: number): number => {
 };
 
 /**
- * Calculate power for linear axes
- * @param value joystick value for linear axis
- * @param negate whether to negate the value
+ * Calculate power for linear axes. If the value is below a threshold, return 0.
+ * @param value Value from linear axis
+ * @param negate If true, negate the value
  */
 const linearMapping = (value: number, { negate = false }: { negate: boolean }): number => {
   const threshold = 0.01;
   if (Math.abs(value) < threshold) {
     return 0;
   }
-  return negate ? -1 * value : value;
+  return negate ? -value : value;
 };
 
 /**
- * Query joystick for current state to read input from joystick
- * @param state state object containing joystick inputs and whether the joystick is enabled
+ * Query joystick to read and transform inputs
+ * @param state state object containing transformed joystick inputs and whether the joystick is enabled
  * @param setState method to update the state
- * @param publishSpeeds method to publish joystick inputs
+ * @param publishPower method to publish joystick inputs as a desired power
  */
-function queryJoystick(state: State, setState: React.Dispatch<SetStateAction<State>>, publishSpeeds: () => void) {
+function queryJoystick(state: State, setState: React.Dispatch<SetStateAction<State>>, publishPower: () => void) {
   const joystick = navigator.getGamepads();
   if (joystick[0]) {
     const axes = joystick[0].axes;
@@ -108,7 +109,7 @@ function queryJoystick(state: State, setState: React.Dispatch<SetStateAction<Sta
     // Update state
     setState((previousState) => ({
       ...previousState,
-      joystickInputs: {
+      transformedJoystickInputs: {
         xAxis: linearMapping(axes[AXIS_MAP.xIndex] ?? 0, { negate: true }),
         yAxis: linearMapping(axes[AXIS_MAP.yIndex] ?? 0, { negate: true }),
         zAxis: linearMapping(axes[AXIS_MAP.zIndex] ?? 0, { negate: true }),
@@ -124,7 +125,7 @@ function queryJoystick(state: State, setState: React.Dispatch<SetStateAction<Sta
 
   // Publish
   if (state.joyStickEnabled) {
-    publishSpeeds();
+    publishPower();
   }
 }
 
@@ -132,31 +133,26 @@ type TransformedJoystickInputs = {
   xAxis: number;
   yAxis: number;
   zAxis: number;
-  yawAxis: number;
-  pitchAxis: number;
   rollAxis: number;
+  pitchAxis: number;
+  yawAxis: number;
   torpedoActivate: boolean;
   torpedoOneLaunch: boolean;
   torpedoTwoLaunch: boolean;
 };
 
 type State = {
-  topicName: string;
-  request?: string;
-  schemaName: string;
   error?: Error;
   colorScheme?: RenderState["colorScheme"];
   joyStickEnabled: boolean;
-  joystickInputs: TransformedJoystickInputs;
+  transformedJoystickInputs: TransformedJoystickInputs;
 };
 
 function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
   const [state, setState] = useState<State>({
-    topicName: "",
-    schemaName: "",
     joyStickEnabled: false,
-    joystickInputs: {
+    transformedJoystickInputs: {
       xAxis: 0,
       yAxis: 0,
       yawAxis: 0,
@@ -190,7 +186,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
       return;
     }
 
-    // Request payload to toggle controls
+    // Request payload to toggle control types
     const desiredControl: CustomMsgsControlTypesConst = state.joyStickEnabled
       ? CustomMsgsControlTypesConst.DESIRED_POSE
       : CustomMsgsControlTypesConst.DESIRED_POWER;
@@ -212,8 +208,11 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
 
         // Update the state based on the service response
         // If the service responds with failure, display the response message as an error
-        const error = typedResponse.success ? undefined : Error("/controls/set_control_types has failed");
-        setState((oldState) => ({ ...oldState, error, joyStickEnabled: !oldState.joyStickEnabled }));
+        if (typedResponse.success) {
+          setState((oldState) => ({ ...oldState, error: undefined, joyStickEnabled: !oldState.joyStickEnabled }));
+        } else {
+          setState((oldState) => ({ ...oldState, error: Error(`Calling ${SET_CONTROL_TYPES_SERVICE} has failed`) }));
+        }
       },
       (error) => {
         // Handle service call errors (e.g., service is not advertised)
@@ -229,7 +228,6 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     // Pubish a request with a given schema to a topic
     const publishSpeeds = () => {
       if (!context.advertise || !context.publish) {
-        console.log("return");
         return;
       }
 
@@ -237,18 +235,17 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         datatypes: allDatatypeMaps.ros1[DESIRED_POWER_SCHEMA],
       });
 
-      // Create and publish request with values from joystick input stored in the state
-      const joystickInputs = state.joystickInputs;
+      // Create and publish desired power message
       const request: GeometryMsgsTwist = {
         linear: {
-          x: joystickInputs.xAxis,
-          y: joystickInputs.yAxis,
-          z: joystickInputs.zAxis,
+          x: state.transformedJoystickInputs.xAxis,
+          y: state.transformedJoystickInputs.yAxis,
+          z: state.transformedJoystickInputs.zAxis,
         },
         angular: {
-          x: joystickInputs.rollAxis,
-          y: joystickInputs.pitchAxis,
-          z: joystickInputs.yawAxis,
+          x: state.transformedJoystickInputs.rollAxis,
+          y: state.transformedJoystickInputs.pitchAxis,
+          z: state.transformedJoystickInputs.yawAxis,
         },
       };
       context.publish(DESIRED_POWER_TOPIC, request);
@@ -262,7 +259,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     return () => {
       clearInterval(intervalId); // Clear the interval on component unmount
     };
-  }, [state, setState, context]); // Include dependencies that the effect uses
+  }, [state, setState, context]);
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -272,6 +269,11 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
       };
       const handleJoystickDisconnected = () => {
         console.log("Joystick disconnected");
+
+        setState((oldState) => ({
+          ...oldState,
+          joyStickEnabled: false,
+        }));
       };
 
       // Add event listeners
@@ -324,7 +326,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         {DEBUG && (
           <JsonViewer
             rootName={false}
-            value={state.joystickInputs}
+            value={state.transformedJoystickInputs}
             indentWidth={2}
             theme={state.colorScheme}
             enableClipboard={false}
