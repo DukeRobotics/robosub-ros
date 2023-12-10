@@ -118,5 +118,5 @@ Fork an existing local dependency (e.g., `theme`). All local dependencies must u
 ## Additional Documentation
 - [ExtensionContext](https://foxglove.dev/docs/studio/extensions/extension-context): Register custom extensions for use in Foxglove
 - [PanelExtensionContext](https://foxglove.dev/docs/studio/extensions/panel-api): API for custom Foxglove panels
-- [Panel settings API](https://foxglove.dev/docs/studio/extensions/panel-settings-api): API to build a settings interface for extension panels
+- [Panel settings API](https://docs.foxglove.dev/docs/visualization/extensions/api/panel-settings-api): API to build a settings interface for extension panels
 - [Layouts](https://foxglove.dev/docs/studio/layouts): Documentation for Foxglove layouts
