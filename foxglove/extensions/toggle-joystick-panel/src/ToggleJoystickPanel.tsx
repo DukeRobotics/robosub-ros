@@ -211,7 +211,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         if (typedResponse.success) {
           setState((oldState) => ({ ...oldState, error: undefined, joyStickEnabled: !oldState.joyStickEnabled }));
         } else {
-          setState((oldState) => ({ ...oldState, error: Error(`Calling ${SET_CONTROL_TYPES_SERVICE} has failed`) }));
+          setState((oldState) => ({ ...oldState, error: Error(typedResponse.message) }));
         }
       },
       (error) => {
