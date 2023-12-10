@@ -12,7 +12,7 @@ import { JsonViewer } from "@textea/json-viewer";
 import { SetStateAction, useEffect, useLayoutEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
-const DEBUG = true; // Set to true to display live transformed joystick inputs
+const DEBUG = false; // Set to true to display live transformed joystick inputs
 
 const PUBLISH_RATE = 20; // Hz
 
