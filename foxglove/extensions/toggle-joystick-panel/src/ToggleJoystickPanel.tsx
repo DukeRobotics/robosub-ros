@@ -226,7 +226,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
 
   useEffect(() => {
     // Pubish a request with a given schema to a topic
-    const publishSpeeds = () => {
+    const publishPower = () => {
       if (!context.advertise || !context.publish) {
         return;
       }
@@ -253,7 +253,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
 
     const intervalDelay = 1000 / PUBLISH_RATE; // Convert Hz to milliseconds
     const intervalId = setInterval(() => {
-      queryJoystick(state, setState, publishSpeeds);
+      queryJoystick(state, setState, publishPower);
     }, intervalDelay);
 
     return () => {
