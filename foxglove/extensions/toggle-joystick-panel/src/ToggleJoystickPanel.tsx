@@ -109,7 +109,7 @@ type TransformedJoystickInputs = {
 type ToggleJoystickPanelState = {
   error?: Error;
   colorScheme?: RenderState["colorScheme"];
-  joyStickEnabled: boolean;
+  joystickEnabled: boolean;
   transformedJoystickInputs: TransformedJoystickInputs;
   joystickConnected: boolean;
 };
@@ -117,7 +117,7 @@ type ToggleJoystickPanelState = {
 function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
   const [state, setState] = useState<ToggleJoystickPanelState>({
-    joyStickEnabled: false,
+    joystickEnabled: false,
     joystickConnected: false,
     transformedJoystickInputs: {
       xAxis: 0,
@@ -154,7 +154,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     }
 
     // Request payload to toggle control types
-    const desiredControl: CustomMsgsControlTypesConst = state.joyStickEnabled
+    const desiredControl: CustomMsgsControlTypesConst = state.joystickEnabled
       ? CustomMsgsControlTypesConst.DESIRED_POSE
       : CustomMsgsControlTypesConst.DESIRED_POWER;
     const request: CustomMsgsSetControlTypesRequest = {
@@ -176,7 +176,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         // Update the state based on the service response
         // If the service responds with failure, display the response message as an error
         if (typedResponse.success) {
-          setState((oldState) => ({ ...oldState, error: undefined, joyStickEnabled: !oldState.joyStickEnabled }));
+          setState((oldState) => ({ ...oldState, error: undefined, joystickEnabled: !oldState.joystickEnabled }));
         } else {
           setState((oldState) => ({ ...oldState, error: Error(typedResponse.message) }));
         }
@@ -189,7 +189,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         }));
       },
     );
-  }, [context, state.joyStickEnabled]);
+  }, [context, state.joystickEnabled]);
 
   const publishPower = useCallback(
     (transformedJoystickInputs: TransformedJoystickInputs) => {
@@ -252,7 +252,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         }));
 
         // Publish
-        if (state.joyStickEnabled) {
+        if (state.joystickEnabled) {
           publishPower(transformedJoystickInputs);
         }
       }
@@ -266,7 +266,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     return () => {
       clearInterval(intervalId); // Clear the interval on component unmount
     };
-  }, [publishPower, state.joyStickEnabled]);
+  }, [publishPower, state.joystickEnabled]);
 
   useEffect(() => {
     const handleJoystickConnected = () => {
@@ -285,7 +285,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         joystickConnected: false,
       }));
 
-      if (state.joyStickEnabled) {
+      if (state.joystickEnabled) {
         toggleJoystick();
       }
     };
@@ -299,7 +299,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
       window.removeEventListener("gamepadconnected", handleJoystickConnected);
       window.removeEventListener("gamepaddisconnected", handleJoystickDisconnected);
     };
-  }, [state.joyStickEnabled, toggleJoystick]);
+  }, [state.joystickEnabled, toggleJoystick]);
 
   const theme = useTheme();
   return (
@@ -325,11 +325,11 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         <Box m={1}>
           <Button
             variant="contained"
-            color={state.joyStickEnabled ? "error" : "success"}
+            color={state.joystickEnabled ? "error" : "success"}
             onClick={toggleJoystick}
             disabled={context.callService == undefined || !state.joystickConnected}
           >
-            {state.joyStickEnabled ? "Disable Joystick" : "Enable Joystick"}
+            {state.joystickEnabled ? "Disable Joystick" : "Enable Joystick"}
           </Button>
         </Box>
 
