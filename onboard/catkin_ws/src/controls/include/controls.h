@@ -74,7 +74,7 @@ public:
 
     tf2::Vector3 static_power_global;
 
-    double power_multiplier;
+    double power_scale_factor;
 
     ThrusterAllocator thruster_allocator;
 

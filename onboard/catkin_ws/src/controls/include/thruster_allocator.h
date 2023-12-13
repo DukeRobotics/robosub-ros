@@ -13,7 +13,7 @@ public:
     Eigen::MatrixXd wrench_pinv;
     ThrusterAllocator();
     ThrusterAllocator(std::string wrench_file_path, std::string wrench_pinv_file_path);
-    void allocate_thrusters(const Eigen::VectorXd &set_power, double &power_multiplier,
+    void allocate_thrusters(const Eigen::VectorXd &set_power, double &power_scale_factor,
                             Eigen::VectorXd &unconstrained_allocs, Eigen::VectorXd &constrained_allocs,
                             Eigen::VectorXd &actual_power);
 };

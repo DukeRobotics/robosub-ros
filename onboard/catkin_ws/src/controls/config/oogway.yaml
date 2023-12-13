@@ -65,7 +65,7 @@ static_power_global:
   x: 0
   y: 0
   z: 0
-power_multiplier: 0.75
+power_scale_factor: 1.0
 thrusters:
   - name: bottom_front_left
     type: T200

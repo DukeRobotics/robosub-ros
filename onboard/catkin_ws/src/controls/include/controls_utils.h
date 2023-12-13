@@ -108,7 +108,7 @@ public:
     static void read_robot_config(std::string file_path,
                                   LoopsAxesPIDGainsMap &all_pid_gains,
                                   tf2::Vector3 &static_power_global,
-                                  double &power_multiplier,
+                                  double &power_scale_factor,
                                   std::string &wrench_matrix_file_path,
                                   std::string &wrench_matrix_pinv_file_path);
     static void update_robot_pid_gains(std::string file_path, const LoopsAxesPIDGainsMap &all_pid_gains);

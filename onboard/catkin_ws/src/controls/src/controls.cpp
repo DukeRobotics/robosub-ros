@@ -57,6 +57,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     reset_pid_loops_srv = nh.advertiseService("controls/reset_pid_loops", &Controls::reset_pid_loops_callback, this);
     set_static_power_global_srv = nh.advertiseService("controls/set_static_power_global", &Controls::set_static_power_global_callback, this);
 
+
     // Initialize publishers for output topics
     thruster_allocs_pub = nh.advertise<custom_msgs::ThrusterAllocs>("controls/thruster_allocs", 1);
     desired_thruster_allocs_pub = nh.advertise<custom_msgs::ThrusterAllocs>("controls/desired_thruster_allocs", 1);
@@ -79,7 +80,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     // Get PID gains from robot config file
     std::string wrench_matrix_file_path;
     std::string wrench_matrix_pinv_file_path;
-    ControlsUtils::read_robot_config(ROBOT_CONFIG_FILE_PATH, all_pid_gains, static_power_global, power_multiplier,
+    ControlsUtils::read_robot_config(ROBOT_CONFIG_FILE_PATH, all_pid_gains, static_power_global, power_scale_factor,
                                      wrench_matrix_file_path, wrench_matrix_pinv_file_path);
 
     // Instantiate PID managers for each PID loop type
@@ -307,7 +308,7 @@ void Controls::run()
             }
         }
 
-        thruster_allocator.allocate_thrusters(set_power, power_multiplier, unconstrained_allocs,
+        thruster_allocator.allocate_thrusters(set_power, power_scale_factor, unconstrained_allocs,
                                               constrained_allocs, actual_power);
 
         ControlsUtils::eigen_vector_to_thruster_allocs(constrained_allocs, constrained_t);

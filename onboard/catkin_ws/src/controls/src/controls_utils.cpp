@@ -271,7 +271,7 @@ void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd 
 void ControlsUtils::read_robot_config(std::string file_path,
                                       LoopsAxesPIDGainsMap &all_pid_gains,
                                       tf2::Vector3 &static_power_global,
-                                      double &power_multiplier,
+                                      double &power_scale_factor,
                                       std::string &wrench_matrix_file_path,
                                       std::string &wrench_matrix_pinv_file_path)
 {
@@ -303,7 +303,7 @@ void ControlsUtils::read_robot_config(std::string file_path,
         static_power_global.setZ(static_power_global_node[AXES_NAMES.at(AxesEnum::Z)].as<double>());
 
         // Read power multiplier
-        power_multiplier = config["power_multiplier"].as<double>();
+        power_scale_factor = config["power_scale_factor"].as<double>();
 
         // Read wrench matrix file paths
         wrench_matrix_file_path = config["wrench_matrix_file_path"].as<std::string>();

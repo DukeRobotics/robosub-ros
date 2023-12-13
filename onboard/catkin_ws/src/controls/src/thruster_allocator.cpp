@@ -17,7 +17,7 @@ ThrusterAllocator::ThrusterAllocator(std::string wrench_file_path, std::string w
                    "If wrench is m x n, wrench_pinv must be n x m.");
 }
 
-void ThrusterAllocator::allocate_thrusters(const Eigen::VectorXd &set_power, double &power_multiplier,
+void ThrusterAllocator::allocate_thrusters(const Eigen::VectorXd &set_power, double &power_scale_factor,
                                            Eigen::VectorXd &unconstrained_allocs, Eigen::VectorXd &constrained_allocs,
                                            Eigen::VectorXd &actual_power)
 {
@@ -25,7 +25,7 @@ void ThrusterAllocator::allocate_thrusters(const Eigen::VectorXd &set_power, dou
 
     unconstrained_allocs = wrench_pinv * set_power;
 
-    unconstrained_allocs *= power_multiplier;
+    unconstrained_allocs *= power_scale_factor;
 
     // If maximum absolute value allocation is greater than the maximum allowed, normalize all allocations
     // so that the maximum absolute value allocation is the maximum allowed and ratios between all allocations
