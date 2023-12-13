@@ -47,6 +47,8 @@ onboard/catkin_ws/src/cv/footage_extraction/*.yaml
 # Foxglove
 node_modules
 dist
+build
 
-# Don't ignore controls matrices
+# Don't ignore wrench matrices
 !onboard/catkin_ws/src/controls/data/*.csv
+

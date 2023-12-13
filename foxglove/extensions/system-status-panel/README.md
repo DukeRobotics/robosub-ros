@@ -1,5 +1,5 @@
 # System Status Panel
-System Status Panel displays the system usage of the onboard computer.
+This is a panel that displays the system usage of the onboard computer.
 
 ## Usage
 A table displays the current usage of CPU and RAM as published to the `/system/usage` topic.

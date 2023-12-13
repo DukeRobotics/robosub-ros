@@ -71,28 +71,55 @@ def run_at_path(command: Union[str, Sequence[str]], directory: pathlib.Path, sys
     subprocess.run(args, cwd=directory, check=True)
 
 
-def build_deps(skip_ci: bool = False):
+def check_npm():
     """
-    Build all necessary dependencies for Foxglove.
-    """
-    run = functools.partial(run_at_path, directory=FOXGLOVE_PATH)
+    Check if npm is installed.
 
+    Raises:
+        SystemExit: If npm not found.
+    """
     try:
-        run("npm -v")
+        run_at_path("npm -v", FOXGLOVE_PATH)
     except (FileNotFoundError, subprocess.CalledProcessError):
         raise SystemExit("npm not found. Install npm and try again.")
 
-    # Install dependencies
+
+def build_deps(skip_ci: bool = False, extension_paths: Sequence[pathlib.Path] = EXTENSION_PATHS):
+    """
+    Build all necessary dependencies for Foxglove.
+
+    Args:
+        extension_paths: Sequence of extension paths to build.
+    """
+    run = functools.partial(run_at_path, directory=FOXGLOVE_PATH)
+
+    # Create necessary paths (either directories or empty files) so that npm ci can symlink them to node_modules
+    # Files must have a suffix, otherwise they are treated as directories
+    paths = [
+        FOXGLOVE_PATH / "shared/ros-typescript-generator/build/main/cli/cli.js"
+    ]
+    for path in paths:
+        if path.suffix:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.touch()
+        else:
+            path.mkdir(parents=True, exist_ok=True)
+
+    # Install external dependencies and symlink local dependencies
     if not skip_ci:
         run("npm ci")
 
-    # Patch dependencies
-    run("npx patch-package --patch-dir patches")
+        # Patch external dependencies
+        run("npx patch-package --patch-dir patches")
 
     # Compile local shared dependencies
-    dependencies = [d for d in (FOXGLOVE_PATH / "shared").iterdir() if d.is_dir()]
+    dependencies = ["ros-typescript-generator", "defs", "theme"]  # Specify build order
     for dep in dependencies:
-        run_at_path("npm run build", dep)
+        run_at_path("npm run build --if-present", pathlib.Path("shared") / dep)
+
+    # Compile local nonshared dependencies
+    for extension in extension_paths:
+        run_at_path("npm run build-deps --if-present", extension)
 
 
 def install_extensions(extension_paths: Sequence[pathlib.Path]):
@@ -102,12 +129,6 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
     Args:
         extension_paths: Sequence of extension paths to install.
     """
-
-    try:
-        run_at_path("npm -v", FOXGLOVE_PATH)
-    except (FileNotFoundError, subprocess.CalledProcessError):
-        raise SystemExit("npm not found. Install npm and try again.")
-
     successes = 0
     for extension in extension_paths:
         if not (extension / "package.json").is_file():
@@ -274,7 +295,8 @@ if __name__ == "__main__":
             args.extensions = EXTENSION_PATHS
 
         if args.extensions is not None:
-            build_deps(skip_ci=args.skip_ci)
+            check_npm()
+            build_deps(skip_ci=args.skip_ci, extension_paths=args.extensions)
             install_extensions(args.extensions)
         if args.layouts:
             install_layouts()
@@ -291,4 +313,5 @@ if __name__ == "__main__":
             uninstall_layouts()
 
     elif args.action in ("build", "b"):
+        check_npm()
         build_deps(skip_ci=args.skip_ci)
