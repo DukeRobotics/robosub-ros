@@ -146,7 +146,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     renderDone?.();
   }, [renderDone]);
 
-  const toggleJoystick = () => {
+  const toggleJoystick = useCallback(() => {
     // Check if service calling is supported by the context
     if (!context.callService) {
       console.error("Calling services is not supported by this connection");
@@ -189,7 +189,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         }));
       },
     );
-  };
+  }, [context, state.joyStickEnabled]);
 
   const publishPower = useCallback(
     (transformedJoystickInputs: TransformedJoystickInputs) => {
@@ -269,7 +269,6 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
   }, [publishPower, state.joyStickEnabled]);
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     const handleJoystickConnected = () => {
       console.log("Joystick connected");
 
