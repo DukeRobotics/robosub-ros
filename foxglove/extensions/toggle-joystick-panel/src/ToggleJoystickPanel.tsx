@@ -9,7 +9,7 @@ import useTheme from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
 import { Button, Box, Alert, ThemeProvider } from "@mui/material";
 import { JsonViewer } from "@textea/json-viewer";
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 const DEBUG = false; // Set to true to display live transformed joystick inputs
@@ -133,7 +133,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
   });
 
   // Update color scheme
-  useLayoutEffect(() => {
+  useEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
       setRenderDone(() => done);
