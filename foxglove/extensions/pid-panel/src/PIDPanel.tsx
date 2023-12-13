@@ -300,13 +300,13 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
 
         <Grid container spacing={2}>
           <Grid item xs={6}>
-            <Button variant="contained" fullWidth onClick={handleSubmit} color="success">
-              Submit
+            <Button variant="contained" fullWidth onClick={handleReset} color="error">
+              Reset
             </Button>
           </Grid>
           <Grid item xs={6}>
-            <Button variant="contained" fullWidth onClick={handleReset} color="error">
-              Reset
+            <Button variant="contained" fullWidth onClick={handleSubmit} color="success">
+              Submit
             </Button>
           </Grid>
         </Grid>
