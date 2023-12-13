@@ -106,7 +106,7 @@ type TransformedJoystickInputs = {
   torpedoTwoLaunch: boolean;
 };
 
-type State = {
+type ToggleJoystickPanelState = {
   error?: Error;
   colorScheme?: RenderState["colorScheme"];
   joyStickEnabled: boolean;
@@ -116,7 +116,7 @@ type State = {
 
 function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const [state, setState] = useState<State>({
+  const [state, setState] = useState<ToggleJoystickPanelState>({
     joyStickEnabled: false,
     joystickConnected: false,
     transformedJoystickInputs: {
