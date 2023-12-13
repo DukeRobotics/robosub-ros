@@ -9,7 +9,7 @@ import useTheme from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
 import { Button, Box, Alert, ThemeProvider } from "@mui/material";
 import { JsonViewer } from "@textea/json-viewer";
-import { SetStateAction, useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 const DEBUG = false; // Set to true to display live transformed joystick inputs
@@ -94,41 +94,6 @@ const linearMapping = (value: number, { negate = false }: { negate: boolean }): 
   return negate ? -value : value;
 };
 
-/**
- * Query joystick to read and transform inputs
- * @param state state object containing transformed joystick inputs and whether the joystick is enabled
- * @param setState method to update the state
- * @param publishPower method to publish joystick inputs as a desired power
- */
-function queryJoystick(state: State, setState: React.Dispatch<SetStateAction<State>>, publishPower: () => void) {
-  const joystick = navigator.getGamepads();
-  if (joystick[0]) {
-    const axes = joystick[0].axes;
-    const buttons = joystick[0].buttons;
-
-    // Update state
-    setState((previousState) => ({
-      ...previousState,
-      transformedJoystickInputs: {
-        xAxis: linearMapping(axes[AXIS_MAP.xIndex] ?? 0, { negate: true }),
-        yAxis: linearMapping(axes[AXIS_MAP.yIndex] ?? 0, { negate: true }),
-        zAxis: linearMapping(axes[AXIS_MAP.zIndex] ?? 0, { negate: true }),
-        yawAxis: linearMapping(axes[AXIS_MAP.yawIndex] ?? 0, { negate: true }),
-        pitchAxis: pitchMapping(axes[AXIS_MAP.pitchIndex] ?? 0),
-        rollAxis: rollMapping(axes[AXIS_MAP.rollIndex] ?? 0),
-        torpedoActivate: buttons[BUTTON_MAP.torpedoActivateIndex]?.value === 1,
-        torpedoOneLaunch: buttons[BUTTON_MAP.torpedoOneLaunchIndex]?.value === 1,
-        torpedoTwoLaunch: buttons[BUTTON_MAP.torpedoTwoLaunchIndex]?.value === 1,
-      },
-    }));
-  }
-
-  // Publish
-  if (state.joyStickEnabled) {
-    publishPower();
-  }
-}
-
 type TransformedJoystickInputs = {
   xAxis: number;
   yAxis: number;
@@ -146,12 +111,14 @@ type State = {
   colorScheme?: RenderState["colorScheme"];
   joyStickEnabled: boolean;
   transformedJoystickInputs: TransformedJoystickInputs;
+  joystickConnected: boolean;
 };
 
 function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
   const [state, setState] = useState<State>({
     joyStickEnabled: false,
+    joystickConnected: false,
     transformedJoystickInputs: {
       xAxis: 0,
       yAxis: 0,
@@ -224,9 +191,8 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     );
   };
 
-  useEffect(() => {
-    // Pubish a request with a given schema to a topic
-    const publishPower = () => {
+  const publishPower = useCallback(
+    (transformedJoystickInputs: TransformedJoystickInputs) => {
       if (!context.advertise || !context.publish) {
         return;
       }
@@ -238,56 +204,103 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
       // Create and publish desired power message
       const request: GeometryMsgsTwist = {
         linear: {
-          x: state.transformedJoystickInputs.xAxis,
-          y: state.transformedJoystickInputs.yAxis,
-          z: state.transformedJoystickInputs.zAxis,
+          x: transformedJoystickInputs.xAxis,
+          y: transformedJoystickInputs.yAxis,
+          z: transformedJoystickInputs.zAxis,
         },
         angular: {
-          x: state.transformedJoystickInputs.rollAxis,
-          y: state.transformedJoystickInputs.pitchAxis,
-          z: state.transformedJoystickInputs.yawAxis,
+          x: transformedJoystickInputs.rollAxis,
+          y: transformedJoystickInputs.pitchAxis,
+          z: transformedJoystickInputs.yawAxis,
         },
       };
       context.publish(DESIRED_POWER_TOPIC, request);
-    };
+    },
+    [context],
+  );
+
+  useEffect(() => {
+    /**
+     * Query joystick to read and transform inputs
+     * @param state state object containing transformed joystick inputs and whether the joystick is enabled
+     * @param setState method to update the state
+     * @param publishPower method to publish joystick inputs as a desired power
+     */
+    function queryJoystick() {
+      const joystick = navigator.getGamepads();
+
+      if (joystick[0]) {
+        const axes = joystick[0].axes;
+        const buttons = joystick[0].buttons;
+
+        const transformedJoystickInputs = {
+          xAxis: linearMapping(axes[AXIS_MAP.xIndex] ?? 0, { negate: true }),
+          yAxis: linearMapping(axes[AXIS_MAP.yIndex] ?? 0, { negate: true }),
+          zAxis: linearMapping(axes[AXIS_MAP.zIndex] ?? 0, { negate: true }),
+          yawAxis: linearMapping(axes[AXIS_MAP.yawIndex] ?? 0, { negate: true }),
+          pitchAxis: pitchMapping(axes[AXIS_MAP.pitchIndex] ?? 0),
+          rollAxis: rollMapping(axes[AXIS_MAP.rollIndex] ?? 0),
+          torpedoActivate: buttons[BUTTON_MAP.torpedoActivateIndex]?.value === 1,
+          torpedoOneLaunch: buttons[BUTTON_MAP.torpedoOneLaunchIndex]?.value === 1,
+          torpedoTwoLaunch: buttons[BUTTON_MAP.torpedoTwoLaunchIndex]?.value === 1,
+        };
+
+        // Update state
+        setState((previousState) => ({
+          ...previousState,
+          transformedJoystickInputs,
+        }));
+
+        // Publish
+        if (state.joyStickEnabled) {
+          publishPower(transformedJoystickInputs);
+        }
+      }
+    }
 
     const intervalDelay = 1000 / PUBLISH_RATE; // Convert Hz to milliseconds
     const intervalId = setInterval(() => {
-      queryJoystick(state, setState, publishPower);
+      queryJoystick();
     }, intervalDelay);
 
     return () => {
       clearInterval(intervalId); // Clear the interval on component unmount
     };
-  }, [state, setState, context]);
+  }, [publishPower, state.joyStickEnabled]);
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (DEBUG) {
-      const handleJoystickConnected = () => {
-        console.log("Joystick connected");
-      };
-      const handleJoystickDisconnected = () => {
-        console.log("Joystick disconnected");
+    const handleJoystickConnected = () => {
+      console.log("Joystick connected");
 
-        setState((oldState) => ({
-          ...oldState,
-          joyStickEnabled: false,
-        }));
-      };
+      setState((previousState) => ({
+        ...previousState,
+        joystickConnected: true,
+      }));
+    };
+    const handleJoystickDisconnected = () => {
+      console.log("Joystick disconnected");
 
-      // Add event listeners
-      window.addEventListener("gamepadconnected", handleJoystickConnected);
-      window.addEventListener("gamepaddisconnected", handleJoystickDisconnected);
+      setState((oldState) => ({
+        ...oldState,
+        joystickConnected: false,
+      }));
 
-      // Cleanup function to remove event listeners
-      return () => {
-        window.removeEventListener("gamepadconnected", handleJoystickConnected);
-        window.removeEventListener("gamepaddisconnected", handleJoystickDisconnected);
-      };
-    }
-    return;
-  }, []);
+      if (state.joyStickEnabled) {
+        toggleJoystick();
+      }
+    };
+
+    // Add event listeners
+    window.addEventListener("gamepadconnected", handleJoystickConnected);
+    window.addEventListener("gamepaddisconnected", handleJoystickDisconnected);
+
+    // Cleanup function to remove event listeners
+    return () => {
+      window.removeEventListener("gamepadconnected", handleJoystickConnected);
+      window.removeEventListener("gamepaddisconnected", handleJoystickDisconnected);
+    };
+  }, [state.joyStickEnabled, toggleJoystick]);
 
   const theme = useTheme();
   return (
@@ -315,7 +328,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
             variant="contained"
             color={state.joyStickEnabled ? "error" : "success"}
             onClick={toggleJoystick}
-            disabled={context.callService == undefined}
+            disabled={context.callService == undefined || !state.joystickConnected}
           >
             {state.joyStickEnabled ? "Disable Joystick" : "Enable Joystick"}
           </Button>
