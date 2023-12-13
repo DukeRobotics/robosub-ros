@@ -106,7 +106,11 @@ roslaunch offboard_comms serial.launch
 ```
 Now to test, start sending messages to the offboard device. For instance, to run all the thrusters at speed 0, you can use:
 ```
-rostopic pub -r 10 /controls/thruster_speeds custom_msgs/ThrusterAllocs '{allocs: [0,0,0,0,0,0,0,0]}'
+rostopic pub -r 20 /controls/thruster_allocs custom_msgs/ThrusterAllocs '{allocs: [0,0,0,0,0,0,0,0]}'
+```
+For testing on land, it is recommended to run the thrusters at speed 0.05:
+```
+rostopic pub -r 20 /controls/thruster_allocs custom_msgs/ThrusterAllocs '{allocs: [0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05]}'
 ```
 
 ## Topics and Services

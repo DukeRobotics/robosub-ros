@@ -62,7 +62,10 @@ void Thrusters::read_lookup_table_csv(const std::string &filename, std::array<in
       double pwm = std::stod(row[1]);
 
       // Multiply the force value by 100 and add 100
-      int index = static_cast<int>((force * 100) + 100);
+      // This is done to convert the force value to an index for the lookup table
+      // It is important to use std::lround() instead of type casting to int directly because a direct typecast
+      // can result in the incorrect index being calculated (an error of +/- 1)
+      int index = static_cast<int>(std::lround((force * 100) + 100));
 
       // Check if the index is within bounds of the array
       if (index >= 0 && index < lookup_table.size())
@@ -92,7 +95,7 @@ void Thrusters::thruster_allocs_callback(const custom_msgs::ThrusterAllocs &msg)
   // For each of the 8 thrusters in thruster alloc (all of values in -1.0, 1.0)
   // perform a linear interpolation based on the nearest lookup table entries
   for (int i = 0; i < msg.allocs.size(); i++)
-    pwm_msg.allocs[i] = lookup(voltage, msg.allocs[i]);
+    pwm_msg.allocs[i] = lookup(msg.allocs[i]);
 
   // Publish interpolated values for each thruster
   pwm_pub.publish(pwm_msg);
@@ -100,16 +103,16 @@ void Thrusters::thruster_allocs_callback(const custom_msgs::ThrusterAllocs &msg)
 
 // Given a voltage and thruster alloc (force), compute which lookup tables
 // to use to perform linear interpolation
-double Thrusters::lookup(float voltage, float force)
+double Thrusters::lookup(double force)
 {
   // Check to make sure force and voltage are not out of bounds
   ROS_ASSERT_MSG(-1.0 <= force && force <= 1.0, "Force must be in [-1.0, 1.0]");
   ROS_ASSERT_MSG(14.0 <= voltage && voltage <= 18.0, "Voltage must be in [14.0, 18.0]");
 
   // Round force to 2 decimal points (which is what is used to index the lookup tables)
-  float rounded_force = roundf(force * 100) / 100;
-  // Calculate the lookup table index for the corresponding rounded force value
-  int index = (int)((rounded_force + 1) * 100);
+  int index = static_cast<int>(std::lround((force * 100) + 100));
+  ROS_ASSERT_MSG(0 <= index && index < NUM_LOOKUP_ENTRIES, "Error in PWM lookup. Index %d is out of bounds.", index);
+
   if (14.0 <= voltage && voltage <= 16.0)
     // Rounded force is between 14.0 and 16.0, use those lookup tables to interpolate
     return interpolate(14.0, v14_lookup_table.at(index), 16.0, v16_lookup_table.at(index), voltage);
@@ -119,7 +122,7 @@ double Thrusters::lookup(float voltage, float force)
 }
 
 // Perform linear interpolation to compute PWM given force and voltage
-double Thrusters::interpolate(float x1, float y1, float x2, float y2, float x_interpolate)
+double Thrusters::interpolate(double x1, int16_t y1, double x2, int16_t y2, double x_interpolate)
 {
   return y1 + ((y2 - y1) * (x_interpolate - x1)) / (x2 - x1);
 }
