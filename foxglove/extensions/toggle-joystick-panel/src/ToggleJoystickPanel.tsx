@@ -183,10 +183,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
       },
       (error) => {
         // Handle service call errors (e.g., service is not advertised)
-        setState((oldState) => ({
-          ...oldState,
-          error: error as Error,
-        }));
+        setState((oldState) => ({ ...oldState, error: error as Error }));
       },
     );
   }, [context, state.joystickEnabled]);
@@ -333,7 +330,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
           </Button>
         </Box>
 
-        {/* Table of joystick inputs */}
+        {/* View live transformed joystick inputs */}
         {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
         {DEBUG && (
           <JsonViewer
