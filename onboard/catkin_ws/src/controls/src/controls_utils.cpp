@@ -394,3 +394,33 @@ void ControlsUtils::update_robot_static_power_global(std::string file_path, cons
                        file_path.c_str());
     }
 }
+
+void ControlsUtils::update_robot_power_scale_factor(std::string file_path, double &power_scale_factor)
+{
+    try
+    {
+        YAML::Node config = YAML::LoadFile(file_path);
+
+        config["power_scale_factor"] = power_scale_factor;
+
+        std::ofstream fout(file_path);
+
+        if (!fout.is_open())
+            throw;
+
+        fout.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+
+        fout << config;
+
+        if (fout.fail())
+            throw;
+
+        fout.close();
+    }
+    catch (const std::exception &e)
+    {
+        ROS_ERROR("Exception: %s", e.what());
+        ROS_ASSERT_MSG(false, "Could not update power scale factor in robot config file. Make sure it is in the correct format. '%s'",
+                       file_path.c_str());
+    }
+}

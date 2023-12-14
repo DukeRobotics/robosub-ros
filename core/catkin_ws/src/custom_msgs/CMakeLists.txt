@@ -37,6 +37,7 @@ add_service_files(
   GetRunningNodes.srv
   SetControlTypes.srv
   SetPIDGains.srv
+  SetPowerScaleFactor.srv
   SetServo.srv
   SetStaticPower.srv
   StartLaunch.srv

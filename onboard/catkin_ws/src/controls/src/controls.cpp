@@ -25,6 +25,7 @@
 #include <custom_msgs/ControlTypes.h>
 #include <custom_msgs/SetPIDGains.h>
 #include <custom_msgs/SetControlTypes.h>
+#include <custom_msgs/SetPowerScaleFactor.h>
 #include <custom_msgs/SetStaticPower.h>
 #include "thruster_allocator.h"
 #include "pid_manager.h"
@@ -56,7 +57,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     set_pid_gains_srv = nh.advertiseService("controls/set_pid_gains", &Controls::set_pid_gains_callback, this);
     reset_pid_loops_srv = nh.advertiseService("controls/reset_pid_loops", &Controls::reset_pid_loops_callback, this);
     set_static_power_global_srv = nh.advertiseService("controls/set_static_power_global", &Controls::set_static_power_global_callback, this);
-
+    set_power_scale_factor_srv = nh.advertiseService("controls/set_power_scale_factor", &Controls::set_power_scale_factor_callback, this);
 
     // Initialize publishers for output topics
     thruster_allocs_pub = nh.advertise<custom_msgs::ThrusterAllocs>("controls/thruster_allocs", 1);
@@ -268,6 +269,18 @@ bool Controls::set_static_power_global_callback(custom_msgs::SetStaticPower::Req
 
     res.success = true;
     res.message = res.success ? "Updated static power successfully." : "Failed to update static power. Static power was invalid.";
+
+    return true;
+}
+
+bool Controls::set_power_scale_factor_callback(custom_msgs::SetPowerScaleFactor::Request &req, custom_msgs::SetPowerScaleFactor::Response &res)
+{
+    power_scale_factor = req.power_scale_factor;
+
+    ControlsUtils::update_robot_power_scale_factor(ROBOT_CONFIG_FILE_PATH, power_scale_factor);
+
+    res.success = true;
+    res.message = res.success ? "Updated power scale factor successfully." : "Failed to update power scale factor. Power scale factor was invalid.";
 
     return true;
 }

@@ -20,6 +20,7 @@
 #include <custom_msgs/ControlTypes.h>
 #include <custom_msgs/SetPIDGains.h>
 #include <custom_msgs/SetControlTypes.h>
+#include <custom_msgs/SetPowerScaleFactor.h>
 #include <custom_msgs/SetStaticPower.h>
 #include "thruster_allocator.h"
 #include "controls_utils.h"
@@ -50,6 +51,7 @@ public:
     ros::ServiceServer set_pid_gains_srv;
     ros::ServiceServer reset_pid_loops_srv;
     ros::ServiceServer set_static_power_global_srv;
+    ros::ServiceServer set_power_scale_factor_srv;
 
     ros::Publisher thruster_allocs_pub;
     ros::Publisher desired_thruster_allocs_pub;
@@ -93,6 +95,7 @@ public:
     bool set_pid_gains_callback(custom_msgs::SetPIDGains::Request &req, custom_msgs::SetPIDGains::Response &res);
     bool reset_pid_loops_callback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
     bool set_static_power_global_callback(custom_msgs::SetStaticPower::Request &req, custom_msgs::SetStaticPower::Response &res);
+    bool set_power_scale_factor_callback(custom_msgs::SetPowerScaleFactor::Request &req, custom_msgs::SetPowerScaleFactor::Response &res);
     void run();
 };
 

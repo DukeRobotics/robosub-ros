@@ -113,6 +113,7 @@ public:
                                   std::string &wrench_matrix_pinv_file_path);
     static void update_robot_pid_gains(std::string file_path, const LoopsAxesPIDGainsMap &all_pid_gains);
     static void update_robot_static_power_global(std::string file_path, const tf2::Vector3 &static_power_global);
+    static void update_robot_power_scale_factor(std::string file_path, double &power_scale_factor);
 };
 
 #endif
