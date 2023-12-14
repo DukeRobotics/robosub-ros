@@ -73,6 +73,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     delta_time_pub = nh.advertise<std_msgs::Float64>("controls/delta_time", 1);
     static_power_global_pub = nh.advertise<geometry_msgs::Vector3>("controls/static_power_global", 1);
     static_power_local_pub = nh.advertise<geometry_msgs::Vector3>("controls/static_power_local", 1);
+    power_scale_factor_pub = nh.advertise<std_msgs::Float64>("controls/power_scale_factor", 1);
 
     // Use desired pose as the default control type for all axes
     for (const AxesEnum &axis : AXES)
@@ -302,6 +303,7 @@ void Controls::run()
     std_msgs::Bool status_msg;
     custom_msgs::PIDGains pid_gains_msg;
     geometry_msgs::Vector3 static_power_global_msg;
+    std_msgs::Float64 power_scale_factor_msg;
 
     while (ros::ok())
     {
@@ -351,6 +353,9 @@ void Controls::run()
 
         static_power_global_msg = tf2::toMsg(static_power_global);
         static_power_global_pub.publish(static_power_global_msg);
+
+        power_scale_factor_msg.data = power_scale_factor;
+        power_scale_factor_pub.publish(power_scale_factor_msg);
 
         ros::spinOnce();
 

@@ -66,6 +66,7 @@ public:
     ros::Publisher delta_time_pub;
     ros::Publisher static_power_global_pub;
     ros::Publisher static_power_local_pub;
+    ros::Publisher power_scale_factor_pub;
 
     bool controls_enabled = false;
 
