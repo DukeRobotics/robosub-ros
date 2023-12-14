@@ -127,5 +127,10 @@ void MultiplexedBasicESC::write(int8_t speed){writeMicroseconds(map(speed, -128,
 
 This correction was determined to be a hardware defect with Oogway's Blue Robotics Basic ESCs. When sending a stop/configuration PWM signal of 1500 microseconds, the thrusters would interpret the command as a spin command. The introduced offset corrects for this issue.
 
+### Non-Linear Thruster Allocations
+The script `thrusters.cpp` will automatically read updates from the onboard voltage sensor and perform linear interpolation given the voltage and desired thruster allocation (force) to compute the desired PWM allocation.
+
+The script first pre-loads 3 lookup tables containing pre-calculated information on the relation between force (given between the interval -1.0, 1.0), voltage (fixed by the lookup table, either 14.0v, 16.0v, or 18.0v), and PWM outputs. The tables are indexed by force, which is rounded to 2 decimal precision.
+
 ### Pressure/Depth Sensor
 The pressure arduino interprets the Blue Robotics Pressure Sensor using the MS5837 library. It sends the data over a serial line using each time the sensor gets a new reading. All of the processing for the depth data can be found in the `data_pub` package.

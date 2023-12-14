@@ -101,7 +101,7 @@ void Thrusters::thruster_allocs_callback(const custom_msgs::ThrusterAllocs &msg)
   pwm_pub.publish(pwm_msg);
 }
 
-// Given a voltage and thruster alloc (force), compute which lookup tables
+// Given thruster alloc (force) and the current voltage stored as a field, compute which lookup tables
 // to use to perform linear interpolation
 double Thrusters::lookup(double force)
 {
