@@ -64,7 +64,7 @@ pid:
 static_power_global:
   x: 0
   y: 0
-  z: 0
+  z: -0.42
 power_scale_factor: 1
 thrusters:
   - name: bottom_front_left

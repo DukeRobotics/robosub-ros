@@ -12,8 +12,8 @@ import copy
 
 
 class TaskPlanner:
-    PUBLISHING_TOPIC_DESIRED_POSE = 'controls/desired_pose'
-    PUBLISHING_TOPIC_DESIRED_TWIST = 'controls/desired_twist'
+    PUBLISHING_TOPIC_DESIRED_POSE = 'controls/desired_position'
+    PUBLISHING_TOPIC_DESIRED_TWIST = 'controls/desired_velocity'
     PUBLISHING_TOPIC_CURRENT_STATE = '/state'
     PUBLISHING_TOPIC_DESIRED_POWER = 'controls/desired_power'
 

@@ -137,7 +137,7 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     geometry_msgs::TransformStamped transformStamped;
     try
     {
-        transformStamped = tfl_buffer->lookupTransform("odom", "base_link", ros::Time(0));
+        transformStamped = tfl_buffer->lookupTransform("base_link", "odom", ros::Time(0));
     }
     catch (tf2::TransformException &ex)
     {
