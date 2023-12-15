@@ -1,5 +1,5 @@
 {
-  "name": "toggle-joystick-panel",
+  "name": "@duke-robotics/toggle-joystick-panel",
   "publisher": "Duke Robotics",
   "version": "0.0.0",
   "main": "./dist/extension.js",
