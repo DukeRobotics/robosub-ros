@@ -30,6 +30,7 @@ const AXIS_MAP = {
   pitchIndex: 9, // Thumb Joystick Forward/Backward
   rollIndex: 9, // Thumb Joystick Right/Left
 };
+
 // Joystick button indices
 const BUTTON_MAP = {
   torpedoActivateIndex: 1, // Red/black striped button on Joystick
@@ -83,15 +84,15 @@ const rollMapping = (value: number): number => {
 
 /**
  * Calculate power for linear axes. If the value is below a threshold, return 0.
- * @param value Value from linear axis
- * @param negate If true, negate the value
+ * @param input Value from linear axis
+ * @param gain The value to multiply the input by
  */
-const linearMapping = (value: number, { negate = false }: { negate: boolean }): number => {
+const linearMapping = (input: number, gain: number): number => {
   const threshold = 0.01;
-  if (Math.abs(value) < threshold) {
+  if (Math.abs(input) < threshold) {
     return 0;
   }
-  return negate ? -value : value;
+  return gain * input;
 };
 
 type TransformedJoystickInputs = {
@@ -135,7 +136,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
   // Update color scheme
   useEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
-      setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
+      setState((prevState) => ({ ...prevState, colorScheme: renderState.colorScheme }));
       setRenderDone(() => done);
     };
   }, [context]);
@@ -176,18 +177,22 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         // Update the state based on the service response
         // If the service responds with failure, display the response message as an error
         if (typedResponse.success) {
-          setState((oldState) => ({ ...oldState, error: undefined, joystickEnabled: !oldState.joystickEnabled }));
+          setState((prevState) => ({ ...prevState, error: undefined, joystickEnabled: !prevState.joystickEnabled }));
         } else {
-          setState((oldState) => ({ ...oldState, error: Error(typedResponse.message) }));
+          setState((prevState) => ({ ...prevState, error: Error(typedResponse.message) }));
         }
       },
       (error) => {
         // Handle service call errors (e.g., service is not advertised)
-        setState((oldState) => ({ ...oldState, error: error as Error }));
+        setState((prevState) => ({ ...prevState, error: error as Error }));
       },
     );
   }, [context, state.joystickEnabled]);
 
+  /**
+   * Publish transformed joystick inputs as a desired power message
+   * @param transformedJoystickInputs A TransformedJoystickInputs object used to create the desired power message
+   */
   const publishPower = useCallback(
     (transformedJoystickInputs: TransformedJoystickInputs) => {
       if (!context.advertise || !context.publish) {
@@ -219,9 +224,6 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
   useEffect(() => {
     /**
      * Query joystick to read and transform inputs
-     * @param state state object containing transformed joystick inputs and whether the joystick is enabled
-     * @param setState method to update the state
-     * @param publishPower method to publish joystick inputs as a desired power
      */
     function queryJoystick() {
       const joystick = navigator.getGamepads();
@@ -231,10 +233,10 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         const buttons = joystick[0].buttons;
 
         const transformedJoystickInputs = {
-          xAxis: linearMapping(axes[AXIS_MAP.xIndex] ?? 0, { negate: true }),
-          yAxis: linearMapping(axes[AXIS_MAP.yIndex] ?? 0, { negate: true }),
-          zAxis: linearMapping(axes[AXIS_MAP.zIndex] ?? 0, { negate: true }),
-          yawAxis: linearMapping(axes[AXIS_MAP.yawIndex] ?? 0, { negate: true }),
+          xAxis: linearMapping(axes[AXIS_MAP.xIndex] ?? 0, -1),
+          yAxis: linearMapping(axes[AXIS_MAP.yIndex] ?? 0, -1),
+          zAxis: linearMapping(axes[AXIS_MAP.zIndex] ?? 0, -1),
+          yawAxis: linearMapping(axes[AXIS_MAP.yawIndex] ?? 0, -0.5),
           pitchAxis: pitchMapping(axes[AXIS_MAP.pitchIndex] ?? 0),
           rollAxis: rollMapping(axes[AXIS_MAP.rollIndex] ?? 0),
           torpedoActivate: buttons[BUTTON_MAP.torpedoActivateIndex]?.value === 1,
@@ -243,14 +245,12 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         };
 
         // Update state
-        setState((previousState) => ({
-          ...previousState,
-          transformedJoystickInputs,
-        }));
+        setState((prevState) => ({ ...prevState, transformedJoystickInputs }));
 
         // Publish
         if (state.joystickEnabled) {
           publishPower(transformedJoystickInputs);
+          // TODO: Once torpedoes are implemented on Oogway, call the appropriate service to fire torpedoes here
         }
       }
     }
@@ -269,19 +269,15 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
     const handleJoystickConnected = () => {
       console.log("Joystick connected");
 
-      setState((previousState) => ({
-        ...previousState,
-        joystickConnected: true,
-      }));
+      setState((prevState) => ({ ...prevState, joystickConnected: true }));
     };
     const handleJoystickDisconnected = () => {
       console.log("Joystick disconnected");
 
-      setState((oldState) => ({
-        ...oldState,
-        joystickConnected: false,
-      }));
+      setState((prevState) => ({ ...prevState, joystickConnected: false }));
 
+      // If the joystick is physically disconnected while enabled, disable it
+      // This will ensure that we stop continuously publishing the last known joystick inputs
       if (state.joystickEnabled) {
         toggleJoystick();
       }
