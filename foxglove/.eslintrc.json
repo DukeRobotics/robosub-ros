@@ -9,6 +9,9 @@
   "plugins": ["jest"],
   "extends": ["plugin:@foxglove/base", "plugin:@foxglove/react"],
   "rules": {
+    "no-warning-comments": [
+      "warn"
+    ],
     "camelcase": [
       "warn",
       {

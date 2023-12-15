@@ -1,0 +1,4 @@
+custom_msgs/ControlTypes control_types
+---
+bool success
+string message
