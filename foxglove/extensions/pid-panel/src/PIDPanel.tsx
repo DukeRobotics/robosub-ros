@@ -1,3 +1,9 @@
+import {
+  CustomMsgsPidGainConst,
+  CustomMsgsPidGains,
+  CustomMsgsSetPidGainsRequest,
+  CustomMsgsSetPidGainsResponse,
+} from "@duke-robotics/defs/types";
 import useTheme from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState, MessageEvent } from "@foxglove/studio";
 import {
@@ -18,13 +24,6 @@ import { ThemeProvider } from "@mui/material/styles";
 import React, { useEffect, useLayoutEffect, useState } from "react";
 import { JSX } from "react/jsx-runtime";
 import { createRoot } from "react-dom/client";
-
-import {
-  CustomMsgsPidGainConst,
-  CustomMsgsPidGains,
-  CustomMsgsSetPidGainsRequest,
-  CustomMsgsSetPidGainsResponse,
-} from "./types";
 
 const PID_TOPIC = "/controls/pid_gains";
 const SET_PID_SERVICE = "/controls/set_pid_gains";
@@ -132,7 +131,10 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     );
   };
 
-  const handleModeChange = (_, mode: CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY) => {
+  const handleModeChange = (
+    _: React.ChangeEvent<unknown>,
+    mode: CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY,
+  ) => {
     setState((oldState) => ({ ...oldState, loopType: mode }));
 
     handleReset();
