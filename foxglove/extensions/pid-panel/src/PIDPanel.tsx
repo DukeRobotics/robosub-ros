@@ -1,6 +1,6 @@
+import useTheme from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState, MessageEvent } from "@foxglove/studio";
 import {
-  useMediaQuery,
   Alert,
   Tab,
   Tabs,
@@ -14,7 +14,7 @@ import {
   Button,
   Grid,
 } from "@mui/material";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { ThemeProvider } from "@mui/material/styles";
 import React, { useEffect, useLayoutEffect, useState } from "react";
 import { JSX } from "react/jsx-runtime";
 import { createRoot } from "react-dom/client";
@@ -138,25 +138,6 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     handleReset();
   };
 
-  // TODO: Import this theme once thruster-speeds-panel is merged
-  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
-  const theme = createTheme({
-    palette: {
-      mode: prefersDarkMode ? "dark" : "light",
-    },
-    components: {
-      MuiTableRow: {
-        styleOverrides: {
-          root: {
-            "&:last-child td, &:last-child th": {
-              border: 0,
-            },
-          },
-        },
-      },
-    },
-  });
-
   function getAxisEnumName(enumValue: number): string {
     const filteredEnumEntries = Object.entries(CustomMsgsPidGainConst).filter(([key, value]) => {
       return key.startsWith("AXIS") && Number(value) === enumValue;
@@ -227,6 +208,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     handleReset();
   };
 
+  const theme = useTheme();
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>
