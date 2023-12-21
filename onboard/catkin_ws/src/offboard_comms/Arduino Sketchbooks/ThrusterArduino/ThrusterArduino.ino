@@ -19,7 +19,7 @@ Adafruit_PWMServoDriver pwm_multiplexer(0x40);
 
 uint64_t last_cmd_ms_ts;
 
-int16_t pwms[NUM_THRUSTERS];
+uint16_t pwms[NUM_THRUSTERS];
 
 MultiplexedBasicESC thrusters[NUM_THRUSTERS];
 
@@ -70,7 +70,7 @@ void loop()
 
     for (uint8_t i = 0; i < NUM_THRUSTERS; ++i)
     {
-        int16_t pwm = timeout ? THRUSTER_STOP_PWM : pwms[i];
+        uint16_t pwm = timeout ? THRUSTER_STOP_PWM : pwms[i];
 
         // If PWM is out of bounds, log error and stop thruster
         if (pwm < THRUSTER_PWM_MIN || pwm > THRUSTER_PWM_MAX)

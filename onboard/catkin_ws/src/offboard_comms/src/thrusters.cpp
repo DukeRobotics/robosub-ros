@@ -1,7 +1,7 @@
-#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <vector>
+
 #include <ros/ros.h>
 #include <ros/package.h>
 #include <ros/assert.h>
@@ -37,7 +37,7 @@ void Thrusters::load_lookup_tables()
 }
 
 // Read lookup table for voltage, thruster alloc, and pwm alloc; thurster alloc/force is stored under 2 decimal precision
-void Thrusters::read_lookup_table_csv(const std::string &filename, std::array<int16_t, NUM_LOOKUP_ENTRIES> &lookup_table)
+void Thrusters::read_lookup_table_csv(const std::string &filename, std::array<uint16_t, NUM_LOOKUP_ENTRIES> &lookup_table)
 {
   std::ifstream file(filename);
   ROS_ASSERT_MSG(file.is_open(), "Error opening file %s", filename.c_str());
@@ -59,7 +59,14 @@ void Thrusters::read_lookup_table_csv(const std::string &filename, std::array<in
     {
       // Assuming PWM is in the first column and force is in the second column
       double force = std::stod(row[0]);
-      double pwm = std::stod(row[1]);
+      int pwm = std::stoi(row[1]);
+
+      // If the PWM value is within bounds of uint16_t, cast it to uint16_t
+      uint16_t pwm16;
+      if (pwm <= static_cast<int>(UINT16_MAX) && pwm >= 0)
+        pwm16 = static_cast<uint16_t>(pwm);
+      else
+        ROS_ASSERT_MSG(false, "Error while reading CSV. PWM value %d is out of bounds for uint16_t.", pwm);
 
       // Multiply the force value by 100 and add 100
       // This is done to convert the force value to an index for the lookup table
@@ -69,7 +76,7 @@ void Thrusters::read_lookup_table_csv(const std::string &filename, std::array<in
 
       // Check if the index is within bounds of the array
       if (index >= 0 && index < lookup_table.size())
-        lookup_table[index] = pwm;
+        lookup_table[index] = pwm16;
       else
         ROS_ASSERT_MSG(false, "Error while reading CSV. Index %d is out of bounds.", index);
     }
@@ -122,7 +129,7 @@ double Thrusters::lookup(double force)
 }
 
 // Perform linear interpolation to compute PWM given force and voltage
-double Thrusters::interpolate(double x1, int16_t y1, double x2, int16_t y2, double x_interpolate)
+double Thrusters::interpolate(double x1, uint16_t y1, double x2, uint16_t y2, double x_interpolate)
 {
   return y1 + ((y2 - y1) * (x_interpolate - x1)) / (x2 - x1);
 }
