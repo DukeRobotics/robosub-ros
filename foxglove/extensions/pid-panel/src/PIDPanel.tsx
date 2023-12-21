@@ -19,6 +19,7 @@ import {
   Box,
   Button,
   Grid,
+  TextField,
 } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import React, { useEffect, useLayoutEffect, useState } from "react";
@@ -146,7 +147,8 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     });
 
     if (filteredEnumEntries.length > 0 && filteredEnumEntries[0] != null) {
-      return filteredEnumEntries[0][0];
+      const enumName = filteredEnumEntries[0][0];
+      return enumName.split("_").pop()!;
     } else {
       return "Unknown";
     }
@@ -166,7 +168,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>, axis: number, gain: number) => {
-    const isFocused = state.focusStatus[Number(axis)]?.[Number(gain)] ?? false;
+    const isFocused = state.focusStatus[axis]?.[Number(gain)] ?? false;
     if (isFocused) {
       setState((prevState) => ({
         ...prevState,
@@ -241,10 +243,10 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
             <TableHead>
               <TableRow>
                 <TableCell />
-                <TableCell align="center">GAIN_KP</TableCell>
-                <TableCell align="center">GAIN_KI</TableCell>
-                <TableCell align="center">GAIN_KD</TableCell>
-                <TableCell align="center">GAIN_FF</TableCell>
+                <TableCell align="center">KP</TableCell>
+                <TableCell align="center">KI</TableCell>
+                <TableCell align="center">KD</TableCell>
+                <TableCell align="center">FF</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -257,19 +259,32 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
                     {Object.values(g).map((gain, index) => {
                       const isFocused = state.focusStatus[Number(axis)]?.[index] ?? false;
                       return (
-                        <TableCell key={index}>
-                          <input
+                        <TableCell
+                          key={index}
+                          sx={{
+                            padding: "1px",
+                          }}
+                        >
+                          <TextField
                             type="text"
-                            style={{
+                            fullWidth
+                            sx={{
                               width: "100%",
-                              boxSizing: "border-box",
-                              border: isFocused ? `2px solid ${theme.palette.error.main}` : undefined,
+                              "& input": {
+                                boxSizing: "border-box",
+                                padding: "5px",
+                              },
+                              "& .MuiOutlinedInput-root": {
+                                "& fieldset": {
+                                  borderColor: `${isFocused ? theme.palette.error.main : theme.palette.divider}`,
+                                },
+                              },
                             }}
                             value={isFocused ? undefined : gain}
                             onFocus={() => {
                               handleFocus(Number(axis), index);
                             }}
-                            onChange={(event) => {
+                            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
                               handleInputChange(event, Number(axis), index);
                             }}
                           />
