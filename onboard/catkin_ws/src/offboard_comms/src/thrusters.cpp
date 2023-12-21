@@ -15,7 +15,7 @@ Thrusters::Thrusters(int argc, char **argv, ros::NodeHandle &nh)
   voltage = 15.5;
   // Read in corresponding voltage tables for 14.0, 16.0, and 18.0v
   load_lookup_tables();
-  
+
   // Instantiate a subscriber to the voltage sensor, should read voltages from range \in [14.0, 18.0]
   voltage_sub = nh.subscribe("/sensors/voltage", 1, &Thrusters::voltage_callback, this);
   // Subscribe to thruster allocation (desired range \in [-1.0, 1.0])
@@ -37,7 +37,7 @@ void Thrusters::load_lookup_tables()
 }
 
 // Read lookup table for voltage, thruster alloc, and pwm alloc; thurster alloc/force is stored under 2 decimal precision
-void Thrusters::read_lookup_table_csv(const std::string &filename, std::array<int16_t, 201> &lookup_table)
+void Thrusters::read_lookup_table_csv(const std::string &filename, std::array<int16_t, NUM_LOOKUP_ENTRIES> &lookup_table)
 {
   std::ifstream file(filename);
   ROS_ASSERT_MSG(file.is_open(), "Error opening file %s", filename.c_str());
