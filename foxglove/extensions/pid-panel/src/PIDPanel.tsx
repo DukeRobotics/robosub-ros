@@ -31,7 +31,7 @@ const SET_PID_SERVICE = "/controls/set_pid_gains";
 
 type PIDPanelState = {
   serviceName: string;
-  request: string;
+  request?: string;
   response?: CustomMsgsSetPidGainsResponse;
   error: Error | undefined;
   loopType: CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY;
@@ -56,12 +56,12 @@ const initPid = () => {
     [CustomMsgsPidGainConst.AXIS_PITCH]: { ...gains }, // Pitch
     [CustomMsgsPidGainConst.AXIS_YAW]: { ...gains }, // Yaw
   };
-  const pid: Record<number, Record<number, Record<number, number>>> = {
-    [CustomMsgsPidGainConst.LOOP_POSITION]: { ...axes }, // Loop Position
-    [CustomMsgsPidGainConst.LOOP_VELOCITY]: { ...axes }, // Loop Velocity
+  const loop: Record<number, Record<number, Record<number, number>>> = {
+    [CustomMsgsPidGainConst.LOOP_POSITION]: { ...axes }, // Position
+    [CustomMsgsPidGainConst.LOOP_VELOCITY]: { ...axes }, // Velocity
   };
 
-  return pid;
+  return loop;
 };
 const pid = initPid();
 
@@ -69,7 +69,6 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
   const [state, setState] = useState<PIDPanelState>({
     serviceName: SET_PID_SERVICE,
-    request: "{}",
     loopType: CustomMsgsPidGainConst.LOOP_POSITION,
     focusStatus: {},
     editedValues: {},
