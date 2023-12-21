@@ -30,47 +30,43 @@ const PID_TOPIC = "/controls/pid_gains";
 const SET_PID_SERVICE = "/controls/set_pid_gains";
 
 type PIDPanelState = {
-  serviceName: string;
-  request?: string;
-  response?: CustomMsgsSetPidGainsResponse;
-  error: Error | undefined;
+  error?: Error;
   loopType: CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY;
-  lastPidMessage?: MessageEvent<CustomMsgsPidGains>;
-  focusStatus: Record<number, Record<number, boolean>>; // Whether a cell has been focused
+  editedFields: Record<number, Record<number, boolean>>; // All fields that are in edit mode. Indexed by axis and gain.
   editedValues: Record<number, Record<number, number>>; // Values that will be submitted to the service
 };
 
-// Triple nested dictionary to get PID values
+// Triple nested object to store current PID gains
 const initPid = () => {
+  // Initialize gains to -1 to signify that they have not been received yet
   const gains: Record<number, number> = {
-    [CustomMsgsPidGainConst.GAIN_KP]: -1, // GAIN_KP
-    [CustomMsgsPidGainConst.GAIN_KI]: -1, // GAIN_KI
-    [CustomMsgsPidGainConst.GAIN_KD]: -1, // GAIN_KD
-    [CustomMsgsPidGainConst.GAIN_FF]: -1, // GAIN_KF
+    [CustomMsgsPidGainConst.GAIN_KP]: -1,
+    [CustomMsgsPidGainConst.GAIN_KI]: -1,
+    [CustomMsgsPidGainConst.GAIN_KD]: -1,
+    [CustomMsgsPidGainConst.GAIN_FF]: -1,
   };
   const axes: Record<number, Record<number, number>> = {
-    [CustomMsgsPidGainConst.AXIS_X]: { ...gains }, // X
-    [CustomMsgsPidGainConst.AXIS_Y]: { ...gains }, // Y
-    [CustomMsgsPidGainConst.AXIS_Z]: { ...gains }, // Z
-    [CustomMsgsPidGainConst.AXIS_ROLL]: { ...gains }, // Roll
-    [CustomMsgsPidGainConst.AXIS_PITCH]: { ...gains }, // Pitch
-    [CustomMsgsPidGainConst.AXIS_YAW]: { ...gains }, // Yaw
+    [CustomMsgsPidGainConst.AXIS_X]: { ...gains },
+    [CustomMsgsPidGainConst.AXIS_Y]: { ...gains },
+    [CustomMsgsPidGainConst.AXIS_Z]: { ...gains },
+    [CustomMsgsPidGainConst.AXIS_ROLL]: { ...gains },
+    [CustomMsgsPidGainConst.AXIS_PITCH]: { ...gains },
+    [CustomMsgsPidGainConst.AXIS_YAW]: { ...gains },
   };
-  const loop: Record<number, Record<number, Record<number, number>>> = {
-    [CustomMsgsPidGainConst.LOOP_POSITION]: { ...axes }, // Position
-    [CustomMsgsPidGainConst.LOOP_VELOCITY]: { ...axes }, // Velocity
+  const loops: Record<number, Record<number, Record<number, number>>> = {
+    [CustomMsgsPidGainConst.LOOP_POSITION]: { ...axes },
+    [CustomMsgsPidGainConst.LOOP_VELOCITY]: { ...axes },
   };
 
-  return loop;
+  return loops;
 };
 const pid = initPid();
 
 function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
   const [state, setState] = useState<PIDPanelState>({
-    serviceName: SET_PID_SERVICE,
     loopType: CustomMsgsPidGainConst.LOOP_POSITION,
-    focusStatus: {},
+    editedFields: {},
     editedValues: {},
     error: undefined,
   });
@@ -85,17 +81,14 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
         // Loop through lastFrame and update PID values
         const pidGains = lastFrame.message.pid_gains;
         for (const pidGain of pidGains) {
-          // The reason we do it like this is due to a bug where modifying a value in our triple nested dictionary wouldn't work
           pid[pidGain.loop]![pidGain.axis] = {
             ...pid[pidGain.loop]![pidGain.axis],
             [pidGain.gain]: pidGain.value,
           };
         }
-        setState((oldState) => ({ ...oldState, lastPidMessage: lastFrame }));
       }
     };
   }, [context]);
-  context.watch("colorScheme");
   context.watch("currentFrame");
 
   // Call our done function at the end of each render
@@ -149,6 +142,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
       const enumName = filteredEnumEntries[0][0];
       return enumName.split("_").pop()!;
     } else {
+      console.error(`Could not find axis enum name for value ${enumValue}`);
       return "Unknown";
     }
   }
@@ -156,10 +150,10 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   const handleFocus = (axis: number, index: number) => {
     setState((prevState) => ({
       ...prevState,
-      focusStatus: {
-        ...prevState.focusStatus,
+      editedFields: {
+        ...prevState.editedFields,
         [axis]: {
-          ...prevState.focusStatus[axis],
+          ...prevState.editedFields[axis],
           [index]: true,
         },
       },
@@ -167,7 +161,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>, axis: number, gain: number) => {
-    const isFocused = state.focusStatus[axis]?.[Number(gain)] ?? false;
+    const isFocused = state.editedFields[axis]?.[Number(gain)] ?? false;
     if (isFocused) {
       setState((prevState) => ({
         ...prevState,
@@ -185,7 +179,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   const handleReset = () => {
     setState((prevState) => ({
       ...prevState,
-      focusStatus: {},
+      editedFields: {},
       editedValues: {},
     }));
   };
@@ -256,7 +250,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
                     <TableCell style={{ whiteSpace: "nowrap", width: "1%" }}>{getAxisEnumName(Number(axis))}</TableCell>
                     {/* Looping through All Gains */}
                     {Object.values(g).map((gain, index) => {
-                      const isFocused = state.focusStatus[Number(axis)]?.[index] ?? false;
+                      const isFocused = state.editedFields[Number(axis)]?.[index] ?? false;
                       return (
                         <TableCell
                           key={index}
