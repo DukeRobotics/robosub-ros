@@ -1,3 +1,0 @@
-<launch>
-	<node pkg="controls" name="pid_sim" type="pid_sim.py" output="screen" />
-</launch>
