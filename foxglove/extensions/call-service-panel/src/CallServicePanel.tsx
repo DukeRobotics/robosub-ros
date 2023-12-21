@@ -1,13 +1,13 @@
-import theme from "@duke-robotics/theme";
+import useTheme from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
 import { Box, ThemeProvider } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import { JsonViewer } from "@textea/json-viewer";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { JSX } from "react/jsx-runtime";
 import { createRoot } from "react-dom/client";
 
-type State = {
+type CallServicePanelState = {
   serviceName: string;
   request: string;
   response?: unknown;
@@ -17,10 +17,10 @@ type State = {
 
 function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const [state, setState] = useState<State>({ serviceName: "", request: "{}" });
+  const [state, setState] = useState<CallServicePanelState>({ serviceName: "", request: "{}" });
 
   // Update color scheme
-  useLayoutEffect(() => {
+  useEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
       setRenderDone(() => done);
@@ -58,6 +58,7 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
     void callService(state.serviceName, state.request);
   };
 
+  const theme = useTheme();
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>

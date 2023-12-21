@@ -1,4 +1,4 @@
-import theme from "@duke-robotics/theme";
+import useTheme from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState, MessageEvent, Subscription } from "@foxglove/studio";
 import { Box, Paper, Table, TableBody, TableCell, TableContainer, TableRow, Typography, Tooltip } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
@@ -37,11 +37,11 @@ type SensorsTime = Record<topicsMapKeys, number>;
 // True if SensorsTime is within SENSOR_DOWN_THRESHOLD seconds
 type ConnectStatus = Record<topicsMapKeys, boolean>;
 
-interface SensorsStatusPanelState {
+type SensorsStatusPanelState = {
   sensorsTime: SensorsTime;
   connectStatus: ConnectStatus;
   currentTime: number;
-}
+};
 
 const initState = () => {
   const state: Partial<SensorsStatusPanelState> = {};
@@ -135,6 +135,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
   }, [renderDone]);
 
   // Create a table of all the sensors and their status
+  const theme = useTheme();
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>
