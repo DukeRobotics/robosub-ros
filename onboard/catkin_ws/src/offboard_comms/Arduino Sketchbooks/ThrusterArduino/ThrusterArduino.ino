@@ -30,7 +30,7 @@ ros::NodeHandle_<ArduinoHardware, 0, 1, 128, 128> nh;
 
 void thruster_pwm_callback(const custom_msgs::PWMAllocs &pwm_msg)
 {
-    // Copy the contents of the pwm message to the local array
+    // Check if allocations were received for the correct number of thrusters
     if (pwm_msg.allocs_length != NUM_THRUSTERS)
     {
         String msg = "Received PWM message with incorrect number of allocations. Recieved: " +
@@ -39,6 +39,7 @@ void thruster_pwm_callback(const custom_msgs::PWMAllocs &pwm_msg)
         return;
     }
 
+    // Copy the contents of the pwm message to the local array
     memcpy(pwms, pwm_msg.allocs, sizeof(pwms));
     last_cmd_ms_ts = millis();
 }
@@ -47,6 +48,7 @@ ros::Subscriber<custom_msgs::PWMAllocs> ts_sub("/offboard/pwm", &thruster_pwm_ca
 
 void setup()
 {
+    // Set all PWMs to stop for proper initialization of thrusters
     for (uint8_t i = 0; i < NUM_THRUSTERS; ++i)
         pwms[i] = THRUSTER_STOP_PWM;
 
