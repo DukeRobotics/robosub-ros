@@ -23,8 +23,8 @@ int16_t pwms[NUM_THRUSTERS];
 
 MultiplexedBasicESC thrusters[NUM_THRUSTERS];
 
-// Sets node handle to have 1 subscriber, 1 publisher, and 128 bytes for input and output buffer
-ros::NodeHandle_<ArduinoHardware, 1, 1, 128, 128> nh;
+// Sets node handle to have 0 publishers, 1 subscriber, and 128 bytes for input and output buffer
+ros::NodeHandle_<ArduinoHardware, 0, 1, 128, 128> nh;
 
 // Reusing ESC library code
 
