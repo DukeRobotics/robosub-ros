@@ -32,7 +32,6 @@ const SET_PID_SERVICE = "/controls/set_pid_gains";
 type PIDPanelState = {
   error?: Error;
   loopType: CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY;
-  editedFields: Record<number, Record<number, boolean>>; // All fields that are in edit mode. Indexed by axis and gain.
   editedValues: Record<number, Record<number, number>>; // Values that will be submitted to the service
 };
 
@@ -66,7 +65,6 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
   const [state, setState] = useState<PIDPanelState>({
     loopType: CustomMsgsPidGainConst.LOOP_POSITION,
-    editedFields: {},
     editedValues: {},
     error: undefined,
   });
@@ -147,21 +145,21 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     }
   }
 
-  const handleFocus = (axis: number, index: number) => {
+  const handleFocus = (axis: number, gainType: number) => {
     setState((prevState) => ({
       ...prevState,
-      editedFields: {
-        ...prevState.editedFields,
+      editedValues: {
+        ...prevState.editedValues,
         [axis]: {
-          ...prevState.editedFields[axis],
-          [index]: true,
+          ...prevState.editedValues[axis],
+          [gainType]: pid[state.loopType]![axis]![gainType]!,
         },
       },
     }));
   };
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>, axis: number, gain: number) => {
-    const isFocused = state.editedFields[axis]?.[Number(gain)] ?? false;
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>, axis: number, gainType: number) => {
+    const isFocused = Number(gainType) in (state.editedValues[axis] ?? {});
     if (isFocused) {
       setState((prevState) => ({
         ...prevState,
@@ -169,7 +167,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
           ...prevState.editedValues,
           [axis]: {
             ...prevState.editedValues[axis],
-            [gain]: Number(event.target.value),
+            [gainType]: Number(event.target.value),
           },
         },
       }));
@@ -249,11 +247,11 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
                   <TableRow key={axis}>
                     <TableCell style={{ whiteSpace: "nowrap", width: "1%" }}>{getAxisEnumName(Number(axis))}</TableCell>
                     {/* Looping through All Gains */}
-                    {Object.values(g).map((gain, index) => {
-                      const isFocused = state.editedFields[Number(axis)]?.[index] ?? false;
+                    {Object.values(g).map((gain, gainType) => {
+                      const isFocused = Number(gainType) in (state.editedValues[Number(axis)] ?? {});
                       return (
                         <TableCell
-                          key={index}
+                          key={gainType}
                           sx={{
                             padding: "1px",
                           }}
@@ -275,10 +273,10 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
                             }}
                             value={isFocused ? undefined : gain}
                             onFocus={() => {
-                              handleFocus(Number(axis), index);
+                              handleFocus(Number(axis), gainType);
                             }}
                             onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                              handleInputChange(event, Number(axis), index);
+                              handleInputChange(event, Number(axis), gainType);
                             }}
                           />
                         </TableCell>
