@@ -239,57 +239,55 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
             <TableHead>
               <TableRow>
                 <TableCell />
-                <TableCell align="center">KP</TableCell>
-                <TableCell align="center">KI</TableCell>
-                <TableCell align="center">KD</TableCell>
-                <TableCell align="center">FF</TableCell>
+                <TableCell style={{ textAlign: "center" }}>KP</TableCell>
+                <TableCell style={{ textAlign: "center" }}>KI</TableCell>
+                <TableCell style={{ textAlign: "center" }}>KD</TableCell>
+                <TableCell style={{ textAlign: "center" }}>FF</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {/* Looping through All Axis */}
-              {pid[state.loop] &&
-                Object.entries(pid[state.loop] ?? {}).map(([axis, g]) => (
-                  <TableRow key={axis}>
-                    <TableCell style={{ whiteSpace: "nowrap", width: "1%" }}>{getAxisEnumName(Number(axis))}</TableCell>
-                    {/* Looping through All Gains */}
-                    {Object.values(g).map((gain, gainType) => {
-                      const isFocused = Number(gainType) in (state.editedGains[Number(axis)] ?? {});
-                      return (
-                        <TableCell
-                          key={gainType}
+              {/* Loop through all axes/gain types */}
+              {Object.entries(pid[state.loop] ?? {}).map(([axis, gains]) => (
+                <TableRow key={axis}>
+                  <TableCell style={{ whiteSpace: "nowrap", width: "1%" }}>{getAxisEnumName(Number(axis))}</TableCell>
+                  {Object.values(gains).map((gain, gainType) => {
+                    const isFocused = Number(gainType) in (state.editedGains[Number(axis)] ?? {});
+                    return (
+                      <TableCell
+                        key={gainType}
+                        sx={{
+                          padding: "1px",
+                        }}
+                      >
+                        <TextField
+                          type="text"
+                          fullWidth
                           sx={{
-                            padding: "1px",
+                            width: "100%",
+                            "& input": {
+                              boxSizing: "border-box",
+                              padding: "5px",
+                            },
+                            "& .MuiOutlinedInput-root": {
+                              "& fieldset": {
+                                borderColor: `${isFocused ? theme.palette.error.main : theme.palette.divider}`,
+                              },
+                            },
                           }}
-                        >
-                          <TextField
-                            type="text"
-                            fullWidth
-                            sx={{
-                              width: "100%",
-                              "& input": {
-                                boxSizing: "border-box",
-                                padding: "5px",
-                              },
-                              "& .MuiOutlinedInput-root": {
-                                "& fieldset": {
-                                  borderColor: `${isFocused ? theme.palette.error.main : theme.palette.divider}`,
-                                },
-                              },
-                            }}
-                            value={isFocused ? undefined : gain}
-                            onFocus={() => {
-                              // Set the edited gain to the current gain value when focused
-                              updateEditedGains(pid[state.loop]![Number(axis)]![gainType]!, Number(axis), gainType);
-                            }}
-                            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                              updateEditedGains(Number(event.target.value), Number(axis), gainType);
-                            }}
-                          />
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                ))}
+                          value={isFocused ? undefined : gain}
+                          onFocus={() => {
+                            // Set the edited gain to the current gain value when focused
+                            updateEditedGains(pid[state.loop]![Number(axis)]![gainType]!, Number(axis), gainType);
+                          }}
+                          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                            updateEditedGains(Number(event.target.value), Number(axis), gainType);
+                          }}
+                        />
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </TableContainer>
