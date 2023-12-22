@@ -33,42 +33,43 @@ type PIDPanelState = {
   error?: Error;
   loop: CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY;
   editedGains: Record<number, Record<number, number>>; // Indexed by axis and gain type
+  pid: Record<number, Record<number, Record<number, number>>>; // Indexed by loop, axis, and gain type
 };
-
-// Triple nested object to store current PID gains
-const initPid = () => {
-  // Initialize gains to -1 to signify that the true values have not been received yet
-  const gains: Record<number, number> = {
-    [CustomMsgsPidGainConst.GAIN_KP]: -1,
-    [CustomMsgsPidGainConst.GAIN_KI]: -1,
-    [CustomMsgsPidGainConst.GAIN_KD]: -1,
-    [CustomMsgsPidGainConst.GAIN_FF]: -1,
-  };
-  const axes: Record<number, Record<number, number>> = {
-    [CustomMsgsPidGainConst.AXIS_X]: { ...gains },
-    [CustomMsgsPidGainConst.AXIS_Y]: { ...gains },
-    [CustomMsgsPidGainConst.AXIS_Z]: { ...gains },
-    [CustomMsgsPidGainConst.AXIS_ROLL]: { ...gains },
-    [CustomMsgsPidGainConst.AXIS_PITCH]: { ...gains },
-    [CustomMsgsPidGainConst.AXIS_YAW]: { ...gains },
-  };
-  const loops: Record<number, Record<number, Record<number, number>>> = {
-    [CustomMsgsPidGainConst.LOOP_POSITION]: { ...axes },
-    [CustomMsgsPidGainConst.LOOP_VELOCITY]: { ...axes },
-  };
-
-  return loops;
-};
-const pid = initPid();
 
 function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
+
+  // Triple nested object to store current PID gains
+  const initPid = () => {
+    // Initialize gains to -1 to signify that the true values have not been received yet
+    const gains: Record<number, number> = {
+      [CustomMsgsPidGainConst.GAIN_KP]: -1,
+      [CustomMsgsPidGainConst.GAIN_KI]: -1,
+      [CustomMsgsPidGainConst.GAIN_KD]: -1,
+      [CustomMsgsPidGainConst.GAIN_FF]: -1,
+    };
+    const axes: Record<number, Record<number, number>> = {
+      [CustomMsgsPidGainConst.AXIS_X]: { ...gains },
+      [CustomMsgsPidGainConst.AXIS_Y]: { ...gains },
+      [CustomMsgsPidGainConst.AXIS_Z]: { ...gains },
+      [CustomMsgsPidGainConst.AXIS_ROLL]: { ...gains },
+      [CustomMsgsPidGainConst.AXIS_PITCH]: { ...gains },
+      [CustomMsgsPidGainConst.AXIS_YAW]: { ...gains },
+    };
+    const loops: Record<number, Record<number, Record<number, number>>> = {
+      [CustomMsgsPidGainConst.LOOP_POSITION]: { ...axes },
+      [CustomMsgsPidGainConst.LOOP_VELOCITY]: { ...axes },
+    };
+
+    return loops;
+  };
 
   // Initialize state
   const [state, setState] = useState<PIDPanelState>({
     loop: CustomMsgsPidGainConst.LOOP_POSITION,
     editedGains: {},
     error: undefined,
+    pid: initPid(),
   });
 
   context.subscribe([{ topic: PID_TOPIC }]);
@@ -81,15 +82,21 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
 
         // Loop through received pid_gains and update our PID values
         const pidGains = lastFrame.message.pid_gains;
+
+        const updatedPid = { ...state.pid }; // Create a copy of the current pid state
         for (const pidGain of pidGains) {
-          pid[pidGain.loop]![pidGain.axis] = {
-            ...pid[pidGain.loop]![pidGain.axis],
+          updatedPid[pidGain.loop]![pidGain.axis] = {
+            ...updatedPid[pidGain.loop]![pidGain.axis],
             [pidGain.gain]: pidGain.value,
           };
         }
+        setState((oldState) => ({
+          ...oldState,
+          pid: updatedPid,
+        }));
       }
     };
-  }, [context]);
+  }, [context, state.pid]);
   context.watch("currentFrame");
 
   // Call our done function at the end of each render
@@ -247,7 +254,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
             </TableHead>
             <TableBody>
               {/* Loop through all axes/gain types */}
-              {Object.entries(pid[state.loop] ?? {}).map(([axis, gains]) => (
+              {Object.entries(state.pid[state.loop] ?? {}).map(([axis, gains]) => (
                 <TableRow key={axis}>
                   {/* Axis Label */}
                   <TableCell>{getAxisEnumName(Number(axis))}</TableCell>
@@ -273,7 +280,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
                           value={inEditMode ? undefined : gain} // Display the true gain value if not in edit mode
                           onFocus={() => {
                             // Add the current gain to editedGains when entering edit mode
-                            updateEditedGains(pid[state.loop]![Number(axis)]![gainType]!, Number(axis), gainType);
+                            updateEditedGains(state.pid[state.loop]![Number(axis)]![gainType]!, Number(axis), gainType);
                           }}
                           onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
                             // Update editedGains when the input value changes
