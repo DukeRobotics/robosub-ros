@@ -6,7 +6,7 @@
 
 	<!-- Start Arduino I/O -->
 	<group unless="$(arg sim)">
-		<include file="$(find offboard_comms)/launch/serial.launch" />
+		<include file="$(find offboard_comms)/launch/offboard_comms.launch" />
 	</group>
 
 	<!-- Start state tracking -->
