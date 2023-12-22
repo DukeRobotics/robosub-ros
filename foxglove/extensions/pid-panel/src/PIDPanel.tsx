@@ -241,6 +241,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
           <Tab label="Velocity" value={CustomMsgsPidGainConst.LOOP_VELOCITY} />
         </Tabs>
 
+        {/* PID Gains Table */}
         <TableContainer>
           <Table size="small">
             <TableHead>
@@ -296,6 +297,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
           </Table>
         </TableContainer>
 
+        {/* Buttons */}
         <Box m={1}>
           <Grid container spacing={2}>
             <Grid item xs={6}>
