@@ -229,7 +229,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
         )}
 
         {/* PID Loop Tabs */}
-        <Tabs onChange={handleLoopChange} variant="fullWidth">
+        <Tabs value={state.loop} onChange={handleLoopChange} variant="fullWidth">
           <Tab label="Position" value={CustomMsgsPidGainConst.LOOP_POSITION} />
           <Tab label="Velocity" value={CustomMsgsPidGainConst.LOOP_VELOCITY} />
         </Tabs>
@@ -249,37 +249,34 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
               {/* Loop through all axes/gain types */}
               {Object.entries(pid[state.loop] ?? {}).map(([axis, gains]) => (
                 <TableRow key={axis}>
-                  <TableCell style={{ whiteSpace: "nowrap", width: "1%" }}>{getAxisEnumName(Number(axis))}</TableCell>
+                  {/* Axis Label */}
+                  <TableCell>{getAxisEnumName(Number(axis))}</TableCell>
+
+                  {/* Axis Gains */}
                   {Object.values(gains).map((gain, gainType) => {
-                    const isFocused = Number(gainType) in (state.editedGains[Number(axis)] ?? {});
+                    const inEditMode = gainType in (state.editedGains[Number(axis)] ?? {});
                     return (
-                      <TableCell
-                        key={gainType}
-                        sx={{
-                          padding: "1px",
-                        }}
-                      >
+                      <TableCell key={gainType} sx={{ padding: "0" }}>
                         <TextField
                           type="text"
-                          fullWidth
                           sx={{
-                            width: "100%",
                             "& input": {
                               boxSizing: "border-box",
-                              padding: "5px",
                             },
                             "& .MuiOutlinedInput-root": {
                               "& fieldset": {
-                                borderColor: `${isFocused ? theme.palette.error.main : theme.palette.divider}`,
+                                // Border color is red if in edit mode, otherwise divider color
+                                borderColor: `${inEditMode ? theme.palette.error.main : theme.palette.divider}`,
                               },
                             },
                           }}
-                          value={isFocused ? undefined : gain}
+                          value={inEditMode ? undefined : gain} // Display the true gain value if not in edit mode
                           onFocus={() => {
-                            // Set the edited gain to the current gain value when focused
+                            // Add the current gain to editedGains when entering edit mode
                             updateEditedGains(pid[state.loop]![Number(axis)]![gainType]!, Number(axis), gainType);
                           }}
                           onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                            // Update editedGains when the input value changes
                             updateEditedGains(Number(event.target.value), Number(axis), gainType);
                           }}
                         />
@@ -292,18 +289,20 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
           </Table>
         </TableContainer>
 
-        <Grid container spacing={2}>
-          <Grid item xs={6}>
-            <Button variant="contained" fullWidth onClick={handleReset} color="error">
-              Reset
-            </Button>
+        <Box m={1}>
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <Button variant="contained" fullWidth onClick={handleReset} color="error">
+                Reset
+              </Button>
+            </Grid>
+            <Grid item xs={6}>
+              <Button variant="contained" fullWidth onClick={handleSubmit} color="success">
+                Submit
+              </Button>
+            </Grid>
           </Grid>
-          <Grid item xs={6}>
-            <Button variant="contained" fullWidth onClick={handleSubmit} color="success">
-              Submit
-            </Button>
-          </Grid>
-        </Grid>
+        </Box>
       </Box>
     </ThemeProvider>
   );
