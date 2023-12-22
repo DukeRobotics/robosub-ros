@@ -31,6 +31,8 @@ offboard_comms
 │   ├── ThrusterArduino
 │   │   ├── ThrusterArduino.ino # Arduino code for thrusters
 │   │   ├── ... Libraries for thrusters
+├── data
+│   ├── ... Thruster lookup tables
 ├── include
 │   ├── thrusters.h
 ├── src
