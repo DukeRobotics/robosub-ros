@@ -74,6 +74,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
 
   context.subscribe([{ topic: PID_TOPIC }]);
 
+  // Update state when a new PID message is received
   useLayoutEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setRenderDone(() => done);
@@ -132,6 +133,10 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     );
   };
 
+  /**
+   * Switch between position and velocity PID loops.
+   * @param {CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY} desiredLoop
+   */
   const handleLoopChange = (
     _: React.ChangeEvent<unknown>,
     desiredLoop: CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY,
