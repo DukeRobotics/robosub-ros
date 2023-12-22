@@ -13,4 +13,4 @@ If users would like to cancel their changes, they can click "Reset" to revert al
 ## Configuration
 The following constants can be modified:
 - `PID_TOPIC`: The topic where the current PID gains are published.
-- `SET_PID_SERVICE`: The service which handles setting new PID gains.
+- `PID_SERVICE`: The service which handles setting new PID gains.

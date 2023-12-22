@@ -27,17 +27,17 @@ import { JSX } from "react/jsx-runtime";
 import { createRoot } from "react-dom/client";
 
 const PID_TOPIC = "/controls/pid_gains";
-const SET_PID_SERVICE = "/controls/set_pid_gains";
+const PID_SERVICE = "/controls/set_pid_gains";
 
 type PIDPanelState = {
   error?: Error;
-  loopType: CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY;
-  editedValues: Record<number, Record<number, number>>; // Values that will be submitted to the service
+  loop: CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY;
+  editedGains: Record<number, Record<number, number>>; // Indexed by axis and gain type
 };
 
 // Triple nested object to store current PID gains
 const initPid = () => {
-  // Initialize gains to -1 to signify that they have not been received yet
+  // Initialize gains to -1 to signify that the true values have not been received yet
   const gains: Record<number, number> = {
     [CustomMsgsPidGainConst.GAIN_KP]: -1,
     [CustomMsgsPidGainConst.GAIN_KI]: -1,
@@ -63,9 +63,11 @@ const pid = initPid();
 
 function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
+
+  // Initialize state
   const [state, setState] = useState<PIDPanelState>({
-    loopType: CustomMsgsPidGainConst.LOOP_POSITION,
-    editedValues: {},
+    loop: CustomMsgsPidGainConst.LOOP_POSITION,
+    editedGains: {},
     error: undefined,
   });
 
@@ -76,7 +78,8 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
       setRenderDone(() => done);
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
         const lastFrame = renderState.currentFrame.at(-1) as MessageEvent<CustomMsgsPidGains>;
-        // Loop through lastFrame and update PID values
+
+        // Loop through received pid_gains and update our PID values
         const pidGains = lastFrame.message.pid_gains;
         for (const pidGain of pidGains) {
           pid[pidGain.loop]![pidGain.axis] = {
@@ -94,8 +97,8 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     renderDone?.();
   }, [renderDone]);
 
-  // Call a service with a given request
-  const callService = (serviceName: string, request: unknown) => {
+  // Call a CustomMsgsSetPidGains service with a given request
+  const callService = (serviceName: string, request: CustomMsgsSetPidGainsRequest) => {
     if (!context.callService) {
       return;
     }
@@ -122,75 +125,78 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     );
   };
 
-  const handleModeChange = (
+  const handleLoopChange = (
     _: React.ChangeEvent<unknown>,
-    mode: CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY,
+    desiredLoop: CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY,
   ) => {
-    setState((oldState) => ({ ...oldState, loopType: mode }));
-
-    handleReset();
+    setState((oldState) => ({ ...oldState, loop: desiredLoop }));
+    handleReset(); // Reset the edited gains when switching loops
   };
 
+  /**
+   * Convert an axis enum value to its name. See {@link CustomMsgsPidGainConst} for possible axis enum values.
+   * @param {number} enumValue
+   * @return {string} Axis enum name
+   */
   function getAxisEnumName(enumValue: number): string {
+    // Get enum entries that start with "AXIS" and have the given value
     const filteredEnumEntries = Object.entries(CustomMsgsPidGainConst).filter(([key, value]) => {
       return key.startsWith("AXIS") && Number(value) === enumValue;
     });
 
-    if (filteredEnumEntries.length > 0 && filteredEnumEntries[0] != null) {
+    if (filteredEnumEntries.length === 1 && filteredEnumEntries[0] != null) {
       const enumName = filteredEnumEntries[0][0];
-      return enumName.split("_").pop()!;
+      return enumName.split("_").pop()!; // Return the last part of the enum name (e.g., "X" for "AXIS_X")
+    } else if (filteredEnumEntries.length > 1) {
+      console.error(`Multiple axis enum names map to value ${enumValue}`);
+      return "Unknown";
     } else {
       console.error(`Could not find axis enum name for value ${enumValue}`);
       return "Unknown";
     }
   }
 
-  const handleFocus = (axis: number, gainType: number) => {
+  /**
+   * Update a given axis and gain type of editedGains with a new value.
+   * @param {number} value - New gain value
+   * @param {number} axis - Axis enum value
+   * @param {number} gainType - Gain enum value
+   */
+  const updateEditedGains = (value: number, axis: number, gainType: number) => {
     setState((prevState) => ({
       ...prevState,
-      editedValues: {
-        ...prevState.editedValues,
+      editedGains: {
+        ...prevState.editedGains,
         [axis]: {
-          ...prevState.editedValues[axis],
-          [gainType]: pid[state.loopType]![axis]![gainType]!,
+          ...prevState.editedGains[axis],
+          [gainType]: value,
         },
       },
     }));
   };
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>, axis: number, gainType: number) => {
-    const isFocused = Number(gainType) in (state.editedValues[axis] ?? {});
-    if (isFocused) {
-      setState((prevState) => ({
-        ...prevState,
-        editedValues: {
-          ...prevState.editedValues,
-          [axis]: {
-            ...prevState.editedValues[axis],
-            [gainType]: Number(event.target.value),
-          },
-        },
-      }));
-    }
-  };
-
+  /**
+   * Reset the edited gains to an empty object.
+   */
   const handleReset = () => {
     setState((prevState) => ({
       ...prevState,
-      editedFields: {},
-      editedValues: {},
+      editedGains: {},
     }));
   };
 
+  /**
+   * Submit {@link state.editedGains} to the {@link PID_SERVICE} and reset.
+   */
   const handleSubmit = () => {
     const request: CustomMsgsSetPidGainsRequest = {
       pid_gains: [],
     };
 
-    Object.entries(state.editedValues).forEach(([axis, gains]) => {
+    Object.entries(state.editedGains).forEach(([axis, gains]) => {
       Object.entries(gains).forEach(([gain, value]) => {
         request.pid_gains.push({
-          loop: state.loopType,
+          loop: state.loop,
           axis: Number(axis),
           gain: Number(gain),
           value: Number(value),
@@ -198,8 +204,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
       });
     });
 
-    callService(SET_PID_SERVICE, request);
-
+    callService(PID_SERVICE, request);
     handleReset();
   };
 
@@ -224,7 +229,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
         )}
 
         {/* PID Loop Tabs */}
-        <Tabs value={state.loopType} onChange={handleModeChange} variant="fullWidth">
+        <Tabs onChange={handleLoopChange} variant="fullWidth">
           <Tab label="Position" value={CustomMsgsPidGainConst.LOOP_POSITION} />
           <Tab label="Velocity" value={CustomMsgsPidGainConst.LOOP_VELOCITY} />
         </Tabs>
@@ -242,13 +247,13 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
             </TableHead>
             <TableBody>
               {/* Looping through All Axis */}
-              {pid[state.loopType] &&
-                Object.entries(pid[state.loopType] ?? {}).map(([axis, g]) => (
+              {pid[state.loop] &&
+                Object.entries(pid[state.loop] ?? {}).map(([axis, g]) => (
                   <TableRow key={axis}>
                     <TableCell style={{ whiteSpace: "nowrap", width: "1%" }}>{getAxisEnumName(Number(axis))}</TableCell>
                     {/* Looping through All Gains */}
                     {Object.values(g).map((gain, gainType) => {
-                      const isFocused = Number(gainType) in (state.editedValues[Number(axis)] ?? {});
+                      const isFocused = Number(gainType) in (state.editedGains[Number(axis)] ?? {});
                       return (
                         <TableCell
                           key={gainType}
@@ -273,10 +278,11 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
                             }}
                             value={isFocused ? undefined : gain}
                             onFocus={() => {
-                              handleFocus(Number(axis), gainType);
+                              // Set the edited gain to the current gain value when focused
+                              updateEditedGains(pid[state.loop]![Number(axis)]![gainType]!, Number(axis), gainType);
                             }}
                             onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                              handleInputChange(event, Number(axis), gainType);
+                              updateEditedGains(Number(event.target.value), Number(axis), gainType);
                             }}
                           />
                         </TableCell>
