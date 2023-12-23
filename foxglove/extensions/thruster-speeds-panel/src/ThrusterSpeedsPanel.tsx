@@ -2,7 +2,6 @@ import { allDatatypeMaps } from "@duke-robotics/defs/datatype_maps";
 import { CustomMsgsThrusterSpeeds } from "@duke-robotics/defs/types";
 import useTheme from "@duke-robotics/theme";
 import { PanelExtensionContext, RenderState, Immutable, MessageEvent } from "@foxglove/studio";
-import { CheckCircleOutline, HighlightOff } from "@mui/icons-material";
 import { TextField, Button, Alert, Tab, Tabs, CssBaseline } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
 import { ThemeProvider } from "@mui/material/styles";
@@ -321,9 +320,9 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
           ) : (
             // Button to start and stop publishing
             <Button
+              fullWidth
               variant="contained"
               color={state.repeatPublish == null ? "success" : "error"}
-              endIcon={state.repeatPublish == null ? <CheckCircleOutline /> : <HighlightOff />}
               onClick={
                 state.repeatPublish == null
                   ? () => {
