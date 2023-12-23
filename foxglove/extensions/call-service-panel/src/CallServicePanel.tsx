@@ -64,7 +64,7 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
       <Box m={1}>
         {context.callService == undefined && (
           <Alert variant="filled" severity="error">
-            Calling services is not supported by this connection
+            Calling services is not supported by this connection.
           </Alert>
         )}
 

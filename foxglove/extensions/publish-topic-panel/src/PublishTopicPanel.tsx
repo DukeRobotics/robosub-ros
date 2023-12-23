@@ -89,7 +89,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
       <Box m={1}>
         {(context.advertise == undefined || context.publish == undefined) && (
           <Alert variant="filled" severity="error">
-            Publishing topics is not supported by this connection
+            Publishing topics is not supported by this connection.
           </Alert>
         )}
 

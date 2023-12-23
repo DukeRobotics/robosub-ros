@@ -59,7 +59,7 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
           <Box mb={1}>
             {context.callService == undefined && (
               <Alert variant="filled" severity="error">
-                Calling services is not supported by this connection
+                Calling services is not supported by this connection.
               </Alert>
             )}
             {state.error != undefined && (

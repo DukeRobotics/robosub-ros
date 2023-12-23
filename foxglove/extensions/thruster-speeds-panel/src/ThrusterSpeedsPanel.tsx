@@ -277,7 +277,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
           ) : (
             (context.advertise == undefined || context.publish == undefined) && (
               <Alert variant="filled" severity="error">
-                Publishing topics is not supported by this connection
+                Publishing topics is not supported by this connection.
               </Alert>
             )
           )}
@@ -315,7 +315,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
           ) : state.hasError ? (
             // Alert to be displayed if any user input thruster speeds are invalid
             <Alert variant="filled" severity="error">
-              The speed value for each thruster must be an integer between -128 and 127!
+              The speed value for each thruster must be an integer between -128 and 127.
             </Alert>
           ) : (
             // Button to start and stop publishing
