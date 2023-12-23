@@ -91,8 +91,8 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
             [pidGain.gain]: pidGain.value,
           };
         }
-        setState((oldState) => ({
-          ...oldState,
+        setState((prevState) => ({
+          ...prevState,
           pid: updatedPid,
         }));
       }
@@ -118,15 +118,15 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
         // Update the state based on the service response
         // If the service responds with failure, display the response message as an error
         const error = typedResponse.success ? undefined : Error(typedResponse.message);
-        setState((oldState) => ({
-          ...oldState,
+        setState((prevState) => ({
+          ...prevState,
           error,
         }));
       },
       (error) => {
         // Handle service call errors (e.g., service is not advertised)
-        setState((oldState) => ({
-          ...oldState,
+        setState((prevState) => ({
+          ...prevState,
           error: error as Error,
         }));
       },
@@ -141,7 +141,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
     _: React.ChangeEvent<unknown>,
     desiredLoop: CustomMsgsPidGainConst.LOOP_POSITION | CustomMsgsPidGainConst.LOOP_VELOCITY,
   ) => {
-    setState((oldState) => ({ ...oldState, loop: desiredLoop }));
+    setState((prevState) => ({ ...prevState, loop: desiredLoop }));
     handleReset(); // Reset the edited gains when switching loops
   };
 
