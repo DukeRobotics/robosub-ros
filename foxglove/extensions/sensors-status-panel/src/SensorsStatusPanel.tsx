@@ -147,8 +147,8 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
                   key={sensor}
                   style={{
                     backgroundColor: state.connectStatus[sensor as topicsMapKeys]
-                      ? theme.palette.success.main
-                      : theme.palette.error.main,
+                      ? theme.palette.success.dark
+                      : theme.palette.error.dark,
                   }}
                 >
                   <TableCell>
