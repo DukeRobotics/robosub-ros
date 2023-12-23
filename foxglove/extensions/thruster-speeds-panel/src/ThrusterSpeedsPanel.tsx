@@ -2,7 +2,7 @@ import { allDatatypeMaps } from "@duke-robotics/defs/datatype_maps";
 import { CustomMsgsThrusterSpeeds } from "@duke-robotics/defs/types";
 import useTheme from "@duke-robotics/theme";
 import { PanelExtensionContext, RenderState, Immutable, MessageEvent } from "@foxglove/studio";
-import { TextField, Button, Alert, Tab, Tabs, CssBaseline } from "@mui/material";
+import { TextField, Button, Alert, Tab, Tabs, CssBaseline, Box } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
 import { ThemeProvider } from "@mui/material/styles";
 import { useCallback, useEffect, useState, useRef } from "react";
@@ -264,14 +264,14 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <div style={{ padding: "5px" }}>
+      <Box m={1}>
         {/* SUBSCRIBING and PUBLISHING tabs */}
         <Tabs value={state.panelMode} onChange={handleModeChange} variant="fullWidth">
           <Tab label="Subscribing" value={PanelMode.SUBSCRIBING} />
           <Tab label="Publishing" value={PanelMode.PUBLISHING} />
         </Tabs>
         {/* Alert to be displayed if the panel is in PUBLISHING mode but cannot publish to THRUSTER_SPEEDS_TOPIC */}
-        <div style={{ padding: "5px" }}>
+        <Box my={1}>
           {state.panelMode === PanelMode.SUBSCRIBING ? (
             <></>
           ) : (
@@ -281,14 +281,15 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
               </Alert>
             )
           )}
-        </div>
-        <div>
+        </Box>
+        <Box>
           {/* Grid for displaying thruster speeds. If in SUBSCRIBING mode, displays subscribed speeds, otherwise
           displays TextFields for user to input thruster speeds values */}
           <Grid container rowSpacing={1} columnSpacing={0}>
             {thrusters.map((thruster) => (
               <Grid key={thruster} xs={6}>
                 <TextField
+                  type="number"
                   key={thruster}
                   id={thruster}
                   error={state.panelMode === PanelMode.PUBLISHING && !validateInput(state.tempThrusterSpeeds[thruster])}
@@ -308,8 +309,8 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
               </Grid>
             ))}
           </Grid>
-        </div>
-        <div style={{ display: "flex", justifyContent: "center", padding: "5px" }}>
+        </Box>
+        <Box my={1}>
           {state.panelMode === PanelMode.SUBSCRIBING ? (
             <></>
           ) : state.hasError ? (
@@ -338,8 +339,8 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
               {state.repeatPublish == null ? "Start Publishing" : "Stop Publishing"}
             </Button>
           )}
-        </div>
-      </div>
+        </Box>
+      </Box>
     </ThemeProvider>
   );
 }
