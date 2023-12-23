@@ -315,8 +315,9 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         )}
 
         {/* Toggle button */}
-        <Box m={1}>
+        <Box my={1}>
           <Button
+            fullWidth
             variant="contained"
             color={state.joystickEnabled ? "error" : "success"}
             onClick={toggleJoystick}

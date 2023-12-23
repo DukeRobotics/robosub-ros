@@ -72,6 +72,7 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
 
         {/* Toggle button */}
         <Button
+          fullWidth
           variant="contained"
           color={state.controlsEnabled ? "error" : "success"}
           onClick={toggleControls}
