@@ -304,6 +304,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
                   InputProps={state.panelMode === PanelMode.SUBSCRIBING ? { readOnly: true } : {}}
                   defaultValue={state.panelMode === PanelMode.SUBSCRIBING ? false : 0}
                   onChange={updateTempSpeeds}
+                  fullWidth
                 />
               </Grid>
             ))}
