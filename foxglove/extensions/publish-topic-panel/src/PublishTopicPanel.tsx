@@ -21,7 +21,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
   const [state, setState] = useState<PublishTopicPanelState>({
     topicName: "",
-    request: "{}",
+    request: "{\n\n}",
     schemaType: "ros1",
     publishRate: 10,
     repeatPublish: null,
@@ -87,26 +87,48 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>
-        {(context.advertise == undefined || context.publish == undefined) && (
-          <Alert variant="filled" severity="error">
-            Publishing topics is not supported by this connection.
-          </Alert>
-        )}
+        <Box my={1}>
+          {(context.advertise == undefined || context.publish == undefined) && (
+            <Alert variant="filled" severity="error">
+              Publishing topics is not supported by this connection.
+            </Alert>
+          )}
+        </Box>
 
-        <TextField
-          margin="dense"
-          size="small"
-          type="text"
-          label="Topic Name"
-          fullWidth
-          value={state.topicName}
-          onChange={(event) => {
-            setState({ ...state, topicName: event.target.value });
-          }}
-          InputProps={{
-            startAdornment: <InputAdornment position="start">/</InputAdornment>,
-          }}
-        />
+        <Grid container spacing={1}>
+          <Grid item xs={8}>
+            <TextField
+              margin="dense"
+              size="small"
+              type="text"
+              label="Topic Name"
+              fullWidth
+              value={state.topicName}
+              onChange={(event) => {
+                setState({ ...state, topicName: event.target.value });
+              }}
+              InputProps={{
+                startAdornment: <InputAdornment position="start">/</InputAdornment>,
+              }}
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <TextField
+              margin="dense"
+              size="small"
+              error={state.invalidRate}
+              helperText={state.invalidRate ? "Rate must be positive." : ""}
+              label="Rate"
+              defaultValue={state.publishRate}
+              type="number"
+              fullWidth
+              onChange={handleRateChange}
+              InputProps={{
+                endAdornment: <InputAdornment position="end">Hz</InputAdornment>,
+              }}
+            />
+          </Grid>
+        </Grid>
 
         <Grid container spacing={1}>
           <Grid item xs={4}>
@@ -151,20 +173,6 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
         <TextField
           margin="dense"
           size="small"
-          error={state.invalidRate}
-          helperText={state.invalidRate ? "Rate must be positive." : ""}
-          label="Rate (Hz)"
-          defaultValue={state.publishRate}
-          type="number"
-          fullWidth
-          onChange={handleRateChange}
-          InputProps={{
-            endAdornment: <InputAdornment position="end">Hz</InputAdornment>,
-          }}
-        />
-
-        <TextField
-          margin="dense"
           multiline
           label="Request"
           fullWidth
@@ -206,7 +214,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
                 onClick={toggleInterval}
                 color={state.repeatPublish == null ? "success" : "error"}
               >
-                {state.repeatPublish == null ? "Start Publish Loop" : "Stop Publish Loop"}
+                {state.repeatPublish == null ? "Start Publishing" : "Stop Publishing"}
               </Button>
             </Grid>
           </Grid>
