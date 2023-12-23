@@ -323,6 +323,8 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
 }
 
 export function initPIDPanel(context: PanelExtensionContext): () => void {
+  context.panelElement.style.overflow = "auto"; // Enable scrolling
+
   const root = createRoot(context.panelElement as HTMLElement);
   root.render(<PIDPanel context={context} />);
 
