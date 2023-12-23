@@ -136,8 +136,18 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
               fullWidth
               options={Object.keys(allDatatypeMaps)}
               value={state.schemaType}
-              onChange={(_, newValue) => setState({ ...state, schemaType: newValue as keyof AllDatatypeMapsType })}
-              renderInput={(params) => <TextField {...params} label="Schema Type" margin="dense" size="small" />}
+              onChange={(_, newValue) =>
+                // Don't allow undefined since we need to use schema type as a key to get the schema names
+                setState({ ...state, schemaType: (newValue ?? state.schemaType) as keyof AllDatatypeMapsType })
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Schema Type"
+                  margin="dense"
+                  size="small"
+                />
+              )}
             />
           </Grid>
           <Grid item xs={8}>
