@@ -169,6 +169,8 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
 }
 
 export function initSensorsStatusPanel(context: PanelExtensionContext): () => void {
+  context.panelElement.style.overflow = "auto"; // Enable scrolling
+
   const root = createRoot(context.panelElement as HTMLElement);
   root.render(<SensorsStatusPanel context={context} />);
 

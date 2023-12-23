@@ -85,6 +85,8 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
 }
 
 export function initToggleControlsPanel(context: PanelExtensionContext): () => void {
+  context.panelElement.style.overflow = "auto"; // Enable scrolling
+
   const root = createRoot(context.panelElement as HTMLElement);
   root.render(<ToggleControlsPanel context={context} />);
 
