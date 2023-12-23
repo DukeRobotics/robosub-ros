@@ -303,7 +303,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
         </TableContainer>
 
         {/* Buttons */}
-        <Box m={1}>
+        <Box my={1}>
           <Grid container spacing={2}>
             <Grid item xs={6}>
               <Button variant="contained" fullWidth onClick={handleReset} color="error">
