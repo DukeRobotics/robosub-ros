@@ -1,7 +1,7 @@
 import { AllDatatypeMapsType, allDatatypeMaps } from "@duke-robotics/defs/datatype_maps";
 import useTheme from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
-import { Box, Button, Grid, InputAdornment, MenuItem, TextField, ThemeProvider } from "@mui/material";
+import { Autocomplete, Box, Button, Grid, InputAdornment, MenuItem, TextField, ThemeProvider } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -132,41 +132,22 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
 
         <Grid container spacing={1}>
           <Grid item xs={4}>
-            <TextField
-              select
-              label="Schema Type"
-              margin="dense"
-              size="small"
+            <Autocomplete
               fullWidth
+              options={Object.keys(allDatatypeMaps)}
               value={state.schemaType}
-              onChange={(event) => {
-                setState({ ...state, schemaType: event.target.value as "ros1" | "custom_msgs" });
-              }}
-            >
-              {Object.entries(allDatatypeMaps).map(([name, _]) => (
-                <MenuItem key={name} value={name}>
-                  {name}
-                </MenuItem>
-              ))}
-            </TextField>
+              onChange={(_, newValue) => setState({ ...state, schemaType: newValue as keyof AllDatatypeMapsType })}
+              renderInput={(params) => <TextField {...params} label="Schema Type" margin="dense" size="small" />}
+            />
           </Grid>
           <Grid item xs={8}>
-            <TextField
-              select
-              label="Schema Name"
-              margin="dense"
-              size="small"
+            <Autocomplete
               fullWidth
-              onChange={(event) => {
-                setState({ ...state, schemaName: event.target.value });
-              }}
-            >
-              {Object.entries(allDatatypeMaps[state.schemaType]).map(([name, _]) => (
-                <MenuItem key={name} value={name}>
-                  {name}
-                </MenuItem>
-              ))}
-            </TextField>
+              options={Object.keys(allDatatypeMaps[state.schemaType])}
+              value={state.schemaName}
+              onChange={(_, newValue) => setState({ ...state, schemaName: newValue ?? undefined })}
+              renderInput={(params) => <TextField {...params} label="Schema Name" margin="dense" size="small" />}
+            />
           </Grid>
         </Grid>
 
