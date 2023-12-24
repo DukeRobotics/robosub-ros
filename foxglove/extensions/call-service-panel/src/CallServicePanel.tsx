@@ -11,13 +11,13 @@ type CallServicePanelState = {
   serviceName: string;
   request: string;
   response?: unknown;
-  error?: Error | undefined;
+  error?: Error;
   colorScheme?: RenderState["colorScheme"];
 };
 
 function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const [state, setState] = useState<CallServicePanelState>({ serviceName: "", request: "{}" });
+  const [state, setState] = useState<CallServicePanelState>({ serviceName: "", request: "{\n\n}" });
 
   // Update color scheme
   useEffect(() => {
@@ -40,7 +40,7 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
     }
 
     try {
-      const response = await context.callService(serviceName, JSON.parse(request));
+      const response = await context.callService(`/${serviceName}`, JSON.parse(request));
       JSON.stringify(response); // Attempt serializing the response, to throw an error on failure
       setState((oldState) => ({
         ...oldState,
@@ -78,9 +78,9 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
           </Box>
         )}
 
-        {/* Topic Name Input */}
+        {/* Service Name Input */}
         <TextField
-          label="Topic Name"
+          label="Service Name"
           type="text"
           size="small"
           margin="dense"
@@ -113,21 +113,23 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
           }}
         />
 
-        {/* Publish Once Button */}
-        <Button
-          fullWidth
-          variant="contained"
-          disabled={context.callService == undefined || state.serviceName === ""}
-          onClick={callServiceWithRequest}
-        >
-          {`Call Service`}
-        </Button>
+        <Box my={1}>
+          {/* Publish Once Button */}
+          <Button
+            fullWidth
+            variant="contained"
+            disabled={context.callService == undefined || state.serviceName === ""}
+            onClick={callServiceWithRequest}
+          >
+            {`Call Service`}
+          </Button>
+        </Box>
 
         <Box>
           <h4>Response</h4>
           <JsonViewer
             rootName={false}
-            value={state.error ? { error: state.error.message } : state.response ?? {}}
+            value={state.response}
             indentWidth={2}
             theme={state.colorScheme}
             enableClipboard={false}
