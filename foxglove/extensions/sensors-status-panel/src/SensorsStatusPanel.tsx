@@ -93,7 +93,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
       }
 
       if (renderState.currentFrame && renderState.currentFrame.length !== 0) {
-        const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent;
+        const lastFrame = renderState.currentFrame.at(-1) as MessageEvent;
         const sensorName = TOPICS_MAP_REVERSED[lastFrame.topic] as string;
 
         // Update sensorsTime to the current time and set connectStatus to true

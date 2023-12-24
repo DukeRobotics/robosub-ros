@@ -1,6 +1,6 @@
 import useTheme from "@duke-robotics/theme";
 import { PanelExtensionContext, RenderState, Topic, MessageEvent, Immutable } from "@foxglove/studio";
-import { Box, ThemeProvider } from "@mui/material";
+import { Autocomplete, Box, TextField, ThemeProvider } from "@mui/material";
 import { JsonViewer } from "@textea/json-viewer";
 import { useEffect, useState, useMemo } from "react";
 import { createRoot } from "react-dom/client";
@@ -52,7 +52,7 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
 
       // Save the most recent message on our topic.
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        const lastFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent;
+        const lastFrame = renderState.currentFrame.at(-1) as MessageEvent;
 
         setState((oldState) => ({ ...oldState, message: lastFrame }));
       }
@@ -72,32 +72,28 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>
-        <div>
-          <label>Choose a topic to display: </label>
-          <select
-            value={state.topic}
-            onChange={(event) => {
-              setState((oldState) => ({ ...oldState, topic: event.target.value }));
-            }}
-            style={{ flex: 1 }}
-          >
-            {topics.map((topic) => (
-              <option key={topic.name} value={topic.name}>
-                {topic.name}
-              </option>
-            ))}
-          </select>
-
-          <JsonViewer
-            rootName={false}
-            value={state.message as object}
-            indentWidth={2}
-            theme={state.colorScheme}
-            enableClipboard={false}
-            displayDataTypes={false}
-            maxDisplayLength={10}
-          />
-        </div>
+        {/* Topic Name Input */}
+        <Autocomplete
+          fullWidth
+          options={topics.map((topic) => topic.name)}
+          value={state.topic}
+          onChange={(_, newValue) => {
+            setState((prevState) => ({
+              ...prevState,
+              topic: newValue ?? undefined,
+            }));
+          }}
+          renderInput={(params) => <TextField {...params} label="Topic Name" margin="dense" size="small" />}
+        />
+        {/* Message */}
+        <JsonViewer
+          rootName={false}
+          value={state.message}
+          indentWidth={2}
+          theme={state.colorScheme}
+          enableClipboard={true}
+          displayDataTypes={false}
+        />
       </Box>
     </ThemeProvider>
   );
