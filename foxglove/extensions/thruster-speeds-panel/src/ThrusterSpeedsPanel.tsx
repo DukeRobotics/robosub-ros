@@ -178,7 +178,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
       context.advertise(THRUSTER_SPEEDS_TOPIC, THRUSTER_SPEEDS_MESSAGE_TYPE, {
         datatypes: allDatatypeMaps["custom_msgs"][THRUSTER_SPEEDS_MESSAGE_TYPE],
       });
-      context.publish(`/${THRUSTER_SPEEDS_TOPIC}`, message);
+      context.publish(THRUSTER_SPEEDS_TOPIC, message);
 
       setState((oldState) => ({
         ...oldState,
