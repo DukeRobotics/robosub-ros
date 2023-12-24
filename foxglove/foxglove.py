@@ -31,11 +31,12 @@ ORGANIZATION = "dukerobotics"
 if (SYSTEM := platform.system()) not in ("Linux", "Darwin", "Windows"):
     raise SystemExit(f"Unsupported platform: {SYSTEM}")
 
-LAYOUT_INSTALL_PATH = {
-    "Linux": pathlib.Path.home() / ".config/Foxglove Studio/studio-datastores/layouts-local/",
-    "Darwin": pathlib.Path.home() / "Library/Application Support/Foxglove Studio/studio-datastores/layouts-local/",
-    "Windows": pathlib.Path.home() / "AppData/Roaming/Foxglove Studio/studio-datastores/layouts-local/"
+STUDIO_DATASTORES_PATH = {
+    "Linux": pathlib.Path.home() / ".config/Foxglove Studio/studio-datastores/",
+    "Darwin": pathlib.Path.home() / "Library/Application Support/Foxglove Studio/studio-datastores/",
+    "Windows": pathlib.Path.home() / "AppData/Roaming/Foxglove Studio/studio-datastores/"
 }[SYSTEM]
+LAYOUT_INSTALL_PATH = STUDIO_DATASTORES_PATH / "layouts-local/"
 EXTENSION_INSTALL_PATH = pathlib.Path.home() / ".foxglove-studio/extensions/"
 
 FOXGLOVE_PATH = pathlib.Path(__file__).parent.resolve()
@@ -198,7 +199,7 @@ def uninstall_extensions(install_path: pathlib.Path = EXTENSION_INSTALL_PATH):
     print(f"Successfully uninstalled {len(extensions)} extension(s)\n")
 
 
-def uninstall_layouts(install_path: pathlib.Path = LAYOUT_INSTALL_PATH):
+def uninstall_layouts():
     """
     Uninstall all Duke Robotics layouts from Foxglove.
 
@@ -207,12 +208,18 @@ def uninstall_layouts(install_path: pathlib.Path = LAYOUT_INSTALL_PATH):
     Args:
         install_path: Path where layouts are installed.
     """
-    layouts = [d for d in install_path.iterdir() if d.name.startswith(ORGANIZATION)]
-    for layout in layouts:
-        layout.unlink()
-        print(f"{layout.name}: uninstalled")
+    remote_layouts = [d for d in STUDIO_DATASTORES_PATH.iterdir() if d.name.startswith("layouts-remote")]
 
-    print(f"Successfully uninstalled {len(layouts)} layouts(s)\n")
+    successes = 0
+    for path in (remote_layouts + [LAYOUT_INSTALL_PATH]):
+        layouts = [d for d in path.iterdir() if d.name.startswith(ORGANIZATION)]
+        for layout in layouts:
+            layout.unlink()
+            print(f"{layout.name}: uninstalled")
+
+            successes += 1
+
+    print(f"Successfully uninstalled {successes} layouts(s)\n")
 
 
 def extension_package(name: str, extension_paths: Sequence[pathlib.Path] = EXTENSION_PATHS):
