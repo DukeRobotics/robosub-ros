@@ -1,6 +1,6 @@
 import useTheme from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
-import { Box, Button, InputAdornment, TextField, ThemeProvider } from "@mui/material";
+import { Box, Button, InputAdornment, TextField, ThemeProvider, Typography } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import { JsonViewer } from "@textea/json-viewer";
 import { useEffect, useState } from "react";
@@ -34,28 +34,24 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
   }, [renderDone]);
 
   // Call a service with a given request
-  const callService = async (serviceName: string, request: string) => {
+  const callService = () => {
     if (!context.callService) {
       return;
     }
 
-    try {
-      const response = await context.callService(`/${serviceName}`, JSON.parse(request));
-      JSON.stringify(response); // Attempt serializing the response, to throw an error on failure
-      setState((oldState) => ({
-        ...oldState,
-        response,
-        error: undefined,
-      }));
-    } catch (error) {
-      setState((oldState) => ({ ...oldState, error: error as Error }));
-      console.error(error);
-    }
-  };
-
-  // Close callService with the current state for use in the button
-  const callServiceWithRequest = () => {
-    void callService(state.serviceName, state.request);
+    context.callService(`/${state.serviceName}`, JSON.parse(state.request)).then(
+      (response) => {
+        JSON.stringify(response); // Attempt serializing the response, to throw an error on failure
+        setState((oldState) => ({
+          ...oldState,
+          response,
+          error: undefined,
+        }));
+      },
+      (error) => {
+        setState((oldState) => ({ ...oldState, error: error as Error }));
+      },
+    );
   };
 
   const theme = useTheme();
@@ -114,25 +110,27 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
         />
 
         <Box my={1}>
-          {/* Publish Once Button */}
+          {/* Call Service Button */}
           <Button
             fullWidth
             variant="contained"
             disabled={context.callService == undefined || state.serviceName === ""}
-            onClick={callServiceWithRequest}
+            onClick={callService}
           >
             {`Call Service`}
           </Button>
         </Box>
 
         <Box>
-          <h4>Response</h4>
+          <Typography variant="subtitle1" gutterBottom>
+            Response
+          </Typography>
           <JsonViewer
             rootName={false}
             value={state.response}
             indentWidth={2}
             theme={state.colorScheme}
-            enableClipboard={false}
+            enableClipboard={true}
             displayDataTypes={false}
           />
         </Box>
