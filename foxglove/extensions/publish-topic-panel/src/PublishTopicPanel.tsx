@@ -48,7 +48,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
     } catch (e) {
       setState((prevState) => ({
         ...prevState,
-        error: e as Error,
+        error: e as Error, // Catch JSON parse errors
       }));
     }
   };
@@ -71,6 +71,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
     }
   };
 
+  // Validate rate input
   const handleRateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number(event.target.value);
 
@@ -110,11 +111,12 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
 
         <Grid container spacing={1}>
           <Grid item xs={8}>
+            {/* Topic Input */}
             <TextField
-              margin="dense"
-              size="small"
-              type="text"
               label="Topic Name"
+              type="text"
+              size="small"
+              margin="dense"
               fullWidth
               value={state.topicName}
               onChange={(event) => {
@@ -129,15 +131,16 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
             />
           </Grid>
           <Grid item xs={4}>
+            {/* Rate Input */}
             <TextField
-              margin="dense"
+              label="Rate"
+              type="number"
               size="small"
+              margin="dense"
+              fullWidth
               error={state.invalidRate}
               helperText={state.invalidRate ? "Rate must be positive." : ""}
-              label="Rate"
               defaultValue={state.publishRate}
-              type="number"
-              fullWidth
               onChange={handleRateChange}
               InputProps={{
                 endAdornment: <InputAdornment position="end">Hz</InputAdornment>,
@@ -148,6 +151,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
 
         <Grid container spacing={1}>
           <Grid item xs={4}>
+            {/* Schema Type Input */}
             <Autocomplete
               fullWidth
               options={Object.keys(allDatatypeMaps)}
@@ -163,6 +167,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
             />
           </Grid>
           <Grid item xs={8}>
+            {/* Schema Name Input */}
             <Autocomplete
               fullWidth
               options={Object.keys(allDatatypeMaps[state.schemaType])}
@@ -178,6 +183,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
           </Grid>
         </Grid>
 
+        {/* Request Input */}
         <TextField
           margin="dense"
           size="small"
@@ -196,6 +202,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
         <Box my={1}>
           <Grid container spacing={1}>
             <Grid item xs={6}>
+              {/* Publish Once Button */}
               <Button
                 fullWidth
                 variant="contained"
@@ -212,6 +219,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
               </Button>
             </Grid>
             <Grid item xs={6}>
+              {/* Rate Publishing Toggle */}
               <Button
                 fullWidth
                 variant="contained"
