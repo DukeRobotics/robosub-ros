@@ -111,7 +111,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
 
         <Grid container spacing={1}>
           <Grid item xs={8}>
-            {/* Topic Input */}
+            {/* Topic Name Input */}
             <TextField
               label="Topic Name"
               type="text"
