@@ -1,6 +1,6 @@
 import useTheme from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
-import { Box, ThemeProvider } from "@mui/material";
+import { Box, Button, InputAdornment, TextField, ThemeProvider } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import { JsonViewer } from "@textea/json-viewer";
 import { useEffect, useState } from "react";
@@ -62,45 +62,68 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>
-        {context.callService == undefined && (
-          <Alert variant="filled" severity="error">
-            Calling services is not supported by this connection.
-          </Alert>
+        {/* Error messages */}
+        {(context.callService == undefined || state.error != undefined) && (
+          <Box mb={1}>
+            {context.callService == undefined && (
+              <Alert variant="filled" severity="error">
+                Calling services is not supported by this connection.
+              </Alert>
+            )}
+            {state.error != undefined && (
+              <Alert variant="filled" severity="error">
+                {state.error.message}
+              </Alert>
+            )}
+          </Box>
         )}
 
-        <h4>Service Name</h4>
-        <div>
-          <input
-            type="text"
-            placeholder="Enter service name"
-            style={{ width: "100%" }}
-            value={state.serviceName}
-            onChange={(event) => {
-              setState({ ...state, serviceName: event.target.value });
-            }}
-          />
-        </div>
-        <h4>Request</h4>
-        <div>
-          <textarea
-            style={{ width: "100%", minHeight: "3rem" }}
-            value={state.request}
-            onChange={(event) => {
-              setState({ ...state, request: event.target.value });
-            }}
-          />
-        </div>
-        <div>
-          <button
-            disabled={context.callService == undefined || state.serviceName === ""}
-            style={{ width: "100%", minHeight: "2rem" }}
-            onClick={callServiceWithRequest}
-          >
-            {`Call ${state.serviceName}`}
-          </button>
-        </div>
+        {/* Topic Name Input */}
+        <TextField
+          label="Topic Name"
+          type="text"
+          size="small"
+          margin="dense"
+          fullWidth
+          value={state.serviceName}
+          onChange={(event) => {
+            setState((prevState) => ({
+              ...prevState,
+              serviceName: event.target.value,
+            }));
+          }}
+          InputProps={{
+            startAdornment: <InputAdornment position="start">/</InputAdornment>,
+          }}
+        />
 
-        <div>
+        {/* Request Input */}
+        <TextField
+          margin="dense"
+          size="small"
+          multiline
+          label="Request"
+          fullWidth
+          value={state.request}
+          onChange={(event) => {
+            setState((prevState) => ({
+              ...prevState,
+              request: event.target.value,
+            }));
+          }}
+        />
+
+        {/* Publish Once Button */}
+        <Button
+          fullWidth
+          variant="contained"
+          disabled={context.callService == undefined || state.serviceName === ""}
+          onClick={callServiceWithRequest}
+        >
+          {`Call Service`}
+        </Button>
+
+        <Box>
           <h4>Response</h4>
           <JsonViewer
             rootName={false}
@@ -110,7 +133,7 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
             enableClipboard={false}
             displayDataTypes={false}
           />
-        </div>
+        </Box>
       </Box>
     </ThemeProvider>
   );
