@@ -30,15 +30,10 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
     if (state.topic) {
       // Subscribe to the new image topic when a new topic is chosen.
       context.subscribe([{ topic: state.topic }]);
+    } else {
+      context.unsubscribeAll();
     }
   }, [context, state.topic]);
-
-  // Choose our first available image topic as a default once we have a list of topics available.
-  useEffect(() => {
-    if (state.topic == undefined) {
-      setState((oldState) => ({ ...oldState, topic: topics[0]?.name }));
-    }
-  }, [state.topic, topics]);
 
   // Setup our onRender function and start watching topics and currentFrame for messages.
   useEffect(() => {
