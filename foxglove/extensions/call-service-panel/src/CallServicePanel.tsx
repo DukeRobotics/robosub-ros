@@ -17,7 +17,20 @@ type CallServicePanelState = {
 
 function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const [state, setState] = useState<CallServicePanelState>({ serviceName: "", request: "{\n\n}" });
+
+  const [state, setState] = useState<CallServicePanelState>(() => {
+    const initialState = context.initialState as CallServicePanelState | undefined;
+
+    return {
+      serviceName: initialState?.serviceName ?? "",
+      request: initialState?.request ?? "{\n\n}",
+    };
+  });
+
+  // Save state upon change
+  useEffect(() => {
+    context.saveState(state);
+  }, [state, context]);
 
   // Update color scheme
   useEffect(() => {

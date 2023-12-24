@@ -3,7 +3,7 @@ import useTheme from "@duke-robotics/theme";
 import { PanelExtensionContext } from "@foxglove/studio";
 import { Autocomplete, Box, Button, Grid, InputAdornment, TextField, ThemeProvider } from "@mui/material";
 import Alert from "@mui/material/Alert";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 type PublishTopicPanelState = {
@@ -19,14 +19,24 @@ type PublishTopicPanelState = {
 };
 
 function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
-  const [state, setState] = useState<PublishTopicPanelState>({
-    topicName: "",
-    request: "{\n\n}",
-    schemaType: "ros1",
-    publishRate: 10,
-    repeatPublish: null,
-    invalidRate: false,
+  const [state, setState] = useState<PublishTopicPanelState>(() => {
+    const initialState = context.initialState as PublishTopicPanelState | undefined;
+
+    return {
+      topicName: initialState?.topicName ?? "",
+      request: initialState?.request ?? "{\n\n}",
+      schemaType: (initialState?.schemaType ?? "ros1") as keyof AllDatatypeMapsType,
+      schemaName: initialState?.schemaName ?? undefined,
+      publishRate: initialState?.publishRate ?? 1,
+      repeatPublish: null,
+      invalidRate: false,
+    };
   });
+
+  // Save state upon change
+  useEffect(() => {
+    context.saveState(state);
+  }, [state, context]);
 
   // Pubish a request with a given schema to a topic
   const publishTopic = () => {
