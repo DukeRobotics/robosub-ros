@@ -9,7 +9,7 @@ import { useState } from "react";
 import { createRoot } from "react-dom/client";
 
 // Define the service name for enabling/disabling controls
-const ENABLE_CONTROLS_SERVICE = "/enable_controls";
+const ENABLE_CONTROLS_SERVICE = "/controls/enable";
 
 type ToggleControlsPanel = {
   error?: Error | undefined; // Error object if service call fails
