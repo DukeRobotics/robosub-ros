@@ -311,7 +311,13 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
               </Button>
             </Grid>
             <Grid item xs={6}>
-              <Button variant="contained" fullWidth onClick={handleSubmit} color="success">
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={handleSubmit}
+                color="success"
+                disabled={context.callService == undefined}
+              >
                 Submit
               </Button>
             </Grid>
