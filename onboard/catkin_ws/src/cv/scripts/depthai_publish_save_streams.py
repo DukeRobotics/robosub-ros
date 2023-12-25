@@ -18,6 +18,7 @@ class DepthAIStreamsPublisherAndSaver:
     Also saves the RGB video, preview, mono left, mono right, and disparity streams to respective files.
     """
 
+    # Topic names for publishing the streams
     CAMERA = 'front'
     STREAM_TOPIC_RGB_VIDEO = f'/camera/{CAMERA}/rgb/video/compressed'
     STREAM_TOPIC_RGB_PREVIEW = f'/camera/{CAMERA}/rgb/preview/compressed'
@@ -26,6 +27,7 @@ class DepthAIStreamsPublisherAndSaver:
     STREAM_TOPIC_DISPARITY = f'/camera/{CAMERA}/disparity/compressed'
     STREAM_TOPIC_DEPTH = f'/camera/{CAMERA}/depth/compressed'
 
+    # Base path for saving the streams to files
     BASE_PATH = '/root/dev/robosub-ros/'
 
     def __init__(self):
@@ -34,8 +36,10 @@ class DepthAIStreamsPublisherAndSaver:
         """
         rospy.init_node('depthai_publish_save_streams')
 
+        # Framerate of the streams
         self.framerate = rospy.get_param('~framerate')
 
+        # Whether to publish the streams to topics
         self.publish_rgb_video = rospy.get_param('~rgb_video')
         self.publish_rgb_preview = rospy.get_param('~rgb_preview')
         self.publish_left = rospy.get_param('~left')
@@ -43,15 +47,17 @@ class DepthAIStreamsPublisherAndSaver:
         self.publish_disparity = rospy.get_param('~disparity')
         self.publish_depth = rospy.get_param('~depth')
 
+        # File paths to save the streams to. If param is empty, the stream will not be saved.
         self.rgb_video_file_path = os.path.join(self.BASE_PATH, rospy.get_param('~rgb_video_file_path'))
         self.rgb_preview_file_path = os.path.join(self.BASE_PATH, rospy.get_param('~rgb_preview_file_path'))
         self.left_file_path = os.path.join(self.BASE_PATH, rospy.get_param('~left_file_path'))
         self.right_file_path = os.path.join(self.BASE_PATH, rospy.get_param('~right_file_path'))
         self.disparity_file_path = os.path.join(self.BASE_PATH, rospy.get_param('~disparity_file_path'))
 
-        self.convert_to_video = rospy.get_param('~convert_to_video')
-        self.qt_compatible = rospy.get_param('~qt_compatible')
+        self.convert_to_video = rospy.get_param('~convert_to_video')  # Whether to convert the saved encoded streams into a video
+        self.qt_compatible = rospy.get_param('~qt_compatible')  # Whether to convert video files in a QuickTime compatible format
 
+        # Whether to save the streams to files
         self.save_rgb_video = rospy.get_param('~rgb_video_file_path') != ''
         self.save_rgb_preview = rospy.get_param('~rgb_preview_file_path') != ''
         self.save_left = rospy.get_param('~left_file_path') != ''
@@ -67,6 +73,7 @@ class DepthAIStreamsPublisherAndSaver:
         self.right_resolution = (640, 400)
         self.disparity_resolution = (640, 400)
 
+        # Sum of the number of pixels in each frame of the streams that are being saved
         encoded_pixels_per_frame = 0
         if self.save_rgb_video:
             encoded_pixels_per_frame += self.rgb_video_resolution[0] * self.rgb_video_resolution[1]
@@ -79,6 +86,7 @@ class DepthAIStreamsPublisherAndSaver:
         if self.save_disparity:
             encoded_pixels_per_frame += self.disparity_resolution[0] * self.disparity_resolution[1]
 
+        # Check if the framerate goes over the encoding limit
         if encoded_pixels_per_frame > 0:
             max_encoded_pixels_per_second = 3840 * 2160 * 30
             max_framerate = int(max_encoded_pixels_per_second / encoded_pixels_per_frame)
@@ -93,6 +101,7 @@ class DepthAIStreamsPublisherAndSaver:
         if self.framerate < 1 or self.framerate > 60:
             raise ValueError(f'Framerate {self.framerate} is not in range [1, 60]')
 
+        # Check if the file paths are valid
         if self.save_rgb_video and not utils.check_file_writable(self.rgb_video_file_path):
             raise ValueError(f'RGB video file path {self.rgb_video_file_path} is not writable')
 
@@ -108,6 +117,7 @@ class DepthAIStreamsPublisherAndSaver:
         if self.save_disparity and not utils.check_file_writable(self.disparity_file_path):
             raise ValueError(f'Disparity file path {self.disparity_file_path} is not writable')
 
+        # Set up publishers
         if self.publish_rgb_video:
             self.stream_publisher_rgb_video = rospy.Publisher(self.STREAM_TOPIC_RGB_VIDEO, CompressedImage,
                                                               queue_size=10)
@@ -138,6 +148,7 @@ class DepthAIStreamsPublisherAndSaver:
         Build the DepthAI.Pipeline, which takes the RGB camera feed and retrieves it using an XLinkOut.
         """
 
+        # Setup ColorCamera node for RGB video/preview
         if self.publish_rgb_video or self.publish_rgb_preview or self.save_rgb_video or self.save_rgb_preview:
             camRgb = self.pipeline.create(dai.node.ColorCamera)
             camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
@@ -153,6 +164,7 @@ class DepthAIStreamsPublisherAndSaver:
             camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)
             camRgb.setFps(self.framerate)
 
+        # Setup VideoEncoder and XLinkOut nodes for saving RGB video to files
         if self.save_rgb_video:
             veRgbVideo = self.pipeline.create(dai.node.VideoEncoder)
             veRgbVideo.setDefaultProfilePreset(self.framerate, dai.VideoEncoderProperties.Profile.H265_MAIN)
@@ -160,6 +172,7 @@ class DepthAIStreamsPublisherAndSaver:
             xoutVeRgbVideo = self.pipeline.create(dai.node.XLinkOut)
             xoutVeRgbVideo.setStreamName("veRgbVideo")
 
+        # Setup VideoEncoder and XLinkOut nodes for saving RGB preview to files
         if self.save_rgb_preview:
             # Must convert rgb preview to NV12 for video encoder
             manipRgbPreview = self.pipeline.create(dai.node.ImageManip)
@@ -171,12 +184,14 @@ class DepthAIStreamsPublisherAndSaver:
             xoutVeRgbPreview = self.pipeline.create(dai.node.XLinkOut)
             xoutVeRgbPreview.setStreamName("veRgbPreview")
 
+        # Setup MonoCamera node for left camera
         if self.publish_left or self.publish_disparity or self.publish_depth or self.save_left or self.save_disparity:
             camLeft = self.pipeline.create(dai.node.MonoCamera)
             camLeft.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)  # Resolution: 640 x 400
             camLeft.setBoardSocket(dai.CameraBoardSocket.CAM_B)
             camLeft.setFps(self.framerate)
 
+        # Setup VideoEncoder and XLinkOut nodes for saving left camera to files
         if self.save_left:
             veLeft = self.pipeline.create(dai.node.VideoEncoder)
             veLeft.setDefaultProfilePreset(self.framerate, dai.VideoEncoderProperties.Profile.H264_MAIN)
@@ -184,12 +199,14 @@ class DepthAIStreamsPublisherAndSaver:
             xoutVeLeft = self.pipeline.create(dai.node.XLinkOut)
             xoutVeLeft.setStreamName("veLeft")
 
+        # Setup MonoCamera node for right camera
         if self.publish_right or self.publish_disparity or self.publish_depth or self.save_right or self.save_disparity:
             camRight = self.pipeline.create(dai.node.MonoCamera)
             camRight.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)  # Resolution: 640 x 400
             camRight.setBoardSocket(dai.CameraBoardSocket.CAM_C)
             camRight.setFps(self.framerate)
 
+        # Setup VideoEncoder and XLinkOut nodes for saving right camera to files
         if self.save_right:
             veRight = self.pipeline.create(dai.node.VideoEncoder)
             veRight.setDefaultProfilePreset(self.framerate, dai.VideoEncoderProperties.Profile.H264_MAIN)
@@ -197,11 +214,13 @@ class DepthAIStreamsPublisherAndSaver:
             xoutVeRight = self.pipeline.create(dai.node.XLinkOut)
             xoutVeRight.setStreamName("veRight")
 
+        # Setup StereoDepth node for disparity/depth
         if self.publish_disparity or self.publish_depth or self.save_disparity:
             stereo = self.pipeline.create(dai.node.StereoDepth)
             stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
             self.stereoMaxDisparity = stereo.initialConfig.getMaxDisparity()
 
+        # Setup VideoEncoder and XLinkOut nodes for saving disparity to files
         if self.save_disparity:
             veDisparity = self.pipeline.create(dai.node.VideoEncoder)
             veDisparity.setDefaultProfilePreset(self.framerate, dai.VideoEncoderProperties.Profile.H265_MAIN)
@@ -209,6 +228,7 @@ class DepthAIStreamsPublisherAndSaver:
             xoutVeDisparity = self.pipeline.create(dai.node.XLinkOut)
             xoutVeDisparity.setStreamName("veDisparity")
 
+        # Setup XLinkOut nodes for publishing streams to topics
         if self.publish_rgb_video:
             xoutRgbVideo = self.pipeline.create(dai.node.XLinkOut)
             xoutRgbVideo.setStreamName("rgbVideo")
@@ -245,6 +265,7 @@ class DepthAIStreamsPublisherAndSaver:
             xoutDepth.input.setBlocking(False)
             xoutDepth.input.setQueueSize(1)
 
+        # Link nodes
         if self.publish_disparity or self.publish_depth or self.save_disparity:
             camLeft.out.link(stereo.left)
             camRight.out.link(stereo.right)
@@ -296,7 +317,7 @@ class DepthAIStreamsPublisherAndSaver:
 
         with depthai_camera_connect.connect(self.pipeline) as device:
 
-            # Output queue, to receive message on the host from the device(you can send the message
+            # Output queue, to receive message on the host from the device (you can send the message
             # on the device with XLinkOut)
 
             if self.publish_rgb_video:
@@ -379,6 +400,7 @@ class DepthAIStreamsPublisherAndSaver:
                     image_msg_depth = self.image_tools.convert_depth_to_ros_compressed_msg(img_depth, 'mono16')
                     self.stream_publisher_depth.publish(image_msg_depth)
 
+                # Save messages to files
                 while self.save_rgb_video and veRgbVideoQueue.has() and not rospy.is_shutdown():
                     veRgbVideoQueue.get().getData().tofile(rgb_video_file)
 
@@ -394,6 +416,7 @@ class DepthAIStreamsPublisherAndSaver:
                 while self.save_disparity and veDisparityQueue.has() and not rospy.is_shutdown():
                     veDisparityQueue.get().getData().tofile(disparity_file)
 
+            # Close files
             if self.save_rgb_video:
                 rgb_video_file.close()
 
@@ -409,7 +432,8 @@ class DepthAIStreamsPublisherAndSaver:
             if self.save_disparity:
                 disparity_file.close()
 
-        h265_convert_options = "-vcodec libx264 -pix_fmt yuv420p" if self.qt_compatible else "-c copy"
+        # Convert encoded video files to playable videos
+        h265_convert_options = "-vcodec libx264 -pix_fmt yuv420p" if self.qt_compatible else "-c copy"  # QuickTime compatible format
 
         rgb_video_command = (f"ffmpeg -framerate {self.framerate} -i {self.rgb_video_file_path}.h265 " +
                              f"{h265_convert_options} {self.rgb_video_file_path}.mp4")
