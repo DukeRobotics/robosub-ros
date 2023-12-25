@@ -10,8 +10,8 @@ def connect(pipeline):
     Connects to the DepthAI camera and uploads the pipeline.
 
     It tries to connect five times, waiting 2 seconds before trying again (so the script is successful if the camera is
-    just temporarily unavailable). In each try, it attempts to connect first using autodiscovery, then using manual IP
-    address specification, then finally using custom autodiscovery.
+    just temporarily unavailable). In each try, it attempts to connect first using custom autodiscovery, then using
+    DepthAI autodiscovery, then finally using manual IP address specification.
 
     :param pipeline: The DepthAI pipeline to upload to the camera.
     :return: depthai.Device object
@@ -26,21 +26,20 @@ def connect(pipeline):
     device_info = dai.DeviceInfo("169.254.1.222")
 
     # Number of attempts that will be made to connect to the camera
-    totalTries = 5
+    total_tries = 5
 
-    for i in range(totalTries):
+    for i in range(total_tries):
         if rospy.is_shutdown():
             break
 
         try:
             # Scan for camera IP address using custom autodiscovery
             ip = custom_autodiscovery()
-            device_info = dai.DeviceInfo(ip)
 
             # Try connecting with the discovered IP address
-            device = dai.Device(pipeline, device_info)
+            device = dai.Device(pipeline, dai.DeviceInfo(ip))
 
-            # If the execution reaches the following return statement, the line above did not raise an exception, so a
+            # If the execution reaches the following return statement, the lines above did not raise an exception, so a
             # successful camera connection was made, and device should be returned
             return device
 
@@ -75,8 +74,8 @@ def connect(pipeline):
         except RuntimeError as e:
             # For all tries before the last one, don't raise the exception and try connecting again
             # On the last try, raise the exception so DepthAI code doesn't run without a successful camera connection
-            if i == totalTries - 1:
-                raise RuntimeError((f"{totalTries} attempts were made to connect to the DepthAI camera using "
+            if i == total_tries - 1:
+                raise RuntimeError((f"{total_tries} attempts were made to connect to the DepthAI camera using "
                                     "autodiscovery and manual IP address specification. All attempts failed.")) from e
 
         if rospy.is_shutdown():
@@ -86,7 +85,7 @@ def connect(pipeline):
         # This ensures the script does not terminate if the camera is just temporarily unavailable
         rospy.sleep(2)
 
-    raise RuntimeError(f"{i} attempts were made to connect to the DepthAI camera using "
+    raise RuntimeError(f"{total_tries} attempts were made to connect to the DepthAI camera using "
                        f"autodiscovery and manual IP address specification. All attempts failed.")
 
 
