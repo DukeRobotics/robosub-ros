@@ -17,12 +17,11 @@ import rostopic
 
 class DepthAISimulateDetection:
     """
-    This class is used to test a depthai neural network (blob file) with a simulated image feed, either a still image
+    This class is used to test a DepthAI neural network (blob file) with a simulated image feed, either a still image
     or an Image topic. This class takes the images, transfers them from the host (local computer) to the camera,
     and retrieves the output of the neural network.
     """
     def __init__(self):
-        super().__init__()
         rospy.init_node('depthai_simulate_detection', anonymous=True)
 
         self.device = None
@@ -40,20 +39,27 @@ class DepthAISimulateDetection:
         if self.depthai_model_name == "":
             rospy.logerr("No model name variable given")
             rospy.spin()
+
+        # Load the model parameters from the yaml file
         with open(rr.get_filename('package://cv/models/depthai_models.yaml', use_protocol=False)) as f:
             models = yaml.safe_load(f)
             self.model = models[self.depthai_model_name]
+
+        # Build NN pipeline using the model weights
         self.nn_path = rr.get_filename(f"package://cv/models/{self.model['weights']}", use_protocol=False)
         self.pipeline = dai.Pipeline()
         self._build_pipeline()
 
         self.image_tools = ImageTools()
+
+        # Setup detection publishers
         self.publishing_topic = rospy.get_param("~publishing_topic")
         self.detection_publisher = rospy.Publisher(self.publishing_topic, CVObject, queue_size=10)
         self.visualized_detection_publisher = rospy.Publisher(f'{self.publishing_topic}_visualized/compressed',
                                                               CompressedImage,
                                                               queue_size=10)
 
+        # Setup detection visualizer
         self.show_class_name = rospy.get_param("~show_class_name")
         self.show_confidence = rospy.get_param("~show_confidence")
         self.detection_visualizer = DetectionVisualizer(self.model['classes'], self.model['colors'],
@@ -69,9 +75,10 @@ class DepthAISimulateDetection:
 
         # Point xIn to still image
         x_in = self.pipeline.create(dai.node.XLinkIn)
-
-        x_out = self.pipeline.create(dai.node.XLinkOut)
         x_in.setStreamName("camIn")
+
+        # Define output stream
+        x_out = self.pipeline.create(dai.node.XLinkOut)
         x_out.setStreamName("nn")
 
         # Define neural net architecture
@@ -104,13 +111,11 @@ class DepthAISimulateDetection:
 
         Send the still image through to the input queue (qIn) after converting it to the proper format.
         Then retreive what was fed into the neural network. The input to the neural network should be the same
-        as the still image sent into the input queue. Ouput the resulting opencv-formatted image and the
+        as the still image sent into the input queue. Output the resulting opencv-formatted image and the
         detections objects.
 
         Args:
-            device (depthai.Device): _description_
-            input_image (ndarray): Image to run detection on
-            show_results (bool): Whether to display results of detection. Defaults to True.
+            device (depthai.Device): DepthAI device being used
 
         Returns:
             dict: Dictionary with keys "frame" and "detections", where frame is the passthrough from the neural network
@@ -152,9 +157,13 @@ class DepthAISimulateDetection:
             return False
 
     def _update_latest_img(self, img_msg):
-        """ Store latest image """
+        """ Send an image to the device for detection
 
-        # Upload the pipeline to the device
+        Args:
+            img_msg (sensor_msgs.msg.CompressedImage): Image to send to the device
+        """
+
+        # Format a cv2 image to be sent to the device
         def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
             return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
 
@@ -183,6 +192,7 @@ class DepthAISimulateDetection:
 
         for detection in detections:
 
+            # Construct the message to publish
             object_msg = CVObject()
 
             object_msg.score = detection.confidence
@@ -196,6 +206,7 @@ class DepthAISimulateDetection:
             object_msg.height = frame.shape[0]
             object_msg.width = frame.shape[1]
 
+            # Publish the message
             self.detection_publisher.publish(object_msg)
 
     def _publish_visualized_detections(self, detection_results):
@@ -215,7 +226,7 @@ class DepthAISimulateDetection:
         """ Run and publish detections on the provided topic
 
         Args:
-            device (depthai.Device): Depthai device being used
+            device (depthai.Device): DepthAI device being used
         """
         TopicType, _, _ = rostopic.get_topic_class(self.feed_path)
         rospy.Subscriber(self.feed_path, TopicType, self._update_latest_img)
@@ -229,7 +240,8 @@ class DepthAISimulateDetection:
         """ Run detection on the single image provided
 
         Args:
-            device (_type_): _description_
+            device (depthai.Device): DepthAI device being used
+            img (ndarray): Image to run detection on
         """
         detection_results = self.detect(device, img)
         visualized_detection_results = self.detection_visualizer.visualize_detections(

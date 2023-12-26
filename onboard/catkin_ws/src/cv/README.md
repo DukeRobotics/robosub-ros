@@ -1,7 +1,7 @@
 # Computer Vision
 
 The computer vision package listens for images/frames coming from multiple cameras. The package
-will then run pre-trained machine learning models frames from each camera and output bounding boxes for the various objects
+will then run pre-trained machine learning models on frames from each camera and output bounding boxes for the various objects
 in the frames. These objects could be the gate, buoys, etc. The package will publish to different topics depending
 on which classes are being detected and which cameras are being used.
 
@@ -11,9 +11,8 @@ This package contains code for the Luxonis OAK-D PoE camera, which uses a python
 ### Running the Code
 To stream the feed or perform spatial detection using the OAK camera, use `roslaunch` with the following three files.
 * `depthai_camera_connect.launch`: Connects to the DepthAI camera. If connection is successful, prints a success message to console. If connection is unsucessful, an error is raised.
-* `depthai_publish_save_streams.launch`: Streams the live feed from the camera. You can choose what to publish from the camera (rgb video, rgb preview, left mono, right mono, disparity map, and depth map) by setting the appropriate boolean parameters. Also encodes the live feeds and saves them to files. You can choose what to save by setting the appropriate boolean parameters. Can also choose to automatically convert the encoded streams to video files.
+* `depthai_publish_save_streams.launch`: Streams the live feed from the camera. You can choose what to publish from the camera (rgb video, rgb preview, left mono, right mono, disparity map, and depth map) by setting the appropriate boolean parameters. Also encodes the live feeds and saves them to files. You can choose what to save by setting the appropriate boolean parameters. You can also choose to automatically convert the encoded streams to video files.
 * `depthai_spatial_detection.launch`: Runs spatial detection. Waits for a enable_model rosservice call to specify what model to activate. This requires a valid `.blob` file in `models/` and the path to this `.blob` file should be specified in the `depthai_models.yaml` file. For more information about these files, see the code structure outline below. This will publish `CVObject` messages to a topic for each class that the model detects, unaltered rgb preview frames that were input to the neural netowrk, and rgb preview frames with bounding boxes, classes, and confidence values overlaid.
-* `depthai_sonar_spatial_detection.launch`: Runs spatial detection as in `depthai_spatial_detection.launch` but with sonar in addition to stereo vision.
 * `depthai_simulate_detection.launch`: Runs spatial detection on a still image, or on a image stream launched by running `test_images.py` [(see Simulating Image Feeds)](#simulating-image-feeds), on the DepthAI camera. Uses the model specified in arguments. If a still image is input, a JPEG file will be created that is the original image with detections visualized. If an image stream is input, CVObject messages will be published to the topic provided (all classes are published to a single topic), and a live feed of images with detections visualized is also published.
 
 ### Structure
