@@ -54,8 +54,10 @@ class DepthAIStreamsPublisherAndSaver:
         self.right_file_path = os.path.join(self.BASE_PATH, rospy.get_param('~right_file_path'))
         self.disparity_file_path = os.path.join(self.BASE_PATH, rospy.get_param('~disparity_file_path'))
 
-        self.convert_to_video = rospy.get_param('~convert_to_video')  # Whether to convert the saved encoded streams into a video
-        self.qt_compatible = rospy.get_param('~qt_compatible')  # Whether to convert video files in a QuickTime compatible format
+        # Whether to convert the saved encoded streams into a video
+        self.convert_to_video = rospy.get_param('~convert_to_video')
+        # Whether to convert video to QuickTime compatible format
+        self.qt_compatible = rospy.get_param('~qt_compatible')
 
         # Whether to save the streams to files
         self.save_rgb_video = rospy.get_param('~rgb_video_file_path') != ''
