@@ -92,7 +92,7 @@ class DepthAISpatialDetector:
             components/messages/spatial_img_detections/#spatialimgdetections), which includes bounding boxes for
             detections as well as XYZ coordinates of the detected objects.
             - "depth": contains ImgFrame messages with UINT16 values representing the depth in millimeters by default.
-                       See the property depth in https://docs.luxonis.com/projects/api/en/latest/components/nodes/stereo_depth/
+                See the property depth in https://docs.luxonis.com/projects/api/en/latest/components/nodes/stereo_depth/
 
         :param nn_blob_path: Path to blob file used for object detection.
         :param sync_nn: If True, sync the RGB output feed with the detection from the neural network. Needed if the RGB
@@ -374,7 +374,8 @@ class DepthAISpatialDetector:
         """
         Publish predictions to label-specific topic. Publishes to /cv/[camera]/[label].
 
-        :param bbox: Tuple for the bounding box. Values are from 0-1, where X increases left to right and Y increases bottom to top.
+        :param bbox: Tuple for the bounding box.
+            Values are from 0-1, where X increases left to right and Y increases bottom to top.
         :param det_coords: Tuple with the X, Y, and Z values in meters, and in the robot rotational reference frame.
         :param label: Predicted label for the detection.
         :param confidence: Confidence for the detection, from 0 to 1.
