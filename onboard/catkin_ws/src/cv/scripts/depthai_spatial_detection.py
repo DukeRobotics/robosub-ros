@@ -375,7 +375,7 @@ class DepthAISpatialDetector:
         Publish predictions to label-specific topic. Publishes to /cv/[camera]/[label].
 
         :param bbox: Tuple for the bounding box.
-            Values are from 0-1, where X increases left to right and Y increases bottom to top.
+            Values are from 0-1, where X increases left to right and Y increases top to bottom.
         :param det_coords: Tuple with the X, Y, and Z values in meters, and in the robot rotational reference frame.
         :param label: Predicted label for the detection.
         :param confidence: Confidence for the detection, from 0 to 1.
