@@ -435,7 +435,7 @@ class DepthAIStreamsPublisherAndSaver:
                 disparity_file.close()
 
         # Convert encoded video files to playable videos
-        h265_convert_options = "-vcodec libx264 -pix_fmt yuv420p" if self.qt_compatible else "-c copy"  # QuickTime compatible format
+        h265_convert_options = "-vcodec libx264 -pix_fmt yuv420p" if self.qt_compatible else "-c copy"
 
         rgb_video_command = (f"ffmpeg -framerate {self.framerate} -i {self.rgb_video_file_path}.h265 " +
                              f"{h265_convert_options} {self.rgb_video_file_path}.mp4")
