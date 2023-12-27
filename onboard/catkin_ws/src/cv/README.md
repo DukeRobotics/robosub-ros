@@ -36,9 +36,9 @@ To stream the feed or perform spatial detection using the OAK camera, use `rosla
 `footage_extraction`
 * Can be used to extract footage from rosbag files. See the README file in the `footage_extraction` directory.
 
-# Non-DepthAI Cameras
+## Non-DepthAI Cameras
 
-## USB Camera
+### USB Camera
 This package also contains driver code to publish a camera stream from a USB-type camera in `usb_camera.py`. A USB camera can be located by `/dev/video*` on a linux computer, where `*` can be replaced by any number specifying a given camera channel (default is `0`, with the number increasing for each new camera you plug in). The script `usb_camera.py` uses OpenCV to capture a stream frame by frame from a specified USB camera channel and publishes it to a specified ros topic. Use `roslaunch cv usb_camera.launch` to start a stream once a USB camera has been plugged in. You can specify the ros topic which the usb camera feed is published to via
 
 ```bash
@@ -47,7 +47,7 @@ roslaunch cv usb_camera.launch topic:=<topic>
 
 By default, `<topic>` is set to `/camera/usb_camera/compressed`. Note that the camera must be plugged in _before_ the docker container is started.
 
-## Setup
+### Setup
 
 Generally, you would train a separate object detection model for each task you need computer vision for (gates, buoys, etc.). You can then load them as follows:
 
@@ -81,7 +81,7 @@ to manually download the default model file used by the Detecto package. Move th
 container under the directory `/root/.cache/torch/checkpoints/` (do not rename the file).
 
 
-## Running
+### Running
 
 To start up a CV node, run the following command:
 
@@ -109,7 +109,7 @@ Once 1+ models are enabled for a specific node, they listen and publish to topic
 
  * `/camera/<camera>/compressed`
    * The topic that the camera publishes each frame to
-   * If no actual camera feed is available, you can simulate one using `test_images.py`. See Simulating image feeds above for more information.
+   * If no actual camera feed is available, you can simulate one using `test_images.py`. See [Simulating image feeds](#simulating-image-feeds) below for more information.
    * Type: sensor_msgs/CompressedImage
   * `/offboard/camera_relay_status`
      * The topic that the Arduino publishes the camera relay status to. Only runs if `camera_hard_reset.py` is running.
@@ -136,8 +136,6 @@ could be anywhere from like 0.2 to 10 FPS depending on computing power/the GPU/o
 
 The following are the folders and files in the CV package:
 
-`assets`: Folder with a dummy image to test the CV package on
-
 `launch`: Contains the various launch files for our CV package. There is a general launch file for all the cameras (`cv.launch`), and then there are specific launch files for each camera (`cv_left`, `cv_right`, and `cv_down`). Finally, we have a launch file for our testing script `test_images.launch`
 
 `models`: Contains our pre-trained models and a `.yaml` file that specifies the details of each model (classes predicted, topic name, and the path to the model weights)
@@ -151,6 +149,7 @@ The following are the folders and files in the CV package:
 The CV package also has dependencies in the `core/catkin_ws/src/custom_msgs` folder.
 
 ## Examples
+### Non-DepthAI Cameras
 To simulate camera feed and then run a model on the feed from the left camera. We'll assume the model we want to run is called 'buoy':
 * In one terminal, run `roslaunch cv test_images.launch feed_path:=../assets/{file_name} topic:={topic_name} framerate:={required framerate}` to start the script meant to simulate the raw camera feed
 * In a new terminal, run `roslaunch cv cv_left.launch` to start the cv node
@@ -190,6 +189,6 @@ The `DianosticArray` that is pubished returns several values.
 
 # Other Files
 
-The `utils.py` file contains the `DetectionVisualizer`class which provides functions to draw bounding boxes and their labels onto images. It is used by DepthAI files when publishing visualized detections.
+The `utils.py` file contains the `DetectionVisualizer` class which provides functions to draw bounding boxes and their labels onto images. It is used by DepthAI files when publishing visualized detections.
 
 The `image_tools.py` file contains the `ImageTools` class which provides functions to convert between OpenCV, ROS Image, and ROS CompressedImage formats. All scripts in this package use `ImageTools` to perform conversions between these types. `cv_bridge` is not used by any file or class in this package other than `ImageTools` itself.
