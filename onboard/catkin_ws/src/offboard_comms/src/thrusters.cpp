@@ -5,6 +5,7 @@
 #include <ros/ros.h>
 #include <ros/package.h>
 #include <ros/assert.h>
+#include <std_msgs/Float32.h>
 #include <custom_msgs/PWMAllocs.h>
 
 #include "thrusters.h"
