@@ -5,29 +5,32 @@
 #include <ros/ros.h>
 #include <ros/package.h>
 #include <ros/assert.h>
-#include <std_msgs/Float32.h>
+#include <std_msgs/Float64.h>
 #include <custom_msgs/PWMAllocs.h>
 
 #include "thrusters.h"
 
 Thrusters::Thrusters(int argc, char **argv, ros::NodeHandle &nh)
 {
-  // Set a default voltage
+  // Set the default voltage
   voltage = 15.5;
-  // Read in corresponding voltage tables for 14.0, 16.0, and 18.0v
+
+  // Read in corresponding voltage tables for 14.0, 16.0, and 18.0V
   load_lookup_tables();
 
-  // Instantiate a subscriber to the voltage sensor, should read voltages from range \in [14.0, 18.0]
+  // Instantiate a subscriber to the voltage sensor, should read voltages from range in [14.0, 18.0]
   voltage_sub = nh.subscribe("/sensors/voltage", 1, &Thrusters::voltage_callback, this);
-  // Subscribe to thruster allocation (desired range \in [-1.0, 1.0])
+
+  // Subscribe to thruster allocation (desired range in [-1.0, 1.0])
   thruster_allocs_sub = nh.subscribe("/controls/thruster_allocs", 1, &Thrusters::thruster_allocs_callback, this);
+
   // Publish pwm allocation based on calculated conversions
   pwm_pub = nh.advertise<custom_msgs::PWMAllocs>("/offboard/pwm", 1);
 }
 
-// This method reads in the csv files for 14, 16, 18v volt conversions
-// Each lookup table stores a thruster allocation from -1.0 to 1.0
-// with voltage \in 14.0 to 18.0v and the appropriate pwm output
+// This method reads in the csv files for 14.0, 16.0, 18.0V volt conversions
+// Each lookup table stores all thruster allocations from -1.0 to 1.0 in 0.01 increments
+// with voltage in 14.0 to 18.0V and the appropriate pwm output
 void Thrusters::load_lookup_tables()
 {
   std::string package_path = ros::package::getPath("offboard_comms");
@@ -37,20 +40,24 @@ void Thrusters::load_lookup_tables()
   read_lookup_table_csv(package_path + "/data/18.csv", v18_lookup_table);
 }
 
-// Read lookup table for voltage, thruster alloc, and pwm alloc; thurster alloc/force is stored under 2 decimal precision
+// Read lookup table for voltage, thruster alloc, and pwm alloc; thurster alloc/force is stored with 2 decimal precision
 void Thrusters::read_lookup_table_csv(const std::string &filename, std::array<uint16_t, NUM_LOOKUP_ENTRIES> &lookup_table)
 {
   std::ifstream file(filename);
   ROS_ASSERT_MSG(file.is_open(), "Error opening file %s", filename.c_str());
 
   std::string line, col;
-  std::getline(file, line); // Read header line (assuming headers exist and need to be skipped)
 
+  // Read header line (assuming headers exist and need to be skipped)
+  std::getline(file, line);
+
+  // Read each line of the file
   while (std::getline(file, line))
   {
     std::istringstream ss(line);
     std::vector<std::string> row;
 
+    // Read each column of the line and store each column in the row vector
     while (std::getline(ss, col, ','))
     {
       row.push_back(col);
@@ -64,46 +71,45 @@ void Thrusters::read_lookup_table_csv(const std::string &filename, std::array<ui
 
       // If the PWM value is within bounds of uint16_t, cast it to uint16_t
       uint16_t pwm16;
-      if (pwm <= static_cast<int>(UINT16_MAX) && pwm >= 0)
-        pwm16 = static_cast<uint16_t>(pwm);
-      else
-        ROS_ASSERT_MSG(false, "Error while reading CSV. PWM value %d is out of bounds for uint16_t.", pwm);
+      ROS_ASSERT_MSG(pwm <= static_cast<int>(UINT16_MAX) && pwm >= 0, "Error while reading CSV. PWM value %d is out of bounds for uint16_t.", pwm);
+      pwm16 = static_cast<uint16_t>(pwm);
 
       // Multiply the force value by 100 and add 100
       // This is done to convert the force value to an index for the lookup table
       // It is important to use std::lround() instead of type casting to int directly because a direct typecast
       // can result in the incorrect index being calculated (an error of +/- 1)
-      int index = static_cast<int>(std::lround((force * 100) + 100));
+      int index = round_to_two_decimals(force);
 
-      // Check if the index is within bounds of the array
-      if (index >= 0 && index < lookup_table.size())
-        lookup_table[index] = pwm16;
-      else
-        ROS_ASSERT_MSG(false, "Error while reading CSV. Index %d is out of bounds.", index);
+      // If the index is within bounds of the array, store the pwm value at that index
+      ROS_ASSERT_MSG(index >= 0 && index < lookup_table.size(), "Error while reading CSV. Index %d is out of bounds.", index);
+      lookup_table[index] = pwm16;
     }
   }
   file.close();
 }
 
-// Update the voltage field; used in pwn interpolation
-void Thrusters::voltage_callback(const std_msgs::Float32 &msg)
+// Update the voltage field; used in pwm interpolation
+void Thrusters::voltage_callback(const std_msgs::Float64 &msg)
 {
-  voltage = msg.data;
+  // Clamp voltage to be within bounds
+  voltage = std::max(VOLTAGE_LOWER, std::min(msg.data, VOLTAGE_UPPER));
+
+  if (voltage != msg.data)
+    ROS_WARN("Voltage out of bounds for thrust allocation to PWM conversion. Clamping to [%f, %f]", VOLTAGE_LOWER, VOLTAGE_UPPER);
 }
 
-// Given thruster allocation, we reference our last read voltage
+// Given thruster allocation, we reference our last received voltage
 // to calculate the appropriate pwm allocation based on voltage and thruster alloc
 void Thrusters::thruster_allocs_callback(const custom_msgs::ThrusterAllocs &msg)
 {
-  // Set timestamp to now; set up PWMAlloc object to publish
+  // Set timestamp to now; set up PWMAllocs object to publish
   custom_msgs::PWMAllocs pwm_msg;
   pwm_msg.header.stamp = ros::Time::now();
-  pwm_msg.allocs.resize(msg.allocs.size());
 
   // For each of the 8 thrusters in thruster alloc (all of values in -1.0, 1.0)
   // perform a linear interpolation based on the nearest lookup table entries
   for (int i = 0; i < msg.allocs.size(); i++)
-    pwm_msg.allocs[i] = lookup(msg.allocs[i]);
+    pwm_msg.allocs.push_back(lookup(msg.allocs[i]));
 
   // Publish interpolated values for each thruster
   pwm_pub.publish(pwm_msg);
@@ -118,7 +124,7 @@ double Thrusters::lookup(double force)
   ROS_ASSERT_MSG(14.0 <= voltage && voltage <= 18.0, "Voltage must be in [14.0, 18.0]");
 
   // Round force to 2 decimal points (which is what is used to index the lookup tables)
-  int index = static_cast<int>(std::lround((force * 100) + 100));
+  int index = round_to_two_decimals(force);
   ROS_ASSERT_MSG(0 <= index && index < NUM_LOOKUP_ENTRIES, "Error in PWM lookup. Index %d is out of bounds.", index);
 
   if (14.0 <= voltage && voltage <= 16.0)
@@ -133,6 +139,12 @@ double Thrusters::lookup(double force)
 double Thrusters::interpolate(double x1, uint16_t y1, double x2, uint16_t y2, double x_interpolate)
 {
   return y1 + ((y2 - y1) * (x_interpolate - x1)) / (x2 - x1);
+}
+
+// Round to two decimal places
+int Thrusters::round_to_two_decimals(double num)
+{
+  return static_cast<int>(std::lround((num * 100) + 100));
 }
 
 int main(int argc, char **argv)

@@ -123,7 +123,7 @@ rostopic pub -r 20 /controls/thruster_allocs custom_msgs/ThrusterAllocs '{allocs
 ## Topics and Services
 
 ### Thruster Allocations to PWMs
-The node `thrusters.cpp` subscribes to `/controls/thruster_allocs` of type `custom_msgs/ThrusterAllocs`. This is an array of 64-bit floats, and they must be in range [-1, 1]. It also subscribes to `/sensors/voltage` of type `std_msgs/Float32`.
+The node `thrusters.cpp` subscribes to `/controls/thruster_allocs` of type `custom_msgs/ThrusterAllocs`. This is an array of 64-bit floats, and they must be in range [-1, 1]. It also subscribes to `/sensors/voltage` of type `std_msgs/Float64`. This is a 64-bit float that is clamped to the range [14.0, 18.0].
 
 The node maps the thruster allocations to pulse widths, accounting for the current system voltage, and sends them to the thruster Arduino. Note that this node runs _on the robot computer_, not the Arduino.
 

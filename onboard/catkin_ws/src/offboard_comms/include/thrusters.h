@@ -3,11 +3,15 @@
 
 #include <array>
 #include <ros/ros.h>
-#include <std_msgs/Float32.h>
+#include <std_msgs/Float64.h>
 #include <custom_msgs/ThrusterAllocs.h>
 
 // Number of entries in each lookup table
 const int NUM_LOOKUP_ENTRIES = 201;
+
+// Lower and upper bounds of voltage
+const double VOLTAGE_LOWER = 14.0;
+const double VOLTAGE_UPPER = 18.0;
 
 class Thrusters
 {
@@ -22,12 +26,13 @@ private:
 
   ros::Publisher pwm_pub;
 
-  double interpolate(double x1, uint16_t y1, double x2, uint16_t y2, double x_interpolate);
-  double lookup(double force);
   void load_lookup_tables();
   void read_lookup_table_csv(const std::string &filename, std::array<uint16_t, NUM_LOOKUP_ENTRIES> &lookup_table);
-  void voltage_callback(const std_msgs::Float32 &msg);
+  void voltage_callback(const std_msgs::Float64 &msg);
   void thruster_allocs_callback(const custom_msgs::ThrusterAllocs &msg);
+  double lookup(double force);
+  double interpolate(double x1, uint16_t y1, double x2, uint16_t y2, double x_interpolate);
+  int round_to_two_decimals(double num);
 
 public:
   Thrusters(int argc, char **argv, ros::NodeHandle &nh);
