@@ -16,7 +16,9 @@ find_package(catkin REQUIRED COMPONENTS
   resource_retriever
 )
 
+find_package(yaml-cpp REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(OsqpEigen REQUIRED)
 
 ## Specify additional locations of header files
 include_directories(
@@ -32,8 +34,13 @@ catkin_package(
 )
 
 ## Build C++ executables and libraries
-add_executable(controls_test src/test.cpp)
-target_link_libraries(controls_test yaml-cpp ${catkin_LIBRARIES})
+add_executable(controls_test src/test.cpp src/controls_utils.cpp)
+target_link_libraries(controls_test
+  yaml-cpp
+  Eigen3::Eigen
+  OsqpEigen::OsqpEigen
+  ${catkin_LIBRARIES}
+)
 
 set(SOURCES
   src/controls.cpp
