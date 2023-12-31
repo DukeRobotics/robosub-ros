@@ -82,29 +82,38 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
   const [renderDone, setRenderDone] = useState<() => void | undefined>();
   const firstMount = useRef(true);
   const theme = useTheme();
-  const [state, setState] = useState<ThrusterSpeedsPanelState>({
-    // In the PUBLISHING mode, denotes whether all entered values in the panel are valid.
-    // If false, display an error warning which prevents the panel from publishing.
-    hasError: false,
-    panelMode: PanelMode.SUBSCRIBING,
-    // If publishing, holds the NodeJS.Timeout object used to publish messages at a constant rate, otherwise undefined
-    repeatPublish: null,
-    // Thruster speeds to be published
-    publisherThrusterSpeeds: { ...defaultThrusterSpeeds },
-    // Thruster speeds subscribed from the message
-    subscriberThrusterSpeeds: { ...defaultThrusterSpeeds },
-    // Holds temporary values of thruster speeds that the user entered before publishing
-    tempThrusterSpeeds: {
-      frontLeft: "",
-      frontRight: "",
-      backLeft: "",
-      backRight: "",
-      bottomFrontLeft: "",
-      bottomFrontRight: "",
-      bottomBackLeft: "",
-      bottomBackRight: "",
-    },
+  const [state, setState] = useState<ThrusterSpeedsPanelState>(() => {
+    const initialState = context.initialState as ThrusterSpeedsPanelState | undefined;
+
+    return {
+      // In the PUBLISHING mode, denotes whether all entered values in the panel are valid.
+      // If false, display an error warning which prevents the panel from publishing.
+      hasError: initialState?.hasError ?? false,
+      panelMode: initialState?.panelMode ?? PanelMode.SUBSCRIBING,
+      // If publishing, holds the NodeJS.Timeout object used to publish messages at a constant rate, otherwise undefined
+      repeatPublish: null,
+      // Thruster speeds to be published
+      publisherThrusterSpeeds: { ...defaultThrusterSpeeds },
+      // Thruster speeds subscribed from the message
+      subscriberThrusterSpeeds: { ...defaultThrusterSpeeds },
+      // Holds temporary values of thruster speeds that the user entered before publishing
+      tempThrusterSpeeds: initialState?.tempThrusterSpeeds ?? {
+        frontLeft: "",
+        frontRight: "",
+        backLeft: "",
+        backRight: "",
+        bottomFrontLeft: "",
+        bottomFrontRight: "",
+        bottomBackLeft: "",
+        bottomBackRight: "",
+      },
+    };
   });
+
+  // Save state upon change
+  useEffect(() => {
+    context.saveState(state);
+  }, [state, context]);
 
   useEffect(() => {
     renderDone?.();
