@@ -57,4 +57,12 @@ target_link_libraries(controls
   ${catkin_LIBRARIES}
 )
 
+target_precompile_headers(controls
+  PRIVATE
+    <ros/ros.h>
+    <Eigen/Dense>
+    <yaml-cpp/yaml.h>
+)
+target_precompile_headers(controls_test REUSE_FROM controls)
+
 

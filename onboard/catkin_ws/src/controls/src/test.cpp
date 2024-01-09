@@ -3,7 +3,7 @@
 #include <std_msgs/String.h>
 #include <Eigen/Dense>
 #include <yaml-cpp/yaml.h>
-#include "OsqpEigen/OsqpEigen.h"
+#include <OsqpEigen/OsqpEigen.h>
 #include "controls_utils.h"
 
 int osqp_eigen_test()
