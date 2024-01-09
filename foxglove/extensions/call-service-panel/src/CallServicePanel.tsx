@@ -117,6 +117,8 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
 }
 
 export function initCallServicePanel(context: PanelExtensionContext): () => void {
+  context.panelElement.style.overflow = "auto"; // Enable scrolling
+
   const root = createRoot(context.panelElement as HTMLElement);
   root.render(<CallServicePanel context={context} />);
 

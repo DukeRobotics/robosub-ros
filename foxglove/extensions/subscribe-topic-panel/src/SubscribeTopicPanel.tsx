@@ -104,6 +104,8 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
 }
 
 export function initSubscribeTopicPanel(context: PanelExtensionContext): () => void {
+  context.panelElement.style.overflow = "auto"; // Enable scrolling
+
   const root = createRoot(context.panelElement as HTMLElement);
   root.render(<SubscribeTopicPanel context={context} />);
 

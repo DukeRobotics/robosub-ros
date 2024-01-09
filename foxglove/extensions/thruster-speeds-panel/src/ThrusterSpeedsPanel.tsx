@@ -345,6 +345,8 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
 }
 
 export function initThrusterSpeedsPanel(context: PanelExtensionContext): () => void {
+  context.panelElement.style.overflow = "auto"; // Enable scrolling
+
   const root = createRoot(context.panelElement as HTMLElement);
   root.render(<ThrusterSpeedsPanel context={context} />);
 
