@@ -65,12 +65,21 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   };
 
   // Initialize state
-  const [state, setState] = useState<PIDPanelState>({
-    loop: CustomMsgsPidGainConst.LOOP_POSITION,
-    editedGains: {},
-    error: undefined,
-    pid: initPid(),
+  const [state, setState] = useState<PIDPanelState>(() => {
+    const initialState = context.initialState as PIDPanelState | undefined;
+
+    return {
+      loop: initialState?.loop ?? CustomMsgsPidGainConst.LOOP_POSITION,
+      editedGains: {},
+      error: undefined,
+      pid: initPid(),
+    };
   });
+
+  // Save state upon change
+  useEffect(() => {
+    context.saveState(state);
+  }, [state, context]);
 
   context.subscribe([{ topic: PID_TOPIC }]);
 
