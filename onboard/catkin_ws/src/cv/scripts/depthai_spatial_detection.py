@@ -451,7 +451,10 @@ class DepthAISpatialDetector:
 
     def compute_angle_from_x_offset(self, x_offset):
         """
-        _summary_
+        See: https://math.stackexchange.com/questions/1320285/convert-a-pixel-displacement-to-angular-rotation
+        for implementation details.
+
+        :param x_offset: x pixels from center of image
 
         :return: angle in degrees
         """
@@ -460,7 +463,10 @@ class DepthAISpatialDetector:
 
     def compute_angle_from_y_offset(self, y_offset):
         """
-        _summary_
+        See: https://math.stackexchange.com/questions/1320285/convert-a-pixel-displacement-to-angular-rotation
+        for implementation details.
+
+        :param y_offset: y pixels from center of image
 
         :return: angle in degrees
         """
