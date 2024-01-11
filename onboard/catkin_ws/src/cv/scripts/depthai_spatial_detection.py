@@ -297,7 +297,6 @@ class DepthAISpatialDetector:
             image_msg_depth = self.image_tools.convert_depth_to_ros_compressed_msg(img_depth, 'mono16')
             self.depth_publisher.publish(image_msg_depth)
 
-
         # Process and publish detections. If using sonar, override det robot x coordinate
         for detection in detections:
 
