@@ -297,9 +297,6 @@ class DepthAISpatialDetector:
             image_msg_depth = self.image_tools.convert_depth_to_ros_compressed_msg(img_depth, 'mono16')
             self.depth_publisher.publish(image_msg_depth)
 
-        model = self.models[self.current_model_name]
-        height = model['input_size'][0]
-        width = model['input_size'][1]
 
         # Process and publish detections. If using sonar, override det robot x coordinate
         for detection in detections:
@@ -367,7 +364,7 @@ class DepthAISpatialDetector:
 
             self.publish_prediction(
                 bbox, det_coords_robot_mm, yaw_offset, label, confidence,
-                (height, width), self.using_sonar)
+                (self.camera_pixel_height, self.camera_pixel_width), self.using_sonar)
 
     def publish_prediction(self, bbox, det_coords, yaw, label, confidence,
                            shape, using_sonar):
