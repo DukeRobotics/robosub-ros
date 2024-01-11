@@ -243,7 +243,8 @@ class DepthAISimulateDetection:
             device (depthai.Device): DepthAI device being used
             img (ndarray): Image to run detection on
         """
-        detection_results = self.detect(device, img)
+        self._update_latest_img(img)
+        detection_results = self.detect(device)
         visualized_detection_results = self.detection_visualizer.visualize_detections(
                                                                         detection_results['frame'],
                                                                         detection_results['detections'])
