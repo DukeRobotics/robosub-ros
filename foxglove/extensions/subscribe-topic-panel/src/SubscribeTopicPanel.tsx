@@ -77,6 +77,7 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
               ...prevState,
               topic: newValue ?? undefined,
             }));
+            setState((oldState) => ({ ...oldState, message: undefined }));
           }}
           renderInput={(params) => <TextField {...params} label="Topic Name" margin="dense" size="small" />}
         />
