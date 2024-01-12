@@ -22,7 +22,7 @@ import {
   TextField,
 } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
-import React, { useEffect, useLayoutEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { JSX } from "react/jsx-runtime";
 import { createRoot } from "react-dom/client";
 
@@ -84,7 +84,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   context.subscribe([{ topic: PID_TOPIC }]);
 
   // Update state when a new PID message is received
-  useLayoutEffect(() => {
+  useEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setRenderDone(() => done);
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
