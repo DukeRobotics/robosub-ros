@@ -18,14 +18,14 @@ ThrusterAllocator::ThrusterAllocator(std::string wrench_file_path, std::string w
 }
 
 void ThrusterAllocator::allocate_thrusters(const Eigen::VectorXd &set_power, double &power_scale_factor,
-                                           Eigen::VectorXd &unconstrained_allocs, Eigen::VectorXd &constrained_allocs,
-                                           Eigen::VectorXd &actual_power)
+                                           Eigen::VectorXd &set_power_scaled, Eigen::VectorXd &unconstrained_allocs,
+                                           Eigen::VectorXd &constrained_allocs, Eigen::VectorXd &actual_power)
 {
     ROS_ASSERT_MSG(wrench_pinv.cols() == set_power.rows(), "Set power must have the same number of rows as wrench_pinv.");
 
-    unconstrained_allocs = wrench_pinv * set_power;
+    set_power_scaled = set_power * power_scale_factor;
 
-    unconstrained_allocs *= power_scale_factor;
+    unconstrained_allocs = wrench_pinv * set_power_scaled;
 
     // If maximum absolute value allocation is greater than the maximum allowed, normalize all allocations
     // so that the maximum absolute value allocation is the maximum allowed and ratios between all allocations
