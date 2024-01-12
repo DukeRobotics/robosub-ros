@@ -10,11 +10,11 @@ PIDManager::PIDManager()
         pid_controllers[axis] = PID();
 }
 
-PIDManager::PIDManager(AxesPIDGainsMap pid_gains_for_axes)
+PIDManager::PIDManager(AxesPIDGainsMap pid_gains_for_axes, AxesPIDGainsMap pid_terms_for_axes)
 {
     // Initialize PID controllers
     for (const AxesEnum &axis : AXES)
-        pid_controllers[axis] = PID(pid_gains_for_axes[axis]);
+        pid_controllers[axis] = PID(pid_gains_for_axes[axis], pid_terms_for_axes[axis]);
 }
 
 void PIDManager::run_loops(const std::unordered_map<AxesEnum, double> &errors,

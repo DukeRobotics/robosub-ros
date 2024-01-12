@@ -67,6 +67,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     set_power_scaled_pub = nh.advertise<geometry_msgs::Twist>("controls/set_power_scaled", 1);
     actual_power_pub = nh.advertise<geometry_msgs::Twist>("controls/actual_power", 1);
     pid_gains_pub = nh.advertise<custom_msgs::PIDGains>("controls/pid_gains", 1);
+    pid_terms_pub = nh.advertise<custom_msgs::PIDGains>("controls/pid_terms", 1);
     control_types_pub = nh.advertise<custom_msgs::ControlTypes>("controls/control_types", 1);
     position_efforts_pub = nh.advertise<geometry_msgs::Twist>("controls/position_efforts", 1);
     velocity_efforts_pub = nh.advertise<geometry_msgs::Twist>("controls/velocity_efforts", 1);
@@ -88,9 +89,20 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     ControlsUtils::read_robot_config(ROBOT_CONFIG_FILE_PATH, all_pid_gains, static_power_global, power_scale_factor,
                                      wrench_matrix_file_path, wrench_matrix_pinv_file_path);
 
+    // Initialize all PID terms to zero
+    for (const PIDLoopTypesEnum &pid_loop_type : PID_LOOP_TYPES)
+        for (const AxesEnum &axis : AXES)
+        {
+            std::shared_ptr<PIDGainsMap> terms = std::make_shared<PIDGainsMap>();
+            for (const PIDGainTypesEnum &pid_gain_type : PID_GAIN_TYPES)
+                (*terms)[pid_gain_type] = 0.0;
+
+            all_pid_terms[pid_loop_type][axis] = terms;
+        }
+
     // Instantiate PID managers for each PID loop type
     for (const PIDLoopTypesEnum &pid_loop_type : PID_LOOP_TYPES)
-        pid_managers[pid_loop_type] = PIDManager(all_pid_gains[pid_loop_type]);
+        pid_managers[pid_loop_type] = PIDManager(all_pid_gains[pid_loop_type], all_pid_terms[pid_loop_type]);
 
     // Instantiate thruster allocator
     thruster_allocator = ThrusterAllocator(wrench_matrix_file_path, wrench_matrix_pinv_file_path);
@@ -189,6 +201,11 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
 
     if (enable_velocity_pid)
         pid_managers[PIDLoopTypesEnum::VELOCITY].run_loops(velocity_error_map, delta_time_map, velocity_pid_outputs);
+
+    // Publish PID terms
+    custom_msgs::PIDGains pid_terms_msg;
+    ControlsUtils::pid_loops_axes_gains_map_to_msg(all_pid_terms, pid_terms_msg);
+    pid_terms_pub.publish(pid_terms_msg);
 
     // Publish control efforts
     geometry_msgs::Twist position_efforts_msg;

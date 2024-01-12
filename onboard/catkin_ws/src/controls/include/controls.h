@@ -60,6 +60,7 @@ public:
     ros::Publisher set_power_scaled_pub;
     ros::Publisher actual_power_pub;
     ros::Publisher pid_gains_pub;
+    ros::Publisher pid_terms_pub;
     ros::Publisher control_types_pub;
     ros::Publisher position_efforts_pub;
     ros::Publisher velocity_efforts_pub;
@@ -76,6 +77,7 @@ public:
     ros::Time last_state_msg_time;
 
     LoopsAxesPIDGainsMap all_pid_gains;
+    LoopsAxesPIDGainsMap all_pid_terms;
     std::unordered_map<PIDLoopTypesEnum, PIDManager> pid_managers;
 
     tf2::Vector3 static_power_global;

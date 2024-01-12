@@ -12,7 +12,7 @@ public:
     std::unordered_map<AxesEnum, PID> pid_controllers;
 
     PIDManager();
-    PIDManager(AxesPIDGainsMap pid_gains_for_axes);
+    PIDManager(AxesPIDGainsMap pid_gains_for_axes, AxesPIDGainsMap pid_terms_for_axes);
     void run_loops(const std::unordered_map<AxesEnum, double> &errors,
                    const std::unordered_map<AxesEnum, double> &deltaTimes,
                    std::unordered_map<AxesEnum, double> &outputs);

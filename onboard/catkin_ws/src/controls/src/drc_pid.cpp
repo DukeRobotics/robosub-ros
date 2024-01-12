@@ -5,9 +5,10 @@
 
 PID::PID(){};
 
-PID::PID(std::shared_ptr<PIDGainsMap> pid_gains)
+PID::PID(std::shared_ptr<PIDGainsMap> pid_gains, std::shared_ptr<PIDGainsMap> pid_terms)
 {
     this->pid_gains = pid_gains;
+    this->pid_terms = pid_terms;
 }
 
 void PID::reset()
@@ -81,6 +82,12 @@ double PID::run_loop(double error, double delta_time)
     double d = pid_gains->at(PIDGainTypesEnum::KD) * filtered_derivs.at(0);
     double f = pid_gains->at(PIDGainTypesEnum::FF);
     double control_effort = p + i + d + f;
+
+    // Save values of PID terms
+    pid_terms->at(PIDGainTypesEnum::KP) = p;
+    pid_terms->at(PIDGainTypesEnum::KI) = i;
+    pid_terms->at(PIDGainTypesEnum::KD) = d;
+    pid_terms->at(PIDGainTypesEnum::FF) = f;
 
     // Clip control effort to be within limits
     control_effort = clip(control_effort, control_effort_min, control_effort_max);

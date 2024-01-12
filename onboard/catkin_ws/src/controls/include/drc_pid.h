@@ -22,8 +22,10 @@ public:
     std::array<double, 3> derivs;
     std::array<double, 3> filtered_derivs;
 
+    std::shared_ptr<PIDGainsMap> pid_terms;
+
     PID();
-    PID(std::shared_ptr<PIDGainsMap> pid_gains);
+    PID(std::shared_ptr<PIDGainsMap> pid_gains, std::shared_ptr<PIDGainsMap> pid_terms);
 
     void reset();
     double clip(const double value, const double min, const double max);
