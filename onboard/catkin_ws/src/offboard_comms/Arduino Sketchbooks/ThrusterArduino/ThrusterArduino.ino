@@ -13,9 +13,10 @@ Adafruit_PWMServoDriver pwm_multiplexer(0x40);
 #define NUM_THRUSTERS 8
 #define THRUSTER_TIMEOUT_MS 500
 #define THRUSTER_STOP_PWM 1500
-#define THRUSTER_PWM_OFFSET 31 // Apply offset of +31 for oogway, remove for cthulhu
 #define THRUSTER_PWM_MIN 1100
 #define THRUSTER_PWM_MAX 1900
+
+extern int THRUSTER_PWM_OFFSET; // Hardware specific offset for PWMs -- refers to the robot-specific offsets
 
 uint64_t last_cmd_ms_ts;
 
