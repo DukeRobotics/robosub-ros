@@ -94,6 +94,7 @@ namespace ControlsUtils
     bool pid_gains_valid(const std::vector<custom_msgs::PIDGain> &pid_gains);
     void pose_to_twist(const geometry_msgs::Pose &pose, geometry_msgs::Twist &twist);
     void twist_to_map(const geometry_msgs::Twist &twist, std::unordered_map<AxesEnum, double> &map);
+    void map_to_twist(const std::unordered_map<AxesEnum, double> &map, geometry_msgs::Twist &twist);
     void eigen_vector_to_thruster_allocs(const Eigen::VectorXd &vector, custom_msgs::ThrusterAllocs &thruster_allocs);
     void eigen_vector_to_twist(const Eigen::VectorXd &vector, geometry_msgs::Twist &twist);
     bool control_types_to_map(const custom_msgs::ControlTypes &control_types,

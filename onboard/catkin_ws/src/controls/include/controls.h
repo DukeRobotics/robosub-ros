@@ -61,6 +61,8 @@ public:
     ros::Publisher actual_power_pub;
     ros::Publisher pid_gains_pub;
     ros::Publisher control_types_pub;
+    ros::Publisher position_efforts_pub;
+    ros::Publisher velocity_efforts_pub;
     ros::Publisher position_error_pub;
     ros::Publisher velocity_error_pub;
     ros::Publisher status_pub;

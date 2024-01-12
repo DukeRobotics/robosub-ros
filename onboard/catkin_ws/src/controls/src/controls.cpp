@@ -68,6 +68,8 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     actual_power_pub = nh.advertise<geometry_msgs::Twist>("controls/actual_power", 1);
     pid_gains_pub = nh.advertise<custom_msgs::PIDGains>("controls/pid_gains", 1);
     control_types_pub = nh.advertise<custom_msgs::ControlTypes>("controls/control_types", 1);
+    position_efforts_pub = nh.advertise<geometry_msgs::Twist>("controls/position_efforts", 1);
+    velocity_efforts_pub = nh.advertise<geometry_msgs::Twist>("controls/velocity_efforts", 1);
     position_error_pub = nh.advertise<geometry_msgs::Twist>("controls/position_error", 1);
     velocity_error_pub = nh.advertise<geometry_msgs::Twist>("controls/velocity_error", 1);
     status_pub = nh.advertise<std_msgs::Bool>("controls/status", 1);
@@ -173,9 +175,29 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     std::unordered_map<AxesEnum, double> velocity_error_map;
     ControlsUtils::twist_to_map(velocity_error, velocity_error_map);
 
+    // Publish error messages
+    position_error_pub.publish(position_error_msg);
+    velocity_error_pub.publish(velocity_error);
+
     // Get delta time map
     std::unordered_map<AxesEnum, double> delta_time_map;
     ControlsUtils::populate_axes_map(delta_time_map, delta_time);
+
+    // Run PID loops
+    if (enable_position_pid)
+        pid_managers[PIDLoopTypesEnum::POSITION].run_loops(position_error_map, delta_time_map, position_pid_outputs);
+
+    if (enable_velocity_pid)
+        pid_managers[PIDLoopTypesEnum::VELOCITY].run_loops(velocity_error_map, delta_time_map, velocity_pid_outputs);
+
+    // Publish control efforts
+    geometry_msgs::Twist position_efforts_msg;
+    ControlsUtils::map_to_twist(position_pid_outputs, position_efforts_msg);
+    position_efforts_pub.publish(position_efforts_msg);
+
+    geometry_msgs::Twist velocity_efforts_msg;
+    ControlsUtils::map_to_twist(velocity_pid_outputs, velocity_efforts_msg);
+    velocity_efforts_pub.publish(velocity_efforts_msg);
 
     // Rotate static power to equivalent vector in robot's local frame
     tf2::Quaternion orientation_tf2;
@@ -185,17 +207,6 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     // Publish static power rotated
     geometry_msgs::Vector3 static_power_local_msg = tf2::toMsg(static_power_local);
     static_power_local_pub.publish(static_power_local_msg);
-
-    // Run PID loops
-    if (enable_position_pid)
-        pid_managers[PIDLoopTypesEnum::POSITION].run_loops(position_error_map, delta_time_map, position_pid_outputs);
-
-    if (enable_velocity_pid)
-        pid_managers[PIDLoopTypesEnum::VELOCITY].run_loops(velocity_error_map, delta_time_map, velocity_pid_outputs);
-
-    // Publish error messages
-    position_error_pub.publish(position_error_msg);
-    velocity_error_pub.publish(velocity_error);
 }
 
 bool Controls::enable_controls_callback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)

@@ -117,6 +117,16 @@ void ControlsUtils::twist_to_map(const geometry_msgs::Twist &twist, std::unorder
     map[AxesEnum::YAW] = twist.angular.z;
 }
 
+void ControlsUtils::map_to_twist(const std::unordered_map<AxesEnum, double> &map, geometry_msgs::Twist &twist)
+{
+    twist.linear.x = map.at(AxesEnum::X);
+    twist.linear.y = map.at(AxesEnum::Y);
+    twist.linear.z = map.at(AxesEnum::Z);
+    twist.angular.x = map.at(AxesEnum::ROLL);
+    twist.angular.y = map.at(AxesEnum::PITCH);
+    twist.angular.z = map.at(AxesEnum::YAW);
+}
+
 void ControlsUtils::eigen_vector_to_thruster_allocs(const Eigen::VectorXd &vector, custom_msgs::ThrusterAllocs &thruster_allocs)
 {
     thruster_allocs.allocs.clear();
