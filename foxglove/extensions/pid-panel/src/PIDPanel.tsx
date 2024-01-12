@@ -292,7 +292,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
                               },
                             },
                           }}
-                          value={inEditMode ? undefined : gain} // Display the true gain value if not in edit mode
+                          value={inEditMode ? state.editedGains[Number(axis)]![gainType] : gain} // Display the true gain value if not in edit mode
                           onFocus={() => {
                             // Add the current gain to editedGains when entering edit mode
                             updateEditedGains(state.pid[state.loop]![Number(axis)]![gainType]!, Number(axis), gainType);
