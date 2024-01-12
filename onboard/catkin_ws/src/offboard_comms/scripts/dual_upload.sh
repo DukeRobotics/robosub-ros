@@ -27,6 +27,8 @@ else
     echo "Options parsed: only compiling"
 fi
 
+./copy_offset.sh 1 # Copy the offset file into the compile folder
+
 rm -rf ros_lib
 rosrun rosserial_arduino make_libraries.py .
 zip -r ros_lib.zip ros_lib
@@ -63,3 +65,5 @@ if [ "$ARD_UPLOAD" = true ]; then
     arduino-cli upload -b arduino:megaavr:nona4809 -p "$PORT1" "$SRC_CODE1"
     arduino-cli upload -b arduino:megaavr:nona4809 -p "$PORT2" "$SRC_CODE2"
 fi
+
+./copy_offset.sh 0 # Remove the offset file from the compile folder
