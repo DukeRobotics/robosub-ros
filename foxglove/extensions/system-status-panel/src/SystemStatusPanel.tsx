@@ -76,7 +76,7 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
                   key={row.statusName}
                   style={{
                     backgroundColor:
-                      row.value == undefined || row.value >= 90 ? theme.palette.error.main : theme.palette.success.main,
+                      row.value == undefined || row.value >= 90 ? theme.palette.error.dark : theme.palette.success.dark,
                   }}
                 >
                   <TableCell>

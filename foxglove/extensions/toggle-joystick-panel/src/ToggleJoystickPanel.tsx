@@ -303,7 +303,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
           <Box mb={1}>
             {context.callService == undefined && (
               <Alert variant="filled" severity="error">
-                Calling services is not supported by this connection
+                Calling services is not supported by this connection.
               </Alert>
             )}
             {state.error != undefined && (
@@ -315,8 +315,9 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         )}
 
         {/* Toggle button */}
-        <Box m={1}>
+        <Box my={1}>
           <Button
+            fullWidth
             variant="contained"
             color={state.joystickEnabled ? "error" : "success"}
             onClick={toggleJoystick}

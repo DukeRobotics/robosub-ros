@@ -9,7 +9,7 @@ import { useState } from "react";
 import { createRoot } from "react-dom/client";
 
 // Define the service name for enabling/disabling controls
-const ENABLE_CONTROLS_SERVICE = "/enable_controls";
+const ENABLE_CONTROLS_SERVICE = "/controls/enable";
 
 type ToggleControlsPanel = {
   error?: Error | undefined; // Error object if service call fails
@@ -59,7 +59,7 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
           <Box mb={1}>
             {context.callService == undefined && (
               <Alert variant="filled" severity="error">
-                Calling services is not supported by this connection
+                Calling services is not supported by this connection.
               </Alert>
             )}
             {state.error != undefined && (
@@ -72,6 +72,7 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
 
         {/* Toggle button */}
         <Button
+          fullWidth
           variant="contained"
           color={state.controlsEnabled ? "error" : "success"}
           onClick={toggleControls}
