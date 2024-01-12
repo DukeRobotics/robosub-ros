@@ -5,16 +5,17 @@ ROBOT_NAME=$(printenv ROBOT_NAME)
 
 if [ "$ROBOT_NAME" = "cthulhu" ]; then
     offset_file="cthuluThrusterOffset.h"
+    echo "Using cthulhuThrusterOffset.h"
 elif [ "$ROBOT_NAME" = "oogway" ]; then
     offset_file="oogwayThrusterOffset.h"
+    echo "Using oogwayThrusterOffset.h"
 else
     echo "Error: ROBOT_NAME environment variable is not set to a valid value"
     exit 1
 fi
 
-
 if [ "$1" = 1 ]; then
-    cp ~/catkin_ws/src/offboard_comms/scripts/Arduino\ Sketchbooks/"$offset_file" ~/catkin_ws/src/offboard_comms/Arduino\ Sketchbooks/ThrusterArduino/offset.h
+    cp onboard/catkin_ws/src/offboard_comms/Arduino\ Sketchbooks/"$offset_file" onboard/catkin_ws/src/offboard_comms/Arduino\ Sketchbooks/ThrusterArduino/offset.h
 else
-    rm ~/catkin_ws/src/offboard_comms/Arduino\ Sketchbooks/ThrusterArduino/offset.h
+    rm onboard/catkin_ws/src/offboard_comms/Arduino\ Sketchbooks/ThrusterArduino/offset.h
 fi

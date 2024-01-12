@@ -16,7 +16,7 @@ Adafruit_PWMServoDriver pwm_multiplexer(0x40);
 #define THRUSTER_PWM_MIN 1100
 #define THRUSTER_PWM_MAX 1900
 
-extern int THRUSTER_PWM_OFFSET; // Hardware specific offset for PWMs -- refers to the robot-specific offsets
+int THRUSTER_PWM_OFFSET; // Hardware specific offset for PWMs -- refers to the robot-specific offsets
 
 uint64_t last_cmd_ms_ts;
 
@@ -64,6 +64,10 @@ void setup()
         thrusters[i].initialize(&pwm_multiplexer);
         thrusters[i].attach(i);
     }
+
+    // Write the 1500 PWM to all thrusters to stop them
+    for (uint8_t i = 0; i < NUM_THRUSTERS; ++i)
+        thrusters[i].write(THRUSTER_STOP_PWM + THRUSTER_PWM_OFFSET);
 }
 
 void loop()
