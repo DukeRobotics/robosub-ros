@@ -12,6 +12,7 @@ LOWCUT = 34_500
 HIGHCUT = 35_500
 PING_FREQ = 35_000
 BANDPASS_WIDTHS = [4_000, 2_000, 1000, 750, 500]
+BANDPASS_WIDTH = 1000
 LOWPASS_CUTOFF = 6_000 # kinda arbitrarily chosen. In practice, cutoff for envelope detection should be square root of carrier freq (35 kHz) and message freq (not quite sure, chose 1 kHz?) TODO: Run fft on data and see what the frequency spectrum looks like
 
 SAMPLE_RATE = 625_000
@@ -135,23 +136,29 @@ def main():
     # Read data from csv file
     data_0 = np.genfromtxt('sample1.csv', delimiter=',', skip_header=1)
 
-    # Use only the first 20% of the data
-    # Data is of shape n by 4
-    
-
     rectified = np.absolute(data_0[:,1])
+
+    channels = [np.absolute(data_0[:,i+1]) for i in range(3)]
+
     # peaks = []
     filtered_signals = []
     start = time.perf_counter()
-    for i in range(5):
-        #channel_peaks, filtered_signal = detect_wave_packet(data_0[:,i+1])
-        #peaks.append(channel_peaks)
-        filtered_signal = butter_bandpass_filter(rectified, PING_FREQ -  BANDPASS_WIDTHS[i]/2, PING_FREQ + BANDPASS_WIDTHS[i]/2) # do a bandpass of the data from channel 1
-        filtered_signal = butter_lowpass_filter(np.absolute(filtered_signal), LOWPASS_CUTOFF) #arbitrarily chosen cutoff. 
+    # for i in range(3):
+    #     filtered_signal = butter_bandpass_filter(rectified, PING_FREQ -  BANDPASS_WIDTH/2, PING_FREQ + BANDPASS_WIDTH/2) # do a bandpass of the data from channel i
+    #     filtered_signal = butter_lowpass_filter(np.absolute(filtered_signal), LOWPASS_CUTOFF) #arbitrarily chosen cutoff. 
+    #     filtered_signals.append(filtered_signal)
+    #     print(f"{i} done, {time.perf_counter() - start} ms elapsed")
+
+    # tweak lowpass cutoff frequency
+    for i in range (7):
+        # filtered_signal = butter_bandpass_filter(rectified, PING_FREQ -  BANDPASS_WIDTH/2, PING_FREQ + BANDPASS_WIDTH/2)
+        filtered_signal = butter_lowpass_filter(rectified, LOWPASS_CUTOFF + (i - 3)*1000)
         filtered_signals.append(filtered_signal)
         print(f"{i} done, {time.perf_counter() - start} ms elapsed")
 
-    print([len(filtered_signals[i]) for i in range(5)])
+    filtered_signals.append(rectified)
+
+    print([len(filtered_signals[i]) for i in range(filtered_signals.__len__())])
 
 
     
@@ -169,30 +176,38 @@ def main():
     # Plot the detected peaks against both the raw and filtered signals
     # 2x4 subplots
 
-    _, ax = plt.subplots(3,2, figsize=(10,10))
+    _, ax = plt.subplots(4,2, figsize=(8,8))
     # plt.yscale("log")
 
-    ax[0,0].plot(data_0[:,0], butter_lowpass_filter(rectified, LOWPASS_CUTOFF))
+    # ax[0,0].plot(data_0[:,0], butter_lowpass_filter(rectified, LOWPASS_CUTOFF))
 
-    for i in range(1,6):
-        # Plot the raw signal
+    # for i in range(3):
+    #     # Plot the raw signal
+    #     ax[i,0].plot(data_0[:,0], data_0[:,i+1])
+    #     ax[i,0].set_title(f"Channel {i}")
+
+    #     # Plot the filtered signal
+    #     ax[i,1].plot(data_0[:,0], filtered_signals[i])
+    #     ax[i,1].set_title(f"Channel {i} filtered")
+
+    for i in range(filtered_signals.__len__()):
         
-
-        # Plot the filtered signal
-        ax[i//2,i%2].plot(data_0[:,0], filtered_signals[i-1])
 
         # Plot the detected peaksx
         #ax[i,1].plot(data_0[peaks[i],0], filtered_signals[i][peaks[i]], "x")
+        ax[i//2,i%2].plot(data_0[1:,0], filtered_signals[i])
 
-        ax[i//2,i%2].set_title(f"Bandwidth : {BANDPASS_WIDTHS[i-1]}")
+        ax[i//2,i%2].set_title(f"Lowpass cutoff = {LOWPASS_CUTOFF + (i - 3)*1000} Hz")
         ax[i//2,i%2].set_xlabel("Time (s)")
         ax[i//2,i%2].set_ylabel("Amplitude")
         # ax[i,1].set_yscale("log")
         # ax[i,1].set_ylim(-100,100)
 
-    
+    ax[i//2,i%2].set_title("No Lowpass")
     plt.tight_layout()
     plt.show()
+
+    
 
 
 if __name__ == '__main__':
