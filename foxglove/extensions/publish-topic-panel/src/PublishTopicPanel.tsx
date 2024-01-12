@@ -129,6 +129,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
               margin="dense"
               fullWidth
               value={state.topicName}
+              disabled={state.repeatPublish != null}
               onChange={(event) => {
                 setState((prevState) => ({
                   ...prevState,
@@ -151,6 +152,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
               error={state.invalidRate}
               helperText={state.invalidRate ? "Rate must be positive." : ""}
               defaultValue={state.publishRate}
+              disabled={state.repeatPublish != null}
               onChange={handleRateChange}
               InputProps={{
                 endAdornment: <InputAdornment position="end">Hz</InputAdornment>,
@@ -166,6 +168,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
               fullWidth
               options={Object.keys(allDatatypeMaps)}
               value={state.schemaType}
+              disabled={state.repeatPublish != null}
               onChange={(_, newValue) => {
                 // Don't allow undefined since we need to use schema type as a key to get the schema names
                 setState((prevState) => ({
@@ -182,6 +185,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
               fullWidth
               options={Object.keys(allDatatypeMaps[state.schemaType])}
               value={state.schemaName}
+              disabled={state.repeatPublish != null}
               onChange={(_, newValue) => {
                 setState((prevState) => ({
                   ...prevState,
@@ -201,6 +205,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
           label="Request"
           fullWidth
           value={state.request}
+          disabled={state.repeatPublish != null}
           onChange={(event) => {
             setState((prevState) => ({
               ...prevState,
