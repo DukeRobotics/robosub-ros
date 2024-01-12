@@ -36,33 +36,33 @@ type PIDPanelState = {
   pid: Record<number, Record<number, Record<number, number>>>; // Indexed by loop, axis, and gain type
 };
 
+// Triple nested object to store current PID gains
+const initPid = () => {
+  // Initialize gains to -1 to signify that the true values have not been received yet
+  const gains: Record<number, number> = {
+    [CustomMsgsPidGainConst.GAIN_KP]: -1,
+    [CustomMsgsPidGainConst.GAIN_KI]: -1,
+    [CustomMsgsPidGainConst.GAIN_KD]: -1,
+    [CustomMsgsPidGainConst.GAIN_FF]: -1,
+  };
+  const axes: Record<number, Record<number, number>> = {
+    [CustomMsgsPidGainConst.AXIS_X]: { ...gains },
+    [CustomMsgsPidGainConst.AXIS_Y]: { ...gains },
+    [CustomMsgsPidGainConst.AXIS_Z]: { ...gains },
+    [CustomMsgsPidGainConst.AXIS_ROLL]: { ...gains },
+    [CustomMsgsPidGainConst.AXIS_PITCH]: { ...gains },
+    [CustomMsgsPidGainConst.AXIS_YAW]: { ...gains },
+  };
+  const loops: Record<number, Record<number, Record<number, number>>> = {
+    [CustomMsgsPidGainConst.LOOP_POSITION]: { ...axes },
+    [CustomMsgsPidGainConst.LOOP_VELOCITY]: { ...axes },
+  };
+
+  return loops;
+};
+
 function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-
-  // Triple nested object to store current PID gains
-  const initPid = () => {
-    // Initialize gains to -1 to signify that the true values have not been received yet
-    const gains: Record<number, number> = {
-      [CustomMsgsPidGainConst.GAIN_KP]: -1,
-      [CustomMsgsPidGainConst.GAIN_KI]: -1,
-      [CustomMsgsPidGainConst.GAIN_KD]: -1,
-      [CustomMsgsPidGainConst.GAIN_FF]: -1,
-    };
-    const axes: Record<number, Record<number, number>> = {
-      [CustomMsgsPidGainConst.AXIS_X]: { ...gains },
-      [CustomMsgsPidGainConst.AXIS_Y]: { ...gains },
-      [CustomMsgsPidGainConst.AXIS_Z]: { ...gains },
-      [CustomMsgsPidGainConst.AXIS_ROLL]: { ...gains },
-      [CustomMsgsPidGainConst.AXIS_PITCH]: { ...gains },
-      [CustomMsgsPidGainConst.AXIS_YAW]: { ...gains },
-    };
-    const loops: Record<number, Record<number, Record<number, number>>> = {
-      [CustomMsgsPidGainConst.LOOP_POSITION]: { ...axes },
-      [CustomMsgsPidGainConst.LOOP_VELOCITY]: { ...axes },
-    };
-
-    return loops;
-  };
 
   // Initialize state
   const [state, setState] = useState<PIDPanelState>(() => {
