@@ -15,7 +15,6 @@ public:
     PIDManager(AxesPIDGainsMap pid_gains_for_axes);
     void run_loops(const std::unordered_map<AxesEnum, double> &errors,
                    const std::unordered_map<AxesEnum, double> &deltaTimes,
-                   const std::unordered_map<AxesEnum, double> &offsets,
                    std::unordered_map<AxesEnum, double> &outputs);
     void reset(AxesEnum axis_to_reset);
 };

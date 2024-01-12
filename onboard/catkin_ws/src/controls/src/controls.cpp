@@ -179,10 +179,7 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     // Rotate static power to equivalent vector in robot's local frame
     tf2::Quaternion orientation_tf2;
     tf2::fromMsg(state.pose.pose.orientation, orientation_tf2);
-    tf2::Vector3 static_power_local = quatRotate(orientation_tf2.inverse(), static_power_global);
-
-    std::unordered_map<AxesEnum, double> static_power_local_map;
-    ControlsUtils::tf_linear_vector_to_map(static_power_local, static_power_local_map);
+    static_power_local = quatRotate(orientation_tf2.inverse(), static_power_global);
 
     // Publish static power rotated
     geometry_msgs::Vector3 static_power_local_msg = tf2::toMsg(static_power_local);
@@ -190,12 +187,10 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
 
     // Run PID loops
     if (enable_position_pid)
-        pid_managers[PIDLoopTypesEnum::POSITION].run_loops(position_error_map, delta_time_map,
-                                                           static_power_local_map, position_pid_outputs);
+        pid_managers[PIDLoopTypesEnum::POSITION].run_loops(position_error_map, delta_time_map, position_pid_outputs);
 
     if (enable_velocity_pid)
-        pid_managers[PIDLoopTypesEnum::VELOCITY].run_loops(velocity_error_map, delta_time_map,
-                                                           static_power_local_map, velocity_pid_outputs);
+        pid_managers[PIDLoopTypesEnum::VELOCITY].run_loops(velocity_error_map, delta_time_map, velocity_pid_outputs);
 
     // Publish error messages
     position_error_pub.publish(position_error_msg);
@@ -307,6 +302,7 @@ void Controls::run()
 
     while (ros::ok())
     {
+        // Get set power based on control types
         for (int i = 0; i < AXES_COUNT; i++)
         {
             switch (control_types[AXES[i]])
@@ -323,11 +319,22 @@ void Controls::run()
             }
         }
 
+        // Convert static power to map
+        std::unordered_map<AxesEnum, double> static_power_local_map;
+        ControlsUtils::tf_linear_vector_to_map(static_power_local, static_power_local_map);
+
+        // Add static power to set power
+        for (const AxesEnum &axis : AXES)
+            set_power[axis] += static_power_local_map[axis];
+
+        // Allocate thrusters
         thruster_allocator.allocate_thrusters(set_power, power_scale_factor, unconstrained_allocs,
                                               constrained_allocs, actual_power);
 
+        // Convert thruster allocation vector to message
         ControlsUtils::eigen_vector_to_thruster_allocs(constrained_allocs, constrained_t);
 
+        // Publish messages
         if (controls_enabled)
             thruster_allocs_pub.publish(constrained_t);
 

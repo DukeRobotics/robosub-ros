@@ -19,12 +19,11 @@ PIDManager::PIDManager(AxesPIDGainsMap pid_gains_for_axes)
 
 void PIDManager::run_loops(const std::unordered_map<AxesEnum, double> &errors,
                            const std::unordered_map<AxesEnum, double> &deltaTimes,
-                           const std::unordered_map<AxesEnum, double> &offsets,
                            std::unordered_map<AxesEnum, double> &outputs)
 {
     // Run PID loops
     for (const AxesEnum &axis : AXES)
-        outputs[axis] = pid_controllers.at(axis).run_loop(errors.at(axis), deltaTimes.at(axis), offsets.at(axis));
+        outputs[axis] = pid_controllers.at(axis).run_loop(errors.at(axis), deltaTimes.at(axis));
 }
 
 void PIDManager::reset(AxesEnum axis_to_reset)

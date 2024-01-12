@@ -76,6 +76,7 @@ public:
     std::unordered_map<PIDLoopTypesEnum, PIDManager> pid_managers;
 
     tf2::Vector3 static_power_global;
+    tf2::Vector3 static_power_local;
 
     double power_scale_factor;
 

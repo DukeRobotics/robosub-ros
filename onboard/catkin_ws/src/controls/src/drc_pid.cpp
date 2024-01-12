@@ -30,7 +30,7 @@ double PID::second_order_butterworth(const std::array<double, 3> &values, const 
             ((-2 * c * c) + 2) * filtered_values.at(1));
 }
 
-double PID::run_loop(double error, double delta_time, double offset)
+double PID::run_loop(double error, double delta_time)
 {
     // If pid_gains is not set, return 0 and print error
     if (pid_gains == nullptr || pid_gains->size() == 0 || !pid_gains->count(PIDGainTypesEnum::KP) ||
@@ -80,7 +80,7 @@ double PID::run_loop(double error, double delta_time, double offset)
     double i = pid_gains->at(PIDGainTypesEnum::KI) * integral;
     double d = pid_gains->at(PIDGainTypesEnum::KD) * filtered_derivs.at(0);
     double f = pid_gains->at(PIDGainTypesEnum::FF);
-    double control_effort = p + i + d + f + offset;
+    double control_effort = p + i + d + f;
 
     // Clip control effort to be within limits
     control_effort = clip(control_effort, control_effort_min, control_effort_max);
