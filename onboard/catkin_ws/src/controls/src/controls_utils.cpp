@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <memory>
+#include <mutex>
 #include <unordered_map>
 #include <string>
 #include <ros/ros.h>
@@ -19,6 +20,8 @@
 #include <yaml-cpp/yaml.h>
 
 #include "controls_utils.h"
+
+std::mutex ControlsUtils::robot_config_mutex;
 
 bool ControlsUtils::value_in_control_types_enum(uint8_t value)
 {
@@ -277,6 +280,8 @@ void ControlsUtils::read_robot_config(std::string file_path,
 {
     try
     {
+        std::lock_guard<std::mutex> guard(robot_config_mutex);
+
         YAML::Node config = YAML::LoadFile(file_path);
 
         YAML::Node pid_node = config["pid"];
@@ -325,6 +330,8 @@ void ControlsUtils::update_robot_pid_gains(std::string file_path, const LoopsAxe
 {
     try
     {
+        std::lock_guard<std::mutex> guard(robot_config_mutex);
+
         YAML::Node config = YAML::LoadFile(file_path);
 
         YAML::Node pid = config["pid"];
@@ -366,6 +373,8 @@ void ControlsUtils::update_robot_static_power_global(std::string file_path, cons
 {
     try
     {
+        std::lock_guard<std::mutex> guard(robot_config_mutex);
+
         YAML::Node config = YAML::LoadFile(file_path);
 
         YAML::Node static_power_global_node = config["static_power_global"];
@@ -399,6 +408,8 @@ void ControlsUtils::update_robot_power_scale_factor(std::string file_path, doubl
 {
     try
     {
+        std::lock_guard<std::mutex> guard(robot_config_mutex);
+
         YAML::Node config = YAML::LoadFile(file_path);
 
         config["power_scale_factor"] = power_scale_factor;

@@ -3,6 +3,7 @@
 
 #include <cstdlib>
 #include <memory>
+#include <mutex>
 #include <unordered_map>
 #include <string>
 #include <vector>
@@ -79,41 +80,42 @@ typedef std::unordered_map<PIDGainTypesEnum, double> PIDGainsMap;
 typedef std::unordered_map<AxesEnum, std::shared_ptr<PIDGainsMap>> AxesPIDGainsMap;
 typedef std::unordered_map<PIDLoopTypesEnum, AxesPIDGainsMap> LoopsAxesPIDGainsMap;
 
-class ControlsUtils
+namespace ControlsUtils
 {
-public:
-    static bool value_in_control_types_enum(uint8_t value);
-    static bool value_in_axes_enum(uint8_t value);
-    static bool value_in_pid_loop_types_enum(uint8_t value);
-    static bool value_in_pid_gain_types_enum(uint8_t value);
-    static bool quaternion_valid(const geometry_msgs::Quaternion &quaternion);
-    static bool twist_in_range(const geometry_msgs::Twist &twist, double min, double max);
-    static bool pid_gain_valid(const custom_msgs::PIDGain &pid_gain);
-    static bool pid_gains_valid(const std::vector<custom_msgs::PIDGain> &pid_gains);
-    static void pose_to_twist(const geometry_msgs::Pose &pose, geometry_msgs::Twist &twist);
-    static void twist_to_map(const geometry_msgs::Twist &twist, std::unordered_map<AxesEnum, double> &map);
-    static void eigen_vector_to_thruster_allocs(const Eigen::VectorXd &vector, custom_msgs::ThrusterAllocs &thruster_allocs);
-    static void eigen_vector_to_twist(const Eigen::VectorXd &vector, geometry_msgs::Twist &twist);
-    static bool control_types_to_map(const custom_msgs::ControlTypes &control_types,
+    extern std::mutex robot_config_mutex;
+
+    bool value_in_control_types_enum(uint8_t value);
+    bool value_in_axes_enum(uint8_t value);
+    bool value_in_pid_loop_types_enum(uint8_t value);
+    bool value_in_pid_gain_types_enum(uint8_t value);
+    bool quaternion_valid(const geometry_msgs::Quaternion &quaternion);
+    bool twist_in_range(const geometry_msgs::Twist &twist, double min, double max);
+    bool pid_gain_valid(const custom_msgs::PIDGain &pid_gain);
+    bool pid_gains_valid(const std::vector<custom_msgs::PIDGain> &pid_gains);
+    void pose_to_twist(const geometry_msgs::Pose &pose, geometry_msgs::Twist &twist);
+    void twist_to_map(const geometry_msgs::Twist &twist, std::unordered_map<AxesEnum, double> &map);
+    void eigen_vector_to_thruster_allocs(const Eigen::VectorXd &vector, custom_msgs::ThrusterAllocs &thruster_allocs);
+    void eigen_vector_to_twist(const Eigen::VectorXd &vector, geometry_msgs::Twist &twist);
+    bool control_types_to_map(const custom_msgs::ControlTypes &control_types,
                                      std::unordered_map<AxesEnum, ControlTypesEnum> &map);
-    static void map_to_control_types(const std::unordered_map<AxesEnum, ControlTypesEnum> &map,
+    void map_to_control_types(const std::unordered_map<AxesEnum, ControlTypesEnum> &map,
                                      custom_msgs::ControlTypes &control_types);
-    static void tf_linear_vector_to_map(const tf2::Vector3 &vector, std::unordered_map<AxesEnum, double> &map);
-    static bool update_pid_loops_axes_gains_map(LoopsAxesPIDGainsMap &all_pid_gains,
+    void tf_linear_vector_to_map(const tf2::Vector3 &vector, std::unordered_map<AxesEnum, double> &map);
+    bool update_pid_loops_axes_gains_map(LoopsAxesPIDGainsMap &all_pid_gains,
                                                 const std::vector<custom_msgs::PIDGain> &pid_gain_updates);
-    static void pid_loops_axes_gains_map_to_msg(const LoopsAxesPIDGainsMap &all_pid_gains,
+    void pid_loops_axes_gains_map_to_msg(const LoopsAxesPIDGainsMap &all_pid_gains,
                                                 custom_msgs::PIDGains &pid_gains_msg);
-    static void populate_axes_map(std::unordered_map<AxesEnum, double> &map, double value);
-    static void read_matrix_from_csv(std::string file_path, Eigen::MatrixXd &matrix);
-    static void read_robot_config(std::string file_path,
+    void populate_axes_map(std::unordered_map<AxesEnum, double> &map, double value);
+    void read_matrix_from_csv(std::string file_path, Eigen::MatrixXd &matrix);
+    void read_robot_config(std::string file_path,
                                   LoopsAxesPIDGainsMap &all_pid_gains,
                                   tf2::Vector3 &static_power_global,
                                   double &power_scale_factor,
                                   std::string &wrench_matrix_file_path,
                                   std::string &wrench_matrix_pinv_file_path);
-    static void update_robot_pid_gains(std::string file_path, const LoopsAxesPIDGainsMap &all_pid_gains);
-    static void update_robot_static_power_global(std::string file_path, const tf2::Vector3 &static_power_global);
-    static void update_robot_power_scale_factor(std::string file_path, double &power_scale_factor);
+    void update_robot_pid_gains(std::string file_path, const LoopsAxesPIDGainsMap &all_pid_gains);
+    void update_robot_static_power_global(std::string file_path, const tf2::Vector3 &static_power_global);
+    void update_robot_power_scale_factor(std::string file_path, double &power_scale_factor);
 };
 
 #endif
