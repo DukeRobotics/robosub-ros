@@ -1,4 +1,4 @@
 // PWM offset for cthulu
 // Copied into the compile folder in the upload scripts depending on the ROBOT_NAME environment variable
 
-extern int THRUSTER_PWM_OFFSET = 0;
+int THRUSTER_PWM_OFFSET = 0;

@@ -6,6 +6,7 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <std_msgs/Bool.h>
 #include <Arduino.h>
+#include "offset.h"
 
 Adafruit_PWMServoDriver pwm_multiplexer(0x40);
 
@@ -16,7 +17,7 @@ Adafruit_PWMServoDriver pwm_multiplexer(0x40);
 #define THRUSTER_PWM_MIN 1100
 #define THRUSTER_PWM_MAX 1900
 
-int THRUSTER_PWM_OFFSET; // Hardware specific offset for PWMs -- refers to the robot-specific offsets
+extern int THRUSTER_PWM_OFFSET; // Hardware specific offset for PWMs -- refers to the robot-specific offsets
 
 uint64_t last_cmd_ms_ts;
 
