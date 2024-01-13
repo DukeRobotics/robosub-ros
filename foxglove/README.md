@@ -45,7 +45,6 @@ To uninstall all layouts, use:
 ```bash
 python foxglove.py uninstall -l
 ```
-**Note:** The user must be signed out of Foxglove to uninstall layouts using this CLI. You can still uninstall layouts manually through the app.
 
 For more information, consult the usage guide of `foxglove.py` with the `-h` flag:
 ```bash
