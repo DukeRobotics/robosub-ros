@@ -50,7 +50,7 @@ arduino-cli compile -b arduino:megaavr:nona4809 "$SRC_CODE1"
 arduino-cli compile -b arduino:megaavr:nona4809 "$SRC_CODE2"
 if [ "$ARD_UPLOAD" = true ]; then
     # E49AFA8B51514C4B39202020FF024242 is thruster arduino
-    # 3FE1330851544B5933202020FF070938 is pressure arduino
+    # FAD98F6E51514C4B39202020FF020B42 is pressure arduino
     if [ "$ARDUINO1" = "E49AFA8B51514C4B39202020FF024242" ]; then
         TEMP=$SRC_CODE1
         SRC_CODE1=$SRC_CODE2
