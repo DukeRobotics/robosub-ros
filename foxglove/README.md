@@ -91,6 +91,7 @@ ws://<hostname or IP of onboard container>:8765
 - `sensors-status-panel`: Panel that displays the connected/disconnected status of Oogway's sensors
 - `thruster-speeds-panel`: Panel that displays the current thruster speeds and publishes desired thruster speeds
 - `toggle-joystick-panel`: Panel to toggle joystick control on/off, as well as publish transformed joystick inputs as a desired power
+- `pid-panel`: Panel to read/set PID gains
 
 ### Layouts
 - `controls-monitor.json`: 6 graphs for each control axis (x, y, z, roll, pitch, yaw) plotting setpoint and control effort against time. Used to test responsiveness of robot during PID tuning.
