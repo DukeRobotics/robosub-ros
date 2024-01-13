@@ -4,7 +4,7 @@
 ROBOT_NAME=$(printenv ROBOT_NAME)
 
 if [ "$ROBOT_NAME" = "cthulhu" ]; then
-    offset_file="cthuluThrusterOffset.h"
+    offset_file="cthulhuThrusterOffset.h"
     echo "Using cthulhuThrusterOffset.h"
 elif [ "$ROBOT_NAME" = "oogway" ]; then
     offset_file="oogwayThrusterOffset.h"
