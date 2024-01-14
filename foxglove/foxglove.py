@@ -176,7 +176,7 @@ def install_layouts(layouts_path: pathlib.Path = LAYOUTS_PATH, install_path: pat
         with open(install_path / id, 'w') as f:
             json.dump(packaged_layout, f)
 
-        print(f"{name}: installed")
+        print(f"{id}: installed")
 
         successes += 1
 
