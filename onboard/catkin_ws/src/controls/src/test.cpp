@@ -16,15 +16,15 @@ int osqp_eigen_test()
 
   Eigen::VectorXd b(6);
   b << 2, 1.3, -1.5, 0.05, 0.1, 0.3;
-
-  std::cout << "b: " << b << std::endl;
+  std::cout << "b: " << std::endl;
+  std:: cout << b << std::endl;
 
   OsqpEigen::Solver solver;
 
   int numberOfVariables = W.cols();
   int numberOfConstraints = W.cols();
   Eigen::SparseMatrix<double> hessian = (W.transpose() * W).sparseView();
-  Eigen::VectorXd gradient = -b.transpose() * W;
+  Eigen::VectorXd gradient = Eigen::VectorXd::Zero(6).transpose() * W;
   Eigen::SparseMatrix<double> linearMatrix = Eigen::MatrixXd::Identity(W.cols(), W.cols()).sparseView();
   Eigen::VectorXd lowerBound = -Eigen::VectorXd::Ones(W.cols());
   Eigen::VectorXd upperBound = Eigen::VectorXd::Ones(W.cols());
@@ -41,19 +41,30 @@ int osqp_eigen_test()
   solver.settings()->setVerbosity(false);
 
   if(!solver.initSolver()) return 1;
+
+  gradient = -b.transpose() * W;
+  if(!solver.updateGradient(gradient)) return 1;
   if(solver.solveProblem() != OsqpEigen::ErrorExitFlag::NoError) return 1;
   Eigen::VectorXd QPSolution = solver.getSolution();
 
   // cout qp solution
   std::cout << "QP solution: " << std::endl;
-  std::cout << QPSolution << std::endl;
-  std::cout << std::endl;
   std::cout << W * QPSolution << std::endl;
   std::cout << std::endl;
 
-  b << 5, 1.3, -1.5, 0.05, 0.1, 0.3;
+  b << 5, 2.3, -0.5, 0.2, 0.7, 0.4;
+  std::cout << "b: " << std::endl;
+  std:: cout << b << std::endl;
+
   gradient = -b.transpose() * W;
-  if(!solver.data()->setGradient(gradient)) return 1;
+  if(!solver.updateGradient(gradient)) return 1;
+
+  if(solver.solveProblem() != OsqpEigen::ErrorExitFlag::NoError) return 1;
+  QPSolution = solver.getSolution();
+
+  std::cout << "QP solution: " << std::endl;
+  std::cout << W * QPSolution << std::endl;
+  std::cout << std::endl;
 
 
   // Eigen::VectorXd std_solution = W_pinv * b;
