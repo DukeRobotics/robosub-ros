@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 A CLI to automatically install/uninstall Foxglove extensions and layouts.
-usage: foxglove.py {install,uninstall} [--extensions] [--layouts]
 
 To install a specific extension, use the -e flag:
 python foxglove.py install -e <extension-1> <extension-2> ...
