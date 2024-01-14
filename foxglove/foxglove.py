@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 A CLI to automatically install/uninstall Foxglove extensions and layouts.
-usage: foxglove.py {install,uninstall} [--extensions] [--layouts]
 
 To install a specific extension, use the -e flag:
 python foxglove.py install -e <extension-1> <extension-2> ...
@@ -25,6 +24,7 @@ import datetime
 import platform
 import argparse
 from typing import Sequence, Union
+import time
 
 ORGANIZATION = "dukerobotics"
 
@@ -175,7 +175,7 @@ def install_layouts(layouts_path: pathlib.Path = LAYOUTS_PATH, install_path: pat
         with open(install_path / id, 'w') as f:
             json.dump(packaged_layout, f)
 
-        print(f"{name}: installed")
+        print(f"{id}: installed")
 
         successes += 1
 
@@ -243,10 +243,48 @@ def extension_package(name: str, extension_paths: Sequence[pathlib.Path] = EXTEN
     raise argparse.ArgumentTypeError(f"{name} is not a valid extension name")
 
 
+def create_new_layout(name: str, install_path: pathlib.Path = LAYOUT_INSTALL_PATH):
+    """
+    Create a new layout in Foxglove Desktop.
+
+    Foxglove does not allow creating more than one layout when not signed in.
+    This script circumvents this issue.
+
+    Args:
+        name: Name of the new layout.
+        install_path: Path to install layouts to.
+    """
+    with open("empty-layout.json") as f:
+        data = json.load(f)
+
+    baseline = {
+        "data": data,
+        "savedAt": datetime.datetime.now(datetime.timezone.utc).isoformat()
+    }
+
+    id = f"{ORGANIZATION}.{name}"
+    packaged_layout = {
+        "id": id,
+        "name": name,
+        "permission": "CREATOR_WRITE",
+        "baseline": baseline,
+    }
+
+    with open(install_path / id, 'w') as f:
+        json.dump(packaged_layout, f)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Install/Uninstall Foxglove extensions and layouts.")
+    parser.add_argument(
+        '--new-layout',
+        nargs='?',
+        const=str(time.time_ns()),  # Use current time if no name is given to avoid collisions
+        action='store',
+        help="Create a new layout by name. If no name is given, use current time in nanoseconds as name."
+    )
 
-    subparsers = parser.add_subparsers(dest="action", required=True)
+    subparsers = parser.add_subparsers(dest="action")
 
     install_parser = subparsers.add_parser(
         'install',
@@ -258,7 +296,7 @@ if __name__ == "__main__":
         action='extend',
         nargs='*',
         type=extension_package,
-        help="Install extension(s) by name. By default, all extensions are installed."
+        help="Install extension(s) by name. If no name(s) are given, all extensions are installed."
     )
     install_parser.add_argument(
         '-l', '--layouts',
@@ -282,7 +320,7 @@ if __name__ == "__main__":
     build_parser = subparsers.add_parser(
         'build',
         aliases=['b'],
-        help='Build all necessary dependencies for Foxglove.'
+        help='Build all necessary dependencies for Foxglove. This is automatically run when installing extensions.'
     )
     build_parser.add_argument(
         '--skip-ci',
@@ -322,3 +360,6 @@ if __name__ == "__main__":
     elif args.action in ("build", "b"):
         check_npm()
         build_deps(skip_ci=args.skip_ci)
+
+    if args.new_layout:
+        create_new_layout(args.new_layout)

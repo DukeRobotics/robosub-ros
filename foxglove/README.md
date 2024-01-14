@@ -105,11 +105,35 @@ Running `python foxglove.py install` will automatically build all local dependen
 - `defs`: Exports Foxglove datatype maps and TypeScript interfaces/enums for both ROS 1 and Duke Robotics custom message definitions
 - `ros-typescript-generator`: CLI that generates TypeScript interfaces/enums from ROS definitions
 
+## Patches
+Patches to external node modules are located in the `patches` directory.
+
+Running either `python foxglove.py <build/install>` will automatically install these patches.
+
+- `create-foxglove-extension+0.8.6.patch`
+  - No longer require `README.md` or `CHANGELOG.md` when installing an extension
+  - Before installing an extension, only remove `dist/extension.js` (instead of cleaning the entire `dist` directory)
+
+## Other Files
+- `.eslintrc.json`: Configuration file for ESLint
+- `.prettierrc.yaml`: Configuration file for Prettier
+- `tsconfig.json`: Configuration file for TypeScript
+- `package.json`: Configuration file for npm
+- `package-lock.json`: The exact npm dependency tree of the foxglove monorepo, generated using `npm i`
+- `empty-layout.json`: Default Foxglove layout JSON file used when creating new layouts from the `foxglove.py` CLI
+
 ## Contributing
 ### Creating a New Extension
 Fork an existing Duke Robotics example extension (`call-service-panel`, `publish-topic-panel`, or `subscribe-topic-panel`) to base the new extension off of. This ensures that all of our extensions have the same code structure and use the same core set of dependencies.
 
 ### Creating a New Layout
+Foxglove does not allow creating more than one layout when not signed in.
+To circumvent this issue, use the `foxglove.py` CLI:
+```bash
+python foxglove.py --new-layout <layout-name>
+```
+If `<layout-name>` is not specified, the layout name will be the current time in nanoseconds.
+
 Follow the [documentation](https://foxglove.dev/docs/studio/layouts#personal-layouts) to export your layout as a JSON file to the robosub-ros `foxglove/layouts` directory. Manually look over the JSON to ensure that the settings are correct. For example, ensure that `splitPercentage` for each panel is set to the desired amount.
 
 ### Creating a New Local Dependency
