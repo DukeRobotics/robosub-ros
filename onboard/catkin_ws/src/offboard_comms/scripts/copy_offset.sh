@@ -12,8 +12,8 @@ elif [ "$ROBOT_NAME" = "oogway" ]; then
     offset_file="oogwayThrusterOffset.h"
     echo "Using oogwayThrusterOffset.h"
 else
-    echo "Error: ROBOT_NAME environment variable is not set to a valid value"
-    exit 1
+    offset_file="oogwayThrusterOffset.h"
+    echo "Warn: ROBOT_NAME environment variable is not set to a valid value. Defaulting to oogwayThrusterOffset.h"
 fi
 
 if [ "$1" = 1 ]; then
