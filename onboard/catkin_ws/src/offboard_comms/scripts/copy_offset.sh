@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Copies the relevant offset .h file into the compile folder (ThrusterArduino) before compiling and uploading to the Arduino.
 # 1 argument: 1 if to copy the offset file, 0 to remove it
 
