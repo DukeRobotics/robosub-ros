@@ -2,8 +2,7 @@ import { allDatatypeMaps } from "@duke-robotics/defs/datatype_maps";
 import { CustomMsgsThrusterAllocs } from "@duke-robotics/defs/types";
 import useTheme from "@duke-robotics/theme";
 import { PanelExtensionContext, RenderState, Immutable, MessageEvent } from "@foxglove/studio";
-import { CheckCircleOutline, HighlightOff } from "@mui/icons-material";
-import { TextField, Button, Alert, Tab, Tabs, CssBaseline } from "@mui/material";
+import { TextField, Button, Alert, Tab, Tabs, CssBaseline, Box } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
 import { ThemeProvider } from "@mui/material/styles";
 import { useCallback, useEffect, useState, useRef } from "react";
@@ -74,7 +73,7 @@ const thrusters: (keyof ThrusterAllocs)[] = [
   "bottomBackRight",
 ];
 // Array of thruster keys in the order defined in the robot config file, used to map each thruster to its correct
-// position in the "allocs" array in the "custom_msgs/ThrusterAllocs" message
+// position in the allocs array in the "custom_msgs/ThrusterAllocs" message
 const thrustersInOrder: (keyof ThrusterAllocs)[] = allThrusterOrders[ROBOT] as (keyof ThrusterAllocs)[];
 
 // React component for Thruster Allocs Panel
@@ -83,29 +82,38 @@ function ThrusterAllocsPanel({ context }: { context: PanelExtensionContext }): J
   const [renderDone, setRenderDone] = useState<() => void | undefined>();
   const firstMount = useRef(true);
   const theme = useTheme();
-  const [state, setState] = useState<ThrusterAllocsPanelState>({
-    // In the PUBLISHING mode, denotes whether all entered values in the panel are valid.
-    // If false, display an error warning which prevents the panel from publishing.
-    hasError: false,
-    panelMode: PanelMode.SUBSCRIBING,
-    // If publishing, holds the NodeJS.Timeout object used to publish messages at a constant rate, otherwise undefined
-    repeatPublish: null,
-    // Thruster allocs to be published
-    publisherThrusterAllocs: { ...defaultThrusterAllocs },
-    // Thruster allocs subscribed from the message
-    subscriberThrusterAllocs: { ...defaultThrusterAllocs },
-    // Holds temporary values of thruster allocs that the user entered before publishing
-    tempThrusterAllocs: {
-      frontLeft: "",
-      frontRight: "",
-      backLeft: "",
-      backRight: "",
-      bottomFrontLeft: "",
-      bottomFrontRight: "",
-      bottomBackLeft: "",
-      bottomBackRight: "",
-    },
+  const [state, setState] = useState<ThrusterAllocsPanelState>(() => {
+    const initialState = context.initialState as ThrusterAllocsPanelState | undefined;
+
+    return {
+      // In the PUBLISHING mode, denotes whether all entered values in the panel are valid.
+      // If false, display an error warning which prevents the panel from publishing.
+      hasError: initialState?.hasError ?? false,
+      panelMode: initialState?.panelMode ?? PanelMode.SUBSCRIBING,
+      // If publishing, holds the NodeJS.Timeout object used to publish messages at a constant rate, otherwise undefined
+      repeatPublish: null,
+      // Thruster allocs to be published
+      publisherThrusterAllocs: { ...defaultThrusterAllocs },
+      // Thruster allocs subscribed from the message
+      subscriberThrusterAllocs: { ...defaultThrusterAllocs },
+      // Holds temporary values of thruster allocs that the user entered before publishing
+      tempThrusterAllocs: initialState?.tempThrusterAllocs ?? {
+        frontLeft: "",
+        frontRight: "",
+        backLeft: "",
+        backRight: "",
+        bottomFrontLeft: "",
+        bottomFrontRight: "",
+        bottomBackLeft: "",
+        bottomBackRight: "",
+      },
+    };
   });
+
+  // Save state upon change
+  useEffect(() => {
+    context.saveState(state);
+  }, [state, context]);
 
   useEffect(() => {
     renderDone?.();
@@ -176,10 +184,10 @@ function ThrusterAllocsPanel({ context }: { context: PanelExtensionContext }): J
 
     // Publishes the message to THRUSTER_ALLOCS_TOPIC
     try {
-      context.advertise(`/${THRUSTER_ALLOCS_TOPIC}`, THRUSTER_ALLOCS_MESSAGE_TYPE, {
+      context.advertise(THRUSTER_ALLOCS_TOPIC, THRUSTER_ALLOCS_MESSAGE_TYPE, {
         datatypes: allDatatypeMaps["custom_msgs"][THRUSTER_ALLOCS_MESSAGE_TYPE],
       });
-      context.publish(`/${THRUSTER_ALLOCS_TOPIC}`, message);
+      context.publish(THRUSTER_ALLOCS_TOPIC, message);
 
       setState((oldState) => ({
         ...oldState,
@@ -220,7 +228,7 @@ function ThrusterAllocsPanel({ context }: { context: PanelExtensionContext }): J
   };
 
   // Function to generate publisher allocs from tempThrusterAllocs. If any value of tempThrusterAllocs is "",
-  // the latest subscribed alloc for that thruster is used instead.
+  // then the latest subscribed alloc for that thruster is used instead.
   const generatePublisherAllocs = () => {
     const newThrusterAllocs: ThrusterAllocs = { ...state.tempThrusterAllocs };
     thrusters.forEach((thruster: keyof ThrusterAllocs) => {
@@ -263,31 +271,32 @@ function ThrusterAllocsPanel({ context }: { context: PanelExtensionContext }): J
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <div style={{ padding: "5px" }}>
+      <Box m={1}>
         {/* SUBSCRIBING and PUBLISHING tabs */}
         <Tabs value={state.panelMode} onChange={handleModeChange} variant="fullWidth">
           <Tab label="Subscribing" value={PanelMode.SUBSCRIBING} />
           <Tab label="Publishing" value={PanelMode.PUBLISHING} />
         </Tabs>
         {/* Alert to be displayed if the panel is in PUBLISHING mode but cannot publish to THRUSTER_ALLOCS_TOPIC */}
-        <div style={{ padding: "5px" }}>
+        <Box my={1}>
           {state.panelMode === PanelMode.SUBSCRIBING ? (
             <></>
           ) : (
             (context.advertise == undefined || context.publish == undefined) && (
               <Alert variant="filled" severity="error">
-                Publishing topics is not supported by this connection
+                Publishing topics is not supported by this connection.
               </Alert>
             )
           )}
-        </div>
-        <div>
+        </Box>
+        <Box>
           {/* Grid for displaying thruster allocs. If in SUBSCRIBING mode, displays subscribed allocs, otherwise
           displays TextFields for user to input thruster allocs values */}
           <Grid container rowSpacing={1} columnSpacing={0}>
             {thrusters.map((thruster) => (
               <Grid key={thruster} xs={6}>
                 <TextField
+                  type="number"
                   key={thruster}
                   id={thruster}
                   error={state.panelMode === PanelMode.PUBLISHING && !validateInput(state.tempThrusterAllocs[thruster])}
@@ -302,25 +311,26 @@ function ThrusterAllocsPanel({ context }: { context: PanelExtensionContext }): J
                   InputProps={state.panelMode === PanelMode.SUBSCRIBING ? { readOnly: true } : {}}
                   defaultValue={state.panelMode === PanelMode.SUBSCRIBING ? false : 0}
                   onChange={updateTempAllocs}
+                  fullWidth
                 />
               </Grid>
             ))}
           </Grid>
-        </div>
-        <div style={{ display: "flex", justifyContent: "center", padding: "5px" }}>
+        </Box>
+        <Box my={1}>
           {state.panelMode === PanelMode.SUBSCRIBING ? (
             <></>
           ) : state.hasError ? (
             // Alert to be displayed if any user input thruster allocs are invalid
             <Alert variant="filled" severity="error">
-              The alloc value for each thruster must be a float between -1 and 1!
+              The alloc value for each thruster must be a float between -1 and 1.
             </Alert>
           ) : (
             // Button to start and stop publishing
             <Button
+              fullWidth
               variant="contained"
               color={state.repeatPublish == null ? "success" : "error"}
-              endIcon={state.repeatPublish == null ? <CheckCircleOutline /> : <HighlightOff />}
               onClick={
                 state.repeatPublish == null
                   ? () => {
@@ -336,13 +346,15 @@ function ThrusterAllocsPanel({ context }: { context: PanelExtensionContext }): J
               {state.repeatPublish == null ? "Start Publishing" : "Stop Publishing"}
             </Button>
           )}
-        </div>
-      </div>
+        </Box>
+      </Box>
     </ThemeProvider>
   );
 }
 
 export function initThrusterAllocsPanel(context: PanelExtensionContext): () => void {
+  context.panelElement.style.overflow = "auto"; // Enable scrolling
+
   const root = createRoot(context.panelElement as HTMLElement);
   root.render(<ThrusterAllocsPanel context={context} />);
 
