@@ -55,7 +55,7 @@ const defaultThrusterAllocs: ThrusterAllocs = {
 const ROBOT = "OOGWAY";
 const MIN_THRUSTER_ALLOC = -1;
 const MAX_THRUSTER_ALLOC = 1;
-const THRUSTER_ALLOCS_TOPIC = "controls/thruster_allocs";
+const THRUSTER_ALLOCS_TOPIC = "/controls/thruster_allocs";
 const THRUSTER_ALLOCS_MESSAGE_TYPE = "custom_msgs/ThrusterAllocs";
 
 // This is the delay, in miliseconds, between two consecutive messages published by the panel.
