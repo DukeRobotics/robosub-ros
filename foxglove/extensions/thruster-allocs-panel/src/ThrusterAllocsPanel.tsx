@@ -2,7 +2,7 @@ import { allDatatypeMaps } from "@duke-robotics/defs/datatype_maps";
 import { CustomMsgsThrusterAllocs } from "@duke-robotics/defs/types";
 import useTheme from "@duke-robotics/theme";
 import { PanelExtensionContext, RenderState, Immutable, MessageEvent } from "@foxglove/studio";
-import { TextField, Button, Alert, Tab, Tabs, CssBaseline, Box, FilledInputProps, OutlinedInputProps } from "@mui/material";
+import { TextField, Button, Alert, Tab, Tabs, CssBaseline, Box } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
 import { ThemeProvider } from "@mui/material/styles";
 import { useCallback, useEffect, useState, useRef } from "react";
