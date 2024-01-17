@@ -1,5 +1,7 @@
 {
   "name": "@duke-robotics/sensors-status-panel",
+  "displayName": "Sensors Status Panel",
+  "description": "Display the connected/disconnected status of sensors",
   "publisher": "Duke Robotics",
   "version": "0.0.0",
   "main": "./dist/extension.js",

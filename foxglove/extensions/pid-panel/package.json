@@ -1,5 +1,7 @@
 {
   "name": "@duke-robotics/pid-panel",
+  "displayName": "PID Panel",
+  "description": "Read/set PID gains",
   "publisher": "Duke Robotics",
   "version": "0.0.0",
   "main": "./dist/extension.js",

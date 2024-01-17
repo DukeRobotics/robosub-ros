@@ -1,5 +1,7 @@
 {
   "name": "@duke-robotics/toggle-joystick-panel",
+  "displayName": "Toggle Joystick Panel",
+  "description": "Toggle to publish joystick inputs as a desired power",
   "publisher": "Duke Robotics",
   "version": "0.0.0",
   "main": "./dist/extension.js",
