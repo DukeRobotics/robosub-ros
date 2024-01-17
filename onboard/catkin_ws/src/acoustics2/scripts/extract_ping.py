@@ -5,7 +5,7 @@ from scipy.signal import butter, lfilter
 from data_sim import gen_timeseries
 import matplotlib as mpl
 import time
-from matplotlib import interactive
+from scipy.signal import hilbert
 
 mpl.rcParams['agg.path.chunksize'] = 100_000
 
@@ -130,15 +130,37 @@ def detect_wave_packet(channel_data):
 
     return peaks, filtered_signal
 
+def spike_detect(data):
+    thresh = 0.015
+    delay_time = int(0.5 * SAMPLE_RATE)
+    spikes = []
+    sample = 0
+    while sample < len(data):
+        if data[sample] > thresh:
+            # find peak
+            spikes.append(sample)
+            sample += delay_time
+        sample += 1
+    
+    return spikes 
+
 DATA = np.genfromtxt('sample1.csv', delimiter=',', skip_header=1)
 RECTIFIED = np.absolute(DATA[:,1])
 CHANNELS = [np.absolute(DATA[:,i+1]) for i in range(3)]
 
 data_cutoff = 0
 
-r1 = butter_bandpass_filter(RECTIFIED, 50000, 58000)[data_cutoff:]
+filtered = butter_bandpass_filter(RECTIFIED, 50000, 58000)[data_cutoff:]
 # r2 = butter_bandpass_filter(RECTIFIED, 25000, 40000)[data_cutoff:]
 
-plt.plot(DATA[data_cutoff:,0], r1)
+envelope = hilbert(filtered)
+amplitude_envelope = np.abs(envelope)
+# env2 = hilbert(amplitude_envelope)
+# ampl2 = np.abs(env2)
 
+d = spike_detect(filtered)
+
+plt.plot(DATA[:,0], filtered)
+plt.plot(DATA[:,0], amplitude_envelope)
+plt.plot([DATA[i, 0] for i in d], [filtered[i] for i in d], 'x')
 plt.show()
