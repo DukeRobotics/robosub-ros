@@ -35,8 +35,8 @@ class DepthAISpatialDetector:
         self.running_model = rospy.get_param("~model")
         self.rgb_raw = rospy.get_param("~rgb_raw")
         self.rgb_detections = rospy.get_param("~rgb_detections")
-        self.queue_rgb = self.rgb_raw or self.rgb_detections  # Whether to queue the RGB feed
-        self.queue_depth = rospy.get_param("~depth")
+        self.queue_rgb = self.rgb_raw or self.rgb_detections  # Whether to output RGB feed
+        self.queue_depth = rospy.get_param("~depth")  # Whether to output depth map
         self.sync_nn = rospy.get_param("~sync_nn")
         self.using_sonar = rospy.get_param("~using_sonar")
         self.show_class_name = rospy.get_param("~show_class_name")
