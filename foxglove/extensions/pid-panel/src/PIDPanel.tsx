@@ -280,7 +280,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
                     return (
                       <TableCell key={gainType} sx={{ padding: "0" }}>
                         <TextField
-                          type="text"
+                          type="number"
                           sx={{
                             "& input": {
                               boxSizing: "border-box",
@@ -292,6 +292,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
                               },
                             },
                           }}
+                          inputProps={{ step: 0.1 }}
                           value={inEditMode ? undefined : gain} // Display the true gain value if not in edit mode
                           onFocus={() => {
                             // Add the current gain to editedGains when entering edit mode
