@@ -54,11 +54,6 @@ void setup()
     for (uint8_t i = 0; i < NUM_THRUSTERS; ++i)
         pwms[i] = THRUSTER_STOP_PWM;
 
-    Serial.begin(BAUD_RATE);
-    nh.getHardware()->setBaud(BAUD_RATE);
-    nh.initNode();
-    nh.subscribe(ts_sub);
-
     pwm_multiplexer.begin();
     for (uint8_t i = 0; i < NUM_THRUSTERS; ++i)
     {
@@ -69,6 +64,11 @@ void setup()
     // Write the 1500 PWM to all thrusters to stop them
     for (uint8_t i = 0; i < NUM_THRUSTERS; ++i)
         thrusters[i].write(THRUSTER_STOP_PWM + THRUSTER_PWM_OFFSET);
+
+    Serial.begin(BAUD_RATE);
+    nh.getHardware()->setBaud(BAUD_RATE);
+    nh.initNode();
+    nh.subscribe(ts_sub);
 }
 
 void loop()
