@@ -11,7 +11,7 @@ def connect(pipeline):
 
     It tries to connect five times, waiting 2 seconds before trying again (so the script is successful if the camera is
     just temporarily unavailable). In each try, it attempts to connect first using custom autodiscovery, then using
-    DepthAI autodiscovery, then finally using manual IP address specification.
+    DepthAI autodiscovery, then finally using static IP address specification.
 
     :param pipeline: The DepthAI pipeline to upload to the camera.
     :return: depthai.Device object
@@ -64,7 +64,7 @@ def connect(pipeline):
             break
 
         try:
-            # Try connecting with manual IP address
+            # Try connecting with static IP address
             device = dai.Device(pipeline, device_info)
 
             # If the execution reaches the following return statement, the line above did not raise an exception, so a
@@ -76,7 +76,7 @@ def connect(pipeline):
             # On the last try, raise the exception so DepthAI code doesn't run without a successful camera connection
             if i == total_tries - 1:
                 raise RuntimeError((f"{total_tries} attempts were made to connect to the DepthAI camera using "
-                                    "autodiscovery and manual IP address specification. All attempts failed.")) from e
+                                    "autodiscovery and static IP address specification. All attempts failed.")) from e
 
         if rospy.is_shutdown():
             break
@@ -86,7 +86,7 @@ def connect(pipeline):
         rospy.sleep(2)
 
     raise RuntimeError(f"{total_tries} attempts were made to connect to the DepthAI camera using "
-                       f"autodiscovery and manual IP address specification. All attempts failed.")
+                       f"autodiscovery and static IP address specification. All attempts failed.")
 
 
 def custom_autodiscovery():
