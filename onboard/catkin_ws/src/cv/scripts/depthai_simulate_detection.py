@@ -73,7 +73,7 @@ class DepthAISimulateDetection:
         neural network rather than the input to the neural network.
         """
 
-        # Point xIn to still image
+        # Define input stream
         x_in = self.pipeline.create(dai.node.XLinkIn)
         x_in.setStreamName("camIn")
 
