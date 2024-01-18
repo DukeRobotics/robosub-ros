@@ -274,6 +274,13 @@ def create_new_layout(name: str, install_path: pathlib.Path = LAYOUT_INSTALL_PAT
         json.dump(packaged_layout, f)
 
 
+def clean_foxglove():
+    """
+    Clean up the foxglove monorepo.
+    """
+    run_at_path("git clean -fdx", FOXGLOVE_PATH)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Install/Uninstall Foxglove extensions and layouts.")
     parser.add_argument(
@@ -328,6 +335,12 @@ if __name__ == "__main__":
         help="Use existing node_modules instead of clean installing external dependencies."
     )
 
+    clean_parser = subparsers.add_parser(
+        'clean',
+        aliases=['c'],
+        help='Clean up the foxglove monorepo.'
+    )
+
     args = parser.parse_args()
 
     if args.action in ("install", "i"):
@@ -360,6 +373,9 @@ if __name__ == "__main__":
     elif args.action in ("build", "b"):
         check_npm()
         build_deps(skip_ci=args.skip_ci)
+
+    elif args.action in ("clean", "c"):
+        clean_foxglove()
 
     if args.new_layout:
         create_new_layout(args.new_layout)
