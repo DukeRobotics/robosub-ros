@@ -48,6 +48,9 @@ rm -f ros_lib.zip
 arduino-cli core install arduino:megaavr
 arduino-cli compile -b arduino:megaavr:nona4809 "$SRC_CODE1"
 arduino-cli compile -b arduino:megaavr:nona4809 "$SRC_CODE2"
+
+onboard/catkin_ws/src/offboard_comms/scripts/copy_offset.sh 0 # Remove the offset file from the compile folder
+
 if [ "$ARD_UPLOAD" = true ]; then
     # E49AFA8B51514C4B39202020FF024242 is thruster arduino
     # FAD98F6E51514C4B39202020FF020B42 is pressure arduino
@@ -65,5 +68,3 @@ if [ "$ARD_UPLOAD" = true ]; then
     arduino-cli upload -b arduino:megaavr:nona4809 -p "$PORT1" "$SRC_CODE1"
     arduino-cli upload -b arduino:megaavr:nona4809 -p "$PORT2" "$SRC_CODE2"
 fi
-
-onboard/catkin_ws/src/offboard_comms/scripts/copy_offset.sh 0 # Remove the offset file from the compile folder

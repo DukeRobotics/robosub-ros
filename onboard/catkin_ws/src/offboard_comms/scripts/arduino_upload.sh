@@ -43,8 +43,8 @@ rm -f ros_lib.zip
 arduino-cli core install arduino:megaavr
 arduino-cli compile -b arduino:megaavr:nona4809 "${SRC_CODE}"
 
+onboard/catkin_ws/src/offboard_comms/scripts/copy_offset.sh 0 # Remove the offset file from the compile folder
+
 if [ "$ARD_UPLOAD" = true ]; then
     arduino-cli upload -b arduino:megaavr:nona4809 -p "${PORT}" "${SRC_CODE}"
 fi
-
-onboard/catkin_ws/src/offboard_comms/scripts/copy_offset.sh 0 # Remove the offset file from the compile folder
