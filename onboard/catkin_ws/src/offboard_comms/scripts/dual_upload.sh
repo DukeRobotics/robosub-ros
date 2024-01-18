@@ -66,4 +66,4 @@ if [ "$ARD_UPLOAD" = true ]; then
     arduino-cli upload -b arduino:megaavr:nona4809 -p "$PORT2" "$SRC_CODE2"
 fi
 
-# onboard/catkin_ws/src/offboard_comms/scripts/copy_offset.sh 0 # Remove the offset file from the compile folder
+onboard/catkin_ws/src/offboard_comms/scripts/copy_offset.sh 0 # Remove the offset file from the compile folder
