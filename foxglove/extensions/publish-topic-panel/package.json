@@ -1,5 +1,7 @@
 {
   "name": "@duke-robotics/publish-topic-panel",
+  "displayName": "Publish Topic Panel",
+  "description": "Publish ROS messages to a topic",
   "publisher": "Duke Robotics",
   "version": "0.0.0",
   "main": "./dist/extension.js",
