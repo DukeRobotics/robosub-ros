@@ -81,6 +81,12 @@ ws://192.168.1.1:8765   # Robot (Tethered)
 ws://<hostname or IP of onboard container>:8765
 ```
 
+### Cleanup
+To remove all git ignored files and directories in the foxglove monorepo, run:
+```
+python foxglove.py clean
+```
+
 ## Extensions & Layouts
 ### Panels
 - `call-service-panel`: Example panel to call services
@@ -97,9 +103,13 @@ ws://<hostname or IP of onboard container>:8765
 - `controls-monitor.json`: 6 graphs for each control axis (x, y, z, roll, pitch, yaw) plotting setpoint and control effort against time. Used to test responsiveness of robot during PID tuning.
 
 ## Local Dependencies
-Shared dependencies are located in the `shared` directory.
+Local dependencies are located in the `shared` directory.
+To install all local dependencies, run:
+```bash
+python foxglove.py build
+```
 
-Running `python foxglove.py install` will automatically build all local dependencies before installing extensions.
+Note that running `python foxglove.py install` will automatically build all local dependencies before installing extensions.
 
 - `theme`: Exports the Duke Robotics MUI Theme
 - `defs`: Exports Foxglove datatype maps and TypeScript interfaces/enums for both ROS 1 and Duke Robotics custom message definitions
