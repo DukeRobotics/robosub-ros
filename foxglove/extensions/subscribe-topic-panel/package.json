@@ -1,7 +1,7 @@
 {
   "name": "@duke-robotics/subscribe-topic-panel",
   "displayName": "Subscribe Topic Panel",
-  "description": "Subscribe to arbitrary ROS topics",
+  "description": "Subscribe to ROS topics",
   "publisher": "Duke Robotics",
   "version": "0.0.0",
   "main": "./dist/extension.js",

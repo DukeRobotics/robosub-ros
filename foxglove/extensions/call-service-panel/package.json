@@ -1,7 +1,7 @@
 {
   "name": "@duke-robotics/call-service-panel",
   "displayName": "Call Service Panel",
-  "description": "Call arbitrary ROS services",
+  "description": "Call ROS services",
   "publisher": "Duke Robotics",
   "version": "0.0.0",
   "main": "./dist/extension.js",
