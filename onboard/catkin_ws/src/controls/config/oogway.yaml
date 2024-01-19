@@ -1,19 +1,19 @@
 pid:
   position:
     x:
-      Kp: 5
+      Kp: 3.8
       Ki: 0
-      Kd: 1
+      Kd: 1.5
       Ff: 0
     y:
       Kp: 5
       Ki: 0
-      Kd: 1
+      Kd: 2
       Ff: 0
     z:
-      Kp: 3.5
-      Ki: 0.175
-      Kd: 1.5
+      Kp: 2.9
+      Ki: 0
+      Kd: 2.6
       Ff: 0
     roll:
       Kp: 1
@@ -28,7 +28,7 @@ pid:
     yaw:
       Kp: 1
       Ki: 0
-      Kd: 0
+      Kd: 0.6
       Ff: 0
   velocity:
     x:
