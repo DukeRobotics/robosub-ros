@@ -61,7 +61,7 @@ class SensorCheckNode:
     def spin_thrusters_at_low_speeds(self):
         # Spin for 5 seconds
         desired_allocs = ThrusterAllocs()
-        desired_allocs.allocs = [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2]
+        desired_allocs.allocs = [0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
         publishing_rate = rospy.Rate(10)
         curr_time = rospy.get_rostime().secs
         while not rospy.is_shutdown():

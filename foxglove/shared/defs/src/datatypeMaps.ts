@@ -143,7 +143,21 @@ function generateAllDatatypeMapsString(allDatatypeMaps: AllDatatypeMaps): string
         if (definition.name == undefined) {
           throw new Error(`Definition name is undefined for type: ${type}`);
         }
-        output += `      ["${type}", ${groupName}["${definition.name}"]],\n`;
+
+        // Find the group that definition.name is in
+        let definitionGroup: string | undefined;
+        for (const [group, definitions] of Object.entries(allDatatypeMaps)) {
+          if (definitions[definition.name] != undefined) {
+            definitionGroup = group;
+            break;
+          }
+        }
+
+        if (definitionGroup == undefined) {
+          throw new Error(`Definition group is undefined for type: ${type}`);
+        }
+
+        output += `      ["${type}", ${definitionGroup}["${definition.name}"]],\n`;
       }
       output += "    ]),\n";
     }

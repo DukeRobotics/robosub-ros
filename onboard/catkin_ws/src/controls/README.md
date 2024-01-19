@@ -1,7 +1,7 @@
 # Controls
 
 
-These are the instructions to initialize and test our controls algorithm. We take input from various topics and move the robot based on desired global position, global velocity, or power. By default, we publish thruster power outputs (thruster allocations) as floats in range [-1, 1].
+These are the instructions to initialize and test our controls algorithm. We take input from various topics and move the robot based on desired global position, global velocity, or power. By default, we publish thruster power outputs (thruster allocations) as 64-bit floats in range [-1, 1].
 
 Thruster information is read from `*.config` files, which are written in YAML. The ordering of the thruster allocations is determined by the order in which the thrusters appear the config file.
 
@@ -89,10 +89,10 @@ Current State Topics:
 
 ### Publishing
 
-Thruster speeds are published for the use of the simulation and Arduino.
+Thruster allocs are published for the use of the simulation and offboard_comms.
 
   - ```/controls/thruster_allocs```
-    + An array of 8 floats in range [-1, 1] describing the allocation of the thrusters sent to the Arduino
+    + An array of 64-bit floats in range [-1, 1] specifying the allocation of each thruster sent to offboard_comms
     + Type: custom_msgs.msg/ThrusterAllocs
 
 

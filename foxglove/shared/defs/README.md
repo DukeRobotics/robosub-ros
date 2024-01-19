@@ -14,10 +14,10 @@ Import with
 ```js
 import { allDatatypeMaps } from "@duke-robotics/defs/datatype_maps";
 ```
-Then, advertise using the appropriate map. For example, to advertise thruster speeds, use:
+Then, advertise using the appropriate map. For example, to advertise thruster allocs, use:
 ```js
-context.advertise(`<Topic Name>`, "custom_msgs/ThrusterSpeeds", {
-    datatypes: allDatatypeMaps.custom_msgs["custom_msgs/ThrusterSpeeds"],
+context.advertise(`<Topic Name>`, "custom_msgs/ThrusterAllocs", {
+    datatypes: allDatatypeMaps.custom_msgs["custom_msgs/ThrusterAllocs"],
 });
 ```
 

@@ -18,6 +18,7 @@ add_message_files(
   Memory.msg
   PIDGain.msg
   PIDGains.msg
+  PWMAllocs.msg
   RemoteLaunchInfo.msg
   RunningNode.msg
   ServoAngleArray.msg

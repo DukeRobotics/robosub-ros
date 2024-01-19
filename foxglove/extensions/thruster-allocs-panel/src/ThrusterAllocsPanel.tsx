@@ -1,9 +1,8 @@
 import { allDatatypeMaps } from "@duke-robotics/defs/datatype_maps";
-import { CustomMsgsThrusterSpeeds } from "@duke-robotics/defs/types";
+import { CustomMsgsThrusterAllocs } from "@duke-robotics/defs/types";
 import useTheme from "@duke-robotics/theme";
 import { PanelExtensionContext, RenderState, Immutable, MessageEvent } from "@foxglove/studio";
-import { CheckCircleOutline, HighlightOff } from "@mui/icons-material";
-import { TextField, Button, Alert, Tab, Tabs, CssBaseline } from "@mui/material";
+import { TextField, Button, Alert, Tab, Tabs, CssBaseline, Box } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
 import { ThemeProvider } from "@mui/material/styles";
 import { useCallback, useEffect, useState, useRef } from "react";
@@ -17,19 +16,19 @@ enum PanelMode {
   PUBLISHING,
 }
 
-type ThrusterSpeedsPanelState = {
+type ThrusterAllocsPanelState = {
   error?: Error | undefined;
   colorScheme?: RenderState["colorScheme"];
   hasError: boolean;
   panelMode: PanelMode;
   repeatPublish: NodeJS.Timeout | null;
-  publisherThrusterSpeeds: ThrusterSpeeds;
-  subscriberThrusterSpeeds: ThrusterSpeeds;
-  tempThrusterSpeeds: ThrusterSpeeds;
+  publisherThrusterAllocs: ThrusterAllocs;
+  subscriberThrusterAllocs: ThrusterAllocs;
+  tempThrusterAllocs: ThrusterAllocs;
 };
 
-// Type representing the set of 8 thruster speeds.
-export type ThrusterSpeeds = {
+// Type representing the set of 8 thruster allocs.
+export type ThrusterAllocs = {
   frontLeft: number | "";
   frontRight: number | "";
   backLeft: number | "";
@@ -40,8 +39,8 @@ export type ThrusterSpeeds = {
   bottomBackRight: number | "";
 };
 
-// Default thruster speeds
-const defaultThrusterSpeeds: ThrusterSpeeds = {
+// Default thruster allocs
+const defaultThrusterAllocs: ThrusterAllocs = {
   frontLeft: 0,
   frontRight: 0,
   backLeft: 0,
@@ -53,17 +52,17 @@ const defaultThrusterSpeeds: ThrusterSpeeds = {
 };
 
 const ROBOT = "OOGWAY";
-const MIN_THRUSTER_SPEED = -128;
-const MAX_THRUSTER_SPEED = 127;
-const THRUSTER_SPEEDS_TOPIC = "/offboard/thruster_speeds";
-const THRUSTER_SPEEDS_MESSAGE_TYPE = "custom_msgs/ThrusterSpeeds";
+const MIN_THRUSTER_ALLOC = -1;
+const MAX_THRUSTER_ALLOC = 1;
+const THRUSTER_ALLOCS_TOPIC = "/controls/thruster_allocs";
+const THRUSTER_ALLOCS_MESSAGE_TYPE = "custom_msgs/ThrusterAllocs";
 
 // This is the delay, in miliseconds, between two consecutive messages published by the panel.
 // A 100ms delay means the panel is publishing messages at 10Hz.
 const publishRate = 100;
 
 // Array of thruster keys and thruster order, used to build the thruster grid in the Foxglove extension
-const thrusters: (keyof ThrusterSpeeds)[] = [
+const thrusters: (keyof ThrusterAllocs)[] = [
   "frontLeft",
   "frontRight",
   "backLeft",
@@ -74,47 +73,56 @@ const thrusters: (keyof ThrusterSpeeds)[] = [
   "bottomBackRight",
 ];
 // Array of thruster keys in the order defined in the robot config file, used to map each thruster to its correct
-// position in the speeds array in the "custom_msgs/ThrusterSpeeds" message
-const thrustersInOrder: (keyof ThrusterSpeeds)[] = allThrusterOrders[ROBOT] as (keyof ThrusterSpeeds)[];
+// position in the allocs array in the "custom_msgs/ThrusterAllocs" message
+const thrustersInOrder: (keyof ThrusterAllocs)[] = allThrusterOrders[ROBOT] as (keyof ThrusterAllocs)[];
 
-// React component for Thruster Speeds Panel
-function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
+// React component for Thruster Allocs Panel
+function ThrusterAllocsPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   // Panel state initialization
   const [renderDone, setRenderDone] = useState<() => void | undefined>();
   const firstMount = useRef(true);
   const theme = useTheme();
-  const [state, setState] = useState<ThrusterSpeedsPanelState>({
-    // In the PUBLISHING mode, denotes whether all entered values in the panel are valid.
-    // If false, display an error warning which prevents the panel from publishing.
-    hasError: false,
-    panelMode: PanelMode.SUBSCRIBING,
-    // If publishing, holds the NodeJS.Timeout object used to publish messages at a constant rate, otherwise undefined
-    repeatPublish: null,
-    // Thruster speeds to be published
-    publisherThrusterSpeeds: { ...defaultThrusterSpeeds },
-    // Thruster speeds subscribed from the message
-    subscriberThrusterSpeeds: { ...defaultThrusterSpeeds },
-    // Holds temporary values of thruster speeds that the user entered before publishing
-    tempThrusterSpeeds: {
-      frontLeft: "",
-      frontRight: "",
-      backLeft: "",
-      backRight: "",
-      bottomFrontLeft: "",
-      bottomFrontRight: "",
-      bottomBackLeft: "",
-      bottomBackRight: "",
-    },
+  const [state, setState] = useState<ThrusterAllocsPanelState>(() => {
+    const initialState = context.initialState as ThrusterAllocsPanelState | undefined;
+
+    return {
+      // In the PUBLISHING mode, denotes whether all entered values in the panel are valid.
+      // If false, display an error warning which prevents the panel from publishing.
+      hasError: initialState?.hasError ?? false,
+      panelMode: initialState?.panelMode ?? PanelMode.SUBSCRIBING,
+      // If publishing, holds the NodeJS.Timeout object used to publish messages at a constant rate, otherwise undefined
+      repeatPublish: null,
+      // Thruster allocs to be published
+      publisherThrusterAllocs: { ...defaultThrusterAllocs },
+      // Thruster allocs subscribed from the message
+      subscriberThrusterAllocs: { ...defaultThrusterAllocs },
+      // Holds temporary values of thruster allocs that the user entered before publishing
+      tempThrusterAllocs: initialState?.tempThrusterAllocs ?? {
+        frontLeft: "",
+        frontRight: "",
+        backLeft: "",
+        backRight: "",
+        bottomFrontLeft: "",
+        bottomFrontRight: "",
+        bottomBackLeft: "",
+        bottomBackRight: "",
+      },
+    };
   });
+
+  // Save state upon change
+  useEffect(() => {
+    context.saveState(state);
+  }, [state, context]);
 
   useEffect(() => {
     renderDone?.();
   }, [renderDone]);
 
-  // useEffect hook for subscribing to THRUSTER_SPEEDS_TOPIC
+  // useEffect hook for subscribing to THRUSTER_ALLOCS_TOPIC
   useEffect(() => {
-    context.saveState({ topic: THRUSTER_SPEEDS_TOPIC });
-    context.subscribe([{ topic: THRUSTER_SPEEDS_TOPIC }]);
+    context.saveState({ topic: THRUSTER_ALLOCS_TOPIC });
+    context.subscribe([{ topic: THRUSTER_ALLOCS_TOPIC }]);
   }, [context]);
 
   // useEffect hook to start or stop publishing messages at a constant rate.
@@ -127,7 +135,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
 
     toggleInterval();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.publisherThrusterSpeeds]);
+  }, [state.publisherThrusterAllocs]);
 
   // useEffect hook for rendering and watching renderState. Saves the values from the most recent message.
   useEffect(() => {
@@ -139,12 +147,12 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
         const latestFrame = renderState.currentFrame[
           renderState.currentFrame.length - 1
-        ] as MessageEvent<CustomMsgsThrusterSpeeds>;
-        const newSpeeds: ThrusterSpeeds = { ...defaultThrusterSpeeds };
-        thrustersInOrder.forEach((thruster: keyof ThrusterSpeeds, index) => {
-          newSpeeds[thruster] = latestFrame.message.speeds[index] as number | "";
+        ] as MessageEvent<CustomMsgsThrusterAllocs>;
+        const newAllocs: ThrusterAllocs = { ...defaultThrusterAllocs };
+        thrustersInOrder.forEach((thruster: keyof ThrusterAllocs, index) => {
+          newAllocs[thruster] = latestFrame.message.allocs[index] as number | "";
         });
-        setState((oldState) => ({ ...oldState, subscriberThrusterSpeeds: newSpeeds }));
+        setState((oldState) => ({ ...oldState, subscriberThrusterAllocs: newAllocs }));
       }
     };
 
@@ -152,8 +160,8 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     context.watch("colorScheme");
   }, [context]);
 
-  // Callback function to publish thruster speeds
-  const publishSpeeds = useCallback(() => {
+  // Callback function to publish thruster allocs
+  const publishAllocs = useCallback(() => {
     // Message creation
     const message = {
       header: {
@@ -164,7 +172,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
         },
         frame_id: "",
       },
-      speeds: thrustersInOrder.map((thruster: keyof ThrusterSpeeds) => state.publisherThrusterSpeeds[thruster]),
+      allocs: thrustersInOrder.map((thruster: keyof ThrusterAllocs) => state.publisherThrusterAllocs[thruster]),
     };
 
     if (!context.advertise) {
@@ -174,12 +182,12 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
       return;
     }
 
-    // Publishes the message to THRUSTER_SPEEDS_TOPIC
+    // Publishes the message to THRUSTER_ALLOCS_TOPIC
     try {
-      context.advertise(`/${THRUSTER_SPEEDS_TOPIC}`, THRUSTER_SPEEDS_MESSAGE_TYPE, {
-        datatypes: allDatatypeMaps["custom_msgs"][THRUSTER_SPEEDS_MESSAGE_TYPE],
+      context.advertise(THRUSTER_ALLOCS_TOPIC, THRUSTER_ALLOCS_MESSAGE_TYPE, {
+        datatypes: allDatatypeMaps["custom_msgs"][THRUSTER_ALLOCS_MESSAGE_TYPE],
       });
-      context.publish(`/${THRUSTER_SPEEDS_TOPIC}`, message);
+      context.publish(THRUSTER_ALLOCS_TOPIC, message);
 
       setState((oldState) => ({
         ...oldState,
@@ -189,13 +197,11 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
       setState((oldState) => ({ ...oldState, error: error as Error }));
       console.error(error);
     }
-  }, [context, state.publisherThrusterSpeeds]);
+  }, [context, state.publisherThrusterAllocs]);
 
   // Function to validate individual input values for each thruster
   const validateInput = (value: number | "") => {
-    return (
-      value === "" || (Number.isInteger(Number(value)) && value >= MIN_THRUSTER_SPEED && value <= MAX_THRUSTER_SPEED)
-    );
+    return value === "" || (value >= MIN_THRUSTER_ALLOC && value <= MAX_THRUSTER_ALLOC);
   };
 
   // Event handler for mode change between SUBSCRIBING and PUBLISHING
@@ -209,7 +215,7 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
       setState((oldState) => ({
         ...oldState,
         repeatPublish: setInterval(() => {
-          publishSpeeds();
+          publishAllocs();
         }, publishRate),
       }));
     } else {
@@ -221,32 +227,32 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     }
   };
 
-  // Function to generate publisher speeds from tempThrusterSpeeds. If any value of tempThrusterSpeeds is "",
-  // the the latest subscribed speed for that thruster is used instead.
-  const generatePublisherSpeeds = () => {
-    const newThrusterSpeeds: ThrusterSpeeds = { ...state.tempThrusterSpeeds };
-    thrusters.forEach((thruster: keyof ThrusterSpeeds) => {
-      if (state.tempThrusterSpeeds[thruster] === "") {
-        newThrusterSpeeds[thruster] = state.subscriberThrusterSpeeds[thruster];
+  // Function to generate publisher allocs from tempThrusterAllocs. If any value of tempThrusterAllocs is "",
+  // then the latest subscribed alloc for that thruster is used instead.
+  const generatePublisherAllocs = () => {
+    const newThrusterAllocs: ThrusterAllocs = { ...state.tempThrusterAllocs };
+    thrusters.forEach((thruster: keyof ThrusterAllocs) => {
+      if (state.tempThrusterAllocs[thruster] === "") {
+        newThrusterAllocs[thruster] = state.subscriberThrusterAllocs[thruster];
       }
     });
 
-    return newThrusterSpeeds;
+    return newThrusterAllocs;
   };
 
-  // Event handler for updating tempThrusterSpeeds upon user input
-  const updateTempSpeeds = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Event handler for updating tempThrusterAllocs upon user input
+  const updateTempAllocs = (event: React.ChangeEvent<HTMLInputElement>) => {
     let hasError = false;
     const value = event.target.value;
 
     // Loops through and checks whether all user input values are valid
-    if (value !== "" && (Number.isNaN(Number(value)) || parseInt(value) !== parseFloat(value))) {
+    if (value !== "" && Number.isNaN(Number(value))) {
       hasError = true;
     } else {
-      thrusters.forEach((thruster: keyof ThrusterSpeeds) => {
-        const speed: number | "" =
-          thruster !== event.target.id ? state.tempThrusterSpeeds[thruster] : value !== "" ? parseInt(value) : "";
-        if (!validateInput(speed)) {
+      thrusters.forEach((thruster: keyof ThrusterAllocs) => {
+        const alloc: number | "" =
+          thruster !== event.target.id ? state.tempThrusterAllocs[thruster] : value !== "" ? Number(value) : "";
+        if (!validateInput(alloc)) {
           hasError = true;
         }
       });
@@ -255,8 +261,8 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
     setState((oldState) => ({
       ...oldState,
       hasError,
-      tempThrusterSpeeds: {
-        ...state.tempThrusterSpeeds,
+      tempThrusterAllocs: {
+        ...state.tempThrusterAllocs,
         [event.target.id]: value,
       },
     }));
@@ -265,70 +271,73 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <div style={{ padding: "5px" }}>
+      <Box m={1}>
         {/* SUBSCRIBING and PUBLISHING tabs */}
         <Tabs value={state.panelMode} onChange={handleModeChange} variant="fullWidth">
           <Tab label="Subscribing" value={PanelMode.SUBSCRIBING} />
           <Tab label="Publishing" value={PanelMode.PUBLISHING} />
         </Tabs>
-        {/* Alert to be displayed if the panel is in PUBLISHING mode but cannot publish to THRUSTER_SPEEDS_TOPIC */}
-        <div style={{ padding: "5px" }}>
+        {/* Alert to be displayed if the panel is in PUBLISHING mode but cannot publish to THRUSTER_ALLOCS_TOPIC */}
+        <Box my={1}>
           {state.panelMode === PanelMode.SUBSCRIBING ? (
             <></>
           ) : (
             (context.advertise == undefined || context.publish == undefined) && (
               <Alert variant="filled" severity="error">
-                Publishing topics is not supported by this connection
+                Publishing topics is not supported by this connection.
               </Alert>
             )
           )}
-        </div>
-        <div>
-          {/* Grid for displaying thruster speeds. If in SUBSCRIBING mode, displays subscribed speeds, otherwise
-          displays TextFields for user to input thruster speeds values */}
+        </Box>
+        <Box>
+          {/* Grid for displaying thruster allocs. If in SUBSCRIBING mode, displays subscribed allocs, otherwise
+          displays TextFields for user to input thruster allocs values */}
           <Grid container rowSpacing={1} columnSpacing={0}>
             {thrusters.map((thruster) => (
               <Grid key={thruster} xs={6}>
                 <TextField
+                  type="number"
                   key={thruster}
                   id={thruster}
-                  error={state.panelMode === PanelMode.PUBLISHING && !validateInput(state.tempThrusterSpeeds[thruster])}
+                  error={state.panelMode === PanelMode.PUBLISHING && !validateInput(state.tempThrusterAllocs[thruster])}
                   label={thruster}
                   size="small"
                   variant={state.panelMode === PanelMode.SUBSCRIBING ? "filled" : "outlined"}
                   value={
                     state.panelMode === PanelMode.SUBSCRIBING
-                      ? state.subscriberThrusterSpeeds[thruster]
-                      : state.tempThrusterSpeeds[thruster]
+                      ? state.subscriberThrusterAllocs[thruster]
+                      : state.tempThrusterAllocs[thruster]
                   }
+                  inputProps={state.panelMode === PanelMode.PUBLISHING ? { step: 0.1 } : {}}
                   InputProps={state.panelMode === PanelMode.SUBSCRIBING ? { readOnly: true } : {}}
                   defaultValue={state.panelMode === PanelMode.SUBSCRIBING ? false : 0}
-                  onChange={updateTempSpeeds}
+                  onChange={updateTempAllocs}
+                  fullWidth
                 />
               </Grid>
             ))}
           </Grid>
-        </div>
-        <div style={{ display: "flex", justifyContent: "center", padding: "5px" }}>
+        </Box>
+        <Box my={1}>
           {state.panelMode === PanelMode.SUBSCRIBING ? (
             <></>
           ) : state.hasError ? (
-            // Alert to be displayed if any user input thruster speeds are invalid
+            // Alert to be displayed if any user input thruster allocs are invalid
             <Alert variant="filled" severity="error">
-              The speed value for each thruster must be an integer between -128 and 127!
+              The alloc value for each thruster must be a float between -1 and 1.
             </Alert>
           ) : (
             // Button to start and stop publishing
             <Button
+              fullWidth
               variant="contained"
               color={state.repeatPublish == null ? "success" : "error"}
-              endIcon={state.repeatPublish == null ? <CheckCircleOutline /> : <HighlightOff />}
               onClick={
                 state.repeatPublish == null
                   ? () => {
                       setState((oldState) => ({
                         ...oldState,
-                        publisherThrusterSpeeds: generatePublisherSpeeds(),
+                        publisherThrusterAllocs: generatePublisherAllocs(),
                       }));
                     }
                   : toggleInterval
@@ -338,15 +347,17 @@ function ThrusterSpeedsPanel({ context }: { context: PanelExtensionContext }): J
               {state.repeatPublish == null ? "Start Publishing" : "Stop Publishing"}
             </Button>
           )}
-        </div>
-      </div>
+        </Box>
+      </Box>
     </ThemeProvider>
   );
 }
 
-export function initThrusterSpeedsPanel(context: PanelExtensionContext): () => void {
+export function initThrusterAllocsPanel(context: PanelExtensionContext): () => void {
+  context.panelElement.style.overflow = "auto"; // Enable scrolling
+
   const root = createRoot(context.panelElement as HTMLElement);
-  root.render(<ThrusterSpeedsPanel context={context} />);
+  root.render(<ThrusterAllocsPanel context={context} />);
 
   // Return a function to run when the panel is removed
   return () => {

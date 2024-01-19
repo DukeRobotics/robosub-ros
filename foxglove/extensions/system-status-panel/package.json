@@ -1,5 +1,7 @@
 {
   "name": "@duke-robotics/system-status-panel",
+  "displayName": "System Status Panel",
+  "description": "Display the system usage of the onboard computer",
   "publisher": "Duke Robotics",
   "version": "0.0.0",
   "main": "./dist/extension.js",

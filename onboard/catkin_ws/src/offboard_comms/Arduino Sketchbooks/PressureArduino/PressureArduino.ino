@@ -10,7 +10,7 @@ MS5837 sensor;
 void setup(){
 
     delay(100);
-    Serial.begin(9600);
+    Serial.begin(BAUD_RATE);
 
     Wire.begin();
 
