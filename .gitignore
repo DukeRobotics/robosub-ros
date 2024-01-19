@@ -51,3 +51,6 @@ onboard/catkin_ws/src/cv/footage_extraction/*.yaml
 node_modules
 dist
 build
+
+# Ignore offset.h in thruster arduino
+onboard/catkin_ws/src/offboard_comms/Arduino Sketchbooks/ThrusterArduino/offset.h
