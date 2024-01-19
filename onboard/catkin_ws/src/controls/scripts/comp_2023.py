@@ -8,6 +8,7 @@ import controls_utils
 from tf import TransformListener
 from tf.transformations import quaternion_from_euler
 from custom_msgs.msg import CVObject
+from geometry_msgs.msg import Twist
 import copy
 
 
@@ -26,9 +27,7 @@ class TaskPlanner:
 
         self.current_setpoint = [100.0, 100.0, 100.0, 0.0, 0.0, 0.0]
 
-        rospy.Subscriber("/controls/x_pos/setpoint", Float64, self._on_receive_data_x)
-        rospy.Subscriber("/controls/y_pos/setpoint", Float64, self._on_receive_data_y)
-        rospy.Subscriber("/controls/z_pos/setpoint", Float64, self._on_receive_data_z)
+        rospy.Subscriber("/controls/position_error", Twist, self._on_receive_data_position_error)
         rospy.Subscriber("/controls/roll_pos/setpoint", Float64, self._on_receive_data_roll)
         rospy.Subscriber("/controls/pitch_pos/setpoint", Float64, self._on_receive_data_pitch)
         rospy.Subscriber("/controls/yaw_pos/setpoint", Float64, self._on_receive_data_yaw)
@@ -37,8 +36,8 @@ class TaskPlanner:
         rospy.Subscriber("/cv/front/gate_abydos", CVObject, self._on_receive_data_cv_gate)
         rospy.Subscriber("/state", Odometry, self._on_receive_state)
 
-        self.MOVE_OFFSET_CONSTANT_LINEAR = [0.2, 0.2, 0.2]
-        self.MOVE_OFFSET_CONSTANT_ANGULAR = 0.1
+        self.MOVE_OFFSET_CONSTANT_LINEAR = [0.05, 0.05, 0.05]
+        self.MOVE_OFFSET_CONSTANT_ANGULAR = 0.05
 
         self.listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(10))
 
@@ -145,10 +144,12 @@ class TaskPlanner:
                 continue
 
             # Checking if setpoint is reached
-            if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT_LINEAR[0] and \
-               abs(self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT_LINEAR[1] and \
-               abs(self.current_setpoint[2]) <= self.MOVE_OFFSET_CONSTANT_LINEAR[2] and \
-               abs(self.current_setpoint[5]) <= self.MOVE_OFFSET_CONSTANT_ANGULAR:
+            if (x == 0 or abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT_LINEAR[0]) and \
+               (y == 0 or abs(self.current_setpoint[1]) <= self.MOVE_OFFSET_CONSTANT_LINEAR[1]) and \
+               (z == 0 or abs(self.current_setpoint[2]) <= self.MOVE_OFFSET_CONSTANT_LINEAR[2]) and \
+               (roll == 0 or abs(self.current_setpoint[3]) <= self.MOVE_OFFSET_CONSTANT_ANGULAR) and \
+               (pitch == 0 or abs(self.current_setpoint[4]) <= self.MOVE_OFFSET_CONSTANT_ANGULAR) and \
+               (yaw == 0 or abs(self.current_setpoint[5]) <= self.MOVE_OFFSET_CONSTANT_ANGULAR):
                 break
 
             rate.sleep()
@@ -188,14 +189,13 @@ class TaskPlanner:
 
         self.move_to_global_pos_and_stop(temp_state.pose.pose)
 
-    def _on_receive_data_x(self, data):
-        self.current_setpoint[0] = data.data
-
-    def _on_receive_data_y(self, data):
-        self.current_setpoint[1] = data.data
-
-    def _on_receive_data_z(self, data):
-        self.current_setpoint[2] = data.data
+    def _on_receive_data_position_error(self, data):
+        self.current_setpoint[0] = data.linear.x
+        self.current_setpoint[1] = data.linear.y
+        self.current_setpoint[2] = data.linear.z
+        self.current_setpoint[3] = data.angular.x
+        self.current_setpoint[4] = data.angular.y
+        self.current_setpoint[5] = data.angular.z
 
     def _on_receive_data_roll(self, data):
         self.current_setpoint[3] = data.data
@@ -612,18 +612,32 @@ class TaskPlanner:
         self.move_to_global_pos_and_stop(octagon)
 
 
+def deg_to_rad(deg):
+    return deg * 3.14159265359 / 180
+
 def main():
     task_planner = TaskPlanner()
 
     # task_planner.buoy_task(-0.75)
 
-    # task_planner.move_to_local_pos_and_stop(0, 0, -1)
-    # task_planner.move_to_local_pos_and_stop(1, 0, 0)
+    # task_planner.move_to_local_pos_and_stop(0, 0, 0)
+
+    task_planner.move_to_local_pos_and_stop(0, 0, -1)
+    print(task_planner.current_setpoint)
+    print("Finished moving down")
+
+    task_planner.move_to_local_pos_and_stop(0, 3, 0)
+    print(task_planner.current_setpoint)
+    print("Finished moving forward")
+
+    # task_planner.move_to_local_pos_and_stop(0, 0, 0, roll=0, pitch=0, yaw=deg_to_rad(90))
+    # print(task_planner.current_setpoint)
+    # print("Finished yaw")
 
     # Competition code below
     # rospy.sleep(10)
 
-    task_planner.gate_task_with_style(3, -0.5)
+    # task_planner.gate_task_with_style(3, -0.5)
     # rospy.sleep(1)
     # task_planner.buoy_task(0)
     # task_planner.octagon_task()
