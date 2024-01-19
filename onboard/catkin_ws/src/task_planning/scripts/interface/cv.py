@@ -8,7 +8,7 @@ from geometry_msgs.msg import Pose
 class CVInterface:
     MODELS_PATH = "package://cv/models/depthai_models.yaml"
     CV_CAMERA = "front"
-    CV_MODEL = "yolov7_tiny_2023"
+    CV_MODEL = "yolov7_tiny_2023_main"
 
     def __init__(self):
         self.cv_data = {}
