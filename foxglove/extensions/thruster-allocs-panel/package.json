@@ -1,5 +1,7 @@
 {
-  "name": "@duke-robotics/thruster-speeds-panel",
+  "name": "@duke-robotics/thruster-allocs-panel",
+  "displayName": "Thruster Allocs Panel",
+  "description": "Read/set thruster allocations",
   "publisher": "Duke Robotics",
   "version": "0.0.0",
   "main": "./dist/extension.js",

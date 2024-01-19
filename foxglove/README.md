@@ -95,7 +95,7 @@ python foxglove.py clean
 - `toggle-controls-panel`: Panel to toggle controls on/off
 - `system-status-panel`: Panel that displays system usage of the onboard computer
 - `sensors-status-panel`: Panel that displays the connected/disconnected status of Oogway's sensors
-- `thruster-speeds-panel`: Panel that displays the current thruster speeds and publishes desired thruster speeds
+- `thruster-allocs-panel`: Panel that displays the current thruster allocs and publishes desired thruster allocs
 - `toggle-joystick-panel`: Panel to toggle joystick control on/off, as well as publish transformed joystick inputs as a desired power
 - `pid-panel`: Panel to read/set PID gains
 

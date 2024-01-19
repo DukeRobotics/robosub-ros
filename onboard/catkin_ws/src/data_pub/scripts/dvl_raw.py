@@ -60,7 +60,6 @@ class DvlRawPublisher:
             try:
                 line = self._serial.readline().decode('utf-8')
                 if not line or line == '':
-                    rospy.logerr("Error in DVL serial read, trying again in 0.1 seconds.")
                     rospy.sleep(0.1)
                     continue  # Skip and retry
                 if line.strip() and line[0] == ':':
