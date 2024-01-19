@@ -16,7 +16,7 @@ class ControlsInterface:
     DESIRED_VELOCITY_TOPIC = 'controls/desired_velocity'
 
     def __init__(self, listener):
-        self._listener = listener
+        self.listener = listener
 
         rospy.wait_for_service(self.CONTROL_TYPES_SERVICE)
         self._set_control_types = rospy.ServiceProxy(self.CONTROL_TYPES_SERVICE, SetControlTypes)
@@ -32,6 +32,10 @@ class ControlsInterface:
         self._desired_position_pub = rospy.Publisher(self.DESIRED_POSITION_TOPIC, Pose)
         self._desired_velocity_pub = rospy.Publisher(self.DESIRED_VELOCITY_TOPIC, Twist)
         self._state = None
+
+    @property
+    def state(self):
+        return self._state
 
     def _set_all_axes_control_type(self, type):
         if self._all_axes_control_type == type:

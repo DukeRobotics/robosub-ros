@@ -22,7 +22,7 @@ async def move_to_pose_local(controls: ControlsInterface, pose):
     local_pose = task_utils.local_pose_to_global(controls.listener, pose)
     await Transform(
         move_to_pose_global(controls, local_pose),
-        input_transformer=lambda p: task_utils.local_pose_to_global(controls.listener, p))
+        input_transformer=lambda p: task_utils.local_pose_to_global(controls.listener, p) if p else p)
 
 @task
 async def hold_position(controls: ControlsInterface):
