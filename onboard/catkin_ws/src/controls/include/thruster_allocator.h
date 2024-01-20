@@ -3,7 +3,6 @@
 
 #include <Eigen/Dense>
 #include <string>
-#include <tuple>
 
 class ThrusterAllocator
 {

@@ -1,4 +1,6 @@
+#include <memory>
 #include <unordered_map>
+
 #include "drc_pid.h"
 #include "pid_manager.h"
 #include "controls_utils.h"
