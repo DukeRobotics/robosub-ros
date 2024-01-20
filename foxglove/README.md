@@ -1,4 +1,4 @@
-# Duke Robotics Foxglove Extensions & Layouts
+# Duke Robotics Club - Foxglove Extensions & Layouts
 
 Duke Robotics uses [Foxglove](https://foxglove.dev/studio) as its data visualization and controls platform.
 This directory contains Duke Robotics extensions and layouts.
@@ -100,7 +100,9 @@ python foxglove.py clean
 - `pid-panel`: Panel to read/set PID gains
 
 ### Layouts
-- `controls-monitor.json`: 6 graphs for each control axis (x, y, z, roll, pitch, yaw) plotting setpoint and control effort against time. Used to test responsiveness of robot during PID tuning.
+- `controls-monitor.json`: 6 graphs for each control axis (x, y, z, roll, pitch, yaw) plotting setpoint and control effort against time
+- `current-pose.json`: 6 graphs for each axis (x, y, z, roll, pitch, yaw) plotting the current pose of the robot
+- `drc.json`: All Duke Robotics's custom Foxglove panels
 
 ## Local Dependencies
 Local dependencies are located in the `shared` directory.

@@ -1,0 +1,172 @@
+{
+  "configById": {
+    "Plot!3gn30zb": {
+      "paths": [
+        {
+          "value": "/state/pose_transformed.linear.x",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "X",
+          "showLine": true,
+          "color": "#0080ff"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "X",
+      "minYValue": -5,
+      "maxYValue": 5,
+      "followingViewWidth": 15
+    },
+    "Plot!3yf78kk": {
+      "paths": [
+        {
+          "value": "/state/pose_transformed.angular.x",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "Roll",
+          "showLine": true,
+          "color": "#0080ff"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Roll",
+      "minYValue": -180,
+      "maxYValue": 180,
+      "followingViewWidth": 15
+    },
+    "Plot!1vpzbmx": {
+      "paths": [
+        {
+          "value": "/state/pose_transformed.linear.y",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "Y",
+          "showLine": true,
+          "color": "#0080ff"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Y",
+      "minYValue": -5,
+      "maxYValue": 5,
+      "followingViewWidth": 15
+    },
+    "Plot!266v8jj": {
+      "paths": [
+        {
+          "value": "/state/pose_transformed.angular.y",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "Pitch",
+          "showLine": true,
+          "color": "#0080ff"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Pitch",
+      "minYValue": -180,
+      "maxYValue": 180,
+      "followingViewWidth": 15
+    },
+    "Plot!1p60d5": {
+      "paths": [
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/state/pose_transformed.linear.z",
+          "enabled": true,
+          "label": "Z"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Z",
+      "minYValue": -5,
+      "maxYValue": 5,
+      "followingViewWidth": 15
+    },
+    "Plot!3y2hu8l": {
+      "paths": [
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/state/pose_transformed.angular.z",
+          "enabled": true,
+          "label": "Yaw"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Yaw",
+      "minYValue": -180,
+      "maxYValue": 180,
+      "followingViewWidth": 15
+    }
+  },
+  "globalVariables": {},
+  "userNodes": {},
+  "playbackConfig": {
+    "speed": 1
+  },
+  "layout": {
+    "first": {
+      "first": {
+        "first": "Plot!3gn30zb",
+        "second": "Plot!3yf78kk",
+        "direction": "column"
+      },
+      "second": {
+        "first": "Plot!1vpzbmx",
+        "second": "Plot!266v8jj",
+        "direction": "column"
+      },
+      "direction": "row",
+      "splitPercentage": 50
+    },
+    "second": {
+      "first": "Plot!1p60d5",
+      "second": "Plot!3y2hu8l",
+      "direction": "column"
+    },
+    "direction": "row",
+    "splitPercentage": 66.66666666666666
+  }
+}

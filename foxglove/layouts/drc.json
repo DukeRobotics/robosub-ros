@@ -1,0 +1,207 @@
+{
+  "configById": {
+    "System Status Panel.System Status!44apom5": {},
+    "Sensors Status Panel.Sensors Status!4iuoujc": {},
+    "Toggle Controls Panel.Toggle Controls!1zf5k8d": {},
+    "Toggle Joystick Panel.Toggle Joystick!3fq05xq": {},
+    "PID Panel.PID!bjp8w0": {
+      "loop": 0,
+      "editedGains": {},
+      "pid": {
+        "0": {
+          "0": {
+            "0": -1,
+            "1": -1,
+            "2": -1,
+            "3": -1
+          },
+          "1": {
+            "0": -1,
+            "1": -1,
+            "2": -1,
+            "3": -1
+          },
+          "2": {
+            "0": -1,
+            "1": -1,
+            "2": -1,
+            "3": -1
+          },
+          "3": {
+            "0": -1,
+            "1": -1,
+            "2": -1,
+            "3": -1
+          },
+          "4": {
+            "0": -1,
+            "1": -1,
+            "2": -1,
+            "3": -1
+          },
+          "5": {
+            "0": -1,
+            "1": -1,
+            "2": -1,
+            "3": -1
+          }
+        },
+        "1": {
+          "0": {
+            "0": -1,
+            "1": -1,
+            "2": -1,
+            "3": -1
+          },
+          "1": {
+            "0": -1,
+            "1": -1,
+            "2": -1,
+            "3": -1
+          },
+          "2": {
+            "0": -1,
+            "1": -1,
+            "2": -1,
+            "3": -1
+          },
+          "3": {
+            "0": -1,
+            "1": -1,
+            "2": -1,
+            "3": -1
+          },
+          "4": {
+            "0": -1,
+            "1": -1,
+            "2": -1,
+            "3": -1
+          },
+          "5": {
+            "0": -1,
+            "1": -1,
+            "2": -1,
+            "3": -1
+          }
+        }
+      }
+    },
+    "Thruster Allocs Panel.Thruster Allocs!4h4f5ik": {
+      "hasError": false,
+      "panelMode": 0,
+      "repeatPublish": null,
+      "publisherThrusterAllocs": {
+        "frontLeft": 0,
+        "frontRight": 0,
+        "backLeft": 0,
+        "backRight": 0,
+        "bottomFrontLeft": 0,
+        "bottomFrontRight": 0,
+        "bottomBackLeft": 0,
+        "bottomBackRight": 0
+      },
+      "subscriberThrusterAllocs": {
+        "frontLeft": 0,
+        "frontRight": 0,
+        "backLeft": 0,
+        "backRight": 0,
+        "bottomFrontLeft": 0,
+        "bottomFrontRight": 0,
+        "bottomBackLeft": 0,
+        "bottomBackRight": 0
+      },
+      "tempThrusterAllocs": {
+        "frontLeft": "",
+        "frontRight": "",
+        "backLeft": "",
+        "backRight": "",
+        "bottomFrontLeft": "",
+        "bottomFrontRight": "",
+        "bottomBackLeft": "",
+        "bottomBackRight": ""
+      },
+      "topic": "/controls/thruster_allocs",
+      "colorScheme": "dark"
+    },
+    "Image!1qej1so": {
+      "cameraState": {
+        "distance": 20,
+        "perspective": true,
+        "phi": 60,
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "targetOffset": [
+          0,
+          0,
+          0
+        ],
+        "targetOrientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "thetaOffset": 45,
+        "fovy": 45,
+        "near": 0.5,
+        "far": 5000
+      },
+      "followMode": "follow-pose",
+      "scene": {},
+      "transforms": {},
+      "topics": {},
+      "layers": {},
+      "publish": {
+        "type": "point",
+        "poseTopic": "/move_base_simple/goal",
+        "pointTopic": "/clicked_point",
+        "poseEstimateTopic": "/initialpose",
+        "poseEstimateXDeviation": 0.5,
+        "poseEstimateYDeviation": 0.5,
+        "poseEstimateThetaDeviation": 0.26179939
+      },
+      "imageMode": {
+        "imageTopic": "/cv/front/detections/compressed"
+      }
+    }
+  },
+  "globalVariables": {},
+  "userNodes": {},
+  "playbackConfig": {
+    "speed": 1
+  },
+  "layout": {
+    "first": {
+      "direction": "column",
+      "second": {
+        "first": "Toggle Controls Panel.Toggle Controls!1zf5k8d",
+        "second": "Toggle Joystick Panel.Toggle Joystick!3fq05xq",
+        "direction": "column",
+        "splitPercentage": 48.40000000000001
+      },
+      "first": {
+        "first": "System Status Panel.System Status!44apom5",
+        "second": "Sensors Status Panel.Sensors Status!4iuoujc",
+        "direction": "column",
+        "splitPercentage": 31.2
+      },
+      "splitPercentage": 48.18523153942428
+    },
+    "second": {
+      "first": {
+        "direction": "column",
+        "second": "Thruster Allocs Panel.Thruster Allocs!4h4f5ik",
+        "first": "PID Panel.PID!bjp8w0",
+        "splitPercentage": 55.56946182728411
+      },
+      "second": "Image!1qej1so",
+      "direction": "row",
+      "splitPercentage": 36.64245359160613
+    },
+    "direction": "row",
+    "splitPercentage": 15.714285714285714
+  }
+}
