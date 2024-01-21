@@ -591,6 +591,27 @@ class TaskPlanner:
                 # Serpens Caput not detected for 3 seconds, count as a hit
                 break
 
+    def square(self, side):
+        self.move_to_local_pos_and_stop(0, 0, -0.5)
+        print(self.current_setpoint)
+        print("Finished moving down")
+
+        self.move_to_local_pos_and_stop(side, 0, 0)
+        print(self.current_setpoint)
+        print("Finished moving forward")
+
+        self.move_to_local_pos_and_stop(0, side, 0)
+        print(self.current_setpoint)
+        print("Finished moving left")
+
+        self.move_to_local_pos_and_stop(-side, 0, 0)
+        print(self.current_setpoint)
+        print("Finished moving back")
+
+        self.move_to_local_pos_and_stop(0, -side, 0)
+        print(self.current_setpoint)
+        print("Finished moving right")
+
     def octagon_task(self):
         self.move_to_local_pos_and_stop(-1, -2, 0.5)
 
@@ -617,23 +638,22 @@ def deg_to_rad(deg):
 
 def main():
     task_planner = TaskPlanner()
-
+    task_planner.square(2)
     # task_planner.buoy_task(-0.75)
 
     # task_planner.move_to_local_pos_and_stop(0, 0, 0)
 
-    task_planner.move_to_local_pos_and_stop(0, 0, -1)
-    print(task_planner.current_setpoint)
-    print("Finished moving down")
-
-    task_planner.move_to_local_pos_and_stop(0, 3, 0)
-    print(task_planner.current_setpoint)
-    print("Finished moving forward")
-
-    # task_planner.move_to_local_pos_and_stop(0, 0, 0, roll=0, pitch=0, yaw=deg_to_rad(90))
+    # task_planner.move_to_local_pos_and_stop(0, 0, -0.5)
     # print(task_planner.current_setpoint)
-    # print("Finished yaw")
+    # print("Finished moving down")
 
+    # task_planner.move_to_local_pos_and_stop(12, 0, 0)
+    # print(task_planner.current_setpoint)
+    # print("Finished moving forward")
+
+    # task_planner.move_to_local_pos_and_stop(-12, 0, 0)
+    # print(task_planner.current_setpoint)
+    # print("Finished moving backward")
     # Competition code below
     # rospy.sleep(10)
 
