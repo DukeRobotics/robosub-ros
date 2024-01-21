@@ -10,7 +10,7 @@ public:
     /**
      * @brief Maximum absolute value allocation allowed for any thruster
      */
-    const double max_alloc = 1.0;
+    static constexpr double max_alloc = 1.0;
 
     /**
      * @brief Wrench matrix.
