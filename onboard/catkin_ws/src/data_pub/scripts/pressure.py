@@ -20,10 +20,14 @@ class PressureRawPublisher:
     BAUDRATE = 9600
     NODE_NAME = 'pressure_pub'
 
+    MEDIAN_FILTER_SIZE = 3
+
     def __init__(self):
         with open(rr.get_filename(self.FTDI_FILE_PATH, use_protocol=False)) as f:
             self._ftdi_strings = yaml.safe_load(f)
 
+        self._pressure = None  # Pressure to publish
+        self._previous_pressure = None  # Previous pressure readings for median filter
         self._pub_depth = rospy.Publisher(self.DEPTH_DEST_TOPIC, PoseWithCovarianceStamped, queue_size=50)
 
         self._current_pressure_msg = PoseWithCovarianceStamped()
@@ -63,7 +67,7 @@ class PressureRawPublisher:
                     rospy.logerr("Timeout in pressure serial read, trying again in 2 seconds.")
                     rospy.sleep(0.1)
                     continue  # Skip and retry
-                self._pressure = line  # Remove \r\n
+                self._update_pressure(float(line))  # Filter out bad readings
                 self._parse_pressure()  # Parse pressure data
                 self._publish_current_msg()  # Publish pressure data
             except Exception:
@@ -73,6 +77,23 @@ class PressureRawPublisher:
                 self._serial = None
                 self._serial_port = None
                 self.connect()
+
+    # Update pressure reading to publish and filter out bad readings
+    def _update_pressure(self, new_reading):
+        # Ignore readings that are too large
+        if abs(new_reading) > 7:
+            return
+
+        # First reading
+        elif self._pressure is None:
+            self._pressure = new_reading
+            self._previous_pressure = [new_reading] * self.MEDIAN_FILTER_SIZE
+
+        # Median filter
+        else:
+            self._previous_pressure.append(new_reading)
+            self._previous_pressure.pop(0)
+            self._pressure = sorted(self._previous_pressure)[int(self.MEDIAN_FILTER_SIZE / 2)]
 
     def _parse_pressure(self):
         # Pressure data recieved is positive so must flip sign

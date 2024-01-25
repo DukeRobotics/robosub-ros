@@ -1,0 +1,4 @@
+<launch>
+    <include file="$(find offboard_comms)/launch/serial.launch" />
+    <include file="$(find offboard_comms)/launch/thrusters.launch" />
+</launch>
