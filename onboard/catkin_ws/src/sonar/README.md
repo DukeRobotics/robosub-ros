@@ -1,4 +1,7 @@
 # Sonar
+<<<<<<< HEAD
+This package interfaces with a sonar device.
+=======
 
 The `sonar` package contains scripts which interface with the bluerobotics ping-360 sonar on the robot. Unlike other packages on the robot, the sonar acts on a call-recieve system where once the sonar recieves a `sonar_request` message it will return a `sonar_response`. 
 
@@ -43,3 +46,4 @@ To communicate with other branches, the `sonar_publisher.py` creates a sonar obj
 For more information, use these guides by bluerobotics:
 - https://bluerobotics.com/store/sensors-sonars-cameras/sonar/ping360-sonar-r1-rp/
 - https://bluerobotics.com/learn/understanding-and-using-scanning-sonars/
+>>>>>>> e67322cb2253ff0f95ae4fa5a4b9dca569a7adbd

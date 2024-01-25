@@ -10,11 +10,17 @@
 
   <depend>rospy</depend>
   <depend>brping</depend>
+<<<<<<< HEAD
+  <depend>actionlib</depend>
+  <depend>custom_msgs</depend>
+  <depend>geometry_msgs</depend>
+=======
   <depend>std_msgs</depend>
   <depend>custom_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>cv_bridge</depend>
+>>>>>>> e67322cb2253ff0f95ae4fa5a4b9dca569a7adbd
   <depend>tf</depend>
 
   <buildtool_depend>catkin</buildtool_depend>

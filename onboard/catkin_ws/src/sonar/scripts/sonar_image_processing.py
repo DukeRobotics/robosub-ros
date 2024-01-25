@@ -37,6 +37,37 @@ def scan_and_build_sonar_image(sonar,
     return sonar_img
 
 
+def build_sonar_image_from_int_array(int_array, npy_save_path=None, jpeg_save_path=None):
+    """ Build a sonar image from a list of data messages
+
+    Args:
+        data_list (List): List of data messages from either the Sonar device
+                        or from a .bin file
+        display_results (bool, optional): Whether to display the resulting
+                                        sonar image. Defaults to False.
+        npy_save_path (str, optional): Path to save the sonar image as a
+                                    .npy file. Defaults to None.
+        jpeg_save_path (str, optional): Path to save the sonar image as a
+                                    .jpeg file. Defaults to None.
+
+    Returns:
+        ndarray: Sonar image from the scan
+    """
+
+    sonar_img = int_array.astype(np.uint8)
+
+    if jpeg_save_path:
+        plt.imsave(jpeg_save_path, sonar_img)
+    if npy_save_path:
+        np.save(npy_save_path, sonar_img)
+
+    # Display image locally
+    # cv2.imshow("sonar_img", sonar_img)
+    # cv2.waitKey(0)
+
+    return sonar_img
+
+
 def build_sonar_img_from_log_file(filename, start_index=49, end_index=149):
     """ Builds a sonar image from a log file """
     assert filename.endswith('.bin'), 'filename must be a .bin file'
