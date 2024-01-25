@@ -591,6 +591,26 @@ class TaskPlanner:
                 # Serpens Caput not detected for 3 seconds, count as a hit
                 break
 
+    def octagon_task(self):
+        self.move_to_local_pos_and_stop(-1, -2, 0.5)
+
+        octagon = Pose()
+
+        octagon.position.x = 33.8
+        octagon.position.y = -11.8
+        octagon.position.z = -1.5
+
+        octagon.orientation.x = 0
+        octagon.orientation.y = 0
+        octagon.orientation.z = 0
+        octagon.orientation.w = 1
+
+        self.move_to_global_pos_and_stop(octagon)
+
+        octagon.position.z = 0
+
+        self.move_to_global_pos_and_stop(octagon)
+
     def square(self, side):
         self.move_to_local_pos_and_stop(0, 0, -0.5)
         print(self.current_setpoint)
@@ -612,33 +632,64 @@ class TaskPlanner:
         print(self.current_setpoint)
         print("Finished moving right")
 
-    def octagon_task(self):
-        self.move_to_local_pos_and_stop(-1, -2, 0.5)
+    def prequal(self):
+        self.move_to_local_pos_and_stop(0, 0, -1)
+        print(self.current_setpoint)
+        print("Finished moving down")
 
-        octagon = Pose()
+        self.move_to_local_pos_and_stop(5, 0, -0.25)
+        print(self.current_setpoint)
+        print("Finished moving forward 4")
 
-        octagon.position.x = 33.8
-        octagon.position.y = -11.8
-        octagon.position.z = -1.5
+        self.move_to_local_pos_and_stop(0, 0, 0.6)
+        print(self.current_setpoint)
+        print("Finished moving up 0.3")
 
-        octagon.orientation.x = 0
-        octagon.orientation.y = 0
-        octagon.orientation.z = 0
-        octagon.orientation.w = 1
+        self.move_to_local_pos_and_stop(7, 0, 0)
+        print(self.current_setpoint)
+        print("Finished moving forward 8")
 
-        self.move_to_global_pos_and_stop(octagon)
+        self.move_to_local_pos_and_stop(0, 0.5, 0)
+        print(self.current_setpoint)
+        print("Finished moving left")
 
-        octagon.position.z = 0
+        self.move_to_local_pos_and_stop(1, 0, 0)
+        print(self.current_setpoint)
+        print("Finished moving forward")
 
-        self.move_to_global_pos_and_stop(octagon)
+        self.move_to_local_pos_and_stop(0, -1, 0)
+        print(self.current_setpoint)
+        print("Finished moving right")
+
+        self.move_to_local_pos_and_stop(-1, 0, 0)
+        print(self.current_setpoint)
+        print("Finished moving back")
+
+        self.move_to_local_pos_and_stop(0, 0.5, 0)
+        print(self.current_setpoint)
+        print("Finished moving left")
+
+        self.move_to_local_pos_and_stop(-7, 0, 0)
+        print(self.current_setpoint)
+        print("Finished moving back 8")
+
+        self.move_to_local_pos_and_stop(0, 0, -0.6)
+        print(self.current_setpoint)
+        print("Finished moving down 0.3")
+
+        self.move_to_local_pos_and_stop(-5, 0, 0)
+        print(self.current_setpoint)
+        print("Finished moving back 4")
 
 
 def deg_to_rad(deg):
     return deg * 3.14159265359 / 180
 
+
 def main():
     task_planner = TaskPlanner()
-    task_planner.square(2)
+    # task_planner.square(2)
+    task_planner.prequal()
     # task_planner.buoy_task(-0.75)
 
     # task_planner.move_to_local_pos_and_stop(0, 0, 0)
