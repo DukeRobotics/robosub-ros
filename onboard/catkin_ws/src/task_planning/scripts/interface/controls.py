@@ -29,8 +29,8 @@ class ControlsInterface:
 
         rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state)
 
-        self._desired_position_pub = rospy.Publisher(self.DESIRED_POSITION_TOPIC, Pose)
-        self._desired_velocity_pub = rospy.Publisher(self.DESIRED_VELOCITY_TOPIC, Twist)
+        self._desired_position_pub = rospy.Publisher(self.DESIRED_POSITION_TOPIC, Pose, queue_size=1)
+        self._desired_velocity_pub = rospy.Publisher(self.DESIRED_VELOCITY_TOPIC, Twist, queue_size=1)
         self._state = None
 
     @property

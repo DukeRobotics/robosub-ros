@@ -15,7 +15,8 @@ async def move_to_pose_global(controls: ControlsInterface, pose):
         new_pose = await Yield()
         if new_pose is not None:
             pose = new_pose
-            controls.publish_desired_position(pose)
+
+        controls.publish_desired_position(pose)
 
 @task
 async def move_to_pose_local(controls: ControlsInterface, pose):
@@ -31,14 +32,14 @@ async def hold_position(controls: ControlsInterface):
 @task
 async def prequal_task(controls: ControlsInterface):
     directions = [
-        (0,0,-1),
-        (12,0,0),
-        (0,1,0),
-        (2,0,0),
-        (0,-2,0),
-        (-2,0,0),
-        (0,1,0),
-        (-11,0,0)
+        (0, 0, -1),
+        (12, 0, 0),
+        (0, 0.5, 0),
+        (1, 0, 0),
+        (0, -1, 0),
+        (-1, 0, 0),
+        (0, 0.5, 0),
+        (-12, 0, 0)
     ]
     for direction in directions:
         await move_to_pose_local(controls, task_utils.create_pose(direction[0], direction[1], direction[2], 0, 0, 0))
