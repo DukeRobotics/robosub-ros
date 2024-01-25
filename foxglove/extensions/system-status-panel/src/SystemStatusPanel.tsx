@@ -76,7 +76,7 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
                   key={row.statusName}
                   style={{
                     backgroundColor:
-                      row.value == undefined || row.value >= 90 ? theme.palette.error.main : theme.palette.success.main,
+                      row.value == undefined || row.value >= 90 ? theme.palette.error.dark : theme.palette.success.dark,
                   }}
                 >
                   <TableCell>
@@ -100,6 +100,8 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
 }
 
 export function initSystemStatusPanel(context: PanelExtensionContext): () => void {
+  context.panelElement.style.overflow = "auto"; // Enable scrolling
+
   const root = createRoot(context.panelElement as HTMLElement);
   root.render(<SystemStatusPanel context={context} />);
 

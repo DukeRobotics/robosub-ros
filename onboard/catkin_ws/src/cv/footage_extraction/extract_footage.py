@@ -44,7 +44,7 @@ class FootageExtractor:
         num_digits = len(str(num_frames))
         img_tools = ImageTools()
 
-        for topic, msg, t in bag.read_messages(topics=[topic_name]):
+        for topic, msg, _ in bag.read_messages(topics=[topic_name]):
             if topic == topic_name:
                 if frame_count % step_size == 0:
                     cv_img = img_tools.convert_to_cv2(msg)
@@ -394,6 +394,10 @@ class FootageExtractor:
                     print(f"Since no topics are enabled, the directory {extracted_directory} was not uploaded.")
 
     def generate_folder_structure(self):
+        """
+        Generate the folder structure required for footage extraction and Roboflow upload.
+        These folders are initially empty and are therefore not included in the git repository.
+        """
         if not os.path.isdir(FOOTAGE_DIR):
             os.mkdir(FOOTAGE_DIR)
         if not os.path.isdir(EXTRACTED_FOOTAGE_DIR):

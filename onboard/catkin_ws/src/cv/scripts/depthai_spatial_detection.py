@@ -35,8 +35,8 @@ class DepthAISpatialDetector:
         self.running_model = rospy.get_param("~model")
         self.rgb_raw = rospy.get_param("~rgb_raw")
         self.rgb_detections = rospy.get_param("~rgb_detections")
-        self.queue_rgb = self.rgb_raw or self.rgb_detections
-        self.queue_depth = rospy.get_param("~depth")
+        self.queue_rgb = self.rgb_raw or self.rgb_detections  # Whether to output RGB feed
+        self.queue_depth = rospy.get_param("~depth")  # Whether to output depth map
         self.sync_nn = rospy.get_param("~sync_nn")
         self.using_sonar = rospy.get_param("~using_sonar")
         self.show_class_name = rospy.get_param("~show_class_name")
@@ -48,8 +48,8 @@ class DepthAISpatialDetector:
 
         self.camera = 'front'
         self.pipeline = None
-        self.publishers = None
-        self.output_queues = {}
+        self.publishers = {}  # Keys are the class names of a given model
+        self.output_queues = {}  # Keys are "rgb", "depth", and "detections"
         self.connected = False
         self.current_model_name = None
         self.classes = None
@@ -68,6 +68,7 @@ class DepthAISpatialDetector:
         # By default the first task is going through the gate
         self.current_priority = "buoy_abydos_serpenscaput"
 
+        # Initialize publishers and subscribers for sonar/task planning
         self.sonar_requests_publisher = rospy.Publisher(
             SONAR_REQUESTS_PATH, sweepGoal, queue_size=10)
         self.sonar_response_subscriber = rospy.Subscriber(
@@ -91,7 +92,7 @@ class DepthAISpatialDetector:
             components/messages/spatial_img_detections/#spatialimgdetections), which includes bounding boxes for
             detections as well as XYZ coordinates of the detected objects.
             - "depth": contains ImgFrame messages with UINT16 values representing the depth in millimeters by default.
-                       See the depth of https://docs.luxonis.com/projects/api/en/latest/components/nodes/stereo_depth/
+                See the property depth in https://docs.luxonis.com/projects/api/en/latest/components/nodes/stereo_depth/
 
         :param nn_blob_path: Path to blob file used for object detection.
         :param sync_nn: If True, sync the RGB output feed with the detection from the neural network. Needed if the RGB
@@ -120,7 +121,7 @@ class DepthAISpatialDetector:
             xout_depth = pipeline.create(dai.node.XLinkOut)
             xout_depth.setStreamName("depth")
 
-        # Properties
+        # Camera properties
         cam_rgb.setPreviewSize(model['input_size'])
         cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
         cam_rgb.setInterleaved(False)
@@ -131,10 +132,11 @@ class DepthAISpatialDetector:
         mono_right.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
         mono_right.setBoardSocket(dai.CameraBoardSocket.CAM_C)
 
-        # setting node configs
+        # Stereo properties
         stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
         stereo.setDepthAlign(dai.CameraBoardSocket.CAM_A)
 
+        # General spatial detection network parameters
         spatial_detection_network.setBlobPath(nn_blob_path)
         spatial_detection_network.setConfidenceThreshold(model['confidence_threshold'])
         spatial_detection_network.input.setBlocking(False)
@@ -156,6 +158,7 @@ class DepthAISpatialDetector:
         cam_rgb.preview.link(spatial_detection_network.input)
 
         if self.queue_rgb:
+            # To sync RGB frames with NN, link passthrough to xout instead of preview
             if sync_nn:
                 spatial_detection_network.passthrough.link(xout_rgb.input)
             else:
@@ -186,8 +189,9 @@ class DepthAISpatialDetector:
             anchors: [10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]
             anchor_masks: {"side26": [0, 1, 2], "side13": [3, 4, 5]}
 
-        Then model name is gate.
+        Then, a possible model name is "gate".
         """
+        # If the model is already set, don't reinitialize
         if model_name == self.current_model_name:
             return
 
@@ -212,6 +216,8 @@ class DepthAISpatialDetector:
         :param model_name: Name of the model that is being used.
         """
         model = self.models[model_name]
+
+        # Create a CVObject publisher for each class
         publisher_dict = {}
         for model_class in model['classes']:
             publisher_name = f"cv/{self.camera}/{model_class}"
@@ -220,6 +226,7 @@ class DepthAISpatialDetector:
                                                           queue_size=10)
         self.publishers = publisher_dict
 
+        # Create CompressedImage publishers for the raw RGB feed, detections feed, and depth feed
         if self.rgb_raw:
             self.rgb_preview_publisher = rospy.Publisher("camera/front/rgb/preview/compressed", CompressedImage,
                                                          queue_size=10)
@@ -237,9 +244,11 @@ class DepthAISpatialDetector:
         :param device: DepthAI.Device object for the connected device.
         See https://docs.luxonis.com/projects/api/en/latest/components/device/
         """
+        # If the output queues are already set, don't reinitialize
         if self.connected:
             return
 
+        # Assign output queues
         if self.queue_rgb:
             self.output_queues["rgb"] = device.getOutputQueue(name="rgb", maxSize=1, blocking=False)
 
@@ -247,7 +256,8 @@ class DepthAISpatialDetector:
             self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
 
         self.output_queues["detections"] = device.getOutputQueue(name="detections", maxSize=1, blocking=False)
-        self.connected = True
+
+        self.connected = True  # Flag that the output queues have been initialized
 
         self.detection_visualizer = DetectionVisualizer(self.classes, self.colors,
                                                         self.show_class_name, self.show_confidence)
@@ -256,9 +266,12 @@ class DepthAISpatialDetector:
         """
         Get current detections from output queues and publish.
         """
+        # init_output_queues must be called before detect
         if not self.connected:
+            rospy.logwarn("Output queues are not initialized so cannot detect. Call init_output_queues first.")
             return
 
+        # Get detections from output queues
         inDet = self.output_queues["detections"].get()
         detections = inDet.detections
 
@@ -266,34 +279,37 @@ class DepthAISpatialDetector:
             inPreview = self.output_queues["rgb"].get()
             frame = inPreview.getCvFrame()
 
+            # Publish raw RGB feed
             if self.rgb_raw:
                 frame_img_msg = self.image_tools.convert_to_ros_compressed_msg(frame)
                 self.rgb_preview_publisher.publish(frame_img_msg)
 
+            # Publish detections feed
             if self.rgb_detections:
                 detections_visualized = self.detection_visualizer.visualize_detections(frame, detections)
                 detections_img_msg = self.image_tools.convert_to_ros_compressed_msg(detections_visualized)
                 self.detection_feed_publisher.publish(detections_img_msg)
 
+        # Publish depth feed
         if self.queue_depth:
             raw_img_depth = self.output_queues["depth"].get()
             img_depth = raw_img_depth.getCvFrame()
             image_msg_depth = self.image_tools.convert_depth_to_ros_compressed_msg(img_depth, 'mono16')
             self.depth_publisher.publish(image_msg_depth)
 
-        model = self.models[self.current_model_name]
-        height = model['input_size'][0]
-        width = model['input_size'][1]
-
+        # Process and publish detections. If using sonar, override det robot x coordinate
         for detection in detections:
 
+            # Bounding box
             bbox = (detection.xmin, detection.ymin,
                     detection.xmax, detection.ymax)
 
+            # Label name
             label_idx = detection.label
             label = self.classes[label_idx]
 
             confidence = detection.confidence
+
             # x is left/right axis, where 0 is in middle of the frame,
             # to the left is negative x, and to the right is positive x
             # y is down/up axis, where 0 is in the middle of the frame,
@@ -314,7 +330,8 @@ class DepthAISpatialDetector:
             # Find yaw angle offset
             left_end_compute = self.compute_angle_from_x_offset(detection.xmin * self.camera_pixel_width)
             right_end_compute = self.compute_angle_from_x_offset(detection.xmax * self.camera_pixel_width)
-            yaw_offset = ((left_end_compute + right_end_compute) / 2.0) * (math.pi / 180.0)
+            midpoint = (left_end_compute + right_end_compute) / 2.0
+            yaw_offset = (midpoint) * (math.pi / 180.0)  # Degrees to radians
 
             # Create a new sonar request msg object if using sonar and the current detected
             # class is the desired class to be returned to task planning
@@ -323,6 +340,7 @@ class DepthAISpatialDetector:
                 top_end_compute = self.compute_angle_from_y_offset(detection.ymin * self.camera_pixel_height)
                 bottom_end_compute = self.compute_angle_from_y_offset(detection.ymax * self.camera_pixel_height)
 
+                # Construct sonar request message
                 sonar_request_msg = sweepGoal()
                 sonar_request_msg.start_angle = left_end_compute
                 sonar_request_msg.end_angle = right_end_compute
@@ -336,34 +354,36 @@ class DepthAISpatialDetector:
                     self.sonar_busy = True
 
                 # Try calling sonar on detected bounding box
-                # if sonar responds, then override existing robot-frame x, y info;
+                # if sonar responds, then override existing robot-frame x info;
                 # else, keep default
                 if not (self.sonar_response == (0, 0)) and self.in_sonar_range:
-                    det_coords_robot_mm = (self.sonar_response[0],
-                                           -x_cam_meters,
-                                           y_cam_meters)
+                    det_coords_robot_mm = (self.sonar_response[0],  # Override x
+                                           -x_cam_meters,  # Maintain original y
+                                           y_cam_meters)  # Maintain original z
 
             self.publish_prediction(
                 bbox, det_coords_robot_mm, yaw_offset, label, confidence,
-                (height, width), self.using_sonar)
+                (self.camera_pixel_height, self.camera_pixel_width), self.using_sonar)
 
     def publish_prediction(self, bbox, det_coords, yaw, label, confidence,
                            shape, using_sonar):
         """
         Publish predictions to label-specific topic. Publishes to /cv/[camera]/[label].
 
-        :param bbox: Tuple for the bounding box. Values are from 0-1, where X increases left to right and Y increases.
+        :param bbox: Tuple for the bounding box.
+            Values are from 0-1, where X increases left to right and Y increases top to bottom.
         :param det_coords: Tuple with the X, Y, and Z values in meters, and in the robot rotational reference frame.
         :param label: Predicted label for the detection.
         :param confidence: Confidence for the detection, from 0 to 1.
-        :param shape: Tuple with the (height, width) of the image.
+        :param shape: Tuple with the (height, width) of the image. NOTE: This is in reverse order from the model.
         """
         object_msg = CVObject()
-        object_msg.label = label
-        object_msg.score = confidence
 
         object_msg.header.stamp.secs = rospy.Time.now().secs
         object_msg.header.stamp.nsecs = rospy.Time.now().nsecs
+
+        object_msg.label = label
+        object_msg.score = confidence
 
         object_msg.coords.x = det_coords[0]
         object_msg.coords.y = det_coords[1]
@@ -382,6 +402,7 @@ class DepthAISpatialDetector:
         object_msg.sonar = using_sonar
 
         if self.publishers:
+            # Flush out 0, 0, 0 values
             if object_msg.coords.x != 0 and object_msg.coords.y != 0 and object_msg.coords.z != 0:
                 self.publishers[label].publish(object_msg)
 
@@ -400,18 +421,22 @@ class DepthAISpatialDetector:
             self.in_sonar_range = False
 
     def update_priority(self, object):
+        """
+        Update the current priority class. If the priority class is detected, sonar will be called.
+        """
         self.current_priority = object
 
     def run(self):
         """
         Runs the selected model on the connected device.
-        :param req: Request from
         :return: False if the model is not in cv/models/depthai_models.yaml.
         Otherwise, the model will be run on the device.
         """
+        # Check if model is valid
         if self.running_model not in self.models:
             return False
 
+        # Setup pipeline and publishers
         self.init_model(self.running_model)
         self.init_publishers(self.running_model)
 
@@ -424,10 +449,26 @@ class DepthAISpatialDetector:
         return True
 
     def compute_angle_from_x_offset(self, x_offset):
+        """
+        See: https://math.stackexchange.com/questions/1320285/convert-a-pixel-displacement-to-angular-rotation
+        for implementation details.
+
+        :param x_offset: x pixels from center of image
+
+        :return: angle in degrees
+        """
         image_center_x = self.camera_pixel_width / 2.0
         return math.degrees(math.atan(((x_offset - image_center_x) * 0.005246675486)))
 
     def compute_angle_from_y_offset(self, y_offset):
+        """
+        See: https://math.stackexchange.com/questions/1320285/convert-a-pixel-displacement-to-angular-rotation
+        for implementation details.
+
+        :param y_offset: y pixels from center of image
+
+        :return: angle in degrees
+        """
         image_center_y = self.camera_pixel_height / 2.0
         return math.degrees(math.atan(((y_offset - image_center_y) * 0.003366382395)))
 
