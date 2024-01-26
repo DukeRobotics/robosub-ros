@@ -17,6 +17,7 @@ add_message_files(
   PWMAllocs.msg
   ServoAngleArray.msg
   CVObject.msg
+  ControlTypes.msg
   Memory.msg
   SystemUsage.msg
   SimObject.msg
@@ -37,6 +38,7 @@ add_service_files(
   StopLaunch.srv
   GetRunningNodes.srv
   SetPIDGains.srv
+  SetControlTypes.srv
 )
 
 add_action_files(

@@ -15,7 +15,7 @@ def main():
     cv = CVInterface()
 
     listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(15))
-
+    controls.get_thruster_dict()
     # Fill with the tasks to do
     # For example: tasks = [gate_task(), buoy_task(), octagon_task()]
     tasks = [move_to_pose_local(controls, task_utils.create_pose(1, 0, 0, 0, 0, 0))]
