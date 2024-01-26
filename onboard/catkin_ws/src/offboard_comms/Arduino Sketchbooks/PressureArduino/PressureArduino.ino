@@ -38,8 +38,10 @@ void setup(){
 void loop(){
     sensor.read();
     Serial.flush();
-    myTime = millis();
+    printPressure = pressuretag + String(sensor.depth());
+    Serial.println(printPressure);
 
+    myTime = millis();
     if(myTime - prevTime > VOLTAGE_PERIOD) {
       prevTime = myTime;
 
@@ -48,7 +50,4 @@ void loop(){
       printVoltage = voltagetag + String(voltage);
       Serial.println(printVoltage);
     }
-    
-    printPressure = pressuretag + String(sensor.depth());
-    Serial.println(printPressure);
 }
