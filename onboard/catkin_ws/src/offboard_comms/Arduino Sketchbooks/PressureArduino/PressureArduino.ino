@@ -44,7 +44,7 @@ void loop(){
       prevTime = myTime;
    
       voltage = analogRead(aPin);                    
-      voltage = voltage*4.466/1023*5; //4.466 is arduino onboard voltage (4.826 for Carson's laptop)
+      voltage = voltage*4.776/1023*5; //4.776 is arduino onboard voltage (4.826 for Carson's laptop)
       printVoltage = voltagetag + String(voltage);
       Serial.println(printVoltage);
     }
