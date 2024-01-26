@@ -12,6 +12,7 @@ from sensor_msgs.msg import CompressedImage
 from tf import TransformListener
 from cv_bridge import CvBridge
 from sonar_image_processing import build_sonar_image_from_int_array
+import signal
 
 class Sonar:
     """
@@ -35,10 +36,10 @@ class Sonar:
     SONAR_RESPONSE_TOPIC = 'sonar/cv/response'
     SONAR_IMAGE_TOPIC = 'sonar/image/compressed'
 
-    NODE_NAME = "sonar"
+    NODE_NAME = "sonar-pub"
 
-    CONSTANT_SWEEP_START = 100
-    CONSTANT_SWEEP_END = 300
+    CONSTANT_SWEEP_START = 195
+    CONSTANT_SWEEP_END = 205
 
 
     def __init__(self):
@@ -63,7 +64,6 @@ class Sonar:
             self._serial_port = next(list_ports.grep(self.SONAR_FTDI_OOGWAY)).device
         except StopIteration:
             rospy.logerr("Sonar not found. Go yell at Will.")
-        finally:
             rospy.signal_shutdown("Shutting down sonar node.")
 
         self.ping360.connect_serial(f'{self._serial_port}', self.BAUD_RATE)
@@ -292,17 +292,20 @@ class Sonar:
         """
         rospy.loginfo("starting constant sweep")
         self.set_new_range(distance_of_scan)
-
         rospy.loginfo(f"stream: {self.stream}")
 
         # Scan indefinitely
         while True:
-            rospy.loginfo(f"starting sweep from {start_angle} to {end_angle}")
-            sonar_sweep = self.get_sweep(start_angle, end_angle)
-            if self.stream:
-                compressed_image = self.convert_to_ros_compressed_msg(sonar_sweep)
-                self.sonar_image_publisher.publish(compressed_image)
-            rospy.spin()
+            try:
+                rospy.loginfo(f"starting sweep from {start_angle} to {end_angle}")
+                sonar_sweep = self.get_sweep(start_angle, end_angle)
+                rospy.loginfo(f"finishng sweep")
+                if self.stream:
+                    compressed_image = self.convert_to_ros_compressed_msg(sonar_sweep)
+                    self.sonar_image_publisher.publish(compressed_image)
+            except KeyboardInterrupt:
+                rospy.signal_shutdown("Shutting down sonar node.")
+
 
     def on_sonar_request(self, request):
         """ On a sonar request get the position of the object in the sweep
@@ -337,7 +340,7 @@ class Sonar:
             self.status_publisher.publish("Sonar running")
             self.constant_sweep(self.CONSTANT_SWEEP_START, self.CONSTANT_SWEEP_END, self.DEFAULT_RANGE)
         else:
-            rospy.Subscriber(self.SONAR_REQUEST_TOPIC, SonarSweepRequest, self.on_sonar_request)
+            #rospy.Subscriber(self.SONAR_REQUEST_TOPIC, SonarSweepRequest, self.on_sonar_request)
             rospy.loginfo("starting sonar status...")
 
             # Publish status for sensor check
