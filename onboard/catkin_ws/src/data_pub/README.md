@@ -64,14 +64,16 @@ The `dvl_to_odom` script converts the raw dvl data to an `odometry` message for 
 
 You can launch both scripts using the `pub_dvl.launch` file.
 
-## Pressure Sensor Documentation
+## External Sensors Documentation
 
-The Blue Robotics pressure sensor sends raw serial data through an arduino to the main computer. This data is filtered and then published to the `/sensors/depth` topic. Note that this will need to be run in addition to the `offboard_comms` package. It converts the data into an PoseWithCovarianceStamped message for use in sensor fusion.
+The Blue Robotics pressure sensor sends raw serial data through an arduino to the main computer. This data is filtered and then published to the `/sensors/depth` topic. It converts the data into an PoseWithCovarianceStamped message for use in sensor fusion. The same node also gets voltage data from the voltage sensor on the same arduino and is published as a Float64 to `/sensors/voltage`. The data comes on the same serial stream with tags (`P:` and `V:`) identifying pressure from voltage.
 
-Two filters are applied:
+Two filters are applied to the depth:
 1. Values with absolute value greater than 7 are ignored.
 2. A median filter is applied to the last 3 values.
 
 These filters are applied to eliminate noise in the data that would otherwise result in an inaccurate Z position in state.
 
 All data in this PoseWithCovarianceStamped message is set to 0 except for the `pose.pose.position.z` value, which is set to the depth in meters. The `pose.pose.orientation` is set to the identity quaternion. Except for the `pose.pose.position.z` value, all other values are unused in sensor fusion.
+
+The voltage is published raw.
