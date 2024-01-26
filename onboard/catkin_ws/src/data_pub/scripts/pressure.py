@@ -32,7 +32,7 @@ class PressureRawPublisher:
         self._previous_pressure = None  # Previous pressure readings for median filter
 
         self._pub_depth = rospy.Publisher(self.DEPTH_DEST_TOPIC, PoseWithCovarianceStamped, queue_size=50)
-        self._pub_voltage = rospy.Publisher(self.DEPTH_DEST_V_TOPIC, Float64, queue_size=10)
+        self._pub_voltage = rospy.Publisher(self.VOLTAGE_DEST_TOPIC, Float64, queue_size=10)
 
         self._current_pressure_msg = PoseWithCovarianceStamped()
         self._current_voltage_msg = Float64()
