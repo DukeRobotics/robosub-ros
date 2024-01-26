@@ -9,6 +9,13 @@ from custom_msgs.srv import ConnectDepthAICamera, ConnectUSBCamera
 import depthai_camera_connect
 
 
+# Starts the `connect_depthai_camera` and `connect_usb_camera` services
+# which determine whether the stereo and mono cameras are connected.
+
+# Example usage:
+# roslaunch cv camera_test_connect.launch
+# rosservice call /connect_depthai_camera
+# rosservice call /connect_usb_camera "channel: <channel>"
 class CameraTestConnect:
 
     def __init__(self):
@@ -22,7 +29,7 @@ class CameraTestConnect:
     def connect_depthai(self, _):
         try:
             depthai_camera_connect.connect(dai.Pipeline())
-            return {'success': True}
+            return {'success': True}  # If no exception is thrown, the camera is connected
 
         except Exception:
             return {'success': False}

@@ -1,7 +1,7 @@
 # Computer Vision
 
 The computer vision package listens for images/frames coming from multiple cameras. The package
-will then run pre-trained machine learning models frames from each camera and output bounding boxes for the various objects
+will then run pre-trained machine learning models on frames from each camera and output bounding boxes for the various objects
 in the frames. These objects could be the gate, buoys, etc. The package will publish to different topics depending
 on which classes are being detected and which cameras are being used.
 
@@ -11,37 +11,34 @@ This package contains code for the Luxonis OAK-D PoE camera, which uses a python
 ### Running the Code
 To stream the feed or perform spatial detection using the OAK camera, use `roslaunch` with the following three files.
 * `depthai_camera_connect.launch`: Connects to the DepthAI camera. If connection is successful, prints a success message to console. If connection is unsucessful, an error is raised.
-* `depthai_publish_save_streams.launch`: Streams the live feed from the camera. You can choose what to publish from the camera (rgb video, rgb preview, left mono, right mono, disparity map, and depth map) by setting the appropriate boolean parameters. Also encodes the live feeds and saves them to files. You can choose what to save by setting the appropriate boolean parameters. Can also choose to automatically convert the encoded streams to video files.
-* `depthai_spatial_detection.launch`: Runs spatial detection. Waits for a enable_model rosservice call to specify what model to activate. This requires a valid `.blob` file in `models/` and the path to this `.blob` file should be specified in the `depthai_models.yaml` file. For more information about these files, see the code structure outline below. This will publish `CVObject` messages to a topic for each class that the model detects, unaltered rgb preview frames that were input to the neural netowrk, and rgb preview frames with bounding boxes, classes, and confidence values overlaid.
-* `depthai_sonar_spatial_detection.launch`: Runs spatial detection as in `depthai_spatial_detection.launch` but with sonar in addition to stereo vision.
+* `depthai_publish_save_streams.launch`: Streams the live feed from the camera. You can choose what to publish from the camera (rgb video, rgb preview, left mono, right mono, disparity map, and depth map) by setting the appropriate boolean parameters. Also encodes the live feeds and saves them to files. You can choose what to save by setting the appropriate boolean parameters. You can also choose to automatically convert the encoded streams to video files.
+* `depthai_spatial_detection.launch`: Runs spatial detection. This requires a valid `.blob` file in `models/` and the path to this `.blob` file should be specified in the `depthai_models.yaml` file. For more information about these files, see the code structure outline below. This will publish `CVObject` messages to a topic for each class that the model detects, unaltered rgb preview frames that were input to the neural network, and rgb preview frames with bounding boxes, classes, and confidence values overlaid.
 * `depthai_simulate_detection.launch`: Runs spatial detection on a still image, or on a image stream launched by running `test_images.py` [(see Simulating Image Feeds)](#simulating-image-feeds), on the DepthAI camera. Uses the model specified in arguments. If a still image is input, a JPEG file will be created that is the original image with detections visualized. If an image stream is input, CVObject messages will be published to the topic provided (all classes are published to a single topic), and a live feed of images with detections visualized is also published.
 
 ### Structure
 `scripts/`
 * `depthai_camera_connect.py`: Connects to the OAK camera and uploads the image pipeline. Used by all other DepthAI scripts.
 * `depthai_publish_save_streams.py`: Publishes a preview of the image feed from the OAK camera and saves encoded streams. This can be used to verify connection to the camera and to check if there are any issues with the camera feed.
-* `depthai_spatial_detection.py`: Waits for an enable_model rosservice call, and then publishes spatial detections using the model specified in the service call and in depthai_models.yaml.
-* `depthai_sonar_spatial_detection.py`: Same as `depthai_spatial_detection.py`.
-* `depthai_simulate_detection.launch`: Runs spatial detection on a user-specified DepthAI model using a still image or image feed as input.
+* `depthai_spatial_detection.py`: Publishes live spatial detections using a specified model in `depthai_models.yaml`.
+* `depthai_simulate_detection.launch`: Publishes spatial detections using a specified model in `depthai_models.yaml` on a still image or image feed.
 * `camera_hard_reset.py`: Used to reset a POE camera if it is not connecting properly. The script creates the topics `/offboard/camera_relay` (for sending commands to the camera relay) and `/offboard/camera_relay_status` (for checking the status of the physical relay). Running `rosservice call /enable_camera <true/false>` enables or disables the camera. Note: running `camera_hard_reset.py` requires serial.launch to have been run and this may power cycle the camera upon running. By default, the camera will be enabled unless the topic `/offboard/camera_relay` is set to `false`. See `onboard/catkin_ws/src/offboard_comms/README.md` for more information on the relay service.
 
 `launch/`
 * `depthai_camera_connext.launch`: Connects to the OAK camera and uploads the image pipeline.
 * `depthai_publish_save_streams.launch`: Runs the image stream publishing and saving script.
 * `depthai_spatial_detection.launch`: Runs the spatial detection script.
-* `depthai_sonar_spatial_detection`: Runs the spatial detection script with sonar.
-* `depthai_spatial_detection.launch`: Runs the simulated spatial detection script.
+* `depthai_simulate_detection.launch`: Runs the simulated spatial detection script.
 * `camera_hard_reset.launch`: Runs the camera hard reset script.
 
 `models/`
 * `depthai_models.yaml`: contains models for object detection. A model is specified by a name, what classes it predicts, and the path to a .blob file, as well as other configuration parameters. `input_size` is [width, height]. The blob file format is specific to the processors that the OAK cameras use.
 
 `footage_extraction`
-* Can be used to extract footage from rosbag files. See the README file in the footage_extraction directory.
+* Can be used to extract footage from rosbag files. See the README file in the `footage_extraction` directory.
 
-# Non-DepthAI Cameras
+## Non-DepthAI Cameras
 
-## USB Camera
+### USB Camera
 This package also contains driver code to publish a camera stream from a USB-type camera in `usb_camera.py`. A USB camera can be located by `/dev/video*` on a linux computer, where `*` can be replaced by any number specifying a given camera channel (default is `0`, with the number increasing for each new camera you plug in). The script `usb_camera.py` uses OpenCV to capture a stream frame by frame from a specified USB camera channel and publishes it to a specified ros topic. Use `roslaunch cv usb_camera.launch` to start a stream once a USB camera has been plugged in. You can specify the ros topic which the usb camera feed is published to via
 
 ```bash
@@ -50,7 +47,7 @@ roslaunch cv usb_camera.launch topic:=<topic>
 
 By default, `<topic>` is set to `/camera/usb_camera/compressed`. Note that the camera must be plugged in _before_ the docker container is started.
 
-## Setup
+### Setup
 
 Generally, you would train a separate object detection model for each task you need computer vision for (gates, buoys, etc.). You can then load them as follows:
 
@@ -84,7 +81,7 @@ to manually download the default model file used by the Detecto package. Move th
 container under the directory `/root/.cache/torch/checkpoints/` (do not rename the file).
 
 
-## Running
+### Running
 
 To start up a CV node, run the following command:
 
@@ -112,7 +109,7 @@ Once 1+ models are enabled for a specific node, they listen and publish to topic
 
  * `/camera/<camera>/compressed`
    * The topic that the camera publishes each frame to
-   * If no actual camera feed is available, you can simulate one using `test_images.py`. See Simulating image feeds above for more information.
+   * If no actual camera feed is available, you can simulate one using `test_images.py`. See [Simulating image feeds](#simulating-image-feeds) below for more information.
    * Type: sensor_msgs/CompressedImage
   * `/offboard/camera_relay_status`
      * The topic that the Arduino publishes the camera relay status to. Only runs if `camera_hard_reset.py` is running.
@@ -139,8 +136,6 @@ could be anywhere from like 0.2 to 10 FPS depending on computing power/the GPU/o
 
 The following are the folders and files in the CV package:
 
-`assets`: Folder with a dummy image to test the CV package on
-
 `launch`: Contains the various launch files for our CV package. There is a general launch file for all the cameras (`cv.launch`), and then there are specific launch files for each camera (`cv_left`, `cv_right`, and `cv_down`). Finally, we have a launch file for our testing script `test_images.launch`
 
 `models`: Contains our pre-trained models and a `.yaml` file that specifies the details of each model (classes predicted, topic name, and the path to the model weights)
@@ -154,6 +149,7 @@ The following are the folders and files in the CV package:
 The CV package also has dependencies in the `core/catkin_ws/src/custom_msgs` folder.
 
 ## Examples
+### Non-DepthAI Cameras
 To simulate camera feed and then run a model on the feed from the left camera. We'll assume the model we want to run is called 'buoy':
 * In one terminal, run `roslaunch cv test_images.launch feed_path:=../assets/{file_name} topic:={topic_name} framerate:={required framerate}` to start the script meant to simulate the raw camera feed
 * In a new terminal, run `roslaunch cv cv_left.launch` to start the cv node
@@ -193,6 +189,6 @@ The `DianosticArray` that is pubished returns several values.
 
 # Other Files
 
-The `utils.py` file contains the `DetectionVisualizer`class which provides functions to draw bounding boxes and their labels onto images. It is used by DepthAI files when publishing visualized detections.
+The `utils.py` file contains the `DetectionVisualizer` class which provides functions to draw bounding boxes and their labels onto images. It is used by DepthAI files when publishing visualized detections.
 
 The `image_tools.py` file contains the `ImageTools` class which provides functions to convert between OpenCV, ROS Image, and ROS CompressedImage formats. All scripts in this package use `ImageTools` to perform conversions between these types. `cv_bridge` is not used by any file or class in this package other than `ImageTools` itself.

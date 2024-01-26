@@ -1,7 +1,9 @@
 {
-  "name": "publish-topic-panel",
+  "name": "@duke-robotics/publish-topic-panel",
+  "displayName": "Publish Topic Panel",
+  "description": "Publish ROS messages to a topic",
   "publisher": "Duke Robotics",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "main": "./dist/extension.js",
   "scripts": {
     "build": "foxglove-extension build",

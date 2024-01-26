@@ -22,3 +22,18 @@ index d7c87ab..9518604 100644
      for (const file of baseFiles) {
          if (!(await pathExists(file, FileType.File))) {
              throw new Error(`Missing required file ${file}`);
+diff --git a/node_modules/create-foxglove-extension/dist/webpackConfigExtension.js b/node_modules/create-foxglove-extension/dist/webpackConfigExtension.js
+index edf59a3..02e444d 100644
+--- a/node_modules/create-foxglove-extension/dist/webpackConfigExtension.js
++++ b/node_modules/create-foxglove-extension/dist/webpackConfigExtension.js
+@@ -83,7 +83,9 @@ exports.default = (extensionPath, entryPoint, env) => {
+                 },
+             ],
+         },
+-        plugins: [new clean_webpack_plugin_1.CleanWebpackPlugin()],
++        plugins: [new clean_webpack_plugin_1.CleanWebpackPlugin({
++            cleanOnceBeforeBuildPatterns: ["extension.js"],
++        })],
+     };
+     return config;
+ };

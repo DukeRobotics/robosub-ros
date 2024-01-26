@@ -1,7 +1,9 @@
 {
-  "name": "toggle-controls-panel",
+  "name": "@duke-robotics/toggle-controls-panel",
+  "displayName": "Toggle Controls Panel",
+  "description": "Toggle controls on/off",
   "publisher": "Duke Robotics",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "main": "./dist/extension.js",
   "keywords": [],
   "scripts": {

@@ -59,6 +59,9 @@ class DvlRawPublisher:
         while not rospy.is_shutdown():
             try:
                 line = self._serial.readline().decode('utf-8')
+                if not line or line == '':
+                    rospy.sleep(0.1)
+                    continue  # Skip and retry
                 if line.strip() and line[0] == ':':
                     self._parse_line(line)
             except Exception:

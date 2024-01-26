@@ -5,7 +5,7 @@ from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Imu, CompressedImage
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from std_msgs.msg import String
-from custom_msgs.msg import ThrusterSpeeds
+from custom_msgs.msg import ThrusterAllocs
 
 VERBOSE = False
 
@@ -17,7 +17,7 @@ SENSOR_SUBSCRIBE_TOPICS = {'/sensors/dvl/odom': Odometry,
                            '/camera/front/rgb/preview/compressed': CompressedImage,
                            '/sonar/status': String}
 
-OFFBOARD_THRUSTER_POWER_TOPIC = '/offboard/thruster_speeds'
+THRUSTER_ALLOCS_TOPIC = '/controls/thruster_allocs'
 
 
 class SensorCheckNode:
@@ -38,7 +38,7 @@ class SensorCheckNode:
         # Publish to offboard/thrusters and run thrusters at low speeds if test_thrusters is True
         if self.test_thrusters == 1:
             rospy.loginfo("Testing thrusters...")
-            self.thruster_tester = rospy.Publisher(OFFBOARD_THRUSTER_POWER_TOPIC, ThrusterSpeeds, queue_size=10)
+            self.thruster_tester = rospy.Publisher(THRUSTER_ALLOCS_TOPIC, ThrusterAllocs, queue_size=10)
             self.spin_thrusters_at_low_speeds()
 
     def callback(self, data, topic_name):
@@ -60,12 +60,12 @@ class SensorCheckNode:
 
     def spin_thrusters_at_low_speeds(self):
         # Spin for 5 seconds
-        desired_speed = ThrusterSpeeds()
-        desired_speed.speeds = [20, 20, 20, 20, 20, 20, 20, 20]
+        desired_allocs = ThrusterAllocs()
+        desired_allocs.allocs = [0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
         publishing_rate = rospy.Rate(10)
         curr_time = rospy.get_rostime().secs
         while not rospy.is_shutdown():
-            self.thruster_tester.publish(desired_speed)
+            self.thruster_tester.publish(desired_allocs)
             publishing_rate.sleep()
             now = rospy.get_rostime().secs
             if now - curr_time >= 5:

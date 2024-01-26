@@ -1,0 +1,454 @@
+{
+  "output": "types/ros1Msgs.ts",
+  "rosVersion": 1,
+  "input": [
+    {
+      "namespace": "rosmaster",
+      "path": "./share/rosmaster"
+    },
+    {
+      "namespace": "rosbuild",
+      "path": "./share/rosbuild"
+    },
+    {
+      "namespace": "nodelet",
+      "path": "./share/nodelet"
+    },
+    {
+      "namespace": "rosserial_msgs",
+      "path": "./share/rosserial_msgs"
+    },
+    {
+      "namespace": "roscpp",
+      "path": "./share/roscpp"
+    },
+    {
+      "namespace": "image_transport",
+      "path": "./share/image_transport"
+    },
+    {
+      "namespace": "rosconsole_bridge",
+      "path": "./share/rosconsole_bridge"
+    },
+    {
+      "namespace": "roslib",
+      "path": "./share/roslib"
+    },
+    {
+      "namespace": "ros",
+      "path": "./share/ros"
+    },
+    {
+      "namespace": "tf2",
+      "path": "./share/tf2"
+    },
+    {
+      "namespace": "geographic_msgs",
+      "path": "./share/geographic_msgs"
+    },
+    {
+      "namespace": "std_msgs",
+      "path": "./share/std_msgs"
+    },
+    {
+      "namespace": "bondcpp",
+      "path": "./share/bondcpp"
+    },
+    {
+      "namespace": "ros_base",
+      "path": "./share/ros_base"
+    },
+    {
+      "namespace": "bond_core",
+      "path": "./share/bond_core"
+    },
+    {
+      "namespace": "roscpp_core",
+      "path": "./share/roscpp_core"
+    },
+    {
+      "namespace": "rosboost_cfg",
+      "path": "./share/rosboost_cfg"
+    },
+    {
+      "namespace": "message_filters",
+      "path": "./share/message_filters"
+    },
+    {
+      "namespace": "cmake_modules",
+      "path": "./share/cmake_modules"
+    },
+    {
+      "namespace": "rosnode",
+      "path": "./share/rosnode"
+    },
+    {
+      "namespace": "visualization_msgs",
+      "path": "./share/visualization_msgs"
+    },
+    {
+      "namespace": "stereo_msgs",
+      "path": "./share/stereo_msgs"
+    },
+    {
+      "namespace": "robot_localization",
+      "path": "./share/robot_localization"
+    },
+    {
+      "namespace": "std_srvs",
+      "path": "./share/std_srvs"
+    },
+    {
+      "namespace": "common_msgs",
+      "path": "./share/common_msgs"
+    },
+    {
+      "namespace": "rosmake",
+      "path": "./share/rosmake"
+    },
+    {
+      "namespace": "roswtf",
+      "path": "./share/roswtf"
+    },
+    {
+      "namespace": "rosclean",
+      "path": "./share/rosclean"
+    },
+    {
+      "namespace": "rosserial_client",
+      "path": "./share/rosserial_client"
+    },
+    {
+      "namespace": "bond",
+      "path": "./share/bond"
+    },
+    {
+      "namespace": "compressed_image_transport",
+      "path": "./share/compressed_image_transport"
+    },
+    {
+      "namespace": "xmlrpcpp",
+      "path": "./share/xmlrpcpp"
+    },
+    {
+      "namespace": "catkin",
+      "path": "./share/catkin"
+    },
+    {
+      "namespace": "resource_retriever",
+      "path": "./share/resource_retriever"
+    },
+    {
+      "namespace": "tf2_msgs",
+      "path": "./share/tf2_msgs"
+    },
+    {
+      "namespace": "geneus",
+      "path": "./share/geneus"
+    },
+    {
+      "namespace": "rostime",
+      "path": "./share/rostime"
+    },
+    {
+      "namespace": "cpp_common",
+      "path": "./share/cpp_common"
+    },
+    {
+      "namespace": "genmsg",
+      "path": "./share/genmsg"
+    },
+    {
+      "namespace": "eigen_conversions",
+      "path": "./share/eigen_conversions"
+    },
+    {
+      "namespace": "nav_msgs",
+      "path": "./share/nav_msgs"
+    },
+    {
+      "namespace": "rosserial",
+      "path": "./share/rosserial"
+    },
+    {
+      "namespace": "pluginlib",
+      "path": "./share/pluginlib"
+    },
+    {
+      "namespace": "roslang",
+      "path": "./share/roslang"
+    },
+    {
+      "namespace": "smach_msgs",
+      "path": "./share/smach_msgs"
+    },
+    {
+      "namespace": "actionlib_msgs",
+      "path": "./share/actionlib_msgs"
+    },
+    {
+      "namespace": "genpy",
+      "path": "./share/genpy"
+    },
+    {
+      "namespace": "cv_bridge",
+      "path": "./share/cv_bridge"
+    },
+    {
+      "namespace": "actionlib_tools",
+      "path": "./share/actionlib_tools"
+    },
+    {
+      "namespace": "rosbag",
+      "path": "./share/rosbag"
+    },
+    {
+      "namespace": "dynamic_reconfigure",
+      "path": "./share/dynamic_reconfigure"
+    },
+    {
+      "namespace": "nodelet_core",
+      "path": "./share/nodelet_core"
+    },
+    {
+      "namespace": "smach",
+      "path": "./share/smach"
+    },
+    {
+      "namespace": "message_runtime",
+      "path": "./share/message_runtime"
+    },
+    {
+      "namespace": "geometry_msgs",
+      "path": "./share/geometry_msgs"
+    },
+    {
+      "namespace": "sensor_msgs",
+      "path": "./share/sensor_msgs"
+    },
+    {
+      "namespace": "roscreate",
+      "path": "./share/roscreate"
+    },
+    {
+      "namespace": "trajectory_msgs",
+      "path": "./share/trajectory_msgs"
+    },
+    {
+      "namespace": "shape_msgs",
+      "path": "./share/shape_msgs"
+    },
+    {
+      "namespace": "theora_image_transport",
+      "path": "./share/theora_image_transport"
+    },
+    {
+      "namespace": "nodelet_topic_tools",
+      "path": "./share/nodelet_topic_tools"
+    },
+    {
+      "namespace": "rospack",
+      "path": "./share/rospack"
+    },
+    {
+      "namespace": "tf2_geometry_msgs",
+      "path": "./share/tf2_geometry_msgs"
+    },
+    {
+      "namespace": "roseus",
+      "path": "./share/roseus"
+    },
+    {
+      "namespace": "pid",
+      "path": "./share/pid"
+    },
+    {
+      "namespace": "rosout",
+      "path": "./share/rosout"
+    },
+    {
+      "namespace": "rosmsg",
+      "path": "./share/rosmsg"
+    },
+    {
+      "namespace": "rosserial_python",
+      "path": "./share/rosserial_python"
+    },
+    {
+      "namespace": "rosgraph",
+      "path": "./share/rosgraph"
+    },
+    {
+      "namespace": "rosbash",
+      "path": "./share/rosbash"
+    },
+    {
+      "namespace": "smclib",
+      "path": "./share/smclib"
+    },
+    {
+      "namespace": "rosbag_migration_rule",
+      "path": "./share/rosbag_migration_rule"
+    },
+    {
+      "namespace": "mk",
+      "path": "./share/mk"
+    },
+    {
+      "namespace": "rosbag_storage",
+      "path": "./share/rosbag_storage"
+    },
+    {
+      "namespace": "rosgraph_msgs",
+      "path": "./share/rosgraph_msgs"
+    },
+    {
+      "namespace": "actionlib",
+      "path": "./share/actionlib"
+    },
+    {
+      "namespace": "foxglove_bridge",
+      "path": "./share/foxglove_bridge"
+    },
+    {
+      "namespace": "rosserial_arduino",
+      "path": "./share/rosserial_arduino"
+    },
+    {
+      "namespace": "compressed_depth_image_transport",
+      "path": "./share/compressed_depth_image_transport"
+    },
+    {
+      "namespace": "tf2_ros",
+      "path": "./share/tf2_ros"
+    },
+    {
+      "namespace": "ros_environment",
+      "path": "./share/ros_environment"
+    },
+    {
+      "namespace": "uuid_msgs",
+      "path": "./share/uuid_msgs"
+    },
+    {
+      "namespace": "genlisp",
+      "path": "./share/genlisp"
+    },
+    {
+      "namespace": "roscpp_traits",
+      "path": "./share/roscpp_traits"
+    },
+    {
+      "namespace": "rostopic",
+      "path": "./share/rostopic"
+    },
+    {
+      "namespace": "smach_ros",
+      "path": "./share/smach_ros"
+    },
+    {
+      "namespace": "tf2_py",
+      "path": "./share/tf2_py"
+    },
+    {
+      "namespace": "ros_comm",
+      "path": "./share/ros_comm"
+    },
+    {
+      "namespace": "rosparam",
+      "path": "./share/rosparam"
+    },
+    {
+      "namespace": "rospy",
+      "path": "./share/rospy"
+    },
+    {
+      "namespace": "ros_babel_fish",
+      "path": "./share/ros_babel_fish"
+    },
+    {
+      "namespace": "roslisp",
+      "path": "./share/roslisp"
+    },
+    {
+      "namespace": "class_loader",
+      "path": "./share/class_loader"
+    },
+    {
+      "namespace": "image_transport_plugins",
+      "path": "./share/image_transport_plugins"
+    },
+    {
+      "namespace": "roslz4",
+      "path": "./share/roslz4"
+    },
+    {
+      "namespace": "rosconsole",
+      "path": "./share/rosconsole"
+    },
+    {
+      "namespace": "rostest",
+      "path": "./share/rostest"
+    },
+    {
+      "namespace": "diagnostic_msgs",
+      "path": "./share/diagnostic_msgs"
+    },
+    {
+      "namespace": "roslaunch",
+      "path": "./share/roslaunch"
+    },
+    {
+      "namespace": "message_generation",
+      "path": "./share/message_generation"
+    },
+    {
+      "namespace": "bondpy",
+      "path": "./share/bondpy"
+    },
+    {
+      "namespace": "angles",
+      "path": "./share/angles"
+    },
+    {
+      "namespace": "diagnostic_updater",
+      "path": "./share/diagnostic_updater"
+    },
+    {
+      "namespace": "roscpp_serialization",
+      "path": "./share/roscpp_serialization"
+    },
+    {
+      "namespace": "rosservice",
+      "path": "./share/rosservice"
+    },
+    {
+      "namespace": "topic_tools",
+      "path": "./share/topic_tools"
+    },
+    {
+      "namespace": "tf",
+      "path": "./share/tf"
+    },
+    {
+      "namespace": "common-lisp",
+      "path": "./share/common-lisp"
+    },
+    {
+      "namespace": "gennodejs",
+      "path": "./share/gennodejs"
+    },
+    {
+      "namespace": "rosunit",
+      "path": "./share/rosunit"
+    },
+    {
+      "namespace": "ros_core",
+      "path": "./share/ros_core"
+    },
+    {
+      "namespace": "gencpp",
+      "path": "./share/gencpp"
+    }
+  ]
+}

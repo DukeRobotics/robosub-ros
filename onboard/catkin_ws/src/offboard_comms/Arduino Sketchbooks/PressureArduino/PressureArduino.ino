@@ -13,7 +13,7 @@ float pressure;
 unsigned long myTime;
 unsigned long prevTime;
 unsigned long rate = 1000;  // how often to print out voltage
-String pressuretag = "P:";  
+String pressuretag = "P:";
 String voltagetag = "V:";
 String printPressure = "";
 String printVoltage = "";
@@ -22,7 +22,7 @@ void setup(){
 
     delay(100);
     pinMode(aPin, OUTPUT);
-    Serial.begin(9600);
+    Serial.begin(BAUD_RATE);
     voltage = 0;
     prevTime = 0;
 
@@ -39,16 +39,16 @@ void loop(){
     sensor.read();
     Serial.flush();
     myTime = millis();
-   
+
     if(myTime - prevTime > rate) {
       prevTime = myTime;
-   
-      voltage = analogRead(aPin);                    
+
+      voltage = analogRead(aPin);
       voltage = voltage*4.776/1023*5; //4.776 is arduino onboard voltage (4.826 for Carson's laptop)
       printVoltage = voltagetag + String(voltage);
       Serial.println(printVoltage);
     }
-   
+
     pressure = sensor.depth();
     printPressure = pressuretag + String(pressure);
     Serial.println(printPressure);

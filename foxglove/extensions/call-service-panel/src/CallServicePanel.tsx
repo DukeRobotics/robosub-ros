@@ -1,24 +1,39 @@
+import useTheme from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
+import { Box, Button, InputAdornment, TextField, ThemeProvider, Typography } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import { JsonViewer } from "@textea/json-viewer";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { JSX } from "react/jsx-runtime";
 import { createRoot } from "react-dom/client";
 
-type State = {
+type CallServicePanelState = {
   serviceName: string;
   request: string;
   response?: unknown;
-  error?: Error | undefined;
+  error?: Error;
   colorScheme?: RenderState["colorScheme"];
 };
 
 function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const [state, setState] = useState<State>({ serviceName: "", request: "{}" });
+
+  const [state, setState] = useState<CallServicePanelState>(() => {
+    const initialState = context.initialState as CallServicePanelState | undefined;
+
+    return {
+      serviceName: initialState?.serviceName ?? "",
+      request: initialState?.request ?? "{\n\n}",
+    };
+  });
+
+  // Save state upon change
+  useEffect(() => {
+    context.saveState(state);
+  }, [state, context]);
 
   // Update color scheme
-  useLayoutEffect(() => {
+  useEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
       setRenderDone(() => done);
@@ -32,87 +47,115 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
   }, [renderDone]);
 
   // Call a service with a given request
-  const callService = async (serviceName: string, request: string) => {
+  const callService = () => {
     if (!context.callService) {
       return;
     }
 
-    try {
-      const response = await context.callService(serviceName, JSON.parse(request));
-      JSON.stringify(response); // Attempt serializing the response, to throw an error on failure
-      setState((oldState) => ({
-        ...oldState,
-        response,
-        error: undefined,
-      }));
-    } catch (error) {
-      setState((oldState) => ({ ...oldState, error: error as Error }));
-      console.error(error);
-    }
+    context.callService(`/${state.serviceName}`, JSON.parse(state.request)).then(
+      (response) => {
+        JSON.stringify(response); // Attempt serializing the response, to throw an error on failure
+        setState((oldState) => ({
+          ...oldState,
+          response,
+          error: undefined,
+        }));
+      },
+      (error) => {
+        // Handle service call errors (e.g., service is not advertised)
+        setState((oldState) => ({ ...oldState, error: error as Error }));
+      },
+    );
   };
 
-  // Close callService with the current state for use in the button
-  const callServiceWithRequest = () => {
-    void callService(state.serviceName, state.request);
-  };
-
+  const theme = useTheme();
   return (
-    <div style={{ padding: "1rem" }}>
-      <h2>Call Service</h2>
-      {context.callService == undefined && (
-        <Alert variant="filled" severity="error">
-          Calling services is not supported by this connection
-        </Alert>
-      )}
+    <ThemeProvider theme={theme}>
+      <Box m={1}>
+        {/* Error messages */}
+        {(context.callService == undefined || state.error != undefined) && (
+          <Box mb={1}>
+            {context.callService == undefined && (
+              <Alert variant="filled" severity="error">
+                Calling services is not supported by this connection.
+              </Alert>
+            )}
+            {state.error != undefined && (
+              <Alert variant="filled" severity="error">
+                {state.error.message}
+              </Alert>
+            )}
+          </Box>
+        )}
 
-      <h4>Service Name</h4>
-      <div>
-        <input
+        {/* Service Name Input */}
+        <TextField
+          label="Service Name"
           type="text"
-          placeholder="Enter service name"
-          style={{ width: "100%" }}
+          size="small"
+          margin="dense"
+          fullWidth
           value={state.serviceName}
           onChange={(event) => {
-            setState({ ...state, serviceName: event.target.value });
+            setState((prevState) => ({
+              ...prevState,
+              serviceName: event.target.value,
+            }));
+          }}
+          InputProps={{
+            startAdornment: <InputAdornment position="start">/</InputAdornment>,
           }}
         />
-      </div>
-      <h4>Request</h4>
-      <div>
-        <textarea
-          style={{ width: "100%", minHeight: "3rem" }}
+
+        {/* Request Input */}
+        <TextField
+          margin="dense"
+          size="small"
+          multiline
+          label="Request"
+          fullWidth
           value={state.request}
           onChange={(event) => {
-            setState({ ...state, request: event.target.value });
+            setState((prevState) => ({
+              ...prevState,
+              request: event.target.value,
+            }));
           }}
         />
-      </div>
-      <div>
-        <button
-          disabled={context.callService == undefined || state.serviceName === ""}
-          style={{ width: "100%", minHeight: "2rem" }}
-          onClick={callServiceWithRequest}
-        >
-          {`Call ${state.serviceName}`}
-        </button>
-      </div>
 
-      <div>
-        <h4>Response</h4>
-        <JsonViewer
-          rootName={false}
-          value={state.error ? { error: state.error.message } : state.response ?? {}}
-          indentWidth={2}
-          theme={state.colorScheme}
-          enableClipboard={false}
-          displayDataTypes={false}
-        />
-      </div>
-    </div>
+        <Box my={1}>
+          {/* Call Service Button */}
+          <Button
+            fullWidth
+            variant="contained"
+            disabled={context.callService == undefined || state.serviceName === ""}
+            onClick={callService}
+          >
+            {`Call Service`}
+          </Button>
+        </Box>
+
+        <Box>
+          <Typography variant="subtitle1" gutterBottom>
+            Response
+          </Typography>
+          <JsonViewer
+            rootName={false}
+            value={state.response}
+            indentWidth={2}
+            theme={state.colorScheme}
+            enableClipboard={true}
+            displayDataTypes={false}
+          />
+        </Box>
+      </Box>
+    </ThemeProvider>
   );
 }
 
 export function initCallServicePanel(context: PanelExtensionContext): () => void {
+  context.panelElement.style.overflow = "auto"; // Enable scrolling
+
   const root = createRoot(context.panelElement as HTMLElement);
   root.render(<CallServicePanel context={context} />);
 

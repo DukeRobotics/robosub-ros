@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 A CLI to automatically install/uninstall Foxglove extensions and layouts.
-usage: foxglove.py {install,uninstall} [--extensions] [--layouts]
 
 To install a specific extension, use the -e flag:
 python foxglove.py install -e <extension-1> <extension-2> ...
@@ -24,18 +23,20 @@ import pathlib
 import datetime
 import platform
 import argparse
-from typing import Sequence
+from typing import Sequence, Union
+import time
 
 ORGANIZATION = "dukerobotics"
 
 if (SYSTEM := platform.system()) not in ("Linux", "Darwin", "Windows"):
     raise SystemExit(f"Unsupported platform: {SYSTEM}")
 
-LAYOUT_INSTALL_PATH = {
-    "Linux": pathlib.Path.home() / ".config/Foxglove Studio/studio-datastores/layouts-local/",
-    "Darwin": pathlib.Path.home() / "Library/Application Support/Foxglove Studio/studio-datastores/layouts-local/",
-    "Windows": pathlib.Path.home() / "AppData/Roaming/Foxglove Studio/studio-datastores/layouts-local/"
+STUDIO_DATASTORES_PATH = {
+    "Linux": pathlib.Path.home() / ".config/Foxglove Studio/studio-datastores/",
+    "Darwin": pathlib.Path.home() / "Library/Application Support/Foxglove Studio/studio-datastores/",
+    "Windows": pathlib.Path.home() / "AppData/Roaming/Foxglove Studio/studio-datastores/"
 }[SYSTEM]
+LAYOUT_INSTALL_PATH = STUDIO_DATASTORES_PATH / "layouts-local/"
 EXTENSION_INSTALL_PATH = pathlib.Path.home() / ".foxglove-studio/extensions/"
 
 FOXGLOVE_PATH = pathlib.Path(__file__).parent.resolve()
@@ -43,7 +44,7 @@ EXTENSION_PATHS = [d for d in (FOXGLOVE_PATH / "extensions").iterdir() if d.is_d
 LAYOUTS_PATH = FOXGLOVE_PATH / "layouts"
 
 
-def run_at_path(command: str, directory: pathlib.Path, system: str = SYSTEM):
+def run_at_path(command: Union[str, Sequence[str]], directory: pathlib.Path, system: str = SYSTEM):
     """
     Run a command at a given path.
 
@@ -56,15 +57,70 @@ def run_at_path(command: str, directory: pathlib.Path, system: str = SYSTEM):
         ValueError: If command empty.
         subprocess.CalledProcessError: If command returns non-zero exit code.
     """
-    if command == "":
+    if not command:
         raise ValueError("Command must not be empty")
 
-    args = command.split(' ')
+    if isinstance(command, str):
+        args = command.split(' ')
+    else:
+        args = list(command)
+
     if system == "Windows":
         args[0] += ".cmd"
 
     print(f"{directory.name}: {command}")
     subprocess.run(args, cwd=directory, check=True)
+
+
+def check_npm():
+    """
+    Check if npm is installed.
+
+    Raises:
+        SystemExit: If npm not found.
+    """
+    try:
+        run_at_path("npm -v", FOXGLOVE_PATH)
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        raise SystemExit("npm not found. Install npm and try again.")
+
+
+def build_deps(skip_ci: bool = False, extension_paths: Sequence[pathlib.Path] = EXTENSION_PATHS):
+    """
+    Build all necessary dependencies for Foxglove.
+
+    Args:
+        extension_paths: Sequence of extension paths to build.
+    """
+    run = functools.partial(run_at_path, directory=FOXGLOVE_PATH)
+
+    # Create necessary paths (either directories or empty files) so that npm ci can symlink them to node_modules
+    # Files must have a suffix, otherwise they are treated as directories
+    paths = [
+        FOXGLOVE_PATH / "shared/ros-typescript-generator/build/main/cli/cli.js"
+    ]
+    for path in paths:
+        if path.suffix:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.touch()
+        else:
+            path.mkdir(parents=True, exist_ok=True)
+
+    # Install external dependencies and symlink local dependencies
+    if not skip_ci:
+        run("npm ci")
+
+        # Patch external dependencies
+        run("npx patch-package --patch-dir patches")
+
+    # Compile local shared dependencies
+    dependencies = ["ros-typescript-generator", "defs", "theme"]  # Specify build order
+    for dep in dependencies:
+        run_at_path("npm run build --if-present", pathlib.Path("shared") / dep)
+
+    # Compile local nonshared dependencies
+    for extension in extension_paths:
+        run_at_path("npm run build-deps --if-present", extension)
 
 
 def install_extensions(extension_paths: Sequence[pathlib.Path]):
@@ -74,24 +130,13 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
     Args:
         extension_paths: Sequence of extension paths to install.
     """
-
-    try:
-        run_at_path("npm -v", FOXGLOVE_PATH)
-    except (FileNotFoundError, subprocess.CalledProcessError):
-        raise SystemExit("npm not found. Install npm and try again.")
-
-    run_at_path("npm ci", FOXGLOVE_PATH)
-    run_at_path("npx patch-package --patch-dir patches", FOXGLOVE_PATH)
-
     successes = 0
     for extension in extension_paths:
-        run = functools.partial(run_at_path, directory=extension)
-
         if not (extension / "package.json").is_file():
             print(f"{extension.name}: skipped (no package.json)")
             continue
 
-        run("npm run local-install")
+        run_at_path("npm run local-install", extension)
 
         print(f"{extension.name}: installed")
 
@@ -130,7 +175,7 @@ def install_layouts(layouts_path: pathlib.Path = LAYOUTS_PATH, install_path: pat
         with open(install_path / id, 'w') as f:
             json.dump(packaged_layout, f)
 
-        print(f"{name}: installed")
+        print(f"{id}: installed")
 
         successes += 1
 
@@ -154,7 +199,7 @@ def uninstall_extensions(install_path: pathlib.Path = EXTENSION_INSTALL_PATH):
     print(f"Successfully uninstalled {len(extensions)} extension(s)\n")
 
 
-def uninstall_layouts(install_path: pathlib.Path = LAYOUT_INSTALL_PATH):
+def uninstall_layouts():
     """
     Uninstall all Duke Robotics layouts from Foxglove.
 
@@ -163,12 +208,18 @@ def uninstall_layouts(install_path: pathlib.Path = LAYOUT_INSTALL_PATH):
     Args:
         install_path: Path where layouts are installed.
     """
-    layouts = [d for d in install_path.iterdir() if d.name.startswith(ORGANIZATION)]
-    for layout in layouts:
-        layout.unlink()
-        print(f"{layout.name}: uninstalled")
+    remote_layouts = [d for d in STUDIO_DATASTORES_PATH.iterdir() if d.name.startswith("layouts-remote")]
 
-    print(f"Successfully uninstalled {len(layouts)} layouts(s)\n")
+    successes = 0
+    for path in (remote_layouts + [LAYOUT_INSTALL_PATH]):
+        layouts = [d for d in path.iterdir() if d.name.startswith(ORGANIZATION)]
+        for layout in layouts:
+            layout.unlink()
+            print(f"{layout.name}: uninstalled")
+
+            successes += 1
+
+    print(f"Successfully uninstalled {successes} layouts(s)\n")
 
 
 def extension_package(name: str, extension_paths: Sequence[pathlib.Path] = EXTENSION_PATHS):
@@ -192,13 +243,59 @@ def extension_package(name: str, extension_paths: Sequence[pathlib.Path] = EXTEN
     raise argparse.ArgumentTypeError(f"{name} is not a valid extension name")
 
 
+def create_new_layout(name: str, install_path: pathlib.Path = LAYOUT_INSTALL_PATH):
+    """
+    Create a new layout in Foxglove Desktop.
+
+    Foxglove does not allow creating more than one layout when not signed in.
+    This script circumvents this issue.
+
+    Args:
+        name: Name of the new layout.
+        install_path: Path to install layouts to.
+    """
+    with open("empty-layout.json") as f:
+        data = json.load(f)
+
+    baseline = {
+        "data": data,
+        "savedAt": datetime.datetime.now(datetime.timezone.utc).isoformat()
+    }
+
+    id = f"{ORGANIZATION}.{name}"
+    packaged_layout = {
+        "id": id,
+        "name": name,
+        "permission": "CREATOR_WRITE",
+        "baseline": baseline,
+    }
+
+    with open(install_path / id, 'w') as f:
+        json.dump(packaged_layout, f)
+
+
+def clean_foxglove():
+    """
+    Clean up the foxglove monorepo.
+    """
+    run_at_path("git clean -fdx", FOXGLOVE_PATH)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Install/Uninstall Foxglove extensions and layouts.")
+    parser.add_argument(
+        '--new-layout',
+        nargs='?',
+        const=str(time.time_ns()),  # Use current time if no name is given to avoid collisions
+        action='store',
+        help="Create a new layout by name. If no name is given, use current time in nanoseconds as name."
+    )
 
-    subparsers = parser.add_subparsers(dest="action", required=True)
+    subparsers = parser.add_subparsers(dest="action")
 
     install_parser = subparsers.add_parser(
         'install',
+        aliases=['i'],
         help='Install Foxglove extensions and layouts. By default, all extensions and layouts are installed.'
     )
     install_parser.add_argument(
@@ -206,24 +303,47 @@ if __name__ == "__main__":
         action='extend',
         nargs='*',
         type=extension_package,
-        help="Install extension(s) by name. By default, all extensions are installed."
+        help="Install extension(s) by name. If no name(s) are given, all extensions are installed."
     )
     install_parser.add_argument(
         '-l', '--layouts',
         action='store_true',
         help="Install all layouts."
     )
+    install_parser.add_argument(
+        '--skip-ci',
+        action='store_true',
+        help="Use existing node_modules instead of clean installing external dependencies."
+    )
 
     uninstall_parser = subparsers.add_parser(
         'uninstall',
+        aliases=['u'],
         help='Uninstall Foxglove extensions and layouts. By default, all extensions and layouts are uninstalled.'
     )
     uninstall_parser.add_argument('-e', '--extensions', action='store_true', help="Uninstall all extensions.")
     uninstall_parser.add_argument('-l', '--layouts', action='store_true', help="Uninstall all layouts.")
 
+    build_parser = subparsers.add_parser(
+        'build',
+        aliases=['b'],
+        help='Build all necessary dependencies for Foxglove. This is automatically run when installing extensions.'
+    )
+    build_parser.add_argument(
+        '--skip-ci',
+        action='store_true',
+        help="Use existing node_modules instead of clean installing external dependencies."
+    )
+
+    clean_parser = subparsers.add_parser(
+        'clean',
+        aliases=['c'],
+        help='Clean up the foxglove monorepo.'
+    )
+
     args = parser.parse_args()
 
-    if args.action == "install":
+    if args.action in ("install", "i"):
         # Without flags, install everything
         if args.extensions is None and args.layouts is False:
             args.extensions = EXTENSION_PATHS
@@ -233,11 +353,13 @@ if __name__ == "__main__":
             args.extensions = EXTENSION_PATHS
 
         if args.extensions is not None:
+            check_npm()
+            build_deps(skip_ci=args.skip_ci, extension_paths=args.extensions)
             install_extensions(args.extensions)
         if args.layouts:
             install_layouts()
 
-    elif args.action == "uninstall":
+    elif args.action in ("uninstall", "u"):
         # Without flags, uninstall everything
         if args.extensions is False and args.layouts is False:
             args.extensions = True
@@ -247,3 +369,13 @@ if __name__ == "__main__":
             uninstall_extensions()
         if args.layouts:
             uninstall_layouts()
+
+    elif args.action in ("build", "b"):
+        check_npm()
+        build_deps(skip_ci=args.skip_ci)
+
+    elif args.action in ("clean", "c"):
+        clean_foxglove()
+
+    if args.new_layout:
+        create_new_layout(args.new_layout)
