@@ -16,3 +16,7 @@ if [ -f "${COMPUTER_TYPE}"/catkin_ws/devel/setup.bash ]
 then
     source "${COMPUTER_TYPE}"/catkin_ws/devel/setup.bash
 fi
+
+# Alias to start foxglove websocket
+alias fg-ws='roslaunch --screen foxglove_bridge foxglove_bridge.launch port:=8765'
+
