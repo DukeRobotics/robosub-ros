@@ -7,18 +7,20 @@ import serial.tools.list_ports as list_ports
 import yaml
 import resource_retriever as rr
 import traceback
+from std_msgs.msg import Float64
 
 # Used for sensor fusion
 from geometry_msgs.msg import PoseWithCovarianceStamped
 
 
-class SensorsRawPublisher:
+class PressureRawPublisher:
 
     DEPTH_DEST_TOPIC = 'sensors/depth'
+    VOLTAGE_DEST_TOPIC = 'sensors/voltage'
     FTDI_FILE_PATH = 'package://data_pub/config/arduino_ftdi.yaml'
 
     BAUDRATE = 9600
-    NODE_NAME = 'sensors_pub'
+    NODE_NAME = 'pressure_pub'
 
     MEDIAN_FILTER_SIZE = 3
 
@@ -28,9 +30,12 @@ class SensorsRawPublisher:
 
         self._pressure = None  # Pressure to publish
         self._previous_pressure = None  # Previous pressure readings for median filter
+
         self._pub_depth = rospy.Publisher(self.DEPTH_DEST_TOPIC, PoseWithCovarianceStamped, queue_size=50)
+        self._pub_voltage = rospy.Publisher(self.VOLTAGE_DEST_TOPIC, Float64, queue_size=10)
 
         self._current_pressure_msg = PoseWithCovarianceStamped()
+        self._current_voltage_msg = Float64()
 
         self._serial_port = None
         self._serial = None
@@ -63,13 +68,19 @@ class SensorsRawPublisher:
             try:
                 # Direct read from device
                 line = self.readline_nonblocking().strip()
+                tag = line[0:2]  # P for pressure and V for voltage
+                data = line[2:]
+                if "P:" in tag:
+                    self._update_pressure(float(data))  # Filter out bad readings
+                    self._parse_pressure()  # Parse pressure data
+                    self._publish_current_pressure_msg()  # Publish pressure data
+                if "V:" in tag:
+                    self._current_voltage_msg = float(data)
+                    self._publish_current_voltage_msg()
                 if not line or line == '':
                     rospy.logerr("Timeout in pressure serial read, trying again in 2 seconds.")
                     rospy.sleep(0.1)
                     continue  # Skip and retry
-                self._update_pressure(float(line))  # Filter out bad readings
-                self._parse_pressure()  # Parse pressure data
-                self._publish_current_msg()  # Publish pressure data
             except Exception:
                 rospy.logerr("Error in reading pressure information. Reconnecting.")
                 rospy.logerr(traceback.format_exc())
@@ -110,7 +121,7 @@ class SensorsRawPublisher:
         # Only the z,z covariance
         self._current_pressure_msg.pose.covariance[14] = 0.01
 
-    def _publish_current_msg(self):
+    def _publish_current_pressure_msg(self):
         if abs(self._current_pressure_msg.pose.pose.position.z) > 7:
             self._current_pressure_msg = PoseWithCovarianceStamped()
             return
@@ -121,9 +132,12 @@ class SensorsRawPublisher:
         self._pub_depth.publish(self._current_pressure_msg)
         self._current_pressure_msg = PoseWithCovarianceStamped()
 
+    def _publish_current_voltage_msg(self):
+        self._pub_voltage.publish(self._current_voltage_msg)
+
 
 if __name__ == '__main__':
     try:
-        SensorsRawPublisher().run()
+        PressureRawPublisher().run()
     except rospy.ROSInterruptException:
         pass
