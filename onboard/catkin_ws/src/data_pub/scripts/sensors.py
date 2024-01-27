@@ -78,7 +78,7 @@ class PressureRawPublisher:
                     self._current_voltage_msg = float(data)
                     self._publish_current_voltage_msg()
                 if not line or line == '':
-                    rospy.logerr("Timeout in pressure serial read, trying again in 2 seconds.")
+                    rospy.logerr("Timeout in pressure serial read, trying again in 1 second.")
                     rospy.sleep(0.1)
                     continue  # Skip and retry
             except Exception:
