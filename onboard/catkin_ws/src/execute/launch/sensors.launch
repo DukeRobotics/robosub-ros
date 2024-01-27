@@ -7,7 +7,7 @@
 	<group unless="$(arg sim)">
 		<include file="$(find sonar)/launch/sonar.launch" >
             <arg name="stream" value="True" />
-	        <arg name="polar" value="False" />
+	        <arg name="debug" value="False" />
         </include>
 	</group>
 
