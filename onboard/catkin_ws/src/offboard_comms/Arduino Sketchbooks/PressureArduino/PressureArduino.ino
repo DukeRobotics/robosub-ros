@@ -5,10 +5,10 @@
 MS5837 sensor;
 
 // Baud rate for serial communication with Blue Robotics Bar30 High-Resolution 300m Depth/Pressure Sensor
-#define BAUD_RATE 9600;
-#define ONBOARD_VOLTAGE 4.776; // 4.776 is arduino onboard voltage (true output of 5V pin)
-#define VPIN 3; // voltage pin analog input
-#define VOLTAGE_PERIOD 1000; // how often to print out voltage
+#define BAUD_RATE 9600
+#define ONBOARD_VOLTAGE 4.776 // 4.776 is arduino onboard voltage (true output of 5V pin)
+#define VPIN 3 // voltage pin analog input
+#define VOLTAGE_PERIOD 1000 // how often to print out voltage
 
 float voltage;
 unsigned long myTime;
