@@ -98,7 +98,7 @@ class Sonar:
             sample_period (int): sample period in ms
 
         """
-        return round(2 * range / (self.number_of_samples * self.SPEED_OF_SOUND_IN_WATER * 
+        return round(2 * range / (self.number_of_samples * self.SPEED_OF_SOUND_IN_WATER *
                                   self.SAMPLE_PERIOD_TICK_DURATION))
 
     def range_to_transmit(self, range):
@@ -190,8 +190,8 @@ class Sonar:
         """
         response = self.ping360.transmitAngle(angle_in_gradians)
         response_to_int_array = [int(item) for item in response.data]  # converts bytestring to int array
-        filtered_sonar_scan = [int(0)] * self.FILTER_INDEX +\
-                              response_to_int_array[self.FILTER_INDEX:]  # replaces first FILTER_INDEX values with 0
+        # replaces first FILTER_INDEX values with 0
+        filtered_sonar_scan = [int(0)] * self.FILTER_INDEX + response_to_int_array[self.FILTER_INDEX:]
         return filtered_sonar_scan
 
     def get_sweep(self, range_start=100, range_end=300):
