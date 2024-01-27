@@ -21,41 +21,35 @@ def getImage(path):
     return npImg
 
 
-def createImage(path):
+def createImage(img, start_angle=0, center_angle=90):
     """ create a cartesian top down image from a polar image with
     x coordinates as the distance away from the sonar and
     y coordinates as angles (in gradians)
     
     Args:
         path (string): path of the image
+        start_angle (int): angle that the scan starts at
+        center_angle (int): angle that the program should center the scan to
 
     Returns:
         ndarray: image
     """
-    npImg = getImage(path)
-    radius = npImg.shape[1]
-    angle = npImg.shape[0]
-    width = 0
-    height = 0
-    if angle <= 101:
-        width = radius
-        height = radius
-    elif angle <=200:
-        width = 2*radius
-        height = radius
-    else:
-        width = 2*radius
-        height = 2*radius
-    
-    polarImg = np.zeros((width + 1, height + 1, 3))
+    angle = img.shape[0]
+    radius = img.shape[1]
 
-    x = np.linspace(0,width, width + 1)
-    y = np.linspace(0, height, height + 1)
-    xx, yy = np.meshgrid(x, y)
+    center = start_angle + angle/2 # find center of the scan arc
 
-    theta = np.rad2deg(np.arctan2(yy, xx))*200/180    
+    width = 2*radius + 1
+    height = radius + 1
+
+    polarImg = np.zeros((height, width, 3))
+
+    x_ax = np.linspace(-radius, radius, width, dtype=np.int32)
+    y_ax = np.linspace(0, radius, height, dtype=np.int32)
+    xx, yy = np.meshgrid(x_ax, y_ax)
+
+    theta = np.rad2deg(np.arctan2(yy, xx))*200/180
     r = np.sqrt(xx**2 + yy**2)
-    r = r/(np.sqrt(2))
 
     np.round(theta)
     np.round(r)
@@ -63,11 +57,39 @@ def createImage(path):
     theta = theta.astype(np.int32)
     r = r.astype(np.int32)
 
-    for j in range(width):
-        for i in range(height + 1):
-            polarImg[radius -j][i] = npImg[theta[j][i]][r[j][i]]/255
+    for x in x_ax:
+        for y in y_ax:
+            theta_pt = theta[y][x + radius] - int(center_angle*200/180 - center) # shift angles to center the to center_angle
+            r_pt = r[y][x + radius] # x + radius to convert x values into index values
+
+            if (theta_pt < angle and theta_pt > 0 and r_pt < radius):
+                polarImg[radius - y][x + radius] = img[theta_pt][r_pt]/255 # radius - y flips to face the scan upward
+            else:
+                polarImg[radius - y][x + radius] = np.zeros(3)
     
     return polarImg
+
+def main2():
+    # path = 'onboard/catkin_ws/src/sonar/scripts/sampleData/Sonar_Image.jpeg'
+    path = 'onboard/catkin_ws/src/sonar/scripts/sampleData/buoy.npy'
+    image = createImage(getImage(path))
+
+    # plt.imshow(image)
+    # plt.show()
+
+    scale_factor = 0.5
+    new_height = int(image.shape[0] * scale_factor)
+    new_width = int(image.shape[1] * scale_factor)
+    image = cv2.resize(image, (new_width, new_height))
+
+    if path.endswith(".npy"):
+        image = image[:, :, 0]
+        image = cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+        image = cv2.applyColorMap(image, cv2.COLORMAP_VIRIDIS)
+
+    cv2.imshow("polar image", image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
 def addContours(image, lower_bound=(0, 0.5, 0), upper_bound=(1, 1, 1), kernel=(17, 17), area_threshold=5000):
@@ -107,8 +129,6 @@ def printCirularity(contours):
         circularity = 4*np.pi*(area/perimeter*perimeter)
         print(circularity)
 
-       
-
 
 def main():
     path1 = 'onboard/catkin_ws/src/sonar/scripts/sampleData/buoy.npy'
@@ -125,9 +145,10 @@ def main():
     fig, ax = plt.subplots(1, len(images))
 
     for path in paths:
-        image = createImage(path)
+        image = getImage(path)
+        polarImage = createImage(image)
         #addContours(image)
-        images.append(image)
+        images.append(polarImage)
     
     ax[0].imshow(images[0])
 
@@ -149,4 +170,4 @@ def main():
     plt.show()
 
 if __name__ == '__main__':
-    main()
+    main2()
