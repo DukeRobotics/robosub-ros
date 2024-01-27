@@ -153,4 +153,52 @@ thrusters[i].write(pwm + THRUSTER_PWM_OFFSET);
 This correction was determined to be a hardware defect with Oogway's Blue Robotics Basic ESCs. When sending a stop/configuration PWM signal of 1500 microseconds, the thrusters would interpret the command as a spin command. The introduced offset corrects for this issue.
 
 ### Pressure Arduino
-The pressure arduino interprets the Blue Robotics Pressure Sensor using the MS5837 library. It sends the data over a serial line using each time the sensor gets a new reading. All of the processing for the depth data can be found in the `data_pub` package.
+
+The Pressure Arduino primarily publishes depth data over serial. It also is meant to support additional sensors, as is the case with the voltage sensor.
+
+The `data_pub` package is responsible for parsing on the robot and publishing the data to ROS.
+
+The different readings are intermixed from the different sensors. Each sensor type has a corresponding header:
+
+- `P`: Pressure
+- `V`: Voltage
+
+Example data from the Arduino is as follows:
+```
+P:0.73
+V:15.63
+P:0.73
+P:0.73
+P:0.73
+P:0.73
+P:0.73
+P:0.73
+P:0.73
+P:0.73
+P:0.73
+P:0.74
+P:0.74
+P:0.74
+P:0.74
+P:0.74
+P:0.73
+P:0.74
+P:0.74
+P:0.73
+P:0.74
+P:0.74
+V:15.67
+P:0.73
+P:0.74
+P:0.74
+```
+
+#### Pressure
+
+The pressure arduino interprets the Blue Robotics Pressure Sensor using the MS5837 library. It sends the data over a serial line using each time the sensor gets a new reading, so the rate is not defined other than "as fast as possible." All of the processing for the depth data can be found in the `data_pub` package.
+
+#### Voltage
+
+Voltage publishing over serial is also handled by the Pressure Arduino. The voltage is published as a float over serial, and is published at 1 Hz.
+
+The votage is calibrated based on the onboard Arduino's voltage. This is important as the used voltage sensor requires knowledge of its own voltage as it uses a voltage divider to measure the voltage. The voltage sensor used is the a generic voltage sensor.
