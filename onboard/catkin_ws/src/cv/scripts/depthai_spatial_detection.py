@@ -338,8 +338,8 @@ class DepthAISpatialDetector:
             # class is the desired class to be returned to task planning
             if self.using_sonar and label == self.current_priority:
 
-                top_end_compute = self.compute_angle_from_y_offset(detection.ymin * self.camera_pixel_height)
-                bottom_end_compute = self.compute_angle_from_y_offset(detection.ymax * self.camera_pixel_height)
+                # top_end_compute = self.compute_angle_from_y_offset(detection.ymin * self.camera_pixel_height)
+                # bottom_end_compute = self.compute_angle_from_y_offset(detection.ymax * self.camera_pixel_height)
 
                 # Construct sonar request message
                 sonar_request_msg = SonarSweepRequest()
