@@ -103,10 +103,14 @@ class ControlsInterface:
         thruster_allocs = [0] * self.num_thrusters
 
         for kwarg_name, kwarg_value in kwargs.items():
-            if kwarg_name in self.thruster_dict:
-                thruster_allocs[self.thruster_dict[kwarg_name]] = kwarg_value
-            else:
-                raise ValueError("Thruster name not in thruster_dict", kwarg_name)
+                   
+            if kwarg_name not in self.thruster_dict:
+                raise ValueError(f"Thruster name not in thruster_dict {kwarg_name}")
+            
+            if kwarg_value > 1 or kwarg_value < -1:
+                raise ValueError(f"Recieved {kwarg_value} for thruster {kwarg_name}. Thruster alloc must be between -1 and 1 inclusive.")
+            
+            thruster_allocs[self.thruster_dict[kwarg_name]] = kwarg_value
 
         thruster_allocs_msg = ThrusterAllocs()
         thruster_allocs_msg.header.stamp = rospy.Time.now()

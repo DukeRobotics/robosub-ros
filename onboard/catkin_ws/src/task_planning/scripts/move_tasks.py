@@ -1,4 +1,5 @@
 import task_utils
+import rospy
 from interface.controls import ControlsInterface
 from coroutines import task, Yield, Transform
 
@@ -28,6 +29,19 @@ async def move_to_pose_local(controls: ControlsInterface, pose):
 @task
 async def hold_position(controls: ControlsInterface):
     await move_to_pose_global(controls, controls.state.pose.pose)
+
+@task
+async def initial_submerge(controls: ControlsInterface, thruster_alloc = -0.2, seconds = 2):
+    now = rospy.Time.now()
+    time_end = now + rospy.Duration(secs = seconds)
+    while rospy.Time.now() < time_end:        
+        controls.publish_thruster_allocs(
+            bottom_front_left=thruster_alloc,
+            bottom_front_right=thruster_alloc,
+            bottom_back_left=thruster_alloc,
+            bottom_back_right=thruster_alloc)
+
+        await Yield()
 
 @task
 async def prequal_task(controls: ControlsInterface):
