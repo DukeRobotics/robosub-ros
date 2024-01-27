@@ -37,7 +37,7 @@ def scan_and_build_sonar_image(sonar,
     return sonar_img
 
 
-def build_sonar_image_from_int_array(int_array, npy_save_path=None, jpeg_save_path=None):
+def build_color_sonar_image_from_int_array(int_array, npy_save_path=None, jpeg_save_path=None):
     """ Build a sonar image from a list of data messages
 
     Args:
@@ -55,6 +55,8 @@ def build_sonar_image_from_int_array(int_array, npy_save_path=None, jpeg_save_pa
     """
 
     sonar_img = int_array.astype(np.uint8)
+    sonar_img = cv2.cvtColor(sonar_img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+    sonar_img = cv2.applyColorMap(sonar_img, cv2.COLORMAP_VIRIDIS)
 
     if jpeg_save_path:
         plt.imsave(jpeg_save_path, sonar_img)

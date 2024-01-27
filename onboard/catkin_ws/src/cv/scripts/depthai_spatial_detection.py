@@ -10,7 +10,8 @@ import numpy as np
 from utils import DetectionVisualizer
 from image_tools import ImageTools
 
-from custom_msgs.msg import CVObject, sweepResult, sweepGoal
+from custom_msgs.msg import CVObject, SonarSweepRequest
+from geometry_msgs.msg import Pose
 from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import String
 
@@ -66,13 +67,13 @@ class DepthAISpatialDetector:
         self.sonar_busy = False
 
         # By default the first task is going through the gate
-        self.current_priority = "buoy_abydos_serpenscaput"
+        self.current_priority = "gate_earth"
 
         # Initialize publishers and subscribers for sonar/task planning
         self.sonar_requests_publisher = rospy.Publisher(
-            SONAR_REQUESTS_PATH, sweepGoal, queue_size=10)
+            SONAR_REQUESTS_PATH, SonarSweepRequest, queue_size=10)
         self.sonar_response_subscriber = rospy.Subscriber(
-            SONAR_RESPONSES_PATH, sweepResult, self.update_sonar)
+            SONAR_RESPONSES_PATH, Pose, self.update_sonar)
         self.desired_detection_feature = rospy.Subscriber(
             TASK_PLANNING_REQUESTS_PATH, String, self.update_priority)
 
@@ -341,11 +342,10 @@ class DepthAISpatialDetector:
                 bottom_end_compute = self.compute_angle_from_y_offset(detection.ymax * self.camera_pixel_height)
 
                 # Construct sonar request message
-                sonar_request_msg = sweepGoal()
-                sonar_request_msg.start_angle = left_end_compute
-                sonar_request_msg.end_angle = right_end_compute
-                sonar_request_msg.center_z_angle = (top_end_compute + bottom_end_compute) / 2.0
-                sonar_request_msg.distance_of_scan = SONAR_DEPTH
+                sonar_request_msg = SonarSweepRequest()
+                sonar_request_msg.start_angle = int(left_end_compute)
+                sonar_request_msg.end_angle = int(right_end_compute)
+                sonar_request_msg.distance_of_scan = int(SONAR_DEPTH)
 
                 # Make a request to sonar if it is not busy
                 if not self.sonar_busy:
@@ -414,9 +414,9 @@ class DepthAISpatialDetector:
         """
         # Check to see if the sonar is in range - are results from sonar valid?
         self.sonar_busy = False
-        if sonar_results.x_pos > SONAR_RANGE and sonar_results.x_pos <= SONAR_DEPTH:
+        if sonar_results.position.x > SONAR_RANGE and sonar_results.position.x <= SONAR_DEPTH:
             self.in_sonar_range = True
-            self.sonar_response = (sonar_results.x_pos, sonar_results.y_pos)
+            self.sonar_response = (sonar_results.position.x, sonar_results.position.y)
         else:
             self.in_sonar_range = False
 

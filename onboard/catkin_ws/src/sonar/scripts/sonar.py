@@ -11,7 +11,7 @@ from custom_msgs.msg import SonarSweepRequest
 from sensor_msgs.msg import CompressedImage
 from tf import TransformListener
 from cv_bridge import CvBridge
-from sonar_image_processing import build_sonar_image_from_int_array
+from sonar_image_processing import build_color_sonar_image_from_int_array
 import signal
 
 class Sonar:
@@ -36,10 +36,10 @@ class Sonar:
     SONAR_RESPONSE_TOPIC = 'sonar/cv/response'
     SONAR_IMAGE_TOPIC = 'sonar/image/compressed'
 
-    NODE_NAME = "sonar-pub"
+    NODE_NAME = "sonar"
 
-    CONSTANT_SWEEP_START = 195
-    CONSTANT_SWEEP_END = 205
+    CONSTANT_SWEEP_START = 100
+    CONSTANT_SWEEP_END = 300
 
 
     def __init__(self):
@@ -266,7 +266,7 @@ class Sonar:
 
         return (self.to_robot_position(average_row + start_angle, average_column), sonar_sweep_array)
 
-    def convert_to_ros_compressed_msg(self, sonar_sweep, compressed_format='jpg'):
+    def convert_to_ros_compressed_img(self, sonar_sweep, compressed_format='jpg'):
         """ Convert any kind of image to ROS Compressed Image.
 
         Args:
@@ -276,7 +276,7 @@ class Sonar:
         Returns:
             CompressedImage: ROS Compressed Image message
         """
-        sonar_image = build_sonar_image_from_int_array(sonar_sweep)
+        sonar_image = build_color_sonar_image_from_int_array(sonar_sweep)
         return self.cv_bridge.cv2_to_compressed_imgmsg(sonar_image, dst_format=compressed_format)
 
     def constant_sweep(self, start_angle, end_angle, distance_of_scan):
@@ -295,13 +295,13 @@ class Sonar:
         rospy.loginfo(f"stream: {self.stream}")
 
         # Scan indefinitely
-        while True:
+        while not rospy.is_shutdown():
             try:
                 rospy.loginfo(f"starting sweep from {start_angle} to {end_angle}")
                 sonar_sweep = self.get_sweep(start_angle, end_angle)
                 rospy.loginfo(f"finishng sweep")
                 if self.stream:
-                    compressed_image = self.convert_to_ros_compressed_msg(sonar_sweep)
+                    compressed_image = self.convert_to_ros_compressed_img(sonar_sweep)
                     self.sonar_image_publisher.publish(compressed_image)
             except KeyboardInterrupt:
                 rospy.signal_shutdown("Shutting down sonar node.")
@@ -320,13 +320,14 @@ class Sonar:
             return
         self.set_new_range(request.distance_of_scan)
 
-        left_gradians = sonar_utils.centered_gradians_to_radians(request.start_angle)
-        right_gradians = sonar_utils.centered_gradians_to_radians(request.end_angle)
+        left_gradians = sonar_utils.degrees_to_centered_gradians(request.start_angle)
+        right_gradians = sonar_utils.degrees_to_centered_gradians(request.end_angle)
 
-        object_pose, sonar_sweep = self.sonar.get_xy_of_object_in_sweep(left_gradians, right_gradians)
+        rospy.loginfo(f"starting sweep from {left_gradians} to {right_gradians}")
+        object_pose, sonar_sweep = self.get_xy_of_object_in_sweep(left_gradians, right_gradians)
 
         if self.stream:
-            sonar_image = self.convert_to_ros_compressed_msg(sonar_sweep)
+            sonar_image = self.convert_to_ros_compressed_img(sonar_sweep)
             self.sonar_image_publisher.publish(sonar_image)
 
         self.pub_response.publish(object_pose)
@@ -340,11 +341,11 @@ class Sonar:
             self.status_publisher.publish("Sonar running")
             self.constant_sweep(self.CONSTANT_SWEEP_START, self.CONSTANT_SWEEP_END, self.DEFAULT_RANGE)
         else:
-            #rospy.Subscriber(self.SONAR_REQUEST_TOPIC, SonarSweepRequest, self.on_sonar_request)
+            rospy.Subscriber(self.SONAR_REQUEST_TOPIC, SonarSweepRequest, self.on_sonar_request)
             rospy.loginfo("starting sonar status...")
 
             # Publish status for sensor check
-            rate = rospy.Rate(5)
+            rate = rospy.Rate(20)
             while not rospy.is_shutdown():
                 self.status_publisher.publish("Sonar running")
                 rate.sleep()

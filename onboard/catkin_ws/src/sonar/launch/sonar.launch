@@ -1,6 +1,6 @@
 <launch>
 	<arg name="stream" default="True" />
-	<arg name="debug" default="True" />
+	<arg name="debug" default="False" />
 	<node pkg="sonar" name="sonar" type="sonar.py" output="screen">
 		<param name="stream" value="$(arg stream)" />
 		<param name="debug" value="$(arg debug)" />

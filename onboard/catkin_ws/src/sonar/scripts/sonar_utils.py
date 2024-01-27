@@ -52,6 +52,6 @@ def degrees_to_centered_gradians(angle_degrees):
              is forward
     """
 
-    angle_gradians = int(angle_degrees * GRADIANS_PER_DEGREE)
+    angle_gradians = angle_degrees * GRADIANS_PER_DEGREE
     angle_gradians_centered = angle_gradians + SONAR_CENTER_GRADIANS
-    return angle_gradians_centered
+    return int(angle_gradians_centered)
