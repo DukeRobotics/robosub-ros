@@ -322,9 +322,5 @@ def to_polar_img(img, display_results=True):
 
 
 if __name__ == "__main__":
-    # test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData',
-    # 'SampleTylerData.bin'), find_buoy)
     test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData',
                                'gate.npy'), to_polar_img)
-    # test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData',
-    # 'gate.npy'), the_polar_express)

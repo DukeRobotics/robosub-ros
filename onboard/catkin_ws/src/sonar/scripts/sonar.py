@@ -12,7 +12,7 @@ from sensor_msgs.msg import CompressedImage
 from tf import TransformListener
 from cv_bridge import CvBridge
 from sonar_image_processing import build_color_sonar_image_from_int_array
-import signal
+
 
 class Sonar:
     """
@@ -24,9 +24,9 @@ class Sonar:
     SPEED_OF_SOUND_IN_WATER = 1482  # m/s
 
     # number of values to filter TODO figure out where the noise ends
-    FILTER_INDEX = 100 # first 100 values are filtered out
-    DEFAULT_RANGE = 5 # m
-    DEFAULT_NUMER_OF_SAMPLES = 1200 # 1200 is max resolution
+    FILTER_INDEX = 100  # first 100 values are filtered out
+    DEFAULT_RANGE = 5  # m
+    DEFAULT_NUMER_OF_SAMPLES = 1200  # 1200 is max resolution
 
     SONAR_FTDI_OOGWAY = "DK0C1WF7"
     _serial_port = None
@@ -40,7 +40,6 @@ class Sonar:
 
     CONSTANT_SWEEP_START = 100
     CONSTANT_SWEEP_END = 300
-
 
     def __init__(self):
         rospy.init_node(self.NODE_NAME)
@@ -99,7 +98,8 @@ class Sonar:
             sample_period (int): sample period in ms
 
         """
-        return round(2 * range / (self.number_of_samples * self.SPEED_OF_SOUND_IN_WATER * self.SAMPLE_PERIOD_TICK_DURATION))
+        return round(2 * range / (self.number_of_samples * self.SPEED_OF_SOUND_IN_WATER * 
+                                  self.SAMPLE_PERIOD_TICK_DURATION))
 
     def range_to_transmit(self, range):
         """From a given range determines the transmit_duration
@@ -173,7 +173,6 @@ class Sonar:
         # 0.5 for the average distance of sample
         return (sample_index + 0.5) * self.meters_per_sample()
 
-
     def request_data_at_angle(self, angle_in_gradians):
         """Set sonar device to provided angle and retrieve data.
 
@@ -190,8 +189,9 @@ class Sonar:
             sonar device. The value is the intensity of the ping at that point
         """
         response = self.ping360.transmitAngle(angle_in_gradians)
-        response_to_int_array = [int(item) for item in response.data] # converts bytestring to int array
-        filtered_sonar_scan = [int(0)] * self.FILTER_INDEX + response_to_int_array[self.FILTER_INDEX:] # replaces first FILTER_INDEX values with 0
+        response_to_int_array = [int(item) for item in response.data]  # converts bytestring to int array
+        filtered_sonar_scan = [int(0)] * self.FILTER_INDEX +\
+                              response_to_int_array[self.FILTER_INDEX:]  # replaces first FILTER_INDEX values with 0
         return filtered_sonar_scan
 
     def get_sweep(self, range_start=100, range_end=300):
@@ -208,7 +208,7 @@ class Sonar:
             hi :) - VC
         """
         sonar_sweep_data = []
-        for i in range(range_start, range_end + 1): # inclusive ends
+        for i in range(range_start, range_end + 1):  # inclusive ends
             sonar_scan = self.request_data_at_angle(i)
             sonar_sweep_data.append(sonar_scan)
         return np.vstack(sonar_sweep_data)
@@ -299,13 +299,11 @@ class Sonar:
             try:
                 rospy.loginfo(f"starting sweep from {start_angle} to {end_angle}")
                 sonar_sweep = self.get_sweep(start_angle, end_angle)
-                rospy.loginfo(f"finishng sweep")
                 if self.stream:
                     compressed_image = self.convert_to_ros_compressed_img(sonar_sweep)
                     self.sonar_image_publisher.publish(compressed_image)
             except KeyboardInterrupt:
                 rospy.signal_shutdown("Shutting down sonar node.")
-
 
     def on_sonar_request(self, request):
         """ On a sonar request get the position of the object in the sweep
@@ -350,9 +348,9 @@ class Sonar:
                 self.status_publisher.publish("Sonar running")
                 rate.sleep()
 
+
 if __name__ == '__main__':
     try:
         Sonar().run()
     except rospy.ROSInterruptException:
         pass
-
