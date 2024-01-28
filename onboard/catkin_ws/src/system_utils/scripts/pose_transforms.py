@@ -28,7 +28,7 @@ def convert_pose_to_twist(pose_msg):
 
     # Convert quaternion to euler angles
     euler_angles = quat2euler(
-        [pose_msg.orientation.x, pose_msg.orientation.y, pose_msg.orientation.z, pose_msg.orientation.w])
+        [pose_msg.orientation.w, pose_msg.orientation.x, pose_msg.orientation.y, pose_msg.orientation.z], axes='sxyz')
 
     # Convert to degrees
     euler_angles = [angle * 180 / 3.14159265359 for angle in euler_angles]
@@ -44,7 +44,7 @@ def convert_pose_to_twist(pose_msg):
 def convert_quat_to_vector(quat_msg):
     # Convert quaternion to euler angles
     euler_angles = quat2euler(
-        [quat_msg.x, quat_msg.y, quat_msg.z, quat_msg.w])
+        [quat_msg.w, quat_msg.x, quat_msg.y, quat_msg.z], axes='sxyz')
 
     # Convert to degrees
     euler_angles = [angle * 180 / 3.14159265359 for angle in euler_angles]
