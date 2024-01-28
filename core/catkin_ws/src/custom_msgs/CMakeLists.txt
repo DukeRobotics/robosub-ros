@@ -24,8 +24,7 @@ add_message_files(
   ServoAngleArray.msg
   SimObject.msg
   SimObjectArray.msg
-  SonarRequest.msg
-  SonarResponse.msg
+  SonarSweepRequest.msg
   SystemUsage.msg
   ThrusterAllocs.msg
 )
@@ -52,7 +51,6 @@ add_action_files(
   AcousticsWrapper.action
   Saleae.action
   AcousticsData.action
-  sweep.action
 )
 
 generate_messages(
