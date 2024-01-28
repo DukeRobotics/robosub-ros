@@ -186,22 +186,6 @@ void ControlsUtils::tf_linear_vector_to_map(const tf2::Vector3 &vector, std::uno
     map[AxesEnum::YAW] = 0.0;
 }
 
-bool ControlsUtils::update_pid_loops_axes_gains_map(LoopsAxesPIDGainsMap &all_pid_gains, const std::vector<custom_msgs::PIDGain> &pid_gain_updates)
-{
-    if (!ControlsUtils::pid_gains_valid(pid_gain_updates))
-        return false;
-
-    for (const custom_msgs::PIDGain &pid_gain_update : pid_gain_updates)
-    {
-        PIDLoopTypesEnum loop = static_cast<PIDLoopTypesEnum>(pid_gain_update.loop);
-        AxesEnum axis = static_cast<AxesEnum>(pid_gain_update.axis);
-        PIDGainTypesEnum gain = static_cast<PIDGainTypesEnum>(pid_gain_update.gain);
-        (*all_pid_gains[loop][axis])[gain] = pid_gain_update.value;
-    }
-
-    return true;
-}
-
 void ControlsUtils::pid_loops_axes_gains_map_to_msg(const LoopsAxesPIDGainsMap &all_pid_gains, custom_msgs::PIDGains &pid_gains_msg)
 {
     pid_gains_msg.pid_gains.clear();
@@ -217,6 +201,22 @@ void ControlsUtils::pid_loops_axes_gains_map_to_msg(const LoopsAxesPIDGainsMap &
                 pid_gain.value = all_pid_gains.at(loop).at(axis)->at(gain);
                 pid_gains_msg.pid_gains.push_back(pid_gain);
             }
+}
+
+bool ControlsUtils::update_pid_loops_axes_gains_map(LoopsAxesPIDGainsMap &all_pid_gains, const std::vector<custom_msgs::PIDGain> &pid_gain_updates)
+{
+    if (!ControlsUtils::pid_gains_valid(pid_gain_updates))
+        return false;
+
+    for (const custom_msgs::PIDGain &pid_gain_update : pid_gain_updates)
+    {
+        PIDLoopTypesEnum loop = static_cast<PIDLoopTypesEnum>(pid_gain_update.loop);
+        AxesEnum axis = static_cast<AxesEnum>(pid_gain_update.axis);
+        PIDGainTypesEnum gain = static_cast<PIDGainTypesEnum>(pid_gain_update.gain);
+        (*all_pid_gains[loop][axis])[gain] = pid_gain_update.value;
+    }
+
+    return true;
 }
 
 void ControlsUtils::populate_axes_map(std::unordered_map<AxesEnum, double> &map, double value)
@@ -281,8 +281,7 @@ void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd 
             matrix(i, j) = data[i][j];
 }
 
-void ControlsUtils::read_robot_config(std::string file_path,
-                                      LoopsAxesPIDGainsMap &all_pid_gains,
+void ControlsUtils::read_robot_config(LoopsAxesPIDGainsMap &all_pid_gains,
                                       tf2::Vector3 &static_power_global,
                                       double &power_scale_factor,
                                       std::string &wrench_matrix_file_path,
@@ -292,7 +291,7 @@ void ControlsUtils::read_robot_config(std::string file_path,
     {
         std::lock_guard<std::mutex> guard(robot_config_mutex);
 
-        YAML::Node config = YAML::LoadFile(file_path);
+        YAML::Node config = YAML::LoadFile(ROBOT_CONFIG_FILE_PATH);
 
         YAML::Node pid_node = config["pid"];
 
@@ -332,18 +331,46 @@ void ControlsUtils::read_robot_config(std::string file_path,
     {
         ROS_ERROR("Exception: %s", e.what());
         ROS_ASSERT_MSG(false, "Could not read robot config file. Make sure it is in the correct format. '%s'",
-                       file_path.c_str());
+                       ROBOT_CONFIG_FILE_PATH.c_str());
     }
 }
 
-void ControlsUtils::update_robot_pid_gains(std::string file_path, const LoopsAxesPIDGainsMap &all_pid_gains)
+void ControlsUtils::update_robot_config(std::function<void(YAML::Node&)> update_function, std::string update_name)
 {
     try
     {
         std::lock_guard<std::mutex> guard(robot_config_mutex);
 
-        YAML::Node config = YAML::LoadFile(file_path);
+        YAML::Node config = YAML::LoadFile(ROBOT_CONFIG_FILE_PATH);
 
+        update_function(config);
+
+        std::ofstream fout(ROBOT_CONFIG_FILE_PATH);
+
+        if (!fout.is_open())
+            throw;
+
+        fout.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+
+        fout << config;
+
+        if (fout.fail())
+            throw;
+
+        fout.close();
+    }
+    catch (const std::exception &e)
+    {
+        ROS_ERROR("Exception: %s", e.what());
+        ROS_ASSERT_MSG(false, "Could not update %s in robot config file. Make sure it is in the correct format. '%s'",
+                        update_name.c_str(), ROBOT_CONFIG_FILE_PATH.c_str());
+    }
+}
+
+void ControlsUtils::update_robot_config_pid_gains(const LoopsAxesPIDGainsMap &all_pid_gains)
+{
+    std::function<void(YAML::Node&)> update_function = [&all_pid_gains](YAML::Node &config)
+    {
         YAML::Node pid = config["pid"];
 
         for (const auto &loop_type : PID_LOOP_TYPES)
@@ -356,92 +383,30 @@ void ControlsUtils::update_robot_pid_gains(std::string file_path, const LoopsAxe
                     axis_node[PID_GAIN_TYPES_NAMES.at(gain)] = all_pid_gains.at(loop_type).at(axis)->at(gain);
             }
         }
+    };
 
-        std::ofstream fout(file_path);
-
-        if (!fout.is_open())
-            throw;
-
-        fout.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-
-        fout << config;
-
-        if (fout.fail())
-            throw;
-
-        fout.close();
-    }
-    catch (const std::exception &e)
-    {
-        ROS_ERROR("Exception: %s", e.what());
-        ROS_ASSERT_MSG(false, "Could not update pid gains in robot config file. Make sure it is in the correct format. '%s'",
-                       file_path.c_str());
-    }
+    update_robot_config(update_function, "PID gains");
 }
 
-void ControlsUtils::update_robot_static_power_global(std::string file_path, const tf2::Vector3 &static_power_global)
+void ControlsUtils::update_robot_config_static_power_global(const tf2::Vector3 &static_power_global)
 {
-    try
+    std::function<void(YAML::Node&)> update_function = [&static_power_global](YAML::Node &config)
     {
-        std::lock_guard<std::mutex> guard(robot_config_mutex);
-
-        YAML::Node config = YAML::LoadFile(file_path);
-
         YAML::Node static_power_global_node = config["static_power_global"];
         static_power_global_node[AXES_NAMES.at(AxesEnum::X)] = static_power_global.getX();
         static_power_global_node[AXES_NAMES.at(AxesEnum::Y)] = static_power_global.getY();
         static_power_global_node[AXES_NAMES.at(AxesEnum::Z)] = static_power_global.getZ();
+    };
 
-        std::ofstream fout(file_path);
-
-        if (!fout.is_open())
-            throw;
-
-        fout.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-
-        fout << config;
-
-        if (fout.fail())
-            throw;
-
-        fout.close();
-    }
-    catch (const std::exception &e)
-    {
-        ROS_ERROR("Exception: %s", e.what());
-        ROS_ASSERT_MSG(false, "Could not update static power in robot config file. Make sure it is in the correct format. '%s'",
-                       file_path.c_str());
-    }
+    update_robot_config(update_function, "static power global");
 }
 
-void ControlsUtils::update_robot_power_scale_factor(std::string file_path, double &power_scale_factor)
+void ControlsUtils::update_robot_config_power_scale_factor(double &power_scale_factor)
 {
-    try
+    std::function<void(YAML::Node&)> update_function = [&power_scale_factor](YAML::Node &config)
     {
-        std::lock_guard<std::mutex> guard(robot_config_mutex);
-
-        YAML::Node config = YAML::LoadFile(file_path);
-
         config["power_scale_factor"] = power_scale_factor;
+    };
 
-        std::ofstream fout(file_path);
-
-        if (!fout.is_open())
-            throw;
-
-        fout.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-
-        fout << config;
-
-        if (fout.fail())
-            throw;
-
-        fout.close();
-    }
-    catch (const std::exception &e)
-    {
-        ROS_ERROR("Exception: %s", e.what());
-        ROS_ASSERT_MSG(false, "Could not update power scale factor in robot config file. Make sure it is in the correct format. '%s'",
-                       file_path.c_str());
-    }
+    update_robot_config(update_function, "power scale factor");
 }

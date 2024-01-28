@@ -86,8 +86,8 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     // Get PID gains from robot config file
     std::string wrench_matrix_file_path;
     std::string wrench_matrix_pinv_file_path;
-    ControlsUtils::read_robot_config(ROBOT_CONFIG_FILE_PATH, all_pid_gains, static_power_global, power_scale_factor,
-                                     wrench_matrix_file_path, wrench_matrix_pinv_file_path);
+    ControlsUtils::read_robot_config(all_pid_gains, static_power_global, power_scale_factor, wrench_matrix_file_path,
+                                     wrench_matrix_pinv_file_path);
 
     // Initialize all PID terms to zero
     for (const PIDLoopTypesEnum &pid_loop_type : PID_LOOP_TYPES)
@@ -254,7 +254,7 @@ bool Controls::set_pid_gains_callback(custom_msgs::SetPIDGains::Request &req, cu
     // users will make frequent mistakes when calling this service, but it is unlikely writing to config file will
     // frequently fail.
     if (res.success)
-        ControlsUtils::update_robot_pid_gains(ROBOT_CONFIG_FILE_PATH, all_pid_gains);
+        ControlsUtils::update_robot_config_pid_gains(all_pid_gains);
 
     res.message = res.success ? "Updated PID gains successfully." : "Failed to update PID gains. One or more PID gains was invalid.";
 
@@ -290,7 +290,7 @@ bool Controls::set_static_power_global_callback(custom_msgs::SetStaticPower::Req
     // despite being incomplete, we have no way of undoing the changes (if any) that were made to the file. It is likely
     // users will make frequent mistakes when calling this service, but it is unlikely writing to config file will
     // frequently fail.
-    ControlsUtils::update_robot_static_power_global(ROBOT_CONFIG_FILE_PATH, static_power_global);
+    ControlsUtils::update_robot_config_static_power_global(static_power_global);
 
     res.success = true;
     res.message = res.success ? "Updated static power successfully." : "Failed to update static power. Static power was invalid.";
@@ -302,7 +302,7 @@ bool Controls::set_power_scale_factor_callback(custom_msgs::SetPowerScaleFactor:
 {
     power_scale_factor = req.power_scale_factor;
 
-    ControlsUtils::update_robot_power_scale_factor(ROBOT_CONFIG_FILE_PATH, power_scale_factor);
+    ControlsUtils::update_robot_config_power_scale_factor(power_scale_factor);
 
     res.success = true;
     res.message = res.success ? "Updated power scale factor successfully." : "Failed to update power scale factor. Power scale factor was invalid.";
