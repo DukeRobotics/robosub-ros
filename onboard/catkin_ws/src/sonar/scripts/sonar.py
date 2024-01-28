@@ -295,6 +295,7 @@ class Sonar:
         rospy.loginfo(f"stream: {self.stream}")
 
         # Scan indefinitely
+        i = 0
         while not rospy.is_shutdown():
             try:
                 rospy.loginfo(f"starting sweep from {start_angle} to {end_angle}")
@@ -302,6 +303,8 @@ class Sonar:
                 if self.stream:
                     compressed_image = self.convert_to_ros_compressed_img(sonar_sweep)
                     self.sonar_image_publisher.publish(compressed_image)
+                i += 1 
+                np.save(f"sampleData/sonar_sweep_{i}", sonar_sweep)
             except KeyboardInterrupt:
                 rospy.signal_shutdown("Shutting down sonar node.")
 
