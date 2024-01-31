@@ -1,6 +1,6 @@
 import rospy
 
-from std_srvs.srv import Trigger
+from std_srvs.srv import Trigger, SetBool
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose, Twist
 from custom_msgs.msg import ControlTypes, ThrusterAllocs
@@ -13,6 +13,7 @@ import yaml
 class ControlsInterface:
     STATE_TOPIC = 'state'
 
+    CONTROL_ENABLE_SERVICE = 'controls/enable'
     CONTROL_TYPES_SERVICE = 'controls/set_control_types'
     RESET_PID_LOOPS_SERVICE = 'controls/reset_pid_loops'
     DESIRED_POSITION_TOPIC = 'controls/desired_position'
@@ -21,6 +22,9 @@ class ControlsInterface:
 
     def __init__(self, listener):
         self.listener = listener
+
+        rospy.wait_for_service(self.CONTROL_ENABLE_SERVICE)
+        self._set_controls_enable = rospy.ServiceProxy(self.CONTROL_ENABLE_SERVICE, SetBool)
 
         rospy.wait_for_service(self.CONTROL_TYPES_SERVICE)
         self._set_control_types = rospy.ServiceProxy(self.CONTROL_TYPES_SERVICE, SetControlTypes)
@@ -46,7 +50,7 @@ class ControlsInterface:
         self._thruster_pub = rospy.Publisher(self.THRUSTER_ALLOCS_TOPIC, ThrusterAllocs, queue_size=1)
 
     def get_thruster_dict(self):
-        CONFIG_FILE_PATH = 'package://controls/config/%s.config'
+        CONFIG_FILE_PATH = 'package://controls/config/%s.yaml'
         filename = rr.get_filename(CONFIG_FILE_PATH % os.getenv("ROBOT_NAME", "oogway"), use_protocol=False)
         with open(filename) as f:
             full_thruster_dict = yaml.safe_load(f)
@@ -63,6 +67,9 @@ class ControlsInterface:
     @property
     def state(self):
         return self._state
+
+    def set_controls_enable(self, status):
+        self._set_controls_enable(status)
 
     def _set_all_axes_control_type(self, type):
         if self._all_axes_control_type == type:
@@ -103,13 +110,14 @@ class ControlsInterface:
         thruster_allocs = [0] * self.num_thrusters
 
         for kwarg_name, kwarg_value in kwargs.items():
-                   
+
             if kwarg_name not in self.thruster_dict:
                 raise ValueError(f"Thruster name not in thruster_dict {kwarg_name}")
-            
+
             if kwarg_value > 1 or kwarg_value < -1:
-                raise ValueError(f"Recieved {kwarg_value} for thruster {kwarg_name}. Thruster alloc must be between -1 and 1 inclusive.")
-            
+                raise ValueError(f"Recieved {kwarg_value} for thruster {kwarg_name}. Thruster alloc must be between " +
+                                 "-1 and 1 inclusive.")
+
             thruster_allocs[self.thruster_dict[kwarg_name]] = kwarg_value
 
         thruster_allocs_msg = ThrusterAllocs()
@@ -117,5 +125,3 @@ class ControlsInterface:
         thruster_allocs_msg.allocs = thruster_allocs
 
         self._thruster_pub.publish(thruster_allocs_msg)
-
-
