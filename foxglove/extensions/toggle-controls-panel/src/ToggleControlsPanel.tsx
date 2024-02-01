@@ -10,7 +10,7 @@ import { createRoot } from "react-dom/client";
 
 // Define the service name for enabling/disabling controls
 const ENABLE_CONTROLS_SERVICE = "/controls/enable";
-const CONTROLS_STATUS_TOPIC = "/controls/status"
+const CONTROLS_STATUS_TOPIC = "/controls/status";
 
 type ToggleControlsPanel = {
   error?: Error | undefined; // Error object if service call fails
@@ -29,23 +29,21 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
   useEffect(() => {
     renderDone?.();
   }, [renderDone]);
-  
+
   // useEffect hook for subscribing to CONTROLS_STATUS_TOPIC
   useEffect(() => {
     context.saveState({ topic: CONTROLS_STATUS_TOPIC });
     context.subscribe([{ topic: CONTROLS_STATUS_TOPIC }]);
   }, [context]);
-  
+
   // useEffect hook for rendering and watching renderState. Saves the values from the most recent message.
   useEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setRenderDone(() => done);
-  
+
       // Save the most recent message on our topic.
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        const latestFrame = renderState.currentFrame[
-          renderState.currentFrame.length - 1
-        ] as MessageEvent<StdMsgsBool>;
+        const latestFrame = renderState.currentFrame[renderState.currentFrame.length - 1] as MessageEvent<StdMsgsBool>;
         setState((oldState) => ({ ...oldState, controlsEnabled: latestFrame.message.data as boolean }));
       }
     };
