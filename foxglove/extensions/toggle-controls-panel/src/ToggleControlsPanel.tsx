@@ -30,7 +30,7 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
     renderDone?.();
   }, [renderDone]);
   
-  // useEffect hook for subscribing to THRUSTER_ALLOCS_TOPIC
+  // useEffect hook for subscribing to CONTROLS_STATUS_TOPIC
   useEffect(() => {
     context.saveState({ topic: CONTROLS_STATUS_TOPIC });
     context.subscribe([{ topic: CONTROLS_STATUS_TOPIC }]);
@@ -51,7 +51,6 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
     };
 
     context.watch("currentFrame");
-    context.watch("colorScheme");
   }, [context]);
 
   // Call the /enable_controls service to toggle controls
@@ -73,7 +72,6 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
         // Update the state based on the service response
         // If the service responds with failure, display the response message as an error
         const error = typedResponse.success ? undefined : Error(typedResponse.message);
-        setState({ error, controlsEnabled: !state.controlsEnabled });
       },
       (error) => {
         // Handle service call errors (e.g., service is not advertised)
