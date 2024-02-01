@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import os
 from brping import Ping360
 import numpy as np
 import sonar_utils
@@ -303,8 +304,9 @@ class Sonar:
                 if self.stream:
                     compressed_image = self.convert_to_ros_compressed_img(sonar_sweep)
                     self.sonar_image_publisher.publish(compressed_image)
-                i += 1 
-                np.save(f"sampleData/sonar_sweep_{i}", sonar_sweep)
+                i += 1
+                with open(os.path.join(os.path.dirname(__file__), f"sampleData/sonar_sweep_{i}.npy"), "wb") as f:
+                    np.save(f, sonar_sweep)
             except KeyboardInterrupt:
                 rospy.signal_shutdown("Shutting down sonar node.")
 
