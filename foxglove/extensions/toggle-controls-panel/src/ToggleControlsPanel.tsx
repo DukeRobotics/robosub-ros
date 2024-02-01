@@ -21,11 +21,6 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
   const [state, setState] = useState<ToggleControlsPanel>({ controlsEnabled: false });
   const [renderDone, setRenderDone] = useState<() => void | undefined>();
 
-  // Save state upon change
-  useEffect(() => {
-    context.saveState(state);
-  }, [state, context]);
-
   useEffect(() => {
     renderDone?.();
   }, [renderDone]);
