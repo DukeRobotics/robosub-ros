@@ -16,8 +16,12 @@ add_message_files(
   DVLRaw.msg
   HydrophoneSet.msg
   Memory.msg
+  PIDAxesInfo.msg
+  PIDDerivativeMode.msg
   PIDGain.msg
   PIDGains.msg
+  PIDInfo.msg
+  PIDLoopsAxesInfo.msg
   PWMAllocs.msg
   RemoteLaunchInfo.msg
   RunningNode.msg
@@ -36,6 +40,7 @@ add_service_files(
   EnableModel.srv
   GetRunningNodes.srv
   SetControlTypes.srv
+  SetPIDDerivativeModes.srv
   SetPIDGains.srv
   SetPowerScaleFactor.srv
   SetServo.srv

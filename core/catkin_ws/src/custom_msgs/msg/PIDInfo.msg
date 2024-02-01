@@ -1,0 +1,15 @@
+float64 control_effort
+float64 control_effort_unbounded
+
+float64 term_proportional
+float64 term_integral
+float64 term_derivative
+float64 term_feedforward
+
+float64 filtered_error
+float64 integral
+float64 filtered_derivative
+float64 calculated_derivative
+float64 provided_derivative
+
+PIDDerivativeMode derivative_mode
