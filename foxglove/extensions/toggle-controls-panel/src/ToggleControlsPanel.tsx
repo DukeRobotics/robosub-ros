@@ -1,4 +1,4 @@
-import { StdSrvsSetBoolRequest, StdSrvsSetBoolResponse } from "@duke-robotics/defs/types";
+import { StdSrvsSetBoolRequest, StdSrvsSetBoolResponse, StdMsgsBool } from "@duke-robotics/defs/types";
 import useTheme from "@duke-robotics/theme";
 import { ThemeProvider } from "@emotion/react";
 import { PanelExtensionContext, RenderState, Immutable, MessageEvent } from "@foxglove/studio";
@@ -45,8 +45,8 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
         const latestFrame = renderState.currentFrame[
           renderState.currentFrame.length - 1
-        ] as MessageEvent<Boolean>;
-        setState((oldState) => ({ ...oldState, controlsEnabled: latestFrame.message as boolean }));
+        ] as MessageEvent<StdMsgsBool>;
+        setState((oldState) => ({ ...oldState, controlsEnabled: latestFrame.message.data as boolean }));
       }
     };
 
