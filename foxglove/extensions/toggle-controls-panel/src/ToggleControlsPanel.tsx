@@ -63,14 +63,7 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
     const request: StdSrvsSetBoolRequest = { data: !state.controlsEnabled };
 
     // Make the service call
-    context.callService(ENABLE_CONTROLS_SERVICE, request).then(
-      (response) => {
-        const typedResponse = response as StdSrvsSetBoolResponse;
-
-        // Update the state based on the service response
-        // If the service responds with failure, display the response message as an error
-        const error = typedResponse.success ? undefined : Error(typedResponse.message);
-      },
+    context.callService(ENABLE_CONTROLS_SERVICE, request).catch(
       (error) => {
         // Handle service call errors (e.g., service is not advertised)
         setState((oldState) => ({
