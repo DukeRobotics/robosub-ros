@@ -57,7 +57,8 @@ RUN pip3 install --no-cache-dir \
     gputil saleae \
     bluerobotics-ping \
     roboflow \
-    python-nmap
+    python-nmap \
+    transforms3d
 
 # Install PyTorch and Torchvision
 COPY torch_installer.sh torch_deps/torch_installer.sh
