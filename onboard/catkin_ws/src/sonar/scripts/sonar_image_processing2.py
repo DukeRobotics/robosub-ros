@@ -42,7 +42,7 @@ def createImage(img, start_angle=0, center_angle=90):
     width = 2*radius + 1
     height = radius + 1
 
-    polarImg = np.zeros((height, width, 3))
+    polarImg = np.zeros((height, width))
 
     x_ax = np.linspace(-radius, radius, width, dtype=np.int32)
     y_ax = np.linspace(0, radius, height, dtype=np.int32)
@@ -63,9 +63,9 @@ def createImage(img, start_angle=0, center_angle=90):
             r_pt = r[y][x + radius] # x + radius to convert x values into index values
 
             if (theta_pt < angle and theta_pt > 0 and r_pt < radius):
-                polarImg[radius - y][x + radius] = img[theta_pt][r_pt]/255 # radius - y flips to face the scan upward
+                polarImg[radius - y][x + radius] = img[theta_pt, r_pt]/255 # radius - y flips to face the scan upward
             else:
-                polarImg[radius - y][x + radius] = np.zeros(3)
+                polarImg[radius - y][x + radius] = 0
     
     return polarImg
 
@@ -95,25 +95,26 @@ def addContours(image, lower_bound=(0, 0.5, 0), upper_bound=(1, 1, 1), kernel=(1
             cy = int(moments['m01'] / moments['m00'])
             cv2.circle(image, (cx, cy), 8, (255, 0, 0), -1)
             cv2.drawContours(image, contours, i, (255, 0, 0), 2)
-    printCirularity("Circularity: ", shapes)
+    printCirularity(shapes)
     return image
 
 def printCirularity(contours):
 
-    for con in contours:
-        perimeter = cv2.arcLength(con, True)
-        area = cv2.contourArea(con)
+    for contour in contours:
+        perimeter = cv2.arcLength(contour, True)
+        area = cv2.contourArea(contour)
         if perimeter == 0:
             break
         circularity = 4*np.pi*(area/perimeter*perimeter)
-        print(circularity)
+        print("Circularity: ", circularity)
 
 
 def main():
-    path = 'onboard/catkin_ws/src/sonar/scripts/sampleData/Sonar_Image.jpeg'
-    # path = 'onboard/catkin_ws/src/sonar/scripts/sampleData/buoy.npy'
+    # path = 'onboard/catkin_ws/src/sonar/sampleData/Sonar_Image.jpeg'
+    path = 'onboard/catkin_ws/src/sonar/sampleData/sonar_sweep_1.npy'
     
-    image = addContours(createImage(getImage(path)))
+    image = createImage(getImage(path))
+    print("shape ", image.shape)
 
     # plt.imshow(image)
     # plt.show()
@@ -122,11 +123,17 @@ def main():
     new_height = int(image.shape[0] * scale_factor)
     new_width = int(image.shape[1] * scale_factor)
     image = cv2.resize(image, (new_width, new_height))
+    print("shape ", image.shape)
 
-    if path.endswith(".npy"):
-        image = image[:, :, 0]
-        image = cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_GRAY2BGR)
-        image = cv2.applyColorMap(image, cv2.COLORMAP_VIRIDIS)
+
+    # if path.endswith(".npy"):
+        # image = image[:, :, 0]
+        # image = cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+        # image = cv2.applyColorMap(image, cv2.COLORMAP_VIRIDIS)
+
+        # for i in range(image.shape[2]):
+        #     print(image[:, :, i].shape)
+        #     image[:, :, i] = cv2.applyColorMap((image[:, :, i]).astype(np.uint8), cv2.COLORMAP_VIRIDIS)
 
     cv2.imshow("polar image", image)
     cv2.waitKey(0)
