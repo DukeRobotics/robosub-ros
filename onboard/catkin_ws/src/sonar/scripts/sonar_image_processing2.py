@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-from matplotlib import transforms
 from PIL import Image
 
 def getImage(path):
@@ -13,8 +12,9 @@ def getImage(path):
     Returns:
         ndarray: image
     """
-    if(path.endswith(".npy")):
+    if (path.endswith(".npy")):
         return np.load(path)
+    
     img = Image.open(path)
     npImg = np.asarray(img)
     
@@ -69,28 +69,6 @@ def createImage(img, start_angle=0, center_angle=90):
     
     return polarImg
 
-def main2():
-    # path = 'onboard/catkin_ws/src/sonar/scripts/sampleData/Sonar_Image.jpeg'
-    path = 'onboard/catkin_ws/src/sonar/scripts/sampleData/buoy.npy'
-    image = createImage(getImage(path))
-
-    # plt.imshow(image)
-    # plt.show()
-
-    scale_factor = 0.5
-    new_height = int(image.shape[0] * scale_factor)
-    new_width = int(image.shape[1] * scale_factor)
-    image = cv2.resize(image, (new_width, new_height))
-
-    if path.endswith(".npy"):
-        image = image[:, :, 0]
-        image = cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_GRAY2BGR)
-        image = cv2.applyColorMap(image, cv2.COLORMAP_VIRIDIS)
-
-    cv2.imshow("polar image", image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
 
 def addContours(image, lower_bound=(0, 0.5, 0), upper_bound=(1, 1, 1), kernel=(17, 17), area_threshold=5000):
     """ gaussian blurs the image then adds contours
@@ -117,7 +95,8 @@ def addContours(image, lower_bound=(0, 0.5, 0), upper_bound=(1, 1, 1), kernel=(1
             cy = int(moments['m01'] / moments['m00'])
             cv2.circle(image, (cx, cy), 8, (255, 0, 0), -1)
             cv2.drawContours(image, contours, i, (255, 0, 0), 2)
-    printCirularity(shapes)
+    printCirularity("Circularity: ", shapes)
+    return image
 
 def printCirularity(contours):
 
@@ -131,43 +110,27 @@ def printCirularity(contours):
 
 
 def main():
-    path1 = 'onboard/catkin_ws/src/sonar/scripts/sampleData/buoy.npy'
-    path2 = 'onboard/catkin_ws/src/sonar/scripts/sampleData/Sonar_Image2.jpeg'
-    path3 = 'onboard/catkin_ws/src/sonar/scripts/sampleData/Sonar_Image3.jpeg'
-
-    paths = [path1, path2, path3]
-    images = []
-    for path in paths:
-        image = getImage(path)
-        print(image.shape)
-        images.append(image)
+    path = 'onboard/catkin_ws/src/sonar/scripts/sampleData/Sonar_Image.jpeg'
+    # path = 'onboard/catkin_ws/src/sonar/scripts/sampleData/buoy.npy'
     
-    fig, ax = plt.subplots(1, len(images))
+    image = addContours(createImage(getImage(path)))
 
-    for path in paths:
-        image = getImage(path)
-        polarImage = createImage(image)
-        #addContours(image)
-        images.append(polarImage)
-    
-    ax[0].imshow(images[0])
+    # plt.imshow(image)
+    # plt.show()
 
-    np.save("savedimg.npy", images[3])
-    ax[1].imshow(np.load("savedimg.npy"))
-    
-    # fig, ax = plt.subplots(1, len(images))
+    scale_factor = 0.5
+    new_height = int(image.shape[0] * scale_factor)
+    new_width = int(image.shape[1] * scale_factor)
+    image = cv2.resize(image, (new_width, new_height))
 
-    # tr = transforms.Affine2D().rotate_deg(135)
+    if path.endswith(".npy"):
+        image = image[:, :, 0]
+        image = cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+        image = cv2.applyColorMap(image, cv2.COLORMAP_VIRIDIS)
 
-    # for i in range(len(images)):
-    #     ax[i].imshow(images[i], transform=tr+ax[i].transData)
-        
-    #     ax[i].set_xlim(-1*images[i].shape[0]*np.sqrt(2), 0)
-    #     ax[i].set_ylim(-1*images[i].shape[0]*np.sqrt(2)/2, images[i].shape[0]*np.sqrt(2)/2)
-
-    #     ax[i].set_aspect('equal', 'box')
-    
-    plt.show()
+    cv2.imshow("polar image", image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    main2()
+    main()
