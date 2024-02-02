@@ -1,5 +1,6 @@
 # import rospy
 
+# TODO maybe try to make stepping awaitable instead of requiring you to yield independently (in order to yield back down to the root)
 class TaskWrapper:
     def __init__(self, coroutine):
         self.coroutine = coroutine
@@ -30,9 +31,13 @@ def task(func):
     return wrapper
 
 class Yield:
-    def __await__(self):
-        return (yield self)
+    def __init__(self, value=None):
+        self.value = value
 
+    def __await__(self):
+        return (yield self.value)
+
+# Consider the consequences of this before uncommenting
 # class Rate:
 #     """Almost equivalent to doing rate.sleep(), except it also yields.
 #     Note that if the yield takes a while to return, this might finish awaiting later than expected"""

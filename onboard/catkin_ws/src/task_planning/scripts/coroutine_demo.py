@@ -32,4 +32,12 @@ async def test_yield():
 @task
 async def no_await():
     return 1
-    
+
+@task
+async def yield_loop():
+    while True:
+        print(await Yield())
+
+@task
+async def use_yield_loop():
+    await yield_loop()

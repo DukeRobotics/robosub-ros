@@ -8,6 +8,7 @@ from geometry_msgs.msg import Pose
 class CVInterface:
     MODELS_PATH = "package://cv/models/depthai_models.yaml"
     CV_CAMERA = "front"
+    # TODO We may want a better way to sync this between here and the cv node
     CV_MODEL = "yolov7_tiny_2023_main"
 
     def __init__(self):
