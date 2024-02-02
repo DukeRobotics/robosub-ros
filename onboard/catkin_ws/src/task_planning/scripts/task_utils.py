@@ -6,8 +6,8 @@ import tf2_ros
 from geometry_msgs.msg import Vector3, Pose, PoseStamped, PoseWithCovariance, \
     Twist, TwistStamped, TwistWithCovariance, Point, Quaternion, PointStamped
 from nav_msgs.msg import Odometry
-from tf.transformations import euler_from_quaternion, quaternion_from_euler, quaternion_multiply
 from std_msgs.msg import Header
+from transforms3d import euler, quaternions
 
 
 def linear_distance(point1, point2):
@@ -37,8 +37,8 @@ def angular_distance_quat(quat1, quat2):
     Returns:
     Vector3: magnitude of the two orientations' differences in each axis (roll, pitch, yaw), in radians
     """
-    rpy1 = euler_from_quaternion([quat1.x, quat1.y, quat1.z, quat1.w])
-    rpy2 = euler_from_quaternion([quat2.x, quat2.y, quat2.z, quat2.w])
+    rpy1 = quat2euler([quat1.w, quat1.x, quat1.y, quat1.z])
+    rpy2 = quat2euler([quat2.w, quat2.x, quat2.y, quat2.z])
     return angular_distance_rpy(rpy1, rpy2)
 
 
@@ -208,26 +208,26 @@ def add_poses(pose_list):
     """
 
     p_sum = Point(0, 0, 0)
-    q_sum = [0, 0, 0, 1]
+    q_sum = [1, 0, 0, 0]
 
     for pose in pose_list:
         p_sum.x += pose.position.x
         p_sum.y += pose.position.y
         p_sum.z += pose.position.z
 
-        q_sum = quaternion_multiply(
-            [pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w], q_sum)
+        q_sum = qmult(
+            [pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z], q_sum)
 
     return Pose(p_sum, Quaternion(*q_sum))
 
 
 def parse_pose(pose):
     pose_dict = {'x': pose.position.x, 'y': pose.position.y, 'z': pose.position.z}
-    pose_dict['roll'], pose_dict['pitch'], pose_dict['yaw'] = euler_from_quaternion(
-        [pose.orientation.x,
+    pose_dict['roll'], pose_dict['pitch'], pose_dict['yaw'] = quat2euler(
+        [pose.orientation.w,
+         pose.orientation.x,
          pose.orientation.y,
-         pose.orientation.z,
-         pose.orientation.w])
+         pose.orientation.z])
     return pose_dict
 
 
@@ -247,9 +247,9 @@ def cv_object_position(cv_obj_data):
 def create_pose(x, y, z, roll, pitch, yaw):
     pose = Pose()
     pose.position = Point(x=x, y=y, z=z)
-    pose.orientation = Quaternion(*quaternion_from_euler(roll, pitch, yaw))
+    pose.orientation = Quaternion(*euler2quat(roll, pitch, yaw))
     return pose
-
+1
 def local_pose_to_global(listener, pose):
     return transform_pose(listener, 'base_link', 'odom', pose)
 
