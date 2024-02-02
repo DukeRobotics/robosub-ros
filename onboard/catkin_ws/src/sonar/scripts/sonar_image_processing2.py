@@ -132,5 +132,22 @@ def main():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
+def main2():
+    sonar_img = np.load('onboard/catkin_ws/src/sonar/sampleData/sonar_sweep_1.npy')
+    sonar_img = sonar_img.astype(np.uint8) 
+
+    sonar_img_col = cv2.cvtColor(sonar_img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+    sonar_img_col = cv2.applyColorMap(sonar_img, cv2.COLORMAP_VIRIDIS)
+
+    sonar_img_polar = createImage(sonar_img)
+    resized_img = cv2.resize(sonar_img_polar, (sonar_img_polar.shape[1] // 2, sonar_img_polar.shape[0] // 2))
+    print(sonar_img_polar.shape)
+
+    # plt.imshow(sonar_img)
+    # plt.show()
+    cv2.imshow('sonar image', resized_img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
 if __name__ == '__main__':
-    main()
+    main2()
