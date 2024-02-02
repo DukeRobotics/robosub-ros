@@ -83,9 +83,10 @@ def main2():
     image = cv2.resize(image, (new_width, new_height))
 
     if path.endswith(".npy"):
-        image = image[:, :, 0]
-        image = cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_GRAY2BGR)
-        image = cv2.applyColorMap(image, cv2.COLORMAP_VIRIDIS)
+         image = image[:, :, 0]
+         print(image[2])
+         image = cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+         image = cv2.applyColorMap(image, cv2.COLORMAP_VIRIDIS)
 
     cv2.imshow("polar image", image)
     cv2.waitKey(0)
