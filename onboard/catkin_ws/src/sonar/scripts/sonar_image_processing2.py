@@ -37,9 +37,9 @@ def createImage(img, start_angle=0, center_angle=90):
     angle = img.shape[0]
     radius = img.shape[1]
 
-    center = start_angle + angle/2 # find center of the scan arc
+    center = start_angle + angle // 2 # find center of the scan arc
 
-    width = 2*radius + 1
+    width = 2*radius + 1 #TODO limit size
     height = radius + 1
 
     polarImg = np.zeros((height, width))
@@ -63,11 +63,11 @@ def createImage(img, start_angle=0, center_angle=90):
             r_pt = r[y][x + radius] # x + radius to convert x values into index values
 
             if (theta_pt < angle and theta_pt > 0 and r_pt < radius):
-                polarImg[radius - y][x + radius] = img[theta_pt, r_pt]/255 # radius - y flips to face the scan upward
+                polarImg[radius - y][x + radius] = img[theta_pt, r_pt] # radius - y flips to face the scan upward
             else:
                 polarImg[radius - y][x + radius] = 0
     
-    return polarImg
+    return polarImg.astype(np.uint8)
 
 
 def addContours(image, lower_bound=(0, 0.5, 0), upper_bound=(1, 1, 1), kernel=(17, 17), area_threshold=5000):
@@ -142,11 +142,17 @@ def main():
 def main2():
     sonar_img = np.load('onboard/catkin_ws/src/sonar/sampleData/sonar_sweep_1.npy')
     sonar_img = sonar_img.astype(np.uint8) 
+    print(sonar_img)
 
     sonar_img_col = cv2.cvtColor(sonar_img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
     sonar_img_col = cv2.applyColorMap(sonar_img, cv2.COLORMAP_VIRIDIS)
 
     sonar_img_polar = createImage(sonar_img)
+    np.savetxt('sonar_img_polar.csv', sonar_img_polar, delimiter=',')
+    sonar_img_polar = sonar_img_polar.astype(np.uint8)
+    # print(sonar_img_polar)
+    sonar_img_polar = cv2.cvtColor(sonar_img_polar.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+    sonar_img_polar = cv2.applyColorMap(sonar_img_polar, cv2.COLORMAP_VIRIDIS)
     resized_img = cv2.resize(sonar_img_polar, (sonar_img_polar.shape[1] // 2, sonar_img_polar.shape[0] // 2))
     print(sonar_img_polar.shape)
 
