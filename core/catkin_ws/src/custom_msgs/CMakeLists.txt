@@ -13,15 +13,19 @@ add_message_files(
   FILES
   DVLRaw.msg
   HydrophoneSet.msg
-  ThrusterSpeeds.msg
+  ThrusterAllocs.msg
+  PWMAllocs.msg
   ServoAngleArray.msg
   CVObject.msg
+  ControlTypes.msg
   Memory.msg
   SystemUsage.msg
   SimObject.msg
   SimObjectArray.msg
   RemoteLaunchInfo.msg
   RunningNode.msg
+  PIDGain.msg
+  PIDGains.msg
 )
 
 add_service_files(
@@ -33,6 +37,8 @@ add_service_files(
   StartLaunch.srv
   StopLaunch.srv
   GetRunningNodes.srv
+  SetPIDGains.srv
+  SetControlTypes.srv
 )
 
 add_action_files(

@@ -16,6 +16,9 @@
     "./custom_msg_defs": {
       "types": "./custom_msg_defs/dist/index.d.ts",
       "default": "./custom_msg_defs/dist/index.js"
+    },
+    "./types": {
+      "default": "./types/dist/types.ts"
     }
   },
   "devDependencies": {

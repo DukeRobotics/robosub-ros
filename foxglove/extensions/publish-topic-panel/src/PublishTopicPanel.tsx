@@ -1,6 +1,7 @@
+import { AllDatatypeMapsType, allDatatypeMaps } from "@duke-robotics/defs/datatype_maps";
 import useTheme from "@duke-robotics/theme";
-import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
-import { Box, ThemeProvider } from "@mui/material";
+import { PanelExtensionContext } from "@foxglove/studio";
+import { Autocomplete, Box, Button, Grid, InputAdornment, TextField, ThemeProvider } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -8,103 +9,258 @@ import { createRoot } from "react-dom/client";
 type PublishTopicPanelState = {
   topicName: string;
   request: string;
-  schemaName: string;
-  error?: Error | undefined;
-  colorScheme?: RenderState["colorScheme"];
+  schemaType: keyof AllDatatypeMapsType;
+  schemaName?: string; // Should be a key of allDatatypeMaps[state.schemaType]
+  publishRate: number; // Hz
+  // If publishing, holds the NodeJS.Timeout object used to publish messages at a constant rate, otherwise null
+  repeatPublish: NodeJS.Timeout | null;
+  invalidRate: boolean; // True if the rate is invalid (<= 0)
+  error?: Error;
 };
 
 function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
-  const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const [state, setState] = useState<PublishTopicPanelState>({ topicName: "", request: "{}", schemaName: "" });
+  const [state, setState] = useState<PublishTopicPanelState>(() => {
+    const initialState = context.initialState as PublishTopicPanelState | undefined;
 
-  // Update color scheme
-  useEffect(() => {
-    context.onRender = (renderState: Immutable<RenderState>, done) => {
-      setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
-      setRenderDone(() => done);
+    return {
+      topicName: initialState?.topicName ?? "",
+      request: initialState?.request ?? "{\n\n}",
+      schemaType: (initialState?.schemaType ?? "ros1") as keyof AllDatatypeMapsType,
+      schemaName: initialState?.schemaName ?? undefined,
+      publishRate: initialState?.publishRate ?? 1,
+      repeatPublish: null,
+      invalidRate: false,
     };
-  }, [context]);
-  context.watch("colorScheme");
+  });
 
-  // Call our done function at the end of each render
+  // Save state upon change
   useEffect(() => {
-    renderDone?.();
-  }, [renderDone]);
+    context.saveState(state);
+  }, [state, context]);
 
   // Pubish a request with a given schema to a topic
-  const publishTopic = (topicName: string, request: string, schemaName: string) => {
-    if (!context.advertise || !context.publish) {
+  const publishTopic = () => {
+    if (!context.advertise || !context.publish || state.schemaName == undefined) {
       return;
     }
 
-    context.advertise(`/${topicName}`, schemaName);
-    context.publish(`/${topicName}`, JSON.parse(request));
+    context.advertise(`/${state.topicName}`, state.schemaName, {
+      // @ts-expect-error: state.schemaName will always be a valid key of allDatatypeMaps[state.schemaType]
+      datatypes: allDatatypeMaps[state.schemaType][state.schemaName],
+    });
+
+    try {
+      context.publish(`/${state.topicName}`, JSON.parse(state.request));
+      setState((prevState) => ({
+        ...prevState,
+        error: undefined,
+      }));
+    } catch (e) {
+      setState((prevState) => ({
+        ...prevState,
+        error: e as Error, // Catch JSON parse errors
+      }));
+    }
   };
 
-  // Close publishTopic with the current state for use in the button
-  const publishTopicWithRequest = () => {
-    publishTopic(state.topicName, state.request, state.schemaName);
+  // Function to toggle interval for publishing
+  const toggleInterval = () => {
+    if (state.repeatPublish == null) {
+      setState((prevState) => ({
+        ...prevState,
+        repeatPublish: setInterval(() => {
+          publishTopic();
+        }, 1000 / state.publishRate), // Hz to ms
+      }));
+    } else {
+      clearInterval(state.repeatPublish);
+      setState((prevState) => ({
+        ...prevState,
+        repeatPublish: null,
+      }));
+    }
+  };
+
+  // Validate rate input
+  const handleRateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Number(event.target.value);
+
+    if (value > 0) {
+      setState((prevState) => ({
+        ...prevState,
+        publishRate: Number(event.target.value),
+        invalidRate: false,
+      }));
+    } else {
+      setState((prevState) => ({
+        ...prevState,
+        invalidRate: true,
+      }));
+    }
   };
 
   const theme = useTheme();
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>
-        {(context.advertise == undefined || context.publish == undefined) && (
-          <Alert variant="filled" severity="error">
-            Publishing topics is not supported by this connection
-          </Alert>
+        {/* Error messages */}
+        {(context.advertise == undefined || context.publish == undefined || state.error != undefined) && (
+          <Box mb={1}>
+            {(context.advertise == undefined || context.publish == undefined) && (
+              <Alert variant="filled" severity="error">
+                Publishing topics is not supported by this connection.
+              </Alert>
+            )}
+            {state.error != undefined && (
+              <Alert variant="filled" severity="error">
+                {state.error.message}
+              </Alert>
+            )}
+          </Box>
         )}
 
-        <h4>Topic Name</h4>
-        <div>
-          <input
-            type="text"
-            placeholder="Enter topic name"
-            style={{ width: "100%" }}
-            value={state.topicName}
-            onChange={(event) => {
-              setState({ ...state, topicName: event.target.value });
-            }}
-          />
-        </div>
-        <h4>Schema Name</h4>
-        <div>
-          <input
-            type="text"
-            placeholder="Enter schema name"
-            style={{ width: "100%" }}
-            value={state.schemaName}
-            onChange={(event) => {
-              setState({ ...state, schemaName: event.target.value });
-            }}
-          />
-        </div>
-        <h4>Request</h4>
-        <div>
-          <textarea
-            style={{ width: "100%", minHeight: "3rem" }}
-            value={state.request}
-            onChange={(event) => {
-              setState({ ...state, request: event.target.value });
-            }}
-          />
-        </div>
-        <div>
-          <button
-            disabled={context.advertise == undefined || context.publish == undefined || state.topicName === ""}
-            style={{ width: "100%", minHeight: "2rem" }}
-            onClick={publishTopicWithRequest}
-          >
-            {`Publish to ${state.topicName}`}
-          </button>
-        </div>
+        <Grid container spacing={1}>
+          <Grid item xs={8}>
+            {/* Topic Name Input */}
+            <TextField
+              label="Topic Name"
+              type="text"
+              size="small"
+              margin="dense"
+              fullWidth
+              value={state.topicName}
+              disabled={state.repeatPublish != null}
+              onChange={(event) => {
+                setState((prevState) => ({
+                  ...prevState,
+                  topicName: event.target.value,
+                }));
+              }}
+              InputProps={{
+                startAdornment: <InputAdornment position="start">/</InputAdornment>,
+              }}
+            />
+          </Grid>
+          <Grid item xs={4}>
+            {/* Rate Input */}
+            <TextField
+              label="Rate"
+              type="number"
+              size="small"
+              margin="dense"
+              fullWidth
+              error={state.invalidRate}
+              helperText={state.invalidRate ? "Rate must be positive." : ""}
+              defaultValue={state.publishRate}
+              disabled={state.repeatPublish != null}
+              onChange={handleRateChange}
+              InputProps={{
+                endAdornment: <InputAdornment position="end">Hz</InputAdornment>,
+              }}
+            />
+          </Grid>
+        </Grid>
+
+        <Grid container spacing={1}>
+          <Grid item xs={4}>
+            {/* Schema Type Input */}
+            <Autocomplete
+              fullWidth
+              options={Object.keys(allDatatypeMaps)}
+              value={state.schemaType}
+              disabled={state.repeatPublish != null}
+              onChange={(_, newValue) => {
+                // Don't allow undefined since we need to use schema type as a key to get the schema names
+                setState((prevState) => ({
+                  ...prevState,
+                  schemaType: (newValue ?? state.schemaType) as keyof AllDatatypeMapsType,
+                }));
+              }}
+              renderInput={(params) => <TextField {...params} label="Schema Type" margin="dense" size="small" />}
+            />
+          </Grid>
+          <Grid item xs={8}>
+            {/* Schema Name Input */}
+            <Autocomplete
+              fullWidth
+              options={Object.keys(allDatatypeMaps[state.schemaType])}
+              value={state.schemaName}
+              disabled={state.repeatPublish != null}
+              onChange={(_, newValue) => {
+                setState((prevState) => ({
+                  ...prevState,
+                  schemaName: newValue ?? undefined,
+                }));
+              }}
+              renderInput={(params) => <TextField {...params} label="Schema Name" margin="dense" size="small" />}
+            />
+          </Grid>
+        </Grid>
+
+        {/* Request Input */}
+        <TextField
+          margin="dense"
+          size="small"
+          multiline
+          label="Request"
+          fullWidth
+          value={state.request}
+          disabled={state.repeatPublish != null}
+          onChange={(event) => {
+            setState((prevState) => ({
+              ...prevState,
+              request: event.target.value,
+            }));
+          }}
+        />
+
+        <Box my={1}>
+          <Grid container spacing={1}>
+            <Grid item xs={6}>
+              {/* Publish Once Button */}
+              <Button
+                fullWidth
+                variant="contained"
+                disabled={
+                  context.advertise == undefined ||
+                  context.publish == undefined ||
+                  state.topicName === "" ||
+                  state.schemaName == undefined ||
+                  state.repeatPublish != null
+                }
+                onClick={publishTopic}
+              >
+                {`Publish Once`}
+              </Button>
+            </Grid>
+            <Grid item xs={6}>
+              {/* Rate Publishing Toggle */}
+              <Button
+                fullWidth
+                variant="contained"
+                disabled={
+                  context.advertise == undefined ||
+                  context.publish == undefined ||
+                  state.topicName === "" ||
+                  state.schemaName == undefined ||
+                  state.invalidRate
+                }
+                onClick={toggleInterval}
+                color={state.repeatPublish == null ? "success" : "error"}
+              >
+                {state.repeatPublish == null ? "Start Publishing" : "Stop Publishing"}
+              </Button>
+            </Grid>
+          </Grid>
+        </Box>
       </Box>
     </ThemeProvider>
   );
 }
 
 export function initPublishTopicPanel(context: PanelExtensionContext): () => void {
+  context.panelElement.style.overflow = "auto"; // Enable scrolling
+
   const root = createRoot(context.panelElement as HTMLElement);
   root.render(<PublishTopicPanel context={context} />);
 

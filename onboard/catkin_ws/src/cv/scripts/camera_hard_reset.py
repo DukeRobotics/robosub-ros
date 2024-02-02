@@ -44,8 +44,7 @@ class CameraRelayController:
         return {'success': True, 'message': 'Successfully set enabled to ' + str(req.data)}
 
     def run(self):
-        """Loop that publishes thruster allocations to corresponding topic. If disabled, sets camera to enabled.
-        """
+        """Publish the camera relay status at a fixed rate."""
         rate = rospy.Rate(self.RUN_LOOP_RATE)
         while not rospy.is_shutdown():
             if not self.enabled:

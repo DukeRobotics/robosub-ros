@@ -1,11 +1,12 @@
 {
-  "name": "@duke-robotics/thruster-speeds-panel",
+  "name": "@duke-robotics/pid-panel",
+  "displayName": "PID Panel",
+  "description": "Read/set PID gains",
   "publisher": "Duke Robotics",
   "version": "0.0.0",
   "main": "./dist/extension.js",
   "scripts": {
     "build": "foxglove-extension build",
-    "build-deps": "npx ts-node src/thrusterConfigs.ts",
     "foxglove:prepublish": "foxglove-extension build --mode production",
     "lint:ci": "eslint --report-unused-disable-directives .",
     "lint": "eslint --report-unused-disable-directives --fix .",
@@ -15,11 +16,6 @@
     "pretest": "foxglove-extension pretest"
   },
   "dependencies": {
-    "@foxglove/rosmsg-msgs-common": "^3.1.0",
-    "@mui/icons-material": "^5.14.12",
-    "@mui/material": "^5.14.12",
-    "fs": "^0.0.1-security",
-    "js-yaml": "^4.1.0",
-    "yarn": "^1.22.19"
+    "@textea/json-viewer": "^3.2.2"
   }
 }

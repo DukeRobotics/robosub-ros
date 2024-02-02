@@ -3,7 +3,7 @@ import { load } from "js-yaml";
 import { join } from "path";
 import { format, Options } from "prettier";
 
-import { ThrusterSpeeds } from "./ThrusterSpeedsPanel";
+import { ThrusterAllocs } from "./ThrusterAllocsPanel";
 
 // Constants and export variable names
 const CONFIG_FILE_PATH = "../../../onboard/catkin_ws/src/controls/config/";
@@ -53,7 +53,7 @@ interface RobotConfig {
 // Types for thruster configurations and orders
 type ThrusterConfigs = Record<string, Thruster>;
 type AllThrusterConfigs = Record<string, ThrusterConfigs>;
-type AllThrusterOrders = Record<string, (keyof ThrusterSpeeds)[]>;
+type AllThrusterOrders = Record<string, (keyof ThrusterAllocs)[]>;
 
 // Objects to store thruster configurations and orders
 const allThrusterConfigs: AllThrusterConfigs = {};
@@ -71,11 +71,11 @@ async function generateThrusterConfigs(): Promise<void> {
 
       // Mapping thruster configurations and orders
       const thrusterConfigs: ThrusterConfigs = {};
-      const thrusterOrder: (keyof ThrusterSpeeds)[] = config.thrusters.map((thruster: Thruster) => {
+      const thrusterOrder: (keyof ThrusterAllocs)[] = config.thrusters.map((thruster: Thruster) => {
         const camelCaseThruster = thruster.name.replace(/_([a-z])/g, (g: string) => (g[1] ? g[1].toUpperCase() : ""));
-        thrusterConfigs[camelCaseThruster as keyof ThrusterSpeeds] = thruster;
+        thrusterConfigs[camelCaseThruster as keyof ThrusterAllocs] = thruster;
         return camelCaseThruster;
-      }) as (keyof ThrusterSpeeds)[];
+      }) as (keyof ThrusterAllocs)[];
 
       // Storing configurations and orders for each robot
       allThrusterConfigs[robot] = thrusterConfigs;
@@ -119,7 +119,7 @@ async function writeThrusterConfigs(thrusterConfigsSaveDir: string): Promise<voi
 // Function to generate CommonJS library content from thruster configs and orders data
 async function generateCjsLibrary(
   configsData: Record<string, ThrusterConfigs>,
-  ordersData: Record<string, (keyof ThrusterSpeeds)[]>,
+  ordersData: Record<string, (keyof ThrusterAllocs)[]>,
   exportVarNameConfigs: string,
   exportVarNameOrders: string,
 ): Promise<string> {
@@ -134,7 +134,7 @@ async function generateCjsLibrary(
 // Function to generate ES module library content from thruster configs and orders data
 async function generateEsmLibrary(
   configsData: Record<string, ThrusterConfigs>,
-  ordersData: Record<string, (keyof ThrusterSpeeds)[]>,
+  ordersData: Record<string, (keyof ThrusterAllocs)[]>,
   exportVarNameConfigs: string,
   exportVarNameOrders: string,
 ): Promise<string> {
