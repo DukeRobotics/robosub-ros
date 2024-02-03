@@ -14,6 +14,7 @@ from cv_bridge import CvBridge
 from sonar_image_processing import build_color_sonar_image_from_int_array
 import time
 import os
+import cv2
 
 
 class Sonar:
@@ -307,6 +308,9 @@ class Sonar:
                     self.pub_response.publish(object_pose)
                     with open(os.path.join(os.path.dirname(__file__), f"sampleData/sonar_sweep_{int(round(time.time() * 1000))}.npy"), "wb") as f:
                         np.save(f, sonar_sweep)
+                    #cv2.imwrite(f"sampleData/sonar_sweep_{int(round(time.time() * 1000))}.jpg", build_color_sonar_image_from_int_array(sonar_sweep))
+
+
             except KeyboardInterrupt:
                 rospy.signal_shutdown("Shutting down sonar node.")
 
