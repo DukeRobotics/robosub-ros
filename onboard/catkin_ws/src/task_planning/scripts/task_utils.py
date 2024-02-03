@@ -119,12 +119,12 @@ def stopped_at_pose(current_pose, desired_pose, current_twist):
     return at_desired_pose and at_desired_vel
 
 
-def transform_pose(listener, base_frame, target_frame, pose):
+def transform_pose(tfBuffer, base_frame, target_frame, pose):
     pose_stamped = PoseStamped()
     pose_stamped.pose = pose
     pose_stamped.header.frame_id = base_frame
 
-    return listener.transformPose(target_frame, pose_stamped).pose
+    return tfBuffer.transformPose(target_frame, pose_stamped).pose
 
 
 def transform(origin_frame, dest_frame, poseORodom):
@@ -140,8 +140,11 @@ def transform(origin_frame, dest_frame, poseORodom):
     """
 
     tfBuffer = tf2_ros.Buffer()
-    trans = tfBuffer.lookup_transform(dest_frame, origin_frame, rospy.Time(), rospy.Duration(0.5))
-
+    try:
+        trans = tfBuffer.lookup_transform(dest_frame, origin_frame, rospy.Time(), rospy.Duration(0.5))
+    except:
+        (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException)
+    
     if isinstance(poseORodom, PoseStamped):
         transformed = tf2_geometry_msgs.do_transform_pose(poseORodom, trans)
         return transformed
@@ -250,8 +253,8 @@ def create_pose(x, y, z, roll, pitch, yaw):
     pose.orientation = Quaternion(*euler2quat(roll, pitch, yaw))
     return pose
 1
-def local_pose_to_global(listener, pose):
-    return transform_pose(listener, 'base_link', 'odom', pose)
+def local_pose_to_global(tfBuffer, pose):
+    return transform_pose(tfBuffer, 'base_link', 'odom', pose)
 
-def global_pose_to_local(listener, pose):
-    return transform_pose(listener, 'odom', 'base_link', pose)
+def global_pose_to_local(tfBuffer, pose):
+    return transform_pose(tfBuffer, 'odom', 'base_link', pose)

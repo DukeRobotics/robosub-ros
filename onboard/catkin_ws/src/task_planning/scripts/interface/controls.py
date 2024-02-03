@@ -20,8 +20,8 @@ class ControlsInterface:
     DESIRED_VELOCITY_TOPIC = 'controls/desired_velocity'
     THRUSTER_ALLOCS_TOPIC = 'controls/thruster_allocs'
 
-    def __init__(self, listener):
-        self.listener = listener
+    def __init__(self, tfBuffer):
+        self.tfBuffer = tfBuffer
 
         rospy.wait_for_service(self.CONTROL_ENABLE_SERVICE)
         self._set_controls_enable = rospy.ServiceProxy(self.CONTROL_ENABLE_SERVICE, SetBool)

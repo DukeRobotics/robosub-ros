@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
-import tf
+import tf2_ros
 from interface.controls import ControlsInterface
 from interface.cv import CVInterface
 # from buoy_task import BuoyTask
@@ -11,11 +11,16 @@ import task_utils
 
 def main():
     rospy.init_node("task_planning")
-    listener = tf.TransformListener()
-    controls = ControlsInterface(listener)
+    tfBuffer = tf2_ros.Buffer()
+    listener = tf2_ros.TransformListener(tfBuffer)
+    controls = ControlsInterface(tfBuffer)
     cv = CVInterface()
 
-    listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(15))
+    # listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(15))
+    try:
+        trans = tfBuffer.lookup_transform('odom', 'base_link', rospy.Time(), rospy.Duration(15))
+    except:
+        (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException)
     # Fill with the tasks to do
     # For example: tasks = [gate_task(), buoy_task(), octagon_task()]
     tasks = [initial_submerge(controls),
