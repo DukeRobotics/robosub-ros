@@ -102,45 +102,30 @@ byte MS5837::read() {
 		return;
 	}
 
-  byte error;
+  	byte error;
 
 	// Request D1 conversion
 	_i2cPort->beginTransmission(MS5837_ADDR);
 	_i2cPort->write(MS5837_CONVERT_D1_8192);
-
-  Serial.println("Before end transmission 1");
 	error = _i2cPort->endTransmission();
-  Serial.println("After end transmission 1");
 
-  if (error == 5) {
-    Serial.println("TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT");
-    return 5;
-  }
+	if (error == 5)
+		return 5;
 
 	delay(20); // Max conversion time per datasheet
 
 	_i2cPort->beginTransmission(MS5837_ADDR);
 	_i2cPort->write(MS5837_ADC_READ);
-
-  Serial.println("Before end transmission 2");
 	error = _i2cPort->endTransmission();
-  Serial.println("After end transmission 2");
 
-  if (error == 5) {
-    Serial.println("TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT");
-    return 5;
-  }
+	if (error == 5)
+		return 5;
 
-  Serial.println("Before request from 3");
 	_i2cPort->requestFrom(MS5837_ADDR,3);
-  Serial.println("After request from 3");
 
-  if (Wire.getWireTimeoutFlag()) {
-    Serial.println("TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT");
-    Wire.clearWireTimeoutFlag();
-    return 5;
-  }
-  
+	if (Wire.getWireTimeoutFlag())
+		return 5;
+
 	D1_pres = 0;
 	D1_pres = _i2cPort->read();
 	D1_pres = (D1_pres << 8) | _i2cPort->read();
@@ -149,39 +134,24 @@ byte MS5837::read() {
 	// Request D2 conversion
 	_i2cPort->beginTransmission(MS5837_ADDR);
 	_i2cPort->write(MS5837_CONVERT_D2_8192);
-
-	Serial.println("Before end transmission 4");
 	error = _i2cPort->endTransmission();
-  Serial.println("After end transmission 4");
 
-  if (error == 5) {
-    Serial.println("TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT");
-    return 5;
-  }
+	if (error == 5)
+		return 5;
 
 	delay(20); // Max conversion time per datasheet
 
 	_i2cPort->beginTransmission(MS5837_ADDR);
 	_i2cPort->write(MS5837_ADC_READ);
-
-	Serial.println("Before end transmission 5");
 	error = _i2cPort->endTransmission();
-  Serial.println("After end transmission 5");
 
-  if (error == 5) {
-    Serial.println("TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT");
-    return 5;
-  }
+	if (error == 5)
+		return 5;
 
-  Serial.println("Before request from 6");
 	_i2cPort->requestFrom(MS5837_ADDR,3);
-  Serial.println("After request from 6");
 
-  if (Wire.getWireTimeoutFlag()) {
-    Serial.println("TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT TIMEOUT");
-    Wire.clearWireTimeoutFlag();
-    return 5;
-  }
+	if (Wire.getWireTimeoutFlag())
+		return 5;
 
 	D2_temp = 0;
 	D2_temp = _i2cPort->read();
@@ -190,7 +160,7 @@ byte MS5837::read() {
 
 	calculate();
 
-  return 0;
+  	return 0;
 }
 
 void MS5837::calculate() {

@@ -18,16 +18,9 @@ String voltagetag = "V:";
 String printPressure = "";
 String printVoltage = "";
 
-void setup(){
-
-    delay(100);
-    pinMode(VPIN, OUTPUT);
-    Serial.begin(BAUD_RATE);
-    voltage = 0;
-    prevTime = 0;
-
+void initPressureSensor(){
     Wire.begin();
-    Wire.setWireTimeout(1000, true);
+    Wire.setWireTimeout(500, false);
 
     while (!sensor.init()) {
         delay(1000);
@@ -37,31 +30,38 @@ void setup(){
     sensor.setModel(MS5837::MS5837_30BA);
 }
 
+void setup(){
+
+    delay(100);
+    pinMode(VPIN, OUTPUT);
+    Serial.begin(BAUD_RATE);
+    voltage = 0;
+    prevTime = 0;
+
+    initPressureSensor();
+}
+
 void loop(){
     byte response = sensor.read();
+
     if (response == 5) {
-      Serial.println("Timeout; Exited senor.read");
-      delay(1000);
-      while (!sensor.init()) {
-        delay(1000);
-        break;
-      }
-      Serial.println("Reinitialized sensor");
-      return;
-    } 
+        Wire.clearWireTimeoutFlag();
+        Wire.end();
+        initPressureSensor();
+        return;
+    }
+
     Serial.flush();
     printPressure = pressuretag + String(sensor.depth());
     Serial.println(printPressure);
 
-//     myTime = millis();
-//     if(myTime - prevTime > VOLTAGE_PERIOD) {
-//       prevTime = myTime;
+    myTime = millis();
+    if(myTime - prevTime > VOLTAGE_PERIOD) {
+      prevTime = myTime;
 
-//       voltage = analogRead(VPIN);
-//       voltage = voltage*ONBOARD_VOLTAGE/1023*5; // from datasheet, for analog to digital conversion
-//       printVoltage = voltagetag + String(voltage);
-//       Serial.println(printVoltage);
-//     }
-
-
+      voltage = analogRead(VPIN);
+      voltage = voltage*ONBOARD_VOLTAGE/1023*5; // from datasheet, for analog to digital conversion
+      printVoltage = voltagetag + String(voltage);
+      Serial.println(printVoltage);
+    }
 }
