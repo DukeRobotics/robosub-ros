@@ -35,6 +35,8 @@ def createImage(img, start_angle=0, center_angle=90):
     Returns:
         ndarray: image
     """
+    start = t.time()
+
     angle = img.shape[0]
     radius = img.shape[1]
 
@@ -45,9 +47,11 @@ def createImage(img, start_angle=0, center_angle=90):
 
     polarImg = np.zeros((height, width))
 
+    msehgrid_start = t.time()
     x_ax = np.linspace(-radius, radius, width, dtype=np.int32)
     y_ax = np.linspace(0, radius, height, dtype=np.int32)
     xx, yy = np.meshgrid(x_ax, y_ax)
+    print("create meshgrid time: ", t.time() - msehgrid_start)
 
     theta = np.rad2deg(np.arctan2(yy, xx))*200/180
     r = np.sqrt(xx**2 + yy**2)
@@ -58,40 +62,21 @@ def createImage(img, start_angle=0, center_angle=90):
     theta = theta.astype(np.int32)
     r = r.astype(np.int32)
 
-    for x in x_ax:
-        for y in y_ax:
+    create_img_start = t.time()
+    # for x in x_ax:
+    #     for y in y_ax:
+    for x in range(x_ax[0], x_ax[-1]+1, 2):
+        for y in range(y_ax[0], y_ax[-1]+1, 3):
             theta_pt = theta[y][x + radius] - int(center_angle*200/180 - center) # shift angles to center the to center_angle
             r_pt = r[y][x + radius] # x + radius to convert x values into index values
 
             if (theta_pt < angle and theta_pt > 0 and r_pt < radius):
-                polarImg[radius - y][x + radius] = img[theta_pt, r_pt] # radius - y flips to face the scan upward
+                polarImg[radius - y][radius - x] = img[theta_pt, r_pt] # radius - y flips to face the scan upward
             else:
-                polarImg[radius - y][x + radius] = 0
-    
+                polarImg[radius - y][radius - x] = 0
+    print("create image time: ", t.time() - create_img_start)
+    print("total time: ", t.time() - start)
     return polarImg.astype(np.uint8)
-
-def main2():
-    # path = 'onboard/catkin_ws/src/sonar/scripts/sampleData/Sonar_Image.jpeg'
-    path = 'onboard/catkin_ws/src/sonar/scripts/sampleData/buoy.npy'
-    image = createImage(getImage(path))
-
-    # plt.imshow(image)
-    # plt.show()
-
-    scale_factor = 0.5
-    new_height = int(image.shape[0] * scale_factor)
-    new_width = int(image.shape[1] * scale_factor)
-    image = cv2.resize(image, (new_width, new_height))
-
-    if path.endswith(".npy"):
-         image = image[:, :, 0]
-         print(image[2])
-         image = cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_GRAY2BGR)
-         image = cv2.applyColorMap(image, cv2.COLORMAP_VIRIDIS)
-
-    cv2.imshow("polar image", image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
 
 
 def addContours(image, lower_bound=(0, 127, 0), upper_bound=(255, 255, 255), kernel=(17, 17), area_threshold=5000, line_color=(0, 0, 255)):
@@ -134,57 +119,19 @@ def printCirularity(contours):
 
 
 def main():
-    # path = 'onboard/catkin_ws/src/sonar/sampleData/Sonar_Image.jpeg'
-    path = 'onboard/catkin_ws/src/sonar/sampleData/sonar_sweep_1.npy'
-    
-    image = createImage(getImage(path))
-    print("shape ", image.shape)
-
-    # plt.imshow(image)
-    # plt.show()
-
-    scale_factor = 0.5
-    new_height = int(image.shape[0] * scale_factor)
-    new_width = int(image.shape[1] * scale_factor)
-    image = cv2.resize(image, (new_width, new_height))
-    print("shape ", image.shape)
-
-
-    # if path.endswith(".npy"):
-        # image = image[:, :, 0]
-        # image = cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_GRAY2BGR)
-        # image = cv2.applyColorMap(image, cv2.COLORMAP_VIRIDIS)
-
-        # for i in range(image.shape[2]):
-        #     print(image[:, :, i].shape)
-        #     image[:, :, i] = cv2.applyColorMap((image[:, :, i]).astype(np.uint8), cv2.COLORMAP_VIRIDIS)
-
-    cv2.imshow("polar image", image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-def main2():
     start = t.time()
-    sonar_img = np.load('onboard/catkin_ws/src/sonar/sampleData/sonar_sweep_1.npy')
-    sonar_img = sonar_img.astype(np.uint8) 
-    print(sonar_img)
 
-    sonar_img_col = cv2.cvtColor(sonar_img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
-    sonar_img_col = cv2.applyColorMap(sonar_img, cv2.COLORMAP_VIRIDIS)
+    sonar_img = np.load('onboard/catkin_ws/src/sonar/sampleData/sonar_sweep_1.npy')
+    # print(sonar_img)
 
     sonar_img_polar = createImage(sonar_img)
-    np.savetxt('sonar_img_polar.csv', sonar_img_polar, delimiter=',')
-    sonar_img_polar = sonar_img_polar.astype(np.uint8)
-    # print(sonar_img_polar)
     sonar_img_polar = cv2.cvtColor(sonar_img_polar.astype(np.uint8), cv2.COLOR_GRAY2BGR)
     sonar_img_polar = cv2.applyColorMap(sonar_img_polar, cv2.COLORMAP_VIRIDIS)
     addContours(sonar_img_polar)
-    print("Add contours: ", t.time() - start)
     resized_img = cv2.resize(sonar_img_polar, (sonar_img_polar.shape[1] // 2, sonar_img_polar.shape[0] // 2))
-    print(sonar_img_polar.shape)
+    
+    # print(sonar_img_polar.shape)
 
-    # plt.imshow(sonar_img)
-    # plt.show()
     cv2.imshow('sonar image', resized_img)
     print(t.time() - start)
     cv2.waitKey(0)
@@ -192,4 +139,4 @@ def main2():
    
 
 if __name__ == '__main__':
-    main2()
+    main()
