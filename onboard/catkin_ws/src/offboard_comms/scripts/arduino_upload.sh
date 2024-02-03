@@ -35,7 +35,7 @@ zip -r ros_lib.zip ros_lib
 
 PKG_DIR=$(rospack find offboard_comms)
 SRC_CODE="${PKG_DIR}/Arduino Sketchbooks/ThrusterArduino"
-PORT=$("${PKG_DIR}"/scripts/port_finder.sh)
+PORT=$(rosrun offboard_comms port_finder.py thruster)
 
 export ARDUINO_LIBRARY_ENABLE_UNSAFE_INSTALL=true
 arduino-cli lib install --zip-path ros_lib.zip
