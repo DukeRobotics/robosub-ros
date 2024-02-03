@@ -13,6 +13,7 @@ from tf import TransformListener
 from cv_bridge import CvBridge
 from sonar_image_processing import build_color_sonar_image_from_int_array
 import time
+import os
 
 
 class Sonar:
@@ -304,7 +305,8 @@ class Sonar:
                     compressed_image = self.convert_to_ros_compressed_img(sonar_sweep)
                     self.sonar_image_publisher.publish(compressed_image)
                     self.pub_response.publish(object_pose)
-                    np.save(f"sampleData/sonar_sweep_{int(round(time.time() * 1000))}", sonar_sweep)
+                    with open(os.path.join(os.path.dirname(__file__), f"sampleData/sonar_sweep_{int(round(time.time() * 1000))}.npy"), "wb") as f:
+                        np.save(f, sonar_sweep)
             except KeyboardInterrupt:
                 rospy.signal_shutdown("Shutting down sonar node.")
 
