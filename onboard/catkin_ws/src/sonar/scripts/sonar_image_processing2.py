@@ -22,7 +22,7 @@ def getImage(path):
     return npImg
 
 
-def createImage(img, start_angle=0, center_angle=90):
+def createImage(img, start_angle=0, center_angle=90, speed="slow"):
     """ create a cartesian top down image from a polar image with
     x coordinates as the distance away from the sonar and
     y coordinates as angles (in gradians)
@@ -35,6 +35,10 @@ def createImage(img, start_angle=0, center_angle=90):
     Returns:
         ndarray: image
     """
+    step_x = 1; step_y = 1
+    if speed == "fast":
+        step_x = 2; step_y = 2
+
     start = t.time()
 
     angle = img.shape[0]
@@ -65,8 +69,8 @@ def createImage(img, start_angle=0, center_angle=90):
     create_img_start = t.time()
     # for x in x_ax:
     #     for y in y_ax:
-    for x in range(x_ax[0], x_ax[-1]+1, 2):
-        for y in range(y_ax[0], y_ax[-1]+1, 3):
+    for x in range(x_ax[0], x_ax[-1]+1, step_x):
+        for y in range(y_ax[0], y_ax[-1]+1, step_y):
             theta_pt = theta[y][x + radius] - int(center_angle*200/180 - center) # shift angles to center the to center_angle
             r_pt = r[y][x + radius] # x + radius to convert x values into index values
 
@@ -107,6 +111,7 @@ def addContours(image, lower_bound=(0, 127, 0), upper_bound=(255, 255, 255), ker
     printCirularity(shapes)
     return image
 
+
 def printCirularity(contours):
 
     for contour in contours:
@@ -121,10 +126,10 @@ def printCirularity(contours):
 def main():
     start = t.time()
 
-    sonar_img = np.load('onboard/catkin_ws/src/sonar/sampleData/sonar_sweep_1.npy')
+    sonar_img = np.load('onboard/catkin_ws/src/sonar/sampleData/sonar_sweep_8.npy')
     # print(sonar_img)
 
-    sonar_img_polar = createImage(sonar_img)
+    sonar_img_polar = createImage(sonar_img, speed="fast")
     sonar_img_polar = cv2.cvtColor(sonar_img_polar.astype(np.uint8), cv2.COLOR_GRAY2BGR)
     sonar_img_polar = cv2.applyColorMap(sonar_img_polar, cv2.COLORMAP_VIRIDIS)
     addContours(sonar_img_polar)
