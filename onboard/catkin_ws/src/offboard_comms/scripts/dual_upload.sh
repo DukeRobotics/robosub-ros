@@ -27,44 +27,47 @@ else
     echo "Options parsed: only compiling"
 fi
 
-onboard/catkin_ws/src/offboard_comms/scripts/copy_offset.sh 1 # Copy the offset file to the compile folder
-
 rm -rf ros_lib
 rosrun rosserial_arduino make_libraries.py .
 zip -r ros_lib.zip ros_lib
 
 PKG_DIR=$(rospack find offboard_comms)
-SRC_CODE1="${PKG_DIR}/Arduino Sketchbooks/PressureArduino"
-SRC_CODE2="${PKG_DIR}/Arduino Sketchbooks/ThrusterArduino"
-IFS=$'\n' read -r -d '' -a ARD_DEVS < <("${PKG_DIR}"/scripts/devices.sh && printf '\0')
-ARDUINO1="${ARD_DEVS[0]}"
-PORT1="${ARD_DEVS[2]}"
-PORT2="${ARD_DEVS[3]}"
+SRC_CODE_PRESSURE="${PKG_DIR}/Arduino Sketchbooks/PressureArduino"
+SRC_CODE_THRUSTER="${PKG_DIR}/Arduino Sketchbooks/ThrusterArduino"
+
+PORT_PRESSURE=$(rosrun offboard_comms port_finder.py pressure)
+PORT_THRUSTER=$(rosrun offboard_comms port_finder.py thruster)
 
 export ARDUINO_LIBRARY_ENABLE_UNSAFE_INSTALL=true
 arduino-cli lib install --zip-path ros_lib.zip
 rm -f ros_lib.zip
 
-arduino-cli core install arduino:megaavr
-arduino-cli compile -b arduino:megaavr:nona4809 "$SRC_CODE1"
-arduino-cli compile -b arduino:megaavr:nona4809 "$SRC_CODE2"
+rosrun offboard_comms copy_offset.sh 1 # Copy the offset file to the compile folder
 
-onboard/catkin_ws/src/offboard_comms/scripts/copy_offset.sh 0 # Remove the offset file from the compile folder
+arduino-cli core install arduino:megaavr
+arduino-cli core install arduino:avr
+arduino-cli compile -b arduino:avr:uno "$SRC_CODE_PRESSURE"
+arduino-cli compile -b arduino:megaavr:nona4809 "$SRC_CODE_THRUSTER"
+
+rosrun offboard_comms copy_offset.sh 0 # Remove the offset file from the compile folder
 
 if [ "$ARD_UPLOAD" = true ]; then
-    # E49AFA8B51514C4B39202020FF024242 is thruster arduino
-    # 557323233303516132A1 is pressure arduino
-    if [ "$ARDUINO1" = "E49AFA8B51514C4B39202020FF024242" ]; then
-        TEMP=$SRC_CODE1
-        SRC_CODE1=$SRC_CODE2
-        SRC_CODE2=$TEMP
-    fi
 
     # Upload to Arduino boards
-    echo "PORT1: $PORT1"
-    echo "PORT2: $PORT2"
-    echo "SRC_CODE1: $SRC_CODE1"
-    echo "SRC_CODE2: $SRC_CODE2"
-    arduino-cli upload -b arduino:megaavr:nona4809 -p "$PORT1" "$SRC_CODE1"
-    arduino-cli upload -b arduino:megaavr:nona4809 -p "$PORT2" "$SRC_CODE2"
+    echo ""
+    echo "PORT_PRESSURE: $PORT_PRESSURE"
+    echo "SRC_CODE_PRESSURE: $SRC_CODE_PRESSURE"
+    echo ""
+    echo "PORT_THRUSTER: $PORT_THRUSTER"
+    echo "SRC_CODE_THRUSTER: $SRC_CODE_THRUSTER"
+    echo ""
+
+    echo "Uploading to Pressure Arduino"
+    arduino-cli upload -b arduino:avr:uno -p "$PORT_PRESSURE" "$SRC_CODE_PRESSURE"
+    echo "Upload to Pressure Arduino complete"
+    echo ""
+    echo "Uploading to Thruster Arduino"
+    arduino-cli upload -b arduino:megaavr:nona4809 -p "$PORT_THRUSTER" "$SRC_CODE_THRUSTER"
+    echo "Upload to Thruster Arduino complete"
+    echo ""
 fi
