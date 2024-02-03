@@ -27,27 +27,41 @@ void setup(){
     prevTime = 0;
 
     Wire.begin();
+    Wire.setWireTimeout(1000, true);
 
     while (!sensor.init()) {
         delay(1000);
         break;
     }
     sensor.setFluidDensity(997); // kg/m^3 (freshwater, 1029 for seawater)
+    sensor.setModel(MS5837::MS5837_30BA);
 }
 
 void loop(){
-    sensor.read();
+    byte response = sensor.read();
+    if (response == 5) {
+      Serial.println("Timeout; Exited senor.read");
+      delay(1000);
+      while (!sensor.init()) {
+        delay(1000);
+        break;
+      }
+      Serial.println("Reinitialized sensor");
+      return;
+    } 
     Serial.flush();
     printPressure = pressuretag + String(sensor.depth());
     Serial.println(printPressure);
 
-    myTime = millis();
-    if(myTime - prevTime > VOLTAGE_PERIOD) {
-      prevTime = myTime;
+//     myTime = millis();
+//     if(myTime - prevTime > VOLTAGE_PERIOD) {
+//       prevTime = myTime;
 
-      voltage = analogRead(VPIN);
-      voltage = voltage*ONBOARD_VOLTAGE/1023*5; // from datasheet, for analog to digital conversion
-      printVoltage = voltagetag + String(voltage);
-      Serial.println(printVoltage);
-    }
+//       voltage = analogRead(VPIN);
+//       voltage = voltage*ONBOARD_VOLTAGE/1023*5; // from datasheet, for analog to digital conversion
+//       printVoltage = voltagetag + String(voltage);
+//       Serial.println(printVoltage);
+//     }
+
+
 }
