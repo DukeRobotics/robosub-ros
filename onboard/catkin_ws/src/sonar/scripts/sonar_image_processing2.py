@@ -100,6 +100,7 @@ def addContours(image, lower_bound=(0, 127, 0), upper_bound=(255, 255, 255), ker
 
     contours, hierarchy = cv2.findContours(blurred_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     shapes = []
+    print("Num contours", len(contours))
     for i in range(len(contours)):
         moments = cv2.moments(contours[i])
         if moments['m00'] > area_threshold:
