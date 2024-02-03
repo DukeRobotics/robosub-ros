@@ -2,13 +2,14 @@
 #include <Wire.h>
 #include "MS5837.h"
 
-MS5837 sensor;
-
 // Baud rate for serial communication with Blue Robotics Bar30 High-Resolution 300m Depth/Pressure Sensor
 #define BAUD_RATE 9600
 #define ONBOARD_VOLTAGE 4.763 // 4.763 is arduino onboard voltage (true output of 5V pin)
 #define VPIN 3 // voltage pin analog input
 #define VOLTAGE_PERIOD 1000 // how often to print out voltage
+
+MS5837 sensor;
+bool pressureConnected = false;
 
 float voltage;
 unsigned long myTime;
@@ -18,16 +19,16 @@ String voltagetag = "V:";
 String printPressure = "";
 String printVoltage = "";
 
+// Make one attempt to initialize to the pressure sensor
 void initPressureSensor(){
+    Wire.end();
     Wire.begin();
     Wire.setWireTimeout(500, false);
 
-    while (!sensor.init()) {
-        delay(1000);
-        break;
-    }
-    sensor.setFluidDensity(997); // kg/m^3 (freshwater, 1029 for seawater)
-    sensor.setModel(MS5837::MS5837_02BA);
+    pressureConnected = sensor.init();
+
+    if (pressureConnected)
+        sensor.setModel(MS5837::MS5837_02BA);
 }
 
 void setup(){
@@ -38,23 +39,39 @@ void setup(){
     voltage = 0;
     prevTime = 0;
 
+    sensor.setFluidDensity(997); // kg/m^3 (freshwater, 1029 for seawater)
+
+    // Initialize the pressure sensor
     initPressureSensor();
 }
 
 void loop(){
-    byte response = sensor.read();
+    // If pressure sensor is connected, read the pressure
+    if (pressureConnected) {
+        byte response = sensor.read();
 
-    if (response == 5) {
-        Wire.clearWireTimeoutFlag();
-        Wire.end();
-        initPressureSensor();
-        return;
+        // If sensor.read timed out, mark pressure sensor as disconnected and clear the timeout flag
+        if (response == 5) {
+            pressureConnected = false;
+            Wire.clearWireTimeoutFlag();
+        }
+
+        // If sensor.read was successful, print the pressure
+        if (!response) {
+            Serial.flush();
+            printPressure = pressuretag + String(sensor.depth());
+            Serial.println(printPressure);
+        }
+
+        // If sensor.read had an error but did not time out, try reading again in next loop
     }
 
-    Serial.flush();
-    printPressure = pressuretag + String(sensor.depth());
-    Serial.println(printPressure);
+    // If pressure sensor is disconnected, try to reinitalize it
+    else {
+        initPressureSensor();
+    }
 
+    // Print the voltage every VOLTAGE_PERIOD milliseconds
     myTime = millis();
     if(myTime - prevTime > VOLTAGE_PERIOD) {
       prevTime = myTime;

@@ -109,8 +109,8 @@ byte MS5837::read() {
 	_i2cPort->write(MS5837_CONVERT_D1_8192);
 	error = _i2cPort->endTransmission();
 
-	if (error == 5)
-		return 5;
+	if (error)
+		return error;
 
 	delay(20); // Max conversion time per datasheet
 
@@ -118,8 +118,8 @@ byte MS5837::read() {
 	_i2cPort->write(MS5837_ADC_READ);
 	error = _i2cPort->endTransmission();
 
-	if (error == 5)
-		return 5;
+	if (error)
+		return error;
 
 	_i2cPort->requestFrom(MS5837_ADDR,3);
 
@@ -136,8 +136,8 @@ byte MS5837::read() {
 	_i2cPort->write(MS5837_CONVERT_D2_8192);
 	error = _i2cPort->endTransmission();
 
-	if (error == 5)
-		return 5;
+	if (error)
+		return error;
 
 	delay(20); // Max conversion time per datasheet
 
@@ -145,8 +145,8 @@ byte MS5837::read() {
 	_i2cPort->write(MS5837_ADC_READ);
 	error = _i2cPort->endTransmission();
 
-	if (error == 5)
-		return 5;
+	if (error)
+		return error;
 
 	_i2cPort->requestFrom(MS5837_ADDR,3);
 
