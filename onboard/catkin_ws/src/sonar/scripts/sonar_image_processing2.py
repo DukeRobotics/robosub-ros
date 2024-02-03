@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 from PIL import Image
+import time as t
 
 def getImage(path):
     """ turn jpeg into numpy array
@@ -93,7 +94,7 @@ def main2():
     cv2.destroyAllWindows()
 
 
-def addContours(image, lower_bound=(0, 0.5, 0), upper_bound=(1, 1, 1), kernel=(17, 17), area_threshold=5000):
+def addContours(image, lower_bound=(0, 127, 0), upper_bound=(255, 255, 255), kernel=(17, 17), area_threshold=5000, line_color=(0, 0, 255)):
     """ gaussian blurs the image then adds contours
     
     Args:
@@ -102,13 +103,13 @@ def addContours(image, lower_bound=(0, 0.5, 0), upper_bound=(1, 1, 1), kernel=(1
         upper_bound (tuple): upper bound when thresholding the image to find contour regions
         kernel (tuple): kernel to use when applying gaussian blur
         area_threshold (int or float): only shows contours that are bigger than this value
+        line_color (tuple): BGR value for cv2 to draw contours and centroid dot
     """
     mask = cv2.inRange(image, lower_bound, upper_bound)
 
     blurred_img = cv2.GaussianBlur(mask, kernel, 0)
 
     contours, hierarchy = cv2.findContours(blurred_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
     shapes = []
     for i in range(len(contours)):
         moments = cv2.moments(contours[i])
@@ -116,8 +117,8 @@ def addContours(image, lower_bound=(0, 0.5, 0), upper_bound=(1, 1, 1), kernel=(1
             shapes.append(contours[i])
             cx = int(moments['m10'] / moments['m00'])
             cy = int(moments['m01'] / moments['m00'])
-            cv2.circle(image, (cx, cy), 8, (255, 0, 0), -1)
-            cv2.drawContours(image, contours, i, (255, 0, 0), 2)
+            cv2.circle(image, (cx, cy), 8, line_color, -1)
+            cv2.drawContours(image, contours, i, line_color, 2)
     printCirularity(shapes)
     return image
 
@@ -163,6 +164,7 @@ def main():
     cv2.destroyAllWindows()
 
 def main2():
+    start = t.time()
     sonar_img = np.load('onboard/catkin_ws/src/sonar/sampleData/sonar_sweep_1.npy')
     sonar_img = sonar_img.astype(np.uint8) 
     print(sonar_img)
@@ -176,14 +178,18 @@ def main2():
     # print(sonar_img_polar)
     sonar_img_polar = cv2.cvtColor(sonar_img_polar.astype(np.uint8), cv2.COLOR_GRAY2BGR)
     sonar_img_polar = cv2.applyColorMap(sonar_img_polar, cv2.COLORMAP_VIRIDIS)
+    addContours(sonar_img_polar)
+    print("Add contours: ", t.time() - start)
     resized_img = cv2.resize(sonar_img_polar, (sonar_img_polar.shape[1] // 2, sonar_img_polar.shape[0] // 2))
     print(sonar_img_polar.shape)
 
     # plt.imshow(sonar_img)
     # plt.show()
     cv2.imshow('sonar image', resized_img)
+    print(t.time() - start)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+   
 
 if __name__ == '__main__':
     main2()
