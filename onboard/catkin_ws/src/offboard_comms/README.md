@@ -45,47 +45,28 @@ offboard_comms
 
 On Linux hosts, with the container running in privileged mode, you may use the following command to compile and upload code to both Arduinos.
 ```
-rosrun offboard_comms dual_upload.sh
+rosrun offboard_comms upload.sh dual
 ```
-Running just a single Arduino would require only a single Arduino to be connected over USB. Upload with the following command:
-On Linux hosts, with the container running in privileged mode, you may use the following command to compile and upload code to both Arduinos.
+Running just a single Arduino would require only a single Arduino to be connected over USB. Upload to the desired arduino the following command (repalce ARDUINO_NAME with `pressure` or `thruster`):
 ```
-rosrun offboard_comms dual_upload.sh
-```
-Running just a single Arduino would require only a single Arduino to be connected over USB. Upload with the following command:
-```
-rosrun offboard_comms arduino_upload.sh
+rosrun offboard_comms upload.sh <ARDUINO_NAME>
 ```
 
-Note that these commands requires the Arduino(s) to be an Arduino Nano using the old bootloader.
-
-If the type of Arduino is changed, the `dual_upload.sh` (or `arduino_upload.sh` ) script will need to be updated to reflect the new board type. Specifically, `arduino-cli` installation and compliation calls.
-Note that these commands requires the Arduino(s) to be an Arduino Nano using the old bootloader.
-
-If the type of Arduino is changed, the `dual_upload.sh` (or `arduino_upload.sh` ) script will need to be updated to reflect the new board type. Specifically, `arduino-cli` installation and compliation calls.
-
-To only compile (and not upload) the Arduino code, useful for testing builds, you may use:
-```
-rosrun offboard_comms dual_upload.sh -c
-```
-
-Or for a single Arduino:
-```
-rosrun offboard_comms dual_upload.sh -c
-```
-
-Or for a single Arduino:
-```
-rosrun offboard_comms arduino_upload.sh -c
-```
+Add the `-c` flag to the end of any of the above commands to only compile the Arduino code, and not upload it.
 
 Note that uploading to the Arduino might require restarting the Docker container. The same applies for the case where an Arduino is disconnected and reconnected.
 
-To run successfully in `dual_upload.sh`, ensure that the Arduino serial numbers are accurately reflected in the script. These can be found by running `arduino-cli board list` with the Arduino connected.
+To run `upload.sh` successfully, ensure that the Arduino FTDI strings are accurately reflected in `config/arduino_ftdi.yaml`.
 
-Note that uploading to the Arduino might require restarting the Docker container. The same applies for the case where an Arduino is disconnected and reconnected.
-
-To run successfully in `dual_upload.sh`, ensure that the Arduino serial numbers are accurately reflected in the script. These can be found by running `arduino-cli board list` with the Arduino connected.
+To view a list of FTDI strings, run the following command:
+```
+ls /dev/serial/by-id/
+```
+The FTDI string is located after the last underscore `_` but before the hyphen `-` in the output of the above command. For example, in the following output,
+```
+usb-Arduino_LLC_Arduino_Nano_Every_E49AFA8B51514C4B39202020FF024242-if00
+```
+the FTDI string is `E49AFA8B51514C4B39202020FF024242`.
 
 ### Manual Upload
 
