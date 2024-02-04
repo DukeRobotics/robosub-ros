@@ -66,6 +66,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     set_power_pub = nh.advertise<geometry_msgs::Twist>("controls/set_power", 1);
     set_power_scaled_pub = nh.advertise<geometry_msgs::Twist>("controls/set_power_scaled", 1);
     actual_power_pub = nh.advertise<geometry_msgs::Twist>("controls/actual_power", 1);
+    set_scaled_actual_power_diff_pub = nh.advertise<geometry_msgs::Twist>("controls/set_scaled_actual_power_diff", 1);
     pid_gains_pub = nh.advertise<custom_msgs::PIDGains>("controls/pid_gains", 1);
     control_types_pub = nh.advertise<custom_msgs::ControlTypes>("controls/control_types", 1);
     position_efforts_pub = nh.advertise<geometry_msgs::Twist>("controls/position_efforts", 1);
@@ -102,6 +103,9 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
                                         loops_axes_derivative_types.at(loop),
                                         loops_axes_error_ramp_rates.at(loop),
                                         loops_axes_pid_gains.at(loop));
+
+    // Initialize static power local to zero
+    static_power_local = tf2::Vector3(0, 0, 0);
 
     // Instantiate thruster allocator
     thruster_allocator = ThrusterAllocator(wrench_matrix_file_path, wrench_matrix_pinv_file_path);
@@ -325,9 +329,10 @@ void Controls::run()
 
     Eigen::VectorXd set_power(AXES_COUNT);
     Eigen::VectorXd set_power_scaled;
-    Eigen::VectorXd actual_power;
     Eigen::VectorXd unconstrained_allocs;
     Eigen::VectorXd constrained_allocs;
+    Eigen::VectorXd actual_power;
+    Eigen::VectorXd set_scaled_actual_power_diff;
 
     LoopsMap<AxesMap<PIDGainsMap>> loops_axes_pid_gains;
 
@@ -336,6 +341,7 @@ void Controls::run()
     geometry_msgs::Twist set_power_msg;
     geometry_msgs::Twist set_power_scaled_msg;
     geometry_msgs::Twist actual_power_msg;
+    geometry_msgs::Twist set_scaled_actual_power_diff_msg;
     custom_msgs::ControlTypes control_types_msg;
     std_msgs::Bool status_msg;
     custom_msgs::PIDGains pid_gains_msg;
@@ -371,7 +377,7 @@ void Controls::run()
 
         // Allocate thrusters
         thruster_allocator.allocate_thrusters(set_power, power_scale_factor, set_power_scaled, unconstrained_allocs,
-                                              constrained_allocs, actual_power);
+                                              constrained_allocs, actual_power, set_scaled_actual_power_diff);
 
         // Convert thruster allocation vector to message
         ControlsUtils::eigen_vector_to_thruster_allocs(constrained_allocs, constrained_t);
@@ -394,6 +400,9 @@ void Controls::run()
 
         ControlsUtils::eigen_vector_to_twist(actual_power, actual_power_msg);
         actual_power_pub.publish(actual_power_msg);
+
+        ControlsUtils::eigen_vector_to_twist(set_scaled_actual_power_diff, set_scaled_actual_power_diff_msg);
+        set_scaled_actual_power_diff_pub.publish(set_scaled_actual_power_diff_msg);
 
         ControlsUtils::map_to_control_types(control_types, control_types_msg);
         control_types_pub.publish(control_types_msg);
