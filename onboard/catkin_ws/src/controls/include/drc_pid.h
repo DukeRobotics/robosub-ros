@@ -13,7 +13,10 @@
 
 class PID
 {
-public:
+private:
+
+    // *****************************************************************************************************************
+    // Non-configurable properties
 
     /**
      * @brief The maximum absolute value of the integral term. This is used to prevent integral windup.
@@ -26,15 +29,41 @@ public:
      */
     double c = 1.0;
 
+
+    // *****************************************************************************************************************
+    // Configurable properties
+
     /**
      * @brief Control effort will not be greater than this value.
      */
-    double control_effort_max = 1.0;
+    double control_effort_max;
 
     /**
      * @brief Control effort will not be less than this value.
      */
-    double control_effort_min = -1.0;
+    double control_effort_min;
+
+    /**
+     * @brief The type of derivative used to compute the derivative term.
+     */
+    PIDDerivativeTypesEnum derivative_type;
+
+    /**
+     * @brief The maximum absolute value rate at which the error can change per second. Must be non-negative. This is
+     *  used to prevent large control efforts from being generated when the error changes rapidly. The error used for
+     *  PID control will be clipped to the previous error +/- (error_ramp_rate * delta_time (in seconds)).
+     */
+    double error_ramp_rate;
+
+    /**
+     * @brief The weights of the proportional, integral, derviative, and feedforward terms. Changes to this map will be
+     *  immediately reflected in the next iteration of the PID loop.
+     */
+    PIDGainsMap pid_gains;
+
+
+    // *****************************************************************************************************************
+    // State variables
 
     /**
      * @brief The integral of the error function. Updated every iteration of the PID loop.
@@ -52,56 +81,54 @@ public:
     std::array<double, 3> filtered_errors;
 
     /**
-     * @brief The three most recent unfiltered derivatives, in order from newest to oldest.
+     * @brief The three most recent unfiltered calculated derivatives, in order from newest to oldest.
      */
     std::array<double, 3> derivs;
 
     /**
-     * @brief The three most recent filtered derivatives, in order from newest to oldest.
+     * @brief The three most recent filtered derivatives, in order from newest to oldest. The type of derivative
+     *  filtered is determined by `derivative_type`.
      */
     std::array<double, 3> filtered_derivs;
 
+public:
     /**
-     * @brief The weights of the proportional, integral, derviative, and feedforward terms. Updated _only_ by
-     *  instantiators of the PID class. Changes to this map will be immediately reflected in the next iteration of the
-     *  PID loop.
-     */
-    std::shared_ptr<PIDGainsMap> pid_gains;
-
-    /**
-     * @brief The proportional, integral, derviative, and feedforward terms that are summed to get the control effort.
-     *  Updated every iteration of the PID loop.
-     */
-    std::shared_ptr<PIDGainsMap> pid_terms;
-
-    /**
-     * @brief Construct a new PID object with `pid_gains` and `pid_terms` set to `nullptr`.
+     * @brief Default constructor. All configurable properties are uninitialized.
      */
     PID();
 
     /**
-     * @brief Construct a new PID object with `pid_gains` and `pid_terms` set to the given pointers.
+     * @brief Construct a new PID object with the given parameters.
      *
-     * @param pid_gains The gains that will be updated by instantiators of this class and used to weight the PID terms.
-     * @param pid_terms The terms that will be updated by this class and summed to get the control effort.
+     * @param control_effort_limit The maximum absolute value of the control effort. Must be non-negative.
+     *  `control_effort_max` will be set to this value, and `control_effort_min` will be set to the negation of this
+     *  value.
+     * @param derivative_type The type of derivative used to compute the derivative term.
+     * @param error_ramp_rate The maximum absolute value rate at which the error can change per second. Must be
+     *  non-negative.
+     * @param pid_gains The gains used to weight the PID terms. All four keys in the map must be present.
      */
-    PID(std::shared_ptr<PIDGainsMap> pid_gains, std::shared_ptr<PIDGainsMap> pid_terms);
+    PID(const double &control_effort_limit, const PIDDerivativeTypesEnum &derivative_type,
+        const double &error_ramp_rate, const PIDGainsMap &pid_gains);
+
+    /**
+     * @brief Set the pid gains object.
+     *
+     * @param pid_gain_type The type of pid gain to set.
+     */
+    void set_pid_gain(const PIDGainTypesEnum &pid_gain_type, const double &value);
+
+    /**
+     * @brief Get the pid gains object.
+     *
+     * @return Constant reference to the pid gains object.
+     */
+    const PIDGainsMap& get_pid_gains() const;
 
     /**
      * @brief Reset PID loop in preparation for change in setpoint.
     */
     void reset();
-
-    /**
-     * @brief Clip value between `min` and `max`. If `value` is less than `min`, return `min`. If `value` is greater
-     *  than `max`, return `max`. Otherwise, return `value`.
-     *
-     * @param value The value to clip.
-     * @param min The minimum value.
-     * @param max The maximum value.
-     * @return The clipped value, guaranteed to be between `min` and `max` (inclusive).
-     */
-    double clip(const double value, const double min, const double max);
 
     /**
      * @brief Second order butterworth filter. Used to reduce noise and maintain stability.

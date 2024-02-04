@@ -6,21 +6,39 @@
 
 PID::PID(){};
 
-PID::PID(std::shared_ptr<PIDGainsMap> pid_gains, std::shared_ptr<PIDGainsMap> pid_terms)
+PID::PID(const double &control_effort_limit, const PIDDerivativeTypesEnum &derivative_type,
+         const double &error_ramp_rate, const PIDGainsMap &pid_gains)
 {
+    // Validate inputs
+    ROS_ASSERT_MSG(control_effort_limit >= 0, "PID initialization error: Control effort limit must be non-negative.");
+    ROS_ASSERT_MSG(ControlsUtils::pid_gains_map_valid(pid_gains),
+                   "PID initialization error: PID gains map is invalid.");
+    ROS_ASSERT_MSG(error_ramp_rate >= 0, "PID initialization error: Error ramp rate must be non-negative.");
+    ROS_ASSERT_MSG(ControlsUtils::value_in_pid_derivative_types_enum(derivative_type),
+                   "PID initialization error: Derivative type is invalid.");
+
+    // Set parameters
+    this->control_effort_max = control_effort_limit;
+    this->control_effort_min = -control_effort_limit;
     this->pid_gains = pid_gains;
-    this->pid_terms = pid_terms;
+    this->derivative_type = derivative_type;
+}
+
+void PID::set_pid_gain(const PIDGainTypesEnum &pid_gain_type, const double &value)
+{
+    // Set gains
+    this->pid_gains[pid_gain_type] = value;
+}
+
+const PIDGainsMap& PID::get_pid_gains() const
+{
+    return pid_gains;
 }
 
 void PID::reset()
 {
     // Reset integral to zero
     integral = 0.0;
-}
-
-double PID::clip(const double value, const double min, const double max)
-{
-    return std::max(min, std::min(value, max));
 }
 
 double PID::second_order_butterworth(const std::array<double, 3> &values, const std::array<double, 3> &filtered_values)
@@ -36,21 +54,13 @@ double PID::second_order_butterworth(const std::array<double, 3> &values, const 
 
 double PID::run_loop(double error, double delta_time)
 {
-    // If pid_gains is not set, return 0 and print error
-    if (pid_gains == nullptr || pid_gains->size() == 0 || !pid_gains->count(PIDGainTypesEnum::KP) ||
-        !pid_gains->count(PIDGainTypesEnum::KI) || !pid_gains->count(PIDGainTypesEnum::KD) ||
-        !pid_gains->count(PIDGainTypesEnum::FF))
-    {
-        ROS_ERROR("PID gains not set.");
-        return 0;
-    }
+    // If there are validation errors, an exception is not thrown to maintain continuous operation of controls in the
+    // event of a temporary error. Instead, the function returns 0 and prints an error message.
 
-    // If pid_terms is not set, return 0 and print error
-    if (pid_terms == nullptr || pid_terms->size() == 0 || !pid_terms->count(PIDGainTypesEnum::KP) ||
-        !pid_terms->count(PIDGainTypesEnum::KI) || !pid_terms->count(PIDGainTypesEnum::KD) ||
-        !pid_terms->count(PIDGainTypesEnum::FF))
+    // If pid_gains is not valid, return 0 and print error
+    if (!ControlsUtils::pid_gains_map_valid(pid_gains))
     {
-        ROS_ERROR("PID terms not set.");
+        ROS_ERROR("PID run loop error: PID gains map is invalid.");
         return 0;
     }
 
@@ -76,7 +86,7 @@ double PID::run_loop(double error, double delta_time)
     integral += error * delta_time;
 
     // Integral windup protection against sudden setpoint changes or unactuatable states
-    integral = clip(integral, -integral_clamp, integral_clamp);
+    integral = ControlsUtils::clip(integral, -integral_clamp, integral_clamp);
 
     // Update derivatives
     derivs.at(2) = derivs.at(1);
@@ -89,20 +99,14 @@ double PID::run_loop(double error, double delta_time)
     filtered_derivs.at(0) = second_order_butterworth(derivs, filtered_derivs);
 
     // Calculate terms, weighted by their respective gains
-    double p = pid_gains->at(PIDGainTypesEnum::KP) * filtered_errors.at(0);
-    double i = pid_gains->at(PIDGainTypesEnum::KI) * integral;
-    double d = pid_gains->at(PIDGainTypesEnum::KD) * filtered_derivs.at(0);
-    double f = pid_gains->at(PIDGainTypesEnum::FF);
+    double p = pid_gains.at(PIDGainTypesEnum::KP) * filtered_errors.at(0);
+    double i = pid_gains.at(PIDGainTypesEnum::KI) * integral;
+    double d = pid_gains.at(PIDGainTypesEnum::KD) * filtered_derivs.at(0);
+    double f = pid_gains.at(PIDGainTypesEnum::FF);
     double control_effort = p + i + d + f;
 
-    // Update term values
-    pid_terms->at(PIDGainTypesEnum::KP) = p;
-    pid_terms->at(PIDGainTypesEnum::KI) = i;
-    pid_terms->at(PIDGainTypesEnum::KD) = d;
-    pid_terms->at(PIDGainTypesEnum::FF) = f;
-
     // Clip control effort to be within limits
-    control_effort = clip(control_effort, control_effort_min, control_effort_max);
+    control_effort = ControlsUtils::clip(control_effort, control_effort_min, control_effort_max);
 
     return control_effort;
 }

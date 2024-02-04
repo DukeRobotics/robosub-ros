@@ -67,7 +67,6 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     set_power_scaled_pub = nh.advertise<geometry_msgs::Twist>("controls/set_power_scaled", 1);
     actual_power_pub = nh.advertise<geometry_msgs::Twist>("controls/actual_power", 1);
     pid_gains_pub = nh.advertise<custom_msgs::PIDGains>("controls/pid_gains", 1);
-    pid_terms_pub = nh.advertise<custom_msgs::PIDGains>("controls/pid_terms", 1);
     control_types_pub = nh.advertise<custom_msgs::ControlTypes>("controls/control_types", 1);
     position_efforts_pub = nh.advertise<geometry_msgs::Twist>("controls/position_efforts", 1);
     velocity_efforts_pub = nh.advertise<geometry_msgs::Twist>("controls/velocity_efforts", 1);
@@ -86,23 +85,23 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     // Get PID gains from robot config file
     std::string wrench_matrix_file_path;
     std::string wrench_matrix_pinv_file_path;
-    ControlsUtils::read_robot_config(all_pid_gains, static_power_global, power_scale_factor, wrench_matrix_file_path,
-                                     wrench_matrix_pinv_file_path);
 
-    // Initialize all PID terms to zero
-    for (const PIDLoopTypesEnum &pid_loop_type : PID_LOOP_TYPES)
-        for (const AxesEnum &axis : AXES)
-        {
-            std::shared_ptr<PIDGainsMap> terms = std::make_shared<PIDGainsMap>();
-            for (const PIDGainTypesEnum &pid_gain_type : PID_GAIN_TYPES)
-                (*terms)[pid_gain_type] = 0.0;
+    LoopsMap<AxesMap<double>> loops_axes_control_effort_limits;
+    LoopsMap<AxesMap<PIDDerivativeTypesEnum>> loops_axes_derivative_types;
+    LoopsMap<AxesMap<double>> loops_axes_error_ramp_rates;
+    LoopsMap<AxesMap<PIDGainsMap>> loops_axes_pid_gains;
 
-            all_pid_terms[pid_loop_type][axis] = terms;
-        }
+    // TODO: Read control effort limit, derivative type, and error ramp rate from robot config file
+    ControlsUtils::read_robot_config(loops_axes_control_effort_limits, loops_axes_derivative_types,
+                                     loops_axes_error_ramp_rates, loops_axes_pid_gains, static_power_global,
+                                     power_scale_factor, wrench_matrix_file_path, wrench_matrix_pinv_file_path);
 
     // Instantiate PID managers for each PID loop type
-    for (const PIDLoopTypesEnum &pid_loop_type : PID_LOOP_TYPES)
-        pid_managers[pid_loop_type] = PIDManager(all_pid_gains[pid_loop_type], all_pid_terms[pid_loop_type]);
+    for (const PIDLoopTypesEnum &loop : PID_LOOP_TYPES)
+        pid_managers[loop] = PIDManager(loops_axes_control_effort_limits.at(loop),
+                                        loops_axes_derivative_types.at(loop),
+                                        loops_axes_error_ramp_rates.at(loop),
+                                        loops_axes_pid_gains.at(loop));
 
     // Instantiate thruster allocator
     thruster_allocator = ThrusterAllocator(wrench_matrix_file_path, wrench_matrix_pinv_file_path);
@@ -202,11 +201,6 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     if (enable_velocity_pid)
         pid_managers[PIDLoopTypesEnum::VELOCITY].run_loops(velocity_error_map, delta_time_map, velocity_pid_outputs);
 
-    // Publish PID terms
-    custom_msgs::PIDGains pid_terms_msg;
-    ControlsUtils::pid_loops_axes_gains_map_to_msg(all_pid_terms, pid_terms_msg);
-    pid_terms_pub.publish(pid_terms_msg);
-
     // Publish control efforts
     geometry_msgs::Twist position_efforts_msg;
     ControlsUtils::map_to_twist(position_pid_outputs, position_efforts_msg);
@@ -242,7 +236,7 @@ bool Controls::set_control_types_callback(custom_msgs::SetControlTypes::Request 
 
 bool Controls::set_pid_gains_callback(custom_msgs::SetPIDGains::Request &req, custom_msgs::SetPIDGains::Response &res)
 {
-    res.success = ControlsUtils::update_pid_loops_axes_gains_map(all_pid_gains, req.pid_gains);
+    res.success = ControlsUtils::pid_gains_valid(req.pid_gains);
 
     // Update robot config file if PID gains were updated successfully
     // Logs an error if file could not be updated and shuts down the node.
@@ -253,8 +247,23 @@ bool Controls::set_pid_gains_callback(custom_msgs::SetPIDGains::Request &req, cu
     // despite being incomplete, we have no way of undoing the changes (if any) that were made to the file. It is likely
     // users will make frequent mistakes when calling this service, but it is unlikely writing to config file will
     // frequently fail.
+
     if (res.success)
-        ControlsUtils::update_robot_config_pid_gains(all_pid_gains);
+    {
+        for (const custom_msgs::PIDGain &pid_gain_update : req.pid_gains)
+        {
+            PIDLoopTypesEnum loop = static_cast<PIDLoopTypesEnum>(pid_gain_update.loop);
+            AxesEnum axis = static_cast<AxesEnum>(pid_gain_update.axis);
+            PIDGainTypesEnum gain_type = static_cast<PIDGainTypesEnum>(pid_gain_update.gain);
+            pid_managers.at(loop).set_pid_gain(axis, gain_type, pid_gain_update.value);
+        }
+
+        LoopsMap<AxesMap<PIDGainsMap>> loops_axes_pid_gains;
+        for (const PIDLoopTypesEnum &loop : PID_LOOP_TYPES)
+            loops_axes_pid_gains[loop] = pid_managers.at(loop).get_axes_pid_gains();
+
+        ControlsUtils::update_robot_config_pid_gains(loops_axes_pid_gains);
+    }
 
     res.message = res.success ? "Updated PID gains successfully." : "Failed to update PID gains. One or more PID gains was invalid.";
 
@@ -319,6 +328,8 @@ void Controls::run()
     Eigen::VectorXd actual_power;
     Eigen::VectorXd unconstrained_allocs;
     Eigen::VectorXd constrained_allocs;
+
+    LoopsMap<AxesMap<PIDGainsMap>> loops_axes_pid_gains;
 
     custom_msgs::ThrusterAllocs unconstrained_t;
     custom_msgs::ThrusterAllocs constrained_t;
@@ -390,7 +401,10 @@ void Controls::run()
         status_msg.data = controls_enabled;
         status_pub.publish(status_msg);
 
-        ControlsUtils::pid_loops_axes_gains_map_to_msg(all_pid_gains, pid_gains_msg);
+        for (const PIDLoopTypesEnum &loop : PID_LOOP_TYPES)
+            loops_axes_pid_gains[loop] = pid_managers.at(loop).get_axes_pid_gains();
+
+        ControlsUtils::pid_loops_axes_gains_map_to_msg(loops_axes_pid_gains, pid_gains_msg);
         pid_gains_pub.publish(pid_gains_msg);
 
         static_power_global_msg = tf2::toMsg(static_power_global);

@@ -168,7 +168,39 @@ void ros_test(int argc, char** argv)
 
 }
 
+
+std::unordered_map<uint8_t, double> map_copy_func1(std::unordered_map<uint8_t, double> &map)
+{
+  std::unordered_map<uint8_t, double> map_copy = map;
+  map_copy[1] = 2;
+  return map_copy;
+}
+
+std::unordered_map<uint8_t, double> global_map = {{1, 3}};
+
+std::unordered_map<uint8_t, double> get_global_map()
+{
+  return global_map;
+}
+
+void map_copy_test()
+{
+  std::unordered_map<uint8_t, double> map;
+  map[1] = 1;
+
+  std::unordered_map<uint8_t, double> map_copy = map_copy_func1(map);
+
+  std::unordered_map<uint8_t, double> local_map = get_global_map();
+  local_map[1] = 4;
+
+  std::cout << "map[1]: " << map[1] << std::endl;
+  std::cout << "map_copy[1]: " << map_copy[1] << std::endl;
+  std::cout << "global_map[1]: " << global_map[1] << std::endl;
+  std::cout << "local_map[1]: " << local_map[1] << std::endl;
+}
+
 int main(int argc, char** argv)
 {
-  return osqp_eigen_test();
+  map_copy_test();
+  return 0;
 }

@@ -28,7 +28,7 @@
 
 class Controls
 {
-public:
+private:
     static const int THRUSTER_ALLOCS_RATE = 20;
 
     bool sim = false;
@@ -60,7 +60,6 @@ public:
     ros::Publisher set_power_scaled_pub;
     ros::Publisher actual_power_pub;
     ros::Publisher pid_gains_pub;
-    ros::Publisher pid_terms_pub;
     ros::Publisher control_types_pub;
     ros::Publisher position_efforts_pub;
     ros::Publisher velocity_efforts_pub;
@@ -76,9 +75,7 @@ public:
 
     ros::Time last_state_msg_time;
 
-    LoopsAxesPIDGainsMap all_pid_gains;
-    LoopsAxesPIDGainsMap all_pid_terms;
-    std::unordered_map<PIDLoopTypesEnum, PIDManager> pid_managers;
+    LoopsMap<PIDManager> pid_managers;
 
     tf2::Vector3 static_power_global;
     tf2::Vector3 static_power_local;
@@ -87,12 +84,11 @@ public:
 
     ThrusterAllocator thruster_allocator;
 
-    std::unordered_map<AxesEnum, ControlTypesEnum> control_types;
-    std::unordered_map<AxesEnum, double> position_pid_outputs;
-    std::unordered_map<AxesEnum, double> velocity_pid_outputs;
-    std::unordered_map<AxesEnum, double> desired_power;
+    AxesMap<ControlTypesEnum> control_types;
+    AxesMap<double> position_pid_outputs;
+    AxesMap<double> velocity_pid_outputs;
+    AxesMap<double> desired_power;
 
-    Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<tf2_ros::Buffer> tfl_buffer);
     void desired_position_callback(const geometry_msgs::Pose msg);
     void desired_velocity_callback(const geometry_msgs::Twist msg);
     void desired_power_callback(const geometry_msgs::Twist msg);
@@ -103,6 +99,9 @@ public:
     bool reset_pid_loops_callback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
     bool set_static_power_global_callback(custom_msgs::SetStaticPower::Request &req, custom_msgs::SetStaticPower::Response &res);
     bool set_power_scale_factor_callback(custom_msgs::SetPowerScaleFactor::Request &req, custom_msgs::SetPowerScaleFactor::Response &res);
+
+public:
+    Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<tf2_ros::Buffer> tfl_buffer);
     void run();
 };
 

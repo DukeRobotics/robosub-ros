@@ -54,6 +54,12 @@ bool ControlsUtils::value_in_pid_gain_types_enum(uint8_t value)
            value == PIDGainTypesEnum::FF;
 }
 
+bool ControlsUtils::value_in_pid_derivative_types_enum(uint8_t value)
+{
+    return value == PIDDerivativeTypesEnum::CALCULATED ||
+           value == PIDDerivativeTypesEnum::PROVIDED;
+}
+
 bool ControlsUtils::quaternion_valid(const geometry_msgs::Quaternion &quaternion)
 {
     // Ensure quaternion has length 1
@@ -87,6 +93,14 @@ bool ControlsUtils::pid_gains_valid(const std::vector<custom_msgs::PIDGain> &pid
             return false;
 
     return true;
+}
+
+bool ControlsUtils::pid_gains_map_valid(const PIDGainsMap &pid_gains_map)
+{
+    return pid_gains_map.count(PIDGainTypesEnum::KP) &&
+           pid_gains_map.count(PIDGainTypesEnum::KI) &&
+           pid_gains_map.count(PIDGainTypesEnum::KD) &&
+           pid_gains_map.count(PIDGainTypesEnum::FF);
 }
 
 void ControlsUtils::pose_to_twist(const geometry_msgs::Pose &pose, geometry_msgs::Twist &twist)
@@ -127,7 +141,8 @@ void ControlsUtils::map_to_twist(const std::unordered_map<AxesEnum, double> &map
     twist.angular.z = map.at(AxesEnum::YAW);
 }
 
-void ControlsUtils::eigen_vector_to_thruster_allocs(const Eigen::VectorXd &vector, custom_msgs::ThrusterAllocs &thruster_allocs)
+void ControlsUtils::eigen_vector_to_thruster_allocs(const Eigen::VectorXd &vector,
+                                                    custom_msgs::ThrusterAllocs &thruster_allocs)
 {
     thruster_allocs.allocs.clear();
     for (int i = 0; i < vector.rows(); ++i)
@@ -186,7 +201,8 @@ void ControlsUtils::tf_linear_vector_to_map(const tf2::Vector3 &vector, std::uno
     map[AxesEnum::YAW] = 0.0;
 }
 
-void ControlsUtils::pid_loops_axes_gains_map_to_msg(const LoopsAxesPIDGainsMap &all_pid_gains, custom_msgs::PIDGains &pid_gains_msg)
+void ControlsUtils::pid_loops_axes_gains_map_to_msg(const LoopsMap<AxesMap<PIDGainsMap>> &loops_axes_pid_gains,
+                                                    custom_msgs::PIDGains &pid_gains_msg)
 {
     pid_gains_msg.pid_gains.clear();
 
@@ -198,25 +214,9 @@ void ControlsUtils::pid_loops_axes_gains_map_to_msg(const LoopsAxesPIDGainsMap &
                 pid_gain.loop = loop;
                 pid_gain.axis = axis;
                 pid_gain.gain = gain;
-                pid_gain.value = all_pid_gains.at(loop).at(axis)->at(gain);
+                pid_gain.value = loops_axes_pid_gains.at(loop).at(axis).at(gain);
                 pid_gains_msg.pid_gains.push_back(pid_gain);
             }
-}
-
-bool ControlsUtils::update_pid_loops_axes_gains_map(LoopsAxesPIDGainsMap &all_pid_gains, const std::vector<custom_msgs::PIDGain> &pid_gain_updates)
-{
-    if (!ControlsUtils::pid_gains_valid(pid_gain_updates))
-        return false;
-
-    for (const custom_msgs::PIDGain &pid_gain_update : pid_gain_updates)
-    {
-        PIDLoopTypesEnum loop = static_cast<PIDLoopTypesEnum>(pid_gain_update.loop);
-        AxesEnum axis = static_cast<AxesEnum>(pid_gain_update.axis);
-        PIDGainTypesEnum gain = static_cast<PIDGainTypesEnum>(pid_gain_update.gain);
-        (*all_pid_gains[loop][axis])[gain] = pid_gain_update.value;
-    }
-
-    return true;
 }
 
 void ControlsUtils::populate_axes_map(std::unordered_map<AxesEnum, double> &map, double value)
@@ -250,7 +250,8 @@ void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd 
             row.push_back(value);
 
             iss >> comma;
-            ROS_ASSERT_MSG((iss.good() || iss.eof()) && comma == ',', "File is not in valid CSV format. %s", file_path.c_str());
+            ROS_ASSERT_MSG((iss.good() || iss.eof()) && comma == ',', "File is not in valid CSV format. %s",
+                           file_path.c_str());
         }
 
         data.push_back(row);
@@ -259,7 +260,8 @@ void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd 
         if (cols == -1)
             cols = row.size();
         else
-            ROS_ASSERT_MSG(row.size() == cols, "CSV file must have same number of columns in all rows. %s", file_path.c_str());
+            ROS_ASSERT_MSG(row.size() == cols, "CSV file must have same number of columns in all rows. %s",
+                           file_path.c_str());
     }
 
     // Close the file
@@ -281,7 +283,10 @@ void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd 
             matrix(i, j) = data[i][j];
 }
 
-void ControlsUtils::read_robot_config(LoopsAxesPIDGainsMap &all_pid_gains,
+void ControlsUtils::read_robot_config(LoopsMap<AxesMap<double>> &loops_axes_control_effort_limits,
+                                      LoopsMap<AxesMap<PIDDerivativeTypesEnum>> &loops_axes_derivative_types,
+                                      LoopsMap<AxesMap<double>> &loops_axes_error_ramp_rates,
+                                      LoopsMap<AxesMap<PIDGainsMap>> &loops_axes_pid_gains,
                                       tf2::Vector3 &static_power_global,
                                       double &power_scale_factor,
                                       std::string &wrench_matrix_file_path,
@@ -295,18 +300,23 @@ void ControlsUtils::read_robot_config(LoopsAxesPIDGainsMap &all_pid_gains,
 
         YAML::Node pid_node = config["pid"];
 
-        for (const auto &loop_type : PID_LOOP_TYPES)
+        for (const auto &loop : PID_LOOP_TYPES)
         {
-            YAML::Node loop_node = pid_node[PID_LOOP_TYPES_NAMES.at(loop_type)];
+            YAML::Node loop_node = pid_node[PID_LOOP_TYPES_NAMES.at(loop)];
             for (const auto &axis : AXES)
             {
                 YAML::Node axis_node = loop_node[AXES_NAMES.at(axis)];
-                std::shared_ptr<PIDGainsMap> gains = std::make_shared<PIDGainsMap>();
 
+                loops_axes_control_effort_limits[loop][axis] = axis_node["control_effort_limit"].as<double>();
+                loops_axes_derivative_types[loop][axis] =
+                    static_cast<PIDDerivativeTypesEnum>(axis_node["derivative_type"].as<int>());
+                loops_axes_error_ramp_rates[loop][axis] = axis_node["error_ramp_rate"].as<double>();
+
+                PIDGainsMap gains = PIDGainsMap();
                 for (const auto &gain : PID_GAIN_TYPES)
-                    (*gains)[gain] = axis_node[PID_GAIN_TYPES_NAMES.at(gain)].as<double>();
+                    gains[gain] = axis_node[PID_GAIN_TYPES_NAMES.at(gain)].as<double>();
 
-                all_pid_gains[loop_type][axis] = gains;
+                loops_axes_pid_gains[loop][axis] = gains;
             }
         }
 
@@ -335,7 +345,7 @@ void ControlsUtils::read_robot_config(LoopsAxesPIDGainsMap &all_pid_gains,
     }
 }
 
-void ControlsUtils::update_robot_config(std::function<void(YAML::Node&)> update_function, std::string update_name)
+void ControlsUtils::update_robot_config(std::function<void(YAML::Node &)> update_function, std::string update_name)
 {
     try
     {
@@ -363,24 +373,24 @@ void ControlsUtils::update_robot_config(std::function<void(YAML::Node&)> update_
     {
         ROS_ERROR("Exception: %s", e.what());
         ROS_ASSERT_MSG(false, "Could not update %s in robot config file. Make sure it is in the correct format. '%s'",
-                        update_name.c_str(), ROBOT_CONFIG_FILE_PATH.c_str());
+                       update_name.c_str(), ROBOT_CONFIG_FILE_PATH.c_str());
     }
 }
 
-void ControlsUtils::update_robot_config_pid_gains(const LoopsAxesPIDGainsMap &all_pid_gains)
+void ControlsUtils::update_robot_config_pid_gains(const LoopsMap<AxesMap<PIDGainsMap>> &loops_axes_pid_gains)
 {
-    std::function<void(YAML::Node&)> update_function = [&all_pid_gains](YAML::Node &config)
+    std::function<void(YAML::Node &)> update_function = [&loops_axes_pid_gains](YAML::Node &config)
     {
         YAML::Node pid = config["pid"];
 
-        for (const auto &loop_type : PID_LOOP_TYPES)
+        for (const auto &loop : PID_LOOP_TYPES)
         {
-            YAML::Node loop = pid[PID_LOOP_TYPES_NAMES.at(loop_type)];
+            YAML::Node loop_node = pid[PID_LOOP_TYPES_NAMES.at(loop)];
             for (const auto &axis : AXES)
             {
-                YAML::Node axis_node = loop[AXES_NAMES.at(axis)];
+                YAML::Node axis_node = loop_node[AXES_NAMES.at(axis)];
                 for (const auto &gain : PID_GAIN_TYPES)
-                    axis_node[PID_GAIN_TYPES_NAMES.at(gain)] = all_pid_gains.at(loop_type).at(axis)->at(gain);
+                    axis_node[PID_GAIN_TYPES_NAMES.at(gain)] = loops_axes_pid_gains.at(loop).at(axis).at(gain);
             }
         }
     };
@@ -390,7 +400,7 @@ void ControlsUtils::update_robot_config_pid_gains(const LoopsAxesPIDGainsMap &al
 
 void ControlsUtils::update_robot_config_static_power_global(const tf2::Vector3 &static_power_global)
 {
-    std::function<void(YAML::Node&)> update_function = [&static_power_global](YAML::Node &config)
+    std::function<void(YAML::Node &)> update_function = [&static_power_global](YAML::Node &config)
     {
         YAML::Node static_power_global_node = config["static_power_global"];
         static_power_global_node[AXES_NAMES.at(AxesEnum::X)] = static_power_global.getX();
@@ -403,10 +413,15 @@ void ControlsUtils::update_robot_config_static_power_global(const tf2::Vector3 &
 
 void ControlsUtils::update_robot_config_power_scale_factor(double &power_scale_factor)
 {
-    std::function<void(YAML::Node&)> update_function = [&power_scale_factor](YAML::Node &config)
+    std::function<void(YAML::Node &)> update_function = [&power_scale_factor](YAML::Node &config)
     {
         config["power_scale_factor"] = power_scale_factor;
     };
 
     update_robot_config(update_function, "power scale factor");
+}
+
+double ControlsUtils::clip(const double value, const double min, const double max)
+{
+    return std::max(min, std::min(value, max));
 }

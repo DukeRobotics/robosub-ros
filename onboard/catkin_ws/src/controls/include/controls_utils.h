@@ -13,6 +13,7 @@
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Vector3.h>
 #include <custom_msgs/ControlTypes.h>
+#include <custom_msgs/PIDDerivativeMode.h>
 #include <custom_msgs/PIDGain.h>
 #include <custom_msgs/PIDGains.h>
 #include <custom_msgs/ThrusterAllocs.h>
@@ -103,18 +104,26 @@ const std::string ROBOT_CONFIG_FILE_PATH = CONTROLS_PACKAGE_PATH + "/config/" + 
 // Map of PID gains
 typedef std::unordered_map<PIDGainTypesEnum, double> PIDGainsMap;
 
-// Map of axes to shared pointer of PID gains map
-typedef std::unordered_map<AxesEnum, std::shared_ptr<PIDGainsMap>> AxesPIDGainsMap;
+// Map of axes to template type
+template <typename T>
+using AxesMap = std::unordered_map<AxesEnum, T>;
 
-// Map of PID loop types to axes to shared pointers of PID gains maps
-typedef std::unordered_map<PIDLoopTypesEnum, AxesPIDGainsMap> LoopsAxesPIDGainsMap;
+// Map of PID loop types to axes to template type
+template <typename T>
+using LoopsMap = std::unordered_map<PIDLoopTypesEnum, T>;
+
+// PID Derivative Types: CALCULATED, PROVIDED
+enum PIDDerivativeTypesEnum : uint8_t
+{
+    CALCULATED = custom_msgs::PIDDerivativeMode::CALCULATED,
+    PROVIDED = custom_msgs::PIDDerivativeMode::PROVIDED
+};
 
 namespace ControlsUtils
 {
     // Mutex for robot config file.
     // Allows only one thread to read or write to robot config file at a time.
     extern std::mutex robot_config_mutex;
-
 
     // *****************************************************************************************************************
     // Functions to check if value is in enum.
@@ -151,9 +160,16 @@ namespace ControlsUtils
      */
     bool value_in_pid_gain_types_enum(uint8_t value);
 
+    /**
+     * @brief Check if value is in `PIDDerivativeTypesEnum`.
+     *
+     * @param value Value to check.
+     * @return True if value is in `PIDDerivativeTypesEnum`, false otherwise.
+     */
+    bool value_in_pid_derivative_types_enum(uint8_t value);
 
     // *****************************************************************************************************************
-    // Functions to check if value is in array.
+    // Functions to check if message is valid.
 
     /**
      * @brief Check if quaternion has length 1 (within tolerance of 1e-6).
@@ -189,6 +205,13 @@ namespace ControlsUtils
      */
     bool pid_gains_valid(const std::vector<custom_msgs::PIDGain> &pid_gains);
 
+    /**
+     * @brief Check if pid gains map has values for all four gain types.
+     *
+     * @param pid_gains_map PID gains map to check.
+     * @return True if pid gains map has values for all four gain types, false otherwise.
+     */
+    bool pid_gains_map_valid(const PIDGainsMap &pid_gains_map);
 
     // *****************************************************************************************************************
     // Functions to convert between types.
@@ -269,27 +292,16 @@ namespace ControlsUtils
     void tf_linear_vector_to_map(const tf2::Vector3 &vector, std::unordered_map<AxesEnum, double> &map);
 
     /**
-     * @brief Convert all PID gains from `all_pid_gains` to PID gains messages and populate `pid_gains_msg.pid_gains`.
+     * @brief Convert map of loops to axes to pid gains to pid gains message.
      *
-     * @param all_pid_gains Map of PID loop types to axes to shared pointers of PID gains maps to convert.
+     * @param loops_axes_pid_gains Map of loops to axes to pid gains to convert.
      * @param pid_gains_msg PID gains message to populate.
      */
-    void pid_loops_axes_gains_map_to_msg(const LoopsAxesPIDGainsMap &all_pid_gains,
+    void pid_loops_axes_gains_map_to_msg(const LoopsMap<AxesMap<PIDGainsMap>> &loops_axes_pid_gains,
                                          custom_msgs::PIDGains &pid_gains_msg);
-
 
     // *****************************************************************************************************************
     // Functions to update maps.
-
-    /**
-     * @brief Update `all_pid_gains` with the updated PID gains in `pid_gain_updates`.
-     *
-     * @param all_pid_gains Map of PID loop types to axes to shared pointers of PID gains maps to update.
-     * @param pid_gain_updates Vector of PID gain messages to update `all_pid_gains` with.
-     * @return True if all PID gains in `pid_gain_updates` are valid and `all_pid_gains` was updated, false otherwise.
-     */
-    bool update_pid_loops_axes_gains_map(LoopsAxesPIDGainsMap &all_pid_gains,
-                                         const std::vector<custom_msgs::PIDGain> &pid_gain_updates);
 
     /**
      * @brief Set values for all axes in `map` to `value`.
@@ -298,7 +310,6 @@ namespace ControlsUtils
      * @param value Value to set all axes to.
      */
     void populate_axes_map(std::unordered_map<AxesEnum, double> &map, double value);
-
 
     // *****************************************************************************************************************
     // Functions to read and write to files.
@@ -330,8 +341,10 @@ namespace ControlsUtils
      *  `wrench_matrix_file_path` and `wrench_matrix_pinv_file_path` fields must contain the file paths relative to the
      *  controls package.
      *
-     * @param file_path Path to robot config file.
-     * @param all_pid_gains Map of PID loop types to axes to shared pointers of PID gains maps to populate.
+     * @param loops_axes_control_effort_limits Map of PID loop types to axes to control effort limits to populate.
+     * @param loops_axes_derivative_types Map of PID loop types to axes to derivative types to populate.
+     * @param loops_axes_error_ramp_rates Map of PID loop types to axes to error ramp rates to populate.
+     * @param loops_axes_pid_gains Map of PID loop types to axes to PID gains to populate.
      * @param static_power_global Static power global vector to populate.
      * @param power_scale_factor Power scale factor to populate.
      * @param wrench_matrix_file_path Wrench matrix file path to populate.
@@ -341,7 +354,10 @@ namespace ControlsUtils
      * @throws ros::Exception File is not in valid YAML format
      * @throws ros::Exception File does not contain all required fields in correct formats
      */
-    void read_robot_config(LoopsAxesPIDGainsMap &all_pid_gains,
+    void read_robot_config(LoopsMap<AxesMap<double>> &loops_axes_control_effort_limits,
+                           LoopsMap<AxesMap<PIDDerivativeTypesEnum>> &loops_axes_derivative_types,
+                           LoopsMap<AxesMap<double>> &loops_axes_error_ramp_rates,
+                           LoopsMap<AxesMap<PIDGainsMap>> &loops_axes_pid_gains,
                            tf2::Vector3 &static_power_global,
                            double &power_scale_factor,
                            std::string &wrench_matrix_file_path,
@@ -357,14 +373,14 @@ namespace ControlsUtils
      * @throws ros::Exception File is not in valid YAML format
      * @throws ros::Exception File does not contain all fields required by `update_function` in correct formats
      */
-    void update_robot_config(std::function<void(YAML::Node&)> update_function, std::string update_name);
+    void update_robot_config(std::function<void(YAML::Node &)> update_function, std::string update_name);
 
     /**
-     * @brief Update PID gains in robot config file to match `all_pid_gains`.
+     * @brief Update PID gains in robot config file to match those in `loops_axes_pid_gains`.
      *
-     * @param all_pid_gains PID gains to set in robot config file.
+     * @param loops_axes_pid_gains Map of PID loops to axes to gains to set in robot config file.
      */
-    void update_robot_config_pid_gains(const LoopsAxesPIDGainsMap &all_pid_gains);
+    void update_robot_config_pid_gains(const LoopsMap<AxesMap<PIDGainsMap>> &loops_axes_pid_gains);
 
     /**
      * @brief Update static power global vector in robot config file to match `static_power_global`.
@@ -379,6 +395,20 @@ namespace ControlsUtils
      * @param power_scale_factor Power scale factor to set in robot config file.
      */
     void update_robot_config_power_scale_factor(double &power_scale_factor);
+
+    // *****************************************************************************************************************
+    // Other functions.
+
+    /**
+     * @brief Clip value between `min` and `max`. If `value` is less than `min`, return `min`. If `value` is greater
+     *  than `max`, return `max`. Otherwise, return `value`.
+     *
+     * @param value The value to clip.
+     * @param min The minimum value.
+     * @param max The maximum value.
+     * @return The clipped value, guaranteed to be between `min` and `max` (inclusive).
+     */
+    double clip(const double value, const double min, const double max);
 };
 
 #endif

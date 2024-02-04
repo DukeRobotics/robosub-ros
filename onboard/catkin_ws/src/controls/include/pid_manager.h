@@ -9,24 +9,44 @@
 
 class PIDManager
 {
-public:
+private:
     /**
      * @brief PID controllers for each axis
      */
     std::unordered_map<AxesEnum, PID> pid_controllers;
 
+public:
     /**
-     * @brief Default constructor
+     * @brief Construct PID controllers with uninitialized properties.
      */
     PIDManager();
 
     /**
-     * @brief Constructor
+     * @brief Construct PID controllers with specified properties.
      *
-     * @param pid_gains_for_axes Pointers to PID gains for each axis
-     * @param pid_terms_for_axes Pointers to PID terms for each axis
+     * @param control_effort_limit Maximum absolute value control effort for each axis.
+     * @param derivative_type Derivative type for each axis.
+     * @param error_ramp_rate Maximum rate of change of error per second for each axis.
+     * @param pid_gains PID gains for each axis.
      */
-    PIDManager(AxesPIDGainsMap pid_gains_for_axes, AxesPIDGainsMap pid_terms_for_axes);
+    PIDManager(const AxesMap<double> &control_effort_limit, const AxesMap<PIDDerivativeTypesEnum> &derivative_type,
+               const AxesMap<double> &error_ramp_rate, const AxesMap<PIDGainsMap> &pid_gains);
+
+    /**
+     * @brief Set the pid gains for all axes.
+     *
+     * @param axis Axis to set PID gains for.
+     * @param pid_gain_type PID gain type to set.
+     * @param value Value to set the PID gain to.
+     */
+    void set_pid_gain(const AxesEnum &axis, const PIDGainTypesEnum &pid_gain_type, const double &value);
+
+    /**
+     * @brief Get the pid gains object
+     *
+     * @return Constant reference to the pid gains object.
+     */
+    AxesMap<PIDGainsMap> get_axes_pid_gains() const;
 
     /**
      * @brief Run PID loops
@@ -35,9 +55,7 @@ public:
      * @param deltaTimes Delta times for each axis
      * @param[out] outputs PID outputs for each axis
      */
-    void run_loops(const std::unordered_map<AxesEnum, double> &errors,
-                   const std::unordered_map<AxesEnum, double> &deltaTimes,
-                   std::unordered_map<AxesEnum, double> &outputs);
+    void run_loops(const AxesMap<double> &errors, const AxesMap<double> &deltaTimes, AxesMap<double> &outputs);
 
     /**
      * @brief Reset PID loop for a given axis
