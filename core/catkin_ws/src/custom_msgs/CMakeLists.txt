@@ -21,7 +21,6 @@ add_message_files(
   PIDGain.msg
   PIDGains.msg
   PIDInfo.msg
-  PIDLoopsAxesInfo.msg
   PIDTerms.msg
   PWMAllocs.msg
   RemoteLaunchInfo.msg

@@ -1,2 +1,0 @@
-PIDAxesInfo position
-PIDAxesInfo velocity
