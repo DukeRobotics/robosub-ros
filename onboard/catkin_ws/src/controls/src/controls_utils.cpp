@@ -227,6 +227,39 @@ void ControlsUtils::pid_loops_axes_gains_map_to_msg(const LoopsMap<AxesMap<PIDGa
             }
 }
 
+void ControlsUtils::pid_terms_struct_to_msg(const PIDTerms &terms, custom_msgs::PIDTerms &terms_msg)
+{
+    terms_msg.proportional = terms.proportional;
+    terms_msg.integral = terms.integral;
+    terms_msg.derivative = terms.derivative;
+    terms_msg.feedforward = terms.feedforward;
+}
+
+void ControlsUtils::pid_info_struct_to_msg(const PIDInfo &pid_info, custom_msgs::PIDInfo &pid_info_msg)
+{
+    pid_info_msg.terms = custom_msgs::PIDTerms();
+    pid_terms_struct_to_msg(pid_info.terms, pid_info_msg.terms);
+
+    pid_info_msg.filtered_error = pid_info.filtered_error;
+    pid_info_msg.integral = pid_info.integral;
+    pid_info_msg.filtered_derivative = pid_info.filtered_derivative;
+
+    pid_info_msg.calculated_derivative = pid_info.calculated_derivative;
+    pid_info_msg.provided_derivative = pid_info.provided_derivative;
+    pid_info_msg.derivative_type.type = pid_info.derivative_type;
+}
+
+void ControlsUtils::pid_axes_map_info_struct_to_msg(const AxesMap<PIDInfo> &pid_axes_map_info_struct,
+                                                    custom_msgs::PIDAxesInfo &pid_axes_info_msg)
+{
+    pid_info_struct_to_msg(pid_axes_map_info_struct.at(AxesEnum::X), pid_axes_info_msg.x);
+    pid_info_struct_to_msg(pid_axes_map_info_struct.at(AxesEnum::Y), pid_axes_info_msg.y);
+    pid_info_struct_to_msg(pid_axes_map_info_struct.at(AxesEnum::Z), pid_axes_info_msg.z);
+    pid_info_struct_to_msg(pid_axes_map_info_struct.at(AxesEnum::ROLL), pid_axes_info_msg.roll);
+    pid_info_struct_to_msg(pid_axes_map_info_struct.at(AxesEnum::PITCH), pid_axes_info_msg.pitch);
+    pid_info_struct_to_msg(pid_axes_map_info_struct.at(AxesEnum::YAW), pid_axes_info_msg.yaw);
+}
+
 void ControlsUtils::populate_axes_map(AxesMap<double> &map, double value)
 {
     for (const AxesEnum &axis : AXES)

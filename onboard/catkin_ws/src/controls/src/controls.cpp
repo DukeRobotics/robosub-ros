@@ -22,6 +22,7 @@
 #include <custom_msgs/ThrusterAllocs.h>
 #include <custom_msgs/PIDGain.h>
 #include <custom_msgs/PIDGains.h>
+#include <custom_msgs/PIDAxesInfo.h>
 #include <custom_msgs/ControlTypes.h>
 #include <custom_msgs/SetPIDGains.h>
 #include <custom_msgs/SetControlTypes.h>
@@ -73,6 +74,8 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     velocity_efforts_pub = nh.advertise<geometry_msgs::Twist>("controls/velocity_efforts", 1);
     position_error_pub = nh.advertise<geometry_msgs::Twist>("controls/position_error", 1);
     velocity_error_pub = nh.advertise<geometry_msgs::Twist>("controls/velocity_error", 1);
+    position_pid_infos_pub = nh.advertise<custom_msgs::PIDAxesInfo>("controls/position_pid_infos", 1);
+    velocity_pid_infos_pub = nh.advertise<custom_msgs::PIDAxesInfo>("controls/velocity_pid_infos", 1);
     status_pub = nh.advertise<std_msgs::Bool>("controls/status", 1);
     delta_time_pub = nh.advertise<std_msgs::Float64>("controls/delta_time", 1);
     static_power_global_pub = nh.advertise<geometry_msgs::Vector3>("controls/static_power_global", 1);
@@ -207,11 +210,11 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     // Run PID loops
     if (enable_position_pid)
         pid_managers[PIDLoopTypesEnum::POSITION].run_loops(position_error_map, delta_time_map, position_pid_outputs,
-                                                           velocity_map);
+                                                           position_pid_infos, velocity_map);
 
     if (enable_velocity_pid)
         pid_managers[PIDLoopTypesEnum::VELOCITY].run_loops(velocity_error_map, delta_time_map, velocity_pid_outputs,
-                                                           actual_power_map);
+                                                           velocity_pid_infos, actual_power_map);
 
     // Publish control efforts
     geometry_msgs::Twist position_efforts_msg;
@@ -221,6 +224,15 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     geometry_msgs::Twist velocity_efforts_msg;
     ControlsUtils::map_to_twist(velocity_pid_outputs, velocity_efforts_msg);
     velocity_efforts_pub.publish(velocity_efforts_msg);
+
+    // Publish PID infos
+    custom_msgs::PIDAxesInfo position_pid_infos_msg;
+    ControlsUtils::pid_axes_map_info_struct_to_msg(position_pid_infos, position_pid_infos_msg);
+    position_pid_infos_pub.publish(position_pid_infos_msg);
+
+    custom_msgs::PIDAxesInfo velocity_pid_infos_msg;
+    ControlsUtils::pid_axes_map_info_struct_to_msg(velocity_pid_infos, velocity_pid_infos_msg);
+    velocity_pid_infos_pub.publish(velocity_pid_infos_msg);
 
     // Rotate static power to equivalent vector in robot's local frame
     tf2::Quaternion orientation_tf2;

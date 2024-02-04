@@ -66,6 +66,8 @@ private:
     ros::Publisher velocity_efforts_pub;
     ros::Publisher position_error_pub;
     ros::Publisher velocity_error_pub;
+    ros::Publisher position_pid_infos_pub;
+    ros::Publisher velocity_pid_infos_pub;
     ros::Publisher status_pub;
     ros::Publisher delta_time_pub;
     ros::Publisher static_power_global_pub;
@@ -90,6 +92,8 @@ private:
     AxesMap<ControlTypesEnum> control_types;
     AxesMap<double> position_pid_outputs;
     AxesMap<double> velocity_pid_outputs;
+    AxesMap<PIDInfo> position_pid_infos;
+    AxesMap<PIDInfo> velocity_pid_infos;
     AxesMap<double> desired_power;
 
     void desired_position_callback(const geometry_msgs::Pose msg);

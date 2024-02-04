@@ -54,10 +54,11 @@ public:
      * @param errors Errors for each axis.
      * @param deltaTimes Delta times for each axis.
      * @param[out] outputs PID outputs for each axis.
+     * @param[out] infos PID info for each axis.
      * @param derivatives Provided derivatives for each axis.
      */
     void run_loops(const AxesMap<double> &errors, const AxesMap<double> &deltaTimes, AxesMap<double> &outputs,
-                   const AxesMap<double> &derivatives = AxesMap<double>());
+                   AxesMap<PIDInfo> &infos, const AxesMap<double> &derivatives = AxesMap<double>());
 
     /**
      * @brief Reset PID loop for a given axis.

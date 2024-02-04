@@ -13,9 +13,12 @@
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Vector3.h>
 #include <custom_msgs/ControlTypes.h>
+#include <custom_msgs/PIDAxesInfo.h>
 #include <custom_msgs/PIDDerivativeType.h>
 #include <custom_msgs/PIDGain.h>
 #include <custom_msgs/PIDGains.h>
+#include <custom_msgs/PIDInfo.h>
+#include <custom_msgs/PIDTerms.h>
 #include <custom_msgs/ThrusterAllocs.h>
 #include <Eigen/Dense>
 
@@ -117,6 +120,29 @@ enum PIDDerivativeTypesEnum : uint8_t
 {
     CALCULATED = custom_msgs::PIDDerivativeType::CALCULATED,
     PROVIDED = custom_msgs::PIDDerivativeType::PROVIDED
+};
+
+// PID terms that are summed to get control effort
+struct PIDTerms
+{
+    double proportional;
+    double integral;
+    double derivative;
+    double feedforward;
+};
+
+// Values computed by PID loop
+struct PIDInfo
+{
+    PIDTerms terms;
+
+    double filtered_error;
+    double integral;
+    double filtered_derivative;
+
+    double calculated_derivative;
+    double provided_derivative;
+    PIDDerivativeTypesEnum derivative_type;
 };
 
 namespace ControlsUtils
@@ -306,6 +332,31 @@ namespace ControlsUtils
      */
     void pid_loops_axes_gains_map_to_msg(const LoopsMap<AxesMap<PIDGainsMap>> &loops_axes_pid_gains,
                                          custom_msgs::PIDGains &pid_gains_msg);
+
+    /**
+     * @brief Convert pid terms struct to pid terms message.
+     *
+     * @param terms PID terms struct to convert.
+     * @param terms_msg PID terms message to populate.
+     */
+    void pid_terms_struct_to_msg(const PIDTerms &terms, custom_msgs::PIDTerms &terms_msg);
+
+    /**
+     * @brief Convert pid info struct to pid info message.
+     *
+     * @param pid_info PID info struct to convert.
+     * @param pid_info_msg PID info message to populate.
+     */
+    void pid_info_struct_to_msg(const PIDInfo &pid_info, custom_msgs::PIDInfo &pid_info_msg);
+
+    /**
+     * @brief Convert axes map with pid info structs to pid axes info message.
+     *
+     * @param pid_axes_map_info_struct Axes map with PID info structs to convert.
+     * @param pid_axes_info_msg PID info message to populate.
+     */
+    void pid_axes_map_info_struct_to_msg(const AxesMap<PIDInfo> &pid_axes_map_info_struct,
+                                         custom_msgs::PIDAxesInfo &pid_axes_info_msg);
 
     // *****************************************************************************************************************
     // Functions to update maps.

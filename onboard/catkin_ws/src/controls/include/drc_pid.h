@@ -146,11 +146,12 @@ public:
      * @param error The difference between the setpoint and the current value. If angular, this should be in radians in
      *  the range [-pi, pi].
      * @param delta_time The time elapsed since the last iteration of the PID loop. Must be positive.
+     * @param[out] info The PIDInfo object containing values computed by the PID loop.
      * @param provided_derivative The derivative of the error, used only if `derivative_type` is
      *  `PIDDerivativeTypesEnum::provided`.
      * @return The control effort.
      */
-    double run_loop(double error, double delta_time, double provided_derivative = 0);
+    double run_loop(double error, double delta_time, PIDInfo &info, double provided_derivative = 0);
 };
 
 #endif
