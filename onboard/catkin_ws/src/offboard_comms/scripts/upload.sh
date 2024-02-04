@@ -12,9 +12,9 @@ PORT_THRUSTER=""
 # Function to print usage of this script
 usage() {
     echo "Usage:"
-    echo "    rosrun offboard_comms dual_upload.sh                               Only install Arduino core and ROS libraries."
-    echo "    rosrun offboard_comms dual_upload.sh [pressure|thruster|dual]      Compile and upload code to the Arduino(s)."
-    echo "    rosrun offboard_comms dual_upload.sh [pressure|thruster|dual] -c   Only compile the code, do not upload to the Arduino(s)."
+    echo "    rosrun offboard_comms upload.sh                               Only install Arduino core and ROS libraries."
+    echo "    rosrun offboard_comms upload.sh [pressure|thruster|dual]      Compile and upload code to the Arduino(s)."
+    echo "    rosrun offboard_comms upload.sh [pressure|thruster|dual] -c   Only compile the code, do not upload to the Arduino(s)."
     exit 0
 }
 
