@@ -13,7 +13,7 @@
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Vector3.h>
 #include <custom_msgs/ControlTypes.h>
-#include <custom_msgs/PIDDerivativeMode.h>
+#include <custom_msgs/PIDDerivativeType.h>
 #include <custom_msgs/PIDGain.h>
 #include <custom_msgs/PIDGains.h>
 #include <custom_msgs/ThrusterAllocs.h>
@@ -115,8 +115,8 @@ using LoopsMap = std::unordered_map<PIDLoopTypesEnum, T>;
 // PID Derivative Types: CALCULATED, PROVIDED
 enum PIDDerivativeTypesEnum : uint8_t
 {
-    CALCULATED = custom_msgs::PIDDerivativeMode::CALCULATED,
-    PROVIDED = custom_msgs::PIDDerivativeMode::PROVIDED
+    CALCULATED = custom_msgs::PIDDerivativeType::CALCULATED,
+    PROVIDED = custom_msgs::PIDDerivativeType::PROVIDED
 };
 
 namespace ControlsUtils

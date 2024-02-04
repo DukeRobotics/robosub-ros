@@ -12,4 +12,4 @@ float64 filtered_derivative
 float64 calculated_derivative
 float64 provided_derivative
 
-PIDDerivativeMode derivative_mode
+PIDDerivativeType derivative_type

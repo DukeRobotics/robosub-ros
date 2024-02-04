@@ -17,7 +17,7 @@ add_message_files(
   HydrophoneSet.msg
   Memory.msg
   PIDAxesInfo.msg
-  PIDDerivativeMode.msg
+  PIDDerivativeType.msg
   PIDGain.msg
   PIDGains.msg
   PIDInfo.msg
@@ -40,7 +40,6 @@ add_service_files(
   EnableModel.srv
   GetRunningNodes.srv
   SetControlTypes.srv
-  SetPIDDerivativeModes.srv
   SetPIDGains.srv
   SetPowerScaleFactor.srv
   SetServo.srv
