@@ -148,6 +148,8 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     delta_time_msg.data = delta_time;
     delta_time_pub.publish(delta_time_msg);
 
+    // Don't run PID loops if delta_time is nonpositive
+    // Only occurs on first state message received
     if (delta_time <= 0.0)
         return;
 

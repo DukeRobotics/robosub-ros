@@ -75,7 +75,10 @@ double PID::run_loop(double error, double delta_time, double provided_derivative
     // Don't need to deal with angular discontinuities as angular errors will always be in range [-pi, pi]
     errors.at(2) = errors.at(1);
     errors.at(1) = errors.at(0);
-    errors.at(0) = error;
+
+    // Clip error to be within error ramp rate
+    double max_error_change = error_ramp_rate * delta_time;
+    errors.at(0) = ControlsUtils::clip(error, error - max_error_change, error + max_error_change);
 
     // Update filtered errors
     filtered_errors.at(2) = filtered_errors.at(1);
