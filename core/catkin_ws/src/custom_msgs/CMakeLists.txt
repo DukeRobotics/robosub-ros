@@ -22,6 +22,7 @@ add_message_files(
   PIDGains.msg
   PIDInfo.msg
   PIDLoopsAxesInfo.msg
+  PIDTerms.msg
   PWMAllocs.msg
   RemoteLaunchInfo.msg
   RunningNode.msg
