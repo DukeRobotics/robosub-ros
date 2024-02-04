@@ -27,7 +27,7 @@ else
     echo "Options parsed: only compiling"
 fi
 
-onboard/catkin_ws/src/offboard_comms/scripts/copy_offset.sh 1 # Copy the offset file to the compile folder
+rosrun offboard_comms copy_offset.sh 1 # Copy the offset file to the compile folder
 
 rm -rf ros_lib
 rosrun rosserial_arduino make_libraries.py .
@@ -43,7 +43,7 @@ rm -f ros_lib.zip
 arduino-cli core install arduino:megaavr
 arduino-cli compile -b arduino:megaavr:nona4809 "${SRC_CODE}"
 
-onboard/catkin_ws/src/offboard_comms/scripts/copy_offset.sh 0 # Remove the offset file from the compile folder
+rosrun offboard_comms copy_offset.sh 0 # Remove the offset file from the compile folder
 
 if [ "$ARD_UPLOAD" = true ]; then
     arduino-cli upload -b arduino:megaavr:nona4809 -p "${PORT}" "${SRC_CODE}"
