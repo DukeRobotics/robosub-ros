@@ -252,7 +252,7 @@ def create_pose(x, y, z, roll, pitch, yaw):
     pose.position = Point(x=x, y=y, z=z)
     pose.orientation = Quaternion(*euler2quat(roll, pitch, yaw))
     return pose
-1
+
 def local_pose_to_global(tfBuffer, pose):
     return transform_pose(tfBuffer, 'base_link', 'odom', pose)
 
