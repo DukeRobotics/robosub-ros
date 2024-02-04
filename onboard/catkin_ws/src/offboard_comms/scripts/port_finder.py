@@ -14,7 +14,7 @@ with open(rr.get_filename(FTDI_FILE_PATH, use_protocol=False)) as f:
     ARDUINO_NAMES = list(FTDI_STRINGS.keys())
 
 # Get the port of the requested arduino
-def process_value(arduino_name):
+def get_arduino_port(arduino_name):
     try:
         ftdi_string = FTDI_STRINGS[arduino_name]
         return next(list_ports.grep(ftdi_string)).device
@@ -34,7 +34,7 @@ def main():
         return
 
     # Print the port of the requested arduino
-    port = process_value(args.arduino_name)
+    port = get_arduino_port(args.arduino_name)
     print(port, end='')
 
 if __name__ == "__main__":
