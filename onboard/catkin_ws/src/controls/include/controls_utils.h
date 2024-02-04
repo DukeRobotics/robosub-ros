@@ -231,7 +231,7 @@ namespace ControlsUtils
      * @param twist Twist to convert.
      * @param map Map to populate.
      */
-    void twist_to_map(const geometry_msgs::Twist &twist, std::unordered_map<AxesEnum, double> &map);
+    void twist_to_map(const geometry_msgs::Twist &twist, AxesMap<double> &map);
 
     /**
      * @brief Convert axes map to twist.
@@ -239,7 +239,7 @@ namespace ControlsUtils
      * @param map Map to convert.
      * @param twist Twist to populate.
      */
-    void map_to_twist(const std::unordered_map<AxesEnum, double> &map, geometry_msgs::Twist &twist);
+    void map_to_twist(const AxesMap<double> &map, geometry_msgs::Twist &twist);
 
     /**
      * @brief Convert Eigen vector to thruster allocs message. `thruster_allocs.allocs` is first cleared. Then,
@@ -262,14 +262,22 @@ namespace ControlsUtils
     void eigen_vector_to_twist(const Eigen::VectorXd &vector, geometry_msgs::Twist &twist);
 
     /**
+     * @brief Convert Eigen vector to axes map. `vector`'s entries are mapped from top to bottom to `map` in the
+     *  following order: X, Y, Z, ROLL, PITCH, YAW.
+     *
+     * @param vector Eigen vector to convert.
+     * @param map Axes map to populate.
+     */
+    void eigen_vector_to_map(const Eigen::VectorXd &vector, AxesMap<double> &map);
+
+    /**
      * @brief Convert control types message to axes map. Checks if message is valid before modifying `map`.
      *
      * @param control_types Control types message to convert.
      * @param map Axes map to populate.
      * @return True if message is valid and conversion was performed, false otherwise.
      */
-    bool control_types_to_map(const custom_msgs::ControlTypes &control_types,
-                              std::unordered_map<AxesEnum, ControlTypesEnum> &map);
+    bool control_types_to_map(const custom_msgs::ControlTypes &control_types, AxesMap<ControlTypesEnum> &map);
 
     /**
      * @brief Convert axes map to control types message.
@@ -277,8 +285,7 @@ namespace ControlsUtils
      * @param map Axes map to convert.
      * @param control_types Control types message to populate.
      */
-    void map_to_control_types(const std::unordered_map<AxesEnum, ControlTypesEnum> &map,
-                              custom_msgs::ControlTypes &control_types);
+    void map_to_control_types(const AxesMap<ControlTypesEnum> &map, custom_msgs::ControlTypes &control_types);
 
     /**
      * @brief Convert tf Vector3 to axes map.
@@ -289,7 +296,7 @@ namespace ControlsUtils
      * @param vector Vector3 to convert.
      * @param map Axes map to populate.
      */
-    void tf_linear_vector_to_map(const tf2::Vector3 &vector, std::unordered_map<AxesEnum, double> &map);
+    void tf_linear_vector_to_map(const tf2::Vector3 &vector, AxesMap<double> &map);
 
     /**
      * @brief Convert map of loops to axes to pid gains to pid gains message.
@@ -309,7 +316,7 @@ namespace ControlsUtils
      * @param map Map to populate.
      * @param value Value to set all axes to.
      */
-    void populate_axes_map(std::unordered_map<AxesEnum, double> &map, double value);
+    void populate_axes_map(AxesMap<double> &map, double value);
 
     // *****************************************************************************************************************
     // Functions to read and write to files.

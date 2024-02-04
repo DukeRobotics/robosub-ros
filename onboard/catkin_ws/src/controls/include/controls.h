@@ -78,6 +78,8 @@ private:
 
     LoopsMap<PIDManager> pid_managers;
 
+    AxesMap<double> actual_power_map;
+
     tf2::Vector3 static_power_global;
     tf2::Vector3 static_power_local;
 

@@ -11,7 +11,7 @@ class PIDManager
 {
 private:
     /**
-     * @brief PID controllers for each axis
+     * @brief PID controllers for each axis.
      */
     std::unordered_map<AxesEnum, PID> pid_controllers;
 
@@ -49,18 +49,20 @@ public:
     AxesMap<PIDGainsMap> get_axes_pid_gains() const;
 
     /**
-     * @brief Run PID loops
+     * @brief Run PID loops.
      *
-     * @param errors Errors for each axis
-     * @param deltaTimes Delta times for each axis
-     * @param[out] outputs PID outputs for each axis
+     * @param errors Errors for each axis.
+     * @param deltaTimes Delta times for each axis.
+     * @param[out] outputs PID outputs for each axis.
+     * @param derivatives Provided derivatives for each axis.
      */
-    void run_loops(const AxesMap<double> &errors, const AxesMap<double> &deltaTimes, AxesMap<double> &outputs);
+    void run_loops(const AxesMap<double> &errors, const AxesMap<double> &deltaTimes, AxesMap<double> &outputs,
+                   const AxesMap<double> &derivatives = AxesMap<double>());
 
     /**
-     * @brief Reset PID loop for a given axis
+     * @brief Reset PID loop for a given axis.
      *
-     * @param axis_to_reset Axis to reset
+     * @param axis_to_reset Axis to reset.
      */
     void reset(AxesEnum axis_to_reset);
 };

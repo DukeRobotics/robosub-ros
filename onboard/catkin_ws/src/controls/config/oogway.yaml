@@ -6,7 +6,7 @@ pid:
       Kd: 5
       Ff: 0
       control_effort_limit: 1
-      derivative_type: 0
+      derivative_type: 1
       error_ramp_rate: 0.1
     y:
       Kp: 3.5
@@ -14,7 +14,7 @@ pid:
       Kd: 5
       Ff: 0
       control_effort_limit: 1
-      derivative_type: 0
+      derivative_type: 1
       error_ramp_rate: 0.1
     z:
       Kp: 2.9
@@ -22,7 +22,7 @@ pid:
       Kd: 3
       Ff: 0
       control_effort_limit: 1
-      derivative_type: 0
+      derivative_type: 1
       error_ramp_rate: 0.1
     roll:
       Kp: 0.8
@@ -30,7 +30,7 @@ pid:
       Kd: 0.4
       Ff: 0
       control_effort_limit: 1
-      derivative_type: 0
+      derivative_type: 1
       error_ramp_rate: 0.1
     pitch:
       Kp: 0.8
@@ -38,7 +38,7 @@ pid:
       Kd: 0.4
       Ff: 0
       control_effort_limit: 1
-      derivative_type: 0
+      derivative_type: 1
       error_ramp_rate: 0.1
     yaw:
       Kp: 1
@@ -46,7 +46,7 @@ pid:
       Kd: 0.5
       Ff: 0
       control_effort_limit: 1
-      derivative_type: 0
+      derivative_type: 1
       error_ramp_rate: 0.1
   velocity:
     x:

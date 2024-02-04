@@ -52,7 +52,7 @@ double PID::second_order_butterworth(const std::array<double, 3> &values, const 
             ((-2 * c * c) + 2) * filtered_values.at(1));
 }
 
-double PID::run_loop(double error, double delta_time)
+double PID::run_loop(double error, double delta_time, double provided_derivative)
 {
     // If there are validation errors, an exception is not thrown to maintain continuous operation of controls in the
     // event of a temporary error. Instead, the function returns 0 and prints an error message.
@@ -101,7 +101,24 @@ double PID::run_loop(double error, double delta_time)
     // Calculate terms, weighted by their respective gains
     double p = pid_gains.at(PIDGainTypesEnum::KP) * filtered_errors.at(0);
     double i = pid_gains.at(PIDGainTypesEnum::KI) * integral;
-    double d = pid_gains.at(PIDGainTypesEnum::KD) * filtered_derivs.at(0);
+    double d = 0;
+    if (derivative_type == PIDDerivativeTypesEnum::CALCULATED)
+    {
+        // Calculate derivative term
+        double d = pid_gains.at(PIDGainTypesEnum::KD) * filtered_derivs.at(0);
+    }
+    else if (derivative_type == PIDDerivativeTypesEnum::PROVIDED)
+    {
+        // Use provided derivative
+        double d = pid_gains.at(PIDGainTypesEnum::KD) * provided_derivative;
+    }
+    else
+    {
+        // Print error and return 0 if derivative type is invalid
+        ROS_ERROR("PID run loop error: Derivative type is invalid.");
+        return 0;
+    }
+
     double f = pid_gains.at(PIDGainTypesEnum::FF);
     double control_effort = p + i + d + f;
 

@@ -184,10 +184,10 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     geometry_msgs::Twist position_error_msg;
     ControlsUtils::pose_to_twist(position_error.pose, position_error_msg);
 
-    std::unordered_map<AxesEnum, double> position_error_map;
+    AxesMap<double> position_error_map;
     ControlsUtils::twist_to_map(position_error_msg, position_error_map);
 
-    std::unordered_map<AxesEnum, double> velocity_error_map;
+    AxesMap<double> velocity_error_map;
     ControlsUtils::twist_to_map(velocity_error, velocity_error_map);
 
     // Publish error messages
@@ -195,15 +195,21 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     velocity_error_pub.publish(velocity_error);
 
     // Get delta time map
-    std::unordered_map<AxesEnum, double> delta_time_map;
+    AxesMap<double> delta_time_map;
     ControlsUtils::populate_axes_map(delta_time_map, delta_time);
+
+    // Get velocity map
+    AxesMap<double> velocity_map;
+    ControlsUtils::twist_to_map(state.twist.twist, velocity_map);
 
     // Run PID loops
     if (enable_position_pid)
-        pid_managers[PIDLoopTypesEnum::POSITION].run_loops(position_error_map, delta_time_map, position_pid_outputs);
+        pid_managers[PIDLoopTypesEnum::POSITION].run_loops(position_error_map, delta_time_map, position_pid_outputs,
+                                                           velocity_map);
 
     if (enable_velocity_pid)
-        pid_managers[PIDLoopTypesEnum::VELOCITY].run_loops(velocity_error_map, delta_time_map, velocity_pid_outputs);
+        pid_managers[PIDLoopTypesEnum::VELOCITY].run_loops(velocity_error_map, delta_time_map, velocity_pid_outputs,
+                                                           actual_power_map);
 
     // Publish control efforts
     geometry_msgs::Twist position_efforts_msg;
@@ -368,7 +374,7 @@ void Controls::run()
         }
 
         // Convert static power to map
-        std::unordered_map<AxesEnum, double> static_power_local_map;
+        AxesMap<double> static_power_local_map;
         ControlsUtils::tf_linear_vector_to_map(static_power_local, static_power_local_map);
 
         // Add static power to set power
@@ -385,6 +391,9 @@ void Controls::run()
         // Publish thruster allocs if controls are enabled
         if (controls_enabled)
             thruster_allocs_pub.publish(constrained_t);
+
+        // Save actual power to map
+        ControlsUtils::eigen_vector_to_map(actual_power, actual_power_map);
 
         // Publish all other messages
         desired_thruster_allocs_pub.publish(constrained_t);

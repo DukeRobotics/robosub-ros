@@ -121,7 +121,7 @@ void ControlsUtils::pose_to_twist(const geometry_msgs::Pose &pose, geometry_msgs
     m.getRPY(twist.angular.x, twist.angular.y, twist.angular.z);
 }
 
-void ControlsUtils::twist_to_map(const geometry_msgs::Twist &twist, std::unordered_map<AxesEnum, double> &map)
+void ControlsUtils::twist_to_map(const geometry_msgs::Twist &twist, AxesMap<double> &map)
 {
     map[AxesEnum::X] = twist.linear.x;
     map[AxesEnum::Y] = twist.linear.y;
@@ -131,7 +131,7 @@ void ControlsUtils::twist_to_map(const geometry_msgs::Twist &twist, std::unorder
     map[AxesEnum::YAW] = twist.angular.z;
 }
 
-void ControlsUtils::map_to_twist(const std::unordered_map<AxesEnum, double> &map, geometry_msgs::Twist &twist)
+void ControlsUtils::map_to_twist(const AxesMap<double> &map, geometry_msgs::Twist &twist)
 {
     twist.linear.x = map.at(AxesEnum::X);
     twist.linear.y = map.at(AxesEnum::Y);
@@ -159,10 +159,19 @@ void ControlsUtils::eigen_vector_to_twist(const Eigen::VectorXd &vector, geometr
     twist.angular.z = vector(5);
 }
 
-bool ControlsUtils::control_types_to_map(const custom_msgs::ControlTypes &control_types,
-                                         std::unordered_map<AxesEnum, ControlTypesEnum> &map)
+void ControlsUtils::eigen_vector_to_map(const Eigen::VectorXd &vector, AxesMap<double> &map)
 {
-    std::unordered_map<AxesEnum, uint8_t> new_control_types;
+    map[AxesEnum::X] = vector(0);
+    map[AxesEnum::Y] = vector(1);
+    map[AxesEnum::Z] = vector(2);
+    map[AxesEnum::ROLL] = vector(3);
+    map[AxesEnum::PITCH] = vector(4);
+    map[AxesEnum::YAW] = vector(5);
+}
+
+bool ControlsUtils::control_types_to_map(const custom_msgs::ControlTypes &control_types, AxesMap<ControlTypesEnum> &map)
+{
+    AxesMap<uint8_t> new_control_types;
     new_control_types[AxesEnum::X] = control_types.x;
     new_control_types[AxesEnum::Y] = control_types.y;
     new_control_types[AxesEnum::Z] = control_types.z;
@@ -180,8 +189,7 @@ bool ControlsUtils::control_types_to_map(const custom_msgs::ControlTypes &contro
     return true;
 }
 
-void ControlsUtils::map_to_control_types(const std::unordered_map<AxesEnum, ControlTypesEnum> &map,
-                                         custom_msgs::ControlTypes &control_types)
+void ControlsUtils::map_to_control_types(const AxesMap<ControlTypesEnum> &map, custom_msgs::ControlTypes &control_types)
 {
     control_types.x = map.at(AxesEnum::X);
     control_types.y = map.at(AxesEnum::Y);
@@ -191,7 +199,7 @@ void ControlsUtils::map_to_control_types(const std::unordered_map<AxesEnum, Cont
     control_types.yaw = map.at(AxesEnum::YAW);
 }
 
-void ControlsUtils::tf_linear_vector_to_map(const tf2::Vector3 &vector, std::unordered_map<AxesEnum, double> &map)
+void ControlsUtils::tf_linear_vector_to_map(const tf2::Vector3 &vector, AxesMap<double> &map)
 {
     map[AxesEnum::X] = vector.getX();
     map[AxesEnum::Y] = vector.getY();
@@ -219,7 +227,7 @@ void ControlsUtils::pid_loops_axes_gains_map_to_msg(const LoopsMap<AxesMap<PIDGa
             }
 }
 
-void ControlsUtils::populate_axes_map(std::unordered_map<AxesEnum, double> &map, double value)
+void ControlsUtils::populate_axes_map(AxesMap<double> &map, double value)
 {
     for (const AxesEnum &axis : AXES)
         map[axis] = value;
