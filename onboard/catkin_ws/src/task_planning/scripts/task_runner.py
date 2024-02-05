@@ -21,6 +21,7 @@ def main():
         trans = tfBuffer.lookup_transform('odom', 'base_link', rospy.Time(), rospy.Duration(15))
     except:
         (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException)
+
     # Fill with the tasks to do
     # For example: tasks = [gate_task(), buoy_task(), octagon_task()]
     tasks = [initial_submerge(controls),

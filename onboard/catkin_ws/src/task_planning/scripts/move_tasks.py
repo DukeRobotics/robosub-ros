@@ -23,10 +23,10 @@ async def move_to_pose_global(controls: ControlsInterface, pose):
 @task
 async def move_to_pose_local(controls: ControlsInterface, pose):
     rospy.loginfo("move_to_pose_local started: " + str(pose))
-    local_pose = task_utils.local_pose_to_global(controls.listener, pose)
+    local_pose = task_utils.local_pose_to_global(controls.tfBuffer, pose)
     await Transform(
         move_to_pose_global(controls, local_pose),
-        input_transformer=lambda p: task_utils.local_pose_to_global(controls.listener, p) if p else p)
+        input_transformer=lambda p: task_utils.local_pose_to_global(controls.tfBuffer, p) if p else p)
 
     rospy.loginfo("move_to_pose_local complete: " + str(pose))
 
