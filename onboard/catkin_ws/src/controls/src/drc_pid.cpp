@@ -20,8 +20,9 @@ PID::PID(const double &control_effort_limit, const PIDDerivativeTypesEnum &deriv
     // Set parameters
     this->control_effort_max = control_effort_limit;
     this->control_effort_min = -control_effort_limit;
-    this->pid_gains = pid_gains;
     this->derivative_type = derivative_type;
+    this->error_ramp_rate = error_ramp_rate;
+    this->pid_gains = pid_gains;
 }
 
 void PID::set_pid_gain(const PIDGainTypesEnum &pid_gain_type, const double &value)
@@ -78,7 +79,7 @@ double PID::run_loop(double error, double delta_time, PIDInfo &info, double prov
 
     // Clip error to be within error ramp rate
     double max_error_change = error_ramp_rate * delta_time;
-    errors.at(0) = ControlsUtils::clip(error, error - max_error_change, error + max_error_change);
+    errors.at(0) = ControlsUtils::clip(error, errors.at(1) - max_error_change, errors.at(1) + max_error_change);
 
     // Update filtered errors
     filtered_errors.at(2) = filtered_errors.at(1);

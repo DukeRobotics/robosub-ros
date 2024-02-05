@@ -5,7 +5,7 @@ pid:
       Ki: 0
       Kd: 5
       Ff: 0
-      control_effort_limit: 2.5
+      control_effort_limit: 1
       derivative_type: 1
       error_ramp_rate: 0.1
     y:
@@ -13,7 +13,7 @@ pid:
       Ki: 0
       Kd: 5
       Ff: 0
-      control_effort_limit: 2.5
+      control_effort_limit: 1
       derivative_type: 1
       error_ramp_rate: 0.1
     z:
@@ -21,7 +21,7 @@ pid:
       Ki: 0
       Kd: 3
       Ff: 0
-      control_effort_limit: 2.5
+      control_effort_limit: 1
       derivative_type: 1
       error_ramp_rate: 0.1
     roll:
@@ -45,7 +45,7 @@ pid:
       Ki: 0
       Kd: 0.5
       Ff: 0
-      control_effort_limit: 1.5
+      control_effort_limit: 1
       derivative_type: 1
       error_ramp_rate: 0.1
   velocity:
