@@ -17,7 +17,7 @@ class PressureRawPublisher:
 
     DEPTH_DEST_TOPIC = 'sensors/depth'
     VOLTAGE_DEST_TOPIC = 'sensors/voltage'
-    FTDI_FILE_PATH = 'package://offboard_comms/config/arduino_ftdi.yaml'
+    FTDI_FILE_PATH = 'package://offboard_comms/config/arduino.yaml'
 
     BAUDRATE = 9600
     NODE_NAME = 'pressure_pub'
@@ -26,7 +26,7 @@ class PressureRawPublisher:
 
     def __init__(self):
         with open(rr.get_filename(self.FTDI_FILE_PATH, use_protocol=False)) as f:
-            self._ftdi_strings_dict = yaml.safe_load(f)
+            self._arduino_config = yaml.safe_load(f)
 
         self._pressure = None  # Pressure to publish
         self._previous_pressure = None  # Previous pressure readings for median filter
@@ -44,7 +44,7 @@ class PressureRawPublisher:
     def connect(self):
         while self._serial_port is None and not rospy.is_shutdown():
             try:
-                pressure_ftdi_string = self._ftdi_strings_dict['pressure']
+                pressure_ftdi_string = self._arduino_config['pressure']['ftdi']
                 self._serial_port = next(list_ports.grep(pressure_ftdi_string)).device
                 self._serial = serial.Serial(self._serial_port, self.BAUDRATE,
                                              timeout=1, write_timeout=None,
