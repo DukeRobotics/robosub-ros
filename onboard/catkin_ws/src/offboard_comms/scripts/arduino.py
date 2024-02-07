@@ -73,7 +73,7 @@ def run_command(command: Union[str, Sequence[str]], print_output: bool, env_upda
         for key, value in env_updates.items():
             env[key] = str(value)
 
-    print(f'{OUTPUT_PREFIX}: CMD {command}')
+    print(f'{OUTPUT_PREFIX}: CMD: {command}')
     subprocess.run(command, shell=True, check=True, stdout=subprocess.DEVNULL if not print_output else None,
                    stderr=subprocess.STDOUT, env=env, cwd=path_to_run_at)
 
@@ -212,18 +212,18 @@ def find_ports(arduino_names: List[str], no_linebreaks: bool) -> None:
         arduino_names: List of Arduino names.
         no_linebreaks: Whether to print the ports without labels or linebreaks.
     """
-    try:
-        # Get the port for each arduino
-        for arduino_name in arduino_names:
+    # Get the port for each arduino
+    for arduino_name in arduino_names:
+        try:
             port = get_arduino_port(arduino_name)
 
             # If no_linebreaks is True, print the port without labels or linebreaks
             if no_linebreaks:
                 print(port, end='')
             else:
-                print(f'{arduino_name.capitalize()}: {port}')
-    except StopIteration:
-        print(f'Could not find port of {arduino_name} arduino.')
+                print(f'{OUTPUT_PREFIX}: {arduino_name.capitalize()}: {port}')
+        except StopIteration:
+            print(f'{OUTPUT_PREFIX}: Could not find port of {arduino_name} arduino.')
 
 
 def compile(arduino_names: List[str], print_output: bool) -> None:
@@ -285,14 +285,21 @@ def upload(arduino_names: List[str], print_output: bool) -> None:
 
     # Get the list of ports for the given Arduino names
     ports = {}
-    try:
-        for arduino_name in arduino_names:
+    error = False
+    for arduino_name in arduino_names:
+        try:
             ports[arduino_name] = get_arduino_port(arduino_name)
             print(f'{OUTPUT_PREFIX}: {arduino_name.capitalize()}: {ports[arduino_name]}')
-    except StopIteration:
-        raise Exception(f'Could not find port of {arduino_name} arduino.')
+        except StopIteration:
+            error = True
+            print(f'{OUTPUT_PREFIX}: FATAL ERROR: Could not find port of {arduino_name} arduino.')
 
-    print(f'{OUTPUT_PREFIX}: Arduino ports found.')
+    if error:
+        print(f'{OUTPUT_PREFIX}: Could not upload sketches to arduinos due to errors in finding ports ' +
+              'of given arduinos.')
+        return
+
+    print(f'{OUTPUT_PREFIX}: Given arduino ports found.')
 
     # Print a linebreak
     print()
