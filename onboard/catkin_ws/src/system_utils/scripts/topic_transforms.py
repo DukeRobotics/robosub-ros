@@ -10,6 +10,7 @@ from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Imu
 
 
+# Class to store data for topic transformations
 class TopicTransformData:
     def __init__(self, input_topic, input_type, input_type_conversion, output_topic, output_type,
                  output_type_conversion, subscriber=None, publisher=None, publisher_queue_size=1):
@@ -24,6 +25,7 @@ class TopicTransformData:
         self.publisher_queue_size = publisher_queue_size
 
 
+# Class to store conversion functions
 class Conversions:
 
     @staticmethod
@@ -55,8 +57,10 @@ class Conversions:
         return twist_msg
 
 
+# Class to perform topic transformations
 class TopicTransforms:
 
+    # List of topic transformation data
     TOPIC_TRANSFORM_DATA = [
         TopicTransformData('/state', Odometry, lambda x: x.pose.pose, '/transforms/state/pose', Twist,
                            Conversions.pose_to_twist),
@@ -69,10 +73,12 @@ class TopicTransforms:
     def __init__(self):
         rospy.init_node('topic_transforms')
 
+        # Create subscribers and publishers for each topic transformation
         for data in self.TOPIC_TRANSFORM_DATA:
             data.subscriber = rospy.Subscriber(data.input_topic, data.input_type, self.callback, data)
             data.publisher = rospy.Publisher(data.output_topic, data.output_type, queue_size=data.publisher_queue_size)
 
+    # Callback function to transform input message and publish output message
     def callback(self, msg, data):
         converted_input_type = data.input_type_conversion(msg)
         ouput_msg = data.output_type_conversion(converted_input_type)
