@@ -2,7 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from sklearn.cluster import DBSCAN
-from sklearn.datasets import make_blobs
+import time
+from sklearn.linear_model import LinearRegression
+import math
 
 # Directory containing the .npy files
 data_dir = r"C:\Users\willd\Robotics\robosub-ros\onboard\catkin_ws\src\sonar\scripts\sampleData2"
@@ -32,42 +34,72 @@ def stuff():
         ax.axis('off')
         plt.show()
 
+
+VALUE_THRESHOLD = 95
+
 if __name__ == "__main__":
-    array = np.load(data_dir + "\sonar_sweep_1706987047700.npy")
+    for npy_file in npy_files:
+        # Load the numpy array
+        array = np.load(os.path.join(data_dir, npy_file))
 
-    THRESHOLD = 90
-    array[array < THRESHOLD] = 0
+        # Set up the plot
+        plt.figure(figsize=(14, 2))
+        plt.imshow(array, cmap='viridis', aspect='auto')
+        plt.colorbar(label='Array Values')
+        plt.title('Visualization of the Original Array')
+        plt.xlabel('Column Index')
+        plt.ylabel('Row Index')
 
-    #convert values > 100 to list of points
-    points = np.argwhere(array > 100)
-    # print(points)
+        # Start timer
+        start_time = time.time()
 
-    db = DBSCAN(eps=3, min_samples=10).fit(points)
-    labels = db.labels_
+        # Convert values > VALUE_THRESHOLD to list of points
+        points = np.argwhere(array > VALUE_THRESHOLD)
 
-    n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-    print("Number of clusters: ", n_clusters_)
-    
-    t_array = array.T
-    # np.savetxt("sonar2.csv", t_array, fmt='%d', delimiter=',')
+        # Perform DBSCAN clustering
+        db = DBSCAN(eps=3, min_samples=10).fit(points)
+        labels = db.labels_
 
-    unique_labels = set(labels)
-    colors = [plt.cm.Spectral(each) for each in np.linspace(0, 1, len(unique_labels))]
+        # Get cluster with the most points
+        unique_labels = set(labels)
+        cluster_counts = {k: np.sum(labels == k) for k in unique_labels if k != -1}
+        print(cluster_counts)
 
-    plt.figure(figsize=(14, 2))
-    plt.imshow(array, cmap='viridis', aspect='auto')
-    plt.colorbar(label='Array Values')
-    plt.title('Visualization of the Original Array')
-    plt.xlabel('Column Index')
-    plt.ylabel('Row Index')
+        # Get the points of the largest cluster
+        largest_cluster_label = max(cluster_counts, key=cluster_counts.get)
+        class_member_mask = (labels == largest_cluster_label)
+        buoy_points = points[class_member_mask]
 
-    for k, col in zip(unique_labels, colors):
-        if k == -1:
-            continue
+        # Get the average column index of the largest cluster
+        average_column_index = np.mean(buoy_points[:, 1])
+        print(f"average column index: {average_column_index}")
 
-        class_member_mask = (labels == k)
+        # Get the X and Y of the buoy points
+        X = buoy_points[:, 0].reshape(-1, 1)
+        Y = buoy_points[:, 1]
 
-        xy = points[class_member_mask]
-        plt.plot(xy[:, 1], xy[:, 0], 'o', markerfacecolor=tuple(col), markeredgecolor='k', markersize=6)
+        # Create and fit the model
+        linreg_sklearn = LinearRegression()
+        linreg_sklearn.fit(X, Y)
 
-    plt.show()
+        # Extract the slope (coefficient) and intercept
+        slope_sklearn = linreg_sklearn.coef_[0]
+        intercept_sklearn = linreg_sklearn.intercept_
+
+        x_vals_plot = np.arange(array.shape[0])  # Row indices
+        y_vals_plot = intercept_sklearn + slope_sklearn * x_vals_plot
+
+        # Calculate the angle in radians
+        angle = math.atan(slope_sklearn)
+        angle = math.degrees(angle)
+
+        print(f"angle: {angle}")
+
+        print(f"slope: {slope_sklearn}, intercept: {intercept_sklearn}")
+
+        plt.plot(y_vals_plot, x_vals_plot, 'r--', label=f'Line: y = {slope_sklearn:.2f}x + {intercept_sklearn:.2f}')
+        plt.scatter(average_column_index, array.shape[0]/2, color='blue', s=50, label='Center Point')
+
+        # plt.plot(buoy_points[:, 1], buoy_points[:, 0], 'o', markerfacecolor='r', markeredgecolor='k', markersize=6)
+
+        plt.show()
