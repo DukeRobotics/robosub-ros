@@ -41,6 +41,9 @@ class Sonar:
     CONSTANT_SWEEP_START = 100
     CONSTANT_SWEEP_END = 300
 
+    VALUE_THRESHOLD = 95
+    DBSCAN_EPS = 3
+    DBSCAN_MIN_SAMPLES = 10
 
     def __init__(self):
         rospy.init_node(self.NODE_NAME)
