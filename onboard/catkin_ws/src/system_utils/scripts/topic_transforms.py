@@ -79,6 +79,8 @@ class TopicTransforms:
             data.publisher = rospy.Publisher(data.output_topic, data.output_type, queue_size=data.publisher_queue_size)
 
     # Callback function to transform input message and publish output message
+    # First, transform input message using input_type_conversion function, input the result to output_type_conversion,
+    # and publish the final result
     def callback(self, msg, data):
         converted_input_type = data.input_type_conversion(msg)
         ouput_msg = data.output_type_conversion(converted_input_type)

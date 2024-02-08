@@ -1,6 +1,6 @@
-# System utils
+# System Utils
 
-This package provides various ROS interfaces to assist with evaluating system performance and also provides various system utilities. 
+This package provides various ROS interfaces to assist with evaluating system performance and also provides various system utilities.
 
 ## System Publisher
 The system publisher publishes a message of type `custom_msgs/SystemUsage.msg`. It contains data corresponding to the CPU usage (percentage and speed), the GPU usage (percentage, speed, usage, and memory), RAM usage (percentage, total used, total available), and disk usage (percentage, total used, total available). All memory items and speeds and in GB and GHz respectively. See the message declaration in the custom_msgs package for more information.
@@ -17,7 +17,7 @@ roslaunch system_utils remote_launch.launch
 ```
 
 ## Sensor Check
-The sensor check script will enable the user to automatically check if the robot's most significant sensors are publishing. The topics which `sensor_check.py` will check are 
+The sensor check script will enable the user to automatically check if the robot's most significant sensors are publishing. The topics which `sensor_check.py` will check are
 - DVL - `/sensors/dvl/odom`
 - IMU - `/vectornav/IMU`
 - Depth sensor - `/sensors/depth`
@@ -30,3 +30,12 @@ roslaunch system_utils sensor_check.launch
 ```
 
 To start a node with the `/start_node` service, provide the package, file, any args (leave empty if none), and if it is a launch file or not (are we running roslaunch or rosrun). It will return a pid in the response. To stop a node, simply provide this pid to the `/stop_node` process, and the node will then be terminated.
+
+## Topic Transforms
+
+The topic transforms node will allow for the user to transform a topic from one message type to another. This is useful primarily for debugging purposes, or to make certain topics more human-readable. To run the node, use the command
+```bash
+roslaunch system_utils topic_transforms.launch
+```
+
+To transform a topic, add a `TopicTransformData` object to the `TOPIC_TRANSFORM_DATA` in the `TopicTransforms` class. 
