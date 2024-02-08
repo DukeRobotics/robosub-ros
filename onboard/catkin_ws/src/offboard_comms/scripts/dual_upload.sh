@@ -53,7 +53,7 @@ onboard/catkin_ws/src/offboard_comms/scripts/copy_offset.sh 0 # Remove the offse
 
 if [ "$ARD_UPLOAD" = true ]; then
     # E49AFA8B51514C4B39202020FF024242 is thruster arduino
-    # FAD98F6E51514C4B39202020FF020B42 is pressure arduino
+    # 2E6BEE3251514A4E43202020FF131D41 is pressure arduino
     if [ "$ARDUINO1" = "E49AFA8B51514C4B39202020FF024242" ]; then
         TEMP=$SRC_CODE1
         SRC_CODE1=$SRC_CODE2
