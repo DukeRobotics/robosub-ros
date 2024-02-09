@@ -31,8 +31,7 @@ class Conversions:
     @staticmethod
     def quat_to_vector(quat_msg):
         # Convert quaternion to euler angles
-        euler_angles = quat2euler(
-            [quat_msg.w, quat_msg.x, quat_msg.y, quat_msg.z], axes='sxyz')
+        euler_angles = quat2euler([quat_msg.w, quat_msg.x, quat_msg.y, quat_msg.z])
 
         # Convert to degrees
         euler_angles = [math.degrees(angle) for angle in euler_angles]
