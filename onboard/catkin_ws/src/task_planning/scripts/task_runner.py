@@ -19,8 +19,9 @@ def main():
     # listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(15))
     try:
         trans = tfBuffer.lookup_transform('odom', 'base_link', rospy.Time(), rospy.Duration(15))
-    except:
-        (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException)
+    except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
+        rospy.logerr("Failed to get transform")
+        return
 
     # Fill with the tasks to do
     # For example: tasks = [gate_task(), buoy_task(), octagon_task()]
