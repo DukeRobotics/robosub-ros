@@ -45,7 +45,8 @@ RUN apt-get update && \
     iputils-ping \
     python3-pandas \
     ros-noetic-foxglove-bridge \
-    nmap && \
+    nmap \
+    libeigen3-dev &&\
     apt-get clean && \
     # Clear apt caches to reduce image size
     rm -rf /var/lib/apt/lists/*
