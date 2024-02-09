@@ -146,7 +146,7 @@ def get_arduino_port(arduino_name: str) -> str:
     Raises:
         StopIteration: If the port is not found.
     """
-    ftdi_string = ARDUINO_DATA[arduino_name]['ftdi']
+    ftdi_string = str(ARDUINO_DATA[arduino_name]['ftdi'])
     return next(list_ports.grep(ftdi_string)).device
 
 
