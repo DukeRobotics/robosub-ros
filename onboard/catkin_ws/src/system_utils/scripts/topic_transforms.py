@@ -81,9 +81,9 @@ class TopicTransforms:
     # First, transform input message using input_type_conversion function, input the result to output_type_conversion,
     # and publish the final result
     def callback(self, msg, data):
-        converted_input_type = data.input_type_conversion(msg)
-        ouput_msg = data.output_type_conversion(converted_input_type)
-        data.publisher.publish(ouput_msg)
+        converted_input = data.input_type_conversion(msg)
+        output_msg = data.output_type_conversion(converted_input)
+        data.publisher.publish(output_msg)
 
     def run(self):
         rospy.spin()
