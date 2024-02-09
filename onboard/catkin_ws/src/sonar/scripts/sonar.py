@@ -7,7 +7,7 @@ import sonar_utils
 import serial.tools.list_ports as list_ports
 from geometry_msgs.msg import Pose
 from std_msgs.msg import String
-from custom_msgs.msg import SonarSweepRequest
+from custom_msgs.msg import SonarSweepRequest, SonarSweepResponse
 from sensor_msgs.msg import CompressedImage
 from tf import TransformListener
 from cv_bridge import CvBridge
@@ -52,7 +52,7 @@ class Sonar:
         self.debug = rospy.get_param('~debug')
 
         self.status_publisher = rospy.Publisher(self.SONAR_STATUS_TOPIC, String, queue_size=1)
-        self.pub_response = rospy.Publisher(self.SONAR_RESPONSE_TOPIC, Pose, queue_size=1)
+        self.pub_response = rospy.Publisher(self.SONAR_RESPONSE_TOPIC, SonarSweepResponse, queue_size=1)
 
         # Enamble streaming
         self.cv_bridge = CvBridge()
@@ -261,11 +261,11 @@ class Sonar:
         """
         sonar_sweep_array = self.get_sweep(start_angle, end_angle)
 
-        index, angle = sonar_utils.get_angle_and_index_of_object(
+        sonar_angle, sonar_index, normal_angle = sonar_utils.get_angle_and_index_of_object(
             sonar_sweep_array, self.VALUE_THRESHOLD, self.DBSCAN_EPS,
             self.DBSCAN_MIN_SAMPLES)
 
-        return (self.to_robot_position(angle, index), sonar_sweep_array)
+        return (self.to_robot_position(sonar_angle, sonar_index), sonar_sweep_array, normal_angle)
 
     def convert_to_ros_compressed_img(self, sonar_sweep, compressed_format='jpg'):
         """ Convert any kind of image to ROS Compressed Image.
@@ -325,13 +325,17 @@ class Sonar:
         right_gradians = sonar_utils.degrees_to_centered_gradians(request.end_angle)
 
         rospy.loginfo(f"starting sweep from {left_gradians} to {right_gradians}")
-        object_pose, sonar_sweep = self.get_xy_of_object_in_sweep(left_gradians, right_gradians)
+        object_pose, sonar_sweep, normal_angle = self.get_xy_of_object_in_sweep(left_gradians, right_gradians)
+
+        response = SonarSweepResponse()
+        response.pose = object_pose
+        response.normal_angle = normal_angle
 
         if self.stream:
             sonar_image = self.convert_to_ros_compressed_img(sonar_sweep)
             self.sonar_image_publisher.publish(sonar_image)
 
-        self.pub_response.publish(object_pose)
+        self.pub_response.publish(response)
 
     def run(self):
         """

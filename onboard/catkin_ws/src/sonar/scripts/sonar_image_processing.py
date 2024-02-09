@@ -100,7 +100,7 @@ def find_center_point_and_angle(array, threshold, eps, min_samples, jpeg_save_pa
         plt.legend()
         plt.savefig(jpeg_save_path)
 
-    return average_column_index, angle
+    return array.shape[0]/2, average_column_index, angle
 
 def build_sonar_img_from_log_file(filename, start_index=49, end_index=149):
     """ Builds a sonar image from a log file """
