@@ -94,7 +94,6 @@ if __name__ == "__main__":
         angle = math.degrees(angle)
 
         print(f"angle: {angle}")
-
         print(f"slope: {slope_sklearn}, intercept: {intercept_sklearn}")
 
         plt.plot(y_vals_plot, x_vals_plot, 'r--', label=f'Line: y = {slope_sklearn:.2f}x + {intercept_sklearn:.2f}')
