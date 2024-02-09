@@ -3,6 +3,7 @@
 import numpy as np
 import cv2
 import os
+import math
 
 
 def check_file_writable(filepath):
@@ -69,8 +70,35 @@ class DetectionVisualizer:
     def rectangle(self, frame, bbox, color):
         """Add a rectangle to frame, such as a bounding box."""
         x1, y1, x2, y2 = bbox
-        # cv2.rectangle(frame, (x1, y1), (x2, y2), self.bg_color, 3)
         cv2.rectangle(frame, (x1, y1), (x2, y2), color, 3)
+
+    def slanted_rectangle(self, frame, center, dimensions, angle, color):
+        """Add a slanted rectangle to frame, such as a bounding box. Angle should be in radians."""
+        color = self.hex_to_rgb(color)
+
+        center_x, center_y = center
+        width, height = dimensions
+
+        # Calculate the four corners of the rectangle
+        angle_cos = math.cos(angle)
+        angle_sin = math.sin(angle)
+        half_width = width / 2
+        half_height = height / 2
+
+        x1 = int(center_x - half_width * angle_cos - half_height * angle_sin)
+        y1 = int(center_y + half_width * angle_sin - half_height * angle_cos)
+        x2 = int(center_x + half_width * angle_cos - half_height * angle_sin)
+        y2 = int(center_y - half_width * angle_sin - half_height * angle_cos)
+        x3 = int(2 * center_x - x1)
+        y3 = int(2 * center_y - y1)
+        x4 = int(2 * center_x - x2)
+        y4 = int(2 * center_y - y2)
+
+        # Draw the rotated rectangle
+        cv2.line(frame, (x1, y1), (x2, y2), color, 3)
+        cv2.line(frame, (x2, y2), (x3, y3), color, 3)
+        cv2.line(frame, (x3, y3), (x4, y4), color, 3)
+        cv2.line(frame, (x4, y4), (x1, y1), color, 3)
 
     def frame_norm(self, frame, bbox):
         """Normalize bbox locations between frame width/height."""
@@ -79,7 +107,7 @@ class DetectionVisualizer:
         return (np.clip(np.array(bbox), 0, 1) * norm_vals).astype(int)
 
     def visualize_detections(self, frame, detections):
-        """ Returns frame with bounding boxes, classes, and labels of each detection overlaid."""
+        """Returns frame with bounding boxes, classes, and labels of each detection overlaid."""
         frame_copy = frame.copy()
 
         for detection in detections:
