@@ -39,3 +39,9 @@ roslaunch system_utils topic_transforms.launch
 ```
 
 To transform a topic, add a `TopicTransformData` object to the `TOPIC_TRANSFORM_DATA` in the `TopicTransforms` class. 
+
+The purpose of the `input_type_conversion` function is to convert the topic's message type to a common message type that can be input to the `output_type_conversion` function. This avoids code repetition when several input topics have different input types but have the same output type. 
+
+For example, suppose we have two topics: one with input type `nav_msgs/Odometry` and another with input type `geometry_msgs/Pose`. The transformed output of both is of type `geometry_msgs/Twist`, representing the odometry.pose.pose and pose, respectively, converted to twists with Euler angles in place of quaternions. In this case, creating two separate functions, one to convert odometry to twist, and one to convert pose to twist would be redundant, since in both cases the actual transform being done is pose to twist. Therefore, to avoid code repetition, use `input_type_conversion` to simply return the pose component of the odometry message, then use the pose to twist function as the `output_type_conversion` function for both.
+
+The `input_type_conversion` function should almost always be a `lambda` function, as it's purpose is to only return a specific componenent of the input message. The `output_type_conversion` function is the one that does all the heavy lifting and applies the desired transform.
