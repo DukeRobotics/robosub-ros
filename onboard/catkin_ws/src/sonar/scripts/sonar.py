@@ -261,13 +261,11 @@ class Sonar:
         """
         sonar_sweep_array = self.get_sweep(start_angle, end_angle)
 
-        column_sums = np.sum(sonar_sweep_array, axis=0)
-        average_column = np.sum(np.multiply(column_sums, np.arange(0, column_sums.size)))/np.sum(column_sums)
+        index, angle = sonar_utils.get_angle_and_index_of_object(
+            sonar_sweep_array, self.VALUE_THRESHOLD, self.DBSCAN_EPS,
+            self.DBSCAN_MIN_SAMPLES)
 
-        row_sums = np.sum(sonar_sweep_array, axis=1)
-        average_row = np.sum(np.multiply(row_sums, np.arange(0, row_sums.size)))/np.sum(row_sums)
-
-        return (self.to_robot_position(average_row + start_angle, average_column), sonar_sweep_array)
+        return (self.to_robot_position(angle, index), sonar_sweep_array)
 
     def convert_to_ros_compressed_img(self, sonar_sweep, compressed_format='jpg'):
         """ Convert any kind of image to ROS Compressed Image.
