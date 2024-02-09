@@ -3,89 +3,89 @@
 #include <std_msgs/String.h>
 #include <Eigen/Dense>
 #include <yaml-cpp/yaml.h>
-// #include <OsqpEigen/OsqpEigen.h>
+#include <OsqpEigen/OsqpEigen.h>
 #include "controls_utils.h"
 
 int osqp_eigen_test()
 {
-  // Eigen::MatrixXd W;
-  // ControlsUtils::read_matrix_from_csv("/root/dev/robosub-ros/onboard/catkin_ws/src/controls/data/oogway_wrench.csv", W);
+  Eigen::MatrixXd W;
+  ControlsUtils::read_matrix_from_csv("/root/dev/robosub-ros/onboard/catkin_ws/src/controls/data/oogway_wrench.csv", W);
 
-  // Eigen::MatrixXd W_pinv;
-  // ControlsUtils::read_matrix_from_csv("/root/dev/robosub-ros/onboard/catkin_ws/src/controls/data/oogway_wrench_pinv.csv", W_pinv);
+  Eigen::MatrixXd W_pinv;
+  ControlsUtils::read_matrix_from_csv("/root/dev/robosub-ros/onboard/catkin_ws/src/controls/data/oogway_wrench_pinv.csv", W_pinv);
 
-  // Eigen::VectorXd b(6);
-  // b << 2, 1.3, -1.5, 0.05, 0.1, 0.3;
-  // std::cout << "b: " << std::endl;
-  // std:: cout << b << std::endl;
+  Eigen::VectorXd b(6);
+  b << 2, 1.3, -1.5, 0.05, 0.1, 0.3;
+  std::cout << "b: " << std::endl;
+  std:: cout << b << std::endl;
 
-  // OsqpEigen::Solver solver;
+  OsqpEigen::Solver solver;
 
-  // int numberOfVariables = W.cols();
-  // int numberOfConstraints = W.cols();
-  // Eigen::SparseMatrix<double> hessian = (W.transpose() * W).sparseView();
-  // Eigen::VectorXd gradient = Eigen::VectorXd::Zero(6).transpose() * W;
-  // Eigen::SparseMatrix<double> linearMatrix = Eigen::MatrixXd::Identity(W.cols(), W.cols()).sparseView();
-  // Eigen::VectorXd lowerBound = -Eigen::VectorXd::Ones(W.cols());
-  // Eigen::VectorXd upperBound = Eigen::VectorXd::Ones(W.cols());
+  int numberOfVariables = W.cols();
+  int numberOfConstraints = W.cols();
+  Eigen::SparseMatrix<double> hessian = (W.transpose() * W).sparseView();
+  Eigen::VectorXd gradient = Eigen::VectorXd::Zero(6).transpose() * W;
+  Eigen::SparseMatrix<double> linearMatrix = Eigen::MatrixXd::Identity(W.cols(), W.cols()).sparseView();
+  Eigen::VectorXd lowerBound = -Eigen::VectorXd::Ones(W.cols());
+  Eigen::VectorXd upperBound = Eigen::VectorXd::Ones(W.cols());
 
-  // solver.data()->setNumberOfVariables(numberOfVariables);
-  // solver.data()->setNumberOfConstraints(numberOfConstraints);
-  // if(!solver.data()->setHessianMatrix(hessian)) return 1;
-  // if(!solver.data()->setGradient(gradient)) return 1;
-  // if(!solver.data()->setLinearConstraintsMatrix(linearMatrix)) return 1;
-  // if(!solver.data()->setLowerBound(lowerBound)) return 1;
-  // if(!solver.data()->setUpperBound(upperBound)) return 1;
+  solver.data()->setNumberOfVariables(numberOfVariables);
+  solver.data()->setNumberOfConstraints(numberOfConstraints);
+  if(!solver.data()->setHessianMatrix(hessian)) return 1;
+  if(!solver.data()->setGradient(gradient)) return 1;
+  if(!solver.data()->setLinearConstraintsMatrix(linearMatrix)) return 1;
+  if(!solver.data()->setLowerBound(lowerBound)) return 1;
+  if(!solver.data()->setUpperBound(upperBound)) return 1;
 
-  // solver.settings()->setPolish(true);
-  // solver.settings()->setVerbosity(false);
+  solver.settings()->setPolish(true);
+  solver.settings()->setVerbosity(false);
 
-  // if(!solver.initSolver()) return 1;
+  if(!solver.initSolver()) return 1;
 
-  // gradient = -b.transpose() * W;
-  // if(!solver.updateGradient(gradient)) return 1;
-  // if(solver.solveProblem() != OsqpEigen::ErrorExitFlag::NoError) return 1;
-  // Eigen::VectorXd QPSolution = solver.getSolution();
+  gradient = -b.transpose() * W;
+  if(!solver.updateGradient(gradient)) return 1;
+  if(solver.solveProblem() != OsqpEigen::ErrorExitFlag::NoError) return 1;
+  Eigen::VectorXd QPSolution = solver.getSolution();
 
-  // // cout qp solution
-  // std::cout << "QP solution: " << std::endl;
-  // std::cout << W * QPSolution << std::endl;
-  // std::cout << std::endl;
+  // cout qp solution
+  std::cout << "QP solution: " << std::endl;
+  std::cout << W * QPSolution << std::endl;
+  std::cout << std::endl;
 
-  // b << 5, 2.3, -0.5, 0.2, 0.7, 0.4;
-  // std::cout << "b: " << std::endl;
-  // std:: cout << b << std::endl;
+  b << 5, 2.3, -0.5, 0.2, 0.7, 0.4;
+  std::cout << "b: " << std::endl;
+  std:: cout << b << std::endl;
 
-  // gradient = -b.transpose() * W;
-  // if(!solver.updateGradient(gradient)) return 1;
+  gradient = -b.transpose() * W;
+  if(!solver.updateGradient(gradient)) return 1;
 
-  // if(solver.solveProblem() != OsqpEigen::ErrorExitFlag::NoError) return 1;
-  // QPSolution = solver.getSolution();
+  if(solver.solveProblem() != OsqpEigen::ErrorExitFlag::NoError) return 1;
+  QPSolution = solver.getSolution();
 
-  // std::cout << "QP solution: " << std::endl;
-  // std::cout << W * QPSolution << std::endl;
-  // std::cout << std::endl;
+  std::cout << "QP solution: " << std::endl;
+  std::cout << W * QPSolution << std::endl;
+  std::cout << std::endl;
 
 
-  // Eigen::VectorXd std_solution = W_pinv * b;
-  // std::cout << "Standard solution: " << std::endl;
-  // std::cout << std_solution << std::endl;
-  // std::cout << std::endl;
-  // std::cout << W * std_solution << std::endl;
-  // std::cout << std::endl;
+  Eigen::VectorXd std_solution = W_pinv * b;
+  std::cout << "Standard solution: " << std::endl;
+  std::cout << std_solution << std::endl;
+  std::cout << std::endl;
+  std::cout << W * std_solution << std::endl;
+  std::cout << std::endl;
 
-  // // If maximum absolute value in std_solution is greater than 1, scale it down
-  // double max_abs = std_solution.cwiseAbs().maxCoeff();
-  // if (max_abs > 1)
-  // {
-  //   std_solution /= max_abs;
-  // }
+  // If maximum absolute value in std_solution is greater than 1, scale it down
+  double max_abs = std_solution.cwiseAbs().maxCoeff();
+  if (max_abs > 1)
+  {
+    std_solution /= max_abs;
+  }
 
-  // std::cout << "Scaled standard solution: " << std::endl;
-  // std::cout << std_solution << std::endl;
-  // std::cout << std::endl;
-  // std::cout << W * std_solution << std::endl;
-  // std::cout << std::endl;
+  std::cout << "Scaled standard solution: " << std::endl;
+  std::cout << std_solution << std::endl;
+  std::cout << std::endl;
+  std::cout << W * std_solution << std::endl;
+  std::cout << std::endl;
 
   return 0;
 }
@@ -201,6 +201,7 @@ void map_copy_test()
 
 int main(int argc, char** argv)
 {
-  map_copy_test();
+  // map_copy_test();
+  osqp_eigen_test();
   return 0;
 }
