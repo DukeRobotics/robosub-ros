@@ -16,7 +16,6 @@ def main():
     controls = ControlsInterface(tfBuffer)
     cv = CVInterface()
 
-    # listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(15))
     try:
         trans = tfBuffer.lookup_transform('odom', 'base_link', rospy.Time(), rospy.Duration(15))
     except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):

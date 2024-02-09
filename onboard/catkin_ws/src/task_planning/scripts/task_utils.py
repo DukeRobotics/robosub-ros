@@ -125,87 +125,10 @@ def transform_pose(tfBuffer, base_frame, target_frame, pose):
     pose_stamped.pose = pose
     pose_stamped.header.frame_id = base_frame
 
-    # trans = tfBuffer.lookup_transform(target_frame, base_frame, rospy.Time(), rospy.Duration(15))
-
-    # transformed = tf2_geometry_msgs.do_transform_pose(pose_stamped, trans)
-
-    transformed = tfBuffer.transform(pose_stamped, target_frame, timeout=rospy.Duration(15))
+    trans = tfBuffer.lookup_transform(base_frame, target_frame, rospy.Time(0))
+    transformed = tf2_geometry_msgs.do_transform_pose(pose_stamped, trans)
 
     return transformed.pose
-
-
-def transform(origin_frame, dest_frame, poseORodom):
-    """Transforms poseORodom from origin_frame to dest_frame frame
-
-    Arguments:
-    origin_frame: the starting frame
-    dest_frame: the frame to trasform to
-    poseORodom: the Pose, PoseStamped, Odometry, or  message to transform
-
-    Returns:
-    Pose, PoseStamped, Odometry : The transformed position
-    """
-
-    tfBuffer = tf2_ros.Buffer()
-    try:
-        trans = tfBuffer.lookup_transform(dest_frame, origin_frame, rospy.Time(), rospy.Duration(0.5))
-    except:
-        (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException)
-
-    if isinstance(poseORodom, PoseStamped):
-        transformed = tf2_geometry_msgs.do_transform_pose(poseORodom, trans)
-        return transformed
-
-    elif isinstance(poseORodom, Pose):
-        temp_pose_stamped = PoseStamped()
-        temp_pose_stamped.pose = poseORodom
-        transformed = tf2_geometry_msgs.do_transform_pose(temp_pose_stamped, trans)
-        return transformed.pose
-
-    elif isinstance(poseORodom, Odometry):
-        temp_pose_stamped = PoseStamped()
-        temp_twist_stamped = TwistStamped()
-        temp_pose_stamped.pose = poseORodom.pose.pose
-        temp_twist_stamped.twist = poseORodom.twist.twist
-        transformed_pose_stamped = tf2_geometry_msgs.do_transform_pose(temp_pose_stamped, trans)
-
-        # twist as points
-        twist_poseORodom = poseORodom.twist.twist
-        temp_twist_point_linear = Point()
-        temp_twist_point_angular = Point()
-        temp_twist_point_linear.x = twist_poseORodom.linear.x
-        temp_twist_point_linear.y = twist_poseORodom.linear.y
-        temp_twist_point_linear.z = twist_poseORodom.linear.z
-        temp_twist_point_angular.x = twist_poseORodom.angular.x
-        temp_twist_point_angular.y = twist_poseORodom.angular.y
-        temp_twist_point_angular.z = twist_poseORodom.angular.z
-        twist_point_linear_stamped = PointStamped(point=temp_twist_point_linear)
-        twist_point_angular_stamped = PointStamped(point=temp_twist_point_angular)
-
-        # points transformed
-        transformed_twist_point_linear_stamped = tf2_geometry_msgs.do_transform_point(
-            twist_point_linear_stamped, trans)
-        transformed_twist_point_angular_stamped = tf2_geometry_msgs.do_transform_point(
-            twist_point_angular_stamped, trans)
-
-        # points to twist
-        transformed_twist = Twist()
-        transformed_twist.linear.x = transformed_twist_point_linear_stamped.point.x
-        transformed_twist.linear.y = transformed_twist_point_linear_stamped.point.y
-        transformed_twist.linear.z = transformed_twist_point_linear_stamped.point.z
-        transformed_twist.angular.x = transformed_twist_point_angular_stamped.point.x
-        transformed_twist.angular.y = transformed_twist_point_angular_stamped.point.y
-        transformed_twist.angular.z = transformed_twist_point_angular_stamped.point.z
-
-        transformed_odometry = Odometry(header=Header(frame_id=dest_frame), child_frame_id=dest_frame,
-                                        pose=PoseWithCovariance(pose=transformed_pose_stamped.pose),
-                                        twist=TwistWithCovariance(twist=transformed_twist))
-        return transformed_odometry
-
-    else:
-        rospy.logerr("Invalid message type passed to transform()")
-        return None
-
 
 def add_poses(pose_list):
     """Adds a list of poses
@@ -233,7 +156,7 @@ def add_poses(pose_list):
 
 def parse_pose(pose):
     pose_dict = {'x': pose.position.x, 'y': pose.position.y, 'z': pose.position.z}
-    pose_dict['roll'], pose_dict['pitch'], pose_dict['yaw'] = quat2euler(
+    pose_dict['yaw'], pose_dict['pitch'], pose_dict['roll'] = quat2euler(
         [pose.orientation.w,
          pose.orientation.x,
          pose.orientation.y,
@@ -257,7 +180,7 @@ def cv_object_position(cv_obj_data):
 def create_pose(x, y, z, roll, pitch, yaw):
     pose = Pose()
     pose.position = Point(x=x, y=y, z=z)
-    pose.orientation = Quaternion(*euler2quat(roll, pitch, yaw))
+    pose.orientation = Quaternion(*euler2quat(yaw, pitch, roll))
     return pose
 
 def local_pose_to_global(tfBuffer, pose):
