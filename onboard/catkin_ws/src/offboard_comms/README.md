@@ -128,6 +128,8 @@ All output from the CLI printed to the console will be prefixed with `Arduino.py
 
 Additionally, the CLI also prints all commands being run to the console. These commands are prefixed with `CMD:` (in addition to the general prefix above). This is useful for distinguishing the commands being run by the CLI from other output.
 
+If an error occurs, it is recommended to run the command with the `-p` flag to print the output of the subcommands being run. This will help to identify the cause of the error.
+
 ### Manual Upload
 
 It is strongly suggested to use the CLI mentioned in the previous section, but instructions for manual upload are below if that is preferred or required.
