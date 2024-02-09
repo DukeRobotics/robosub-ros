@@ -1,6 +1,7 @@
 # import rospy
 
-# TODO maybe try to make stepping awaitable instead of requiring you to yield independently (in order to yield back down to the root)
+# TODO maybe try to make stepping awaitable instead of requiring you to
+# yield independently (in order to yield back down to the root)
 class TaskWrapper:
     def __init__(self, coroutine):
         self.coroutine = coroutine
@@ -14,21 +15,23 @@ class TaskWrapper:
 
     def step(self):
         return self.send(None)
-        
+
     def send(self, value):
         try:
             return self.coroutine.send(value)
         except StopIteration as e:
             self.done = True
             return e.value
-        
+
     def __await__(self):
         return self.coroutine.__await__()
+
 
 def task(func):
     def wrapper(*args, **kwargs):
         return TaskWrapper(func(*args, **kwargs))
     return wrapper
+
 
 class Yield:
     def __init__(self, value=None):
@@ -50,6 +53,7 @@ class Yield:
 #         while self.rate.remaining() > rospy.Duration(0):
 #             res = yield self
 #         return res
+
 
 class Transform:
     def __init__(self, task: TaskWrapper, input_transformer=None, output_transformer=None):

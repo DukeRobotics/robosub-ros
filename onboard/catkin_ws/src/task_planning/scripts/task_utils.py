@@ -1,12 +1,11 @@
 import numpy as np
 import rospy
-import smach
+
 import tf2_geometry_msgs
-import tf2_ros
-from geometry_msgs.msg import Vector3, Pose, PoseStamped, PoseWithCovariance, \
-    Twist, TwistStamped, TwistWithCovariance, Point, Quaternion, PointStamped
-from nav_msgs.msg import Odometry
-from std_msgs.msg import Header
+
+from geometry_msgs.msg import Vector3, Pose, PoseStamped, \
+    Twist, Point, Quaternion
+
 from transforms3d.euler import euler2quat, quat2euler
 from transforms3d.quaternions import qmult
 
@@ -130,6 +129,7 @@ def transform_pose(tfBuffer, base_frame, target_frame, pose):
 
     return transformed.pose
 
+
 def add_poses(pose_list):
     """Adds a list of poses
 
@@ -156,11 +156,8 @@ def add_poses(pose_list):
 
 def parse_pose(pose):
     pose_dict = {'x': pose.position.x, 'y': pose.position.y, 'z': pose.position.z}
-    pose_dict['yaw'], pose_dict['pitch'], pose_dict['roll'] = quat2euler(
-        [pose.orientation.w,
-         pose.orientation.x,
-         pose.orientation.y,
-         pose.orientation.z])
+    pose_dict['roll'], pose_dict['pitch'], pose_dict['yaw'] = quat2euler(
+        [pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z])
     return pose_dict
 
 
@@ -177,14 +174,17 @@ def cv_object_position(cv_obj_data):
         return None
     return [cv_obj_data.x, cv_obj_data.y, cv_obj_data.z]
 
+
 def create_pose(x, y, z, roll, pitch, yaw):
     pose = Pose()
     pose.position = Point(x=x, y=y, z=z)
-    pose.orientation = Quaternion(*euler2quat(yaw, pitch, roll))
+    pose.orientation = Quaternion(*euler2quat(roll, pitch, yaw))
     return pose
+
 
 def local_pose_to_global(tfBuffer, pose):
     return transform_pose(tfBuffer, 'base_link', 'odom', pose)
+
 
 def global_pose_to_local(tfBuffer, pose):
     return transform_pose(tfBuffer, 'odom', 'base_link', pose)
