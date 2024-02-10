@@ -103,22 +103,24 @@ bool ControlsUtils::pid_gains_map_valid(const PIDGainsMap &pid_gains_map)
            pid_gains_map.count(PIDGainTypesEnum::FF);
 }
 
+void ControlsUtils::quaternion_msg_to_euler(const geometry_msgs::Quaternion &quaternion, double &roll, double &pitch,
+                                            double &yaw)
+{
+    // Get roll, pitch, yaw from quaternion
+    // The order of rotation is roll, pitch, yaw
+    // Roll, pitch, yaw are in radians with range [-pi, pi]
+    tf2::Quaternion q;
+    tf2::fromMsg(quaternion, q);
+    tf2::Matrix3x3 m(q);
+    m.getRPY(roll, pitch, yaw);
+}
+
 void ControlsUtils::pose_to_twist(const geometry_msgs::Pose &pose, geometry_msgs::Twist &twist)
 {
     twist.linear.x = pose.position.x;
     twist.linear.y = pose.position.y;
     twist.linear.z = pose.position.z;
-    twist.angular.x = 0.0;
-    twist.angular.y = 0.0;
-    twist.angular.z = 0.0;
-
-    // Get roll, pitch, yaw from quaternion
-    // The order of rotation is roll, pitch, yaw
-    // Roll, pitch, yaw are in radians with range [-pi, pi]
-    tf2::Quaternion q;
-    tf2::fromMsg(pose.orientation, q);
-    tf2::Matrix3x3 m(q);
-    m.getRPY(twist.angular.x, twist.angular.y, twist.angular.z);
+    quaternion_msg_to_euler(pose.orientation, twist.angular.x, twist.angular.y, twist.angular.z);
 }
 
 void ControlsUtils::twist_to_map(const geometry_msgs::Twist &twist, AxesMap<double> &map)
@@ -324,7 +326,8 @@ void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd 
             matrix(i, j) = data[i][j];
 }
 
-void ControlsUtils::read_robot_config(LoopsMap<AxesMap<double>> &loops_axes_control_effort_limits,
+void ControlsUtils::read_robot_config(const bool &cascaded_pid,
+                                      LoopsMap<AxesMap<double>> &loops_axes_control_effort_limits,
                                       LoopsMap<AxesMap<PIDDerivativeTypesEnum>> &loops_axes_derivative_types,
                                       LoopsMap<AxesMap<double>> &loops_axes_error_ramp_rates,
                                       LoopsMap<AxesMap<PIDGainsMap>> &loops_axes_pid_gains,
@@ -343,7 +346,10 @@ void ControlsUtils::read_robot_config(LoopsMap<AxesMap<double>> &loops_axes_cont
 
         for (const auto &loop : PID_LOOP_TYPES)
         {
-            YAML::Node loop_node = pid_node[PID_LOOP_TYPES_NAMES.at(loop)];
+            std::string loop_name = (loop == PIDLoopTypesEnum::POSITION && cascaded_pid)
+                                        ? CASCADED_POSITION_PID_NAME
+                                        : PID_LOOP_TYPES_NAMES.at(loop);
+            YAML::Node loop_node = pid_node[loop_name];
             for (const auto &axis : AXES)
             {
                 YAML::Node axis_node = loop_node[AXES_NAMES.at(axis)];
@@ -418,15 +424,19 @@ void ControlsUtils::update_robot_config(std::function<void(YAML::Node &)> update
     }
 }
 
-void ControlsUtils::update_robot_config_pid_gains(const LoopsMap<AxesMap<PIDGainsMap>> &loops_axes_pid_gains)
+void ControlsUtils::update_robot_config_pid_gains(const LoopsMap<AxesMap<PIDGainsMap>> &loops_axes_pid_gains,
+                                                  const bool &cascaded_pid)
 {
-    std::function<void(YAML::Node &)> update_function = [&loops_axes_pid_gains](YAML::Node &config)
+    std::function<void(YAML::Node &)> update_function = [&loops_axes_pid_gains, &cascaded_pid](YAML::Node &config)
     {
-        YAML::Node pid = config["pid"];
+        YAML::Node pid_node = config["pid"];
 
         for (const auto &loop : PID_LOOP_TYPES)
         {
-            YAML::Node loop_node = pid[PID_LOOP_TYPES_NAMES.at(loop)];
+            std::string loop_name = (loop == PIDLoopTypesEnum::POSITION && cascaded_pid)
+                                        ? CASCADED_POSITION_PID_NAME
+                                        : PID_LOOP_TYPES_NAMES.at(loop);
+            YAML::Node loop_node = pid_node[loop_name];
             for (const auto &axis : AXES)
             {
                 YAML::Node axis_node = loop_node[AXES_NAMES.at(axis)];

@@ -39,6 +39,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     ros::param::get("~sim", sim);
     ros::param::get("~enable_position_pid", enable_position_pid);
     ros::param::get("~enable_velocity_pid", enable_velocity_pid);
+    ros::param::get("~cascaded_pid", cascaded_pid);
 
     // Initialize TransformListener
     this->tfl_buffer = std::move(tfl_buffer);
@@ -96,7 +97,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     LoopsMap<AxesMap<PIDGainsMap>> loops_axes_pid_gains;
 
     // TODO: Read control effort limit, derivative type, and error ramp rate from robot config file
-    ControlsUtils::read_robot_config(loops_axes_control_effort_limits, loops_axes_derivative_types,
+    ControlsUtils::read_robot_config(cascaded_pid, loops_axes_control_effort_limits, loops_axes_derivative_types,
                                      loops_axes_error_ramp_rates, loops_axes_pid_gains, static_power_global,
                                      power_scale_factor, wrench_matrix_file_path, wrench_matrix_pinv_file_path);
 
@@ -109,6 +110,9 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
 
     // Initialize static power local to zero
     static_power_local = tf2::Vector3(0, 0, 0);
+
+    ControlsUtils::populate_axes_map(position_pid_outputs, 0);
+    ControlsUtils::populate_axes_map(velocity_pid_outputs, 0);
 
     // Instantiate thruster allocator
     thruster_allocator = ThrusterAllocator(wrench_matrix_file_path, wrench_matrix_pinv_file_path);
@@ -175,29 +179,16 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     geometry_msgs::PoseStamped position_error;
     tf2::doTransform(desired_position_stamped, position_error, transformStamped);
 
-    // Compute velocity error
-    // No transform is required because the state and desired velocities are in the base_link frame
-    geometry_msgs::Twist velocity_error;
-    velocity_error.linear.x = desired_velocity.linear.x - state.twist.twist.linear.x;
-    velocity_error.linear.y = desired_velocity.linear.y - state.twist.twist.linear.y;
-    velocity_error.linear.z = desired_velocity.linear.z - state.twist.twist.linear.z;
-    velocity_error.angular.x = desired_velocity.angular.x - state.twist.twist.angular.x;
-    velocity_error.angular.y = desired_velocity.angular.y - state.twist.twist.angular.y;
-    velocity_error.angular.z = desired_velocity.angular.z - state.twist.twist.angular.z;
-
-    // Convert error messages to maps
+    // Convert position error pose to twist
     geometry_msgs::Twist position_error_msg;
     ControlsUtils::pose_to_twist(position_error.pose, position_error_msg);
 
+    // Publish position error message
+    position_error_pub.publish(position_error_msg);
+
+    // Convert position error twist to map
     AxesMap<double> position_error_map;
     ControlsUtils::twist_to_map(position_error_msg, position_error_map);
-
-    AxesMap<double> velocity_error_map;
-    ControlsUtils::twist_to_map(velocity_error, velocity_error_map);
-
-    // Publish error messages
-    position_error_pub.publish(position_error_msg);
-    velocity_error_pub.publish(velocity_error);
 
     // Get delta time map
     AxesMap<double> delta_time_map;
@@ -207,14 +198,36 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     AxesMap<double> velocity_map;
     ControlsUtils::twist_to_map(state.twist.twist, velocity_map);
 
-    // Run PID loops
+    // Run position PID loop
     if (enable_position_pid)
-        pid_managers[PIDLoopTypesEnum::POSITION].run_loops(position_error_map, delta_time_map, position_pid_outputs,
-                                                           position_pid_infos, velocity_map);
+        pid_managers.at(PIDLoopTypesEnum::POSITION).run_loops(position_error_map, delta_time_map, position_pid_outputs,
+                                                              position_pid_infos, velocity_map);
 
+    // Get desired velocity map
+    AxesMap<double> desired_velocity_map;
+    ControlsUtils::twist_to_map(desired_velocity, desired_velocity_map);
+
+    // Get velocity error map
+    // For each axis, if PID is cascaded and control type is position, then use position PID output as velocity setpoint
+    // Otherwise, use desired velocity as velocity setpoint
+    AxesMap<double> velocity_error_map;
+    for (const AxesEnum &axis : AXES)
+    {
+        double velocity_setpoint = (cascaded_pid && control_types.at(axis) == ControlTypesEnum::DESIRED_POSE)
+                                       ? position_pid_outputs.at(axis)
+                                       : desired_velocity_map.at(axis);
+        velocity_error_map[axis] = velocity_setpoint - velocity_map[axis];
+    }
+
+    // Publish velocity error
+    geometry_msgs::Twist velocity_error;
+    ControlsUtils::map_to_twist(velocity_error_map, velocity_error);
+    velocity_error_pub.publish(velocity_error);
+
+    // Run velocity PID loop
     if (enable_velocity_pid)
-        pid_managers[PIDLoopTypesEnum::VELOCITY].run_loops(velocity_error_map, delta_time_map, velocity_pid_outputs,
-                                                           velocity_pid_infos, actual_power_map);
+        pid_managers.at(PIDLoopTypesEnum::VELOCITY).run_loops(velocity_error_map, delta_time_map, velocity_pid_outputs,
+                                                              velocity_pid_infos, actual_power_map);
 
     // Publish control efforts
     geometry_msgs::Twist position_efforts_msg;
@@ -286,7 +299,7 @@ bool Controls::set_pid_gains_callback(custom_msgs::SetPIDGains::Request &req, cu
         for (const PIDLoopTypesEnum &loop : PID_LOOP_TYPES)
             loops_axes_pid_gains[loop] = pid_managers.at(loop).get_axes_pid_gains();
 
-        ControlsUtils::update_robot_config_pid_gains(loops_axes_pid_gains);
+        ControlsUtils::update_robot_config_pid_gains(loops_axes_pid_gains, cascaded_pid);
     }
 
     res.message = res.success ? "Updated PID gains successfully." : "Failed to update PID gains. One or more PID gains was invalid.";
@@ -376,13 +389,13 @@ void Controls::run()
             switch (control_types[AXES[i]])
             {
             case custom_msgs::ControlTypes::DESIRED_POSE:
-                set_power[i] = position_pid_outputs[AXES[i]];
+                set_power[i] = (cascaded_pid) ? velocity_pid_outputs.at(AXES[i]) : position_pid_outputs.at(AXES[i]);
                 break;
             case custom_msgs::ControlTypes::DESIRED_TWIST:
-                set_power[i] = velocity_pid_outputs[AXES[i]];
+                set_power[i] = velocity_pid_outputs.at(AXES[i]);
                 break;
             case custom_msgs::ControlTypes::DESIRED_POWER:
-                set_power[i] = desired_power[AXES[i]];
+                set_power[i] = desired_power.at(AXES[i]);
                 break;
             }
         }
@@ -393,7 +406,7 @@ void Controls::run()
 
         // Add static power to set power
         for (const AxesEnum &axis : AXES)
-            set_power[axis] += static_power_local_map[axis];
+            set_power[axis] += static_power_local_map.at(axis);
 
         // Allocate thrusters
         thruster_allocator.allocate_thrusters(set_power, power_scale_factor, set_power_scaled, unconstrained_allocs,

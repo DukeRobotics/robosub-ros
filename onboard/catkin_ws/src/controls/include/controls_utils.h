@@ -75,6 +75,9 @@ const std::unordered_map<PIDLoopTypesEnum, std::string> PID_LOOP_TYPES_NAMES = {
     {PIDLoopTypesEnum::POSITION, "position"},
     {PIDLoopTypesEnum::VELOCITY, "velocity"}};
 
+// Name of cascaded position PID loop in robot config file
+const std::string CASCADED_POSITION_PID_NAME = "position_cascaded";
+
 // PID gain types: KP, KI, KD, FF
 enum PIDGainTypesEnum : uint8_t
 {
@@ -243,6 +246,16 @@ namespace ControlsUtils
     // Functions to convert between types.
 
     /**
+     * @brief Convert quaternion message to euler angles.
+     *
+     * @param quaternion Quaternion message to convert.
+     * @param roll Roll to populate.
+     * @param pitch Pitch to populate.
+     * @param yaw Yaw to populate.
+     */
+    void quaternion_msg_to_euler(const geometry_msgs::Quaternion &quaternion, double &roll, double &pitch, double &yaw);
+
+    /**
      * @brief Convert pose to twist. Linear vector is identical to position. Angular vector is orientation converted to
      *  euler angles.
      *
@@ -399,6 +412,7 @@ namespace ControlsUtils
      *  `wrench_matrix_file_path` and `wrench_matrix_pinv_file_path` fields must contain the file paths relative to the
      *  controls package.
      *
+     * @param cascaded_pid Whether to read gains for cascaded position PID or regular position PID.
      * @param loops_axes_control_effort_limits Map of PID loop types to axes to control effort limits to populate.
      * @param loops_axes_derivative_types Map of PID loop types to axes to derivative types to populate.
      * @param loops_axes_error_ramp_rates Map of PID loop types to axes to error ramp rates to populate.
@@ -412,7 +426,8 @@ namespace ControlsUtils
      * @throws ros::Exception File is not in valid YAML format
      * @throws ros::Exception File does not contain all required fields in correct formats
      */
-    void read_robot_config(LoopsMap<AxesMap<double>> &loops_axes_control_effort_limits,
+    void read_robot_config(const bool &cascaded_pid,
+                           LoopsMap<AxesMap<double>> &loops_axes_control_effort_limits,
                            LoopsMap<AxesMap<PIDDerivativeTypesEnum>> &loops_axes_derivative_types,
                            LoopsMap<AxesMap<double>> &loops_axes_error_ramp_rates,
                            LoopsMap<AxesMap<PIDGainsMap>> &loops_axes_pid_gains,
@@ -437,8 +452,10 @@ namespace ControlsUtils
      * @brief Update PID gains in robot config file to match those in `loops_axes_pid_gains`.
      *
      * @param loops_axes_pid_gains Map of PID loops to axes to gains to set in robot config file.
+     * @param cascaded_pid Whether to update gains for cascaded position PID or regular position PID.
      */
-    void update_robot_config_pid_gains(const LoopsMap<AxesMap<PIDGainsMap>> &loops_axes_pid_gains);
+    void update_robot_config_pid_gains(const LoopsMap<AxesMap<PIDGainsMap>> &loops_axes_pid_gains,
+                                       const bool &cascaded_pid);
 
     /**
      * @brief Update static power global vector in robot config file to match `static_power_global`.

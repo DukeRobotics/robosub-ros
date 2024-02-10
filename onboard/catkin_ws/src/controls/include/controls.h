@@ -34,6 +34,7 @@ private:
     bool sim = false;
     bool enable_position_pid = false;
     bool enable_velocity_pid = false;
+    bool cascaded_pid = false;
 
     std::unique_ptr<tf2_ros::Buffer> tfl_buffer;
 

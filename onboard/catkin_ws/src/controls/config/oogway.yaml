@@ -48,6 +48,55 @@ pid:
       control_effort_limit: 1
       derivative_type: 0
       error_ramp_rate: 1000
+  position_cascaded:
+    x:
+      Kp: 4
+      Ki: 0
+      Kd: 5
+      Ff: 0
+      control_effort_limit: 1
+      derivative_type: 0
+      error_ramp_rate: 1000
+    y:
+      Kp: 3.5
+      Ki: 0
+      Kd: 5
+      Ff: 0
+      control_effort_limit: 1
+      derivative_type: 0
+      error_ramp_rate: 1000
+    z:
+      Kp: 2.9
+      Ki: 0
+      Kd: 3
+      Ff: 0
+      control_effort_limit: 1
+      derivative_type: 0
+      error_ramp_rate: 1000
+    roll:
+      Kp: 0.8
+      Ki: 0
+      Kd: 0.4
+      Ff: 0
+      control_effort_limit: 1
+      derivative_type: 0
+      error_ramp_rate: 1000
+    pitch:
+      Kp: 0.8
+      Ki: 0
+      Kd: 0.4
+      Ff: 0
+      control_effort_limit: 1
+      derivative_type: 0
+      error_ramp_rate: 1000
+    yaw:
+      Kp: 1
+      Ki: 0
+      Kd: 0.5
+      Ff: 0
+      control_effort_limit: 1
+      derivative_type: 0
+      error_ramp_rate: 1000
   velocity:
     x:
       Kp: 1.75
