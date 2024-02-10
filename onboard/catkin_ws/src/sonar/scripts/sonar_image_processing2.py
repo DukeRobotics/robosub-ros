@@ -6,6 +6,7 @@ import time as t
 from sklearn.cluster import DBSCAN
 from shapely.geometry import MultiPoint
 import os
+import csv
 
 def getImage(path):
     """ turn jpeg into numpy array
@@ -159,7 +160,6 @@ def findClusters(image, threshold=139):
                 plt.plot(buoy_points[:, 1], buoy_points[:, 0], 'o', markerfacecolor=colors[k%6], markeredgecolor='k', markersize=6)
                 print(k, colors[k%6], perimeter, area, circularity)
 
-
     #Get the average column index of the largest cluster
     # average_column_index = np.mean(buoy_points[:, 1])
     # print(f"average column index: {average_column_index}")
@@ -167,7 +167,8 @@ def findClusters(image, threshold=139):
 
     # plt.plot(buoy_points[:, 1], buoy_points[:, 0], 'o', markerfacecolor='r', markeredgecolor='k', markersize=6)
 
-    plt.show()
+    # plt.show()
+    return cluster_counts
 
 
 def printCirularity(contours):
@@ -182,33 +183,35 @@ def printCirularity(contours):
 
 
 def main():
-    start = t.time()
-
     # Directory containing the .npy files
     data_dir = r"C:\Users\pzhen\VSCodeProjects\robosub-ros\onboard\catkin_ws\src\sonar\sampleData"
 
     # Get a list of all .npy files in the directory
     npy_files = [f for f in os.listdir(data_dir) if f.endswith('.npy')]
 
-    for npy_file in npy_files:
-        path = os.path.join(data_dir, npy_file)
+    with open('scripts/analysis.txt', 'w') as file:
+        file.write("Time, Cluster Count, Path")
+
+        # for npy_file in npy_files:
+        start = t.time()
+        path = os.path.join(data_dir, npy_files[-1])
         sonar_img = np.load(path)
         print(path)
-
-        # print(sonar_img)
 
         sonar_img_polar = createImage(sonar_img, speed="Good")
         sonar_img_polar = cv2.cvtColor(sonar_img_polar.astype(np.uint8), cv2.COLOR_GRAY2BGR)
         sonar_img_polar = cv2.applyColorMap(sonar_img_polar, cv2.COLORMAP_VIRIDIS)
 
-        findClusters(sonar_img_polar)
+        num_clusters = findClusters(sonar_img_polar)
+        file.write(str(t.time() - start) + str(num_clusters) + path)
+
         # addContours(sonar_img_polar)
         # resized_img = cv2.resize(sonar_img_polar, (sonar_img_polar.shape[1] // 2, sonar_img_polar.shape[0] // 2))
         
         # # print(sonar_img_polar.shape)
 
         # cv2.imshow('sonar image', resized_img)
-        print("total time for image: ", t.time() - start)
+        print("Total time for image: ", t.time() - start)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
    
