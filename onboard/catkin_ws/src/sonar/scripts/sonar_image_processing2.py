@@ -4,11 +4,8 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import time as t
 from sklearn.cluster import DBSCAN
-from sklearn.linear_model import LinearRegression
-import math
-
-
-THRESHOLD = 145
+from shapely.geometry import MultiPoint
+import os
 
 def getImage(path):
     """ turn jpeg into numpy array
@@ -118,44 +115,60 @@ def addContours(image, lower_bound=(0, 127, 0), upper_bound=(255, 255, 255), ker
     printCirularity(shapes)
     return image
 
-def findClusters(image):
+def findClusters(image, threshold=139):
 
     # Convert values > VALUE_THRESHOLD to list of points
-        points = np.argwhere(image > THRESHOLD)
+    
+    points = np.argwhere(image > threshold)
 
-        # Set up the plot
-        plt.imshow(image, cmap='viridis', aspect='auto')
-        plt.colorbar(label='Array Values')
-        plt.title('Visualization of the Original Array')
-        plt.xlabel('Column Index')
-        plt.ylabel('Row Index')
-        # Perform DBSCAN clustering
-        db = DBSCAN(eps=3, min_samples=10).fit(points)
-        labels = db.labels_
 
-        # Get cluster with the most points
-        unique_labels = set(labels)
-        cluster_counts = {k: np.sum(labels == k) for k in unique_labels if k != -1}
-        print(len(cluster_counts))
+    # Set up the plot
+    plt.imshow(image, cmap='viridis', aspect='auto')
+    plt.colorbar(label='Array Values')
+    plt.title('Visualization of the Original Array')
+    plt.xlabel('Column Index')
+    plt.ylabel('Row Index')
+    # Perform DBSCAN clustering
+    db = DBSCAN(eps=15, min_samples=10).fit(points)
+    labels = db.labels_
 
-        # Get the points of the largest cluster
-        largest_cluster_label = max(cluster_counts, key=cluster_counts.get)
-        # class_member_mask = (labels == largest_cluster_label)
-        # buoy_points = points[class_member_mask]
-        for k in unique_labels:
-            if k != -1:
-                class_member_mask = (labels == largest_cluster_label)
-                buoy_points = points[class_member_mask]
-                plt.plot(buoy_points[:, 1], buoy_points[:, 0], 'o', markerfacecolor='r', markeredgecolor='k', markersize=6)
+    # Get cluster with the most points
+    unique_labels = set(labels)
+    cluster_counts = {k: np.sum(labels == k) for k in unique_labels if k != -1}
+    # print(len(cluster_counts))
 
-        #Get the average column index of the largest cluster
-        average_column_index = np.mean(buoy_points[:, 1])
-        print(f"average column index: {average_column_index}")
-        plt.scatter(average_column_index, image.shape[0]/2, color='blue', s=50, label='Center Point')
+    # Get the points of the largest cluster
+    # largest_cluster_label = max(cluster_counts, key=cluster_counts.get)
+    # class_member_mask = (labels == largest_cluster_label)
+    # buoy_points = points[class_member_mask]
+    
+    colors = ['b', 'g', 'r', 'c', 'm', 'y']
 
-        plt.plot(buoy_points[:, 1], buoy_points[:, 0], 'o', markerfacecolor='r', markeredgecolor='k', markersize=6)
+    for k in unique_labels:
+        if k != -1:
+            class_member_mask = (labels == k)
+            buoy_points = points[class_member_mask]
 
-        plt.show()
+            # get cluster info
+            cluster_shape = MultiPoint(buoy_points).convex_hull
+            perimeter = cluster_shape.length
+            area = cluster_shape.area
+            circularity = 4*np.pi*area/perimeter**2
+
+            if (area > 7500 and circularity < 0.375):
+                plt.plot(buoy_points[:, 1], buoy_points[:, 0], 'o', markerfacecolor=colors[k%6], markeredgecolor='k', markersize=6)
+                print(k, colors[k%6], perimeter, area, circularity)
+
+
+    #Get the average column index of the largest cluster
+    # average_column_index = np.mean(buoy_points[:, 1])
+    # print(f"average column index: {average_column_index}")
+    # plt.scatter(average_column_index, image.shape[0]/2, color='blue', s=50, label='Center Point')
+
+    # plt.plot(buoy_points[:, 1], buoy_points[:, 0], 'o', markerfacecolor='r', markeredgecolor='k', markersize=6)
+
+    plt.show()
+
 
 def printCirularity(contours):
 
@@ -171,22 +184,31 @@ def printCirularity(contours):
 def main():
     start = t.time()
 
-    sonar_img = np.load('onboard/catkin_ws/src/sonar/sampleData/sonar_sweep_1.npy')
-    # print(sonar_img)
+    # Directory containing the .npy files
+    data_dir = r"C:\Users\pzhen\VSCodeProjects\robosub-ros\onboard\catkin_ws\src\sonar\sampleData"
 
-    sonar_img_polar = createImage(sonar_img, speed="Good")
-    sonar_img_polar = cv2.cvtColor(sonar_img_polar.astype(np.uint8), cv2.COLOR_GRAY2BGR)
-    sonar_img_polar = cv2.applyColorMap(sonar_img_polar, cv2.COLORMAP_VIRIDIS)
-    findClusters(sonar_img_polar)
-    # addContours(sonar_img_polar)
-    # resized_img = cv2.resize(sonar_img_polar, (sonar_img_polar.shape[1] // 2, sonar_img_polar.shape[0] // 2))
-    
-    # # print(sonar_img_polar.shape)
+    # Get a list of all .npy files in the directory
+    npy_files = [f for f in os.listdir(data_dir) if f.endswith('.npy')]
 
-    # cv2.imshow('sonar image', resized_img)
-    # print(t.time() - start)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+    for npy_file in npy_files:
+        sonar_img = np.load(os.path.join(data_dir, npy_file))
+
+        # print(sonar_img)
+
+        sonar_img_polar = createImage(sonar_img, speed="Good")
+        sonar_img_polar = cv2.cvtColor(sonar_img_polar.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+        sonar_img_polar = cv2.applyColorMap(sonar_img_polar, cv2.COLORMAP_VIRIDIS)
+
+        findClusters(sonar_img_polar)
+        # addContours(sonar_img_polar)
+        # resized_img = cv2.resize(sonar_img_polar, (sonar_img_polar.shape[1] // 2, sonar_img_polar.shape[0] // 2))
+        
+        # # print(sonar_img_polar.shape)
+
+        # cv2.imshow('sonar image', resized_img)
+        # print(t.time() - start)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
    
 
 if __name__ == '__main__':
