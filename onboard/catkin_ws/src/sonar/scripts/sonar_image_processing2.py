@@ -206,7 +206,7 @@ def main():
         # # print(sonar_img_polar.shape)
 
         # cv2.imshow('sonar image', resized_img)
-        # print(t.time() - start)
+        print(t.time() - start)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
    
