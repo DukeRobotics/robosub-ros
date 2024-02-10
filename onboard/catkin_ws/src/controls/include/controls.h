@@ -22,8 +22,9 @@
 #include <custom_msgs/SetControlTypes.h>
 #include <custom_msgs/SetPowerScaleFactor.h>
 #include <custom_msgs/SetStaticPower.h>
-#include "thruster_allocator.h"
+#include "controls_types.h"
 #include "controls_utils.h"
+#include "thruster_allocator.h"
 #include "pid_manager.h"
 
 class Controls

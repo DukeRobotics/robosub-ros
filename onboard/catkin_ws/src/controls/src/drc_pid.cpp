@@ -1,8 +1,9 @@
 #include <memory>
 #include <ros/ros.h>
 
-#include "drc_pid.h"
+#include "controls_types.h"
 #include "controls_utils.h"
+#include "drc_pid.h"
 
 PID::PID(){};
 

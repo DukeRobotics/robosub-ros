@@ -2,6 +2,7 @@
 #include <Eigen/Dense>
 #include <ros/ros.h>
 
+#include "controls_types.h"
 #include "controls_utils.h"
 #include "thruster_allocator.h"
 

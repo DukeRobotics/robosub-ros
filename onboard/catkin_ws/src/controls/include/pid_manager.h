@@ -4,6 +4,7 @@
 #include <memory>
 #include <unordered_map>
 
+#include "controls_types.h"
 #include "controls_utils.h"
 #include "drc_pid.h"
 

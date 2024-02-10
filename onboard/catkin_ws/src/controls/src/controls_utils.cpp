@@ -19,6 +19,7 @@
 #include <Eigen/Dense>
 #include <yaml-cpp/yaml.h>
 
+#include "controls_types.h"
 #include "controls_utils.h"
 
 std::mutex ControlsUtils::robot_config_mutex;

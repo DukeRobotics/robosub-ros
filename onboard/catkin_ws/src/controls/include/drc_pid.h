@@ -9,6 +9,7 @@
 #include <array>
 #include <memory>
 
+#include "controls_types.h"
 #include "controls_utils.h"
 
 class PID
