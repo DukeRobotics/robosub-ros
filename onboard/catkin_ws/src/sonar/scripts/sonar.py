@@ -261,9 +261,13 @@ class Sonar:
         """
         sonar_sweep_array = self.get_sweep(start_angle, end_angle)
 
-        sonar_angle, sonar_index, normal_angle = sonar_utils.get_angle_and_index_of_object(
+        sonar_angle, sonar_index, normal_angle, plot = sonar_utils.get_angle_and_index_of_object(
             sonar_sweep_array, self.VALUE_THRESHOLD, self.DBSCAN_EPS,
             self.DBSCAN_MIN_SAMPLES)
+        
+        if self.stream:
+            compressed_image = self.convert_to_ros_compressed_img(sonar_sweep_array)
+            self.sonar_image_publisher.publish(compressed_image)
 
         return (self.to_robot_position(sonar_angle, sonar_index), sonar_sweep_array, normal_angle)
 
