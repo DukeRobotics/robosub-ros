@@ -440,7 +440,7 @@ class DepthAISpatialDetector:
         self.init_model(self.running_model)
         self.init_publishers(self.running_model)
 
-        with depthai_camera_connect.connect(self.pipeline) as device:
+        with depthai_camera_connect.connect(self.pipeline, self.camera) as device:
             self.init_output_queues(device)
 
             while not rospy.is_shutdown():

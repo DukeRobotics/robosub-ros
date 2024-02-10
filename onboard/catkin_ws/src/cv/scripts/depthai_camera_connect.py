@@ -5,7 +5,13 @@ import rospy
 import nmap
 
 
-def connect(pipeline):
+CAMERA_MAC_ADDRESSES = {
+    "front": "44:A9:2C:3C:0A:90",
+    "downward": "f8:e4:3b:5b:b5:f4"
+}
+
+
+def connect(pipeline, camera):
     """
     Connects to the DepthAI camera and uploads the pipeline.
 
@@ -22,8 +28,8 @@ def connect(pipeline):
     # If device is not None, a successful connection to the camera was made
     device = None
 
-    # IP address used for local connection
-    device_info = dai.DeviceInfo("169.254.1.222")
+    # # IP address used for local connection
+    # device_info = dai.DeviceInfo("169.254.1.222")
 
     # Number of attempts that will be made to connect to the camera
     total_tries = 5
@@ -34,7 +40,7 @@ def connect(pipeline):
 
         try:
             # Scan for camera IP address using custom autodiscovery
-            ip = custom_autodiscovery()
+            ip = custom_autodiscovery(CAMERA_MAC_ADDRESSES[camera])
 
             # Try connecting with the discovered IP address
             device = dai.Device(pipeline, dai.DeviceInfo(ip))
@@ -63,23 +69,23 @@ def connect(pipeline):
         if rospy.is_shutdown():
             break
 
-        try:
-            # Try connecting with static IP address
-            device = dai.Device(pipeline, device_info)
+        # try:
+        #     # Try connecting with static IP address
+        #     device = dai.Device(pipeline, device_info)
 
-            # If the execution reaches the following return statement, the line above did not raise an exception, so a
-            # successful camera connection was made, and device should be returned
-            return device
+        #     # If the execution reaches the following return statement, the line above did not raise an exception, so a
+        #     # successful camera connection was made, and device should be returned
+        #     return device
 
-        except RuntimeError as e:
-            # For all tries before the last one, don't raise the exception and try connecting again
-            # On the last try, raise the exception so DepthAI code doesn't run without a successful camera connection
-            if i == total_tries - 1:
-                raise RuntimeError((f"{total_tries} attempts were made to connect to the DepthAI camera using "
-                                    "autodiscovery and static IP address specification. All attempts failed.")) from e
+        # except RuntimeError as e:
+        #     # For all tries before the last one, don't raise the exception and try connecting again
+        #     # On the last try, raise the exception so DepthAI code doesn't run without a successful camera connection
+        #     if i == total_tries - 1:
+        #         raise RuntimeError((f"{total_tries} attempts were made to connect to the DepthAI camera using "
+        #                             "autodiscovery and static IP address specification. All attempts failed.")) from e
 
-        if rospy.is_shutdown():
-            break
+        # if rospy.is_shutdown():
+        #     break
 
         # Wait two seconds before trying again
         # This ensures the script does not terminate if the camera is just temporarily unavailable
@@ -89,7 +95,7 @@ def connect(pipeline):
                        f"autodiscovery and static IP address specification. All attempts failed.")
 
 
-def custom_autodiscovery():
+def custom_autodiscovery(MAC_address):
     """
     Scans all IP addresses from 192.168.1.0 to 192.168.1.255 looking for the DepthAI camera's MAC address.
 
@@ -97,7 +103,6 @@ def custom_autodiscovery():
     :raises RuntimeError: if the camera's IP address could not be found
     """
 
-    MAC_address = "44:A9:2C:3C:0A:90"  # DepthAI camera MAC address
     IP_range = "192.168.1.0/24"  # 192.168.1.0 to 192.168.1.255
 
     nm = nmap.PortScanner()
@@ -112,5 +117,9 @@ def custom_autodiscovery():
 
 if __name__ == "__main__":
     rospy.init_node("depthai_camera_connect")
-    if connect(dai.Pipeline()):
-        rospy.loginfo("Connected to DepthAI device successfully.")
+
+    if connect(dai.Pipeline(), "front"):
+        rospy.loginfo("Connected to DepthAI front-facing camera successfully.")
+
+    if connect(dai.Pipeline(), "downward"):
+        rospy.loginfo("Connected to DepthAI downward-facing camera successfully.")

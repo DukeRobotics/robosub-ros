@@ -28,7 +28,8 @@ class CameraTestConnect:
 
     def connect_depthai(self, _):
         try:
-            depthai_camera_connect.connect(dai.Pipeline())
+            depthai_camera_connect.connect(dai.Pipeline(), "front")
+            depthai_camera_connect.connect(dai.Pipeline(), "downward")
             return {'success': True}  # If no exception is thrown, the camera is connected
 
         except Exception:
