@@ -16,7 +16,7 @@ void setup() {
 void loop() {
   myTime = millis();
   
-  if (Serial.available()>0 && !servoMoved) {
+  if (Serial.available() > 0 && !servoMoved) {
     char state = Serial.read();
     if (Serial.available() > 0) {
       Serial.readString();
@@ -34,6 +34,7 @@ void loop() {
       }
   }
   
+  // return to default position after 1 second
   if(servoMoved && myTime - servoTime > rateServo) {
       myservo.write(90);
       servoMoved = false;
