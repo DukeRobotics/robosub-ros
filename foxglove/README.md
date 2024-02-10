@@ -100,8 +100,8 @@ python foxglove.py clean
 - `pid-panel`: Panel to read/set PID gains
 
 ### Layouts
-- `controls-monitor.json`: Plots setpoint and control effort for each axis
-- `pid-info.json`: Plots setpoint, control effort, filtered error, filtered derivative, and provided derivative for each axis
+- `controls-<position/velocity>.json`: Plots setpoint and control effort for each axis
+- `pid-<position/velocity>.json`: Plots setpoint, control effort, filtered error, filtered derivative, and provided derivative for each axis
 - `current-pose.json`: Plots the current pose
 - `controls-power.json`: Plots the set power scaled, actual power, and their difference for each axis
 - `drc.json`: All Duke Robotics's custom Foxglove panels
