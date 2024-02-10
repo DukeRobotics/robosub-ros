@@ -1,2 +1,9 @@
 arduino:
-  
+  thruster:
+      ftdi: 856825A151514A4E414B2020FF0E1C28
+      fqbn: arduino:megaavr:nona4809
+      core: arduino:megaavr
+      sketch: Arduino Sketchbooks/ThrusterArduino
+      requires_ros_lib: true
+      pre_compile: rosrun offboard_comms copy_offset.sh 1
+      post_compile: rosrun offboard_comms copy_offset.sh 0
