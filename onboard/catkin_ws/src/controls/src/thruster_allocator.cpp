@@ -69,7 +69,7 @@ void ThrusterAllocator::clip_allocs(Eigen::VectorXd &allocs)
 void ThrusterAllocator::allocate_thrusters(const Eigen::VectorXd &set_power, double &power_scale_factor,
                                            Eigen::VectorXd &set_power_scaled, Eigen::VectorXd &unconstrained_allocs,
                                            Eigen::VectorXd &constrained_allocs, Eigen::VectorXd &actual_power,
-                                           Eigen::VectorXd &set_scaled_actual_power_diff)
+                                           Eigen::VectorXd &power_disparity)
 {
     // Check that set_power and wrench_pinv have compatible dimensions
     ROS_ASSERT_MSG(wrench_pinv.cols() == set_power.rows(), "Set power must have the same number of rows as wrench_pinv.");
@@ -100,5 +100,5 @@ void ThrusterAllocator::allocate_thrusters(const Eigen::VectorXd &set_power, dou
     actual_power = wrench * constrained_allocs;
 
     // Compute the difference between the set power scaled and the actual power
-    set_scaled_actual_power_diff = set_power_scaled - actual_power;
+    power_disparity = set_power_scaled - actual_power;
 }

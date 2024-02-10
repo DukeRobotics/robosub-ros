@@ -84,12 +84,12 @@ public:
      * @param unconstrained_allocs Unconstrained thruster allocations (maximum absolute value allocation is unlimited).
      * @param constrained_allocs Constrained thruster allocations (maximum absolute value allocation is `max_alloc`).
      * @param actual_power Actual power delivered along each axis with `constrained_allocs`.
-     * @param set_scaled_actual_power_diff Difference between `set_power_scaled` and `actual_power`.
+     * @param power_disparity Difference between `set_power_scaled` and `actual_power`.
      */
     void allocate_thrusters(const Eigen::VectorXd &set_power, double &power_scale_factor,
                             Eigen::VectorXd &set_power_scaled, Eigen::VectorXd &unconstrained_allocs,
                             Eigen::VectorXd &constrained_allocs, Eigen::VectorXd &actual_power,
-                            Eigen::VectorXd &set_scaled_actual_power_diff);
+                            Eigen::VectorXd &power_disparity);
 };
 
 #endif

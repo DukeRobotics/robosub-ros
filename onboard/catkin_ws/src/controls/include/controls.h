@@ -61,7 +61,7 @@ private:
     ros::Publisher set_power_pub;
     ros::Publisher set_power_scaled_pub;
     ros::Publisher actual_power_pub;
-    ros::Publisher set_scaled_actual_power_diff_pub;
+    ros::Publisher power_disparity_pub;
     ros::Publisher pid_gains_pub;
     ros::Publisher control_types_pub;
     ros::Publisher position_efforts_pub;
