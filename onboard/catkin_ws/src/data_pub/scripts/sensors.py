@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import os
 import time
 import serial
 import serial.tools.list_ports as list_ports
@@ -17,7 +18,7 @@ class PressureRawPublisher:
 
     DEPTH_DEST_TOPIC = 'sensors/depth'
     VOLTAGE_DEST_TOPIC = 'sensors/voltage'
-    FTDI_FILE_PATH = 'package://offboard_comms/config/arduino.yaml'
+    CONFIG_FILE_PATH = f'package://offboard_comms/config/{os.getenv("ROBOT_NAME", "oogway")}.yaml'
 
     BAUDRATE = 9600
     NODE_NAME = 'pressure_pub'
@@ -25,8 +26,9 @@ class PressureRawPublisher:
     MEDIAN_FILTER_SIZE = 3
 
     def __init__(self):
-        with open(rr.get_filename(self.FTDI_FILE_PATH, use_protocol=False)) as f:
-            self._arduino_config = yaml.safe_load(f)
+        with open(rr.get_filename(self.CONFIG_FILE_PATH, use_protocol=False)) as f:
+            config_data = yaml.safe_load(f)
+            self._arduino_config = config_data['arduino']
 
         self._pressure = None  # Pressure to publish
         self._previous_pressure = None  # Previous pressure readings for median filter
