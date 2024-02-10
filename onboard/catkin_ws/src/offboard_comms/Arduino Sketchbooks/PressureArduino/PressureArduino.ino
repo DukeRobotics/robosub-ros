@@ -23,7 +23,7 @@ String printVoltage = "";
 void initPressureSensor(){
     Wire.end();
     Wire.begin();
-    Wire.setWireTimeout(100, false);
+    Wire.setWireTimeout(500, true);
 
     pressureConnected = sensor.init();
 

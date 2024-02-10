@@ -242,7 +242,7 @@ After extensive testing, it was found that proper functioning of the pressure se
 - The most up-to-date Arduino Wire library, which includes the [`setWireTimeout` function](https://www.arduino.cc/reference/en/language/functions/communication/wire/setwiretimeout/). As of February 2024, this is **_not_** available on Arduinos using MegaAVR 1.8.3. Therefore, an AVR-based Arduino is required (e.g. Nano or Uno).
 - Consistent voltage of 5V. The sensor is factory-optimized for 5V, so readings will be inaccurate if the voltage is not 5V. Experimental results have shown that when the voltage is dropped to at or below 2.5V, the sensor will stop responding to I2C requests.
 
-If these conditions are met, the sensor will return accurate readings and will not become unresponsive. If the sensor does become unresponsive, a 100 milisecond timeout has been set to prevent the Arduino from hanging.
+If these conditions are met, the sensor will return accurate readings and will not become unresponsive. If the sensor does become unresponsive, a 500 microsecond timeout has been set to prevent the Arduino from hanging.
 
 The `MS5837` library has been modified to handle errors in reading the sensor.
 
