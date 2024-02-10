@@ -21,8 +21,8 @@
 
 	<include file="$(find execute)/launch/sensors.launch" />
 
-	<include file="$(find vectornav)/launch/vectornav.launch" />
+	<include file="$(find system_utils)/launch/system_utils.launch" />
 
-	<include file="$(find system_utils)/launch/system_pub.launch" />
+	<include file="$(find vectornav)/launch/vectornav.launch" />
 
 </launch>

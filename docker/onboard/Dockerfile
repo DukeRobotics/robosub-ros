@@ -45,7 +45,8 @@ RUN apt-get update && \
     iputils-ping \
     python3-pandas \
     ros-noetic-foxglove-bridge \
-    nmap && \
+    nmap \
+    libeigen3-dev &&\
     apt-get clean && \
     # Clear apt caches to reduce image size
     rm -rf /var/lib/apt/lists/*
@@ -90,6 +91,28 @@ RUN wget -O "logic.zip" "http://downloads.saleae.com/logic/1.2.18/Logic+1.2.18+(
     unzip logic.zip && \
     mv "Logic 1.2.18 (64-bit)" "Logic" && \
     ln -s /root/docker-build/Logic/Logic /usr/local/bin/Logic
+
+# Build and install OSQP from source
+RUN git clone --branch release-0.6.3 --recursive https://github.com/osqp/osqp.git && \
+    cd osqp && \
+    mkdir build && \
+    cd build && \
+    cmake -G "Unix Makefiles" .. && \
+    cmake --build . --target install && \
+    cd ../.. && \
+    rm -rf osqp
+
+# Build and install osqp-eigen from source
+RUN git clone https://github.com/robotology/osqp-eigen.git && \
+    cd osqp-eigen && \
+    git checkout 85c37623774c682db396505f0d4ea677040c2557 && \
+    mkdir build && \
+    cd build && \
+    cmake ../ && \
+    make && \
+    make install && \
+    cd ../.. && \
+    rm -rf osqp-eigen
 
 # Install Arduino CLI for Arduino upload script
 # v0.17.0 is required due to issues with adding libraries in the current version v0.18.0
