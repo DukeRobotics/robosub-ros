@@ -191,7 +191,9 @@ def main():
     npy_files = [f for f in os.listdir(data_dir) if f.endswith('.npy')]
 
     for npy_file in npy_files:
-        sonar_img = np.load(os.path.join(data_dir, npy_file))
+        path = os.path.join(data_dir, npy_file)
+        sonar_img = np.load(path)
+        print(path)
 
         # print(sonar_img)
 
@@ -206,7 +208,7 @@ def main():
         # # print(sonar_img_polar.shape)
 
         # cv2.imshow('sonar image', resized_img)
-        print(t.time() - start)
+        print("total time for image: ", t.time() - start)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
    
