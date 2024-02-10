@@ -54,15 +54,20 @@ add_executable(controls ${SOURCES})
 target_link_libraries(controls
   yaml-cpp
   Eigen3::Eigen
+  OsqpEigen::OsqpEigen
   ${catkin_LIBRARIES}
 )
 
 target_precompile_headers(controls
   PRIVATE
     <ros/ros.h>
+    <tf2/LinearMath/Matrix3x3.h>
+    <tf2/LinearMath/Vector3.h>
+    <tf2/LinearMath/Quaternion.h>
+    <tf2_ros/transform_listener.h>
+    <tf2_geometry_msgs/tf2_geometry_msgs.h>
     <Eigen/Dense>
     <yaml-cpp/yaml.h>
+    [["OsqpEigen/OsqpEigen.h"]]
 )
 target_precompile_headers(controls_test REUSE_FROM controls)
-
-

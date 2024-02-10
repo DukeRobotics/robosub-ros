@@ -3,14 +3,15 @@
 
 #include <Eigen/Dense>
 #include <string>
+#include <OsqpEigen/OsqpEigen.h>
 
 class ThrusterAllocator
 {
-public:
+private:
     /**
      * @brief Maximum absolute value allocation allowed for any thruster.
      */
-    static constexpr double max_alloc = 1.0;
+    double max_alloc = 1.0;
 
     /**
      * @brief Wrench matrix.
@@ -29,6 +30,39 @@ public:
     Eigen::MatrixXd wrench_pinv;
 
     /**
+     * @brief OSQP solver.
+     *
+     * @details Solver for quadratic programming problems.
+     */
+    OsqpEigen::Solver solver;
+
+    /**
+     * @brief Get unconstrained thruster allocations for given scaled set power by returning
+     *  `wrench_pinv * set_power_scaled`.
+     *
+     * @param set_power_scaled Scaled set power.
+     * @param unconstrained_allocs Unconstrained thruster allocations.
+     */
+    void get_pseudoinverse_solution(const Eigen::VectorXd &set_power_scaled, Eigen::VectorXd &unconstrained_allocs);
+
+    /**
+     * @brief Get constrained thruster allocations for given scaled set power using quadratic programming. This
+     *  minimizes the norm of `set_power_scaled - wrench * constrained_allocs`.
+     *
+     * @param set_power_scaled Scaled set power.
+     * @param constrained_allocs Constrained thruster allocations.
+     */
+    void get_qp_solution(const Eigen::VectorXd &set_power_scaled, Eigen::VectorXd &constrained_allocs);
+
+    /**
+     * @brief Clip every component of `allocs` to the range [-max_alloc, max_alloc].
+     *
+     * @param allocs Thruster allocations to clip.
+     */
+    void clip_allocs(Eigen::VectorXd &allocs);
+
+public:
+    /**
      * @brief Default constructor with empty `wrench` and `wrench_pinv`.
      */
     ThrusterAllocator();
@@ -42,9 +76,9 @@ public:
     ThrusterAllocator(std::string wrench_file_path, std::string wrench_pinv_file_path);
 
     /**
-     * @brief Allocates thruster power to achieve desired wrench.
+     * @brief Allocates thruster power to achieve the provided set power.
      *
-     * @param set_power Desired power to allocate to thrusters.
+     * @param set_power Power to allocate to thrusters.
      * @param power_scale_factor Scale factor to apply to `set_power`.
      * @param set_power_scaled Set power scaled by `power_scale_factor`.
      * @param unconstrained_allocs Unconstrained thruster allocations (maximum absolute value allocation is unlimited).
