@@ -3,7 +3,7 @@
     "Plot!3gn30zb": {
       "paths": [
         {
-          "value": "/state/pose_transformed.linear.x",
+          "value": "/transforms/state/pose.linear.x",
           "enabled": true,
           "timestampMethod": "receiveTime",
           "label": "X",
@@ -27,12 +27,17 @@
     "Plot!3yf78kk": {
       "paths": [
         {
-          "value": "/state/pose_transformed.angular.x",
+          "value": "/transforms/state/pose.angular.x",
           "enabled": true,
           "timestampMethod": "receiveTime",
           "label": "Roll",
           "showLine": true,
           "color": "#0080ff"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/vectornav/IMU.x",
+          "enabled": true
         }
       ],
       "showXAxisLabels": true,
@@ -51,7 +56,7 @@
     "Plot!1vpzbmx": {
       "paths": [
         {
-          "value": "/state/pose_transformed.linear.y",
+          "value": "/transforms/state/pose.linear.y",
           "enabled": true,
           "timestampMethod": "receiveTime",
           "label": "Y",
@@ -75,12 +80,17 @@
     "Plot!266v8jj": {
       "paths": [
         {
-          "value": "/state/pose_transformed.angular.y",
+          "value": "/transforms/state/pose.angular.y",
           "enabled": true,
           "timestampMethod": "receiveTime",
           "label": "Pitch",
           "showLine": true,
           "color": "#0080ff"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/vectornav/IMU.y",
+          "enabled": true
         }
       ],
       "showXAxisLabels": true,
@@ -100,7 +110,7 @@
       "paths": [
         {
           "timestampMethod": "receiveTime",
-          "value": "/state/pose_transformed.linear.z",
+          "value": "/transforms/state/pose.linear.z",
           "enabled": true,
           "label": "Z"
         }
@@ -122,14 +132,19 @@
       "paths": [
         {
           "timestampMethod": "receiveTime",
-          "value": "/state/pose_transformed.angular.z",
+          "value": "/transforms/state/pose.angular.z",
           "enabled": true,
           "label": "Yaw"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/vectornav/IMU.z",
+          "enabled": true
         }
       ],
       "showXAxisLabels": true,
       "showYAxisLabels": true,
-      "showLegend": true,
+      "showLegend": false,
       "legendDisplay": "floating",
       "showPlotValuesInLegend": true,
       "isSynced": true,
