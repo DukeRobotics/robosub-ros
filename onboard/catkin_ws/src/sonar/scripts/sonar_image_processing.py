@@ -37,6 +37,32 @@ def scan_and_build_sonar_image(sonar,
     return sonar_img
 
 
+def build_color_sonar_image_from_int_array(int_array, npy_save_path=None, jpeg_save_path=None):
+    """ Build a sonar image from a list of data messages
+
+    Args:
+        int_array (List): array of ints from the sonar scan
+        npy_save_path (str, optional): Path to save the sonar image as a
+                                    .npy file. Defaults to None.
+        jpeg_save_path (str, optional): Path to save the sonar image as a
+                                    .jpeg file. Defaults to None.
+
+    Returns:
+        ndarray: Sonar image from the scan
+    """
+
+    sonar_img = int_array.astype(np.uint8)
+    sonar_img = cv2.cvtColor(sonar_img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+    sonar_img = cv2.applyColorMap(sonar_img, cv2.COLORMAP_VIRIDIS)
+
+    if jpeg_save_path:
+        plt.imsave(jpeg_save_path, sonar_img)
+    if npy_save_path:
+        np.save(npy_save_path, sonar_img)
+
+    return sonar_img
+
+
 def build_sonar_img_from_log_file(filename, start_index=49, end_index=149):
     """ Builds a sonar image from a log file """
     assert filename.endswith('.bin'), 'filename must be a .bin file'
@@ -289,9 +315,5 @@ def to_polar_img(img, display_results=True):
 
 
 if __name__ == "__main__":
-    # test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData',
-    # 'SampleTylerData.bin'), find_buoy)
     test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData',
                                'gate.npy'), to_polar_img)
-    # test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData',
-    # 'gate.npy'), the_polar_express)
