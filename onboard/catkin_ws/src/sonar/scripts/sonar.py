@@ -11,8 +11,7 @@ from custom_msgs.msg import SonarSweepRequest, SonarSweepResponse
 from sensor_msgs.msg import CompressedImage
 from tf import TransformListener
 from cv_bridge import CvBridge
-from sonar_image_processing import build_color_sonar_image_from_int_array
-import signal
+from sonar_image_processing import build_color_sonar_image_from_int_array, find_center_point_and_angle
 
 class Sonar:
     """
@@ -176,7 +175,6 @@ class Sonar:
         # 0.5 for the average distance of sample
         return (sample_index + 0.5) * self.meters_per_sample()
 
-
     def request_data_at_angle(self, angle_in_gradians):
         """Set sonar device to provided angle and retrieve data.
 
@@ -233,6 +231,7 @@ class Sonar:
             sonar_utils.centered_gradians_to_radians(angle))
         y_pos = -1 * self.get_distance_of_sample(index)*np.sin(
             sonar_utils.centered_gradians_to_radians(angle))
+        rospy.loginfo(f"x_pos: {x_pos}, y_pos: {y_pos}")
         pos_of_point = Pose()
         pos_of_point.position.x = x_pos
         pos_of_point.position.y = y_pos
@@ -265,9 +264,14 @@ class Sonar:
             sonar_sweep_array, self.VALUE_THRESHOLD, self.DBSCAN_EPS,
             self.DBSCAN_MIN_SAMPLES)
         
+        if sonar_index is None:
+            return (None, None, None)
+        
         if self.stream:
-            compressed_image = self.convert_to_ros_compressed_img(sonar_sweep_array)
+            compressed_image = self.convert_to_ros_compressed_img(plot)
             self.sonar_image_publisher.publish(compressed_image)
+
+        sonar_angle = (start_angle + end_angle) / 2 # Take the middle of the sweep
 
         return (self.to_robot_position(sonar_angle, sonar_index), sonar_sweep_array, normal_angle)
 
@@ -330,6 +334,10 @@ class Sonar:
 
         rospy.loginfo(f"starting sweep from {left_gradians} to {right_gradians}")
         object_pose, sonar_sweep, normal_angle = self.get_xy_of_object_in_sweep(left_gradians, right_gradians)
+
+        if object_pose is None:
+            rospy.loginfo("No object found")
+            return
 
         response = SonarSweepResponse()
         response.pose = object_pose

@@ -26,6 +26,7 @@ add_message_files(
   PIDGain.msg
   PIDGains.msg
   SonarSweepRequest.msg
+  SonarSweepResponse.msg
 )
 
 add_service_files(

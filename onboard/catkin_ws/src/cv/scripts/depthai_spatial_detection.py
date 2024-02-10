@@ -10,8 +10,7 @@ import numpy as np
 from utils import DetectionVisualizer
 from image_tools import ImageTools
 
-from custom_msgs.msg import CVObject, SonarSweepRequest
-from geometry_msgs.msg import Pose
+from custom_msgs.msg import CVObject, SonarSweepRequest, SonarSweepResponse
 from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import String
 
@@ -73,7 +72,7 @@ class DepthAISpatialDetector:
         self.sonar_requests_publisher = rospy.Publisher(
             SONAR_REQUESTS_PATH, SonarSweepRequest, queue_size=10)
         self.sonar_response_subscriber = rospy.Subscriber(
-            SONAR_RESPONSES_PATH, Pose, self.update_sonar)
+            SONAR_RESPONSES_PATH, SonarSweepResponse, self.update_sonar)
         self.desired_detection_feature = rospy.Subscriber(
             TASK_PLANNING_REQUESTS_PATH, String, self.update_priority)
 
@@ -414,9 +413,9 @@ class DepthAISpatialDetector:
         """
         # Check to see if the sonar is in range - are results from sonar valid?
         self.sonar_busy = False
-        if sonar_results.position.x > SONAR_RANGE and sonar_results.position.x <= SONAR_DEPTH:
+        if sonar_results.pose.position.x > SONAR_RANGE and sonar_results.pose.position.x <= SONAR_DEPTH:
             self.in_sonar_range = True
-            self.sonar_response = (sonar_results.position.x, sonar_results.position.y)
+            self.sonar_response = (sonar_results.pose.position.x, sonar_results.pose.position.y)
         else:
             self.in_sonar_range = False
 

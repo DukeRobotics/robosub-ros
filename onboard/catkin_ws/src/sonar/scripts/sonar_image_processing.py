@@ -63,6 +63,8 @@ def find_center_point_and_angle(array, threshold, eps, min_samples, jpeg_save_pa
 
     # Convert values > VALUE_THRESHOLD to list of points
     points = np.argwhere(array > threshold)
+    if points.size == 0:
+        return None, None, None
 
     # Perform DBSCAN clustering
     db = DBSCAN(eps=eps, min_samples=min_samples).fit(points)
@@ -71,7 +73,6 @@ def find_center_point_and_angle(array, threshold, eps, min_samples, jpeg_save_pa
     # Get cluster with the most points
     unique_labels = set(labels)
     cluster_counts = {k: np.sum(labels == k) for k in unique_labels if k != -1}
-    print(cluster_counts)
 
     # Get the points of the largest cluster and calculate the average column index
     largest_cluster_label = max(cluster_counts, key=cluster_counts.get)
