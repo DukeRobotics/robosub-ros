@@ -13,7 +13,7 @@ import resource_retriever as rr
 OFFBOARD_COMMS_PATH_TEMPLATE = 'package://offboard_comms/{subpath}'
 
 # Path to the arduino YAML file
-ARDUINO_YAML_PATH = OFFBOARD_COMMS_PATH_TEMPLATE.format(subpath='config/arduino.yaml')
+CONFIG_YAML_PATH = OFFBOARD_COMMS_PATH_TEMPLATE.format(subpath=f'config/{os.getenv("ROBOT_NAME", "oogway")}.yaml')
 
 # Commands to install the ros_lib library for Arduino
 ROS_LIB_INSTALL_COMMANDS = [
@@ -42,8 +42,9 @@ ARDUINO_UPLOAD_COMMAND_TEMPLATE = 'arduino-cli upload -b {fqbn} -p {port} "{sket
 OUTPUT_PREFIX = 'Arduino.py'
 
 # Load arduino YAML file
-with open(rr.get_filename(ARDUINO_YAML_PATH, use_protocol=False)) as f:
-    ARDUINO_DATA = yaml.safe_load(f)
+with open(rr.get_filename(CONFIG_YAML_PATH, use_protocol=False)) as f:
+    config_data = yaml.safe_load(f)
+    ARDUINO_DATA = config_data["arduino"]
 
 
 # ======================================================================================================================

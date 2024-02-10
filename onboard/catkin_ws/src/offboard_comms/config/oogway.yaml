@@ -1,0 +1,15 @@
+arduino:
+  pressure:
+    ftdi: 557323233303516132A1
+    fqbn: arduino:avr:uno
+    core: arduino:avr
+    sketch: Arduino Sketchbooks/PressureArduino
+    requires_ros_lib: false
+  thruster:
+    ftdi: E49AFA8B51514C4B39202020FF024242
+    fqbn: arduino:megaavr:nona4809
+    core: arduino:megaavr
+    sketch: Arduino Sketchbooks/ThrusterArduino
+    requires_ros_lib: true
+    pre_compile: rosrun offboard_comms copy_offset.sh 1
+    post_compile: rosrun offboard_comms copy_offset.sh 0
