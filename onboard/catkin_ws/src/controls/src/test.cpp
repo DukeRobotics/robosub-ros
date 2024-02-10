@@ -42,7 +42,11 @@ int osqp_eigen_test()
 
   if(!solver.initSolver()) return 1;
 
-  gradient = -b.transpose() * W;
+  // gradient = -b.transpose() * W;
+  // std::cout << "b transpose" << std::endl;
+
+  gradient = -W.transpose() * b;
+  // std::cout << "W transpose" << std::endl;
   if(!solver.updateGradient(gradient)) return 1;
   if(solver.solveProblem() != OsqpEigen::ErrorExitFlag::NoError) return 1;
   Eigen::VectorXd QPSolution = solver.getSolution();
@@ -51,6 +55,24 @@ int osqp_eigen_test()
   std::cout << "QP solution: " << std::endl;
   std::cout << W * QPSolution << std::endl;
   std::cout << std::endl;
+
+  Eigen::VectorXd std_solution = W_pinv * b;
+
+  // If maximum absolute value in std_solution is greater than 1, scale it down
+  double max_abs = std_solution.cwiseAbs().maxCoeff();
+  if (max_abs > 1)
+  {
+    std_solution /= max_abs;
+  }
+
+  std::cout << "Standard solution: " << std::endl;
+  // std::cout << std_solution << std::endl;
+  // std::cout << std::endl;
+  std::cout << W * std_solution << std::endl;
+  std::cout << std::endl;
+
+
+  return 0;
 
   b << 5, 2.3, -0.5, 0.2, 0.7, 0.4;
   std::cout << "b: " << std::endl;
@@ -67,7 +89,7 @@ int osqp_eigen_test()
   std::cout << std::endl;
 
 
-  Eigen::VectorXd std_solution = W_pinv * b;
+  std_solution = W_pinv * b;
   std::cout << "Standard solution: " << std::endl;
   std::cout << std_solution << std::endl;
   std::cout << std::endl;
@@ -75,7 +97,7 @@ int osqp_eigen_test()
   std::cout << std::endl;
 
   // If maximum absolute value in std_solution is greater than 1, scale it down
-  double max_abs = std_solution.cwiseAbs().maxCoeff();
+  max_abs = std_solution.cwiseAbs().maxCoeff();
   if (max_abs > 1)
   {
     std_solution /= max_abs;
@@ -199,9 +221,27 @@ void map_copy_test()
   std::cout << "local_map[1]: " << local_map[1] << std::endl;
 }
 
+void eigen_copy_test_helper(Eigen::MatrixXd &A, Eigen::MatrixXd &B)
+{
+  B = A;
+  B(0, 0) = 2;
+}
+
+void eigen_copy_test()
+{
+  Eigen::MatrixXd A(2, 2);
+  A << 1, 2, 3, 4;
+  Eigen::MatrixXd B(2, 2);
+  eigen_copy_test_helper(A, B);
+  std::cout << "A: " << std::endl;
+  std::cout << A << std::endl;
+  std::cout << "B: " << std::endl;
+  std::cout << B << std::endl;
+}
+
 int main(int argc, char** argv)
 {
   // map_copy_test();
-  osqp_eigen_test();
+  eigen_copy_test();
   return 0;
 }
