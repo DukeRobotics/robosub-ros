@@ -72,16 +72,19 @@ class DetectionVisualizer:
         x1, y1, x2, y2 = bbox
         cv2.rectangle(frame, (x1, y1), (x2, y2), color, 3)
 
-    def slanted_rectangle(self, frame, center, dimensions, angle, color):
-        """Add a slanted rectangle to frame, such as a bounding box. Angle should be in radians."""
+    def visualize_path_marker(self, frame, detection, color="386720"):
+        """Returns frame with bounding boxes of the detection."""
+        frame_copy = frame.copy()
+
+        center_x, center_y = detection.center
+        width, height = detection.dimensions
+        orientation = detection.orientation
+
         color = self.hex_to_rgb(color)
 
-        center_x, center_y = center
-        width, height = dimensions
-
         # Calculate the four corners of the rectangle
-        angle_cos = math.cos(angle)
-        angle_sin = math.sin(angle)
+        angle_cos = math.cos(orientation)
+        angle_sin = math.sin(orientation)
         half_width = width / 2
         half_height = height / 2
 
@@ -95,10 +98,12 @@ class DetectionVisualizer:
         y4 = int(2 * center_y - y2)
 
         # Draw the rotated rectangle
-        cv2.line(frame, (x1, y1), (x2, y2), color, 3)
-        cv2.line(frame, (x2, y2), (x3, y3), color, 3)
-        cv2.line(frame, (x3, y3), (x4, y4), color, 3)
-        cv2.line(frame, (x4, y4), (x1, y1), color, 3)
+        cv2.line(frame_copy, (x1, y1), (x2, y2), color, 3)
+        cv2.line(frame_copy, (x2, y2), (x3, y3), color, 3)
+        cv2.line(frame_copy, (x3, y3), (x4, y4), color, 3)
+        cv2.line(frame_copy, (x4, y4), (x1, y1), color, 3)
+
+        return frame_copy
 
     def frame_norm(self, frame, bbox):
         """Normalize bbox locations between frame width/height."""
