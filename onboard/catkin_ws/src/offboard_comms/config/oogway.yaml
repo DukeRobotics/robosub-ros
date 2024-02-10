@@ -19,3 +19,4 @@ arduino:
     core: arduino:avr
     sketch: Arduino Sketchbooks/TorpedoArduino
     requires_ros_lib: false
+    pre_compile: arduino-cli lib install Servo

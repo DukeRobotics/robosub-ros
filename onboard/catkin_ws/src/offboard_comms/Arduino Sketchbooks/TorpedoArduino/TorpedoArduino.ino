@@ -16,8 +16,11 @@ void setup() {
 void loop() {
   myTime = millis();
   
-  if (Serial.available()) {
+  if (Serial.available()>0 && !servoMoved) {
     char state = Serial.read();
+    if (Serial.available() > 0) {
+      Serial.readString();
+    }
 
     if (state == 'L') {
         myservo.write(160);
