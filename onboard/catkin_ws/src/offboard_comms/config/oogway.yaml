@@ -13,3 +13,9 @@ arduino:
     requires_ros_lib: true
     pre_compile: rosrun offboard_comms copy_offset.sh 1
     post_compile: rosrun offboard_comms copy_offset.sh 0
+  torpedo:
+    ftdi: 34239323139351916231
+    fqbn: arduino:avr:uno
+    core: arduino:avr
+    sketch: Arduino Sketchbooks/TorpedoArduino
+    requires_ros_lib: false
