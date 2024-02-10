@@ -18,9 +18,9 @@
         },
         {
           "timestampMethod": "receiveTime",
-          "value": "/controls/set_scaled_actual_power_diff.linear.x",
+          "value": "/controls/power_disparity.linear.x",
           "enabled": true,
-          "label": "Set Scaled Actual Power Diff X"
+          "label": "Power Disparity X"
         }
       ],
       "showXAxisLabels": true,
@@ -54,9 +54,9 @@
         },
         {
           "timestampMethod": "receiveTime",
-          "value": "/controls/set_scaled_actual_power_diff.angular.x",
+          "value": "/controls/power_disparity.angular.x",
           "enabled": true,
-          "label": "Set Scaled Actual Power Diff Roll"
+          "label": "Power Disparity Roll"
         }
       ],
       "showXAxisLabels": true,
@@ -90,9 +90,9 @@
         },
         {
           "timestampMethod": "receiveTime",
-          "value": "/controls/set_scaled_actual_power_diff.linear.y",
+          "value": "/controls/power_disparity.linear.y",
           "enabled": true,
-          "label": "Set Scaled Actual Power Diff Y"
+          "label": "Power Disparity Y"
         }
       ],
       "showXAxisLabels": true,
@@ -126,9 +126,9 @@
         },
         {
           "timestampMethod": "receiveTime",
-          "value": "/controls/set_scaled_actual_power_diff.angular.y",
+          "value": "/controls/power_disparity.angular.y",
           "enabled": true,
-          "label": "Set Scaled Actual Power Diff Pitch"
+          "label": "Power Disparity Pitch"
         }
       ],
       "showXAxisLabels": true,
@@ -160,9 +160,9 @@
         },
         {
           "timestampMethod": "receiveTime",
-          "value": "/controls/set_scaled_actual_power_diff.linear.z",
+          "value": "/controls/power_disparity.linear.z",
           "enabled": true,
-          "label": "Set Scaled Actual Power Diff Z"
+          "label": "Power Disparity Z"
         }
       ],
       "showXAxisLabels": true,
@@ -194,9 +194,9 @@
         },
         {
           "timestampMethod": "receiveTime",
-          "value": "/controls/set_scaled_actual_power_diff.angular.z",
+          "value": "/controls/power_disparity.angular.z",
           "enabled": true,
-          "label": "Set Scaled Actual Power Diff Yaw"
+          "label": "Power Disparity Yaw"
         }
       ],
       "showXAxisLabels": true,
