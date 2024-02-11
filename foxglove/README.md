@@ -101,7 +101,7 @@ python foxglove.py clean
 
 ### Layouts
 - `controls-<position/velocity>.json`: Plots setpoint and control effort for each axis
-- `pid-<position/velocity>.json`: Plots setpoint, control effort, filtered error, filtered derivative, and provided derivative for each axis
+- `pid-<position/velocity>.json`: Plots setpoint, control effort, filtered error, integral (velocity only), filtered derivative, and provided derivative for each axis
 - `pose-transforms.json`: Plots three topics whose quaternions have been transformed to Euler angles:
   - `/state.pose.pose` transformed to `/transforms/state/pose`
   - `/vectornav/IMU.orientation` transformed to `/transforms/vectornav/IMU/orientation`
