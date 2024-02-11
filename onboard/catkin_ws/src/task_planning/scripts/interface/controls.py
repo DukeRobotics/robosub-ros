@@ -1,6 +1,6 @@
 import rospy
 
-from std_srvs.srv import Trigger, SetBool
+from std_srvs.srv import Trigger
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose, Twist
 from custom_msgs.msg import ControlTypes, ThrusterAllocs
@@ -13,7 +13,6 @@ import yaml
 class ControlsInterface:
     STATE_TOPIC = 'state'
 
-    CONTROL_ENABLE_SERVICE = 'controls/enable'
     CONTROL_TYPES_SERVICE = 'controls/set_control_types'
     RESET_PID_LOOPS_SERVICE = 'controls/reset_pid_loops'
     DESIRED_POSITION_TOPIC = 'controls/desired_position'
@@ -22,9 +21,6 @@ class ControlsInterface:
 
     def __init__(self, tfBuffer):
         self.tfBuffer = tfBuffer
-
-        rospy.wait_for_service(self.CONTROL_ENABLE_SERVICE)
-        self._set_controls_enable = rospy.ServiceProxy(self.CONTROL_ENABLE_SERVICE, SetBool)
 
         rospy.wait_for_service(self.CONTROL_TYPES_SERVICE)
         self._set_control_types = rospy.ServiceProxy(self.CONTROL_TYPES_SERVICE, SetControlTypes)
@@ -67,9 +63,6 @@ class ControlsInterface:
     @property
     def state(self):
         return self._state
-
-    def set_controls_enable(self, status):
-        self._set_controls_enable(status)
 
     def _set_all_axes_control_type(self, type):
         if self._all_axes_control_type == type:

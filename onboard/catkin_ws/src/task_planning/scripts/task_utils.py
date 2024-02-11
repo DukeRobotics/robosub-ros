@@ -124,7 +124,7 @@ def transform_pose(tfBuffer, base_frame, target_frame, pose):
     pose_stamped.pose = pose
     pose_stamped.header.frame_id = base_frame
 
-    trans = tfBuffer.lookup_transform(base_frame, target_frame, rospy.Time(0))
+    trans = tfBuffer.lookup_transform(target_frame, base_frame, rospy.Time(0))
     transformed = tf2_geometry_msgs.do_transform_pose(pose_stamped, trans)
 
     return transformed.pose
@@ -178,8 +178,12 @@ def cv_object_position(cv_obj_data):
 def create_pose(x, y, z, roll, pitch, yaw):
     pose = Pose()
     pose.position = Point(x=x, y=y, z=z)
-    pose.orientation = Quaternion(*euler2quat(roll, pitch, yaw))
+    pose.orientation = transforms3d_quat_to_geometry_quat(euler2quat(roll, pitch, yaw))
     return pose
+
+
+def transforms3d_quat_to_geometry_quat(quat):
+    return Quaternion(quat[1], quat[2], quat[3], quat[0])
 
 
 def local_pose_to_global(tfBuffer, pose):

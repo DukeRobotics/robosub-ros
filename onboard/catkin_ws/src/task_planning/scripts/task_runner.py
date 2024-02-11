@@ -24,7 +24,7 @@ def main():
 
     # Fill with the tasks to do
     # For example: tasks = [gate_task(), buoy_task(), octagon_task()]
-    tasks = [initial_submerge(controls), move_to_pose_local(controls, task_utils.create_pose(0, 0, -0.5, 0, 0, 0))]
+    tasks = [move_to_pose_local(controls, task_utils.create_pose(0, 0, -0.5, 0, 0, 0))]
 
     for t in tasks:
         while not t.done and not rospy.is_shutdown():

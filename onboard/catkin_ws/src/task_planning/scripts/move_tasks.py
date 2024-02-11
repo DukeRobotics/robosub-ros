@@ -8,7 +8,6 @@ from coroutines import task, Yield, Transform
 async def move_to_pose_global(controls: ControlsInterface, pose):
     controls.start_new_move()
     controls.publish_desired_position(pose)
-    controls.set_controls_enable(True)
     while not (
         controls.state and task_utils.stopped_at_pose(
             controls.state.pose.pose,
@@ -38,6 +37,7 @@ async def hold_position(controls: ControlsInterface):
     await move_to_pose_global(controls, controls.state.pose.pose)
 
 
+# TODO: Need to update this to act through controls instead of setting thruster allocs directly
 @task
 async def initial_submerge(controls: ControlsInterface, thruster_alloc=0.2, seconds=1):
     rospy.loginfo("initial_submerge started")
