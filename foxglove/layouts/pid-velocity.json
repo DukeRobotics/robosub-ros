@@ -25,6 +25,12 @@
         },
         {
           "timestampMethod": "receiveTime",
+          "value": "/controls/velocity_pid_infos.x.integral",
+          "enabled": true,
+          "label": "Integral X"
+        },
+        {
+          "timestampMethod": "receiveTime",
           "value": "/controls/velocity_pid_infos.x.filtered_derivative",
           "enabled": true,
           "label": "Filtered Derivative X"
@@ -71,6 +77,12 @@
           "value": "/controls/velocity_pid_infos.roll.filtered_error",
           "enabled": true,
           "label": "Filtered Error Roll"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/velocity_pid_infos.roll.integral",
+          "enabled": true,
+          "label": "Integral Roll"
         },
         {
           "timestampMethod": "receiveTime",
@@ -123,6 +135,12 @@
         },
         {
           "timestampMethod": "receiveTime",
+          "value": "/controls/velocity_pid_infos.y.integral",
+          "enabled": true,
+          "label": "Integral Y"
+        },
+        {
+          "timestampMethod": "receiveTime",
           "value": "/controls/velocity_pid_infos.y.filtered_derivative",
           "enabled": true,
           "label": "Filtered Derivative Y"
@@ -169,6 +187,12 @@
           "value": "/controls/velocity_pid_infos.pitch.filtered_error",
           "enabled": true,
           "label": "Filtered Error Pitch"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/velocity_pid_infos.pitch.integral",
+          "enabled": true,
+          "label": "Integral Pitch"
         },
         {
           "timestampMethod": "receiveTime",
@@ -221,6 +245,12 @@
         },
         {
           "timestampMethod": "receiveTime",
+          "value": "/controls/velocity_pid_infos.z.integral",
+          "enabled": true,
+          "label": "Integral Z"
+        },
+        {
+          "timestampMethod": "receiveTime",
           "value": "/controls/velocity_pid_infos.z.filtered_derivative",
           "enabled": true,
           "label": "Filtered Derivative Z"
@@ -267,6 +297,12 @@
           "value": "/controls/velocity_pid_infos.yaw.filtered_error",
           "enabled": true,
           "label": "Filtered Error Yaw"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/velocity_pid_infos.yaw.integral",
+          "enabled": true,
+          "label": "Integral Yaw"
         },
         {
           "timestampMethod": "receiveTime",
