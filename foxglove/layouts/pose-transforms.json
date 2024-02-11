@@ -6,9 +6,16 @@
           "value": "/transforms/state/pose.linear.x",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "X",
+          "label": "State X",
           "showLine": true,
           "color": "#0080ff"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/controls/desired_position.linear.x",
+          "enabled": true,
+          "label": "Desired Pose X",
+          "color": "#f5774d"
         }
       ],
       "showXAxisLabels": true,
@@ -20,8 +27,8 @@
       "xAxisVal": "timestamp",
       "sidebarDimension": 240,
       "foxglovePanelTitle": "X",
-      "minYValue": -5,
-      "maxYValue": 5,
+      "minYValue": -10,
+      "maxYValue": 10,
       "followingViewWidth": 15
     },
     "Plot!3yf78kk": {
@@ -36,8 +43,15 @@
         },
         {
           "timestampMethod": "receiveTime",
-          "value": "/transforms/vectornav/IMU.x",
-          "enabled": true
+          "value": "/transforms/controls/desired_position.angular.x",
+          "enabled": true,
+          "label": "Desired Pose Roll"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/vectornav/IMU/orientation.x",
+          "enabled": true,
+          "label": "IMU Roll"
         }
       ],
       "showXAxisLabels": true,
@@ -59,9 +73,16 @@
           "value": "/transforms/state/pose.linear.y",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Y",
+          "label": "State Y",
           "showLine": true,
           "color": "#0080ff"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/controls/desired_position.linear.y",
+          "enabled": true,
+          "label": "Desired Pose Y",
+          "color": "#f5774d"
         }
       ],
       "showXAxisLabels": true,
@@ -73,8 +94,8 @@
       "xAxisVal": "timestamp",
       "sidebarDimension": 240,
       "foxglovePanelTitle": "Y",
-      "minYValue": -5,
-      "maxYValue": 5,
+      "minYValue": -10,
+      "maxYValue": 10,
       "followingViewWidth": 15
     },
     "Plot!266v8jj": {
@@ -89,8 +110,15 @@
         },
         {
           "timestampMethod": "receiveTime",
-          "value": "/transforms/vectornav/IMU.y",
-          "enabled": true
+          "value": "/transforms/controls/desired_position.angular.y",
+          "enabled": true,
+          "label": "Desired Pose Pitch"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/vectornav/IMU/orientation.y",
+          "enabled": true,
+          "label": "IMU Pitch"
         }
       ],
       "showXAxisLabels": true,
@@ -112,7 +140,14 @@
           "timestampMethod": "receiveTime",
           "value": "/transforms/state/pose.linear.z",
           "enabled": true,
-          "label": "Z"
+          "label": "State Z"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/controls/desired_position.linear.z",
+          "enabled": true,
+          "label": "Desired Pose Z",
+          "color": "#f5774d"
         }
       ],
       "showXAxisLabels": true,
@@ -125,7 +160,7 @@
       "sidebarDimension": 240,
       "foxglovePanelTitle": "Z",
       "minYValue": -5,
-      "maxYValue": 5,
+      "maxYValue": 1,
       "followingViewWidth": 15
     },
     "Plot!3y2hu8l": {
@@ -138,13 +173,20 @@
         },
         {
           "timestampMethod": "receiveTime",
-          "value": "/transforms/vectornav/IMU.z",
-          "enabled": true
+          "value": "/transforms/controls/desired_position.angular.z",
+          "enabled": true,
+          "label": "Desired Pose Yaw"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/vectornav/IMU/orientation.z",
+          "enabled": true,
+          "label": "IMU Yaw"
         }
       ],
       "showXAxisLabels": true,
       "showYAxisLabels": true,
-      "showLegend": false,
+      "showLegend": true,
       "legendDisplay": "floating",
       "showPlotValuesInLegend": true,
       "isSynced": true,
