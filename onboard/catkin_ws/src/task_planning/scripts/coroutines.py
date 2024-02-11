@@ -40,20 +40,6 @@ class Yield:
     def __await__(self):
         return (yield self.value)
 
-# Consider the consequences of this before uncommenting
-# class Rate:
-#     """Almost equivalent to doing rate.sleep(), except it also yields.
-#     Note that if the yield takes a while to return, this might finish awaiting later than expected"""
-#     def __init__(self, rate: rospy.Rate):
-#         self.rate = rate
-
-#     # TODO maybe add a rate to limit how fast we can yield, so this doesn't loop at maximum velocity
-#     def __await__(self):
-#         res = yield self
-#         while self.rate.remaining() > rospy.Duration(0):
-#             res = yield self
-#         return res
-
 
 class Transform:
     def __init__(self, task: TaskWrapper, input_transformer=None, output_transformer=None):
