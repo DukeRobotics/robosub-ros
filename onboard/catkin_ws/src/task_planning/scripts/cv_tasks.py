@@ -1,11 +1,11 @@
-from interface.CV import CVInterface
+from interface.cv import CVInterface
 from interface.controls import ControlsInterface
 from coroutines import task, Yield
 from move_tasks import move_to_pose_local
 
 
 @task
-async def move_to_obj(controls: ControlsInterface, cv: CVInterface, name, offset, stop_distance):
+async def move_to_cv_obj(controls: ControlsInterface, cv: CVInterface, name, offset=None, stop_distance=None):
 
     # Get initial obj. location and start a move_to task (assumed global?)
     pose = cv.get_pose(name)
