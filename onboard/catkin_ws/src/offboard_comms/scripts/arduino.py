@@ -35,6 +35,7 @@ ROS_LIB_INSTALL_PATH = rr.get_filename(OFFBOARD_COMMS_PATH_TEMPLATE.format(subpa
 
 # Command templates for Arduino CLI
 ARDUINO_CORE_INSTALL_COMMAND_TEMPLATE = 'arduino-cli core install {core}'
+ARDUINO_LIBRARY_INSTALL_COMMAND_TEMPLATE = 'arduino-cli lib install {library}'
 ARDUINO_COMPILE_COMMAND_TEMPLATE = 'arduino-cli compile -b {fqbn} "{sketch_path}"'
 ARDUINO_UPLOAD_COMMAND_TEMPLATE = 'arduino-cli upload -b {fqbn} -p {port} "{sketch_path}"'
 
@@ -118,6 +119,24 @@ def get_arduino_cores(arduino_names: List[str]) -> List[str]:
     return list(cores)
 
 
+def get_arduino_libs(arduino_names: List[str]) -> List[str]:
+    """
+    Get the list of Arduino libraries of the given Arduino names without duplicates.
+
+    Args:
+        arduino_names: List of Arduino names.
+
+    Returns:
+        List of Arduino libraries.
+    """
+    libs = set()
+    for arduino in arduino_names:
+        if 'libraries' in ARDUINO_DATA[arduino]:
+            libs.update(ARDUINO_DATA[arduino]['libraries'])
+
+    return list(libs)
+
+
 def check_if_ros_lib_is_required(arduino_names: List[str]) -> bool:
     """
     Check if the ros_lib library is required for the given Arduino names.
@@ -178,12 +197,14 @@ def install_libs(arduino_names: List[str], print_output: bool) -> None:
         print_output: Whether to allow the commands to print to stdout.
     """
 
-    # Get the list of unique Arduino cores that need to be installed
-    # and the list of commands to install the cores
+    # Get the list of unique Arduino cores that need to be installed and the list of commands to install the cores
     arduino_cores = get_arduino_cores(arduino_names)
-    core_install_commands = []
-    for arduino_core in arduino_cores:
-        core_install_commands.append(ARDUINO_CORE_INSTALL_COMMAND_TEMPLATE.format(core=arduino_core))
+    core_install_commands = [ARDUINO_CORE_INSTALL_COMMAND_TEMPLATE.format(core=core) for core in arduino_cores]
+
+    # Get the list of unique Arduino libraries that need to be installed and the list of commands to install the
+    # libraries
+    arduino_libs = get_arduino_libs(arduino_names)
+    lib_install_commands = [ARDUINO_LIBRARY_INSTALL_COMMAND_TEMPLATE.format(library=lib) for lib in arduino_libs]
 
     # Install the ros_lib library for Arduino if required
     if check_if_ros_lib_is_required(arduino_names):
@@ -203,6 +224,21 @@ def install_libs(arduino_names: List[str], print_output: bool) -> None:
         print(f'{OUTPUT_PREFIX}: Installing arduino cores...')
         run_commands(core_install_commands, print_output)
         print(f'{OUTPUT_PREFIX}: Arduino cores installed.')
+    else:
+        print(f'{OUTPUT_PREFIX}: Skipped installing arduino cores because they are not required for ' +
+              f'{", ".join(arduino_names)} arduino(s).')
+
+    # Print a linebreak
+    print()
+
+    # Install the Arduino libraries
+    if lib_install_commands:
+        print(f'{OUTPUT_PREFIX}: Installing arduino libraries...')
+        run_commands(lib_install_commands, print_output)
+        print(f'{OUTPUT_PREFIX}: Arduino libraries installed.')
+    else:
+        print(f'{OUTPUT_PREFIX}: Skipped installing arduino libraries because they are not required for ' +
+              f'{", ".join(arduino_names)} arduino(s).')
 
 
 def find_ports(arduino_names: List[str], no_linebreaks: bool) -> None:
