@@ -43,10 +43,15 @@ ARDUINO_UPLOAD_COMMAND_TEMPLATE = 'arduino-cli upload -b {fqbn} -p {port} "{sket
 OUTPUT_PREFIX = 'Arduino.py'
 
 # Load arduino YAML file
-with open(rr.get_filename(CONFIG_YAML_PATH, use_protocol=False)) as f:
-    config_data = yaml.safe_load(f)
-    ARDUINO_DATA = config_data["arduino"]
-
+try:
+    config_file_resolved_path = rr.get_filename(CONFIG_YAML_PATH, use_protocol=False)
+    with open(config_file_resolved_path) as f:
+        config_data = yaml.safe_load(f)
+        ARDUINO_DATA = config_data["arduino"]
+except Exception:
+    print(f'{OUTPUT_PREFIX}: FATAL ERROR: Could not load Arduino YAML file at {config_file_resolved_path}. '
+          f'Please check if the file exists and is in valid YAML format.')
+    exit(1)
 
 # ======================================================================================================================
 # Helper functions
@@ -131,7 +136,7 @@ def get_arduino_libs(arduino_names: List[str]) -> List[str]:
     """
     libs = set()
     for arduino in arduino_names:
-        if 'libraries' in ARDUINO_DATA[arduino]:
+        if 'libraries' in ARDUINO_DATA[arduino] and ARDUINO_DATA[arduino]['libraries']:
             libs.update(ARDUINO_DATA[arduino]['libraries'])
 
     return list(libs)
@@ -213,7 +218,7 @@ def install_libs(arduino_names: List[str], print_output: bool) -> None:
                      path_to_run_at=ROS_LIB_INSTALL_PATH)
         print(f'{OUTPUT_PREFIX}: ros_lib library installed.')
     else:
-        print(f'{OUTPUT_PREFIX}: Skipped installing ros_lib library because it is not required for ' +
+        print(f'{OUTPUT_PREFIX}: Skipped installing ros_lib library because it is not required for '
               f'{", ".join(arduino_names)} arduino(s).')
 
     # Print a linebreak
@@ -225,7 +230,7 @@ def install_libs(arduino_names: List[str], print_output: bool) -> None:
         run_commands(core_install_commands, print_output)
         print(f'{OUTPUT_PREFIX}: Arduino cores installed.')
     else:
-        print(f'{OUTPUT_PREFIX}: Skipped installing arduino cores because they are not required for ' +
+        print(f'{OUTPUT_PREFIX}: Skipped installing arduino cores because they are not required for '
               f'{", ".join(arduino_names)} arduino(s).')
 
     # Print a linebreak
@@ -237,7 +242,7 @@ def install_libs(arduino_names: List[str], print_output: bool) -> None:
         run_commands(lib_install_commands, print_output)
         print(f'{OUTPUT_PREFIX}: Arduino libraries installed.')
     else:
-        print(f'{OUTPUT_PREFIX}: Skipped installing arduino libraries because they are not required for ' +
+        print(f'{OUTPUT_PREFIX}: Skipped installing arduino libraries because they are not required for '
               f'{", ".join(arduino_names)} arduino(s).')
 
 
@@ -332,7 +337,7 @@ def upload(arduino_names: List[str], print_output: bool) -> None:
             print(f'{OUTPUT_PREFIX}: FATAL ERROR: Could not find port of {arduino_name} arduino.')
 
     if error:
-        print(f'{OUTPUT_PREFIX}: Could not upload sketches to arduinos due to errors in finding ports ' +
+        print(f'{OUTPUT_PREFIX}: Could not upload sketches to arduinos due to errors in finding ports '
               'of given arduinos.')
         return
 
@@ -373,24 +378,24 @@ if __name__ == "__main__":
     arduino_names_with_all = arduino_names + ['all']
 
     # Create argparse parser
-    parser = argparse.ArgumentParser(description='CLI for installing libraries, finding ports, compiling, and ' +
+    parser = argparse.ArgumentParser(description='CLI for installing libraries, finding ports, compiling, and '
                                                  'uploading sketches to Arduinos.')
 
     # Subparsers for different commands
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
 
     # Subparser for install-libs command
-    install_libs_parser = subparsers.add_parser('install-libs', help='Install core libraries and ROS library (if ' +
+    install_libs_parser = subparsers.add_parser('install-libs', help='Install core libraries and ROS library (if '
                                                                      'required) for Arduinos.')
     install_libs_parser.add_argument('arduino_names', nargs='+', choices=arduino_names_with_all,
-                                     metavar='Arduino Names', help='Names of Arduinos to install libraries for. Use ' +
+                                     metavar='Arduino Names', help='Names of Arduinos to install libraries for. Use '
                                                                    '"all" to install libraries for all Arduinos.')
     install_libs_parser.add_argument('-p', '--print-output', action='store_true', help='Print output of subcommands.')
 
     # Subparser for find-ports command
     find_ports_parser = subparsers.add_parser('find-ports', help='Find ports of Arduinos.')
     find_ports_parser.add_argument('arduino_names', nargs='+', choices=arduino_names_with_all, metavar='Arduino Names',
-                                   help='Names of Arduinos whose ports to find. Use "all" to find ports of all' +
+                                   help='Names of Arduinos whose ports to find. Use "all" to find ports of all'
                                         'Arduinos.')
     find_ports_parser.add_argument('--nl', '--no-linebreaks', action='store_true',
                                    help='Print ports without labels or linebreaks.')
@@ -398,15 +403,15 @@ if __name__ == "__main__":
     # Subparser for compile command
     compile_parser = subparsers.add_parser('compile', help='Install required libraries and compile Arduino sketches.')
     compile_parser.add_argument('arduino_names', nargs='+', choices=arduino_names_with_all, metavar='Arduino Names',
-                                help='Names of Arduinos whose sketches to compile. Use "all" to compile sketches of ' +
+                                help='Names of Arduinos whose sketches to compile. Use "all" to compile sketches of '
                                      'all Arduinos.')
     compile_parser.add_argument('-p', '--print-output', action='store_true', help='Print output of subcommands.')
 
     # Subparser for upload command
-    upload_parser = subparsers.add_parser('upload', help='Install required libraries, compile, and upload sketches ' +
+    upload_parser = subparsers.add_parser('upload', help='Install required libraries, compile, and upload sketches '
                                                          'to Arduinos.')
     upload_parser.add_argument('arduino_names', nargs='+', choices=arduino_names_with_all, metavar='Arduino Names',
-                               help='Names of Arduinos whose sketches to compile and upload. Use "all" to upload ' +
+                               help='Names of Arduinos whose sketches to compile and upload. Use "all" to upload '
                                     'sketches of all Arduinos.')
     upload_parser.add_argument('-p', '--print-output', action='store_true', help='Print output subcommands.')
 
