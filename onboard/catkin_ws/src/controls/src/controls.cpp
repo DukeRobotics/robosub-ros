@@ -318,6 +318,8 @@ bool Controls::reset_pid_loops_callback(std_srvs::Trigger::Request &req, std_srv
     {
         if (control_types[axis] == ControlTypesEnum::DESIRED_POSE)
             pid_managers[PIDLoopTypesEnum::POSITION].reset(axis);
+            if (cascaded_pid)
+                pid_managers[PIDLoopTypesEnum::VELOCITY].reset(axis);
         else if (control_types[axis] == ControlTypesEnum::DESIRED_TWIST)
             pid_managers[PIDLoopTypesEnum::VELOCITY].reset(axis);
     }
