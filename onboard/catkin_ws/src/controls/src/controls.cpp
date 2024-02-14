@@ -48,6 +48,42 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     // Initialize desired position to have valid orientation
     desired_position.orientation.w = 1.0;
 
+    // Use desired pose as the default control type for all axes
+    ControlsUtils::populate_axes_map<ControlTypesEnum>(control_types, ControlTypesEnum::DESIRED_POSE);
+
+    // Get PID gains from robot config file
+    std::string wrench_matrix_file_path;
+    std::string wrench_matrix_pinv_file_path;
+
+    // Get PID configuration parameters from robot config file
+    LoopsMap<AxesMap<double>> loops_axes_control_effort_limits;
+    LoopsMap<AxesMap<PIDDerivativeTypesEnum>> loops_axes_derivative_types;
+    LoopsMap<AxesMap<double>> loops_axes_error_ramp_rates;
+    LoopsMap<AxesMap<PIDGainsMap>> loops_axes_pid_gains;
+
+    // Read robot config file and populate config variables
+    ControlsUtils::read_robot_config(cascaded_pid, loops_axes_control_effort_limits, loops_axes_derivative_types,
+                                     loops_axes_error_ramp_rates, loops_axes_pid_gains, static_power_global,
+                                     power_scale_factor, wrench_matrix_file_path, wrench_matrix_pinv_file_path);
+
+    // Instantiate PID managers for each PID loop type
+    for (const PIDLoopTypesEnum &loop : PID_LOOP_TYPES)
+        pid_managers[loop] = PIDManager(loops_axes_control_effort_limits.at(loop),
+                                        loops_axes_derivative_types.at(loop),
+                                        loops_axes_error_ramp_rates.at(loop),
+                                        loops_axes_pid_gains.at(loop));
+
+    // Initialize static power local to zero
+    static_power_local = tf2::Vector3(0, 0, 0);
+
+    // Initialize axes maps to zero
+    ControlsUtils::populate_axes_map<double>(position_pid_outputs, 0);
+    ControlsUtils::populate_axes_map<double>(velocity_pid_outputs, 0);
+    ControlsUtils::populate_axes_map<double>(desired_power, 0);
+
+    // Instantiate thruster allocator
+    thruster_allocator = ThrusterAllocator(wrench_matrix_file_path, wrench_matrix_pinv_file_path);
+
     // Subscribe to input topics
     desired_position_sub = nh.subscribe("controls/desired_position", 1, &Controls::desired_position_callback, this);
     desired_velocity_sub = nh.subscribe("controls/desired_velocity", 1, &Controls::desired_velocity_callback, this);
@@ -83,40 +119,6 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     static_power_global_pub = nh.advertise<geometry_msgs::Vector3>("controls/static_power_global", 1);
     static_power_local_pub = nh.advertise<geometry_msgs::Vector3>("controls/static_power_local", 1);
     power_scale_factor_pub = nh.advertise<std_msgs::Float64>("controls/power_scale_factor", 1);
-
-    // Use desired pose as the default control type for all axes
-    for (const AxesEnum &axis : AXES)
-        control_types[axis] = ControlTypesEnum::DESIRED_POSE;
-
-    // Get PID gains from robot config file
-    std::string wrench_matrix_file_path;
-    std::string wrench_matrix_pinv_file_path;
-
-    LoopsMap<AxesMap<double>> loops_axes_control_effort_limits;
-    LoopsMap<AxesMap<PIDDerivativeTypesEnum>> loops_axes_derivative_types;
-    LoopsMap<AxesMap<double>> loops_axes_error_ramp_rates;
-    LoopsMap<AxesMap<PIDGainsMap>> loops_axes_pid_gains;
-
-    // TODO: Read control effort limit, derivative type, and error ramp rate from robot config file
-    ControlsUtils::read_robot_config(cascaded_pid, loops_axes_control_effort_limits, loops_axes_derivative_types,
-                                     loops_axes_error_ramp_rates, loops_axes_pid_gains, static_power_global,
-                                     power_scale_factor, wrench_matrix_file_path, wrench_matrix_pinv_file_path);
-
-    // Instantiate PID managers for each PID loop type
-    for (const PIDLoopTypesEnum &loop : PID_LOOP_TYPES)
-        pid_managers[loop] = PIDManager(loops_axes_control_effort_limits.at(loop),
-                                        loops_axes_derivative_types.at(loop),
-                                        loops_axes_error_ramp_rates.at(loop),
-                                        loops_axes_pid_gains.at(loop));
-
-    // Initialize static power local to zero
-    static_power_local = tf2::Vector3(0, 0, 0);
-
-    ControlsUtils::populate_axes_map(position_pid_outputs, 0);
-    ControlsUtils::populate_axes_map(velocity_pid_outputs, 0);
-
-    // Instantiate thruster allocator
-    thruster_allocator = ThrusterAllocator(wrench_matrix_file_path, wrench_matrix_pinv_file_path);
 }
 
 void Controls::desired_position_callback(const geometry_msgs::Pose msg)
@@ -135,6 +137,7 @@ void Controls::desired_velocity_callback(const geometry_msgs::Twist msg)
 void Controls::desired_power_callback(const geometry_msgs::Twist msg)
 {
     // Make sure desired power is within range [-1, 1]
+    // TODO: Make this configurable from robot config file
     if (ControlsUtils::twist_in_range(msg, -1, 1))
         ControlsUtils::twist_to_map(msg, desired_power);
     else

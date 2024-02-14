@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -24,47 +25,39 @@
 
 std::mutex ControlsUtils::robot_config_mutex;
 
+template<typename T, typename S>
+bool ControlsUtils::value_in_array(const T value, const S *array, const size_t &array_size)
+{
+    return std::any_of(array, array + array_size, [value](const S &element) { return value == element; });
+}
+
 bool ControlsUtils::value_in_control_types_enum(uint8_t value)
 {
-    return value == ControlTypesEnum::DESIRED_POSE ||
-           value == ControlTypesEnum::DESIRED_TWIST ||
-           value == ControlTypesEnum::DESIRED_POWER;
+    return value_in_array<uint8_t, ControlTypesEnum>(value, CONTROL_TYPES, CONTROL_TYPES_COUNT);
 }
 
 bool ControlsUtils::value_in_axes_enum(uint8_t value)
 {
-    return value == AxesEnum::X ||
-           value == AxesEnum::Y ||
-           value == AxesEnum::Z ||
-           value == AxesEnum::ROLL ||
-           value == AxesEnum::PITCH ||
-           value == AxesEnum::YAW;
+    return value_in_array<uint8_t, AxesEnum>(value, AXES, AXES_COUNT);
 }
 
 bool ControlsUtils::value_in_pid_loop_types_enum(uint8_t value)
 {
-    return value == PIDLoopTypesEnum::POSITION ||
-           value == PIDLoopTypesEnum::VELOCITY;
+    return value_in_array<uint8_t, PIDLoopTypesEnum>(value, PID_LOOP_TYPES, PID_LOOP_TYPES_COUNT);
 }
 
 bool ControlsUtils::value_in_pid_gain_types_enum(uint8_t value)
 {
-    return value == PIDGainTypesEnum::KP ||
-           value == PIDGainTypesEnum::KI ||
-           value == PIDGainTypesEnum::KD ||
-           value == PIDGainTypesEnum::FF;
+    return value_in_array<uint8_t, PIDGainTypesEnum>(value, PID_GAIN_TYPES, PID_GAIN_TYPES_COUNT);
 }
 
 bool ControlsUtils::value_in_pid_derivative_types_enum(uint8_t value)
 {
-    return value == PIDDerivativeTypesEnum::CALCULATED ||
-           value == PIDDerivativeTypesEnum::PROVIDED;
+    return value_in_array<uint8_t, PIDDerivativeTypesEnum>(value, PID_DERIVATIVE_TYPES, PID_DERIVATIVE_TYPES_COUNT);
 }
 
 bool ControlsUtils::quaternion_valid(const geometry_msgs::Quaternion &quaternion)
 {
-    // Ensure quaternion has length 1
-    // Otherwise it is not a valid rotation
     tf2::Quaternion q;
     tf2::fromMsg(quaternion, q);
     return std::abs(q.length() - 1.0) < 1e-6;
@@ -89,19 +82,13 @@ bool ControlsUtils::pid_gain_valid(const custom_msgs::PIDGain &pid_gain)
 
 bool ControlsUtils::pid_gains_valid(const std::vector<custom_msgs::PIDGain> &pid_gains)
 {
-    for (const custom_msgs::PIDGain &pid_gain : pid_gains)
-        if (!pid_gain_valid(pid_gain))
-            return false;
-
-    return true;
+    return std::all_of(pid_gains.begin(), pid_gains.end(), pid_gain_valid);
 }
 
 bool ControlsUtils::pid_gains_map_valid(const PIDGainsMap &pid_gains_map)
 {
-    return pid_gains_map.count(PIDGainTypesEnum::KP) &&
-           pid_gains_map.count(PIDGainTypesEnum::KI) &&
-           pid_gains_map.count(PIDGainTypesEnum::KD) &&
-           pid_gains_map.count(PIDGainTypesEnum::FF);
+    return std::all_of(PID_GAIN_TYPES, PID_GAIN_TYPES + PID_GAIN_TYPES_COUNT,
+                       [&pid_gains_map](const PIDGainTypesEnum &gain) { return pid_gains_map.count(gain); });
 }
 
 void ControlsUtils::quaternion_msg_to_euler(const geometry_msgs::Quaternion &quaternion, double &roll, double &pitch,
@@ -263,49 +250,81 @@ void ControlsUtils::pid_axes_map_info_struct_to_msg(const AxesMap<PIDInfo> &pid_
     pid_info_struct_to_msg(pid_axes_map_info_struct.at(AxesEnum::YAW), pid_axes_info_msg.yaw);
 }
 
-void ControlsUtils::populate_axes_map(AxesMap<double> &map, double value)
+template<typename T>
+void ControlsUtils::populate_axes_map(AxesMap<T> &map, T value)
 {
     for (const AxesEnum &axis : AXES)
         map[axis] = value;
 }
 
-void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd &matrix)
+template void ControlsUtils::populate_axes_map<double>(AxesMap<double> &map, double value);
+template void ControlsUtils::populate_axes_map<ControlTypesEnum>(AxesMap<ControlTypesEnum> &map,
+                                                                 ControlTypesEnum value);
+
+void ControlsUtils::read_matrix_from_csv(const std::string &file_path, Eigen::MatrixXd &matrix)
 {
     // Open the CSV file
     std::ifstream file(file_path);
 
-    ROS_ASSERT_MSG(file.is_open(), "Could not open CSV file. %s", file_path.c_str());
+    ROS_ASSERT_MSG(file.is_open(), "Could not open CSV file. '%s'", file_path.c_str());
 
-    // Read data from the CSV file and initialize the matrix
+    // Temporarily store matrix as vector of vectors
     std::vector<std::vector<double>> data;
+
+    // One row of the file
     std::string line;
+
+    // Number of columns in the matrix
     int cols = -1;
 
+    // Read the file row by row
     while (std::getline(file, line))
     {
+        // Stream of the current row
+        // Allows reading the row token by token
+        // Tokens differentiated by their type (double or char)
+        // Whitespaces are ignored
         std::istringstream iss(line);
+
+        // Vector of values in this row
         std::vector<double> row;
 
+        // Next numeric value
         double value;
+
+        // Comma following the value
         char comma;
 
+        // In each iteration of the loop, the next numeric token is read, along with the comma that follows it
+        // The loop condition will be true if the next token is numeric and was stored in `value`
+        // The loop condition will be false if the next token is not numeric or if the end of the line is reached
         while (iss >> value)
         {
+            // Add the value to the list of values in this row
             row.push_back(value);
 
+            // Read the comma
+            // If the end of the line is reached, `comma` will not be updated
             iss >> comma;
-            ROS_ASSERT_MSG((iss.good() || iss.eof()) && comma == ',', "File is not in valid CSV format. %s",
+
+            // Ensure every value has comma succeeding it (unless it is the last value in the row)
+            ROS_ASSERT_MSG((iss.good() && comma == ',') || iss.eof(), "File is not in valid CSV format. '%s'",
                            file_path.c_str());
         }
 
-        data.push_back(row);
+        // Ensure the file contains only numeric values
+        // If the file contains non-numeric values, the loop will have exited before the line was read completely
+        ROS_ASSERT_MSG(iss.eof(), "CSV file contains non-numeric values. '%s'", file_path.c_str());
 
         // Ensure all rows have the same number of columns
         if (cols == -1)
             cols = row.size();
         else
-            ROS_ASSERT_MSG(row.size() == cols, "CSV file must have same number of columns in all rows. %s",
+            ROS_ASSERT_MSG(row.size() == cols, "CSV file must have same number of columns in all rows. '%s'",
                            file_path.c_str());
+
+        // Add the row to the temporary matrix
+        data.push_back(row);
     }
 
     // Close the file
@@ -315,8 +334,8 @@ void ControlsUtils::read_matrix_from_csv(std::string file_path, Eigen::MatrixXd 
     int rows = data.size();
 
     // Ensure the matrix has at least one row and one column
-    ROS_ASSERT_MSG(cols >= 1, "CSV file must have at least one column. %s", file_path.c_str());
-    ROS_ASSERT_MSG(rows >= 1, "CSV file must have at least one row. %s", file_path.c_str());
+    ROS_ASSERT_MSG(cols >= 1, "CSV file must have at least one column. '%s'", file_path.c_str());
+    ROS_ASSERT_MSG(rows >= 1, "CSV file must have at least one row. '%s'", file_path.c_str());
 
     // Initialize the Eigen matrix
     matrix.resize(rows, cols);
@@ -339,14 +358,17 @@ void ControlsUtils::read_robot_config(const bool &cascaded_pid,
 {
     try
     {
+        // Lock the mutex to prevent other threads from accessing the robot config file while it is being read
         std::lock_guard<std::mutex> guard(robot_config_mutex);
 
+        // Read the robot config file into a YAML node
         YAML::Node config = YAML::LoadFile(ROBOT_CONFIG_FILE_PATH);
 
+        // Read PID configurations for each loop and axis
         YAML::Node pid_node = config["pid"];
-
         for (const auto &loop : PID_LOOP_TYPES)
         {
+            // Read gains for cascaded position PID loop if cascaded PID is enabled
             std::string loop_name = (loop == PIDLoopTypesEnum::POSITION && cascaded_pid)
                                         ? CASCADED_POSITION_PID_NAME
                                         : PID_LOOP_TYPES_NAMES.at(loop);
@@ -355,11 +377,13 @@ void ControlsUtils::read_robot_config(const bool &cascaded_pid,
             {
                 YAML::Node axis_node = loop_node[AXES_NAMES.at(axis)];
 
+                // Read control effort limits, derivative types, and error ramp rates
                 loops_axes_control_effort_limits[loop][axis] = axis_node["control_effort_limit"].as<double>();
                 loops_axes_derivative_types[loop][axis] =
                     static_cast<PIDDerivativeTypesEnum>(axis_node["derivative_type"].as<int>());
                 loops_axes_error_ramp_rates[loop][axis] = axis_node["error_ramp_rate"].as<double>();
 
+                // Read PID gains
                 PIDGainsMap gains = PIDGainsMap();
                 for (const auto &gain : PID_GAIN_TYPES)
                     gains[gain] = axis_node[PID_GAIN_TYPES_NAMES.at(gain)].as<double>();
@@ -397,21 +421,23 @@ void ControlsUtils::update_robot_config(std::function<void(YAML::Node &)> update
 {
     try
     {
+        // Lock the mutex to prevent other threads from accessing the robot config file while it is being updated
         std::lock_guard<std::mutex> guard(robot_config_mutex);
 
+        // Read the robot config file into a YAML node and update it with the provided function
         YAML::Node config = YAML::LoadFile(ROBOT_CONFIG_FILE_PATH);
-
         update_function(config);
 
+        // Open the robot config file for writing
         std::ofstream fout(ROBOT_CONFIG_FILE_PATH);
-
         if (!fout.is_open())
             throw;
 
+        // Set exceptions to be thrown on failure
         fout.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 
+        // Write the updated YAML node to the file
         fout << config;
-
         if (fout.fail())
             throw;
 
@@ -430,10 +456,11 @@ void ControlsUtils::update_robot_config_pid_gains(const LoopsMap<AxesMap<PIDGain
 {
     std::function<void(YAML::Node &)> update_function = [&loops_axes_pid_gains, &cascaded_pid](YAML::Node &config)
     {
+        // Update PID gains for each loop and axis
         YAML::Node pid_node = config["pid"];
-
         for (const auto &loop : PID_LOOP_TYPES)
         {
+            // Update gains for cascaded position PID loop if cascaded PID is enabled
             std::string loop_name = (loop == PIDLoopTypesEnum::POSITION && cascaded_pid)
                                         ? CASCADED_POSITION_PID_NAME
                                         : PID_LOOP_TYPES_NAMES.at(loop);

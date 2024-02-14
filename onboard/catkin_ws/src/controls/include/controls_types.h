@@ -15,6 +15,14 @@ enum ControlTypesEnum : uint8_t
     DESIRED_POWER = custom_msgs::ControlTypes::DESIRED_POWER
 };
 
+// Number of control types
+const int CONTROL_TYPES_COUNT = 3;
+
+// Control types array
+const ControlTypesEnum CONTROL_TYPES[CONTROL_TYPES_COUNT] = {ControlTypesEnum::DESIRED_POSE,
+                                                             ControlTypesEnum::DESIRED_TWIST,
+                                                             ControlTypesEnum::DESIRED_POWER};
+
 // Axes: X, Y, Z, ROLL, PITCH, YAW
 enum AxesEnum : uint8_t
 {
@@ -109,6 +117,13 @@ enum PIDDerivativeTypesEnum : uint8_t
     CALCULATED = custom_msgs::PIDDerivativeType::CALCULATED,
     PROVIDED = custom_msgs::PIDDerivativeType::PROVIDED
 };
+
+// Number of PID derivative types
+const int PID_DERIVATIVE_TYPES_COUNT = 2;
+
+// PID derivative types array
+const PIDDerivativeTypesEnum PID_DERIVATIVE_TYPES[PID_DERIVATIVE_TYPES_COUNT] = {PIDDerivativeTypesEnum::CALCULATED,
+                                                                                 PIDDerivativeTypesEnum::PROVIDED};
 
 // PID terms that are summed to get control effort
 struct PIDTerms

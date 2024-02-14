@@ -30,6 +30,17 @@ namespace ControlsUtils
     // Allows only one thread to read or write to robot config file at a time.
     extern std::mutex robot_config_mutex;
 
+    /**
+     * @brief Check if value is in array.
+     *
+     * @param value Value to check.
+     * @param array Array to check.
+     * @param array_size Number of elements in `array`.
+     * @return True if value is in `array`, false otherwise.
+     */
+    template<typename T, typename S>
+    bool value_in_array(const T value, const S *array, const size_t &array_size);
+
     // *****************************************************************************************************************
     // Functions to check if value is in enum.
 
@@ -77,7 +88,7 @@ namespace ControlsUtils
     // Functions to check if message is valid.
 
     /**
-     * @brief Check if quaternion has length 1 (within tolerance of 1e-6).
+     * @brief Check if quaternion has length 1 (within tolerance of 1e-6) to ensure it is a valid rotation.
      *
      * @param quaternion Quaternion to check.
      * @return True if quaternion has length 1, false otherwise.
@@ -256,7 +267,12 @@ namespace ControlsUtils
      * @param map Map to populate.
      * @param value Value to set all axes to.
      */
-    void populate_axes_map(AxesMap<double> &map, double value);
+    template<typename T>
+    void populate_axes_map(AxesMap<T> &map, T value);
+
+    // Explicit template instantiations for populate_axes_map.
+    extern template void populate_axes_map(AxesMap<double> &map, double value);
+    extern template void populate_axes_map(AxesMap<ControlTypesEnum> &map, ControlTypesEnum value);
 
     // *****************************************************************************************************************
     // Functions to read and write to files.
@@ -276,7 +292,7 @@ namespace ControlsUtils
      * @throws ros::Exception File does not have the same number of columns in each row
      * @throws ros::Exception File does not have at least one row and one column
      */
-    void read_matrix_from_csv(std::string file_path, Eigen::MatrixXd &matrix);
+    void read_matrix_from_csv(const std::string &file_path, Eigen::MatrixXd &matrix);
 
     /**
      * @brief Read robot config file and populate variables.
