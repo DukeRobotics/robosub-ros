@@ -56,4 +56,4 @@ yolov7_tiny_2024_buoy:
   anchor_masks: {"side52": [0,1,2], "side26": [3,4,5], "side13": [6,7,8]}
   iou_threshold: 0.5
   confidence_threshold: 0.5
-  colors: ["DC143C", "FFA500", "FFFF00", "00FF00", "000080", "8A2BE2"]
+  colors: ["DC143C", "FFA500", "FFFF00", "00FF00"]
