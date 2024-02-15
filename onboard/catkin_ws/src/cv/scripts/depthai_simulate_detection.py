@@ -25,6 +25,7 @@ class DepthAISimulateDetection:
         rospy.init_node('depthai_simulate_detection', anonymous=True)
 
         self.device = None
+        self.camera = "front"
 
         self.feed_path = rospy.get_param("~feed_path")
         self.latest_img = None
@@ -110,7 +111,7 @@ class DepthAISimulateDetection:
         """ Run detection on the input image
 
         Send the still image through to the input queue (qIn) after converting it to the proper format.
-        Then retreive what was fed into the neural network. The input to the neural network should be the same
+        Then retrieve what was fed into the neural network. The input to the neural network should be the same
         as the still image sent into the input queue. Output the resulting opencv-formatted image and the
         detections objects.
 
@@ -263,7 +264,7 @@ class DepthAISimulateDetection:
 
     def run(self):
         """ Run detection on the latest img message """
-        with depthai_camera_connect.connect(self.pipeline) as device:
+        with depthai_camera_connect.connect(self.pipeline, self.camera) as device:
             self.device = device
 
             if self._feed_is_still_image():
