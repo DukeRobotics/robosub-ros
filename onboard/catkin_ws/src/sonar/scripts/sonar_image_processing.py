@@ -54,12 +54,13 @@ def find_center_point_and_angle(array, threshold, eps, min_samples, jpeg_save_pa
     """
 
     # Set up the plot
-    fig = plt.figure(figsize=(14, 2))
-    plt.imshow(array, cmap='viridis', aspect='auto')
-    plt.colorbar(label='Array Values')
-    plt.title('Visualization of the Original Array')
-    plt.xlabel('Column Index')
-    plt.ylabel('Row Index')
+    if jpeg_save_path:
+        plt.figure(figsize=(14, 2))
+        plt.imshow(array, cmap='viridis', aspect='auto')
+        plt.colorbar(label='Array Values')
+        plt.title('Visualization of the Original Array')
+        plt.xlabel('Column Index')
+        plt.ylabel('Row Index')
 
     # Convert values > VALUE_THRESHOLD to list of points
     points = np.argwhere(array > threshold)
@@ -73,6 +74,9 @@ def find_center_point_and_angle(array, threshold, eps, min_samples, jpeg_save_pa
     # Get cluster with the most points
     unique_labels = set(labels)
     cluster_counts = {k: np.sum(labels == k) for k in unique_labels if k != -1}
+
+    if cluster_counts == {}:
+        return None, None
 
     # Get the points of the largest cluster and calculate the average column index
     largest_cluster_label = max(cluster_counts, key=cluster_counts.get)
@@ -93,16 +97,14 @@ def find_center_point_and_angle(array, threshold, eps, min_samples, jpeg_save_pa
     angle = math.degrees(angle)
 
     # Plot the results
-    x_vals_plot = np.arange(array.shape[0])  # Row indices
-    y_vals_plot = intercept_sklearn + slope_sklearn * x_vals_plot
-    plt.plot(y_vals_plot, x_vals_plot, 'r--', label=f'Line: y = {slope_sklearn:.2f}x + {intercept_sklearn:.2f}')
-    plt.scatter(average_column_index, array.shape[0]/2, color='blue', s=50, label='Center Point')
-    plt.legend()
-    
-    img = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
-    img = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+    if jpeg_save_path:
+        x_vals_plot = np.arange(array.shape[0])  # Row indices
+        y_vals_plot = intercept_sklearn + slope_sklearn * x_vals_plot
+        plt.plot(y_vals_plot, x_vals_plot, 'r--', label=f'Line: y = {slope_sklearn:.2f}x + {intercept_sklearn:.2f}')
+        plt.scatter(average_column_index, array.shape[0]/2, color='blue', s=50, label='Center Point')
+        plt.legend()
 
-    return array.shape[0]/2, average_column_index, angle, img
+    return average_column_index, angle
 
 def build_sonar_img_from_log_file(filename, start_index=49, end_index=149):
     """ Builds a sonar image from a log file """

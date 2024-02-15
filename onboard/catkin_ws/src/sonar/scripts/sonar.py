@@ -40,7 +40,7 @@ class Sonar:
     CONSTANT_SWEEP_START = 100
     CONSTANT_SWEEP_END = 300
 
-    VALUE_THRESHOLD = 95
+    VALUE_THRESHOLD = 60
     DBSCAN_EPS = 3
     DBSCAN_MIN_SAMPLES = 10
 
@@ -260,16 +260,18 @@ class Sonar:
         """
         sonar_sweep_array = self.get_sweep(start_angle, end_angle)
 
-        sonar_angle, sonar_index, normal_angle, plot = sonar_utils.get_angle_and_index_of_object(
+        rospy.loginfo(f"sonar_sweep_array: {sonar_sweep_array.shape}")
+
+        sonar_index, normal_angle = find_center_point_and_angle(
             sonar_sweep_array, self.VALUE_THRESHOLD, self.DBSCAN_EPS,
             self.DBSCAN_MIN_SAMPLES)
-        
+
+        if self.stream:
+            compressed_image = self.convert_to_ros_compressed_img(sonar_sweep_array)
+            self.sonar_image_publisher.publish(compressed_image)
+
         if sonar_index is None:
             return (None, None, None)
-        
-        if self.stream:
-            compressed_image = self.convert_to_ros_compressed_img(plot)
-            self.sonar_image_publisher.publish(compressed_image)
 
         sonar_angle = (start_angle + end_angle) / 2 # Take the middle of the sweep
 
@@ -335,13 +337,15 @@ class Sonar:
         rospy.loginfo(f"starting sweep from {left_gradians} to {right_gradians}")
         object_pose, sonar_sweep, normal_angle = self.get_xy_of_object_in_sweep(left_gradians, right_gradians)
 
-        if object_pose is None:
-            rospy.loginfo("No object found")
-            return
-
         response = SonarSweepResponse()
         response.pose = object_pose
         response.normal_angle = normal_angle
+        response.is_object = True
+
+        if object_pose is None:
+            rospy.loginfo("No object found")
+            response.is_object = False
+            return
 
         if self.stream:
             sonar_image = self.convert_to_ros_compressed_img(sonar_sweep)
