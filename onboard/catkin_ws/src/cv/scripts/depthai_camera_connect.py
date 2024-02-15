@@ -7,7 +7,7 @@ import nmap
 
 CAMERA_MAC_ADDRESSES = {
     "front": "44:A9:2C:3C:0A:90",
-    "downward": "f8:e4:3b:5b:b5:f4"
+    "downward": "F8:E4:3B:5B:B5:F4"
 }
 
 
