@@ -9,7 +9,7 @@ import resource_retriever as rr
 from custom_msgs.msg import DVLRaw
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
-from tf.transformations import quaternion_from_euler
+from transforms3d.euler import euler2quat
 
 CONFIG_FILE_PATH = f'package://data_pub/config/{os.getenv("ROBOT_NAME", "oogway")}.yaml'
 
@@ -58,10 +58,10 @@ def callback(msg):
     roll = math.radians(np.float64(msg.sa_roll))
     pitch = math.radians(np.float64(msg.sa_pitch))
     yaw = math.radians(np.float64(msg.sa_heading))
-    odom_quat = quaternion_from_euler(roll, pitch, yaw)
+    odom_quat = euler2quat(roll, pitch, yaw)
 
     # set pose
-    odom.pose.pose = Pose(Point(x, y, z), Quaternion(*odom_quat))
+    odom.pose.pose = Pose(Point(x, y, z), Quaternion(odom_quat[1], odom_quat[2], odom_quat[3], odom_quat[0]))
     odom.child_frame_id = "dvl_link"
     # set twist (set angular velocity to (0, 0, 0), should not be used)
     odom.twist.twist = Twist(Vector3(vx, vy, vz), Vector3(0, 0, 0))
