@@ -48,16 +48,16 @@ void setup(){
 void loop(){
     // If pressure sensor is connected, read the pressure
     if (pressureConnected) {
-        byte response = sensor.read();
+        byte error = sensor.read();
 
         // If sensor.read timed out, mark pressure sensor as disconnected and clear the timeout flag
-        if (response == 5) {
+        if (error == 5) {
             pressureConnected = false;
             Wire.clearWireTimeoutFlag();
         }
 
         // If sensor.read was successful, print the pressure
-        if (!response) {
+        if (!error) {
             Serial.flush();
             printPressure = pressuretag + String(sensor.depth());
             Serial.println(printPressure);
