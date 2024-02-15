@@ -10,7 +10,7 @@ import depthai_camera_connect
 from custom_msgs.msg import PathMarker
 from sensor_msgs.msg import CompressedImage
 from image_tools import ImageTools
-from utils import DetectionVisualizer
+from utils import visualize_path_marker_detection
 
 
 class DepthAIPathMarkerDetector:
@@ -21,7 +21,7 @@ class DepthAIPathMarkerDetector:
 
     # Load in models and other misc. setup work
     def __init__(self):
-        rospy.init_node('path_marker', anonymous=True)
+        rospy.init_node('depthai_path_marker_detection', anonymous=True)
         self.rgb_raw = rospy.get_param("~rgb_raw")
         self.rgb_detections = rospy.get_param("~rgb_detections")
         self.queue_rgb = self.rgb_raw or self.rgb_detections  # Whether to output RGB feed
@@ -44,8 +44,6 @@ class DepthAIPathMarkerDetector:
         if self.rgb_detections:
             self.detection_feed_publisher = rospy.Publisher(f"cv/{self.camera}/detections/compressed", CompressedImage,
                                                             queue_size=10)
-
-        self.detection_visualizer = DetectionVisualizer()
 
     def build_pipeline(self):
         """
@@ -96,7 +94,7 @@ class DepthAIPathMarkerDetector:
 
             # Publish detections feed
             if self.rgb_detections:
-                detections_visualized = self.detection_visualizer.visualize_path_marker(frame, detection)
+                detections_visualized = visualize_path_marker_detection(frame, detection)
                 detections_img_msg = self.image_tools.convert_to_ros_compressed_msg(detections_visualized)
                 self.detection_feed_publisher.publish(detections_img_msg)
 
