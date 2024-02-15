@@ -26,6 +26,45 @@ def check_file_writable(filepath):
     return os.access(pdir, os.W_OK)
 
 
+# converts the hex string passed in by the args into a tuple representing the corresponding rgb color
+def hex_to_rgb(hex):
+    return tuple(int(hex[i:i+2], 16) for i in (0, 2, 4))
+
+
+def visualize_path_marker_detection(frame, detection, color="386720"):
+    """Returns frame with bounding boxes of the detection."""
+    frame_copy = frame.copy()
+
+    center_x, center_y = detection.center
+    width, height = detection.dimensions
+    orientation = detection.orientation
+
+    color = hex_to_rgb(color)
+
+    # Calculate the four corners of the rectangle
+    angle_cos = math.cos(orientation)
+    angle_sin = math.sin(orientation)
+    half_width = width / 2
+    half_height = height / 2
+
+    x1 = int(center_x - half_width * angle_cos - half_height * angle_sin)
+    y1 = int(center_y + half_width * angle_sin - half_height * angle_cos)
+    x2 = int(center_x + half_width * angle_cos - half_height * angle_sin)
+    y2 = int(center_y - half_width * angle_sin - half_height * angle_cos)
+    x3 = int(2 * center_x - x1)
+    y3 = int(2 * center_y - y1)
+    x4 = int(2 * center_x - x2)
+    y4 = int(2 * center_y - y2)
+
+    # Draw the rotated rectangle
+    cv2.line(frame_copy, (x1, y1), (x2, y2), color, 3)
+    cv2.line(frame_copy, (x2, y2), (x3, y3), color, 3)
+    cv2.line(frame_copy, (x3, y3), (x4, y4), color, 3)
+    cv2.line(frame_copy, (x4, y4), (x1, y1), color, 3)
+
+    return frame_copy
+
+
 class DetectionVisualizer:
     """
     Helper methods to visualize detections on an image feed. Adapted from class TextHelper:
@@ -43,10 +82,6 @@ class DetectionVisualizer:
             self.colors.append(self.hex_to_rgb(color))
         self.show_class_name = show_class_name
         self.show_confidence = show_confidence
-
-    # converts the hex string passed in by the args into a tuple representing the corresponding rgb color
-    def hex_to_rgb(self, hex):
-        return tuple(int(hex[i:i+2], 16) for i in (0, 2, 4))
 
     def putText(self, frame, text, coords, color):
         """Add text to frame, such as class label or confidence value."""
@@ -71,39 +106,6 @@ class DetectionVisualizer:
         """Add a rectangle to frame, such as a bounding box."""
         x1, y1, x2, y2 = bbox
         cv2.rectangle(frame, (x1, y1), (x2, y2), color, 3)
-
-    def visualize_path_marker(self, frame, detection, color="386720"):
-        """Returns frame with bounding boxes of the detection."""
-        frame_copy = frame.copy()
-
-        center_x, center_y = detection.center
-        width, height = detection.dimensions
-        orientation = detection.orientation
-
-        color = self.hex_to_rgb(color)
-
-        # Calculate the four corners of the rectangle
-        angle_cos = math.cos(orientation)
-        angle_sin = math.sin(orientation)
-        half_width = width / 2
-        half_height = height / 2
-
-        x1 = int(center_x - half_width * angle_cos - half_height * angle_sin)
-        y1 = int(center_y + half_width * angle_sin - half_height * angle_cos)
-        x2 = int(center_x + half_width * angle_cos - half_height * angle_sin)
-        y2 = int(center_y - half_width * angle_sin - half_height * angle_cos)
-        x3 = int(2 * center_x - x1)
-        y3 = int(2 * center_y - y1)
-        x4 = int(2 * center_x - x2)
-        y4 = int(2 * center_y - y2)
-
-        # Draw the rotated rectangle
-        cv2.line(frame_copy, (x1, y1), (x2, y2), color, 3)
-        cv2.line(frame_copy, (x2, y2), (x3, y3), color, 3)
-        cv2.line(frame_copy, (x3, y3), (x4, y4), color, 3)
-        cv2.line(frame_copy, (x4, y4), (x1, y1), color, 3)
-
-        return frame_copy
 
     def frame_norm(self, frame, bbox):
         """Normalize bbox locations between frame width/height."""
