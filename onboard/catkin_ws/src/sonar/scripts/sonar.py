@@ -23,7 +23,7 @@ class Sonar:
     SPEED_OF_SOUND_IN_WATER = 1482  # m/s
 
     # number of values to filter TODO figure out where the noise ends
-    FILTER_INDEX = 100 # first x values are filtered out
+    FILTER_INDEX = 20 # first x values are filtered out
     DEFAULT_RANGE = 5 # m
     DEFAULT_NUMER_OF_SAMPLES = 1200 # 1200 is max resolution
 
@@ -371,6 +371,8 @@ class Sonar:
 
         if object_pose is None:
             rospy.loginfo("No object found")
+            response.pose = Pose()
+            response.normal_angle = 0.0
             response.is_object = False
 
         if self.stream:

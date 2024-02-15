@@ -65,7 +65,7 @@ def find_center_point_and_angle(array, threshold, eps, min_samples, jpeg_save_pa
     # Convert values > VALUE_THRESHOLD to list of points
     points = np.argwhere(array > threshold)
     if points.size == 0:
-        return None, None, None
+        return None, None
 
     # Perform DBSCAN clustering
     db = DBSCAN(eps=eps, min_samples=min_samples).fit(points)
