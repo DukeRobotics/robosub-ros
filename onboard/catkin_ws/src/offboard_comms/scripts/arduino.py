@@ -18,6 +18,7 @@ CONFIG_YAML_PATH = OFFBOARD_COMMS_PATH_TEMPLATE.format(subpath=f'config/{os.gete
 # Commands to install the ros_lib library for Arduino
 ROS_LIB_INSTALL_COMMANDS = [
     'rm -rf ros_lib',
+    'rm -f ros_lib.zip',
     'rosrun rosserial_arduino make_libraries.py .',
     'zip -r ros_lib.zip ros_lib',
     'arduino-cli lib install --zip-path ros_lib.zip',
