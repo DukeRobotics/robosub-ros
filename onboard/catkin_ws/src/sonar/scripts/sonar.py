@@ -23,7 +23,7 @@ class Sonar:
     SPEED_OF_SOUND_IN_WATER = 1482  # m/s
 
     # number of values to filter TODO figure out where the noise ends
-    FILTER_INDEX = 100 # first 100 values are filtered out
+    FILTER_INDEX = 100 # first x values are filtered out
     DEFAULT_RANGE = 5 # m
     DEFAULT_NUMER_OF_SAMPLES = 1200 # 1200 is max resolution
 
@@ -40,13 +40,13 @@ class Sonar:
     CONSTANT_SWEEP_START = 100
     CONSTANT_SWEEP_END = 300
 
-    VALUE_THRESHOLD = 60
+    VALUE_THRESHOLD = 40
     DBSCAN_EPS = 3
     DBSCAN_MIN_SAMPLES = 10
 
     def __init__(self):
         rospy.init_node(self.NODE_NAME)
-        rospy.loginfo("starting sonar...")
+        rospy.loginfo("init sonar...")
         self.stream = rospy.get_param('~stream')
         self.debug = rospy.get_param('~debug')
 
@@ -58,18 +58,29 @@ class Sonar:
         if self.stream:
             self.sonar_image_publisher = rospy.Publisher(self.SONAR_IMAGE_TOPIC, CompressedImage, queue_size=1)
 
+        self.current_scan = (-1, -1, -1)
+
+    def init_sonar(self):
         # Create ping360
         self.ping360 = Ping360()
 
-        # Connect to the sonar
+        # Find sonar port
         try:
             self._serial_port = next(list_ports.grep(self.SONAR_FTDI_OOGWAY)).device
         except StopIteration:
             rospy.logerr("Sonar not found. Go yell at Will.")
             rospy.signal_shutdown("Shutting down sonar node.")
 
-        self.ping360.connect_serial(f'{self._serial_port}', self.BAUD_RATE)
-        self.ping360.initialize()
+        # Connect to sonar
+        while not rospy.is_shutdown():
+            try:
+                self.ping360.connect_serial(f'{self._serial_port}', self.BAUD_RATE)
+                self.ping360.initialize()
+                break
+            except Exception as e:
+                rospy.logerr(f"Failed to connect to sonar: {e}")
+                rospy.loginfo("Retrying in 1 second")
+                rospy.sleep(1)
 
         # Setup default parameters
         self.number_of_samples = self.DEFAULT_NUMER_OF_SAMPLES
@@ -260,8 +271,6 @@ class Sonar:
         """
         sonar_sweep_array = self.get_sweep(start_angle, end_angle)
 
-        rospy.loginfo(f"sonar_sweep_array: {sonar_sweep_array.shape}")
-
         sonar_index, normal_angle = find_center_point_and_angle(
             sonar_sweep_array, self.VALUE_THRESHOLD, self.DBSCAN_EPS,
             self.DBSCAN_MIN_SAMPLES)
@@ -271,7 +280,7 @@ class Sonar:
             self.sonar_image_publisher.publish(compressed_image)
 
         if sonar_index is None:
-            return (None, None, None)
+            return (None, sonar_sweep_array, None)
 
         sonar_angle = (start_angle + end_angle) / 2 # Take the middle of the sweep
 
@@ -314,12 +323,11 @@ class Sonar:
                 if self.stream:
                     compressed_image = self.convert_to_ros_compressed_img(sonar_sweep)
                     self.sonar_image_publisher.publish(compressed_image)
-            except KeyboardInterrupt:
-                rospy.signal_shutdown("Shutting down sonar node.")
-
+            except Exception as e:
+                rospy.signal_shutdown(f"Shutting down sonar node {e}.")
 
     def on_sonar_request(self, request):
-        """ On a sonar request get the position of the object in the sweep
+        """ On a sonar request set the current scan to the request
 
         Args:
             request (sweepGoal): Request message
@@ -327,12 +335,31 @@ class Sonar:
         Returns:
             Nothing
         """
-        if (request.distance_of_scan == -1):
-            return
-        self.set_new_range(request.distance_of_scan)
-
+        new_range = request.distance_of_scan
         left_gradians = sonar_utils.degrees_to_centered_gradians(request.start_angle)
         right_gradians = sonar_utils.degrees_to_centered_gradians(request.end_angle)
+
+        self.current_scan = (left_gradians, right_gradians, new_range)
+
+        #rospy.loginfo(f"Received sonar request: {left_gradians}, {right_gradians}, {new_range}")
+
+    def preform_sonar_request(self):
+        """ Perform a sonar request
+
+        Args:
+            None
+
+        Returns:
+            Nothing
+        """
+        left_gradians, right_gradians, new_range = self.current_scan
+
+        if left_gradians < 0 or right_gradians < 0 or right_gradians > 400 or new_range < 0:
+            rospy.loginfo("Bad sonar request")
+            return
+
+        if new_range != self.DEFAULT_RANGE:
+            self.set_new_range(new_range)
 
         rospy.loginfo(f"starting sweep from {left_gradians} to {right_gradians}")
         object_pose, sonar_sweep, normal_angle = self.get_xy_of_object_in_sweep(left_gradians, right_gradians)
@@ -345,7 +372,6 @@ class Sonar:
         if object_pose is None:
             rospy.loginfo("No object found")
             response.is_object = False
-            return
 
         if self.stream:
             sonar_image = self.convert_to_ros_compressed_img(sonar_sweep)
@@ -357,18 +383,22 @@ class Sonar:
         """
         Main loop of the node
         """
+        self.init_sonar()
+
         # If debug mode is on, do constant sweeps within range
         if self.debug:
             self.status_publisher.publish("Sonar running")
             self.constant_sweep(self.CONSTANT_SWEEP_START, self.CONSTANT_SWEEP_END, self.DEFAULT_RANGE)
         else:
             rospy.Subscriber(self.SONAR_REQUEST_TOPIC, SonarSweepRequest, self.on_sonar_request)
-            rospy.loginfo("starting sonar status...")
-
-            # Publish status for sensor check
+            rospy.loginfo("starting sonar...")
             rate = rospy.Rate(20)
             while not rospy.is_shutdown():
-                self.status_publisher.publish("Sonar running")
+                if self.current_scan[0] != -1 and self.current_scan[1] != -1 and self.current_scan[2] != -1:
+                    self.preform_sonar_request()
+                    self.current_scan = (-1, -1, -1)
+
+                self.status_publisher.publish("Sonar waiting for request...")
                 rate.sleep()
 
 if __name__ == '__main__':
