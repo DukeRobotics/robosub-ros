@@ -1,0 +1,9 @@
+<launch>
+    <arg name="rgb_raw" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the raw rgb stream (no detections)."}'/>
+    <arg name="rgb_detections" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the rgb stream with detections overlaid."}'/>
+
+    <node name="depthai_path_marker_detection" pkg="cv" type="depthai_path_marker_detection.py" output="screen">
+        <param name="rgb_raw" value="$(arg rgb_raw)" />
+        <param name="rgb_detections" value="$(arg rgb_detections)" />
+    </node>
+</launch>
