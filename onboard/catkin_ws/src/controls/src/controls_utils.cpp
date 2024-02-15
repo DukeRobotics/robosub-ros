@@ -25,10 +25,11 @@
 
 std::mutex ControlsUtils::robot_config_mutex;
 
-template<typename T, typename S>
+template <typename T, typename S>
 bool ControlsUtils::value_in_array(const T value, const S *array, const size_t &array_size)
 {
-    return std::any_of(array, array + array_size, [value](const S &element) { return value == element; });
+    return std::any_of(array, array + array_size, [value](const S &element)
+                       { return value == element; });
 }
 
 bool ControlsUtils::value_in_control_types_enum(uint8_t value)
@@ -88,7 +89,8 @@ bool ControlsUtils::pid_gains_valid(const std::vector<custom_msgs::PIDGain> &pid
 bool ControlsUtils::pid_gains_map_valid(const PIDGainsMap &pid_gains_map)
 {
     return std::all_of(PID_GAIN_TYPES, PID_GAIN_TYPES + PID_GAIN_TYPES_COUNT,
-                       [&pid_gains_map](const PIDGainTypesEnum &gain) { return pid_gains_map.count(gain); });
+                       [&pid_gains_map](const PIDGainTypesEnum &gain)
+                       { return pid_gains_map.count(gain); });
 }
 
 void ControlsUtils::quaternion_msg_to_euler(const geometry_msgs::Quaternion &quaternion, double &roll, double &pitch,
@@ -131,8 +133,8 @@ void ControlsUtils::map_to_twist(const AxesMap<double> &map, geometry_msgs::Twis
     twist.angular.z = map.at(AxesEnum::YAW);
 }
 
-void ControlsUtils::eigen_vector_to_thruster_allocs(const Eigen::VectorXd &vector,
-                                                    custom_msgs::ThrusterAllocs &thruster_allocs)
+void ControlsUtils::eigen_vector_to_thruster_allocs_msg(const Eigen::VectorXd &vector,
+                                                        custom_msgs::ThrusterAllocs &thruster_allocs)
 {
     thruster_allocs.allocs.clear();
     for (int i = 0; i < vector.rows(); ++i)
@@ -250,7 +252,7 @@ void ControlsUtils::pid_axes_map_info_struct_to_msg(const AxesMap<PIDInfo> &pid_
     pid_info_struct_to_msg(pid_axes_map_info_struct.at(AxesEnum::YAW), pid_axes_info_msg.yaw);
 }
 
-template<typename T>
+template <typename T>
 void ControlsUtils::populate_axes_map(AxesMap<T> &map, T value)
 {
     for (const AxesEnum &axis : AXES)

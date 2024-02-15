@@ -38,7 +38,7 @@ namespace ControlsUtils
      * @param array_size Number of elements in `array`.
      * @return True if value is in `array`, false otherwise.
      */
-    template<typename T, typename S>
+    template <typename T, typename S>
     bool value_in_array(const T value, const S *array, const size_t &array_size);
 
     // *****************************************************************************************************************
@@ -176,7 +176,8 @@ namespace ControlsUtils
      * @param vector Eigen vector to convert.
      * @param thruster_allocs Thruster allocs message to populate.
      */
-    void eigen_vector_to_thruster_allocs(const Eigen::VectorXd &vector, custom_msgs::ThrusterAllocs &thruster_allocs);
+    void eigen_vector_to_thruster_allocs_msg(const Eigen::VectorXd &vector,
+                                             custom_msgs::ThrusterAllocs &thruster_allocs);
 
     /**
      * @brief Convert Eigen vector to twist. `vector`'s entries are mapped from top to bottom to `twist` in the
@@ -267,7 +268,7 @@ namespace ControlsUtils
      * @param map Map to populate.
      * @param value Value to set all axes to.
      */
-    template<typename T>
+    template <typename T>
     void populate_axes_map(AxesMap<T> &map, T value);
 
     // Explicit template instantiations for populate_axes_map.

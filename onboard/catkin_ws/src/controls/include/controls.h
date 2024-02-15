@@ -40,6 +40,7 @@ private:
     bool cascaded_pid = false;
 
     // Transform buffer
+    // Unique pointer is used to avoid writing a custom constructor and destructor for this class
     std::unique_ptr<tf2_ros::Buffer> tf_buffer;
 
     // Whether controls are enabled
