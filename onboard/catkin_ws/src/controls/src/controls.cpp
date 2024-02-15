@@ -265,6 +265,7 @@ bool Controls::enable_controls_callback(std_srvs::SetBool::Request &req, std_srv
 {
     controls_enabled = req.data;
     res.success = true;
+    res.message = controls_enabled ? "Controls enabled." : "Controls disabled.";
     return true;
 }
 
