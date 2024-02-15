@@ -14,7 +14,7 @@ from custom_msgs.msg import DVLRaw
 
 class DvlRawPublisher:
 
-    CONFIG_FILE_PATH = 'package://data_pub/config/%s.yaml'
+    CONFIG_FILE_PATH = f'package://data_pub/config/{os.getenv("ROBOT_NAME", "oogway")}.yaml'
 
     BAUDRATE = 115200
     TOPIC_NAME = 'sensors/dvl/raw'
@@ -22,7 +22,7 @@ class DvlRawPublisher:
     LINE_DELIM = ','
 
     def __init__(self):
-        with open(rr.get_filename(self.CONFIG_FILE_PATH % os.getenv("ROBOT_NAME", "oogway"), use_protocol=False)) as f:
+        with open(rr.get_filename(self.CONFIG_FILE_PATH, use_protocol=False)) as f:
             self._config_data = yaml.safe_load(f)
 
         self._pub = rospy.Publisher(self.TOPIC_NAME, DVLRaw, queue_size=10)

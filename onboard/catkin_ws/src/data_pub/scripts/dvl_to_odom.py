@@ -11,7 +11,7 @@ from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
 from tf.transformations import quaternion_from_euler
 
-CONFIG_FILE_PATH = 'package://data_pub/config/%s.yaml'
+CONFIG_FILE_PATH = f'package://data_pub/config/{os.getenv("ROBOT_NAME", "oogway")}.yaml'
 
 NODE_NAME = 'dvl_odom_pub'
 DVL_RAW_TOPIC = 'sensors/dvl/raw'
@@ -73,7 +73,7 @@ def callback(msg):
 
 def listener():
     global dvl_config_data
-    with open(rr.get_filename(CONFIG_FILE_PATH % os.getenv("ROBOT_NAME", "oogway"), use_protocol=False)) as f:
+    with open(rr.get_filename(CONFIG_FILE_PATH, use_protocol=False)) as f:
         config_data = yaml.safe_load(f)
         dvl_config_data = config_data['dvl']
 
