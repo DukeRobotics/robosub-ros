@@ -34,7 +34,7 @@
 #include "controls_utils.h"
 #include "controls.h"
 
-Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<tf2_ros::Buffer> tfl_buffer)
+Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<tf2_ros::Buffer> tf_buffer)
 {
     // Get parameters from launch file
     ros::param::get("~sim", sim);
@@ -43,7 +43,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     ros::param::get("~cascaded_pid", cascaded_pid);
 
     // Initialize TransformListener
-    this->tfl_buffer = std::move(tfl_buffer);
+    this->tf_buffer = std::move(tf_buffer);
 
     // Initialize desired position to have valid orientation
     desired_position.orientation.w = 1.0;
@@ -168,7 +168,7 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     geometry_msgs::TransformStamped transformStamped;
     try
     {
-        transformStamped = tfl_buffer->lookupTransform("base_link", "odom", ros::Time(0));
+        transformStamped = tf_buffer->lookupTransform("base_link", "odom", ros::Time(0));
     }
     catch (tf2::TransformException &ex)
     {
@@ -478,10 +478,10 @@ int main(int argc, char **argv)
 
     ros::NodeHandle nh;
 
-    std::unique_ptr<tf2_ros::Buffer> tfl_buffer(new tf2_ros::Buffer());
-    std::unique_ptr<tf2_ros::TransformListener> tfl(new tf2_ros::TransformListener(*tfl_buffer));
+    std::unique_ptr<tf2_ros::Buffer> tf_buffer(new tf2_ros::Buffer());
+    std::unique_ptr<tf2_ros::TransformListener> tfl(new tf2_ros::TransformListener(*tf_buffer));
 
-    Controls controls = Controls(argc, argv, nh, std::move(tfl_buffer));
+    Controls controls = Controls(argc, argv, nh, std::move(tf_buffer));
     controls.run();
 
     return 0;

@@ -40,7 +40,7 @@ private:
     bool cascaded_pid = false;
 
     // Transform buffer
-    std::unique_ptr<tf2_ros::Buffer> tfl_buffer;
+    std::unique_ptr<tf2_ros::Buffer> tf_buffer;
 
     // Whether controls are enabled
     bool controls_enabled = false;
@@ -226,9 +226,9 @@ public:
      * @param argc Number of command line arguments.
      * @param argv Command line arguments.
      * @param nh ROS node handle. Used to create ROS subscribers, service advertisers, and publishers.
-     * @param tfl_buffer Transform buffer. Used to obtain transforms between frames.
+     * @param tf_buffer Transform buffer. Used to obtain transforms between frames.
      */
-    Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<tf2_ros::Buffer> tfl_buffer);
+    Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<tf2_ros::Buffer> tf_buffer);
 
     /**
      * @brief Loop that runs while the node is active. Allocates thrusters based on control efforts and publishes
