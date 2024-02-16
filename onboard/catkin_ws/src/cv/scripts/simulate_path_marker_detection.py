@@ -3,13 +3,15 @@
 import cv2
 import os
 import math
-from utils import visualize_path_marker_detection
+import numpy as np
 import rospy
 import resource_retriever as rr
+import rostopic
+
+from utils import visualize_path_marker_detection
 from sensor_msgs.msg import CompressedImage
 from custom_msgs.msg import PathMarker
 from image_tools import ImageTools
-import rostopic
 
 
 class SimulatePathMarkerDetection:
@@ -18,8 +20,11 @@ class SimulatePathMarkerDetection:
     or an Image topic. This class takes the images, transfers them from the host (local computer) to the camera,
     and retrieves the output of the neural network.
     """
+    LOWER_ORANGE = np.array([5, 50, 50])
+    UPPER_ORANGE = np.array([33, 255, 255])
+
     def __init__(self):
-        rospy.init_node('simulate_path_maker_detection', anonymous=True)
+        rospy.init_node('simulate_path_marker_detection', anonymous=True)
 
         self.feed_path = rospy.get_param("~feed_path")
         self.latest_img = None
@@ -54,23 +59,23 @@ class SimulatePathMarkerDetection:
         # Fit a line to the largest contour
         if len(contours) > 0:
             largest_contour = max(contours, key=cv2.contourArea)
-            path_marker = cv2.fitEllipse(largest_contour)
+            center, dimensions, orientation = cv2.fitEllipse(largest_contour)
 
             # Extract the center and orientation of the ellipse
-            center_x = path_marker[0][0] / width
-            center_y = path_marker[0][1] / height
+            center_x = center[0] / width
+            center_y = center[1] / height
 
-            orientation = - math.radians(path_marker[2])
+            orientation_in_radians = math.radians(-orientation)
 
             path_marker_msg = PathMarker()
 
-            path_marker_msg.center.x = center_x
-            path_marker_msg.center.y = center_y
-            path_marker_msg.angle = orientation
+            path_marker_msg.x = center_x
+            path_marker_msg.y = center_y
+            path_marker_msg.angle = orientation_in_radians
 
             self.detection_publisher.publish(path_marker_msg)
 
-            return {"center": (center_x, center_y), "dimensions": path_marker[1], "orientation": orientation}
+            return {"center": center, "dimensions": dimensions, "orientation": orientation_in_radians}
 
     def _load_image_from_feed_path(self):
         """ Load a still image from the feed path """
@@ -120,9 +125,12 @@ class SimulatePathMarkerDetection:
         rospy.Subscriber(self.feed_path, TopicType, self._update_latest_img)
 
         while not rospy.is_shutdown():
-            current_image = self.latest_img
-            detection = self.detect(current_image)
-            self._publish_visualized_detections(current_image, detection)
+            if self.latest_img is not None:
+                current_image = self.image_tools.convert_to_cv2(self.latest_img)
+                detection = self.detect(current_image)
+
+                if detection:
+                    self._publish_visualized_detections(current_image, detection)
 
     def _run_detection_on_single_image(self, img):
         """ Run detection on the single image provided

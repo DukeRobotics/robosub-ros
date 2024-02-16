@@ -6,6 +6,7 @@ import cv2
 import depthai as dai
 import math
 import depthai_camera_connect
+import numpy as np
 
 from custom_msgs.msg import PathMarker
 from sensor_msgs.msg import CompressedImage
@@ -15,8 +16,8 @@ from utils import visualize_path_marker_detection
 
 class DepthAIPathMarkerDetector:
     """This class computes and publishes predictions on a image stream."""
-    LOWER_ORANGE = [5, 50, 50]
-    UPPER_ORANGE = [33, 255, 255]
+    LOWER_ORANGE = np.array([5, 50, 50])
+    UPPER_ORANGE = np.array([33, 255, 255])
     PATH_MARKER_PUBLISH_TOPIC = "cv/downward/path_marker"
 
     # Load in models and other misc. setup work
@@ -93,7 +94,7 @@ class DepthAIPathMarkerDetector:
                 self.rgb_preview_publisher.publish(frame_img_msg)
 
             # Publish detections feed
-            if self.rgb_detections:
+            if self.rgb_detections and detection:
                 detections_visualized = visualize_path_marker_detection(frame, detection)
                 detections_img_msg = self.image_tools.convert_to_ros_compressed_msg(detections_visualized)
                 self.detection_feed_publisher.publish(detections_img_msg)
@@ -114,23 +115,23 @@ class DepthAIPathMarkerDetector:
         # Fit a line to the largest contour
         if len(contours) > 0:
             largest_contour = max(contours, key=cv2.contourArea)
-            path_marker = cv2.fitEllipse(largest_contour)
+            center, dimensions, orientation = cv2.fitEllipse(largest_contour)
 
             # Extract the center and orientation of the ellipse
-            center_x = path_marker[0][0] / width
-            center_y = path_marker[0][1] / height
+            center_x = center[0] / width
+            center_y = center[1] / height
 
-            orientation = - math.radians(path_marker[2])
+            orientation_in_radians = math.radians(-orientation)
 
             path_marker_msg = PathMarker()
 
-            path_marker_msg.center.x = center_x
-            path_marker_msg.center.y = center_y
-            path_marker_msg.angle = orientation
+            path_marker_msg.x = center_x
+            path_marker_msg.y = center_y
+            path_marker_msg.angle = orientation_in_radians
 
-            self.publisher.publish(path_marker_msg)
+            self.detection_publisher.publish(path_marker_msg)
 
-            return {"center": (center_x, center_y), "dimensions": path_marker[1], "orientation": orientation}
+            return {"center": center, "dimensions": dimensions, "orientation": orientation_in_radians}
 
     def run(self):
         """Initialize node and set up Subscriber to generate and publish predictions at every camera frame received."""
