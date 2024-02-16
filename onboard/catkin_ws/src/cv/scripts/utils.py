@@ -35,9 +35,9 @@ def visualize_path_marker_detection(frame, detection, color="386720"):
     """Returns frame with bounding boxes of the detection."""
     frame_copy = frame.copy()
 
-    center_x, center_y = detection.center
-    width, height = detection.dimensions
-    orientation = detection.orientation
+    center_x, center_y = detection["center"]
+    width, height = detection["dimensions"]
+    orientation = detection["orientation"]
 
     color = hex_to_rgb(color)
 
