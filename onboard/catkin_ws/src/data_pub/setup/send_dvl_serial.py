@@ -46,7 +46,7 @@ def main():
                 continue
             cmd = cmd + "\n"
             if cmd == "break\n":
-                cmd = "þ\n"
+                cmd = "+++\n"
                 allout = True
             myserial.write(cmd.encode('utf-8'))
             line = myserial.readline().decode('utf-8')
