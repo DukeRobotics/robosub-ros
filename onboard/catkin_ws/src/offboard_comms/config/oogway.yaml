@@ -1,7 +1,7 @@
 arduino:
   pressure:
-    ftdi: 557323233303516132A1
-    fqbn: arduino:avr:uno
+    ftdi: B0015XL0
+    fqbn: arduino:avr:nano
     core: arduino:avr
     sketch: Arduino Sketchbooks/PressureArduino
     requires_ros_lib: false
