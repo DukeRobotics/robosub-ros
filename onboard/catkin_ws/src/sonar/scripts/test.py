@@ -43,12 +43,8 @@ if __name__ == "__main__":
         array = np.load(os.path.join(data_dir, npy_file))
 
         # Set up the plot
-        plt.figure(figsize=(14, 2))
+        plt.figure(figsize=(16, 2))
         plt.imshow(array, cmap='viridis', aspect='auto')
-        plt.colorbar(label='Array Values')
-        plt.title('Visualization of the Original Array')
-        plt.xlabel('Column Index')
-        plt.ylabel('Row Index')
 
         # Start timer
         start_time = time.time()

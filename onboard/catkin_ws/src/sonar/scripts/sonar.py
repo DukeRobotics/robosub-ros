@@ -23,7 +23,7 @@ class Sonar:
     SPEED_OF_SOUND_IN_WATER = 1482  # m/s
 
     # number of values to filter TODO figure out where the noise ends
-    FILTER_INDEX = 20 # first x values are filtered out
+    FILTER_INDEX = 100 # first x values are filtered out
     DEFAULT_RANGE = 5 # m
     DEFAULT_NUMER_OF_SAMPLES = 1200 # 1200 is max resolution
 
@@ -40,7 +40,7 @@ class Sonar:
     CONSTANT_SWEEP_START = 100
     CONSTANT_SWEEP_END = 300
 
-    VALUE_THRESHOLD = 40
+    VALUE_THRESHOLD = 95
     DBSCAN_EPS = 3
     DBSCAN_MIN_SAMPLES = 10
 
@@ -271,22 +271,18 @@ class Sonar:
         """
         sonar_sweep_array = self.get_sweep(start_angle, end_angle)
 
-        sonar_index, normal_angle = find_center_point_and_angle(
+        sonar_index, normal_angle, plot = find_center_point_and_angle(
             sonar_sweep_array, self.VALUE_THRESHOLD, self.DBSCAN_EPS,
-            self.DBSCAN_MIN_SAMPLES)
-
-        if self.stream:
-            compressed_image = self.convert_to_ros_compressed_img(sonar_sweep_array)
-            self.sonar_image_publisher.publish(compressed_image)
+            self.DBSCAN_MIN_SAMPLES, True)
 
         if sonar_index is None:
             return (None, sonar_sweep_array, None)
 
         sonar_angle = (start_angle + end_angle) / 2 # Take the middle of the sweep
 
-        return (self.to_robot_position(sonar_angle, sonar_index), sonar_sweep_array, normal_angle)
+        return (self.to_robot_position(sonar_angle, sonar_index), plot, normal_angle)
 
-    def convert_to_ros_compressed_img(self, sonar_sweep, compressed_format='jpg'):
+    def convert_to_ros_compressed_img(self, sonar_sweep, compressed_format='jpg', is_color=False):
         """ Convert any kind of image to ROS Compressed Image.
 
         Args:
@@ -296,8 +292,9 @@ class Sonar:
         Returns:
             CompressedImage: ROS Compressed Image message
         """
-        sonar_image = build_color_sonar_image_from_int_array(sonar_sweep)
-        return self.cv_bridge.cv2_to_compressed_imgmsg(sonar_image, dst_format=compressed_format)
+        if not is_color:
+            sonar_sweep = build_color_sonar_image_from_int_array(sonar_sweep)
+        return self.cv_bridge.cv2_to_compressed_imgmsg(sonar_sweep, dst_format=compressed_format)
 
     def constant_sweep(self, start_angle, end_angle, distance_of_scan):
         """ In debug mode scan indefinitely and publish images
@@ -362,7 +359,7 @@ class Sonar:
             self.set_new_range(new_range)
 
         rospy.loginfo(f"starting sweep from {left_gradians} to {right_gradians}")
-        object_pose, sonar_sweep, normal_angle = self.get_xy_of_object_in_sweep(left_gradians, right_gradians)
+        object_pose, plot, normal_angle = self.get_xy_of_object_in_sweep(left_gradians, right_gradians)
 
         response = SonarSweepResponse()
         response.pose = object_pose
@@ -376,7 +373,7 @@ class Sonar:
             response.is_object = False
 
         if self.stream:
-            sonar_image = self.convert_to_ros_compressed_img(sonar_sweep)
+            sonar_image = self.convert_to_ros_compressed_img(plot, is_color=True)
             self.sonar_image_publisher.publish(sonar_image)
 
         self.pub_response.publish(response)

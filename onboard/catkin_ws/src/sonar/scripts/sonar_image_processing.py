@@ -6,6 +6,11 @@ import os
 from sklearn.cluster import DBSCAN
 from sklearn.linear_model import LinearRegression
 import math
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+import cv2
+
+SONAR_IMAGE_WIDTH = 16
+SONAR_IMAGE_HEIGHT = 2
 
 def build_color_sonar_image_from_int_array(int_array, npy_save_path=None, jpeg_save_path=None):
     """ Build a sonar image from a list of data messages
@@ -24,10 +29,8 @@ def build_color_sonar_image_from_int_array(int_array, npy_save_path=None, jpeg_s
         ndarray: Sonar image from the scan
     """
 
-    sonar_img = int_array.astype(np.uint8)
-    sonar_img = cv2.cvtColor(sonar_img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+    sonar_img = cv2.cvtColor(int_array.astype(np.uint8), cv2.COLOR_GRAY2BGR)
     sonar_img = cv2.applyColorMap(sonar_img, cv2.COLORMAP_VIRIDIS)
-
     if jpeg_save_path:
         plt.imsave(jpeg_save_path, sonar_img)
     if npy_save_path:
@@ -35,7 +38,7 @@ def build_color_sonar_image_from_int_array(int_array, npy_save_path=None, jpeg_s
 
     return sonar_img
 
-def find_center_point_and_angle(array, threshold, eps, min_samples, jpeg_save_path=None):
+def find_center_point_and_angle(array, threshold, eps, min_samples, get_plot=True):
     """ Find the center point and angle of the largest cluster in the array
 
     Args:
@@ -54,13 +57,9 @@ def find_center_point_and_angle(array, threshold, eps, min_samples, jpeg_save_pa
     """
 
     # Set up the plot
-    if jpeg_save_path:
-        plt.figure(figsize=(14, 2))
+    if get_plot:
+        plt.figure(figsize=(SONAR_IMAGE_WIDTH, SONAR_IMAGE_HEIGHT))
         plt.imshow(array, cmap='viridis', aspect='auto')
-        plt.colorbar(label='Array Values')
-        plt.title('Visualization of the Original Array')
-        plt.xlabel('Column Index')
-        plt.ylabel('Row Index')
 
     # Convert values > VALUE_THRESHOLD to list of points
     points = np.argwhere(array > threshold)
@@ -97,14 +96,27 @@ def find_center_point_and_angle(array, threshold, eps, min_samples, jpeg_save_pa
     angle = math.degrees(angle)
 
     # Plot the results
-    if jpeg_save_path:
+    if get_plot:
         x_vals_plot = np.arange(array.shape[0])  # Row indices
         y_vals_plot = intercept_sklearn + slope_sklearn * x_vals_plot
-        plt.plot(y_vals_plot, x_vals_plot, 'r--', label=f'Line: y = {slope_sklearn:.2f}x + {intercept_sklearn:.2f}')
-        plt.scatter(average_column_index, array.shape[0]/2, color='blue', s=50, label='Center Point')
-        plt.legend()
+        plt.plot(y_vals_plot, x_vals_plot, 'r', linewidth=4, label=f'Line: y = {slope_sklearn:.2f}x + {intercept_sklearn:.2f}')
+        plt.scatter(average_column_index, array.shape[0]/2, color='k', s=150, zorder=3, label='Center Point')
 
-    return average_column_index, angle
+        plt.xticks([])
+        plt.yticks([])
+        plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
+
+        fig = plt.gcf()
+        canvas = FigureCanvas(fig)
+        canvas.draw()
+
+        image = np.frombuffer(canvas.tostring_rgb(), dtype='uint8')
+        image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        return average_column_index, angle, image
+
+    return average_column_index, angle, array
 
 def build_sonar_img_from_log_file(filename, start_index=49, end_index=149):
     """ Builds a sonar image from a log file """
