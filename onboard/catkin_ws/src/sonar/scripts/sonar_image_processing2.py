@@ -59,7 +59,7 @@ def createImage(img, start_angle=0, center_angle=90, speed="slow"):
     x_ax = np.linspace(-radius, radius, width, dtype=np.int32)
     y_ax = np.linspace(0, radius, height, dtype=np.int32)
     xx, yy = np.meshgrid(x_ax, y_ax)
-    print("create meshgrid time: ", t.time() - msehgrid_start)
+    # print("create meshgrid time: ", t.time() - msehgrid_start)
 
     theta = np.rad2deg(np.arctan2(yy, xx))*200/180
     r = np.sqrt(xx**2 + yy**2)
@@ -82,8 +82,8 @@ def createImage(img, start_angle=0, center_angle=90, speed="slow"):
                 polarImg[radius - y][radius - x] = img[theta_pt, r_pt] # radius - y flips to face the scan upward
             else:
                 polarImg[radius - y][radius - x] = 0
-    print("create image time: ", t.time() - create_img_start)
-    print("total time: ", t.time() - start)
+    # print("convert image time: ", t.time() - create_img_start)
+    print("Total creation time: ", t.time() - start)
     return polarImg.astype(np.uint8)
 
 
@@ -135,7 +135,7 @@ def findClusters(image, threshold=139):
 
     # Get cluster with the most points
     unique_labels = set(labels)
-    cluster_counts = {k: np.sum(labels == k) for k in unique_labels if k != -1}
+    # cluster_counts = {k: np.sum(labels == k) for k in unique_labels if k != -1}
     # print(len(cluster_counts))
 
     # Get the points of the largest cluster
@@ -144,6 +144,7 @@ def findClusters(image, threshold=139):
     # buoy_points = points[class_member_mask]
     
     colors = ['b', 'g', 'r', 'c', 'm', 'y']
+    count = 0
 
     for k in unique_labels:
         if k != -1:
@@ -156,19 +157,20 @@ def findClusters(image, threshold=139):
             area = cluster_shape.area
             circularity = 4*np.pi*area/perimeter**2
 
+            # label and count num clusters that meet conditions
             if (area > 7500 and circularity < 0.375):
                 plt.plot(buoy_points[:, 1], buoy_points[:, 0], 'o', markerfacecolor=colors[k%6], markeredgecolor='k', markersize=6)
                 print(k, colors[k%6], perimeter, area, circularity)
+                count += 1
 
-    #Get the average column index of the largest cluster
+    # Get the average column index of the largest cluster
     # average_column_index = np.mean(buoy_points[:, 1])
     # print(f"average column index: {average_column_index}")
     # plt.scatter(average_column_index, image.shape[0]/2, color='blue', s=50, label='Center Point')
 
-    # plt.plot(buoy_points[:, 1], buoy_points[:, 0], 'o', markerfacecolor='r', markeredgecolor='k', markersize=6)
+    plt.show()
 
-    # plt.show()
-    return cluster_counts
+    return count
 
 
 def printCirularity(contours):
@@ -189,32 +191,44 @@ def main():
     # Get a list of all .npy files in the directory
     npy_files = [f for f in os.listdir(data_dir) if f.endswith('.npy')]
 
-    with open('scripts/analysis.txt', 'w') as file:
-        file.write("Time, Cluster Count, Path")
+    # Clear the csv file
+    # with open('analysis.csv', 'w') as file:
+    #     file.write("")
+    #     file.write(data_dir)
+    #     file.write("\n")
 
-        # for npy_file in npy_files:
-        start = t.time()
-        path = os.path.join(data_dir, npy_files[-1])
-        sonar_img = np.load(path)
-        print(path)
+    # Loop through all data to find num_clusters found
+    with open('analysis.csv', 'a') as file:
+        file.write("Time, Cluster Count, Path\n")
 
-        sonar_img_polar = createImage(sonar_img, speed="Good")
-        sonar_img_polar = cv2.cvtColor(sonar_img_polar.astype(np.uint8), cv2.COLOR_GRAY2BGR)
-        sonar_img_polar = cv2.applyColorMap(sonar_img_polar, cv2.COLORMAP_VIRIDIS)
+        for npy_file in npy_files:
+            path = os.path.join(data_dir, npy_file)
+            sonar_img = np.load(path)
+            print(path)
 
-        num_clusters = findClusters(sonar_img_polar)
-        file.write(str(t.time() - start) + str(num_clusters) + path)
+            start = t.time()
 
-        # addContours(sonar_img_polar)
-        # resized_img = cv2.resize(sonar_img_polar, (sonar_img_polar.shape[1] // 2, sonar_img_polar.shape[0] // 2))
-        
-        # # print(sonar_img_polar.shape)
+            sonar_img_polar = createImage(sonar_img, speed="slow")
+            sonar_img_polar = cv2.cvtColor(sonar_img_polar.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+            sonar_img_polar = cv2.applyColorMap(sonar_img_polar, cv2.COLORMAP_VIRIDIS)
 
-        # cv2.imshow('sonar image', resized_img)
-        print("Total time for image: ", t.time() - start)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-   
+            num_clusters = findClusters(sonar_img_polar)
+            print("Total processing time: ", t.time() - start)
+
+            idx = path.index("sonar\\sampleData")
+            # file.write(str(round(t.time() - start, 2)) + ", " + str(num_clusters) + ", " + path[idx+6:] + "\n")
+
+            # addContours(sonar_img_polar)
+            # resized_img = cv2.resize(sonar_img_polar, (sonar_img_polar.shape[1] // 2, sonar_img_polar.shape[0] // 2))
+            
+            # # print(sonar_img_polar.shape)
+
+            # cv2.imshow('sonar image', resized_img)
+            # cv2.waitKey(0)
+            # cv2.destroyAllWindows()
+
+    file.close()
+
 
 if __name__ == '__main__':
     main()
