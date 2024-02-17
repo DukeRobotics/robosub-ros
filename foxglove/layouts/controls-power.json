@@ -1,5 +1,26 @@
 {
   "configById": {
+    "Plot!21jaxjm": {
+      "paths": [
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/power_disparity_norm.data",
+          "enabled": true,
+          "label": "Power Disparity Norm"
+        }
+      ],
+      "minYValue": 0,
+      "maxYValue": 3,
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": false,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "followingViewWidth": 15
+    },
     "Plot!3gn30zb": {
       "paths": [
         {
@@ -219,26 +240,31 @@
     "speed": 1
   },
   "layout": {
-    "first": {
+    "direction": "row",
+    "first": "Plot!21jaxjm",
+    "second": {
       "first": {
-        "first": "Plot!3gn30zb",
-        "second": "Plot!3yf78kk",
-        "direction": "column"
+        "first": {
+          "first": "Plot!3gn30zb",
+          "second": "Plot!3yf78kk",
+          "direction": "column"
+        },
+        "second": {
+          "first": "Plot!1vpzbmx",
+          "second": "Plot!266v8jj",
+          "direction": "column"
+        },
+        "direction": "row",
+        "splitPercentage": 50
       },
       "second": {
-        "first": "Plot!1vpzbmx",
-        "second": "Plot!266v8jj",
+        "first": "Plot!1p60d5",
+        "second": "Plot!3y2hu8l",
         "direction": "column"
       },
       "direction": "row",
-      "splitPercentage": 50
+      "splitPercentage": 66.66666666666666
     },
-    "second": {
-      "first": "Plot!1p60d5",
-      "second": "Plot!3y2hu8l",
-      "direction": "column"
-    },
-    "direction": "row",
-    "splitPercentage": 66.66666666666666
+    "splitPercentage": 17.77777777777778
   }
 }
