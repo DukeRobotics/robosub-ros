@@ -4,12 +4,12 @@
 	<arg name="sim" default="false" />
 
 	<!-- Start Sonar -->
-	<group unless="$(arg sim)">
+	<!-- <group unless="$(arg sim)">
 		<include file="$(find sonar)/launch/sonar.launch" >
             <arg name="stream" value="True" />
 	        <arg name="debug" value="False" />
         </include>
-	</group>
+	</group> -->
 
     <!-- Start CV -->
     <group unless="$(arg sim)">
