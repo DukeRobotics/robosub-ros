@@ -22,6 +22,9 @@ def main():
         rospy.logerr("Failed to get transform")
         return
 
+    while not controls.state:
+        pass
+
     # Fill with the tasks to do
     # For example: tasks = [gate_task(), buoy_task(), octagon_task()]
     tasks = [move_to_pose_local(controls, task_utils.create_pose(0, 0, -0.5, 0, 0, 0))]
