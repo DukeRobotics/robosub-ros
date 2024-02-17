@@ -9,9 +9,9 @@ import resource_retriever as rr
 from custom_msgs.msg import DVLRaw
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
-from tf.transformations import quaternion_from_euler
+from transforms3d.euler import euler2quat
 
-CONFIG_FILE_PATH = 'package://data_pub/config/%s/dvl.yaml'
+CONFIG_FILE_PATH = f'package://data_pub/config/{os.getenv("ROBOT_NAME", "oogway")}.yaml'
 
 NODE_NAME = 'dvl_odom_pub'
 DVL_RAW_TOPIC = 'sensors/dvl/raw'
@@ -20,7 +20,7 @@ DVL_ODOM_TOPIC = 'sensors/dvl/odom'
 DVL_BAD_STATUS_MSG = 'V'
 
 odom_pub = rospy.Publisher(DVL_ODOM_TOPIC, Odometry, queue_size=50)
-config_data = None
+dvl_config_data = None
 
 
 def callback(msg):
@@ -47,21 +47,21 @@ def callback(msg):
     vy = np.float64(msg.bs_longitudinal) / 1000
     vz = np.float64(msg.bs_normal) / 1000
 
-    if config_data["negate_x_vel"]:
+    if dvl_config_data["negate_x_vel"]:
         vx = -vx
-    if config_data["negate_y_vel"]:
+    if dvl_config_data["negate_y_vel"]:
         vy = -vy
-    if config_data["negate_z_vel"]:
+    if dvl_config_data["negate_z_vel"]:
         vz = -vz
 
     # quat
     roll = math.radians(np.float64(msg.sa_roll))
     pitch = math.radians(np.float64(msg.sa_pitch))
     yaw = math.radians(np.float64(msg.sa_heading))
-    odom_quat = quaternion_from_euler(roll, pitch, yaw)
+    odom_quat = euler2quat(roll, pitch, yaw)
 
     # set pose
-    odom.pose.pose = Pose(Point(x, y, z), Quaternion(*odom_quat))
+    odom.pose.pose = Pose(Point(x, y, z), Quaternion(odom_quat[1], odom_quat[2], odom_quat[3], odom_quat[0]))
     odom.child_frame_id = "dvl_link"
     # set twist (set angular velocity to (0, 0, 0), should not be used)
     odom.twist.twist = Twist(Vector3(vx, vy, vz), Vector3(0, 0, 0))
@@ -72,9 +72,10 @@ def callback(msg):
 
 
 def listener():
-    global config_data
-    with open(rr.get_filename(CONFIG_FILE_PATH % os.getenv("ROBOT_NAME", "oogway"), use_protocol=False)) as f:
+    global dvl_config_data
+    with open(rr.get_filename(CONFIG_FILE_PATH, use_protocol=False)) as f:
         config_data = yaml.safe_load(f)
+        dvl_config_data = config_data['dvl']
 
     rospy.init_node(NODE_NAME)
     rospy.Subscriber(DVL_RAW_TOPIC, DVLRaw, callback)

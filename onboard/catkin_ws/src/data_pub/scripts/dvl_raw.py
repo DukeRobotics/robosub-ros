@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 
+import os
 import serial
 import serial.tools.list_ports as list_ports
-import rospy
-import yaml
-import resource_retriever as rr
 import traceback
+import yaml
+
+import resource_retriever as rr
+import rospy
 
 from custom_msgs.msg import DVLRaw
 
 
 class DvlRawPublisher:
 
-    FTDI_FILE_PATH = 'package://data_pub/config/dvl_ftdi.yaml'
+    CONFIG_FILE_PATH = f'package://data_pub/config/{os.getenv("ROBOT_NAME", "oogway")}.yaml'
 
     BAUDRATE = 115200
     TOPIC_NAME = 'sensors/dvl/raw'
@@ -20,8 +22,8 @@ class DvlRawPublisher:
     LINE_DELIM = ','
 
     def __init__(self):
-        with open(rr.get_filename(self.FTDI_FILE_PATH, use_protocol=False)) as f:
-            self._ftdi_strings = yaml.safe_load(f)
+        with open(rr.get_filename(self.CONFIG_FILE_PATH, use_protocol=False)) as f:
+            self._config_data = yaml.safe_load(f)
 
         self._pub = rospy.Publisher(self.TOPIC_NAME, DVLRaw, queue_size=10)
 
@@ -43,7 +45,8 @@ class DvlRawPublisher:
     def connect(self):
         while self._serial_port is None and not rospy.is_shutdown():
             try:
-                self._serial_port = next(list_ports.grep('|'.join(self._ftdi_strings))).device
+                dvl_ftdi_string = self._config_data['dvl']['ftdi']
+                self._serial_port = next(list_ports.grep(dvl_ftdi_string)).device
                 self._serial = serial.Serial(self._serial_port, self.BAUDRATE,
                                              timeout=0.1, write_timeout=1.0,
                                              bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
