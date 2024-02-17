@@ -8,11 +8,7 @@ from coroutines import task, Yield, Transform
 async def move_to_pose_global(controls: ControlsInterface, pose):
     controls.start_new_move()
     controls.publish_desired_position(pose)
-    while not (
-        controls.state and task_utils.stopped_at_pose(
-            controls.state.pose.pose,
-            pose,
-            controls.state.twist.twist)):
+    while not task_utils.stopped_at_pose(controls.state.pose.pose, pose, controls.state.twist.twist):
         # Allow users of this task to update the pose
         new_pose = await Yield()
         if new_pose is not None:
@@ -30,6 +26,30 @@ async def move_to_pose_local(controls: ControlsInterface, pose):
         input_transformer=lambda p: task_utils.local_pose_to_global(controls.tfBuffer, p) if p else p)
 
     rospy.loginfo("move_to_pose_local complete: " + str(pose))
+
+
+@task
+async def move_with_velocity(controls: ControlsInterface, twist):
+    controls.start_new_move()
+    controls.publish_desired_velocity(twist)
+    while not task_utils.at_vel(controls.state.twist.twist, twist):
+        new_twist = await Yield()
+        if new_twist is not None:
+            twist = new_twist
+
+        controls.publish_desired_velocity(twist)
+
+
+@task
+async def move_with_power(controls: ControlsInterface, power, seconds):
+    controls.publish_desired_power(power)
+    endtime = rospy.time.now() + seconds
+    while (rospy.time.now() < endtime):
+        new_power = await Yield()
+        if new_power is not None:
+            power = new_power
+
+        controls.publish_desired_power(power)
 
 
 @task

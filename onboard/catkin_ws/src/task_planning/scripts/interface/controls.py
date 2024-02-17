@@ -17,6 +17,7 @@ class ControlsInterface:
     RESET_PID_LOOPS_SERVICE = 'controls/reset_pid_loops'
     DESIRED_POSITION_TOPIC = 'controls/desired_position'
     DESIRED_VELOCITY_TOPIC = 'controls/desired_velocity'
+    DESIRED_POWER_TOPIC = 'controls/desired_power'
     THRUSTER_ALLOCS_TOPIC = 'controls/thruster_allocs'
 
     def __init__(self, tfBuffer):
@@ -35,6 +36,7 @@ class ControlsInterface:
 
         self._desired_position_pub = rospy.Publisher(self.DESIRED_POSITION_TOPIC, Pose, queue_size=1)
         self._desired_velocity_pub = rospy.Publisher(self.DESIRED_VELOCITY_TOPIC, Twist, queue_size=1)
+        self._desired_power_pub = rospy.Publisher(self.DESIRED_POWER_TOPIC, Twist, queue_size=1)
         self._state = None
 
         self._read_config = None
@@ -92,6 +94,10 @@ class ControlsInterface:
     def publish_desired_velocity(self, twist):
         self._set_all_axes_control_type(ControlTypes.DESIRED_TWIST)
         self._desired_velocity_pub.publish(twist)
+
+    def publish_desired_power(self, power):
+        self._set_all_axes_control_type(ControlTypes.DESIRED_POWER)
+        self._desired_power_pub.publish(power)
 
     def _on_receive_state(self, state):
         self._state = state
