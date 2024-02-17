@@ -100,8 +100,13 @@ python foxglove.py clean
 - `pid-panel`: Panel to read/set PID gains
 
 ### Layouts
-- `controls-monitor.json`: 6 graphs for each control axis (x, y, z, roll, pitch, yaw) plotting setpoint and control effort against time
-- `current-pose.json`: 6 graphs for each axis (x, y, z, roll, pitch, yaw) plotting the current pose of the robot
+- `controls-<position/velocity>.json`: Plots setpoint and control effort for each axis
+- `pid-<position/velocity>.json`: Plots setpoint, control effort, filtered error, integral (velocity only), filtered derivative, and provided derivative for each axis
+- `pose-transforms.json`: Plots three topics whose quaternions have been transformed to Euler angles:
+  - `/state.pose.pose` transformed to `/transforms/state/pose`
+  - `/vectornav/IMU.orientation` transformed to `/transforms/vectornav/IMU/orientation`
+  - `/controls/desired_position` transformed to `/transforms/controls/desired_position`
+- `controls-power.json`: Plots the set power scaled, actual power, and their difference for each axis
 - `drc.json`: All Duke Robotics's custom Foxglove panels
 
 ## Local Dependencies

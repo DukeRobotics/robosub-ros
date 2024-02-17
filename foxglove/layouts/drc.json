@@ -111,14 +111,14 @@
         "bottomBackRight": 0
       },
       "tempThrusterAllocs": {
-        "frontLeft": "",
-        "frontRight": "",
-        "backLeft": "",
-        "backRight": "",
-        "bottomFrontLeft": "",
-        "bottomFrontRight": "",
-        "bottomBackLeft": "",
-        "bottomBackRight": ""
+        "frontLeft": "0.05",
+        "frontRight": "0.05",
+        "backLeft": "0.05",
+        "backRight": "0.05",
+        "bottomFrontLeft": "0.05",
+        "bottomFrontRight": "0.05",
+        "bottomBackLeft": "0.05",
+        "bottomBackRight": "0.05"
       },
       "topic": "/controls/thruster_allocs",
       "colorScheme": "dark"
@@ -186,7 +186,7 @@
         "first": "System Status Panel.System Status!44apom5",
         "second": "Sensors Status Panel.Sensors Status!4iuoujc",
         "direction": "column",
-        "splitPercentage": 31.2
+        "splitPercentage": 37.23725417439703
       },
       "splitPercentage": 48.18523153942428
     },
@@ -195,7 +195,7 @@
         "direction": "column",
         "second": "Thruster Allocs Panel.Thruster Allocs!4h4f5ik",
         "first": "PID Panel.PID!bjp8w0",
-        "splitPercentage": 55.56946182728411
+        "splitPercentage": 52
       },
       "second": "Image!1qej1so",
       "direction": "row",
