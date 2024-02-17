@@ -110,6 +110,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     set_power_scaled_pub = nh.advertise<geometry_msgs::Twist>("controls/set_power_scaled", 1);
     actual_power_pub = nh.advertise<geometry_msgs::Twist>("controls/actual_power", 1);
     power_disparity_pub = nh.advertise<geometry_msgs::Twist>("controls/power_disparity", 1);
+    power_disparity_norm_pub = nh.advertise<std_msgs::Float64>("controls/power_disparity_norm", 1);
     pid_gains_pub = nh.advertise<custom_msgs::PIDGains>("controls/pid_gains", 1);
     control_types_pub = nh.advertise<custom_msgs::ControlTypes>("controls/control_types", 1);
     position_efforts_pub = nh.advertise<geometry_msgs::Twist>("controls/position_efforts", 1);
@@ -424,6 +425,7 @@ void Controls::run()
     geometry_msgs::Twist set_power_scaled_msg;
     geometry_msgs::Twist actual_power_msg;
     geometry_msgs::Twist power_disparity_msg;
+    std_msgs::Float64 power_disparity_norm_msg;
     custom_msgs::ControlTypes control_types_msg;
     std_msgs::Bool status_msg;
     custom_msgs::PIDGains pid_gains_msg;
@@ -490,6 +492,9 @@ void Controls::run()
 
         ControlsUtils::eigen_vector_to_twist(power_disparity, power_disparity_msg);
         power_disparity_pub.publish(power_disparity_msg);
+
+        power_disparity_norm_msg.data = power_disparity.norm();
+        power_disparity_norm_pub.publish(power_disparity_norm_msg);
 
         ControlsUtils::map_to_control_types(control_types, control_types_msg);
         control_types_pub.publish(control_types_msg);
