@@ -269,11 +269,19 @@ namespace ControlsUtils
      * @param value Value to set all axes to.
      */
     template <typename T>
-    void populate_axes_map(AxesMap<T> &map, T value);
+    void populate_axes_map(const T &value, AxesMap<T> &map);
 
     // Explicit template instantiations for populate_axes_map.
-    extern template void populate_axes_map(AxesMap<double> &map, double value);
-    extern template void populate_axes_map(AxesMap<ControlTypesEnum> &map, ControlTypesEnum value);
+    extern template void populate_axes_map(const double &value, AxesMap<double> &map);
+    extern template void populate_axes_map(const ControlTypesEnum &value, AxesMap<ControlTypesEnum> &map);
+
+    /**
+     * @brief Multiply all values in `map` by `scale_factor`.
+     *
+     * @param scale_factor Scale factor to multiply all values in `map` by.
+     * @param map Map to scale.
+     */
+    void scale_axes_map(const double &scale_factor, AxesMap<double> &map);
 
     // *****************************************************************************************************************
     // Functions to read and write to files.
