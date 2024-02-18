@@ -59,7 +59,7 @@ yolov7_tiny_2024_buoy-1:
   colors: ["DC143C", "FFA500", "FFFF00", "00FF00", "000080", "8A2BE2"]
 
 yolov7_tiny_2024_buoy-2:
-  classes: ["buoy_abydos_serpenscaput", "buoy_abydos_taurus", "buoy_earth_auriga", "buoy_earth_cetus"]
+  classes: ["buoy_abydos_serpenscaput", "buoy_abydos_taurus", "buoy_earth_auriga", "buoy_earth_cetus", "buoy_whole"]
   topic: cv/
   weights: yolov7_tiny_2024_buoy-2.blob
   input_size: [416, 416]
