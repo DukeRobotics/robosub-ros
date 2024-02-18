@@ -6,16 +6,27 @@
           "value": "/transforms/state/pose.linear.x",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "State X",
-          "showLine": true,
-          "color": "#0080ff"
+          "label": "State Pose X",
+          "showLine": true
+        },
+        {
+          "value": "/state.twist.twist.linear.x",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "State Velocity X",
+          "showLine": true
         },
         {
           "timestampMethod": "receiveTime",
           "value": "/transforms/controls/desired_position.linear.x",
           "enabled": true,
-          "label": "Desired Pose X",
-          "color": "#f5774d"
+          "label": "Desired Pose X"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/desired_velocity.linear.x",
+          "enabled": true,
+          "label": "Desired Velocity X"
         }
       ],
       "showXAxisLabels": true,
@@ -37,15 +48,27 @@
           "value": "/transforms/state/pose.angular.x",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Roll",
-          "showLine": true,
-          "color": "#0080ff"
+          "label": "State Pose Roll",
+          "showLine": true
+        },
+        {
+          "value": "/state.twist.twist.angular.x",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "State Velocity Roll",
+          "showLine": true
         },
         {
           "timestampMethod": "receiveTime",
           "value": "/transforms/controls/desired_position.angular.x",
           "enabled": true,
           "label": "Desired Pose Roll"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/desired_velocity.angular.x",
+          "enabled": true,
+          "label": "Desired Velocity Roll"
         },
         {
           "timestampMethod": "receiveTime",
@@ -73,16 +96,27 @@
           "value": "/transforms/state/pose.linear.y",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "State Y",
-          "showLine": true,
-          "color": "#0080ff"
+          "label": "State Pose Y",
+          "showLine": true
+        },
+        {
+          "value": "/state.twist.twist.linear.y",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "State Velocity Y",
+          "showLine": true
         },
         {
           "timestampMethod": "receiveTime",
           "value": "/transforms/controls/desired_position.linear.y",
           "enabled": true,
-          "label": "Desired Pose Y",
-          "color": "#f5774d"
+          "label": "Desired Pose Y"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/desired_velocity.linear.y",
+          "enabled": true,
+          "label": "Desired Velocity Y"
         }
       ],
       "showXAxisLabels": true,
@@ -104,15 +138,27 @@
           "value": "/transforms/state/pose.angular.y",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Pitch",
-          "showLine": true,
-          "color": "#0080ff"
+          "label": "State Pose Pitch",
+          "showLine": true
+        },
+        {
+          "value": "/state.twist.twist.angular.y",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "State Velocity Pitch",
+          "showLine": true
         },
         {
           "timestampMethod": "receiveTime",
           "value": "/transforms/controls/desired_position.angular.y",
           "enabled": true,
           "label": "Desired Pose Pitch"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/desired_velocity.angular.y",
+          "enabled": true,
+          "label": "Desired Velocity Pitch"
         },
         {
           "timestampMethod": "receiveTime",
@@ -140,14 +186,26 @@
           "timestampMethod": "receiveTime",
           "value": "/transforms/state/pose.linear.z",
           "enabled": true,
-          "label": "State Z"
+          "label": "State Pose Z"
+        },
+        {
+          "value": "/state.twist.twist.linear.z",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "State Velocity Z",
+          "showLine": true
         },
         {
           "timestampMethod": "receiveTime",
           "value": "/transforms/controls/desired_position.linear.z",
           "enabled": true,
-          "label": "Desired Pose Z",
-          "color": "#f5774d"
+          "label": "Desired Pose Z"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/desired_velocity.linear.z",
+          "enabled": true,
+          "label": "Desired Velocity Z"
         }
       ],
       "showXAxisLabels": true,
@@ -169,13 +227,26 @@
           "timestampMethod": "receiveTime",
           "value": "/transforms/state/pose.angular.z",
           "enabled": true,
-          "label": "Yaw"
+          "label": "State Pose Yaw"
+        },
+        {
+          "value": "/state.twist.twist.angular.z",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "State Velocity Yaw",
+          "showLine": true
         },
         {
           "timestampMethod": "receiveTime",
           "value": "/transforms/controls/desired_position.angular.z",
           "enabled": true,
           "label": "Desired Pose Yaw"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/desired_velocity.angular.z",
+          "enabled": true,
+          "label": "Desired Velocity Yaw"
         },
         {
           "timestampMethod": "receiveTime",
