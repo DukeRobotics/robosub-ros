@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import pathlib
 import serial.tools.list_ports as list_ports
 import subprocess
 from typing import List, Union, Sequence, Optional
@@ -12,10 +13,10 @@ import resource_retriever as rr
 # Template for the path to the offboard_comms package
 OFFBOARD_COMMS_PATH_TEMPLATE = 'package://offboard_comms/{subpath}'
 
-# Path to the arduino YAML file
+# Path to the config YAML file
 CONFIG_YAML_PATH = OFFBOARD_COMMS_PATH_TEMPLATE.format(subpath=f'config/{os.getenv("ROBOT_NAME", "oogway")}.yaml')
 
-# Commands to install the ros_lib library for Arduino
+# Commands to install the ROS library for Arduino
 ROS_LIB_INSTALL_COMMANDS = [
     'rm -rf ros_lib',
     'rm -f ros_lib.zip',
@@ -26,7 +27,7 @@ ROS_LIB_INSTALL_COMMANDS = [
     'rm -rf ros_lib',
 ]
 
-# Environment variables to update when installing the ros_lib library for Arduino
+# Environment variables to update when installing the ROS library for Arduino
 ROS_LIB_ENV_UPDATES = {
     'ARDUINO_LIBRARY_ENABLE_UNSAFE_INSTALL': 'true'
 }
@@ -41,17 +42,40 @@ ARDUINO_COMPILE_COMMAND_TEMPLATE = 'arduino-cli compile -b {fqbn} "{sketch_path}
 ARDUINO_UPLOAD_COMMAND_TEMPLATE = 'arduino-cli upload -b {fqbn} -p {port} "{sketch_path}"'
 
 # Prefix for all output displayed by this script (not including subcommands)
-OUTPUT_PREFIX = 'Arduino.py'
+OUTPUT_PREFIX = pathlib.Path(__file__).name.capitalize()
 
-# Load arduino YAML file
+# Load config YAML file
+error_when_loading_yaml = True
 try:
     config_file_resolved_path = rr.get_filename(CONFIG_YAML_PATH, use_protocol=False)
     with open(config_file_resolved_path) as f:
         config_data = yaml.safe_load(f)
         ARDUINO_DATA = config_data["arduino"]
-except Exception:
-    print(f'{OUTPUT_PREFIX}: FATAL ERROR: Could not load Arduino YAML file at {config_file_resolved_path}. '
-          f'Please check if the file exists and is in valid YAML format.')
+
+    error_when_loading_yaml = False
+
+except FileNotFoundError:
+    print(f'{OUTPUT_PREFIX}: FATAL ERROR: Could not find config YAML file at "{config_file_resolved_path}". '
+          'Please make sure the file exists.')
+
+except yaml.YAMLError as e:
+    if hasattr(e, 'problem_mark'):
+        mark = e.problem_mark
+        print(f'{OUTPUT_PREFIX}: FATAL ERROR: Config YAML file is not in valid YAML format at line {mark.line + 1} '
+              f'and column {mark.column + 1}.')
+
+    print(f'{OUTPUT_PREFIX}: FATAL ERROR: Could not parse config YAML file at "{config_file_resolved_path}". '
+          f'Please make sure the file is in valid YAML format.')
+
+except KeyError:
+    print(f'{OUTPUT_PREFIX}: FATAL ERROR: Config YAML file at "{config_file_resolved_path}" does not contain required '
+          'top-level key "arduino".')
+
+except Exception as e:
+    print(f'{OUTPUT_PREFIX}: FATAL ERROR: An unexpected error occurred when loading the config YAML file at '
+          f'"{config_file_resolved_path}": {e}')
+
+if error_when_loading_yaml:
     exit(1)
 
 # ======================================================================================================================
@@ -59,7 +83,7 @@ except Exception:
 
 
 def run_command(command: Union[str, Sequence[str]], print_output: bool, env_updates: Optional[dict] = None,
-                path_to_run_at: str = None) -> None:
+                path_to_run_at: Optional[str] = None) -> None:
     """
     Run a command at a given path.
 
@@ -87,7 +111,7 @@ def run_command(command: Union[str, Sequence[str]], print_output: bool, env_upda
 
 
 def run_commands(commands: Sequence[str], print_output: bool, env_updates: Optional[dict] = None,
-                 path_to_run_at: str = None) -> None:
+                 path_to_run_at: Optional[str] = None) -> None:
     """
     Run a sequence of commands at a given path.
 
@@ -145,7 +169,7 @@ def get_arduino_libs(arduino_names: List[str]) -> List[str]:
 
 def check_if_ros_lib_is_required(arduino_names: List[str]) -> bool:
     """
-    Check if the ros_lib library is required for the given Arduino names.
+    Check if the ROS library is required for the given Arduino names.
 
     Args:
         arduino_names: List of Arduino names.
@@ -212,14 +236,14 @@ def install_libs(arduino_names: List[str], print_output: bool) -> None:
     arduino_libs = get_arduino_libs(arduino_names)
     lib_install_commands = [ARDUINO_LIBRARY_INSTALL_COMMAND_TEMPLATE.format(library=lib) for lib in arduino_libs]
 
-    # Install the ros_lib library for Arduino if required
+    # Install the ROS library for Arduino if required
     if check_if_ros_lib_is_required(arduino_names):
-        print(f'{OUTPUT_PREFIX}: Installing ros_lib library...')
+        print(f'{OUTPUT_PREFIX}: Installing ROS library...')
         run_commands(ROS_LIB_INSTALL_COMMANDS, print_output, env_updates=ROS_LIB_ENV_UPDATES,
                      path_to_run_at=ROS_LIB_INSTALL_PATH)
-        print(f'{OUTPUT_PREFIX}: ros_lib library installed.')
+        print(f'{OUTPUT_PREFIX}: ROS library installed.')
     else:
-        print(f'{OUTPUT_PREFIX}: Skipped installing ros_lib library because it is not required for '
+        print(f'{OUTPUT_PREFIX}: Skipped installing ROS library because it is not required for '
               f'{", ".join(arduino_names)} arduino(s).')
 
     # Print a linebreak
@@ -338,7 +362,7 @@ def upload(arduino_names: List[str], print_output: bool) -> None:
             print(f'{OUTPUT_PREFIX}: FATAL ERROR: Could not find port of {arduino_name} arduino.')
 
     if error:
-        print(f'{OUTPUT_PREFIX}: Could not upload sketches to arduinos due to errors in finding ports '
+        print(f'{OUTPUT_PREFIX}: FATAL ERROR: Could not upload sketches to arduinos due to errors in finding ports '
               'of given arduinos.')
         return
 
