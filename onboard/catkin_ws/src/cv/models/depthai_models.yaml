@@ -56,7 +56,7 @@ yolov7_tiny_2024_buoy-1:
   anchor_masks: {"side52": [0,1,2], "side26": [3,4,5], "side13": [6,7,8]}
   iou_threshold: 0.5
   confidence_threshold: 0.5
-  colors: ["DC143C", "FFA500", "FFFF00", "00FF00", "000080", "8A2BE2"]
+  colors: ["DC143C", "FFA500", "FFFF00", "00FF00"]
 
 yolov7_tiny_2024_buoy-2:
   classes: ["buoy_abydos_serpenscaput", "buoy_abydos_taurus", "buoy_earth_auriga", "buoy_earth_cetus", "buoy_whole"]
@@ -68,4 +68,4 @@ yolov7_tiny_2024_buoy-2:
   anchor_masks: {"side52": [0,1,2], "side26": [3,4,5], "side13": [6,7,8]}
   iou_threshold: 0.5
   confidence_threshold: 0.5
-  colors: ["DC143C", "FFA500", "FFFF00", "00FF00"]
+  colors: ["DC143C", "FFA500", "FFFF00", "00FF00", "000080"]
