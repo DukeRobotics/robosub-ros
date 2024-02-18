@@ -253,15 +253,21 @@ void ControlsUtils::pid_axes_map_info_struct_to_msg(const AxesMap<PIDInfo> &pid_
 }
 
 template <typename T>
-void ControlsUtils::populate_axes_map(AxesMap<T> &map, T value)
+void ControlsUtils::populate_axes_map(const T &value, AxesMap<T> &map)
 {
     for (const AxesEnum &axis : AXES)
         map[axis] = value;
 }
 
-template void ControlsUtils::populate_axes_map<double>(AxesMap<double> &map, double value);
-template void ControlsUtils::populate_axes_map<ControlTypesEnum>(AxesMap<ControlTypesEnum> &map,
-                                                                 ControlTypesEnum value);
+template void ControlsUtils::populate_axes_map<double>(const double &value, AxesMap<double> &map);
+template void ControlsUtils::populate_axes_map<ControlTypesEnum>(const ControlTypesEnum &value,
+                                                                 AxesMap<ControlTypesEnum> &map);
+
+void ControlsUtils::scale_axes_map(const double &scale_factor, AxesMap<double> &map)
+{
+    for (const AxesEnum &axis : AXES)
+        map[axis] *= scale_factor;
+}
 
 void ControlsUtils::read_matrix_from_csv(const std::string &file_path, Eigen::MatrixXd &matrix)
 {

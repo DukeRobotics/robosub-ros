@@ -49,7 +49,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     desired_position.orientation.w = 1.0;
 
     // Use desired pose as the default control type for all axes
-    ControlsUtils::populate_axes_map<ControlTypesEnum>(control_types, ControlTypesEnum::DESIRED_POSE);
+    ControlsUtils::populate_axes_map<ControlTypesEnum>(ControlTypesEnum::DESIRED_POSE, control_types);
 
     // Get paths to wrench matrix and its pseudoinverse from robot config file
     std::string wrench_matrix_file_path;
@@ -77,9 +77,9 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     static_power_local = tf2::Vector3(0, 0, 0);
 
     // Initialize axes maps to zero
-    ControlsUtils::populate_axes_map<double>(position_pid_outputs, 0);
-    ControlsUtils::populate_axes_map<double>(velocity_pid_outputs, 0);
-    ControlsUtils::populate_axes_map<double>(desired_power, 0);
+    ControlsUtils::populate_axes_map<double>(0, position_pid_outputs);
+    ControlsUtils::populate_axes_map<double>(0, velocity_pid_outputs);
+    ControlsUtils::populate_axes_map<double>(0, desired_power);
 
     // Instantiate thruster allocator
     thruster_allocator = ThrusterAllocator(wrench_matrix_file_path, wrench_matrix_pinv_file_path);
@@ -202,15 +202,20 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
 
     // Get delta time map
     AxesMap<double> delta_time_map;
-    ControlsUtils::populate_axes_map<double>(delta_time_map, delta_time);
+    ControlsUtils::populate_axes_map<double>(delta_time, delta_time_map);
 
     // Get velocity map
     AxesMap<double> velocity_map;
     ControlsUtils::twist_to_map(state.twist.twist, velocity_map);
 
+    // Copy velocity map to position PID provided derivatives map and negate all entries
+    // Entries are negated because the derivative of position error is negative velocity
+    AxesMap<double> position_pid_provided_derivatives(velocity_map);
+    ControlsUtils::scale_axes_map(-1, position_pid_provided_derivatives);
+
     // Run position PID loop
     if (enable_position_pid)
-        pid_managers.at(PIDLoopTypesEnum::POSITION).run_loops(position_error_map, delta_time_map, position_pid_outputs, position_pid_infos, velocity_map);
+        pid_managers.at(PIDLoopTypesEnum::POSITION).run_loops(position_error_map, delta_time_map, position_pid_outputs, position_pid_infos, position_pid_provided_derivatives);
 
     // Publish position control efforts
     geometry_msgs::Twist position_efforts_msg;
@@ -243,9 +248,14 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     ControlsUtils::map_to_twist(velocity_error_map, velocity_error);
     velocity_error_pub.publish(velocity_error);
 
+    // Copy actual power map to velocity PID provided derivatives map and negate all entries
+    // Entries are negated because the derivative of velocity error is negative acceleration
+    AxesMap<double> velocity_pid_provided_derivatives(actual_power_map);
+    ControlsUtils::scale_axes_map(-1, velocity_pid_provided_derivatives);
+
     // Run velocity PID loop
     if (enable_velocity_pid)
-        pid_managers.at(PIDLoopTypesEnum::VELOCITY).run_loops(velocity_error_map, delta_time_map, velocity_pid_outputs, velocity_pid_infos, actual_power_map);
+        pid_managers.at(PIDLoopTypesEnum::VELOCITY).run_loops(velocity_error_map, delta_time_map, velocity_pid_outputs, velocity_pid_infos, velocity_pid_provided_derivatives);
 
     // Publish velocity control efforts
     geometry_msgs::Twist velocity_efforts_msg;
