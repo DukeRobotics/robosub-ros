@@ -100,14 +100,13 @@ python foxglove.py clean
 - `pid-panel`: Panel to read/set PID gains
 
 ### Layouts
-- `controls-<position/velocity>.json`: Plots setpoint and control effort for each axis
-- `pid-<position/velocity>.json`: Plots setpoint, control effort, filtered error, integral (velocity only), filtered derivative, and provided derivative for each axis
-- `pose-transforms.json`: Plots three topics whose quaternions have been transformed to Euler angles:
+- `controls-power.json`: Plots the set power scaled, actual power, and their difference (power disparity) for each axis. Also plots the norm of the power disparity.
+- `drc.json`: All Duke Robotics's custom Foxglove panels
+- `pid-<position/velocity>.json`: Plots error, control effort, filtered error, integral, filtered derivative, calculated derivative, and provided derivative for each axis
+- `state.json`: Plots state pose, state velocity, desired pose, desired velocity, and IMU orientation (angular only) for each axis. It uses the following transformed topics:
   - `/state.pose.pose` transformed to `/transforms/state/pose`
   - `/vectornav/IMU.orientation` transformed to `/transforms/vectornav/IMU/orientation`
   - `/controls/desired_position` transformed to `/transforms/controls/desired_position`
-- `controls-power.json`: Plots the set power scaled, actual power, and their difference for each axis
-- `drc.json`: All Duke Robotics's custom Foxglove panels
 
 ## Local Dependencies
 Local dependencies are located in the `shared` directory.

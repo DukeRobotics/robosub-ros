@@ -6,7 +6,7 @@
           "value": "/controls/velocity_error.linear.x",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Setpoint X",
+          "label": "Error X",
           "showLine": true,
           "color": "#0080ff"
         },
@@ -37,6 +37,12 @@
         },
         {
           "timestampMethod": "receiveTime",
+          "value": "/controls/velocity_pid_infos.x.calculated_derivative",
+          "enabled": true,
+          "label": "Calculated Derivative X"
+        },
+        {
+          "timestampMethod": "receiveTime",
           "value": "/controls/velocity_pid_infos.x.provided_derivative",
           "enabled": true,
           "label": "Provided Derivative X"
@@ -61,7 +67,7 @@
           "value": "/controls/velocity_error.angular.x",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Setpoint Roll",
+          "label": "Error Roll",
           "showLine": true,
           "color": "#0080ff"
         },
@@ -92,6 +98,12 @@
         },
         {
           "timestampMethod": "receiveTime",
+          "value": "/controls/velocity_pid_infos.roll.calculated_derivative",
+          "enabled": true,
+          "label": "Calculated Derivative Roll"
+        },
+        {
+          "timestampMethod": "receiveTime",
           "value": "/controls/velocity_pid_infos.roll.provided_derivative",
           "enabled": true,
           "label": "Provided Derivative Roll"
@@ -116,7 +128,7 @@
           "value": "/controls/velocity_error.linear.y",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Setpoint Y",
+          "label": "Error Y",
           "showLine": true,
           "color": "#0080ff"
         },
@@ -147,6 +159,12 @@
         },
         {
           "timestampMethod": "receiveTime",
+          "value": "/controls/velocity_pid_infos.y.calculated_derivative",
+          "enabled": true,
+          "label": "Calculated Derivative Y"
+        },
+        {
+          "timestampMethod": "receiveTime",
           "value": "/controls/velocity_pid_infos.y.provided_derivative",
           "enabled": true,
           "label": "Provided Derivative Y"
@@ -171,7 +189,7 @@
           "value": "/controls/velocity_error.angular.y",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Setpoint Pitch",
+          "label": "Error Pitch",
           "showLine": true,
           "color": "#0080ff"
         },
@@ -202,6 +220,12 @@
         },
         {
           "timestampMethod": "receiveTime",
+          "value": "/controls/velocity_pid_infos.pitch.calculated_derivative",
+          "enabled": true,
+          "label": "Calculated Derivative Pitch"
+        },
+        {
+          "timestampMethod": "receiveTime",
           "value": "/controls/velocity_pid_infos.pitch.provided_derivative",
           "enabled": true,
           "label": "Provided Derivative Pitch"
@@ -226,7 +250,7 @@
           "value": "/controls/velocity_error.linear.z",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Setpoint Z",
+          "label": "Error Z",
           "showLine": true,
           "color": "#0080ff"
         },
@@ -257,6 +281,12 @@
         },
         {
           "timestampMethod": "receiveTime",
+          "value": "/controls/velocity_pid_infos.z.calculated_derivative",
+          "enabled": true,
+          "label": "Calculated Derivative Z"
+        },
+        {
+          "timestampMethod": "receiveTime",
           "value": "/controls/velocity_pid_infos.z.provided_derivative",
           "enabled": true,
           "label": "Provided Derivative Z"
@@ -281,7 +311,7 @@
           "value": "/controls/velocity_error.angular.z",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Setpoint Yaw",
+          "label": "Error Yaw",
           "showLine": true,
           "color": "#0080ff"
         },
@@ -309,6 +339,12 @@
           "value": "/controls/velocity_pid_infos.yaw.filtered_derivative",
           "enabled": true,
           "label": "Filtered Derivative Yaw"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/velocity_pid_infos.yaw.calculated_derivative",
+          "enabled": true,
+          "label": "Calculated Derivative Yaw"
         },
         {
           "timestampMethod": "receiveTime",
