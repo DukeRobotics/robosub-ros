@@ -6,7 +6,7 @@
           "value": "/controls/position_error.linear.x",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Setpoint X",
+          "label": "Error X",
           "showLine": true,
           "color": "#0080ff"
         },
@@ -25,9 +25,21 @@
         },
         {
           "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.x.integral",
+          "enabled": true,
+          "label": "Integral X"
+        },
+        {
+          "timestampMethod": "receiveTime",
           "value": "/controls/position_pid_infos.x.filtered_derivative",
           "enabled": true,
           "label": "Filtered Derivative X"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.x.calculated_derivative",
+          "enabled": true,
+          "label": "Calculated Derivative X"
         },
         {
           "timestampMethod": "receiveTime",
@@ -55,7 +67,7 @@
           "value": "/controls/position_error.angular.x",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Setpoint Roll",
+          "label": "Error Roll",
           "showLine": true,
           "color": "#0080ff"
         },
@@ -74,9 +86,21 @@
         },
         {
           "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.roll.integral",
+          "enabled": true,
+          "label": "Integral Roll"
+        },
+        {
+          "timestampMethod": "receiveTime",
           "value": "/controls/position_pid_infos.roll.filtered_derivative",
           "enabled": true,
           "label": "Filtered Derivative Roll"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.roll.calculated_derivative",
+          "enabled": true,
+          "label": "Calculated Derivative Roll"
         },
         {
           "timestampMethod": "receiveTime",
@@ -104,7 +128,7 @@
           "value": "/controls/position_error.linear.y",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Setpoint Y",
+          "label": "Error Y",
           "showLine": true,
           "color": "#0080ff"
         },
@@ -123,9 +147,21 @@
         },
         {
           "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.y.integral",
+          "enabled": true,
+          "label": "Integral Y"
+        },
+        {
+          "timestampMethod": "receiveTime",
           "value": "/controls/position_pid_infos.y.filtered_derivative",
           "enabled": true,
           "label": "Filtered Derivative Y"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.y.calculated_derivative",
+          "enabled": true,
+          "label": "Calculated Derivative Y"
         },
         {
           "timestampMethod": "receiveTime",
@@ -153,7 +189,7 @@
           "value": "/controls/position_error.angular.y",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Setpoint Pitch",
+          "label": "Error Pitch",
           "showLine": true,
           "color": "#0080ff"
         },
@@ -172,9 +208,21 @@
         },
         {
           "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.pitch.integral",
+          "enabled": true,
+          "label": "Integral Pitch"
+        },
+        {
+          "timestampMethod": "receiveTime",
           "value": "/controls/position_pid_infos.pitch.filtered_derivative",
           "enabled": true,
           "label": "Filtered Derivative Pitch"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.pitch.calculated_derivative",
+          "enabled": true,
+          "label": "Calculated Derivative Pitch"
         },
         {
           "timestampMethod": "receiveTime",
@@ -202,7 +250,7 @@
           "value": "/controls/position_error.linear.z",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Setpoint Z",
+          "label": "Error Z",
           "showLine": true,
           "color": "#0080ff"
         },
@@ -221,9 +269,21 @@
         },
         {
           "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.z.integral",
+          "enabled": true,
+          "label": "Integral Z"
+        },
+        {
+          "timestampMethod": "receiveTime",
           "value": "/controls/position_pid_infos.z.filtered_derivative",
           "enabled": true,
           "label": "Filtered Derivative Z"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.z.calculated_derivative",
+          "enabled": true,
+          "label": "Calculated Derivative Z"
         },
         {
           "timestampMethod": "receiveTime",
@@ -251,7 +311,7 @@
           "value": "/controls/position_error.angular.z",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Setpoint Yaw",
+          "label": "Error Yaw",
           "showLine": true,
           "color": "#0080ff"
         },
@@ -270,9 +330,21 @@
         },
         {
           "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.yaw.integral",
+          "enabled": true,
+          "label": "Integral Yaw"
+        },
+        {
+          "timestampMethod": "receiveTime",
           "value": "/controls/position_pid_infos.yaw.filtered_derivative",
           "enabled": true,
           "label": "Filtered Derivative Yaw"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.yaw.calculated_derivative",
+          "enabled": true,
+          "label": "Calculated Derivative Yaw"
         },
         {
           "timestampMethod": "receiveTime",
