@@ -44,34 +44,46 @@ The following components make up our software stack:
 
 ## Flow
 
-The general flow of information between components is shown in the diagram below, from top to bottom:
+The high-level diagram below shows the components of the robot's `onboard` software that are used during the robot's autonomous operation and the flow of information between them. The arrows indicate the direction of data flow. The labels on each arrow indicate what data is transmitted. The components are color-coded to indicate their type.
+- Sensors who feed data into the software are <span style="color: #c00">red</span>.
+- Software packages in `onboard` are <span style="color: #00c">blue</span>.
+- Hardware whose actions are controlled by the software are <span style="color: #080">green</span>.
+- Hardware that serves as an intermediary between the software and other hardware is <span style="color: #990">yellow</span>.
 
-```
-        sensors (IMU, DVL, etc.)                cameras
-            \                                     / \
-             \                                   /   \
-              v                                 /     v
-            Data Pub                           /   Camera View
-                \                             /
- Simulation ---> \          Acoustics        /
-                  v             |            v
-                Sensor Fusion   |      Computer Vision
-                    \           |         /
-                     \          |        /
-                      v         v       v
-                         Task Planning
-                               |
-                               |
-                               v
-              Joystick ---> Controls
-                               |
-                               | ---> Simulation
-                               v
-                         Offboard Comms
-                               |
-                               |
-                               v
-                    thrusters, actuators, etc.
+```mermaid
+flowchart TD
+    IMU:::sensor --> VectorNav:::package
+    DVL:::sensor --> DataPub[Data Pub]:::package
+    PressureSensor[Pressure Sensor]:::sensor --> PressureArduino[Pressure Arduino]:::intermediateHardware
+    Voltage[Voltage Sensor]:::sensor --> PressureArduino
+    PressureArduino --> |Depth| DataPub
+    PressureArduino --> |Voltage| DataPub
+    VectorNav --> |Orientation| SensorFusion[Sensor Fusion]:::package
+    VectorNav --> |Angular Velocity| SensorFusion
+    DataPub --> |Linear Velocity| SensorFusion
+    DataPub --> |Depth| SensorFusion
+    FrontCamera[Front Camera]:::sensor --> CV[Computer Vision]:::package
+    BottomCamera[Bottom Camera]:::sensor --> CV
+    SensorFusion --> |State| TaskPlanning[Task Planning]:::package
+    SensorFusion --> |State| Controls:::package
+    CV --> |Object Detections| TaskPlanning
+    Ping360:::sensor --> Sonar:::package
+    Sonar --> |Object Poses| TaskPlanning
+    Hydrophones:::sensor --> Acoustics:::package
+    Acoustics --> |Pinger Positions| TaskPlanning
+    TaskPlanning --> |Desired State| Controls
+    TaskPlanning --> |Torpedo Commands| OffboardComms[Offboard Comms]:::package
+    Controls --> |Thruster Allocations| OffboardComms
+    DataPub --> |Voltage| OffboardComms
+    OffboardComms --> |Pulse Widths| ThrusterArduino[Thruster Arduino]:::intermediateHardware
+    OffboardComms --> |Servo Angles| TorpedoArduino[Torpedo Arduino]:::intermediateHardware
+    ThrusterArduino --> Thrusters:::outputs
+    TorpedoArduino --> Torpedoes:::outputs
+
+    classDef sensor fill:#c00;
+    classDef package fill:#00c;
+    classDef outputs fill:#080;
+    classDef intermediateHardware fill:#990;
 
 ```
 
