@@ -103,7 +103,8 @@ python foxglove.py clean
 - `controls-power.json`: Plots the set power scaled, actual power, and their difference (power disparity) for each axis. Also plots the norm of the power disparity.
 - `drc.json`: All Duke Robotics's custom Foxglove panels
 - `pid-<position/velocity>.json`: Plots error, control effort, filtered error, integral, filtered derivative, calculated derivative, and provided derivative for each axis
-- `state.json`: Plots state pose, state velocity, desired pose, desired velocity, and IMU orientation (angular only) for each axis. It uses the following transformed topics:
+- `sensors.json`: Displays the sensor status, system status, and thruster allocs panels, along with the raw messages from each sensor and all camera feeds.
+- `state.json`: Plots state pose, state velocity, desired pose, and desired velocity for all axes, along with IMU orientation (angular axes only) and depth (Z only). It uses the following transformed topics:
   - `/state.pose.pose` transformed to `/transforms/state/pose`
   - `/vectornav/IMU.orientation` transformed to `/transforms/vectornav/IMU/orientation`
   - `/controls/desired_position` transformed to `/transforms/controls/desired_position`
