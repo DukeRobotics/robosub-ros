@@ -58,7 +58,7 @@ def angular_distance_rpy(rpy1, rpy2):
     return Vector3(roll, pitch, yaw)
 
 
-def at_pose(current_pose, desired_pose, linear_tol=0.1, angular_tol=3):
+def at_pose(current_pose, desired_pose, linear_tol=0.02, angular_tol=0.03):
     """Check if within tolerance of a pose (position and orientation).
 
     Parameters:
@@ -76,7 +76,7 @@ def at_pose(current_pose, desired_pose, linear_tol=0.1, angular_tol=3):
     return linear and angular
 
 
-def at_vel(current_twist, desired_twist, linear_tol=0.1, angular_tol=0.3):
+def at_vel(current_twist, desired_twist, linear_tol=0.02, angular_tol=0.02):
     """Check if within tolerance of a twist (linear and angular velocity)
 
     Parameters:
@@ -111,8 +111,8 @@ def stopped_at_pose(current_pose, desired_pose, current_twist):
     Returns:
     Boolean: true if stopped (current_twist = 0) at desired_pose
     """
-    at_desired_pose = at_pose(current_pose, desired_pose, 0.2, 12)
-    at_desired_vel = at_vel(current_twist, Twist(), 0.6, 6)
+    at_desired_pose = at_pose(current_pose, desired_pose)
+    at_desired_vel = at_vel(current_twist, Twist())
 
     # print("At Pose:", at_desired_pose, " At Vel:", at_desired_vel)
 
