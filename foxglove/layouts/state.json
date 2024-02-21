@@ -206,6 +206,12 @@
           "value": "/controls/desired_velocity.linear.z",
           "enabled": true,
           "label": "Desired Velocity Z"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/sensors/depth.pose.pose.position.z",
+          "enabled": true,
+          "label": "Depth"
         }
       ],
       "showXAxisLabels": true,
