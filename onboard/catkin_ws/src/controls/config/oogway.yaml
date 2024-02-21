@@ -6,7 +6,7 @@ pid:
       Kd: 5
       Ff: 0
       control_effort_limit: 1
-      derivative_type: 0
+      derivative_type: 1
       error_ramp_rate: 1000
     y:
       Kp: 3.5
@@ -14,15 +14,15 @@ pid:
       Kd: 5
       Ff: 0
       control_effort_limit: 1
-      derivative_type: 0
+      derivative_type: 1
       error_ramp_rate: 1000
     z:
-      Kp: 2.9
+      Kp: 1
       Ki: 0
-      Kd: 3
+      Kd: 1.5
       Ff: 0
       control_effort_limit: 1
-      derivative_type: 0
+      derivative_type: 1
       error_ramp_rate: 1000
     roll:
       Kp: 0.8
@@ -30,7 +30,7 @@ pid:
       Kd: 0.4
       Ff: 0
       control_effort_limit: 1
-      derivative_type: 0
+      derivative_type: 1
       error_ramp_rate: 1000
     pitch:
       Kp: 0.8
@@ -38,7 +38,7 @@ pid:
       Kd: 0.4
       Ff: 0
       control_effort_limit: 1
-      derivative_type: 0
+      derivative_type: 1
       error_ramp_rate: 1000
     yaw:
       Kp: 1
@@ -46,7 +46,7 @@ pid:
       Kd: 0.5
       Ff: 0
       control_effort_limit: 1
-      derivative_type: 0
+      derivative_type: 1
       error_ramp_rate: 1000
   position_cascaded:
     x:
@@ -55,7 +55,7 @@ pid:
       Kd: 5
       Ff: 0
       control_effort_limit: 1
-      derivative_type: 0
+      derivative_type: 1
       error_ramp_rate: 1000
     y:
       Kp: 3.5
@@ -63,15 +63,15 @@ pid:
       Kd: 5
       Ff: 0
       control_effort_limit: 1
-      derivative_type: 0
+      derivative_type: 1
       error_ramp_rate: 1000
     z:
-      Kp: 2.9
+      Kp: 1
       Ki: 0
-      Kd: 3
+      Kd: 1.5
       Ff: 0
       control_effort_limit: 1
-      derivative_type: 0
+      derivative_type: 1
       error_ramp_rate: 1000
     roll:
       Kp: 0.8
@@ -79,7 +79,7 @@ pid:
       Kd: 0.4
       Ff: 0
       control_effort_limit: 1
-      derivative_type: 0
+      derivative_type: 1
       error_ramp_rate: 1000
     pitch:
       Kp: 0.8
@@ -87,7 +87,7 @@ pid:
       Kd: 0.4
       Ff: 0
       control_effort_limit: 1
-      derivative_type: 0
+      derivative_type: 1
       error_ramp_rate: 1000
     yaw:
       Kp: 1
@@ -95,7 +95,7 @@ pid:
       Kd: 0.5
       Ff: 0
       control_effort_limit: 1
-      derivative_type: 0
+      derivative_type: 1
       error_ramp_rate: 1000
   velocity:
     x:
@@ -149,7 +149,7 @@ pid:
 static_power_global:
   x: 0
   y: 0
-  z: -0.34
+  z: -0.35
 power_scale_factor: 1
 thrusters:
   - name: bottom_front_left
