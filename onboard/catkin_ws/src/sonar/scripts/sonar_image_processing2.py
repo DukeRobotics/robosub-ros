@@ -55,11 +55,9 @@ def createImage(img, start_angle=0, center_angle=90, speed="slow"):
 
     polarImg = np.zeros((height, width))
 
-    msehgrid_start = t.time()
     x_ax = np.linspace(-radius, radius, width, dtype=np.int32)
     y_ax = np.linspace(0, radius, height, dtype=np.int32)
     xx, yy = np.meshgrid(x_ax, y_ax)
-    # print("create meshgrid time: ", t.time() - msehgrid_start)
 
     theta = np.rad2deg(np.arctan2(yy, xx))*200/180
     r = np.sqrt(xx**2 + yy**2)
@@ -70,9 +68,6 @@ def createImage(img, start_angle=0, center_angle=90, speed="slow"):
     theta = theta.astype(np.int32)
     r = r.astype(np.int32)
 
-    create_img_start = t.time()
-    # for x in x_ax:
-    #     for y in y_ax:
     for x in range(x_ax[0], x_ax[-1]+1, step_x):
         for y in range(y_ax[0], y_ax[-1]+1, step_y):
             theta_pt = theta[y][x + radius] - int(center_angle*200/180 - center) # shift angles to center the to center_angle
@@ -82,7 +77,6 @@ def createImage(img, start_angle=0, center_angle=90, speed="slow"):
                 polarImg[radius - y][radius - x] = img[theta_pt, r_pt] # radius - y flips to face the scan upward
             else:
                 polarImg[radius - y][radius - x] = 0
-    # print("convert image time: ", t.time() - create_img_start)
     print("Total creation time: ", t.time() - start)
     return polarImg.astype(np.uint8)
 
@@ -122,7 +116,6 @@ def findClusters(image, threshold=139):
     
     points = np.argwhere(image > threshold)
 
-
     # Set up the plot
     plt.imshow(image, cmap='viridis', aspect='auto')
     plt.colorbar(label='Array Values')
@@ -146,10 +139,18 @@ def findClusters(image, threshold=139):
     colors = ['b', 'g', 'r', 'c', 'm', 'y']
     count = 0
 
+    clusters = []
+
     for k in unique_labels:
         if k != -1:
+            a_thresh = 6750
+            c_thresh = 0.375
+
             class_member_mask = (labels == k)
             buoy_points = points[class_member_mask]
+
+            average_row_index = np.mean(buoy_points[:, 0])
+            # print(average_row_index)
 
             # get cluster info
             cluster_shape = MultiPoint(buoy_points).convex_hull
@@ -157,14 +158,35 @@ def findClusters(image, threshold=139):
             area = cluster_shape.area
             circularity = 4*np.pi*area/perimeter**2
 
+            # scale the area threshold if the target is too close to the sonar
+            if average_row_index > (image.shape[0] - 300):
+                scaling = (image.shape[0] - average_row_index)/300
+                a_thresh = a_thresh*scaling
+
+            dont_append = False
             # label and count num clusters that meet conditions
-            if (area > 7500 and circularity < 0.375):
-                plt.plot(buoy_points[:, 1], buoy_points[:, 0], 'o', markerfacecolor=colors[k%6], markeredgecolor='k', markersize=6)
-                print(k, colors[k%6], perimeter, area, circularity)
-                count += 1
+            if (area > a_thresh and circularity < c_thresh):
+                for i in range(len(clusters)):
+                    if (inRange(area, clusters[i][0].area, 0.15)
+                    and inRange(perimeter, clusters[i][0].length, 0.15)
+                    and average_row_index > clusters[i][2]):
+                        # found echo, replace with cluster closer to sonar
+                        clusters[i] = [cluster_shape, buoy_points, average_row_index]
+                        dont_append = True
+                if not dont_append:
+                    clusters.append([cluster_shape, buoy_points, average_row_index])
+
+    for cluster in clusters:
+        plt.plot(cluster[1][:, 1], cluster[1][:, 0], 'o', markerfacecolor=colors[count%6], markeredgecolor='k', markersize=6)
+        perimeter = cluster[0].length
+        area = cluster[0].area
+        circularity = 4*np.pi*area/perimeter**2
+        print(k, perimeter, area, circularity)
+        count += 1
 
     # Get the average column index of the largest cluster
     # average_column_index = np.mean(buoy_points[:, 1])
+    # print(average_column_index)
     # print(f"average column index: {average_column_index}")
     # plt.scatter(average_column_index, image.shape[0]/2, color='blue', s=50, label='Center Point')
 
@@ -172,6 +194,13 @@ def findClusters(image, threshold=139):
 
     return count
 
+def inRange(input, src, scaling):
+    upper = src + scaling*src
+    lower = src - scaling*src
+    if input < upper and input > lower:
+        return True
+    else:
+        return False
 
 def printCirularity(contours):
 
@@ -191,16 +220,15 @@ def main():
     # Get a list of all .npy files in the directory
     npy_files = [f for f in os.listdir(data_dir) if f.endswith('.npy')]
 
-    # Clear the csv file
+    # # Clear the csv file
     # with open('analysis.csv', 'w') as file:
     #     file.write("")
     #     file.write(data_dir)
     #     file.write("\n")
+    #     file.write("Time, Cluster Count, Path\n")
 
     # Loop through all data to find num_clusters found
     with open('analysis.csv', 'a') as file:
-        file.write("Time, Cluster Count, Path\n")
-
         for npy_file in npy_files:
             path = os.path.join(data_dir, npy_file)
             sonar_img = np.load(path)
@@ -215,13 +243,13 @@ def main():
             num_clusters = findClusters(sonar_img_polar)
             print("Total processing time: ", t.time() - start)
 
-            idx = path.index("sonar\\sampleData")
+            # idx = path.index("sonar\\sampleData")
             # file.write(str(round(t.time() - start, 2)) + ", " + str(num_clusters) + ", " + path[idx+6:] + "\n")
 
             # addContours(sonar_img_polar)
-            # resized_img = cv2.resize(sonar_img_polar, (sonar_img_polar.shape[1] // 2, sonar_img_polar.shape[0] // 2))
+            resized_img = cv2.resize(sonar_img_polar, (sonar_img_polar.shape[1] // 2, sonar_img_polar.shape[0] // 2))
             
-            # # print(sonar_img_polar.shape)
+            # print(sonar_img_polar.shape)
 
             # cv2.imshow('sonar image', resized_img)
             # cv2.waitKey(0)
