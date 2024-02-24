@@ -95,7 +95,7 @@ void Thrusters::voltage_callback(const std_msgs::Float64 &msg)
   voltage = std::max(VOLTAGE_LOWER, std::min(msg.data, VOLTAGE_UPPER));
 
   if (voltage != msg.data)
-    ROS_WARN("Voltage out of bounds for thrust allocation to PWM conversion. Clamping to [%f, %f]", VOLTAGE_LOWER, VOLTAGE_UPPER);
+    ROS_WARN("Voltage %.2f out of bounds for thrust allocation to PWM conversion. Clamping to [%.2f, %.2f].", msg.data, VOLTAGE_LOWER, VOLTAGE_UPPER);
 }
 
 // Given thruster allocation, we reference our last received voltage

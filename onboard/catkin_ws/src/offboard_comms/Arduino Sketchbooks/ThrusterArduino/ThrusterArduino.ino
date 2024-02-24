@@ -1,10 +1,7 @@
 #include "Adafruit_PWMServoDriver.h"
-#include "MultiplexedServo.h"
 #include "MultiplexedBasicESC.h"
 #include <ros.h>
 #include <custom_msgs/PWMAllocs.h>
-#include <geometry_msgs/PoseWithCovarianceStamped.h>
-#include <std_msgs/Bool.h>
 #include <Arduino.h>
 #include "offset.h"
 

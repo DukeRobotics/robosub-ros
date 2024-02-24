@@ -18,5 +18,6 @@ then
 fi
 
 # Alias to start foxglove websocket
-alias fg-ws='roslaunch --screen foxglove_bridge foxglove_bridge.launch port:=8765'
+alias fg-ws="roslaunch --screen foxglove_bridge foxglove_bridge.launch port:=8765"
+alias thruster-test="rostopic pub -r 20 /controls/thruster_allocs custom_msgs/ThrusterAllocs '{allocs: [0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05]}'"
 
