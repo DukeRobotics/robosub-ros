@@ -13,10 +13,10 @@ arduino:
     requires_ros_lib: true
     pre_compile: rosrun offboard_comms copy_offset.sh 1
     post_compile: rosrun offboard_comms copy_offset.sh 0
-  torpedo:
+  servo_sensors:
     ftdi: A10N1UC1
     fqbn: arduino:avr:nano
     core: arduino:avr
-    sketch: Arduino Sketchbooks/TorpedoArduino
+    sketch: Arduino Sketchbooks/ServoSensorArduino
     requires_ros_lib: false
     pre_compile: arduino-cli lib install Servo

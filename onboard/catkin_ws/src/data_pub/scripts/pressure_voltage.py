@@ -9,26 +9,29 @@ import yaml
 import resource_retriever as rr
 import traceback
 from std_msgs.msg import Float64
+from serial_publisher import SerialPublisher
 
 # Used for sensor fusion
 from geometry_msgs.msg import PoseWithCovarianceStamped
 
 
-class PressureRawPublisher:
+class PressureVoltagePublisher(SerialPublisher):
+    """
+    Serial publisher to publish voltage and pressure data to ROS
+    """
 
     DEPTH_DEST_TOPIC = 'sensors/depth'
     VOLTAGE_DEST_TOPIC = 'sensors/voltage'
     CONFIG_FILE_PATH = f'package://offboard_comms/config/{os.getenv("ROBOT_NAME", "oogway")}.yaml'
-
+    CONFIG_NAME = 'pressure'
+    
     BAUDRATE = 9600
     NODE_NAME = 'pressure_pub'
 
     MEDIAN_FILTER_SIZE = 3
 
     def __init__(self):
-        with open(rr.get_filename(self.CONFIG_FILE_PATH, use_protocol=False)) as f:
-            config_data = yaml.safe_load(f)
-            self._arduino_config = config_data['arduino']
+        super().__init__(self, node_name=self.NODE_NAME, baud=self.BAUDRATE, config_file_path=self.CONFIG_FILE_PATH, config_name=self.CONFIG_NAME)
 
         self._pressure = None  # Pressure to publish
         self._previous_pressure = None  # Previous pressure readings for median filter
@@ -42,68 +45,38 @@ class PressureRawPublisher:
         self._serial_port = None
         self._serial = None
 
-    # Read FTDI strings of all ports in list_ports.grep
-    def connect(self):
-        print("Connecting to pressure sensor.")
-        while self._serial_port is None and not rospy.is_shutdown():
-            try:
-                pressure_ftdi_string = self._arduino_config['pressure']['ftdi']
-                print(f"Looking for pressure sensor with FTDI string {pressure_ftdi_string}.")
-                self._serial_port = next(list_ports.grep(pressure_ftdi_string)).device
-                print(f"Pressure sensor found at {self._serial_port}.")
-                self._serial = serial.Serial(self._serial_port, self.BAUDRATE,
-                                             timeout=1, write_timeout=None,
-                                             bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
-                                             stopbits=serial.STOPBITS_ONE)
-            except StopIteration:
-                rospy.logerr("Pressure sensor not found, trying again in 0.1 seconds.")
-                rospy.sleep(0.1)
+    def process_line(self, l):
+        """"
+        Reads and publishes individual lines
 
-    # Read line from serial port without blocking
-    def readline_nonblocking(self, tout=1):
-        start = time.time()
-        buff = b''
-        while ((time.time() - start) < tout) and (b'\r\n' not in buff):
-            try:
-                buff += self._serial.read(1)
-            except serial.SerialException:
-                pass
+        @param l: the line to read
 
-        return buff.decode('utf-8', errors='ignore')
+        Assumes data comes in the following format:
 
-    def run(self):
-        rospy.init_node(self.NODE_NAME)
-        self.connect()
-        while not rospy.is_shutdown():
-            try:
-                # Direct read from device
-                line = self.readline_nonblocking().strip()
+        P:0.22
+        P:0.23
+        P:0.22
+        P:0.22
+        V:15.85
+        P:0.24
+        ...
+        """
+        tag = l[0:2]  # P for pressure and V for voltage
+        data = l[2:]
+        if "P:" in tag:
+            self._update_pressure(float(data))  # Filter out bad readings
+            self._parse_pressure()  # Parse pressure data
+            self._publish_current_pressure_msg()  # Publish pressure data
+        if "V:" in tag:
+            self._current_voltage_msg = float(data)
+            self._publish_current_voltage_msg()
 
-                if not line or line == '':
-                    rospy.logerr("Timeout in pressure serial read, trying again in 1 second.")
-                    rospy.sleep(0.1)
-                    continue  # Skip and retry
-
-                tag = line[0:2]  # P for pressure and V for voltage
-                data = line[2:]
-                if "P:" in tag:
-                    self._update_pressure(float(data))  # Filter out bad readings
-                    self._parse_pressure()  # Parse pressure data
-                    self._publish_current_pressure_msg()  # Publish pressure data
-                if "V:" in tag:
-                    self._current_voltage_msg = float(data)
-                    self._publish_current_voltage_msg()
-
-            except Exception:
-                rospy.logerr("Error in reading pressure information. Reconnecting.")
-                rospy.logerr(traceback.format_exc())
-                self._serial.close()
-                self._serial = None
-                self._serial_port = None
-                self.connect()
-
-    # Update pressure reading to publish and filter out bad readings
     def _update_pressure(self, new_reading):
+        """
+        Update pressure reading to publish and filter out bad readings
+        
+        @param new_reading: new pressure value to be printed
+        """
         # Ignore readings that are too large
         if abs(new_reading) > 7:
             return
@@ -120,8 +93,9 @@ class PressureRawPublisher:
             self._pressure = sorted(self._previous_pressure)[int(self.MEDIAN_FILTER_SIZE / 2)]
 
     def _parse_pressure(self):
-        # Pressure data recieved is positive so must flip sign
-
+        """
+        Parses the pressure into an odom message
+        """
         self._current_pressure_msg.pose.pose.position.x = 0.0
         self._current_pressure_msg.pose.pose.position.y = 0.0
         self._current_pressure_msg.pose.pose.position.z = -1 * float(self._pressure)
@@ -135,6 +109,9 @@ class PressureRawPublisher:
         self._current_pressure_msg.pose.covariance[14] = 0.01
 
     def _publish_current_pressure_msg(self):
+        """
+        Publishes current pressure to ROS node
+        """
         if abs(self._current_pressure_msg.pose.pose.position.z) > 7:
             self._current_pressure_msg = PoseWithCovarianceStamped()
             return
@@ -146,11 +123,14 @@ class PressureRawPublisher:
         self._current_pressure_msg = PoseWithCovarianceStamped()
 
     def _publish_current_voltage_msg(self):
+        """
+        Publishes current voltage to ROS node
+        """
         self._pub_voltage.publish(self._current_voltage_msg)
 
 
 if __name__ == '__main__':
     try:
-        PressureRawPublisher().run()
+        PressureVoltagePublisher().run()
     except rospy.ROSInterruptException:
         pass
