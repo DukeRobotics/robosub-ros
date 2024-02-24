@@ -33,6 +33,7 @@ class DepthAISpatialDetector:
         Initializes the ROS node. Loads the yaml file at cv/models/depthai_models.yaml
         """
         rospy.init_node('depthai_spatial_detection', anonymous=True)
+        self.camera_name = rospy.get_param("~camera")
         self.running_model = rospy.get_param("~model")
         self.rgb_raw = rospy.get_param("~rgb_raw")
         self.rgb_detections = rospy.get_param("~rgb_detections")
@@ -440,7 +441,7 @@ class DepthAISpatialDetector:
         self.init_model(self.running_model)
         self.init_publishers(self.running_model)
 
-        with depthai_camera_connect.connect(self.pipeline) as device:
+        with depthai_camera_connect.connect(self.pipeline, self.camera_name) as device:
             self.init_output_queues(device)
 
             while not rospy.is_shutdown():
