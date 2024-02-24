@@ -46,3 +46,5 @@ onboard/catkin_ws/src/cv/footage_extraction/extracted_footage
 onboard/catkin_ws/src/cv/footage_extraction/extracted_files
 onboard/catkin_ws/src/cv/footage_extraction/uploaded_footage
 onboard/catkin_ws/src/cv/footage_extraction/*.yaml
+
+onboard/catkin_ws/src/acoustics2/rustping/octants_data

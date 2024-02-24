@@ -59,6 +59,50 @@ pub fn get_spike_starts(data: &Vec<f64>, sample_rate: usize, filter: &SosFormatF
     thresh_peaks
 }
 
+pub fn get_sustained_spikes(data: &Vec<f64>, sample_rate: f64, filter: &SosFormatFilter<f64>) -> Vec<usize> {
+    let mut filtered = sosfiltfilt_dyn(data.iter(), &filter.sos);
+    filtered.iter_mut().for_each(|x| *x = x.abs());
+
+    let all_peaks_inds = find_peaks(&filtered, 0.0);
+    let all_peaks = all_peaks_inds.iter().map(|&x| filtered[x]).collect::<Vec<f64>>();
+
+    let mean = all_peaks.iter().sum::<f64>() / all_peaks.len() as f64;
+    let mut stdev = all_peaks.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / all_peaks.len() as f64;
+    stdev = stdev.sqrt();
+    let thresh = mean + 2.0 * stdev;
+    let time_thresh = sample_rate * 0.001;
+
+    let mut thresh_peaks = Vec::<usize>::new();
+    let mut sample = 0;
+    while sample < filtered.len() {
+        if filtered[sample] > thresh {
+            let mut num_above = 0;
+            let start = sample;
+            while filtered[sample] > thresh {
+                sample += 1;
+                num_above += 1;
+            }
+            if num_above > time_thresh as usize {
+                thresh_peaks.push(start);
+            }
+
+            thresh_peaks.push(sample);
+            sample += sample_rate;
+        }
+        sample += 1;
+    }
+
+    let mut sustained_peaks = Vec::<usize>::new();
+    for i in 0..thresh_peaks.len()-1 {
+        if thresh_peaks[i+1] - thresh_peaks[i] > 2 * sample_rate {
+            sustained_peaks.push(thresh_peaks[i]);
+        }
+    }
+
+    sustained_peaks
+
+}
+
 pub fn get_time_difs(samples: &AudioSamples, lowcut: f64, highcut: f64, fs: f64) -> (Vec<f64>, Vec<f64>, Vec<f64>) {
 
     let filter = gen_filter(lowcut, highcut, fs);

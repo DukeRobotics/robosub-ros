@@ -1,22 +1,45 @@
-import os
-positions = [
-    [0.2, 1.9],
-    [22.6, -2.74],
-    [2.5, 0.25],
-    [5.56, 2.6],
-    [-2.1, -5.06]
-]
+import numpy as np
+import pandas as pd
 
-place2 = open("place2.csv", "w")
+data = pd.read_csv('octs2.csv')  # Replace 'your_data.csv' with your actual data file
+X = data[['h1_2', 'h1_3']].values
+Y = data['octant'].values
 
-for i in range(1, 6):
-    # look in folder TrainData/Position1, TrainData/Position2, etc.
-    # get all csv files and write to the file "filepath x y"
-    x = positions[i-1][0]
-    y = positions[i-1][1]
-    
-    for file in os.listdir("TrainData/Position" + str(i)):
-        if file.endswith(".csv"):
-            place2.write(os.path.join("TrainData/Position" + str(i), file) + " " + str(x) + " " + str(y) + "\n")
-            
-place2.close()
+# random permutations
+perm = np.random.permutation(len(X))
+X = X[perm]
+Y = Y[perm]
+
+# separate into training and testing
+
+X_train = X[:int(0.9*len(X))]
+X_test = X[int(0.9*len(X)):]
+
+y_train = Y[:int(0.9*len(Y))]
+y_test = Y[int(0.9*len(Y)):]
+
+# remove all values > 0.5 for x and y
+# x2 = []
+# y2 = []
+
+# for i in range(len(X)):
+#     if abs(X[i][0]) < 0.5 and abs(X[i][1]) < 0.5:
+#         x2.append(X[i])
+#         y2.append(Y[i])
+
+# save the data
+# train_data = pd.DataFrame(x2, columns=['h1_2', 'h1_3'])
+# train_data['octant'] = y2
+# train_data.to_csv('oct_train_data.csv', index=False)
+
+
+# save the test data
+#
+test_data = pd.DataFrame(X_test, columns=['h1_2', 'h1_3'])
+test_data['octant'] = y_test
+test_data.to_csv('oct_test_data.csv', index=False)
+
+# save the train data
+train_data = pd.DataFrame(X_train, columns=['h1_2', 'h1_3'])
+train_data['octant'] = y_train
+train_data.to_csv('oct_train_data.csv', index=False)
