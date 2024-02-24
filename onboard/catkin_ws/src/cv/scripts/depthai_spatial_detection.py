@@ -33,7 +33,7 @@ class DepthAISpatialDetector:
         Initializes the ROS node. Loads the yaml file at cv/models/depthai_models.yaml
         """
         rospy.init_node('depthai_spatial_detection', anonymous=True)
-        self.camera_name = rospy.get_param("~camera")
+        self.camera = rospy.get_param("~camera")
         self.running_model = rospy.get_param("~model")
         self.rgb_raw = rospy.get_param("~rgb_raw")
         self.rgb_detections = rospy.get_param("~rgb_detections")
@@ -48,7 +48,6 @@ class DepthAISpatialDetector:
                                   use_protocol=False)) as f:
             self.models = yaml.safe_load(f)
 
-        self.camera = 'front'
         self.pipeline = None
         self.publishers = {}  # Keys are the class names of a given model
         self.output_queues = {}  # Keys are "rgb", "depth", and "detections"
@@ -230,15 +229,16 @@ class DepthAISpatialDetector:
 
         # Create CompressedImage publishers for the raw RGB feed, detections feed, and depth feed
         if self.rgb_raw:
-            self.rgb_preview_publisher = rospy.Publisher("camera/front/rgb/preview/compressed", CompressedImage,
-                                                         queue_size=10)
+            self.rgb_preview_publisher = rospy.Publisher(f"camera/{self.camera}/rgb/preview/compressed",
+                                                         CompressedImage, queue_size=10)
 
         if self.rgb_detections:
-            self.detection_feed_publisher = rospy.Publisher("cv/front/detections/compressed", CompressedImage,
+            self.detection_feed_publisher = rospy.Publisher(f"cv/{self.camera}/detections/compressed", CompressedImage,
                                                             queue_size=10)
 
         if self.queue_depth:
-            self.depth_publisher = rospy.Publisher("camera/front/depth/compressed", CompressedImage, queue_size=10)
+            self.depth_publisher = rospy.Publisher(f"camera/{self.camera}/depth/compressed", CompressedImage,
+                                                   queue_size=10)
 
     def init_output_queues(self, device):
         """
@@ -441,7 +441,7 @@ class DepthAISpatialDetector:
         self.init_model(self.running_model)
         self.init_publishers(self.running_model)
 
-        with depthai_camera_connect.connect(self.pipeline, self.camera_name) as device:
+        with depthai_camera_connect.connect(self.pipeline, self.camera) as device:
             self.init_output_queues(device)
 
             while not rospy.is_shutdown():
