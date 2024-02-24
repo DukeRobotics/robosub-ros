@@ -3,9 +3,10 @@
 # TODO maybe try to make stepping awaitable instead of requiring you to
 # yield independently (in order to yield back down to the root)
 class TaskWrapper:
-    def __init__(self, coroutine):
+    def __init__(self, coroutine, level):
         self.coroutine = coroutine
         self.done = False
+        self.started = False
 
     def run(self):
         res = None
@@ -17,9 +18,20 @@ class TaskWrapper:
         return self.send(None)
 
     def send(self, value):
+        if not self.started:
+            publish_start()
+            self.started = True
         try:
-            return self.coroutine.send(value)
+            if value is not None:
+                publish_update(value)
+
+            ret_value = self.coroutine.send(value)
+            if ret_value is not None:
+                publish_yielded_value(ret_value)
+
+            return ret_value
         except StopIteration as e:
+            publish_done()
             self.done = True
             return e.value
 
@@ -29,7 +41,7 @@ class TaskWrapper:
 
 def task(func):
     def wrapper(*args, **kwargs):
-        return TaskWrapper(func(*args, **kwargs))
+        return TaskWrapper(func(*args, **kwargs), kwargs['level'])
     return wrapper
 
 
