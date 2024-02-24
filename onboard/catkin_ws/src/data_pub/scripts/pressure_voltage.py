@@ -44,10 +44,13 @@ class PressureRawPublisher:
 
     # Read FTDI strings of all ports in list_ports.grep
     def connect(self):
+        print("Connecting to pressure sensor.")
         while self._serial_port is None and not rospy.is_shutdown():
             try:
                 pressure_ftdi_string = self._arduino_config['pressure']['ftdi']
+                print(f"Looking for pressure sensor with FTDI string {pressure_ftdi_string}.")
                 self._serial_port = next(list_ports.grep(pressure_ftdi_string)).device
+                print(f"Pressure sensor found at {self._serial_port}.")
                 self._serial = serial.Serial(self._serial_port, self.BAUDRATE,
                                              timeout=1, write_timeout=None,
                                              bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
