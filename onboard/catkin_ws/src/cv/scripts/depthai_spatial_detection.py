@@ -10,7 +10,8 @@ import numpy as np
 from utils import DetectionVisualizer
 from image_tools import ImageTools
 
-from custom_msgs.msg import CVObject, sweepResult, sweepGoal
+from custom_msgs.msg import CVObject, SonarSweepRequest
+from geometry_msgs.msg import Pose
 from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import String
 
@@ -32,6 +33,7 @@ class DepthAISpatialDetector:
         Initializes the ROS node. Loads the yaml file at cv/models/depthai_models.yaml
         """
         rospy.init_node('depthai_spatial_detection', anonymous=True)
+        self.camera = rospy.get_param("~camera")
         self.running_model = rospy.get_param("~model")
         self.rgb_raw = rospy.get_param("~rgb_raw")
         self.rgb_detections = rospy.get_param("~rgb_detections")
@@ -46,7 +48,6 @@ class DepthAISpatialDetector:
                                   use_protocol=False)) as f:
             self.models = yaml.safe_load(f)
 
-        self.camera = 'front'
         self.pipeline = None
         self.publishers = {}  # Keys are the class names of a given model
         self.output_queues = {}  # Keys are "rgb", "depth", and "detections"
@@ -70,9 +71,9 @@ class DepthAISpatialDetector:
 
         # Initialize publishers and subscribers for sonar/task planning
         self.sonar_requests_publisher = rospy.Publisher(
-            SONAR_REQUESTS_PATH, sweepGoal, queue_size=10)
+            SONAR_REQUESTS_PATH, SonarSweepRequest, queue_size=10)
         self.sonar_response_subscriber = rospy.Subscriber(
-            SONAR_RESPONSES_PATH, sweepResult, self.update_sonar)
+            SONAR_RESPONSES_PATH, Pose, self.update_sonar)
         self.desired_detection_feature = rospy.Subscriber(
             TASK_PLANNING_REQUESTS_PATH, String, self.update_priority)
 
@@ -228,15 +229,16 @@ class DepthAISpatialDetector:
 
         # Create CompressedImage publishers for the raw RGB feed, detections feed, and depth feed
         if self.rgb_raw:
-            self.rgb_preview_publisher = rospy.Publisher("camera/front/rgb/preview/compressed", CompressedImage,
-                                                         queue_size=10)
+            self.rgb_preview_publisher = rospy.Publisher(f"camera/{self.camera}/rgb/preview/compressed",
+                                                         CompressedImage, queue_size=10)
 
         if self.rgb_detections:
-            self.detection_feed_publisher = rospy.Publisher("cv/front/detections/compressed", CompressedImage,
+            self.detection_feed_publisher = rospy.Publisher(f"cv/{self.camera}/detections/compressed", CompressedImage,
                                                             queue_size=10)
 
         if self.queue_depth:
-            self.depth_publisher = rospy.Publisher("camera/front/depth/compressed", CompressedImage, queue_size=10)
+            self.depth_publisher = rospy.Publisher(f"camera/{self.camera}/depth/compressed", CompressedImage,
+                                                   queue_size=10)
 
     def init_output_queues(self, device):
         """
@@ -337,15 +339,14 @@ class DepthAISpatialDetector:
             # class is the desired class to be returned to task planning
             if self.using_sonar and label == self.current_priority:
 
-                top_end_compute = self.compute_angle_from_y_offset(detection.ymin * self.camera_pixel_height)
-                bottom_end_compute = self.compute_angle_from_y_offset(detection.ymax * self.camera_pixel_height)
+                # top_end_compute = self.compute_angle_from_y_offset(detection.ymin * self.camera_pixel_height)
+                # bottom_end_compute = self.compute_angle_from_y_offset(detection.ymax * self.camera_pixel_height)
 
                 # Construct sonar request message
-                sonar_request_msg = sweepGoal()
-                sonar_request_msg.start_angle = left_end_compute
-                sonar_request_msg.end_angle = right_end_compute
-                sonar_request_msg.center_z_angle = (top_end_compute + bottom_end_compute) / 2.0
-                sonar_request_msg.distance_of_scan = SONAR_DEPTH
+                sonar_request_msg = SonarSweepRequest()
+                sonar_request_msg.start_angle = int(left_end_compute)
+                sonar_request_msg.end_angle = int(right_end_compute)
+                sonar_request_msg.distance_of_scan = int(SONAR_DEPTH)
 
                 # Make a request to sonar if it is not busy
                 if not self.sonar_busy:
@@ -414,9 +415,9 @@ class DepthAISpatialDetector:
         """
         # Check to see if the sonar is in range - are results from sonar valid?
         self.sonar_busy = False
-        if sonar_results.x_pos > SONAR_RANGE and sonar_results.x_pos <= SONAR_DEPTH:
+        if sonar_results.position.x > SONAR_RANGE and sonar_results.position.x <= SONAR_DEPTH:
             self.in_sonar_range = True
-            self.sonar_response = (sonar_results.x_pos, sonar_results.y_pos)
+            self.sonar_response = (sonar_results.position.x, sonar_results.position.y)
         else:
             self.in_sonar_range = False
 

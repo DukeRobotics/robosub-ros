@@ -26,6 +26,7 @@ add_message_files(
   PathMarker.msg
   PIDGain.msg
   PIDGains.msg
+  SonarSweepRequest.msg
 )
 
 add_service_files(
@@ -47,7 +48,6 @@ add_action_files(
   AcousticsWrapper.action
   Saleae.action
   AcousticsData.action
-  sweep.action
 )
 
 generate_messages(

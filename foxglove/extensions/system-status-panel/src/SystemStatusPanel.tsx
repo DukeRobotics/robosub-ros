@@ -1,4 +1,4 @@
-import { CustomMsgsSystemUsage } from "@duke-robotics/defs/types";
+import { CustomMsgsSystemUsage, StdMsgsFloat64 } from "@duke-robotics/defs/types";
 import useTheme from "@duke-robotics/theme";
 import { PanelExtensionContext, RenderState, MessageEvent, Immutable } from "@foxglove/studio";
 import {
@@ -17,22 +17,42 @@ import { createRoot } from "react-dom/client";
 
 // Topic to watch for system usage data
 const SYSTEM_USAGE_TOPIC = "/system/usage";
+const VOLTAGE_TOPIC = "/sensors/voltage";
 
 type SystemStatusPanelState = {
   cpuUsage?: number;
   ramUsage?: number;
+  voltage?: number;
 };
 
 function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
   const [state, setState] = useState<SystemStatusPanelState>({});
 
-  context.subscribe([{ topic: SYSTEM_USAGE_TOPIC }]);
+  context.subscribe([{ topic: SYSTEM_USAGE_TOPIC }, { topic: VOLTAGE_TOPIC }]);
 
   // Define values in table
   const rows = [
-    { statusName: "CPU", value: state.cpuUsage },
-    { statusName: "RAM", value: state.ramUsage },
+    {
+      statusName: "CPU",
+      value: state.cpuUsage,
+      suffix: "%",
+      warn: () => state.cpuUsage != undefined && state.cpuUsage >= 90,
+    },
+    {
+      statusName: "RAM",
+      value: state.ramUsage,
+      suffix: "%",
+      warn: () => state.ramUsage != undefined && state.ramUsage >= 90,
+    },
+    {
+      statusName: "Voltage",
+      value: state.voltage,
+      suffix: "V",
+      warn: () => {
+        return state.voltage != undefined && state.voltage <= 15;
+      },
+    },
   ];
 
   // Watch system usage topic and update state
@@ -47,11 +67,21 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
 
       // Update system usage state
       if (renderState.currentFrame && renderState.currentFrame.length > 0) {
-        const latestFrame = renderState.currentFrame.at(-1) as MessageEvent<CustomMsgsSystemUsage>;
-        setState({
-          cpuUsage: latestFrame.message.cpu_percent,
-          ramUsage: latestFrame.message.ram.percentage,
-        });
+        const latestFrame = renderState.currentFrame.at(-1) as MessageEvent;
+        if (latestFrame.topic === SYSTEM_USAGE_TOPIC) {
+          const systemUsagelatestFrame = latestFrame as MessageEvent<CustomMsgsSystemUsage>;
+          setState((prevState) => ({
+            ...prevState,
+            cpuUsage: systemUsagelatestFrame.message.cpu_percent,
+            ramUsage: systemUsagelatestFrame.message.ram.percentage,
+          }));
+        } else if (latestFrame.topic === VOLTAGE_TOPIC) {
+          const voltageLatestFrame = latestFrame as MessageEvent<StdMsgsFloat64>;
+          setState((prevState) => ({
+            ...prevState,
+            voltage: voltageLatestFrame.message.data,
+          }));
+        }
       }
     };
     context.watch("currentFrame");
@@ -75,8 +105,14 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
                 <TableRow
                   key={row.statusName}
                   style={{
-                    backgroundColor:
-                      row.value == undefined || row.value >= 90 ? theme.palette.error.dark : theme.palette.success.dark,
+                    backgroundColor: (() => {
+                      if (row.value == undefined) {
+                        return theme.palette.error.dark;
+                      } else if (row.warn()) {
+                        return theme.palette.warning.main;
+                      }
+                      return theme.palette.success.dark;
+                    })(),
                   }}
                 >
                   <TableCell>
@@ -86,7 +122,8 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
                   </TableCell>
                   <TableCell align="right">
                     <Typography variant="subtitle2" color={theme.palette.common.white}>
-                      {row.value?.toFixed(1)}%
+                      {row.value?.toFixed(1)}
+                      {row.suffix}
                     </Typography>
                   </TableCell>
                 </TableRow>

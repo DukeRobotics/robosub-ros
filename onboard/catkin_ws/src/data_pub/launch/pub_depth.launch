@@ -1,3 +1,0 @@
-<launch>
-	<node name="depth_pub" pkg="data_pub" type="pressure.py" output="screen"/>
-</launch>
