@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="robot">
-    <!-- <light type="directional" name="sun">
+    <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
       <diffuse>0.8 0.8 0.8 1</diffuse>
@@ -13,7 +13,7 @@
         <quadratic>0.001</quadratic>
       </attenuation>
       <direction>-0.5 0.1 -0.9</direction>
-    </light> -->
+    </light>
     <model name="ground_plane">
       <static>true</static>
       <link name="link">
@@ -41,7 +41,7 @@
       </link>
     </model>
     <model name="joint_force_example">
-      <pose>0 0 0.005 0 0 0</pose>
+      <pose>0 0 0 0 0 0</pose>
       <!-- The actual robot itself -->
       <link name="base_link">
         <pose>0.0 0.0 0.0 0 0 0</pose>
@@ -61,7 +61,7 @@
           <pose>0.0 0.0 0.0 0 0 0</pose>
           <geometry>
             <box>
-              <size>0.5 0.5 0.01</size>
+              <size>0.5 0.5 0.2</size>
             </box>
           </geometry>
           <material>
@@ -74,7 +74,7 @@
           <pose>0.0 0.0 0.0 0 0 0</pose>
           <geometry>
             <box>
-              <size>0.5 0.5 0.01</size>
+              <size>0.5 0.5 0.5</size>
             </box>
           </geometry>
         </collision>
@@ -82,7 +82,8 @@
 
       <!-- Thruster points -->
       <link name="front_left">
-        <pose>0 0 0 0 0 0</pose>
+        <!-- Assuming x y z r p y as seen in our controls config files -->
+        <pose>0.3302 0.358775 0.0254 0.0 0 -0.7853982</pose>
         <visual name="visual">
           <geometry>
             <box>
@@ -99,8 +100,7 @@
 
       <!-- Thruster joints -->
       <joint name="joint_front_left" type="fixed">
-        <!-- Assuming x y z r p y as seen in our controls config files -->
-        <pose>0.3302 0.358775 0.0254 0.0 0 -0.7853982</pose>
+        <pose>0 0 0 0 0 0</pose>
         <parent>base_link</parent>
         <child>front_left</child>
       </joint>
