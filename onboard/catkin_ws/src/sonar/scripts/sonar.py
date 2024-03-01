@@ -68,7 +68,7 @@ class Sonar:
         try:
             self._serial_port = next(list_ports.grep(self.SONAR_FTDI_OOGWAY)).device
         except StopIteration:
-            rospy.logerr("Sonar not found. Go yell at Will.")
+            rospy.logerr("Sonar not found.")
             rospy.signal_shutdown("Shutting down sonar node.")
 
         # Connect to sonar
