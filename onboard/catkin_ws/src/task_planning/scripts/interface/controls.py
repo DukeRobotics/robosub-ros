@@ -11,7 +11,6 @@ import yaml
 
 
 class ControlsInterface:
-    STATE_TOPIC = 'state'
 
     CONTROL_TYPES_SERVICE = 'controls/set_control_types'
     RESET_PID_LOOPS_SERVICE = 'controls/reset_pid_loops'
@@ -20,8 +19,7 @@ class ControlsInterface:
     DESIRED_POWER_TOPIC = 'controls/desired_power'
     THRUSTER_ALLOCS_TOPIC = 'controls/thruster_allocs'
 
-    def __init__(self, tfBuffer):
-        self.tfBuffer = tfBuffer
+    def __init__(self):
 
         rospy.wait_for_service(self.CONTROL_TYPES_SERVICE)
         self._set_control_types = rospy.ServiceProxy(self.CONTROL_TYPES_SERVICE, SetControlTypes)
@@ -32,12 +30,9 @@ class ControlsInterface:
         rospy.wait_for_service(self.RESET_PID_LOOPS_SERVICE)
         self._reset_pid_loops = rospy.ServiceProxy(self.RESET_PID_LOOPS_SERVICE, Trigger)
 
-        rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state)
-
         self._desired_position_pub = rospy.Publisher(self.DESIRED_POSITION_TOPIC, Pose, queue_size=1)
         self._desired_velocity_pub = rospy.Publisher(self.DESIRED_VELOCITY_TOPIC, Twist, queue_size=1)
         self._desired_power_pub = rospy.Publisher(self.DESIRED_POWER_TOPIC, Twist, queue_size=1)
-        self._state = None
 
         self._read_config = None
 
@@ -61,10 +56,6 @@ class ControlsInterface:
         self.num_thrusters = len(full_thruster_dict['thrusters'])
         self.thruster_dict = thruster_dict
         return thruster_dict
-
-    @property
-    def state(self):
-        return self._state
 
     def _set_all_axes_control_type(self, type):
         if self._all_axes_control_type == type:
@@ -98,12 +89,6 @@ class ControlsInterface:
     def publish_desired_power(self, power):
         self._set_all_axes_control_type(ControlTypes.DESIRED_POWER)
         self._desired_power_pub.publish(power)
-
-    def _on_receive_state(self, state):
-        self._state = state
-
-    def get_state(self):
-        return self._state
 
     def publish_thruster_allocs(self, **kwargs):
         thruster_allocs = [0] * self.num_thrusters

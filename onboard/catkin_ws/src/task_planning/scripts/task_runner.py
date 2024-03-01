@@ -3,6 +3,7 @@
 import rospy
 import tf2_ros
 from interface.controls import ControlsInterface
+from interface.state import StateInterface
 from interface.cv import CVInterface
 # from buoy_task import BuoyTask
 from move_tasks import initial_submerge, move_to_pose_local
@@ -13,7 +14,8 @@ def main():
     rospy.init_node("task_planning")
     tfBuffer = tf2_ros.Buffer()
     _ = tf2_ros.TransformListener(tfBuffer)
-    controls = ControlsInterface(tfBuffer)
+    controls = ControlsInterface()
+    state = StateInterface(tfBuffer)
     cv = CVInterface()
 
     try:
@@ -22,12 +24,12 @@ def main():
         rospy.logerr("Failed to get transform")
         return
 
-    while not controls.state:
+    while not state.state:
         pass
 
     # Fill with the tasks to do
     # For example: tasks = [gate_task(), buoy_task(), octagon_task()]
-    tasks = [move_to_pose_local(controls, task_utils.create_pose(0, 0, -0.5, 0, 0, 0), level=0)]
+    tasks = [move_to_pose_local(controls, state, task_utils.create_pose(0, 0, -0.5, 0, 0, 0), level=0)]
 
     for t in tasks:
         while not t.done and not rospy.is_shutdown():

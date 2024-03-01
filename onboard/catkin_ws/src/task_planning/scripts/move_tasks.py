@@ -1,14 +1,15 @@
 import task_utils
 import rospy
-from interface.controls import ControlsInterface
+from interface.controls import ControlsInterface 
+from interface.state import StateInterface
 from coroutines import task, Yield, Transform
 
 
 @task
-async def move_to_pose_global(controls: ControlsInterface, pose):
+async def move_to_pose_global(controls: ControlsInterface, stateInterface: StateInterface , pose):
     controls.start_new_move()
     controls.publish_desired_position(pose)
-    while not task_utils.stopped_at_pose(controls.state.pose.pose, pose, controls.state.twist.twist):
+    while not task_utils.stopped_at_pose(stateInterface.state.pose.pose, pose, stateInterface.state.twist.twist):
         # Allow users of this task to update the pose
         new_pose = await Yield()
         if new_pose is not None:
@@ -18,21 +19,21 @@ async def move_to_pose_global(controls: ControlsInterface, pose):
 
 
 @task
-async def move_to_pose_local(controls: ControlsInterface, pose, **kwargs):
+async def move_to_pose_local(controls: ControlsInterface, stateInterface: StateInterface, pose, **kwargs):
     rospy.loginfo("move_to_pose_local started: " + str(pose))
-    local_pose = task_utils.local_pose_to_global(controls.tfBuffer, pose)
+    local_pose = task_utils.local_pose_to_global(stateInterface.tfBuffer, pose)
     await Transform(
-        move_to_pose_global(controls, local_pose, level=kwargs['level'] + 1),
-        input_transformer=lambda p: task_utils.local_pose_to_global(controls.tfBuffer, p) if p else p)
+        move_to_pose_global(controls, stateInterface, local_pose),
+        input_transformer=lambda p: task_utils.local_pose_to_global(stateInterface.tfBuffer, p) if p else p)
 
     rospy.loginfo("move_to_pose_local complete: " + str(pose))
 
 
 @task
-async def move_with_velocity(controls: ControlsInterface, twist):
+async def move_with_velocity(controls: ControlsInterface, stateInterface: StateInterface, twist):
     controls.start_new_move()
     controls.publish_desired_velocity(twist)
-    while not task_utils.at_vel(controls.state.twist.twist, twist):
+    while not task_utils.at_vel(stateInterface.state.twist.twist, twist):
         new_twist = await Yield()
         if new_twist is not None:
             twist = new_twist
@@ -53,8 +54,8 @@ async def move_with_power(controls: ControlsInterface, power, seconds):
 
 
 @task
-async def hold_position(controls: ControlsInterface):
-    await move_to_pose_global(controls, controls.state.pose.pose)
+async def hold_position(controls: ControlsInterface, stateInterface: StateInterface):
+    await move_to_pose_global(controls, stateInterface, stateInterface.state.pose.pose)
 
 
 # TODO: Need to update this to act through controls instead of setting thruster allocs directly
@@ -77,7 +78,7 @@ async def initial_submerge(controls: ControlsInterface, thruster_alloc=0.2, seco
 
 
 @task
-async def prequal_task(controls: ControlsInterface):
+async def prequal_task(controls: ControlsInterface, stateInterface: StateInterface):
     directions = [
         (0, 0, -1),
         (12, 0, 0),
@@ -89,4 +90,4 @@ async def prequal_task(controls: ControlsInterface):
         (-12, 0, 0)
     ]
     for direction in directions:
-        await move_to_pose_local(controls, task_utils.create_pose(direction[0], direction[1], direction[2], 0, 0, 0))
+        await move_to_pose_local(controls, stateInterface, task_utils.create_pose(direction[0], direction[1], direction[2], 0, 0, 0))
