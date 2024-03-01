@@ -37,7 +37,7 @@ def connect(pipeline, camera_name="front"):
     # Number of attempts that will be made to connect to the camera
     total_tries = 5
 
-    for i in range(total_tries):
+    for _ in range(total_tries):
         if rospy.is_shutdown():
             break
 
@@ -71,24 +71,6 @@ def connect(pipeline, camera_name="front"):
 
         if rospy.is_shutdown():
             break
-
-        # try:
-        #     # Try connecting with static IP address
-        #     device = dai.Device(pipeline, device_info)
-
-        #     # If the execution reaches the following return statement, the line above did not raise an exception, so a
-        #     # successful camera connection was made, and device should be returned
-        #     return device
-
-        # except RuntimeError as e:
-        #     # For all tries before the last one, don't raise the exception and try connecting again
-        #     # On the last try, raise the exception so DepthAI code doesn't run without a successful camera connection
-        #     if i == total_tries - 1:
-        #         raise RuntimeError((f"{total_tries} attempts were made to connect to the DepthAI camera using "
-        #                             "autodiscovery and static IP address specification. All attempts failed.")) from e
-
-        # if rospy.is_shutdown():
-        #     break
 
         # Wait two seconds before trying again
         # This ensures the script does not terminate if the camera is just temporarily unavailable
