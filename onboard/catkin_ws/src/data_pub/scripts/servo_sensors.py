@@ -3,6 +3,7 @@
 import rospy
 import os
 from std_msgs.msg import Float64
+from std_srvs.srv import SetBool
 from serial_publisher import SerialPublisher
 
 # Used for sensor fusion
@@ -15,6 +16,8 @@ BAUDRATE = 9600
 NODE_NAME = 'servo_pub'
 HUMIDITY_DEST_TOPIC = 'sensors/humidity'
 TEMPERATURE_DEST_TOPIC = 'sensors/temperature'
+SERVO_SERVICE = 'servo_control'
+
 class TemperatureHumidityPublisher(SerialPublisher):
     """
     Serial publisher to publish temperature and humidity data to ROS
@@ -32,11 +35,26 @@ class TemperatureHumidityPublisher(SerialPublisher):
         self._pub_temperature = rospy.Publisher(TEMPERATURE_DEST_TOPIC, Float64, queue_size=10)
         self._pub_humidity = rospy.Publisher(HUMIDITY_DEST_TOPIC, Float64, queue_size=10)
 
+        self._servo_service = rospy.Service(SERVO_SERVICE, SetBool, self.servo_control)
+
         self._current_temperature_msg = Float64()
         self._current_humidity_msg = Float64()
 
         self._serial_port = None
         self._serial = None
+
+    def servo_control(self, req):
+        """
+        Callback for servo control service
+
+        @param req: the request to control the servo
+        """
+        rospy.logdebug('ServoControl received.')
+        if req.data:
+            self.writeline('L')
+        else:
+            self.writeline('R')
+        return {'success': True, 'message': f'Successfully set servo to {"left" if req.data else "right"}.'}
 
     def process_line(self, l):
         """"
@@ -55,7 +73,6 @@ class TemperatureHumidityPublisher(SerialPublisher):
         T:69.8
         ...
         """
-        print(l)
         tag = l[0:2]  # T for temperature and H for humidity
         data = l[2:]
         if data == "":

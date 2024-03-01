@@ -5,7 +5,7 @@ Servo myservo;
 unsigned long myTime;
 boolean servoMoved = false;
 unsigned long servoTime;
-unsigned long rateServo = 1000;  // how much to wait before returning servo to default position
+unsigned long rateServo = 5000;  // how much to wait before returning servo to default position
 
 void setup() {
   Serial.begin(9600);
@@ -15,7 +15,7 @@ void setup() {
 
 void loop() {
   myTime = millis();
-  
+
   if (Serial.available() > 0 && !servoMoved) {
     char state = Serial.read();
     if (Serial.available() > 0) {
@@ -33,7 +33,7 @@ void loop() {
         servoTime = myTime;
       }
   }
-  
+
   // return to default position after 1 second
   if(servoMoved && myTime - servoTime > rateServo) {
       myservo.write(90);
