@@ -6,6 +6,7 @@ import time as t
 from sklearn.cluster import DBSCAN
 from shapely.geometry import MultiPoint
 import os
+from scipy import stats
 import csv
 
 def getImage(path):
@@ -135,16 +136,13 @@ def findClusters(image, threshold=139):
     # largest_cluster_label = max(cluster_counts, key=cluster_counts.get)
     # class_member_mask = (labels == largest_cluster_label)
     # buoy_points = points[class_member_mask]
-    
-    colors = ['b', 'g', 'r', 'c', 'm', 'y']
-    count = 0
 
     clusters = []
 
     for k in unique_labels:
         if k != -1:
-            a_thresh = 6750
-            c_thresh = 0.375
+            a_thresh = 6000
+            c_thresh = 0.5
 
             class_member_mask = (labels == k)
             buoy_points = points[class_member_mask]
@@ -153,35 +151,52 @@ def findClusters(image, threshold=139):
             # print(average_row_index)
 
             # get cluster info
-            cluster_shape = MultiPoint(buoy_points).convex_hull
+            cluster = MultiPoint(buoy_points)
+
+            cluster_shape = cluster.convex_hull
             perimeter = cluster_shape.length
             area = cluster_shape.area
             circularity = 4*np.pi*area/perimeter**2
 
-            # scale the area threshold if the target is too close to the sonar
-            if average_row_index > (image.shape[0] - 300):
-                scaling = (image.shape[0] - average_row_index)/300
-                a_thresh = a_thresh*scaling
-
-            dont_append = False
-            # label and count num clusters that meet conditions
             if (area > a_thresh and circularity < c_thresh):
+
+                # get line of best fit for cluster
+                slope, intercept, r_value, p_value, std_err = stats.linregress(buoy_points[:, 0], buoy_points[:, 1])
+                x_regression = np.linspace(np.min(buoy_points[:, 0]), np.max(buoy_points[:, 0]), 1000)
+                y_regression = slope * x_regression + intercept
+                # plt.plot(y_regression, x_regression, color='red', label='Linear Regression Line')
+                # TODO - slope metric doesn't work, density of cluster is messing it up
+                # TODO - find regression slope of just 1 of each X value
+
+                # scale the area threshold if the target is too close to the sonar
+                if average_row_index > (image.shape[0] - 300):
+                    scaling = (image.shape[0] - average_row_index)/300
+                    a_thresh = a_thresh*scaling
+
+                dont_append = False
+
+                # label and count num clusters that meet conditions
                 for i in range(len(clusters)):
-                    if (inRange(area, clusters[i][0].area, 0.15)
-                    and inRange(perimeter, clusters[i][0].length, 0.15)
-                    and average_row_index > clusters[i][2]):
+                    if ((inRange(area, clusters[i][0].area, 0.3)
+                    and inRange(perimeter, clusters[i][0].length, 0.3)
+                    and average_row_index > clusters[i][2])):
+                    # or (inRange(slope, clusters[i][3], 0.3))):
                         # found echo, replace with cluster closer to sonar
-                        clusters[i] = [cluster_shape, buoy_points, average_row_index]
+                        clusters[i] = [cluster_shape, buoy_points, average_row_index, slope]
                         dont_append = True
                 if not dont_append:
-                    clusters.append([cluster_shape, buoy_points, average_row_index])
+                    clusters.append([cluster_shape, buoy_points, average_row_index, slope])
+
+
+    colors = ['b', 'g', 'r', 'c', 'm', 'y']
+    count = 0
 
     for cluster in clusters:
         plt.plot(cluster[1][:, 1], cluster[1][:, 0], 'o', markerfacecolor=colors[count%6], markeredgecolor='k', markersize=6)
         perimeter = cluster[0].length
         area = cluster[0].area
         circularity = 4*np.pi*area/perimeter**2
-        print(k, perimeter, area, circularity)
+        print(count%6, perimeter, area, circularity, cluster[3])
         count += 1
 
     # Get the average column index of the largest cluster
@@ -229,8 +244,10 @@ def main():
 
     # Loop through all data to find num_clusters found
     with open('analysis.csv', 'a') as file:
-        for npy_file in npy_files:
-            path = os.path.join(data_dir, npy_file)
+        # for npy_file in npy_files:
+        #     path = os.path.join(data_dir, npy_file)
+            
+            path = os.path.join(data_dir, "sonar_sweep_14.npy") #---------
             sonar_img = np.load(path)
             print(path)
 
