@@ -72,6 +72,14 @@ class SerialPublisher(ABC):
 
         return buff.decode('utf-8', errors='ignore')
 
+    def writeline(self, line):
+        """
+        Write line to serial port
+
+        @param line: the line to write
+        """
+        self._serial.write(line.encode('utf-8') + b'\r\n')
+
     @abstractmethod
     def process_line(self, l):
         """
