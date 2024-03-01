@@ -31,38 +31,40 @@ def hex_to_rgb(hex):
     return tuple(int(hex[i:i+2], 16) for i in (0, 2, 4))
 
 
-def visualize_path_marker_detection(frame, detection, color="386720"):
-    """Returns frame with bounding boxes of the detection."""
-    frame_copy = frame.copy()
+# Write a class that reads in model.yaml file, initializes all models (similar to DetectionVisualizer),
+# # with a visualize_detections function that takes in a dictionary of predictions and draw bounding boxes
+# def visualize_path_marker_detection(frame, detection, color="386720"):
+#     """Returns frame with bounding boxes of the detection."""
+#     frame_copy = frame.copy()
 
-    center_x, center_y = detection["center"]
-    width, height = detection["dimensions"]
-    orientation = detection["orientation"]
+#     center_x, center_y = detection["center"]
+#     width, height = detection["dimensions"]
+#     orientation = detection["orientation"]
 
-    color = hex_to_rgb(color)
+#     color = hex_to_rgb(color)
 
-    # Calculate the four corners of the rectangle
-    angle_cos = math.cos(orientation)
-    angle_sin = math.sin(orientation)
-    half_width = width / 2
-    half_height = height / 2
+#     # Calculate the four corners of the rectangle
+#     angle_cos = math.cos(orientation)
+#     angle_sin = math.sin(orientation)
+#     half_width = width / 2
+#     half_height = height / 2
 
-    x1 = int(center_x - half_width * angle_cos - half_height * angle_sin)
-    y1 = int(center_y + half_width * angle_sin - half_height * angle_cos)
-    x2 = int(center_x + half_width * angle_cos - half_height * angle_sin)
-    y2 = int(center_y - half_width * angle_sin - half_height * angle_cos)
-    x3 = int(2 * center_x - x1)
-    y3 = int(2 * center_y - y1)
-    x4 = int(2 * center_x - x2)
-    y4 = int(2 * center_y - y2)
+#     x1 = int(center_x - half_width * angle_cos - half_height * angle_sin)
+#     y1 = int(center_y + half_width * angle_sin - half_height * angle_cos)
+#     x2 = int(center_x + half_width * angle_cos - half_height * angle_sin)
+#     y2 = int(center_y - half_width * angle_sin - half_height * angle_cos)
+#     x3 = int(2 * center_x - x1)
+#     y3 = int(2 * center_y - y1)
+#     x4 = int(2 * center_x - x2)
+#     y4 = int(2 * center_y - y2)
 
-    # Draw the rotated rectangle
-    cv2.line(frame_copy, (x1, y1), (x2, y2), color, 3)
-    cv2.line(frame_copy, (x2, y2), (x3, y3), color, 3)
-    cv2.line(frame_copy, (x3, y3), (x4, y4), color, 3)
-    cv2.line(frame_copy, (x4, y4), (x1, y1), color, 3)
+#     # Draw the rotated rectangle
+#     cv2.line(frame_copy, (x1, y1), (x2, y2), color, 3)
+#     cv2.line(frame_copy, (x2, y2), (x3, y3), color, 3)
+#     cv2.line(frame_copy, (x3, y3), (x4, y4), color, 3)
+#     cv2.line(frame_copy, (x4, y4), (x1, y1), color, 3)
 
-    return frame_copy
+#     return frame_copy
 
 
 class DetectionVisualizer:
@@ -113,10 +115,40 @@ class DetectionVisualizer:
         norm_vals[::2] = frame.shape[1]
         return (np.clip(np.array(bbox), 0, 1) * norm_vals).astype(int)
 
+    def visualize_path_marker_detection(frame, center, dimensions, orientation, color):
+        """Returns frame with bounding boxes of the detection."""
+        center_x, center_y = center
+        width, height = dimensions
+
+        # Calculate the four corners of the rectangle
+        angle_cos = math.cos(orientation)
+        angle_sin = math.sin(orientation)
+        half_width = width / 2
+        half_height = height / 2
+
+        x1 = int(center_x - half_width * angle_cos - half_height * angle_sin)
+        y1 = int(center_y + half_width * angle_sin - half_height * angle_cos)
+        x2 = int(center_x + half_width * angle_cos - half_height * angle_sin)
+        y2 = int(center_y - half_width * angle_sin - half_height * angle_cos)
+        x3 = int(2 * center_x - x1)
+        y3 = int(2 * center_y - y1)
+        x4 = int(2 * center_x - x2)
+        y4 = int(2 * center_y - y2)
+
+        # Draw the rotated rectangle
+        cv2.line(frame, (x1, y1), (x2, y2), color, 3)
+        cv2.line(frame, (x2, y2), (x3, y3), color, 3)
+        cv2.line(frame, (x3, y3), (x4, y4), color, 3)
+        cv2.line(frame, (x4, y4), (x1, y1), color, 3)
+
     def visualize_detections(self, frame, detections):
         """Returns frame with bounding boxes, classes, and labels of each detection overlaid."""
         frame_copy = frame.copy()
 
+        # TODO: add logic to check if the detection is a path marker detection. If yes, call
+        # visualize_path_marker_detection with the appropriate argument instead. Remember to check if center and
+        # dimensions are relative are absolute values or relative values (wrt the frame dimensions).
+        # If it's not a path marker detection, draw a rectangle as usual.
         for detection in detections:
             bbox = self.frame_norm(frame_copy, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
             # the code below specifies whether to display the bbox's class name and/or confidence value
