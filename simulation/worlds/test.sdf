@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<sdf version="1.6">
+<sdf version="1.6" xmlns:xacro="http://www.ros.org/wiki/xacro">
   <world name="robot">
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
@@ -40,7 +40,8 @@
         </visual>
       </link>
     </model>
-    <model name="joint_force_example">
+
+    <model name="robot">
       <pose>0 0 0 0 0 0</pose>
       <!-- The actual robot itself -->
       <link name="base_link">
@@ -80,36 +81,49 @@
         </collision>
       </link>
 
-      <!-- Thruster points -->
-      <link name="front_left">
-        <!-- Assuming x y z r p y as seen in our controls config files -->
-        <pose>0.3302 0.358775 0.0254 0.0 0 -0.7853982</pose>
-        <visual name="visual">
-          <geometry>
-            <box>
-              <size>0.2 0.2 0.2</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>0.0 0.0 1.0 1</ambient>
-            <diffuse>0.0 0.0 1.0 1</diffuse>
-            <specular>0.0 0.0 1.0 1</specular>
-          </material>
-        </visual>
-      </link>
-
-      <!-- Thruster joints -->
-      <joint name="joint_front_left" type="fixed">
-        <pose>0 0 0 0 0 0</pose>
-        <parent>base_link</parent>
-        <child>front_left</child>
-      </joint>
+      <!-- Thrusters -->
+      <!-- Assuming x y z r p y as seen in our controls config files -->
+      <xacro:thruster name="bottom_front_left" pose="0.1905, 0.37465, -0.0381 0 1.57079633 0"/>
+      <xacro:thruster name="front_left" pose="0.3302 0.358775 0.0254 0 0 -0.7853982"/>
+      <xacro:thruster name="front_right" pose="0.3302 -0.358775 0.0254 0 0 0.7853982"/>
+      <xacro:thruster name="bottom_front_right" pose="0.1905 -0.37465 -0.0381 0 1.57079633 0"/>
+      <xacro:thruster name="bottom_back_left" pose="-0.1905 0.37465 -0.0381 0 1.57079633 0"/>
+      <xacro:thruster name="back_left" pose="-0.3302 0.358775 0.0254 0 0 -2.3561945"/>
+      <xacro:thruster name="bottom_back_right" pose="-0.1905 -0.37465 -0.0381 0 1.57079633 0"/>
+      <xacro:thruster name="back_right" pose="-0.3302 -0.358775 0.0254 0 0 2.3561945"/>
 
       <plugin
         filename="gz-sim-apply-joint-force-system"
         name="gz::sim::systems::ApplyJointForce">
         <joint_name>joint_front_left</joint_name>
       </plugin>
+
+      <!-- Macros -->
+      <xacro:macro name="thruster" params="name pose='0 0 0 0 0 0'">
+        <link name="${name}">
+          <!-- Assuming x y z r p y as seen in our controls config files -->
+          <pose>${pose}</pose>
+          <visual name="visual">
+            <geometry>
+              <box>
+                <size>0.2 0.2 0.2</size>
+              </box>
+            </geometry>
+            <material>
+              <ambient>0.0 0.0 1.0 1</ambient>
+              <diffuse>0.0 0.0 1.0 1</diffuse>
+              <specular>0.0 0.0 1.0 1</specular>
+            </material>
+          </visual>
+        </link>
+
+        <!-- Thruster joints -->
+        <joint name="joint_${name}" type="fixed">
+          <pose>0 0 0 0 0 0</pose>
+          <parent>base_link</parent>
+          <child>${name}</child>
+        </joint>
+      </xacro:macro>
     </model>
   </world>
 </sdf>
