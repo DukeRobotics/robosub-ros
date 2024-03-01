@@ -37,7 +37,7 @@ class SerialPublisher(ABC):
         with open(rr.get_filename(self.config_file_path, use_protocol=False)) as f:
             config_data = yaml.safe_load(f)
             self._arduino_config = config_data['arduino']
-            
+
     def connect(self):
         """
         Read FTDI strings of all ports in list_ports.grep
@@ -48,7 +48,7 @@ class SerialPublisher(ABC):
                 print(f"Looking for {self.config_name} sensor with FTDI string {pressure_ftdi_string}.")
                 self._serial_port = next(list_ports.grep(pressure_ftdi_string)).device
                 print(f"{self.config_name} sensor found at {self._serial_port}.")
-                self._serial = serial.Serial(self._serial_port, self.BAUDRATE,
+                self._serial = serial.Serial(self._serial_port, self.baud,
                                              timeout=1, write_timeout=None,
                                              bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
                                              stopbits=serial.STOPBITS_ONE)
@@ -84,12 +84,12 @@ class SerialPublisher(ABC):
     def run(self):
         """
         Runs the serial publisher
-        
+
         Initializes ROS node
         Connects to serial device
         Processes and publishes the serial data to ROS
         """
-        
+
         rospy.init_node(self.node_name)
         self.connect()
         while not rospy.is_shutdown():

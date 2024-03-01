@@ -2,12 +2,6 @@
 
 import rospy
 import os
-import time
-import serial
-import serial.tools.list_ports as list_ports
-import yaml
-import resource_retriever as rr
-import traceback
 from std_msgs.msg import Float64
 from serial_publisher import SerialPublisher
 
@@ -15,29 +9,28 @@ from serial_publisher import SerialPublisher
 from geometry_msgs.msg import PoseWithCovarianceStamped
 
 
+DEPTH_DEST_TOPIC = 'sensors/depth'
+VOLTAGE_DEST_TOPIC = 'sensors/voltage'
+CONFIG_FILE_PATH = f'package://offboard_comms/config/{os.getenv("ROBOT_NAME", "oogway")}.yaml'
+CONFIG_NAME = 'pressure'
+
+BAUDRATE = 9600
+NODE_NAME = 'pressure_pub'
 class PressureVoltagePublisher(SerialPublisher):
     """
     Serial publisher to publish voltage and pressure data to ROS
     """
 
-    DEPTH_DEST_TOPIC = 'sensors/depth'
-    VOLTAGE_DEST_TOPIC = 'sensors/voltage'
-    CONFIG_FILE_PATH = f'package://offboard_comms/config/{os.getenv("ROBOT_NAME", "oogway")}.yaml'
-    CONFIG_NAME = 'pressure'
-    
-    BAUDRATE = 9600
-    NODE_NAME = 'pressure_pub'
-
     MEDIAN_FILTER_SIZE = 3
 
     def __init__(self):
-        super().__init__(self, node_name=self.NODE_NAME, baud=self.BAUDRATE, config_file_path=self.CONFIG_FILE_PATH, config_name=self.CONFIG_NAME)
+        super().__init__(NODE_NAME, BAUDRATE, CONFIG_FILE_PATH, CONFIG_NAME)
 
         self._pressure = None  # Pressure to publish
         self._previous_pressure = None  # Previous pressure readings for median filter
 
-        self._pub_depth = rospy.Publisher(self.DEPTH_DEST_TOPIC, PoseWithCovarianceStamped, queue_size=50)
-        self._pub_voltage = rospy.Publisher(self.VOLTAGE_DEST_TOPIC, Float64, queue_size=10)
+        self._pub_depth = rospy.Publisher(DEPTH_DEST_TOPIC, PoseWithCovarianceStamped, queue_size=50)
+        self._pub_voltage = rospy.Publisher(VOLTAGE_DEST_TOPIC, Float64, queue_size=10)
 
         self._current_pressure_msg = PoseWithCovarianceStamped()
         self._current_voltage_msg = Float64()
@@ -74,7 +67,7 @@ class PressureVoltagePublisher(SerialPublisher):
     def _update_pressure(self, new_reading):
         """
         Update pressure reading to publish and filter out bad readings
-        
+
         @param new_reading: new pressure value to be printed
         """
         # Ignore readings that are too large
