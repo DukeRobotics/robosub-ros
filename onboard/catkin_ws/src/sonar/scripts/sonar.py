@@ -391,12 +391,11 @@ class Sonar:
         else:
             rospy.Subscriber(self.SONAR_REQUEST_TOPIC, SonarSweepRequest, self.on_sonar_request)
             rospy.loginfo("starting sonar...")
-            rate = rospy.Rate(20)
+            rate = rospy.Rate(5)
             while not rospy.is_shutdown():
                 if self.current_scan[0] != -1 and self.current_scan[1] != -1 and self.current_scan[2] != -1:
                     self.preform_sonar_request()
                     self.current_scan = (-1, -1, -1)
-
                 self.status_publisher.publish("Sonar waiting for request...")
                 rate.sleep()
 
