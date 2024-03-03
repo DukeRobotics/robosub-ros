@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # To be appended to /root/.bashrc
 source /opt/ros/noetic/setup.bash
 
