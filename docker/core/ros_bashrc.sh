@@ -10,7 +10,7 @@ fi
 
 if [ -f "${COMPUTER_TYPE}"/catkin_ws/devel/setup.bash ]
 then
-    source "${COMPUTER_TYPE}"/catkin_ws/devel/setup.bash
+    source "/root/dev/robosub-ros/${COMPUTER_TYPE}"/catkin_ws/devel/setup.bash
 fi
 
 # Alias to start foxglove websocket
