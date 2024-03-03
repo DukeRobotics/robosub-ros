@@ -53,7 +53,7 @@ RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
     mkdir -p /root/.ssh && \
     touch /root/.ssh/environment
 
-# COPY ssh_entry.sh /root/.bash_profile
+COPY ssh_entry.sh /root/.bash_profile
 COPY ros_bashrc.sh /root/ros_bashrc.sh
 RUN echo "source /root/ros_bashrc.sh" >> /root/.bashrc 
 
