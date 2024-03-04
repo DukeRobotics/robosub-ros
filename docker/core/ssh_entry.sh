@@ -1,5 +1,5 @@
 #!/bin/bash
-# shellcheck disable=SC2164
+# shellcheck disable=SC1091, SC2164
 
 source /root/ros_bashrc.sh
 
