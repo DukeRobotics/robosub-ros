@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC1090,SC1091
 
 # To be appended to /root/.bashrc
 source /opt/ros/noetic/setup.bash
