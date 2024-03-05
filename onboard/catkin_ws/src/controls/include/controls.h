@@ -74,6 +74,10 @@ private:
     // Thruster allocator
     ThrusterAllocator thruster_allocator;
 
+    // Minimum and maximum desired power for each axis
+    AxesMap<double> desired_power_min;
+    AxesMap<double> desired_power_max;
+
     // Static power (to offset buoyancy and other persistent forces)
     tf2::Vector3 static_power_global;
     tf2::Vector3 static_power_local;

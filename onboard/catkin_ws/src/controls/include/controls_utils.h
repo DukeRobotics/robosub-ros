@@ -99,11 +99,11 @@ namespace ControlsUtils
      * @brief Check if twist is in range.
      *
      * @param twist Twist to check.
-     * @param min Minimum value.
-     * @param max Maximum value.
+     * @param min Minimum values for each axis.
+     * @param max Maximum values for each axis.
      * @return True if all values in twist are in range [`min`, `max`], false otherwise.
      */
-    bool twist_in_range(const geometry_msgs::Twist &twist, double min, double max);
+    bool twist_in_range(const geometry_msgs::Twist &twist, AxesMap<double> min, AxesMap<double> max);
 
     /**
      * @brief Check if pid gain message has valid loop, axis, and gain types.
@@ -318,6 +318,8 @@ namespace ControlsUtils
      * @param loops_axes_derivative_types Map of PID loop types to axes to derivative types to populate.
      * @param loops_axes_error_ramp_rates Map of PID loop types to axes to error ramp rates to populate.
      * @param loops_axes_pid_gains Map of PID loop types to axes to PID gains to populate.
+     * @param desired_power_max Map of axes to desired power maximum limits to populate.
+     * @param desired_power_min Map of axes to desired power minimum limits to populate.
      * @param static_power_global Static power global vector to populate.
      * @param power_scale_factor Power scale factor to populate.
      * @param wrench_matrix_file_path Wrench matrix file path to populate.
@@ -332,6 +334,8 @@ namespace ControlsUtils
                            LoopsMap<AxesMap<PIDDerivativeTypesEnum>> &loops_axes_derivative_types,
                            LoopsMap<AxesMap<double>> &loops_axes_error_ramp_rates,
                            LoopsMap<AxesMap<PIDGainsMap>> &loops_axes_pid_gains,
+                           AxesMap<double> &desired_power_max,
+                           AxesMap<double> &desired_power_min,
                            tf2::Vector3 &static_power_global,
                            double &power_scale_factor,
                            std::string &wrench_matrix_file_path,

@@ -64,14 +64,14 @@ bool ControlsUtils::quaternion_valid(const geometry_msgs::Quaternion &quaternion
     return std::abs(q.length() - 1.0) < 1e-6;
 }
 
-bool ControlsUtils::twist_in_range(const geometry_msgs::Twist &twist, double min, double max)
+bool ControlsUtils::twist_in_range(const geometry_msgs::Twist &twist, AxesMap<double> min, AxesMap<double> max)
 {
-    return twist.linear.x >= min && twist.linear.x <= max &&
-           twist.linear.y >= min && twist.linear.y <= max &&
-           twist.linear.z >= min && twist.linear.z <= max &&
-           twist.angular.x >= min && twist.angular.x <= max &&
-           twist.angular.y >= min && twist.angular.y <= max &&
-           twist.angular.z >= min && twist.angular.z <= max;
+    return twist.linear.x >= min.at(AxesEnum::X) && twist.linear.x <= max.at(AxesEnum::X) &&
+           twist.linear.y >= min.at(AxesEnum::Y) && twist.linear.y <= max.at(AxesEnum::Y) &&
+           twist.linear.z >= min.at(AxesEnum::Z) && twist.linear.z <= max.at(AxesEnum::Z) &&
+           twist.angular.x >= min.at(AxesEnum::ROLL) && twist.angular.x <= max.at(AxesEnum::ROLL) &&
+           twist.angular.y >= min.at(AxesEnum::PITCH) && twist.angular.y <= max.at(AxesEnum::PITCH) &&
+           twist.angular.z >= min.at(AxesEnum::YAW) && twist.angular.z <= max.at(AxesEnum::YAW);
 }
 
 bool ControlsUtils::pid_gain_valid(const custom_msgs::PIDGain &pid_gain)
@@ -359,6 +359,8 @@ void ControlsUtils::read_robot_config(const bool &cascaded_pid,
                                       LoopsMap<AxesMap<PIDDerivativeTypesEnum>> &loops_axes_derivative_types,
                                       LoopsMap<AxesMap<double>> &loops_axes_error_ramp_rates,
                                       LoopsMap<AxesMap<PIDGainsMap>> &loops_axes_pid_gains,
+                                      AxesMap<double> &desired_power_min,
+                                      AxesMap<double> &desired_power_max,
                                       tf2::Vector3 &static_power_global,
                                       double &power_scale_factor,
                                       std::string &wrench_matrix_file_path,
@@ -398,6 +400,14 @@ void ControlsUtils::read_robot_config(const bool &cascaded_pid,
 
                 loops_axes_pid_gains[loop][axis] = gains;
             }
+        }
+
+        // Read desired power limits
+        YAML::Node desired_power_limits_node = config["desired_power_limits"];
+        for (const auto &axis : AXES)
+        {
+            desired_power_min[axis] = desired_power_limits_node[AXES_NAMES.at(axis)]["min"].as<double>();
+            desired_power_max[axis] = desired_power_limits_node[AXES_NAMES.at(axis)]["max"].as<double>();
         }
 
         // Read static power vector

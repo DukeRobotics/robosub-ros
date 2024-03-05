@@ -63,8 +63,16 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
 
     // Read robot config file and populate config variables
     ControlsUtils::read_robot_config(cascaded_pid, loops_axes_control_effort_limits, loops_axes_derivative_types,
-                                     loops_axes_error_ramp_rates, loops_axes_pid_gains, static_power_global,
-                                     power_scale_factor, wrench_matrix_file_path, wrench_matrix_pinv_file_path);
+                                     loops_axes_error_ramp_rates, loops_axes_pid_gains, desired_power_min,
+                                     desired_power_max, static_power_global, power_scale_factor,
+                                     wrench_matrix_file_path, wrench_matrix_pinv_file_path);
+
+    // Ensure that desired power min is less than or equal to desired power max for each axis
+    for (const AxesEnum &axis : AXES)
+        ROS_ASSERT_MSG(
+            desired_power_min[axis] <= desired_power_max[axis],
+            "Invalid desired power min and max for axis %s. Desired power min must be less than or equal to max.",
+            AXES_NAMES.at(axis).c_str());
 
     // Instantiate PID managers for each PID loop type
     for (const PIDLoopTypesEnum &loop : PID_LOOP_TYPES)
@@ -142,12 +150,25 @@ void Controls::desired_velocity_callback(const geometry_msgs::Twist msg)
 
 void Controls::desired_power_callback(const geometry_msgs::Twist msg)
 {
-    // Make sure desired power is within range [-1, 1]
-    // TODO: Make this configurable from robot config file
-    if (ControlsUtils::twist_in_range(msg, -1, 1))
-        ControlsUtils::twist_to_map(msg, desired_power);
-    else
-        ROS_WARN("Invalid desired power. Desired power must be within range [-1, 1].");
+    AxesMap<double> new_desired_power;
+    ControlsUtils::twist_to_map(msg, new_desired_power);
+
+    // Make sure desired power is within the limits specified in the config file for each axis
+    // If desired power is invalid, then warn user and don't update desired power
+    for (const AxesEnum &axis : AXES)
+    {
+        if (new_desired_power.at(axis) < desired_power_min.at(axis) ||
+            new_desired_power.at(axis) > desired_power_max.at(axis))
+        {
+            ROS_WARN("Invalid desired power of %f for axis %s. Desired power for axis %s must be within range [%f, %f].",
+                     new_desired_power.at(axis), AXES_NAMES.at(axis).c_str(), AXES_NAMES.at(axis).c_str(),
+                     desired_power_min.at(axis), desired_power_max.at(axis));
+            return;
+        }
+    }
+
+    // New desired power is within limits, so update desired power
+    desired_power = new_desired_power;
 }
 
 void Controls::state_callback(const nav_msgs::Odometry msg)
