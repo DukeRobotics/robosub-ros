@@ -26,6 +26,7 @@ add_message_files(
   SimObjectArray.msg
   SonarSweepRequest.msg
   SystemUsage.msg
+  TaskUpdate.msg
   ThrusterAllocs.msg
 )
 

@@ -1,7 +1,6 @@
 import rospy
 
 from std_srvs.srv import Trigger
-from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose, Twist
 from custom_msgs.msg import ControlTypes, ThrusterAllocs
 from custom_msgs.srv import SetControlTypes
