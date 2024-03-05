@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Obtained on March 5, 2024, from master branch of: https://github.com/DFKI-NI/rospy_message_converter
+# Any edits made to the original are marked with "EDIT" comments.
 #
 # Software License Agreement (BSD License)
 #
@@ -52,8 +53,12 @@ if python3:
     python_string_types = [str, bytes]
     python_int_types = [int]
 else:
-    python_string_types = [str, unicode]  # noqa
-    python_int_types = [int, long]  # noqa
+    pass
+    # EDIT: Code below is commented out and replaced with `pass` above because it results in linter warnings as
+    # `unicode` and `long` are not defined in Python 3 and ROS Noetic always uses Python 3.
+
+    # python_string_types = [str, unicode]  # noqa
+    # python_int_types = [int, long]  # noqa
 
 python_float_types = [float]
 
@@ -320,7 +325,8 @@ def _convert_from_ros_type(field_type, field_value, binary_array_as_bytes=True):
     elif _is_ros_binary_type(field_type):
         if binary_array_as_bytes:
             field_value = _convert_from_ros_binary(field_type, field_value)
-        elif type(field_value) == str:
+        # EDIT: If condition below was modifed to use `isinstance` instead of `type` to avoid linter warning.
+        elif isinstance(field_value, str):
             field_value = [ord(v) for v in field_value]
         else:
             field_value = list(field_value)
