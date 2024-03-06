@@ -12,9 +12,10 @@ import rospy
 CONTROLS_PACKAGE_PATH = 'package://controls/'
 CONFIG_FILE_PATH_TEMPLATE = CONTROLS_PACKAGE_PATH + 'config/%s.yaml'
 
+
 class ComputeWrenchMatrix:
     """
-    Computes the wrench matrix and wrench matrix pseudoinverse for a given robot using symbolic math. 
+    Computes the wrench matrix and wrench matrix pseudoinverse for a given robot using symbolic math.
     Saves the results to CSV files.
 
     Attributes:
@@ -25,18 +26,18 @@ class ComputeWrenchMatrix:
         wrench_matrix_df: The wrench matrix as a pandas dataframe
         wrench_matrix_pinv_df: The wrench matrix pseudoinverse as a pandas dataframe
     """
-    
+
     # Get the robot name from the user
     def get_robot_name(self):
         # Get the default value from the ROBOT_NAME environment variable
         default_robot_name = os.getenv('ROBOT_NAME')
 
         # Ask the user for the robot name
-        user_robot_name = input(f"Enter the robot name (press enter for default: {default_robot_name}): ")
+        user_robot_name = input(f"Enter the robot name (press enter for default '{default_robot_name}'): ")
 
         # Use the default value if the user input is empty
         return user_robot_name.strip() if user_robot_name.strip() else default_robot_name
-    
+
     # Get the rotation matrix for a given roll, pitch, and yaw
     # Order of rotations: roll -> pitch -> yaw
     # See https://en.wikipedia.org/wiki/Rotation_matrix#In_three_dimensions
@@ -45,7 +46,7 @@ class ComputeWrenchMatrix:
         R_pitch = rot_ccw_axis2(pitch)
         R_yaw = rot_ccw_axis3(yaw)
         return R_yaw * R_pitch * R_roll
-    
+
     # Compute the force and torque vectors for a given thruster
     def compute_force_torque(self, thruster):
         # Get thruster data
@@ -103,8 +104,10 @@ class ComputeWrenchMatrix:
         self.wrench_matrix_pinv_df = self.wrench_matrix_pinv_df.replace(-0.0, 0.0)
 
         # Get full paths to CSV files
-        wrench_matrix_file_path = rr.get_filename(CONTROLS_PACKAGE_PATH + vehicle["wrench_matrix_file_path"], use_protocol=False)
-        wrench_matrix_pinv_file_path = rr.get_filename(CONTROLS_PACKAGE_PATH + vehicle["wrench_matrix_pinv_file_path"], use_protocol=False)
+        wrench_matrix_file_path = rr.get_filename(CONTROLS_PACKAGE_PATH + vehicle["wrench_matrix_file_path"],
+                                                  use_protocol=False)
+        wrench_matrix_pinv_file_path = rr.get_filename(CONTROLS_PACKAGE_PATH + vehicle["wrench_matrix_pinv_file_path"],
+                                                       use_protocol=False)
 
         # Export data to CSV files
         self.wrench_matrix_df.to_csv(wrench_matrix_file_path, index=False, header=False)
@@ -119,6 +122,7 @@ class ComputeWrenchMatrix:
         print()
         print("Saved wrench matrix to %s" % wrench_matrix_file_path)
         print("Saved wrench matrix pseudoinverse to %s" % wrench_matrix_pinv_file_path)
+
 
 if __name__ == '__main__':
     try:
