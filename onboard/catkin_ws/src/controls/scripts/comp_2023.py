@@ -13,8 +13,8 @@ import copy
 
 
 class TaskPlanner:
-    PUBLISHING_TOPIC_DESIRED_POSE = 'controls/desired_position'
-    PUBLISHING_TOPIC_DESIRED_TWIST = 'controls/desired_velocity'
+    PUBLISHING_TOPIC_DESIRED_POSITION = 'controls/desired_position'
+    PUBLISHING_TOPIC_DESIRED_VELOCITY = 'controls/desired_velocity'
     PUBLISHING_TOPIC_CURRENT_STATE = '/state'
     PUBLISHING_TOPIC_DESIRED_POWER = 'controls/desired_power'
 
@@ -41,29 +41,29 @@ class TaskPlanner:
 
         self.listener.waitForTransform('odom', 'base_link', rospy.Time(), rospy.Duration(10))
 
-        self._pub_desired_pose = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_POSE, Pose, queue_size=3)
-        self._pub_desired_twist = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_TWIST, Twist, queue_size=3)
+        self._pub_desired_position = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_POSITION, Pose, queue_size=3)
+        self._pub_desired_velocity = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_VELOCITY, Twist, queue_size=3)
         self._pub_desired_power = rospy.Publisher(self.PUBLISHING_TOPIC_DESIRED_POWER, Twist, queue_size=3)
 
         # These values correspond to the desired global pose of the robot
-        self.desired_pose_global = Pose()
-        self.desired_pose_global.position.x = 0
-        self.desired_pose_global.position.y = 0
-        self.desired_pose_global.position.z = 0
-        self.desired_pose_global.orientation.x = 0
-        self.desired_pose_global.orientation.y = 0
-        self.desired_pose_global.orientation.z = 0
-        self.desired_pose_global.orientation.w = 1
+        self.desired_position_global = Pose()
+        self.desired_position_global.position.x = 0
+        self.desired_position_global.position.y = 0
+        self.desired_position_global.position.z = 0
+        self.desired_position_global.orientation.x = 0
+        self.desired_position_global.orientation.y = 0
+        self.desired_position_global.orientation.z = 0
+        self.desired_position_global.orientation.w = 1
 
         # These values correspond to the desired local pose of the robot
-        self.desired_pose_local = Pose()
-        self.desired_pose_local.position.x = 0
-        self.desired_pose_local.position.y = 0
-        self.desired_pose_local.position.z = 0
-        self.desired_pose_local.orientation.x = 0
-        self.desired_pose_local.orientation.y = 0
-        self.desired_pose_local.orientation.z = 0
-        self.desired_pose_local.orientation.w = 1
+        self.desired_position_local = Pose()
+        self.desired_position_local.position.x = 0
+        self.desired_position_local.position.y = 0
+        self.desired_position_local.position.z = 0
+        self.desired_position_local.orientation.x = 0
+        self.desired_position_local.orientation.y = 0
+        self.desired_position_local.orientation.z = 0
+        self.desired_position_local.orientation.w = 1
         self.recalculate_local_pose()
 
         self.taurus_time = 0
@@ -78,13 +78,13 @@ class TaskPlanner:
 
         # These values correspond to the desired local twist for the robot
         # Max linear z speed is ~ -0.26 -- ignore (for different mass)
-        self.desired_twist = Twist()
-        self.desired_twist.linear.x = 0
-        self.desired_twist.linear.y = 0
-        self.desired_twist.linear.z = 0
-        self.desired_twist.angular.x = 0
-        self.desired_twist.angular.y = 0
-        self.desired_twist.angular.z = 1
+        self.desired_velocity = Twist()
+        self.desired_velocity.linear.x = 0
+        self.desired_velocity.linear.y = 0
+        self.desired_velocity.linear.z = 0
+        self.desired_velocity.angular.x = 0
+        self.desired_velocity.angular.y = 0
+        self.desired_velocity.angular.z = 1
 
         # These values correspond to the desired power for the robot
         self.desired_power = Twist()
@@ -96,13 +96,13 @@ class TaskPlanner:
         self.desired_power.angular.z = 0
 
     def recalculate_local_pose(self):
-        self.desired_pose_transformed = controls_utils.transform_pose(
-            self.listener, "base_link", "odom", self.desired_pose_local)
+        self.desired_position_transformed = controls_utils.transform_pose(
+            self.listener, "base_link", "odom", self.desired_position_local)
 
-    def publish_desired_twist(self):
+    def publish_desired_velocity(self):
         rate = rospy.Rate(15)
         while not rospy.is_shutdown():
-            self._pub_desired_twist.publish(self.desired_twist)
+            self._pub_desired_velocity.publish(self.desired_velocity)
             rate.sleep()
 
     def publish_desired_power(self, time):
@@ -120,24 +120,24 @@ class TaskPlanner:
         self._pub_desired_power.publish(self.desired_power)
 
     def move_to_local_pos_and_stop(self, x, y, z, roll=0, pitch=0, yaw=0):
-        self.desired_pose_local.position.x = x
-        self.desired_pose_local.position.y = y
-        self.desired_pose_local.position.z = z
+        self.desired_position_local.position.x = x
+        self.desired_position_local.position.y = y
+        self.desired_position_local.position.z = z
 
         q = quaternion_from_euler(roll, pitch, yaw)
-        self.desired_pose_local.orientation.x = q[0]
-        self.desired_pose_local.orientation.y = q[1]
-        self.desired_pose_local.orientation.z = q[2]
-        self.desired_pose_local.orientation.w = q[3]
+        self.desired_position_local.orientation.x = q[0]
+        self.desired_position_local.orientation.y = q[1]
+        self.desired_position_local.orientation.z = q[2]
+        self.desired_position_local.orientation.w = q[3]
 
         self.recalculate_local_pose()
-        self._pub_desired_pose.publish(self.desired_pose_transformed)
+        self._pub_desired_position.publish(self.desired_position_transformed)
         rospy.sleep(1)
 
         rate = rospy.Rate(15)
 
         while not rospy.is_shutdown():
-            self._pub_desired_pose.publish(self.desired_pose_transformed)
+            self._pub_desired_position.publish(self.desired_position_transformed)
 
             if self.current_setpoint[0] == 0 or self.current_setpoint[1] == 0 or self.current_setpoint[2] == 0:
                 # Ignoring 0 0 0 setpoint
@@ -154,16 +154,16 @@ class TaskPlanner:
 
             rate.sleep()
 
-    def move_to_global_pos_and_stop(self, desired_pose):
-        self.desired_pose_global = desired_pose
+    def move_to_global_pos_and_stop(self, desired_position):
+        self.desired_position_global = desired_position
 
-        self._pub_desired_pose.publish(self.desired_pose_global)
+        self._pub_desired_position.publish(self.desired_position_global)
         rospy.sleep(1)
 
         rate = rospy.Rate(15)
 
         while not rospy.is_shutdown():
-            self._pub_desired_pose.publish(self.desired_pose_global)
+            self._pub_desired_position.publish(self.desired_position_global)
 
             if self.current_setpoint[0] == 0 or self.current_setpoint[1] == 0 or self.current_setpoint[2] == 0:
                 # Ignoring 0 0 0 setpoint
@@ -209,17 +209,17 @@ class TaskPlanner:
     def _on_receive_data_cv_serpenscaput(self, data):
         self.serpenscaput_time = data.header.stamp.secs
 
-        desired_pose_serpenscaput = Pose()
-        desired_pose_serpenscaput.position.x = data.coords.x
-        desired_pose_serpenscaput.position.y = data.coords.y
-        desired_pose_serpenscaput.position.z = data.coords.z
-        desired_pose_serpenscaput.orientation.x = 0
-        desired_pose_serpenscaput.orientation.y = 0
-        desired_pose_serpenscaput.orientation.z = 0
-        desired_pose_serpenscaput.orientation.w = 1
+        desired_position_serpenscaput = Pose()
+        desired_position_serpenscaput.position.x = data.coords.x
+        desired_position_serpenscaput.position.y = data.coords.y
+        desired_position_serpenscaput.position.z = data.coords.z
+        desired_position_serpenscaput.orientation.x = 0
+        desired_position_serpenscaput.orientation.y = 0
+        desired_position_serpenscaput.orientation.z = 0
+        desired_position_serpenscaput.orientation.w = 1
 
         self.serpenscaput_pose_transformed = controls_utils.transform_pose(
-            self.listener, "base_link", "odom", desired_pose_serpenscaput)
+            self.listener, "base_link", "odom", desired_position_serpenscaput)
 
         self.serpenscaput_pose_transformed.orientation.x = 0
         self.serpenscaput_pose_transformed.orientation.y = 0
@@ -229,17 +229,17 @@ class TaskPlanner:
     def _on_receive_data_cv_taurus(self, data):
         self.taurus_time = data.header.stamp.secs
 
-        desired_pose_taurus = Pose()
-        desired_pose_taurus.position.x = data.coords.x
-        desired_pose_taurus.position.y = data.coords.y
-        desired_pose_taurus.position.z = data.coords.z
-        desired_pose_taurus.orientation.x = 0
-        desired_pose_taurus.orientation.y = 0
-        desired_pose_taurus.orientation.z = 0
-        desired_pose_taurus.orientation.w = 1
+        desired_position_taurus = Pose()
+        desired_position_taurus.position.x = data.coords.x
+        desired_position_taurus.position.y = data.coords.y
+        desired_position_taurus.position.z = data.coords.z
+        desired_position_taurus.orientation.x = 0
+        desired_position_taurus.orientation.y = 0
+        desired_position_taurus.orientation.z = 0
+        desired_position_taurus.orientation.w = 1
 
         self.taurus_pose_transformed = controls_utils.transform_pose(
-            self.listener, "base_link", "odom", desired_pose_taurus)
+            self.listener, "base_link", "odom", desired_position_taurus)
 
         self.taurus_pose_transformed.orientation.x = 0
         self.taurus_pose_transformed.orientation.y = 0
@@ -249,17 +249,17 @@ class TaskPlanner:
     def _on_receive_data_cv_gate(self, data):
         self.abydos_time = data.header.stamp.secs
 
-        desired_pose_abydos_gate = Pose()
-        desired_pose_abydos_gate.position.x = data.coords.x
-        desired_pose_abydos_gate.position.y = data.coords.y
-        desired_pose_abydos_gate.position.z = data.coords.z
-        desired_pose_abydos_gate.orientation.x = 0
-        desired_pose_abydos_gate.orientation.y = 0
-        desired_pose_abydos_gate.orientation.z = 0
-        desired_pose_abydos_gate.orientation.w = 1
+        desired_position_abydos_gate = Pose()
+        desired_position_abydos_gate.position.x = data.coords.x
+        desired_position_abydos_gate.position.y = data.coords.y
+        desired_position_abydos_gate.position.z = data.coords.z
+        desired_position_abydos_gate.orientation.x = 0
+        desired_position_abydos_gate.orientation.y = 0
+        desired_position_abydos_gate.orientation.z = 0
+        desired_position_abydos_gate.orientation.w = 1
 
         self.abydos_gate_pose_transformed = controls_utils.transform_pose(
-            self.listener, "base_link", "odom", desired_pose_abydos_gate)
+            self.listener, "base_link", "odom", desired_position_abydos_gate)
 
         self.abydos_gate_pose_transformed.orientation.x = 0
         self.abydos_gate_pose_transformed.orientation.y = 0
@@ -294,13 +294,13 @@ class TaskPlanner:
         temp_state.pose.pose.orientation.z = 0
         temp_state.pose.pose.orientation.w = 1
 
-        self._pub_desired_pose.publish(temp_state.pose.pose)
+        self._pub_desired_position.publish(temp_state.pose.pose)
 
         rate = rospy.Rate(15)
         rospy.sleep(1)
 
         while not rospy.is_shutdown():
-            self._pub_desired_pose.publish(temp_state.pose.pose)
+            self._pub_desired_position.publish(temp_state.pose.pose)
 
             if self.current_setpoint[0] == 0 or self.current_setpoint[1] == 0 or self.current_setpoint[2] == 0:
                 # Ignoring 0 0 0 setpoint
@@ -324,11 +324,11 @@ class TaskPlanner:
         temp_state.pose.pose.orientation.z = 0
         temp_state.pose.pose.orientation.w = 1
 
-        self._pub_desired_pose.publish(temp_state.pose.pose)
+        self._pub_desired_position.publish(temp_state.pose.pose)
         rospy.sleep(1)
 
         while not rospy.is_shutdown():
-            self._pub_desired_pose.publish(temp_state.pose.pose)
+            self._pub_desired_position.publish(temp_state.pose.pose)
             rate.sleep()
 
             # Ignoring 0 yaw setpoint
@@ -360,7 +360,7 @@ class TaskPlanner:
 
             if abs(time - start_time) > 5:
                 while not rospy.is_shutdown():
-                    self._pub_desired_pose.publish(after_gate_dead_reckon.pose.pose)
+                    self._pub_desired_position.publish(after_gate_dead_reckon.pose.pose)
                     if self.current_setpoint[0] == 0 or self.current_setpoint[1] == 0 or self.current_setpoint[2] == 0:
                         continue
                     if abs(self.current_setpoint[0]) <= self.MOVE_OFFSET_CONSTANT_LINEAR[0] and \
@@ -377,12 +377,12 @@ class TaskPlanner:
                 temp_state.pose.pose.orientation.z = 0
                 temp_state.pose.pose.orientation.w = 1
 
-                self._pub_desired_pose.publish(temp_state.pose.pose)
+                self._pub_desired_position.publish(temp_state.pose.pose)
 
                 rospy.sleep(1)
 
                 while not rospy.is_shutdown():
-                    self._pub_desired_pose.publish(temp_state.pose.pose)
+                    self._pub_desired_position.publish(temp_state.pose.pose)
                     rate.sleep()
 
                     if self.current_setpoint[5] == 0:
@@ -401,7 +401,7 @@ class TaskPlanner:
                 temp_state.pose.pose.orientation.y = 0
                 temp_state.pose.pose.orientation.z = 0
                 temp_state.pose.pose.orientation.w = 1
-                self._pub_desired_pose.publish(temp_state.pose.pose)
+                self._pub_desired_position.publish(temp_state.pose.pose)
 
                 rate.sleep()
                 continue
@@ -410,11 +410,11 @@ class TaskPlanner:
 
         self.abydos_gate_pose_transformed.position.x = self.abydos_gate_pose_transformed.position.x + 1
         self.abydos_gate_pose_transformed.position.z = self.abydos_gate_pose_transformed.position.z - 1
-        self._pub_desired_pose.publish(self.abydos_gate_pose_transformed)
+        self._pub_desired_position.publish(self.abydos_gate_pose_transformed)
         while not rospy.is_shutdown():
             self.abydos_gate_pose_transformed.position.x = self.abydos_gate_pose_transformed.position.x + 1
             self.abydos_gate_pose_transformed.position.z = self.abydos_gate_pose_transformed.position.z - 1
-            self._pub_desired_pose.publish(self.abydos_gate_pose_transformed)
+            self._pub_desired_position.publish(self.abydos_gate_pose_transformed)
 
             rate.sleep()
 
@@ -438,12 +438,12 @@ class TaskPlanner:
         temp_state.pose.pose.orientation.z = 0
         temp_state.pose.pose.orientation.w = 1
 
-        self._pub_desired_pose.publish(temp_state.pose.pose)
+        self._pub_desired_position.publish(temp_state.pose.pose)
 
         rospy.sleep(1)
 
         while not rospy.is_shutdown():
-            self._pub_desired_pose.publish(temp_state.pose.pose)
+            self._pub_desired_position.publish(temp_state.pose.pose)
             rate.sleep()
 
             if self.current_setpoint[5] == 0:
@@ -490,13 +490,13 @@ class TaskPlanner:
         self.taurus_pose_transformed.position.y = self.taurus_pose_transformed.position.y
         self.taurus_pose_transformed.orientation = temp_state.pose.pose.orientation
 
-        self._pub_desired_pose.publish(self.taurus_pose_transformed)
+        self._pub_desired_position.publish(self.taurus_pose_transformed)
 
         while not rospy.is_shutdown():
             self.taurus_pose_transformed.position.x = self.taurus_pose_transformed.position.x + 0.25
             self.taurus_pose_transformed.position.y = self.taurus_pose_transformed.position.y
             self.taurus_pose_transformed.orientation = temp_state.pose.pose.orientation
-            self._pub_desired_pose.publish(self.taurus_pose_transformed)
+            self._pub_desired_position.publish(self.taurus_pose_transformed)
 
             rate.sleep()
 
@@ -567,12 +567,12 @@ class TaskPlanner:
         self.serpenscaput_pose_transformed.position.x = self.serpenscaput_pose_transformed.position.x + 0.25
         self.serpenscaput_pose_transformed.orientation = temp_state.pose.pose.orientation
 
-        self._pub_desired_pose.publish(self.serpenscaput_pose_transformed)
+        self._pub_desired_position.publish(self.serpenscaput_pose_transformed)
 
         while not rospy.is_shutdown():
             self.serpenscaput_pose_transformed.position.x = self.serpenscaput_pose_transformed.position.x + 0.25
             self.serpenscaput_pose_transformed.orientation = temp_state.pose.pose.orientation
-            self._pub_desired_pose.publish(self.serpenscaput_pose_transformed)
+            self._pub_desired_position.publish(self.serpenscaput_pose_transformed)
 
             rate.sleep()
 

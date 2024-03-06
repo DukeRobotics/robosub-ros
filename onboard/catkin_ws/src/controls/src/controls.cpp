@@ -48,8 +48,8 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     // Initialize desired position to have valid orientation
     desired_position.orientation.w = 1.0;
 
-    // Use desired pose as the default control type for all axes
-    ControlsUtils::populate_axes_map<ControlTypesEnum>(ControlTypesEnum::DESIRED_POSE, control_types);
+    // Use desired position as the default control type for all axes
+    ControlsUtils::populate_axes_map<ControlTypesEnum>(ControlTypesEnum::DESIRED_POSITION, control_types);
 
     // Get paths to wrench matrix and its pseudoinverse from robot config file
     std::string wrench_matrix_file_path;
@@ -258,7 +258,7 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     AxesMap<double> velocity_error_map;
     for (const AxesEnum &axis : AXES)
     {
-        double velocity_setpoint = (cascaded_pid && control_types.at(axis) == ControlTypesEnum::DESIRED_POSE)
+        double velocity_setpoint = (cascaded_pid && control_types.at(axis) == ControlTypesEnum::DESIRED_POSITION)
                                        ? position_pid_outputs.at(axis)
                                        : desired_velocity_map.at(axis);
         velocity_error_map[axis] = velocity_setpoint - velocity_map[axis];
@@ -372,8 +372,8 @@ bool Controls::reset_pid_loops_callback(std_srvs::Trigger::Request &req, std_srv
     // Reset all active PID loops
     for (const AxesEnum &axis : AXES)
     {
-        // Reset position PID loop if control type is desired pose
-        if (control_types[axis] == ControlTypesEnum::DESIRED_POSE)
+        // Reset position PID loop if control type is desired position
+        if (control_types[axis] == ControlTypesEnum::DESIRED_POSITION)
         {
             pid_managers[PIDLoopTypesEnum::POSITION].reset(axis);
 
@@ -383,7 +383,7 @@ bool Controls::reset_pid_loops_callback(std_srvs::Trigger::Request &req, std_srv
         }
 
         // Reset velocity PID loop if control type is desired twist
-        else if (control_types[axis] == ControlTypesEnum::DESIRED_TWIST)
+        else if (control_types[axis] == ControlTypesEnum::DESIRED_VELOCITY)
             pid_managers[PIDLoopTypesEnum::VELOCITY].reset(axis);
     }
 
@@ -471,11 +471,11 @@ void Controls::run()
         {
             switch (control_types[AXES[i]])
             {
-            case custom_msgs::ControlTypes::DESIRED_POSE:
-                // If cascaded PID is enabled, then use velocity PID outputs as set power for DESIRED_POSE control type
+            case custom_msgs::ControlTypes::DESIRED_POSITION:
+                // If cascaded PID is enabled, then use velocity PID outputs as set power for DESIRED_POSITION control type
                 set_power[i] = (cascaded_pid) ? velocity_pid_outputs.at(AXES[i]) : position_pid_outputs.at(AXES[i]);
                 break;
-            case custom_msgs::ControlTypes::DESIRED_TWIST:
+            case custom_msgs::ControlTypes::DESIRED_VELOCITY:
                 set_power[i] = velocity_pid_outputs.at(AXES[i]);
                 break;
             case custom_msgs::ControlTypes::DESIRED_POWER:

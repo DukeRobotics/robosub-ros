@@ -7,11 +7,11 @@
 #include <custom_msgs/PIDDerivativeType.h>
 #include <custom_msgs/PIDGain.h>
 
-// Control types: DESIRED_POSE, DESIRED_TWIST, DESIRED_POWER
+// Control types: DESIRED_POSITION, DESIRED_VELOCITY, DESIRED_POWER
 enum ControlTypesEnum : uint8_t
 {
-    DESIRED_POSE = custom_msgs::ControlTypes::DESIRED_POSE,
-    DESIRED_TWIST = custom_msgs::ControlTypes::DESIRED_TWIST,
+    DESIRED_POSITION = custom_msgs::ControlTypes::DESIRED_POSITION,
+    DESIRED_VELOCITY = custom_msgs::ControlTypes::DESIRED_VELOCITY,
     DESIRED_POWER = custom_msgs::ControlTypes::DESIRED_POWER
 };
 
@@ -19,8 +19,8 @@ enum ControlTypesEnum : uint8_t
 const int CONTROL_TYPES_COUNT = 3;
 
 // Control types array
-const ControlTypesEnum CONTROL_TYPES[CONTROL_TYPES_COUNT] = {ControlTypesEnum::DESIRED_POSE,
-                                                             ControlTypesEnum::DESIRED_TWIST,
+const ControlTypesEnum CONTROL_TYPES[CONTROL_TYPES_COUNT] = {ControlTypesEnum::DESIRED_POSITION,
+                                                             ControlTypesEnum::DESIRED_VELOCITY,
                                                              ControlTypesEnum::DESIRED_POWER};
 
 // Axes: X, Y, Z, ROLL, PITCH, YAW
