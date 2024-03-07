@@ -12,10 +12,8 @@
 #include "controls_types.h"
 #include "controls_utils.h"
 
-class PID
-{
-private:
-
+class PID {
+   private:
     // *****************************************************************************************************************
     // Non-configurable properties
 
@@ -29,7 +27,6 @@ private:
      *  1.0, which means that the filter will have a cutoff frequency at 1/4 of the sampling rate.
      */
     double c = 1.0;
-
 
     // *****************************************************************************************************************
     // Configurable properties
@@ -62,7 +59,6 @@ private:
      */
     PIDGainsMap pid_gains;
 
-
     // *****************************************************************************************************************
     // State variables
 
@@ -92,7 +88,7 @@ private:
      */
     std::array<double, 3> filtered_derivs;
 
-public:
+   public:
     /**
      * @brief Default constructor. All configurable properties are uninitialized.
      */
@@ -124,11 +120,11 @@ public:
      *
      * @return Constant reference to the pid gains object.
      */
-    const PIDGainsMap& get_pid_gains() const;
+    const PIDGainsMap &get_pid_gains() const;
 
     /**
      * @brief Reset PID loop in preparation for change in setpoint.
-    */
+     */
     void reset();
 
     /**

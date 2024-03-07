@@ -1,41 +1,43 @@
-#include <unordered_map>
-#include <string>
-#include <array>
-#include <memory>
-#include <Eigen/Dense>
+#include "controls.h"
+
+#include <custom_msgs/ControlTypes.h>
+#include <custom_msgs/PIDAxesInfo.h>
+#include <custom_msgs/PIDGain.h>
+#include <custom_msgs/PIDGains.h>
+#include <custom_msgs/SetControlTypes.h>
+#include <custom_msgs/SetPIDGains.h>
+#include <custom_msgs/SetPowerScaleFactor.h>
+#include <custom_msgs/SetStaticPower.h>
+#include <custom_msgs/ThrusterAllocs.h>
+#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/Twist.h>
+#include <geometry_msgs/Vector3.h>
+#include <geometry_msgs/Vector3Stamped.h>
+#include <nav_msgs/Odometry.h>
 #include <ros/ros.h>
-#include <tf2/LinearMath/Vector3.h>
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2_ros/transform_listener.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float64.h>
 #include <std_srvs/SetBool.h>
 #include <std_srvs/Trigger.h>
-#include <geometry_msgs/Pose.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/Vector3.h>
-#include <geometry_msgs/Vector3Stamped.h>
-#include <geometry_msgs/Twist.h>
-#include <geometry_msgs/TransformStamped.h>
-#include <nav_msgs/Odometry.h>
-#include <custom_msgs/ThrusterAllocs.h>
-#include <custom_msgs/PIDGain.h>
-#include <custom_msgs/PIDGains.h>
-#include <custom_msgs/PIDAxesInfo.h>
-#include <custom_msgs/ControlTypes.h>
-#include <custom_msgs/SetPIDGains.h>
-#include <custom_msgs/SetControlTypes.h>
-#include <custom_msgs/SetPowerScaleFactor.h>
-#include <custom_msgs/SetStaticPower.h>
-#include "controls_types.h"
-#include "thruster_allocator.h"
-#include "pid_manager.h"
-#include "controls_utils.h"
-#include "controls.h"
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Vector3.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_ros/transform_listener.h>
 
-Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<tf2_ros::Buffer> tf_buffer)
-{
+#include <Eigen/Dense>
+#include <array>
+#include <memory>
+#include <string>
+#include <unordered_map>
+
+#include "controls_types.h"
+#include "controls_utils.h"
+#include "pid_manager.h"
+#include "thruster_allocator.h"
+
+Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<tf2_ros::Buffer> tf_buffer) {
     // Get parameters from launch file
     ros::param::get("~sim", sim);
     ros::param::get("~enable_position_pid", enable_position_pid);
@@ -76,11 +78,8 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
 
     // Instantiate PID managers for each PID loop type
     for (const PIDLoopTypesEnum &loop : PID_LOOP_TYPES)
-        pid_managers[loop] = PIDManager(loops_axes_control_effort_limits.at(loop),
-                                        loops_axes_derivative_types.at(loop),
-                                        loops_axes_error_ramp_rates.at(loop),
-                                        loops_axes_pid_gains.at(loop));
-
+        pid_managers[loop] = PIDManager(loops_axes_control_effort_limits.at(loop), loops_axes_derivative_types.at(loop),
+                                        loops_axes_error_ramp_rates.at(loop), loops_axes_pid_gains.at(loop));
     // Initialize static power local to zero
     static_power_local = tf2::Vector3(0, 0, 0);
 
@@ -100,20 +99,20 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
 
     // Advertise input services
     enable_controls_srv = nh.advertiseService("controls/enable", &Controls::enable_controls_callback, this);
-    set_control_types_srv = nh.advertiseService("controls/set_control_types", &Controls::set_control_types_callback,
-                                                this);
+    set_control_types_srv =
+        nh.advertiseService("controls/set_control_types", &Controls::set_control_types_callback, this);
     set_pid_gains_srv = nh.advertiseService("controls/set_pid_gains", &Controls::set_pid_gains_callback, this);
     reset_pid_loops_srv = nh.advertiseService("controls/reset_pid_loops", &Controls::reset_pid_loops_callback, this);
-    set_static_power_global_srv = nh.advertiseService("controls/set_static_power_global",
-                                                      &Controls::set_static_power_global_callback, this);
-    set_power_scale_factor_srv = nh.advertiseService("controls/set_power_scale_factor",
-                                                     &Controls::set_power_scale_factor_callback, this);
+    set_static_power_global_srv =
+        nh.advertiseService("controls/set_static_power_global", &Controls::set_static_power_global_callback, this);
+    set_power_scale_factor_srv =
+        nh.advertiseService("controls/set_power_scale_factor", &Controls::set_power_scale_factor_callback, this);
 
     // Initialize publishers for output topics
     thruster_allocs_pub = nh.advertise<custom_msgs::ThrusterAllocs>("controls/thruster_allocs", 1);
     desired_thruster_allocs_pub = nh.advertise<custom_msgs::ThrusterAllocs>("controls/desired_thruster_allocs", 1);
-    unconstrained_thruster_allocs_pub = nh.advertise<custom_msgs::ThrusterAllocs>(
-        "controls/unconstrained_thruster_allocs", 1);
+    unconstrained_thruster_allocs_pub =
+        nh.advertise<custom_msgs::ThrusterAllocs>("controls/unconstrained_thruster_allocs", 1);
     set_power_pub = nh.advertise<geometry_msgs::Twist>("controls/set_power", 1);
     set_power_scaled_pub = nh.advertise<geometry_msgs::Twist>("controls/set_power_scaled", 1);
     actual_power_pub = nh.advertise<geometry_msgs::Twist>("controls/actual_power", 1);
@@ -134,8 +133,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     power_scale_factor_pub = nh.advertise<std_msgs::Float64>("controls/power_scale_factor", 1);
 }
 
-void Controls::desired_position_callback(const geometry_msgs::Pose msg)
-{
+void Controls::desired_position_callback(const geometry_msgs::Pose msg) {
     // Make sure desired position orientation quaternion has length 1
     if (ControlsUtils::quaternion_valid(msg.orientation))
         desired_position = msg;
@@ -143,26 +141,21 @@ void Controls::desired_position_callback(const geometry_msgs::Pose msg)
         ROS_WARN("Invalid desired position orientation. Quaternion must have length 1.");
 }
 
-void Controls::desired_velocity_callback(const geometry_msgs::Twist msg)
-{
-    desired_velocity = msg;
-}
+void Controls::desired_velocity_callback(const geometry_msgs::Twist msg) { desired_velocity = msg; }
 
-void Controls::desired_power_callback(const geometry_msgs::Twist msg)
-{
+void Controls::desired_power_callback(const geometry_msgs::Twist msg) {
     AxesMap<double> new_desired_power;
     ControlsUtils::twist_to_map(msg, new_desired_power);
 
     // Make sure desired power is within the limits specified in the config file for each axis
     // If desired power is invalid, then warn user and don't update desired power
-    for (const AxesEnum &axis : AXES)
-    {
+    for (const AxesEnum &axis : AXES) {
         if (new_desired_power.at(axis) < desired_power_min.at(axis) ||
-            new_desired_power.at(axis) > desired_power_max.at(axis))
-        {
-            ROS_WARN("Invalid desired power of %f for axis %s. Desired power for axis %s must be within range [%f, %f].",
-                     new_desired_power.at(axis), AXES_NAMES.at(axis).c_str(), AXES_NAMES.at(axis).c_str(),
-                     desired_power_min.at(axis), desired_power_max.at(axis));
+            new_desired_power.at(axis) > desired_power_max.at(axis)) {
+            ROS_WARN(
+                "Invalid desired power of %f for axis %s. Desired power for axis %s must be within range [%f, %f].",
+                new_desired_power.at(axis), AXES_NAMES.at(axis).c_str(), AXES_NAMES.at(axis).c_str(),
+                desired_power_min.at(axis), desired_power_max.at(axis));
             return;
         }
     }
@@ -171,8 +164,7 @@ void Controls::desired_power_callback(const geometry_msgs::Twist msg)
     desired_power = new_desired_power;
 }
 
-void Controls::state_callback(const nav_msgs::Odometry msg)
-{
+void Controls::state_callback(const nav_msgs::Odometry msg) {
     state = msg;
 
     // Get current time, compute delta time, and update last state message time
@@ -188,17 +180,13 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
 
     // Don't run PID loops if delta_time is nonpositive
     // Only occurs on first state message received
-    if (delta_time <= 0.0)
-        return;
+    if (delta_time <= 0.0) return;
 
     // Get transform from odom to base_link
     geometry_msgs::TransformStamped transformStamped;
-    try
-    {
+    try {
         transformStamped = tf_buffer->lookupTransform("base_link", "odom", ros::Time(0));
-    }
-    catch (tf2::TransformException &ex)
-    {
+    } catch (tf2::TransformException &ex) {
         ROS_WARN("Could not get transform from odom to base_link. %s", ex.what());
         return;
     }
@@ -236,7 +224,9 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
 
     // Run position PID loop
     if (enable_position_pid)
-        pid_managers.at(PIDLoopTypesEnum::POSITION).run_loops(position_error_map, delta_time_map, position_pid_outputs, position_pid_infos, position_pid_provided_derivatives);
+        pid_managers.at(PIDLoopTypesEnum::POSITION)
+            .run_loops(position_error_map, delta_time_map, position_pid_outputs, position_pid_infos,
+                       position_pid_provided_derivatives);
 
     // Publish position control efforts
     geometry_msgs::Twist position_efforts_msg;
@@ -256,8 +246,7 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     // For each axis, if PID is cascaded and control type is position, then use position PID output as velocity setpoint
     // Otherwise, use desired velocity as velocity setpoint
     AxesMap<double> velocity_error_map;
-    for (const AxesEnum &axis : AXES)
-    {
+    for (const AxesEnum &axis : AXES) {
         double velocity_setpoint = (cascaded_pid && control_types.at(axis) == ControlTypesEnum::DESIRED_POSITION)
                                        ? position_pid_outputs.at(axis)
                                        : desired_velocity_map.at(axis);
@@ -276,7 +265,9 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
 
     // Run velocity PID loop
     if (enable_velocity_pid)
-        pid_managers.at(PIDLoopTypesEnum::VELOCITY).run_loops(velocity_error_map, delta_time_map, velocity_pid_outputs, velocity_pid_infos, velocity_pid_provided_derivatives);
+        pid_managers.at(PIDLoopTypesEnum::VELOCITY)
+            .run_loops(velocity_error_map, delta_time_map, velocity_pid_outputs, velocity_pid_infos,
+                       velocity_pid_provided_derivatives);
 
     // Publish velocity control efforts
     geometry_msgs::Twist velocity_efforts_msg;
@@ -304,8 +295,7 @@ void Controls::state_callback(const nav_msgs::Odometry msg)
     static_power_local_pub.publish(static_power_local_msg);
 }
 
-bool Controls::enable_controls_callback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
-{
+bool Controls::enable_controls_callback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res) {
     controls_enabled = req.data;
     res.success = true;
     res.message = controls_enabled ? "Controls enabled." : "Controls disabled.";
@@ -313,17 +303,14 @@ bool Controls::enable_controls_callback(std_srvs::SetBool::Request &req, std_srv
 }
 
 bool Controls::set_control_types_callback(custom_msgs::SetControlTypes::Request &req,
-                                          custom_msgs::SetControlTypes::Response &res)
-{
+                                          custom_msgs::SetControlTypes::Response &res) {
     res.success = ControlsUtils::control_types_to_map(req.control_types, control_types);
-    res.message = res.success
-                      ? "Updated control types successfully."
-                      : "Failed to update control types. One or more control types was invalid.";
+    res.message = res.success ? "Updated control types successfully."
+                              : "Failed to update control types. One or more control types was invalid.";
     return true;
 }
 
-bool Controls::set_pid_gains_callback(custom_msgs::SetPIDGains::Request &req, custom_msgs::SetPIDGains::Response &res)
-{
+bool Controls::set_pid_gains_callback(custom_msgs::SetPIDGains::Request &req, custom_msgs::SetPIDGains::Response &res) {
     res.success = ControlsUtils::pid_gains_valid(req.pid_gains);
 
     // TODO: Move this comment to the README
@@ -339,11 +326,9 @@ bool Controls::set_pid_gains_callback(custom_msgs::SetPIDGains::Request &req, cu
 
     // If PID gains were valid, then update PID gains in PID managers and robot config file
     // Otherwise, do nothing
-    if (res.success)
-    {
+    if (res.success) {
         // Update PID gains through PID managers
-        for (const custom_msgs::PIDGain &pid_gain_update : req.pid_gains)
-        {
+        for (const custom_msgs::PIDGain &pid_gain_update : req.pid_gains) {
             PIDLoopTypesEnum loop = static_cast<PIDLoopTypesEnum>(pid_gain_update.loop);
             AxesEnum axis = static_cast<AxesEnum>(pid_gain_update.axis);
             PIDGainTypesEnum gain_type = static_cast<PIDGainTypesEnum>(pid_gain_update.gain);
@@ -360,26 +345,21 @@ bool Controls::set_pid_gains_callback(custom_msgs::SetPIDGains::Request &req, cu
         ControlsUtils::update_robot_config_pid_gains(loops_axes_pid_gains, cascaded_pid);
     }
 
-    res.message = res.success
-                      ? "Updated PID gains successfully."
-                      : "Failed to update PID gains. One or more PID gains was invalid.";
+    res.message = res.success ? "Updated PID gains successfully."
+                              : "Failed to update PID gains. One or more PID gains was invalid.";
 
     return true;
 }
 
-bool Controls::reset_pid_loops_callback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
-{
+bool Controls::reset_pid_loops_callback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res) {
     // Reset all active PID loops
-    for (const AxesEnum &axis : AXES)
-    {
+    for (const AxesEnum &axis : AXES) {
         // Reset position PID loop if control type is desired position
-        if (control_types[axis] == ControlTypesEnum::DESIRED_POSITION)
-        {
+        if (control_types[axis] == ControlTypesEnum::DESIRED_POSITION) {
             pid_managers[PIDLoopTypesEnum::POSITION].reset(axis);
 
             // Reset velocity PID loop if PID is cascaded, as position PID acts on the robot through velocity PID
-            if (cascaded_pid)
-                pid_managers[PIDLoopTypesEnum::VELOCITY].reset(axis);
+            if (cascaded_pid) pid_managers[PIDLoopTypesEnum::VELOCITY].reset(axis);
         }
 
         // Reset velocity PID loop if control type is desired twist
@@ -393,8 +373,7 @@ bool Controls::reset_pid_loops_callback(std_srvs::Trigger::Request &req, std_srv
 }
 
 bool Controls::set_static_power_global_callback(custom_msgs::SetStaticPower::Request &req,
-                                                custom_msgs::SetStaticPower::Response &res)
-{
+                                                custom_msgs::SetStaticPower::Response &res) {
     tf2::fromMsg(req.static_power, static_power_global);
 
     // TODO: Move this comment to the README
@@ -413,16 +392,14 @@ bool Controls::set_static_power_global_callback(custom_msgs::SetStaticPower::Req
     ControlsUtils::update_robot_config_static_power_global(static_power_global);
 
     res.success = true;
-    res.message = res.success
-                      ? "Updated static power successfully."
-                      : "Failed to update static power. Static power was invalid.";
+    res.message =
+        res.success ? "Updated static power successfully." : "Failed to update static power. Static power was invalid.";
 
     return true;
 }
 
 bool Controls::set_power_scale_factor_callback(custom_msgs::SetPowerScaleFactor::Request &req,
-                                               custom_msgs::SetPowerScaleFactor::Response &res)
-{
+                                               custom_msgs::SetPowerScaleFactor::Response &res) {
     power_scale_factor = req.power_scale_factor;
 
     // Update power scale factor in robot config file
@@ -430,15 +407,13 @@ bool Controls::set_power_scale_factor_callback(custom_msgs::SetPowerScaleFactor:
     ControlsUtils::update_robot_config_power_scale_factor(power_scale_factor);
 
     res.success = true;
-    res.message = res.success
-                      ? "Updated power scale factor successfully."
-                      : "Failed to update power scale factor. Power scale factor was invalid.";
+    res.message = res.success ? "Updated power scale factor successfully."
+                              : "Failed to update power scale factor. Power scale factor was invalid.";
 
     return true;
 }
 
-void Controls::run()
-{
+void Controls::run() {
     ros::Rate rate(THRUSTER_ALLOCS_RATE);
 
     Eigen::VectorXd set_power(AXES_COUNT);
@@ -464,23 +439,21 @@ void Controls::run()
     std_msgs::Float64 power_scale_factor_msg;
 
     // Loop while ROS node is running
-    while (ros::ok())
-    {
+    while (ros::ok()) {
         // Get set power based on control types
-        for (int i = 0; i < AXES_COUNT; i++)
-        {
-            switch (control_types[AXES[i]])
-            {
-            case custom_msgs::ControlTypes::DESIRED_POSITION:
-                // If cascaded PID is enabled, then use velocity PID outputs as set power for DESIRED_POSITION control type
-                set_power[i] = (cascaded_pid) ? velocity_pid_outputs.at(AXES[i]) : position_pid_outputs.at(AXES[i]);
-                break;
-            case custom_msgs::ControlTypes::DESIRED_VELOCITY:
-                set_power[i] = velocity_pid_outputs.at(AXES[i]);
-                break;
-            case custom_msgs::ControlTypes::DESIRED_POWER:
-                set_power[i] = desired_power.at(AXES[i]);
-                break;
+        for (int i = 0; i < AXES_COUNT; i++) {
+            switch (control_types[AXES[i]]) {
+                case custom_msgs::ControlTypes::DESIRED_POSITION:
+                    // If cascaded PID is enabled, then use velocity PID outputs as set power for DESIRED_POSITION
+                    // control type
+                    set_power[i] = (cascaded_pid) ? velocity_pid_outputs.at(AXES[i]) : position_pid_outputs.at(AXES[i]);
+                    break;
+                case custom_msgs::ControlTypes::DESIRED_VELOCITY:
+                    set_power[i] = velocity_pid_outputs.at(AXES[i]);
+                    break;
+                case custom_msgs::ControlTypes::DESIRED_POWER:
+                    set_power[i] = desired_power.at(AXES[i]);
+                    break;
             }
         }
 
@@ -489,8 +462,7 @@ void Controls::run()
         ControlsUtils::tf_linear_vector_to_map(static_power_local, static_power_local_map);
 
         // Add static power local to set power
-        for (const AxesEnum &axis : AXES)
-            set_power[axis] += static_power_local_map.at(axis);
+        for (const AxesEnum &axis : AXES) set_power[axis] += static_power_local_map.at(axis);
 
         // Allocate thrusters
         thruster_allocator.allocate_thrusters(set_power, power_scale_factor, set_power_scaled, unconstrained_allocs,
@@ -500,8 +472,7 @@ void Controls::run()
         ControlsUtils::eigen_vector_to_thruster_allocs_msg(constrained_allocs, constrained_allocs_msg);
 
         // Publish thruster allocs if controls are enabled
-        if (controls_enabled)
-            thruster_allocs_pub.publish(constrained_allocs_msg);
+        if (controls_enabled) thruster_allocs_pub.publish(constrained_allocs_msg);
 
         // Save actual power to map
         ControlsUtils::eigen_vector_to_map(actual_power, actual_power_map);
@@ -553,8 +524,7 @@ void Controls::run()
     }
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     // Initialize ROS node
     ros::init(argc, argv, "controls");
 

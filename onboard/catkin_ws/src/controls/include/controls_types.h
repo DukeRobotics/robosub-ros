@@ -1,15 +1,15 @@
 #ifndef CONTROLS_TYPES_H
 #define CONTROLS_TYPES_H
 
-#include <unordered_map>
-#include <ros/package.h>
 #include <custom_msgs/ControlTypes.h>
 #include <custom_msgs/PIDDerivativeType.h>
 #include <custom_msgs/PIDGain.h>
+#include <ros/package.h>
+
+#include <unordered_map>
 
 // Control types: DESIRED_POSITION, DESIRED_VELOCITY, DESIRED_POWER
-enum ControlTypesEnum : uint8_t
-{
+enum ControlTypesEnum : uint8_t {
     DESIRED_POSITION = custom_msgs::ControlTypes::DESIRED_POSITION,
     DESIRED_VELOCITY = custom_msgs::ControlTypes::DESIRED_VELOCITY,
     DESIRED_POWER = custom_msgs::ControlTypes::DESIRED_POWER
@@ -19,13 +19,11 @@ enum ControlTypesEnum : uint8_t
 const int CONTROL_TYPES_COUNT = 3;
 
 // Control types array
-const ControlTypesEnum CONTROL_TYPES[CONTROL_TYPES_COUNT] = {ControlTypesEnum::DESIRED_POSITION,
-                                                             ControlTypesEnum::DESIRED_VELOCITY,
-                                                             ControlTypesEnum::DESIRED_POWER};
+const ControlTypesEnum CONTROL_TYPES[CONTROL_TYPES_COUNT] = {
+    ControlTypesEnum::DESIRED_POSITION, ControlTypesEnum::DESIRED_VELOCITY, ControlTypesEnum::DESIRED_POWER};
 
 // Axes: X, Y, Z, ROLL, PITCH, YAW
-enum AxesEnum : uint8_t
-{
+enum AxesEnum : uint8_t {
     X = custom_msgs::PIDGain::AXIS_X,
     Y = custom_msgs::PIDGain::AXIS_Y,
     Z = custom_msgs::PIDGain::AXIS_Z,
@@ -38,21 +36,16 @@ enum AxesEnum : uint8_t
 const int AXES_COUNT = 6;
 
 // Axes array
-const AxesEnum AXES[AXES_COUNT] = {AxesEnum::X, AxesEnum::Y, AxesEnum::Z,
+const AxesEnum AXES[AXES_COUNT] = {AxesEnum::X,    AxesEnum::Y,     AxesEnum::Z,
                                    AxesEnum::ROLL, AxesEnum::PITCH, AxesEnum::YAW};
 
 // Axes string names
-const std::unordered_map<AxesEnum, std::string> AXES_NAMES = {
-    {AxesEnum::X, "x"},
-    {AxesEnum::Y, "y"},
-    {AxesEnum::Z, "z"},
-    {AxesEnum::ROLL, "roll"},
-    {AxesEnum::PITCH, "pitch"},
-    {AxesEnum::YAW, "yaw"}};
+const std::unordered_map<AxesEnum, std::string> AXES_NAMES = {{AxesEnum::X, "x"},         {AxesEnum::Y, "y"},
+                                                              {AxesEnum::Z, "z"},         {AxesEnum::ROLL, "roll"},
+                                                              {AxesEnum::PITCH, "pitch"}, {AxesEnum::YAW, "yaw"}};
 
 // PID loop types: POSITION, VELOCITY
-enum PIDLoopTypesEnum : uint8_t
-{
+enum PIDLoopTypesEnum : uint8_t {
     POSITION = custom_msgs::PIDGain::LOOP_POSITION,
     VELOCITY = custom_msgs::PIDGain::LOOP_VELOCITY
 };
@@ -65,15 +58,13 @@ const PIDLoopTypesEnum PID_LOOP_TYPES[PID_LOOP_TYPES_COUNT] = {PIDLoopTypesEnum:
 
 // PID loop types string names
 const std::unordered_map<PIDLoopTypesEnum, std::string> PID_LOOP_TYPES_NAMES = {
-    {PIDLoopTypesEnum::POSITION, "position"},
-    {PIDLoopTypesEnum::VELOCITY, "velocity"}};
+    {PIDLoopTypesEnum::POSITION, "position"}, {PIDLoopTypesEnum::VELOCITY, "velocity"}};
 
 // Name of cascaded position PID loop in robot config file
 const std::string CASCADED_POSITION_PID_NAME = "position_cascaded";
 
 // PID gain types: KP, KI, KD, FF
-enum PIDGainTypesEnum : uint8_t
-{
+enum PIDGainTypesEnum : uint8_t {
     KP = custom_msgs::PIDGain::GAIN_KP,
     KI = custom_msgs::PIDGain::GAIN_KI,
     KD = custom_msgs::PIDGain::GAIN_KD,
@@ -88,17 +79,17 @@ const PIDGainTypesEnum PID_GAIN_TYPES[PID_GAIN_TYPES_COUNT] = {PIDGainTypesEnum:
                                                                PIDGainTypesEnum::KD, PIDGainTypesEnum::FF};
 
 // PID gain types string names
-const std::unordered_map<PIDGainTypesEnum, std::string> PID_GAIN_TYPES_NAMES = {
-    {PIDGainTypesEnum::KP, "Kp"},
-    {PIDGainTypesEnum::KI, "Ki"},
-    {PIDGainTypesEnum::KD, "Kd"},
-    {PIDGainTypesEnum::FF, "Ff"}};
+const std::unordered_map<PIDGainTypesEnum, std::string> PID_GAIN_TYPES_NAMES = {{PIDGainTypesEnum::KP, "Kp"},
+                                                                                {PIDGainTypesEnum::KI, "Ki"},
+                                                                                {PIDGainTypesEnum::KD, "Kd"},
+                                                                                {PIDGainTypesEnum::FF, "Ff"}};
 
 // Path to controls package
 const std::string CONTROLS_PACKAGE_PATH = ros::package::getPath("controls");
 
 // Path to robot config file
-const std::string ROBOT_CONFIG_FILE_PATH = CONTROLS_PACKAGE_PATH + "/config/" + std::string(std::getenv("ROBOT_NAME")) + ".yaml";
+const std::string ROBOT_CONFIG_FILE_PATH =
+    CONTROLS_PACKAGE_PATH + "/config/" + std::string(std::getenv("ROBOT_NAME")) + ".yaml";
 
 // Map of PID gains
 typedef std::unordered_map<PIDGainTypesEnum, double> PIDGainsMap;
@@ -112,8 +103,7 @@ template <typename T>
 using LoopsMap = std::unordered_map<PIDLoopTypesEnum, T>;
 
 // PID Derivative Types: CALCULATED, PROVIDED
-enum PIDDerivativeTypesEnum : uint8_t
-{
+enum PIDDerivativeTypesEnum : uint8_t {
     CALCULATED = custom_msgs::PIDDerivativeType::CALCULATED,
     PROVIDED = custom_msgs::PIDDerivativeType::PROVIDED
 };
@@ -126,8 +116,7 @@ const PIDDerivativeTypesEnum PID_DERIVATIVE_TYPES[PID_DERIVATIVE_TYPES_COUNT] = 
                                                                                  PIDDerivativeTypesEnum::PROVIDED};
 
 // PID terms that are summed to get control effort
-struct PIDTerms
-{
+struct PIDTerms {
     double proportional;
     double integral;
     double derivative;
@@ -135,8 +124,7 @@ struct PIDTerms
 };
 
 // Values computed by PID loop
-struct PIDInfo
-{
+struct PIDInfo {
     PIDTerms terms;
 
     double filtered_error;

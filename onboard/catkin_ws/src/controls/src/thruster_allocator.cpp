@@ -1,16 +1,17 @@
-#include <string>
-#include <Eigen/Dense>
-#include <ros/ros.h>
+#include "thruster_allocator.h"
+
 #include <OsqpEigen/OsqpEigen.h>
+#include <ros/ros.h>
+
+#include <Eigen/Dense>
+#include <string>
 
 #include "controls_types.h"
 #include "controls_utils.h"
-#include "thruster_allocator.h"
 
 ThrusterAllocator::ThrusterAllocator() {}
 
-ThrusterAllocator::ThrusterAllocator(std::string wrench_file_path, std::string wrench_pinv_file_path)
-{
+ThrusterAllocator::ThrusterAllocator(std::string wrench_file_path, std::string wrench_pinv_file_path) {
     // Read wrench and wrench_pinv from CSV files
     ControlsUtils::read_matrix_from_csv(wrench_file_path, wrench);
     ControlsUtils::read_matrix_from_csv(wrench_pinv_file_path, wrench_pinv);
@@ -42,13 +43,11 @@ ThrusterAllocator::ThrusterAllocator(std::string wrench_file_path, std::string w
 }
 
 void ThrusterAllocator::get_pseudoinverse_solution(const Eigen::VectorXd &set_power_scaled,
-                                                   Eigen::VectorXd &unconstrained_allocs)
-{
+                                                   Eigen::VectorXd &unconstrained_allocs) {
     unconstrained_allocs = wrench_pinv * set_power_scaled;
 }
 
-void ThrusterAllocator::get_qp_solution(const Eigen::VectorXd &set_power_scaled, Eigen::VectorXd &constrained_allocs)
-{
+void ThrusterAllocator::get_qp_solution(const Eigen::VectorXd &set_power_scaled, Eigen::VectorXd &constrained_allocs) {
     // Update the gradient of the quadratic cost function
     Eigen::VectorXd updated_gradient = -wrench.transpose() * set_power_scaled;
     ROS_ASSERT_MSG(solver.updateGradient(updated_gradient), "Thruster Allocator: Failed to update gradient.");
@@ -59,20 +58,18 @@ void ThrusterAllocator::get_qp_solution(const Eigen::VectorXd &set_power_scaled,
     constrained_allocs = solver.getSolution();
 }
 
-void ThrusterAllocator::clip_allocs(Eigen::VectorXd &allocs)
-{
+void ThrusterAllocator::clip_allocs(Eigen::VectorXd &allocs) {
     // Clip all components of `allocs` to range [-max_alloc, max_alloc]
-    for (int i = 0; i < allocs.size(); i++)
-        allocs(i) = ControlsUtils::clip(allocs(i), -max_alloc, max_alloc);
+    for (int i = 0; i < allocs.size(); i++) allocs(i) = ControlsUtils::clip(allocs(i), -max_alloc, max_alloc);
 }
 
 void ThrusterAllocator::allocate_thrusters(const Eigen::VectorXd &set_power, double &power_scale_factor,
                                            Eigen::VectorXd &set_power_scaled, Eigen::VectorXd &unconstrained_allocs,
                                            Eigen::VectorXd &constrained_allocs, Eigen::VectorXd &actual_power,
-                                           Eigen::VectorXd &power_disparity)
-{
+                                           Eigen::VectorXd &power_disparity) {
     // Check that set_power and wrench_pinv have compatible dimensions
-    ROS_ASSERT_MSG(wrench_pinv.cols() == set_power.rows(), "Set power must have the same number of rows as wrench_pinv.");
+    ROS_ASSERT_MSG(wrench_pinv.cols() == set_power.rows(),
+                   "Set power must have the same number of rows as wrench_pinv.");
 
     // Scale set power by power scale factor
     set_power_scaled = set_power * power_scale_factor;

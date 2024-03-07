@@ -1,35 +1,36 @@
 #ifndef CONTROLS_H
 #define CONTROLS_H
 
-#include <unordered_map>
-#include <string>
-#include <array>
-#include <memory>
-#include <Eigen/Dense>
-#include <ros/ros.h>
-#include <tf2_ros/transform_listener.h>
-#include <std_msgs/Bool.h>
-#include <std_srvs/SetBool.h>
-#include <std_srvs/Trigger.h>
+#include <custom_msgs/ControlTypes.h>
+#include <custom_msgs/PIDGain.h>
+#include <custom_msgs/PIDGains.h>
+#include <custom_msgs/SetControlTypes.h>
+#include <custom_msgs/SetPIDGains.h>
+#include <custom_msgs/SetPowerScaleFactor.h>
+#include <custom_msgs/SetStaticPower.h>
+#include <custom_msgs/ThrusterAllocs.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
-#include <custom_msgs/ThrusterAllocs.h>
-#include <custom_msgs/PIDGain.h>
-#include <custom_msgs/PIDGains.h>
-#include <custom_msgs/ControlTypes.h>
-#include <custom_msgs/SetPIDGains.h>
-#include <custom_msgs/SetControlTypes.h>
-#include <custom_msgs/SetPowerScaleFactor.h>
-#include <custom_msgs/SetStaticPower.h>
+#include <ros/ros.h>
+#include <std_msgs/Bool.h>
+#include <std_srvs/SetBool.h>
+#include <std_srvs/Trigger.h>
+#include <tf2_ros/transform_listener.h>
+
+#include <Eigen/Dense>
+#include <array>
+#include <memory>
+#include <string>
+#include <unordered_map>
+
 #include "controls_types.h"
 #include "controls_utils.h"
-#include "thruster_allocator.h"
 #include "pid_manager.h"
+#include "thruster_allocator.h"
 
-class Controls
-{
-private:
+class Controls {
+   private:
     // Rate at which thruster allocations are published (Hz)
     static const int THRUSTER_ALLOCS_RATE = 20;
 
@@ -179,7 +180,8 @@ private:
      * @param res Response indicating whether control types were set.
      * @return True if the service response was successfully filled, false otherwise.
      */
-    bool set_control_types_callback(custom_msgs::SetControlTypes::Request &req, custom_msgs::SetControlTypes::Response &res);
+    bool set_control_types_callback(custom_msgs::SetControlTypes::Request &req,
+                                    custom_msgs::SetControlTypes::Response &res);
 
     /**
      * @brief Callback for updating PID gains.
@@ -210,7 +212,8 @@ private:
      *
      * @throws ros::Exception Robot config file could not be updated with the new static power global.
      */
-    bool set_static_power_global_callback(custom_msgs::SetStaticPower::Request &req, custom_msgs::SetStaticPower::Response &res);
+    bool set_static_power_global_callback(custom_msgs::SetStaticPower::Request &req,
+                                          custom_msgs::SetStaticPower::Response &res);
 
     /**
      * @brief Callback for updating power scale factor.
@@ -221,10 +224,10 @@ private:
      *
      * @throws ros::Exception Robot config file could not be updated with the new power scale factor.
      */
-    bool set_power_scale_factor_callback(custom_msgs::SetPowerScaleFactor::Request &req, custom_msgs::SetPowerScaleFactor::Response &res);
+    bool set_power_scale_factor_callback(custom_msgs::SetPowerScaleFactor::Request &req,
+                                         custom_msgs::SetPowerScaleFactor::Response &res);
 
-public:
-
+   public:
     /**
      * @brief Construct a new Controls object. Initializes PID loops, thruster allocator, ROS subscribers, service
      *  advertisers, and publishers.

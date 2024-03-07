@@ -8,15 +8,14 @@
 #include "controls_utils.h"
 #include "drc_pid.h"
 
-class PIDManager
-{
-private:
+class PIDManager {
+   private:
     /**
      * @brief PID controllers for each axis.
      */
     std::unordered_map<AxesEnum, PID> pid_controllers;
 
-public:
+   public:
     /**
      * @brief Construct PID controllers with uninitialized properties.
      */

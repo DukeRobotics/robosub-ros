@@ -1,15 +1,16 @@
-#include <memory>
+#include "drc_pid.h"
+
 #include <ros/ros.h>
+
+#include <memory>
 
 #include "controls_types.h"
 #include "controls_utils.h"
-#include "drc_pid.h"
 
 PID::PID(){};
 
 PID::PID(const double &control_effort_limit, const PIDDerivativeTypesEnum &derivative_type,
-         const double &error_ramp_rate, const PIDGainsMap &pid_gains)
-{
+         const double &error_ramp_rate, const PIDGainsMap &pid_gains) {
     // Validate inputs
     ROS_ASSERT_MSG(control_effort_limit >= 0, "PID initialization error: Control effort limit must be non-negative.");
     ROS_ASSERT_MSG(ControlsUtils::pid_gains_map_valid(pid_gains),
@@ -26,49 +27,40 @@ PID::PID(const double &control_effort_limit, const PIDDerivativeTypesEnum &deriv
     this->pid_gains = pid_gains;
 }
 
-void PID::set_pid_gain(const PIDGainTypesEnum &pid_gain_type, const double &value)
-{
+void PID::set_pid_gain(const PIDGainTypesEnum &pid_gain_type, const double &value) {
     // Set gains
     this->pid_gains[pid_gain_type] = value;
 }
 
-const PIDGainsMap& PID::get_pid_gains() const
-{
-    return pid_gains;
-}
+const PIDGainsMap &PID::get_pid_gains() const { return pid_gains; }
 
-void PID::reset()
-{
+void PID::reset() {
     // Reset integral to zero
     integral = 0.0;
 }
 
-double PID::second_order_butterworth(const std::array<double, 3> &values, const std::array<double, 3> &filtered_values)
-{
+double PID::second_order_butterworth(const std::array<double, 3> &values,
+                                     const std::array<double, 3> &filtered_values) {
     // Reference: Julius O. Smith III, Intro. to Digital Filters With Audio Applications.
     // See https://ccrma.stanford.edu/~jos/filters/Example_Second_Order_Butterworth_Lowpass.html for a description of
     // the math. Implementation adapted from https://bitbucket.org/AndyZe/pid/src/master/src/pid.cpp#lines-271.
     return (1 / (1 + (c * c) + (1.414 * c))) *
-           (values.at(2) + (2 * values.at(1)) + values.at(0) -
-            ((c * c) - (1.414 * c) + 1) * filtered_values.at(2) -
+           (values.at(2) + (2 * values.at(1)) + values.at(0) - ((c * c) - (1.414 * c) + 1) * filtered_values.at(2) -
             ((-2 * c * c) + 2) * filtered_values.at(1));
 }
 
-double PID::run_loop(double error, double delta_time, PIDInfo &info, double provided_derivative)
-{
+double PID::run_loop(double error, double delta_time, PIDInfo &info, double provided_derivative) {
     // If there are validation errors, an exception is not thrown to maintain continuous operation of controls in the
     // event of a temporary error. Instead, the function returns 0 and prints an error message.
 
     // If pid_gains is not valid, return 0 and print error
-    if (!ControlsUtils::pid_gains_map_valid(pid_gains))
-    {
+    if (!ControlsUtils::pid_gains_map_valid(pid_gains)) {
         ROS_ERROR("PID run loop error: PID gains map is invalid.");
         return 0;
     }
 
     // If delta time is nonpositive, return 0 and print error
-    if (delta_time <= 0)
-    {
+    if (delta_time <= 0) {
         ROS_WARN("Delta time must be positive.");
         return 0;
     }
@@ -107,8 +99,7 @@ double PID::run_loop(double error, double delta_time, PIDInfo &info, double prov
     else if (derivative_type == PIDDerivativeTypesEnum::PROVIDED)
         derivs.at(0) = provided_derivative;
 
-    else
-    {
+    else {
         // Print error and return 0 if derivative type is invalid
         ROS_ERROR("PID run loop error: Derivative type is invalid.");
         return 0;

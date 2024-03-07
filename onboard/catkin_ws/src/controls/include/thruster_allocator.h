@@ -1,13 +1,13 @@
 #ifndef THRUSTER_ALLOCATOR_H
 #define THRUSTER_ALLOCATOR_H
 
-#include <Eigen/Dense>
-#include <string>
 #include <OsqpEigen/OsqpEigen.h>
 
-class ThrusterAllocator
-{
-private:
+#include <Eigen/Dense>
+#include <string>
+
+class ThrusterAllocator {
+   private:
     /**
      * @brief Maximum absolute value allocation allowed for any thruster.
      */
@@ -61,7 +61,7 @@ private:
      */
     void clip_allocs(Eigen::VectorXd &allocs);
 
-public:
+   public:
     /**
      * @brief Default constructor with empty `wrench` and `wrench_pinv`.
      */
