@@ -42,6 +42,33 @@
     </model>
 
     <model name="robot">
+      <!-- Macros -->
+      <xacro:macro name="thruster" params="name pose='0 0 0 0 0 0'">
+        <link name="${name}">
+          <!-- Assuming x y z r p y as seen in our controls config files -->
+          <pose>${pose}</pose>
+          <visual name="visual">
+            <geometry>
+              <box>
+                <size>0.2 0.2 0.2</size>
+              </box>
+            </geometry>
+            <material>
+              <ambient>0.0 0.0 1.0 1</ambient>
+              <diffuse>0.0 0.0 1.0 1</diffuse>
+              <specular>0.0 0.0 1.0 1</specular>
+            </material>
+          </visual>
+        </link>
+
+        <!-- Thruster joints -->
+        <joint name="joint_${name}" type="fixed">
+          <pose>0 0 0 0 0 0</pose>
+          <parent>base_link</parent>
+          <child>${name}</child>
+        </joint>
+      </xacro:macro>
+
       <pose>0 0 0 0 0 0</pose>
       <!-- The actual robot itself -->
       <link name="base_link">
@@ -97,33 +124,6 @@
         name="gz::sim::systems::ApplyJointForce">
         <joint_name>joint_front_left</joint_name>
       </plugin>
-
-      <!-- Macros -->
-      <xacro:macro name="thruster" params="name pose='0 0 0 0 0 0'">
-        <link name="${name}">
-          <!-- Assuming x y z r p y as seen in our controls config files -->
-          <pose>${pose}</pose>
-          <visual name="visual">
-            <geometry>
-              <box>
-                <size>0.2 0.2 0.2</size>
-              </box>
-            </geometry>
-            <material>
-              <ambient>0.0 0.0 1.0 1</ambient>
-              <diffuse>0.0 0.0 1.0 1</diffuse>
-              <specular>0.0 0.0 1.0 1</specular>
-            </material>
-          </visual>
-        </link>
-
-        <!-- Thruster joints -->
-        <joint name="joint_${name}" type="fixed">
-          <pose>0 0 0 0 0 0</pose>
-          <parent>base_link</parent>
-          <child>${name}</child>
-        </joint>
-      </xacro:macro>
     </model>
   </world>
 </sdf>
