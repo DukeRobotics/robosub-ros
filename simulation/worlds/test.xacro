@@ -9,7 +9,16 @@
       filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
-    
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="gz-sim-buoyancy-system"
+      name="gz::sim::systems::Buoyancy">
+      <uniform_fluid_density>1000</uniform_fluid_density>
+    </plugin>
+
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
@@ -56,10 +65,32 @@
         <link name="${name}">
           <!-- Assuming x y z r p y as seen in our controls config files -->
           <pose>${pose}</pose>
-          <visual name="visual">
+          <inertial>
+            <pose>0 0 0 0 0 0</pose>
+            <mass>0.09</mass>
+            <inertia>
+              <ixx>0.000143971303</ixx>
+              <ixy>0.000000000008</ixy>
+              <ixz>-0.000000000224</ixz>
+              <iyy>0.000140915448</iyy>
+              <iyz>-0.000025236433</iyz>
+              <izz>0.000033571862</izz>
+            </inertia>
+          </inertial>
+
+          <collision name="collision">
             <geometry>
               <box>
-                <size>0.2 0.2 0.2</size>
+                <size>0.03 0.1 0.03</size>
+              </box>
+            </geometry>
+          </collision>
+
+          <visual name="visual">
+            <pose>-1.43162 0 0 0 0 0</pose>
+            <geometry>
+              <box>
+                <size>0.15 0.02 0.02</size>
               </box>
             </geometry>
             <material>
@@ -70,17 +101,20 @@
           </visual>
         </link>
 
-        <joint name="joint_${name}" type="fixed">
+        <joint name="joint_${name}" type="revolute">
           <pose>0 0 0 0 0 0</pose>
           <parent>base_link</parent>
           <child>${name}</child>
+          <axis>
+            <xyz>1 0 0</xyz>
+            <limit>
+              <lower>-1e+12</lower>
+              <upper>1e+12</upper>
+              <effort>-1</effort>
+              <velocity>-1</velocity>
+            </limit>
+          </axis>
         </joint>
-
-        <plugin
-          filename="gz-sim-apply-joint-force-system"
-          name="gz::sim::systems::ApplyJointForce">
-          <joint_name>joint_${name}</joint_name>
-        </plugin>
       </xacro:macro>
 
       <pose>0 0 0 0 0 0</pose>
@@ -133,5 +167,42 @@
       <xacro:thruster name="bottom_back_right" pose="-0.1905 -0.37465 -0.0381 0 1.57079633 0" />
       <xacro:thruster name="back_right" pose="-0.3302 -0.358775 0.0254 0 0 2.3561945" />
     </model>
+
+    <include>
+      <plugin
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
+        <namespace>robot</namespace>
+        <joint_name>joint_front_left</joint_name>
+        <thrust_coefficient>0.004422</thrust_coefficient>
+        <fluid_density>1000</fluid_density>
+        <propeller_diameter>0.2</propeller_diameter>
+      </plugin>
+
+      <!-- hydrodynamics plugin-->
+      <plugin
+        filename="gz-sim-hydrodynamics-system"
+        name="gz::sim::systems::Hydrodynamics">
+        <link_name>base_link</link_name>
+        <xDotU>-4.876161</xDotU>
+        <yDotV>-126.324739</yDotV>
+        <zDotW>-126.324739</zDotW>
+        <kDotP>0</kDotP>
+        <mDotQ>-33.46</mDotQ>
+        <nDotR>-33.46</nDotR>
+        <xUabsU>-6.2282</xUabsU>
+        <xU>0</xU>
+        <yVabsV>-601.27</yVabsV>
+        <yV>0</yV>
+        <zWabsW>-601.27</zWabsW>
+        <zW>0</zW>
+        <kPabsP>-0.1916</kPabsP>
+        <kP>0</kP>
+        <mQabsQ>-632.698957</mQabsQ>
+        <mQ>0</mQ>
+        <nRabsR>-632.698957</nRabsR>
+        <nR>0</nR>
+      </plugin>
+    </include>
   </world>
 </sdf>
