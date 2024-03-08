@@ -7,7 +7,7 @@ services:
     environment:
       - ROBOT_NAME=oogway
     privileged: true
-    ports: 
+    ports:
       - 2200:2200
       - 8765:8765
     networks:
@@ -39,10 +39,10 @@ services:
         source: .
         target: /root/dev/robosub-ros
 
- 
+
 networks:
   local_net:
     driver: bridge
     ipam:
       config:
-        - subnet: 192.168.1.0/23
+        - subnet: 192.168.0.0/23

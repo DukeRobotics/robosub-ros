@@ -23,8 +23,17 @@ ENV TMP_PATH ${CUDA:+/usr/local/cuda/bin:}
 ENV PATH ${TMP_PATH}${PATH}
 ENV NVIDIA_VISIBLE_DEVICES ${CUDA:+all}
 ENV NVIDIA_DRIVER_CAPABILITIES ${CUDA:+all}
+ENV IGNITION_VERSION=citadel
 
 ### Basic Setup ###
+
+
+# Add gazebo ignition repo
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends wget lsb-release gnupg && \
+    sudo wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" \
+    | sudo tee /etc/apt/28a0a75160794451c027b125a6edef1bf919d342
 
 # Update and install tools
 RUN apt-get update && \
@@ -45,10 +54,9 @@ RUN apt-get update && \
     iputils-ping \
     python3-pandas \
     ros-noetic-foxglove-bridge \
-    nmap && \
-    apt-get clean && \
-    # Clear apt caches to reduce image size
-    rm -rf /var/lib/apt/lists/*
+    nmap \
+    ignition-fortress \
+    libeigen3-dev
 
 # Get required python packages
 RUN pip3 install --no-cache-dir \
@@ -57,7 +65,8 @@ RUN pip3 install --no-cache-dir \
     gputil saleae \
     bluerobotics-ping \
     roboflow \
-    python-nmap
+    python-nmap \
+    transforms3d
 
 # Install PyTorch and Torchvision
 COPY torch_installer.sh torch_deps/torch_installer.sh
@@ -90,6 +99,39 @@ RUN wget -O "logic.zip" "http://downloads.saleae.com/logic/1.2.18/Logic+1.2.18+(
     mv "Logic 1.2.18 (64-bit)" "Logic" && \
     ln -s /root/docker-build/Logic/Logic /usr/local/bin/Logic
 
+# Build and install OSQP from source
+RUN git clone --branch release-0.6.3 --recursive https://github.com/osqp/osqp.git && \
+    cd osqp && \
+    mkdir build && \
+    cd build && \
+    cmake -G "Unix Makefiles" .. && \
+    cmake --build . --target install && \
+    cd ../.. && \
+    rm -rf osqp
+
+# Build and install osqp-eigen from source
+RUN git clone https://github.com/robotology/osqp-eigen.git && \
+    cd osqp-eigen && \
+    git checkout 85c37623774c682db396505f0d4ea677040c2557 && \
+    mkdir build && \
+    cd build && \
+    cmake ../ && \
+    make && \
+    make install && \
+    cd ../.. && \
+    rm -rf osqp-eigen
+
+# install ros-gz
+RUN mkdir -p ~/ros_ign_ws/src && \
+    cd ~/ros_ign_ws/src && \
+    git clone https://github.com/osrf/ros_ign.git -b noetic && \
+    cd ros_ign && \
+    git checkout 28a0a75160794451c027b125a6edef1bf919d342 && \
+    cd ~/ros_ign_ws && \
+    rosdep install -r --from-paths src -i -y --rosdistro noetic
+RUN cd ~/ros_ign_ws && \
+    /bin/bash -c "source /opt/ros/noetic/setup.bash && catkin_make install"
+
 # Install Arduino CLI for Arduino upload script
 # v0.17.0 is required due to issues with adding libraries in the current version v0.18.0
 RUN curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=/usr/local/bin sh -s 0.17.0
@@ -101,6 +143,10 @@ RUN chmod +x /opt/ros/noetic/setup_network.bash
 # Set computer type
 ENV COMPUTER_TYPE=onboard
 RUN echo "COMPUTER_TYPE=onboard" >> /root/.ssh/environment
+
+RUN apt-get clean && \
+    # Clear apt caches to reduce image size
+    rm -rf /var/lib/apt/lists/*
 
 # Set working directory to codebase
 WORKDIR /root/dev/robosub-ros

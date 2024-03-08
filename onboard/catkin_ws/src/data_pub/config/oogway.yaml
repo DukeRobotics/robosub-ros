@@ -1,0 +1,5 @@
+dvl:
+  ftdi: D309SFWS
+  negate_x_vel: false
+  negate_y_vel: false
+  negate_z_vel: false
