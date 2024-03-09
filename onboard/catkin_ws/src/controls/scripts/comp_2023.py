@@ -8,7 +8,6 @@ import controls_utils
 from tf import TransformListener
 from tf.transformations import quaternion_from_euler
 from custom_msgs.msg import CVObject
-from geometry_msgs.msg import Twist
 import copy
 
 

@@ -25,8 +25,10 @@ def get_config_file(configFileType):
     """
     return rr.get_filename(CONFIG_FILE_PATH % (f"{ROBOT_NAME}"), use_protocol=False)
 
+
 def get_axes():
     return ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
+
 
 def get_controls_move_topic(axis):
     return '/control_effort/' + axis
