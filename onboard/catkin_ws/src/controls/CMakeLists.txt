@@ -34,14 +34,6 @@ catkin_package(
 )
 
 ## Build C++ executables and libraries
-add_executable(controls_test src/test.cpp src/controls_utils.cpp)
-target_link_libraries(controls_test
-  yaml-cpp
-  Eigen3::Eigen
-  OsqpEigen::OsqpEigen
-  ${catkin_LIBRARIES}
-)
-
 set(SOURCES
   src/controls.cpp
   src/thruster_allocator.cpp
@@ -70,4 +62,3 @@ target_precompile_headers(controls
     <yaml-cpp/yaml.h>
     [["OsqpEigen/OsqpEigen.h"]]
 )
-target_precompile_headers(controls_test REUSE_FROM controls)
