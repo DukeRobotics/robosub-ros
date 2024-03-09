@@ -105,7 +105,7 @@ class Controls {
 
     // ROS topic publishers
     ros::Publisher thruster_allocs_pub;
-    ros::Publisher desired_thruster_allocs_pub;
+    ros::Publisher constrained_thruster_allocs_pub;
     ros::Publisher unconstrained_thruster_allocs_pub;
     ros::Publisher base_power_pub;
     ros::Publisher set_power_unscaled_pub;

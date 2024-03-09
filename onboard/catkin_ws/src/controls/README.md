@@ -341,9 +341,9 @@ The controls package publishes to the following topics:
 >
 > Additionally, this is the _only topic that is published to if and only if controls are enabled_. All other topics are published to regardless of whether controls are enabled.
 
-#### `/controls/desired_thruster_allocs`
+#### `/controls/constrained_thruster_allocs`
 - Type: `custom_msgs/ThrusterAllocs`
-- Description: The [constrained thrust allocation vector](#constrained-thrust-allocation-vector) specifying the amount of force each thruster needs to exert to achieve the [desired power](#desired-power), accounting for the [thrust constraints](#thrust-constraints).
+- Description: The [constrained thrust allocation vector](#constrained-thrust-allocation-vector) specifying the amount of force each thruster needs to exert to achieve the [desired power](#desired-power), accounting for the [thrust constraints](#thrust-constraints). Identical to the `/controls/thruster_allocs` topic, but published regardless of whether controls are enabled.
 
 #### `/controls/unconstrained_thruster_allocs`
 - Type: `custom_msgs/ThrusterAllocs`
