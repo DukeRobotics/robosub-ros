@@ -115,6 +115,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     desired_thruster_allocs_pub = nh.advertise<custom_msgs::ThrusterAllocs>("controls/desired_thruster_allocs", 1);
     unconstrained_thruster_allocs_pub =
         nh.advertise<custom_msgs::ThrusterAllocs>("controls/unconstrained_thruster_allocs", 1);
+    base_power_pub = nh.advertise<geometry_msgs::Twist>("controls/base_power", 1);
     set_power_unscaled_pub = nh.advertise<geometry_msgs::Twist>("controls/set_power_unscaled", 1);
     set_power_pub = nh.advertise<geometry_msgs::Twist>("controls/set_power", 1);
     actual_power_pub = nh.advertise<geometry_msgs::Twist>("controls/actual_power", 1);
@@ -384,6 +385,7 @@ bool Controls::set_power_scale_factor_callback(custom_msgs::SetPowerScaleFactor:
 void Controls::run() {
     ros::Rate rate(THRUSTER_ALLOCS_RATE);
 
+    Eigen::VectorXd base_power(AXES_COUNT);
     Eigen::VectorXd set_power_unscaled(AXES_COUNT);
     Eigen::VectorXd set_power(AXES_COUNT);
     Eigen::VectorXd unconstrained_allocs;
@@ -395,6 +397,7 @@ void Controls::run() {
 
     custom_msgs::ThrusterAllocs constrained_allocs_msg;
     custom_msgs::ThrusterAllocs unconstrained_allocs_msg;
+    geometry_msgs::Twist base_power_msg;
     geometry_msgs::Twist set_power_unscaled_msg;
     geometry_msgs::Twist set_power_msg;
     geometry_msgs::Twist actual_power_msg;
@@ -414,14 +417,14 @@ void Controls::run() {
                 case custom_msgs::ControlTypes::DESIRED_POSITION:
                     // If cascaded PID is enabled, then use velocity PID outputs as set power for DESIRED_POSITION
                     // control type
-                    set_power_unscaled[i] =
+                    base_power[i] =
                         (cascaded_pid) ? velocity_pid_outputs.at(AXES[i]) : position_pid_outputs.at(AXES[i]);
                     break;
                 case custom_msgs::ControlTypes::DESIRED_VELOCITY:
-                    set_power_unscaled[i] = velocity_pid_outputs.at(AXES[i]);
+                    base_power[i] = velocity_pid_outputs.at(AXES[i]);
                     break;
                 case custom_msgs::ControlTypes::DESIRED_POWER:
-                    set_power_unscaled[i] = desired_power.at(AXES[i]);
+                    base_power[i] = desired_power.at(AXES[i]);
                     break;
             }
         }
@@ -430,8 +433,8 @@ void Controls::run() {
         AxesMap<double> static_power_local_map;
         ControlsUtils::tf_linear_vector_to_map(static_power_local, static_power_local_map);
 
-        // Add static power local to set power
-        for (const AxesEnum &axis : AXES) set_power_unscaled[axis] += static_power_local_map.at(axis);
+        // Sum static power local and base power to get set power unscaled
+        for (const AxesEnum &axis : AXES) set_power_unscaled[axis] = base_power[axis] + static_power_local_map.at(axis);
 
         // Apply power scale factor to set power
         set_power = set_power_unscaled * power_scale_factor;
@@ -454,6 +457,9 @@ void Controls::run() {
 
         ControlsUtils::eigen_vector_to_thruster_allocs_msg(unconstrained_allocs, unconstrained_allocs_msg);
         unconstrained_thruster_allocs_pub.publish(unconstrained_allocs_msg);
+
+        ControlsUtils::eigen_vector_to_twist(base_power, base_power_msg);
+        base_power_pub.publish(base_power_msg);
 
         ControlsUtils::eigen_vector_to_twist(set_power_unscaled, set_power_unscaled_msg);
         set_power_unscaled_pub.publish(set_power_unscaled_msg);
