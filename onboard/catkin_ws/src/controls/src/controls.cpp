@@ -58,15 +58,16 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     std::string wrench_matrix_pinv_file_path;
 
     // Get PID configuration parameters from robot config file
-    LoopsMap<AxesMap<double>> loops_axes_control_effort_limits;
+    LoopsMap<AxesMap<double>> loops_axes_control_effort_mins;
+    LoopsMap<AxesMap<double>> loops_axes_control_effort_maxes;
     LoopsMap<AxesMap<PIDDerivativeTypesEnum>> loops_axes_derivative_types;
     LoopsMap<AxesMap<double>> loops_axes_error_ramp_rates;
     LoopsMap<AxesMap<PIDGainsMap>> loops_axes_pid_gains;
 
     // Read robot config file and populate config variables
-    ControlsUtils::read_robot_config(cascaded_pid, loops_axes_control_effort_limits, loops_axes_derivative_types,
-                                     loops_axes_error_ramp_rates, loops_axes_pid_gains, desired_power_min,
-                                     desired_power_max, static_power_global, power_scale_factor,
+    ControlsUtils::read_robot_config(cascaded_pid, loops_axes_control_effort_mins, loops_axes_control_effort_maxes,
+                                     loops_axes_derivative_types, loops_axes_error_ramp_rates, loops_axes_pid_gains,
+                                     desired_power_min, desired_power_max, static_power_global, power_scale_factor,
                                      wrench_matrix_file_path, wrench_matrix_pinv_file_path);
 
     // Ensure that desired power min is less than or equal to desired power max for each axis
@@ -78,7 +79,8 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
 
     // Instantiate PID managers for each PID loop type
     for (const PIDLoopTypesEnum &loop : PID_LOOP_TYPES)
-        pid_managers[loop] = PIDManager(loops_axes_control_effort_limits.at(loop), loops_axes_derivative_types.at(loop),
+        pid_managers[loop] = PIDManager(loops_axes_control_effort_mins.at(loop),
+                                        loops_axes_control_effort_maxes.at(loop), loops_axes_derivative_types.at(loop),
                                         loops_axes_error_ramp_rates.at(loop), loops_axes_pid_gains.at(loop));
     // Initialize static power local to zero
     static_power_local = tf2::Vector3(0, 0, 0);

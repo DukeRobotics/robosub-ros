@@ -12,13 +12,13 @@ PIDManager::PIDManager() {
     for (const AxesEnum &axis : AXES) pid_controllers[axis] = PID();
 }
 
-PIDManager::PIDManager(const AxesMap<double> &control_effort_limit,
-                       const AxesMap<PIDDerivativeTypesEnum> &derivative_type, const AxesMap<double> &error_ramp_rate,
+PIDManager::PIDManager(const AxesMap<double> &control_effort_mins, const AxesMap<double> &control_effort_maxes,
+                       const AxesMap<PIDDerivativeTypesEnum> &derivative_types, const AxesMap<double> &error_ramp_rates,
                        const AxesMap<PIDGainsMap> &pid_gains) {
     // Initialize PID controllers with given parameters
     for (const AxesEnum &axis : AXES)
-        pid_controllers[axis] =
-            PID(control_effort_limit.at(axis), derivative_type.at(axis), error_ramp_rate.at(axis), pid_gains.at(axis));
+        pid_controllers[axis] = PID(control_effort_mins.at(axis), control_effort_maxes.at(axis),
+                                    derivative_types.at(axis), error_ramp_rates.at(axis), pid_gains.at(axis));
 }
 
 void PIDManager::set_pid_gain(const AxesEnum &axis, const PIDGainTypesEnum &pid_gain_type, const double &value) {

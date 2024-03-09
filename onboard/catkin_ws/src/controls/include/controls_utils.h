@@ -313,7 +313,8 @@ void read_matrix_from_csv(const std::string &file_path, Eigen::MatrixXd &matrix)
  *  controls package.
  *
  * @param cascaded_pid Whether to read gains for cascaded position PID or regular position PID.
- * @param loops_axes_control_effort_limits Map of PID loop types to axes to control effort limits to populate.
+ * @param loops_axes_control_effort_mins Map of PID loop types to axes to control effort minimums to populate.
+ * @param loops_axes_control_effort_maxes Map of PID loop types to axes to control effort maximums to populate.
  * @param loops_axes_derivative_types Map of PID loop types to axes to derivative types to populate.
  * @param loops_axes_error_ramp_rates Map of PID loop types to axes to error ramp rates to populate.
  * @param loops_axes_pid_gains Map of PID loop types to axes to PID gains to populate.
@@ -328,7 +329,8 @@ void read_matrix_from_csv(const std::string &file_path, Eigen::MatrixXd &matrix)
  * @throws ros::Exception File is not in valid YAML format
  * @throws ros::Exception File does not contain all required fields in correct formats
  */
-void read_robot_config(const bool &cascaded_pid, LoopsMap<AxesMap<double>> &loops_axes_control_effort_limits,
+void read_robot_config(const bool &cascaded_pid, LoopsMap<AxesMap<double>> &loops_axes_control_effort_mins,
+                       LoopsMap<AxesMap<double>> &loops_axes_control_effort_maxes,
                        LoopsMap<AxesMap<PIDDerivativeTypesEnum>> &loops_axes_derivative_types,
                        LoopsMap<AxesMap<double>> &loops_axes_error_ramp_rates,
                        LoopsMap<AxesMap<PIDGainsMap>> &loops_axes_pid_gains, AxesMap<double> &desired_power_max,

@@ -97,16 +97,15 @@ class PID {
     /**
      * @brief Construct a new PID object with the given parameters.
      *
-     * @param control_effort_limit The maximum absolute value of the control effort. Must be non-negative.
-     *  `control_effort_max` will be set to this value, and `control_effort_min` will be set to the negation of this
-     *  value.
+     * @param control_effort_min The minimum control effort. Must be less than or equal to `control_effort_max`.
+     * @param control_effort_max The maximum control effort. Must be greater than or equal to `control_effort_min`.
      * @param derivative_type The type of derivative used to compute the derivative term.
      * @param error_ramp_rate The maximum absolute value rate at which the error can change per second. Must be
      *  non-negative.
      * @param pid_gains The gains used to weight the PID terms. All four keys in the map must be present.
      */
-    PID(const double &control_effort_limit, const PIDDerivativeTypesEnum &derivative_type,
-        const double &error_ramp_rate, const PIDGainsMap &pid_gains);
+    PID(const double &control_effort_min, const double &control_effort_max,
+        const PIDDerivativeTypesEnum &derivative_type, const double &error_ramp_rate, const PIDGainsMap &pid_gains);
 
     /**
      * @brief Set the pid gains object.

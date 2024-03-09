@@ -319,7 +319,8 @@ void ControlsUtils::read_matrix_from_csv(const std::string &file_path, Eigen::Ma
 }
 
 void ControlsUtils::read_robot_config(const bool &cascaded_pid,
-                                      LoopsMap<AxesMap<double>> &loops_axes_control_effort_limits,
+                                      LoopsMap<AxesMap<double>> &loops_axes_control_effort_mins,
+                                      LoopsMap<AxesMap<double>> &loops_axes_control_effort_maxes,
                                       LoopsMap<AxesMap<PIDDerivativeTypesEnum>> &loops_axes_derivative_types,
                                       LoopsMap<AxesMap<double>> &loops_axes_error_ramp_rates,
                                       LoopsMap<AxesMap<PIDGainsMap>> &loops_axes_pid_gains,
@@ -345,7 +346,8 @@ void ControlsUtils::read_robot_config(const bool &cascaded_pid,
                 YAML::Node axis_node = loop_node[AXES_NAMES.at(axis)];
 
                 // Read control effort limits, derivative types, and error ramp rates
-                loops_axes_control_effort_limits[loop][axis] = axis_node["control_effort_limit"].as<double>();
+                loops_axes_control_effort_mins[loop][axis] = axis_node["control_effort"]["min"].as<double>();
+                loops_axes_control_effort_maxes[loop][axis] = axis_node["control_effort"]["max"].as<double>();
                 loops_axes_derivative_types[loop][axis] =
                     static_cast<PIDDerivativeTypesEnum>(axis_node["derivative_type"].as<int>());
                 loops_axes_error_ramp_rates[loop][axis] = axis_node["error_ramp_rate"].as<double>();

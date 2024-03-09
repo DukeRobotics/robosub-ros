@@ -24,13 +24,15 @@ class PIDManager {
     /**
      * @brief Construct PID controllers with specified properties.
      *
-     * @param control_effort_limit Maximum absolute value control effort for each axis.
-     * @param derivative_type Derivative type for each axis.
-     * @param error_ramp_rate Maximum rate of change of error per second for each axis.
+     * @param control_effort_mins Minimum control effort for each axis.
+     * @param control_effort_maxes Maximum control effort for each axis.
+     * @param derivative_types Derivative types for each axis.
+     * @param error_ramp_rates Maximum rate of change of error per second for each axis.
      * @param pid_gains PID gains for each axis.
      */
-    PIDManager(const AxesMap<double> &control_effort_limit, const AxesMap<PIDDerivativeTypesEnum> &derivative_type,
-               const AxesMap<double> &error_ramp_rate, const AxesMap<PIDGainsMap> &pid_gains);
+    PIDManager(const AxesMap<double> &control_effort_mins, const AxesMap<double> &control_effort_maxes,
+               const AxesMap<PIDDerivativeTypesEnum> &derivative_types, const AxesMap<double> &error_ramp_rates,
+               const AxesMap<PIDGainsMap> &pid_gains);
 
     /**
      * @brief Set the pid gains for all axes.

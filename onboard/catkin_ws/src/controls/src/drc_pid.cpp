@@ -9,10 +9,11 @@
 
 PID::PID(){};
 
-PID::PID(const double &control_effort_limit, const PIDDerivativeTypesEnum &derivative_type,
-         const double &error_ramp_rate, const PIDGainsMap &pid_gains) {
+PID::PID(const double &control_effort_min, const double &control_effort_max,
+         const PIDDerivativeTypesEnum &derivative_type, const double &error_ramp_rate, const PIDGainsMap &pid_gains) {
     // Validate inputs
-    ROS_ASSERT_MSG(control_effort_limit >= 0, "PID initialization error: Control effort limit must be non-negative.");
+    ROS_ASSERT_MSG(control_effort_min <= control_effort_max,
+                   "PID initialization error: Control effort min must be less than or equal to control effort max.");
     ROS_ASSERT_MSG(ControlsUtils::pid_gains_map_valid(pid_gains),
                    "PID initialization error: PID gains map is invalid.");
     ROS_ASSERT_MSG(error_ramp_rate >= 0, "PID initialization error: Error ramp rate must be non-negative.");
@@ -20,8 +21,8 @@ PID::PID(const double &control_effort_limit, const PIDDerivativeTypesEnum &deriv
                    "PID initialization error: Derivative type is invalid.");
 
     // Set parameters
-    this->control_effort_max = control_effort_limit;
-    this->control_effort_min = -control_effort_limit;
+    this->control_effort_min = control_effort_min;
+    this->control_effort_max = control_effort_max;
     this->derivative_type = derivative_type;
     this->error_ramp_rate = error_ramp_rate;
     this->pid_gains = pid_gains;
