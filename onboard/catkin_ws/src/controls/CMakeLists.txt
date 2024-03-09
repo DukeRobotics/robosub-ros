@@ -30,7 +30,7 @@ include_directories(
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
 catkin_package(
-  CATKIN_DEPENDS roscpp rospy roslib std_msgs nav_msgs geometry_msgs std_srvs custom_msgs tf pid resource_retriever
+  CATKIN_DEPENDS roscpp rospy roslib std_msgs nav_msgs geometry_msgs std_srvs custom_msgs tf tf2_ros resource_retriever
 )
 
 ## Build C++ executables and libraries
