@@ -44,9 +44,9 @@ PID constants and static power can be tuned on the fly, without needing to resta
 ## Flow
 ```mermaid
 flowchart LR
-    static_power_global[Static Power Global] --- spacer2:::hidden
-    spacer2 --> static_power_local[Static Power Local]
-    state[State] -- orientation --> static_power_local
+    power_scale_factor[Power Scale Factor] --> set_power[Set Power]
+    static_power_global[Static Power Global] ---> static_power_local[Static Power Local]
+    state[State] -- oriefntation --> static_power_local
 
     state -- position --> pid_position[PID Position]
     desired_position[Desired Position] --> pid_position[PID Position]
@@ -54,18 +54,19 @@ flowchart LR
     desired_velocity[Desired Velocity] --> pid_velocity[PID Velocity]
     state[State] -- velocity --> pid_velocity[PID Velocity]
 
-    desired_power[Desired Power] --- spacer:::hidden
+    desired_power[Desired Power] ---> control_types
 
     pid_position --> control_types{Control Types}
     pid_velocity --> control_types
-    spacer --> control_types
 
-    control_types --> set_power[Set Power]
-    static_power_local --> set_power
+    control_types --base power--> set_power_unscaled[Set Power]
+    static_power_local --> set_power_unscaled[Set Power Unscaled]
+    set_power_unscaled --> set_power
     set_power --> thruster_allocator[Thruster Allocator]
     thruster_allocator --thrust<br>allocation<br>vector--> offboard_comms[Offboard Comms]
 
     subgraph Input
+        power_scale_factor
         static_power_global
         state
         desired_position
@@ -78,22 +79,19 @@ flowchart LR
         pid_velocity
         control_types
         static_power_local
+        set_power_unscaled
         set_power
         thruster_allocator
-        spacer
-        spacer2
     end
 
     subgraph Output
         offboard_comms
     end
 
-    classDef hidden display:none;
-
 ```
 This diagram shows the flow of information between the different parts of the system. It is not comprehensive, but it gives a high-level visualization of how the system works.
 
-The system takes in the current [state](#state) of the robot, as well as the [desired position](#desired-position), [velocity](#desired-velocity), [power](#desired-power), and [static power global](#static-power-global). It then uses [PID loops](#pid-loop) to compute the power needed along each axis to move the robot to the desired position and/or velocity. It combines the outputs of the PID loops, along with the desired power and [static power local](#static-power-local) to compute the [set power](#set-power). The [thruster allocator](#thrust-allocation) then computes the amount of force each thruster needs to exert to achieve the set power. It outputs the [thrust allocation vector](#thrust-allocation-vector), which is sent to the offboard comms package, which spins the thrusters accordingly.
+The system takes in the current [state](#state) of the robot, [desired position](#desired-position), [velocity](#desired-velocity), [power](#desired-power), [static power global](#static-power-global), and [power scale factor](#power-scale-factor). It then uses [PID loops](#pid-loop) to compute the power needed along each axis to move the robot to the desired position and/or velocity. It combines the outputs of the PID loops, along with the desired power to get the [base power](#base-power). It sums the base power and [static power local](#static-power-local) to compute the [set power unscaled](#set-power-unscaled), which is multiplied by the power scale factor to obtain the [set power](#set-power). The [thruster allocator](#thrust-allocation) then computes the amount of force each thruster needs to exert to achieve the set power. It outputs the [thrust allocation vector](#thrust-allocation-vector), which is sent to the offboard comms package, which spins the thrusters accordingly.
 
 ## Basic Usage
 Ensure that the robot's current [state](#state) is being published to the `/state` topic and a transformation from the `odom` frame to the `base_link` frame is being published to the `/tf` topic. Both of these are done by the sensor fusion package.
@@ -351,9 +349,13 @@ The controls package publishes to the following topics:
 - Type: `custom_msgs/ThrusterAllocs`
 - Description: The [unconstrained thrust allocation vector](#unconstrained-thrust-allocation-vector) specifying the amount of force each thruster needs to exert to achieve the [set power](#set-power), _without_ accounting for the [thrust constraints](#thrust-constraints).
 
+#### `/controls/base_power`
+- Type: `geometry_msgs/Twist`
+- Description: The [base power](#base-power). Equivalent to the [set power](#set-power) _without_ adding the [static power local](#static-power-local) or multiplying by the [power scale factor](#power-scale-factor).
+
 #### `/controls/set_power_unscaled`
 - Type: `geometry_msgs/Twist`
-- Description: The [set power](#set-power) the robot should exert along all six [axes](#axis), _without_ multiplying by the [power scale factor](#power-scale-factor).
+- Description: The [set power unscaled](#set-power-unscaled). Equivalent to the [set power](#set-power) _without_ multiplying by the [power scale factor](#power-scale-factor).
 
 #### `/controls/set_power`
 - Type: `geometry_msgs/Twist`
@@ -524,6 +526,9 @@ The `actual power` is the amount of [power](#power) that the robot is actually e
 ### Axis
 An `axis` is a direction the robot can move in. There are six axes: x, y, z, roll, pitch, and yaw. The directions they point in is given by the right hand rule. The positive x, y, and z axes correspond to linear motion in the forward (index), left (middle), and up (thumb) directions, respectively. The positive roll, pitch, and yaw axes correspond to counterclockwise rotation around the forward, left, and up axes, respectively.
 
+### Base Power
+The `base power` is a combination of the [control efforts](#control-effort) output by the position [PID loop](#pid-loop), velocity [PID loop](#pid-loop), and [desired power](#desired-power). The combination is based upon the [control types](#control-types) that are currently active. It is used to compute the [set power unscaled](#set-power-unscaled).
+
 ### Constrained Thrust Allocation Vector
 The `constrained thrust allocation vector` is the amount of force each thruster needs to exert to achieve a given [set power](#set-power), _accounting for_ the [thrust constraints](#thrust-constraints). It is equal to the [unconstrained thrust allocation vector](#unconstrained-thrust-allocation-vector) if all entries are within the [thrust constraints](#thrust-constraints). Otherwise, it is the best approximate solution computed using [quadratic programming](#quadratic-programming) that is within the [thrust constraints](#thrust-constraints). It is denoted as $t_c$.
 
@@ -633,10 +638,10 @@ The `power scale factor` is a multiplier that is applied to the the [set power u
 `Quadratic programming` is a mathematical optimization technique that solves a problem in which the objective function is quadratic and the constraints are linear. It is used in the [thruster allocator](#thruster-allocator) to compute the amount of force each thruster needs to exert to achieve a given [set power](#set-power).
 
 ### Set Power
-The `set power` is the amount of [power](#power) that the robot should exert along all six [axes](#axis). It is a combination of the [control efforts](#control-effort) output by the position [PID loop](#pid-loop), velocity [PID loop](#pid-loop), and [desired power](#desired-power). The combination is based upon the [control types](#control-types) that are currently active. The [static power local](#static-power-local) is added to the power along the linear axes. The result is then multiplied by the [power scale factor](#power-scale-factor) to obtain the final `set power`.
+The `set power` is the amount of [power](#power) that the robot should exert along all six [axes](#axis). It is the product of the [set power unscaled](#set-power-unscaled) and the [power scale factor](#power-scale-factor).
 
 ### Set Power Unscaled
-The `set power unscaled` is the [set power](#set-power) _without_ the [power scale factor](#power-scale-factor) applied.
+The `set power unscaled` is the sum of the [base power](#set-power) and the [static power local](#static-power-local). It is the [set power](#set-power) _without_ the [power scale factor](#power-scale-factor) applied.
 
 ### Setpoint
 `setpoint` is the desired value of the robot's [state](#state). It is the value that the robot should move towards.
