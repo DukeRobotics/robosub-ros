@@ -90,10 +90,10 @@ class Controls {
     AxesMap<double> actual_power_map;
 
     // ROS topic subscribers
+    ros::Subscriber state_sub;
     ros::Subscriber desired_position_sub;
     ros::Subscriber desired_velocity_sub;
     ros::Subscriber desired_power_sub;
-    ros::Subscriber state_sub;
 
     // ROS service advertisers
     ros::ServiceServer enable_controls_srv;

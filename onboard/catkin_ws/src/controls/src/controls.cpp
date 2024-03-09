@@ -92,10 +92,10 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     thruster_allocator = ThrusterAllocator(wrench_matrix_file_path, wrench_matrix_pinv_file_path);
 
     // Subscribe to input topics
+    state_sub = nh.subscribe("state", 1, &Controls::state_callback, this);
     desired_position_sub = nh.subscribe("controls/desired_position", 1, &Controls::desired_position_callback, this);
     desired_velocity_sub = nh.subscribe("controls/desired_velocity", 1, &Controls::desired_velocity_callback, this);
     desired_power_sub = nh.subscribe("controls/desired_power", 1, &Controls::desired_power_callback, this);
-    state_sub = nh.subscribe("state", 1, &Controls::state_callback, this);
 
     // Advertise input services
     enable_controls_srv = nh.advertiseService("controls/enable", &Controls::enable_controls_callback, this);
@@ -312,17 +312,6 @@ bool Controls::set_control_types_callback(custom_msgs::SetControlTypes::Request 
 
 bool Controls::set_pid_gains_callback(custom_msgs::SetPIDGains::Request &req, custom_msgs::SetPIDGains::Response &res) {
     res.success = ControlsUtils::pid_gains_valid(req.pid_gains);
-
-    // TODO: Move this comment to the README
-    // Update robot config file if PID gains were updated successfully
-    // Logs an error if file could not be updated and shuts down the node.
-    // Why throw an exception if file could not be updated, but not if PID gains were invalid?
-    // Answer: because if the PID gains were invalid, then we give the user another chance to enter valid PID gains
-    // and don't make any changes. If the file could not be updated successfully, then we don't want to give the user
-    // another chance to enter valid PID gains because the file will likely still not be updated successfully and
-    // despite being incomplete, we have no way of undoing the changes (if any) that were made to the file. It is likely
-    // users will make frequent mistakes when calling this service, but it is unlikely writing to config file will
-    // frequently fail.
 
     // If PID gains were valid, then update PID gains in PID managers and robot config file
     // Otherwise, do nothing
