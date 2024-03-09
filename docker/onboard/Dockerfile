@@ -45,7 +45,6 @@ RUN apt-get update && \
     unzip \
     zip \
     util-linux \
-    ros-noetic-pid \
     ros-noetic-smach-ros \
     ros-noetic-rosserial \
     ros-noetic-rosserial-arduino \
