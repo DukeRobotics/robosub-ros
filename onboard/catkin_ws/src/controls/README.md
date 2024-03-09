@@ -259,10 +259,7 @@ thrusters:
     pos: [<float>, <float>, <float>] # x, y, z in meters
     rpy: [<float>, <float>, <float>] # roll, pitch, yaw in degrees
     flipped: <bool>
-  - name: <string>
-    type: <string>
-    ...
-  <one entry per thruster>
+  - ...
 wrench_matrix_file_path: <string>
 wrench_matrix_pseudoinverse_file_path: <string>
 ```
@@ -353,11 +350,13 @@ The controls package publishes to the following topics:
 - Type: `custom_msgs/ThrusterAllocs`
 - Description: The [unconstrained thrust allocation vector](#unconstrained-thrust-allocation-vector) specifying the amount of force each thruster needs to exert to achieve the [set power](#set-power), _without_ accounting for the [thrust constraints](#thrust-constraints).
 
+#### `/controls/set_power_unscaled`
+- Type: `geometry_msgs/Twist`
+- Description: The [set power](#set-power) the robot should exert along all six [axes](#axis), _without_ multiplying by the [power scale factor](#power-scale-factor).
+
 #### `/controls/set_power`
 - Type: `geometry_msgs/Twist`
 - Description: The [set power](#set-power) the robot should exert along all six [axes](#axis).
-
-#### TODO: Add Set Power Unscaled
 
 #### TODO: Add Base Power
 
@@ -619,19 +618,24 @@ The typical definition of a `PID loop` is a control loop involving a _single_ PI
 `Power` is used as a collective term for force and torque. It can refer to either the amount of force applied along linear axe(s) or the amount of torque applied along angular axe(s) or both, depending on the context.
 
 >[!NOTE]
-> This definition of power is _different_ from the physics definition of power, which is the rate at which work is done.
+> In physics, power is the rate at which work is done.
+>
+> This package uses a _different_ definition of power – a collective term for force and torque.
 
 ### Power Disparity
 The `power disparity` is the difference between the [set power](#set-power) and the [actual power](#actual-power). It is computed as $p_d = p_s - p_a$. It is used to determine how close the robot is to achieving the [set power](#set-power).
 
 ### Power Scale Factor
-The `power scale factor` is a multiplier that is applied to the power output by the [PID loops](#pid-loop) and [desired power](#desired-power). It is used to speed up or slow down the robot regardless of the [control types](#control-types) or other parameters. It is set in the [robot config file](#robot-config-file) and can be tuned on the fly.
+The `power scale factor` is a multiplier that is applied to the the [set power unscaled](#set-power-unscaled) to obtain the [set power](#set-power). It is used to speed up or slow down the robot regardless of the [control types](#control-types) or other parameters. It is set in the [robot config file](#robot-config-file) and can be tuned on the fly.
 
 ### Quadratic Programming
 `Quadratic programming` is a mathematical optimization technique that solves a problem in which the objective function is quadratic and the constraints are linear. It is used in the [thruster allocator](#thruster-allocator) to compute the amount of force each thruster needs to exert to achieve a given [set power](#set-power).
 
 ### Set Power
-The `set power` is the amount of [power](#power) that the robot should exert along all six [axes](#axis). It is a combination of the [control efforts](#control-effort) output by the position [PID loop](#pid-loop), velocity [PID loop](#pid-loop), and [desired power](#desired-power). The combination is based upon the [control types](#control-types) that are currently active. The [static power local](#static-power-local) is added to the power along the linear axes to obtain the set power.
+The `set power` is the amount of [power](#power) that the robot should exert along all six [axes](#axis). It is a combination of the [control efforts](#control-effort) output by the position [PID loop](#pid-loop), velocity [PID loop](#pid-loop), and [desired power](#desired-power). The combination is based upon the [control types](#control-types) that are currently active. The [static power local](#static-power-local) is added to the power along the linear axes. The result is then multiplied by the [power scale factor](#power-scale-factor) to obtain the final `set power`.
+
+### Set Power Unscaled
+The `set power unscaled` is the [set power](#set-power) _without_ the [power scale factor](#power-scale-factor) applied.
 
 ### Setpoint
 `setpoint` is the desired value of the robot's [state](#state). It is the value that the robot should move towards.

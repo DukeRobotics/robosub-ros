@@ -37,22 +37,22 @@ class ThrusterAllocator {
     OsqpEigen::Solver solver;
 
     /**
-     * @brief Get unconstrained thruster allocations for given scaled set power by returning
-     *  `wrench_pinv * set_power_scaled`.
+     * @brief Get unconstrained thruster allocations for given set power by returning
+     *  `wrench_pinv * set_power`.
      *
-     * @param set_power_scaled Scaled set power.
+     * @param set_power Set power.
      * @param unconstrained_allocs Unconstrained thruster allocations.
      */
-    void get_pseudoinverse_solution(const Eigen::VectorXd &set_power_scaled, Eigen::VectorXd &unconstrained_allocs);
+    void get_pseudoinverse_solution(const Eigen::VectorXd &set_power, Eigen::VectorXd &unconstrained_allocs);
 
     /**
-     * @brief Get constrained thruster allocations for given scaled set power using quadratic programming. This
-     *  minimizes the norm of `set_power_scaled - wrench * constrained_allocs`.
+     * @brief Get constrained thruster allocations for given set power using quadratic programming. This
+     *  minimizes the norm of `set_power - wrench * constrained_allocs`.
      *
-     * @param set_power_scaled Scaled set power.
+     * @param set_power Set power.
      * @param constrained_allocs Constrained thruster allocations.
      */
-    void get_qp_solution(const Eigen::VectorXd &set_power_scaled, Eigen::VectorXd &constrained_allocs);
+    void get_qp_solution(const Eigen::VectorXd &set_power, Eigen::VectorXd &constrained_allocs);
 
     /**
      * @brief Clip every component of `allocs` to the range [-max_alloc, max_alloc].
@@ -79,15 +79,12 @@ class ThrusterAllocator {
      * @brief Allocates thruster power to achieve the provided set power.
      *
      * @param set_power Power to allocate to thrusters.
-     * @param power_scale_factor Scale factor to apply to `set_power`.
-     * @param set_power_scaled Set power scaled by `power_scale_factor`.
      * @param unconstrained_allocs Unconstrained thruster allocations (maximum absolute value allocation is unlimited).
      * @param constrained_allocs Constrained thruster allocations (maximum absolute value allocation is `max_alloc`).
      * @param actual_power Actual power delivered along each axis with `constrained_allocs`.
-     * @param power_disparity Difference between `set_power_scaled` and `actual_power`.
+     * @param power_disparity Difference between `set_power` and `actual_power`.
      */
-    void allocate_thrusters(const Eigen::VectorXd &set_power, double &power_scale_factor,
-                            Eigen::VectorXd &set_power_scaled, Eigen::VectorXd &unconstrained_allocs,
+    void allocate_thrusters(const Eigen::VectorXd &set_power, Eigen::VectorXd &unconstrained_allocs,
                             Eigen::VectorXd &constrained_allocs, Eigen::VectorXd &actual_power,
                             Eigen::VectorXd &power_disparity);
 };

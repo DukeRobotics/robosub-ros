@@ -42,14 +42,14 @@ ThrusterAllocator::ThrusterAllocator(std::string wrench_file_path, std::string w
     ROS_ASSERT_MSG(solver.initSolver(), "Thruster Allocator: Failed to initialize solver.");
 }
 
-void ThrusterAllocator::get_pseudoinverse_solution(const Eigen::VectorXd &set_power_scaled,
+void ThrusterAllocator::get_pseudoinverse_solution(const Eigen::VectorXd &set_power,
                                                    Eigen::VectorXd &unconstrained_allocs) {
-    unconstrained_allocs = wrench_pinv * set_power_scaled;
+    unconstrained_allocs = wrench_pinv * set_power;
 }
 
-void ThrusterAllocator::get_qp_solution(const Eigen::VectorXd &set_power_scaled, Eigen::VectorXd &constrained_allocs) {
+void ThrusterAllocator::get_qp_solution(const Eigen::VectorXd &set_power, Eigen::VectorXd &constrained_allocs) {
     // Update the gradient of the quadratic cost function
-    Eigen::VectorXd updated_gradient = -wrench.transpose() * set_power_scaled;
+    Eigen::VectorXd updated_gradient = -wrench.transpose() * set_power;
     ROS_ASSERT_MSG(solver.updateGradient(updated_gradient), "Thruster Allocator: Failed to update gradient.");
 
     // Solve the quadratic programming problem and get the solution
@@ -63,26 +63,22 @@ void ThrusterAllocator::clip_allocs(Eigen::VectorXd &allocs) {
     for (int i = 0; i < allocs.size(); i++) allocs(i) = ControlsUtils::clip(allocs(i), -max_alloc, max_alloc);
 }
 
-void ThrusterAllocator::allocate_thrusters(const Eigen::VectorXd &set_power, double &power_scale_factor,
-                                           Eigen::VectorXd &set_power_scaled, Eigen::VectorXd &unconstrained_allocs,
+void ThrusterAllocator::allocate_thrusters(const Eigen::VectorXd &set_power, Eigen::VectorXd &unconstrained_allocs,
                                            Eigen::VectorXd &constrained_allocs, Eigen::VectorXd &actual_power,
                                            Eigen::VectorXd &power_disparity) {
     // Check that set_power and wrench_pinv have compatible dimensions
     ROS_ASSERT_MSG(wrench_pinv.cols() == set_power.rows(),
                    "Set power must have the same number of rows as wrench_pinv.");
 
-    // Scale set power by power scale factor
-    set_power_scaled = set_power * power_scale_factor;
-
     // Compute unconstrained thruster allocations
-    get_pseudoinverse_solution(set_power_scaled, unconstrained_allocs);
+    get_pseudoinverse_solution(set_power, unconstrained_allocs);
 
     // If maximum absolute value allocation is greater than the maximum allowed, compute constrained allocations
-    // using quadratic programming to minimize the difference between the set power scaled and the actual power.
+    // using quadratic programming to minimize the difference between the set power and the actual power.
     // Avoid recomputing the solution if the maximum absolute value allocation is already within the limit.
     double allocs_max = unconstrained_allocs.array().abs().maxCoeff();
     if (allocs_max > max_alloc)
-        get_qp_solution(set_power_scaled, constrained_allocs);
+        get_qp_solution(set_power, constrained_allocs);
     else
         constrained_allocs = unconstrained_allocs;
 
@@ -96,6 +92,6 @@ void ThrusterAllocator::allocate_thrusters(const Eigen::VectorXd &set_power, dou
     // Compute the power that will actually be delivered to the thrusters with constrained allocations
     actual_power = wrench * constrained_allocs;
 
-    // Compute the difference between the set power scaled and the actual power
-    power_disparity = set_power_scaled - actual_power;
+    // Compute the difference between the set power and the actual power
+    power_disparity = set_power - actual_power;
 }

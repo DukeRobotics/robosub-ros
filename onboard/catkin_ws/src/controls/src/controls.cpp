@@ -113,8 +113,8 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     desired_thruster_allocs_pub = nh.advertise<custom_msgs::ThrusterAllocs>("controls/desired_thruster_allocs", 1);
     unconstrained_thruster_allocs_pub =
         nh.advertise<custom_msgs::ThrusterAllocs>("controls/unconstrained_thruster_allocs", 1);
+    set_power_unscaled_pub = nh.advertise<geometry_msgs::Twist>("controls/set_power_unscaled", 1);
     set_power_pub = nh.advertise<geometry_msgs::Twist>("controls/set_power", 1);
-    set_power_scaled_pub = nh.advertise<geometry_msgs::Twist>("controls/set_power_scaled", 1);
     actual_power_pub = nh.advertise<geometry_msgs::Twist>("controls/actual_power", 1);
     power_disparity_pub = nh.advertise<geometry_msgs::Twist>("controls/power_disparity", 1);
     power_disparity_norm_pub = nh.advertise<std_msgs::Float64>("controls/power_disparity_norm", 1);
@@ -405,8 +405,8 @@ bool Controls::set_power_scale_factor_callback(custom_msgs::SetPowerScaleFactor:
 void Controls::run() {
     ros::Rate rate(THRUSTER_ALLOCS_RATE);
 
+    Eigen::VectorXd set_power_unscaled(AXES_COUNT);
     Eigen::VectorXd set_power(AXES_COUNT);
-    Eigen::VectorXd set_power_scaled;
     Eigen::VectorXd unconstrained_allocs;
     Eigen::VectorXd constrained_allocs;
     Eigen::VectorXd actual_power;
@@ -416,8 +416,8 @@ void Controls::run() {
 
     custom_msgs::ThrusterAllocs constrained_allocs_msg;
     custom_msgs::ThrusterAllocs unconstrained_allocs_msg;
+    geometry_msgs::Twist set_power_unscaled_msg;
     geometry_msgs::Twist set_power_msg;
-    geometry_msgs::Twist set_power_scaled_msg;
     geometry_msgs::Twist actual_power_msg;
     geometry_msgs::Twist power_disparity_msg;
     std_msgs::Float64 power_disparity_norm_msg;
@@ -435,13 +435,14 @@ void Controls::run() {
                 case custom_msgs::ControlTypes::DESIRED_POSITION:
                     // If cascaded PID is enabled, then use velocity PID outputs as set power for DESIRED_POSITION
                     // control type
-                    set_power[i] = (cascaded_pid) ? velocity_pid_outputs.at(AXES[i]) : position_pid_outputs.at(AXES[i]);
+                    set_power_unscaled[i] =
+                        (cascaded_pid) ? velocity_pid_outputs.at(AXES[i]) : position_pid_outputs.at(AXES[i]);
                     break;
                 case custom_msgs::ControlTypes::DESIRED_VELOCITY:
-                    set_power[i] = velocity_pid_outputs.at(AXES[i]);
+                    set_power_unscaled[i] = velocity_pid_outputs.at(AXES[i]);
                     break;
                 case custom_msgs::ControlTypes::DESIRED_POWER:
-                    set_power[i] = desired_power.at(AXES[i]);
+                    set_power_unscaled[i] = desired_power.at(AXES[i]);
                     break;
             }
         }
@@ -451,11 +452,14 @@ void Controls::run() {
         ControlsUtils::tf_linear_vector_to_map(static_power_local, static_power_local_map);
 
         // Add static power local to set power
-        for (const AxesEnum &axis : AXES) set_power[axis] += static_power_local_map.at(axis);
+        for (const AxesEnum &axis : AXES) set_power_unscaled[axis] += static_power_local_map.at(axis);
+
+        // Apply power scale factor to set power
+        set_power = set_power_unscaled * power_scale_factor;
 
         // Allocate thrusters
-        thruster_allocator.allocate_thrusters(set_power, power_scale_factor, set_power_scaled, unconstrained_allocs,
-                                              constrained_allocs, actual_power, power_disparity);
+        thruster_allocator.allocate_thrusters(set_power, unconstrained_allocs, constrained_allocs, actual_power,
+                                              power_disparity);
 
         // Convert thruster allocation vector to message
         ControlsUtils::eigen_vector_to_thruster_allocs_msg(constrained_allocs, constrained_allocs_msg);
@@ -472,11 +476,11 @@ void Controls::run() {
         ControlsUtils::eigen_vector_to_thruster_allocs_msg(unconstrained_allocs, unconstrained_allocs_msg);
         unconstrained_thruster_allocs_pub.publish(unconstrained_allocs_msg);
 
+        ControlsUtils::eigen_vector_to_twist(set_power_unscaled, set_power_unscaled_msg);
+        set_power_unscaled_pub.publish(set_power_unscaled_msg);
+
         ControlsUtils::eigen_vector_to_twist(set_power, set_power_msg);
         set_power_pub.publish(set_power_msg);
-
-        ControlsUtils::eigen_vector_to_twist(set_power_scaled, set_power_scaled_msg);
-        set_power_scaled_pub.publish(set_power_scaled_msg);
 
         ControlsUtils::eigen_vector_to_twist(actual_power, actual_power_msg);
         actual_power_pub.publish(actual_power_msg);
