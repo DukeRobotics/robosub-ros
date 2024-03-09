@@ -2,23 +2,26 @@
 
 ## Contents
 1. [Overview](#overview)
-3. [Flow](#flow)
-4. [Basic Usage](#basic-usage)
-5. [Structure](#structure)
-    1. Code
-        1. Explanation of how the code is split into different files
-        2. Include Python scripts
-2. [Config](#config)
-    1. Config file
-        1. Structure of YAML config files
-        2. Launch params
-    3. Data
-        1. Purpose of CSV files
-9. [Dependencies](#dependencies)
-    1. External, non-standard libraries that controls depends on
-6. [Tuning](#tuning)
-7. [Topics](#topics)
-8. [Services](#services)
+2. [Flow](#flow)
+3. [Basic Usage](#basic-usage)
+4. [Structure](#structure)
+    1. [Directory Structure](#directory-structure)
+    2. [Code Structure](#code-structure)
+5. [Config](#config)
+    1. [Robot Config File](#robot-config-file)
+    2. [CSV Files](#csv-files)
+    3. [Launch Config](#launch-config)
+6. [Dependencies](#dependencies)
+    1. [ROS](#ros)
+    2. [ROS Messages](#ros-messages)
+    3. [Non-ROS C++](#non-ros-c)
+    4. [Non-ROS Python](#non-ros-python)
+7. [Tuning](#tuning)
+    1. [Tuning PID](#tuning-pid)
+    2. [Tuning Static Power Global](#tuning-static-power-global)
+    3. [Tuning Power Scale Factor](#tuning-power-scale-factor)
+8. [Topics](#topics)
+9. [Services](#services)
 10. [Development](#development)
     1. Instructions for how to develop controls
     2. Compiling code
@@ -59,7 +62,8 @@ flowchart LR
     pid_position --> control_types{Control Types}
     pid_velocity --> control_types
 
-    control_types --base power--> set_power_unscaled[Set Power]
+    control_types --> base_power[Base Power]
+    base_power --> set_power_unscaled[Set Power]
     static_power_local --> set_power_unscaled[Set Power Unscaled]
     set_power_unscaled --> set_power
     set_power --> thruster_allocator[Thruster Allocator]
@@ -79,6 +83,7 @@ flowchart LR
         pid_velocity
         control_types
         static_power_local
+        base_power
         set_power_unscaled
         set_power
         thruster_allocator
@@ -95,6 +100,11 @@ The system takes in the current [state](#state) of the robot, [desired position]
 
 ## Basic Usage
 Ensure that the robot's current [state](#state) is being published to the `/state` topic and a transformation from the `odom` frame to the `base_link` frame is being published to the `/tf` topic. Both of these are done by the sensor fusion package.
+
+Launch the controls package by running:
+```bash
+roslaunch controls controls.launch
+```
 
 To make the robot move to a [desired state](#desired-state), do the following in the given order and in quick succession:
 1. Call the `/controls/reset_pid_loops` service to [reset the PID loops](#pid-reset).
@@ -169,13 +179,21 @@ This file defines the `Controls` class, as well as the `main` function. It takes
 > [!IMPORTANT]
 > The `Controls` class is the _only_ class that interfaces with ROS.
 >
-> All other classes use pure C++ and do not depend on ROS, except for their use of `ROS_ASSERT_MSG`, `ROS_ERROR`, and `ROS_WARN` and except for the functions in `ControlsUtils` that work with ROS messages.
+> All other classes use pure C++ and do not depend on ROS, with the following exceptions:
+> - All classes use `ROS_ASSERT_MSG`, `ROS_ERROR`, and `ROS_WARN` to log errors and warnings and throw exceptions.
+> - Some functions in `ControlsUtils` work with ROS messages.
+> - Some enums in `controls_types.h` get their values from ROS messages.
 
 #### compute_wrench_matrix.py
 This file is a Python script that computes the [wrench matrix](#wrench-matrix) and its [pseudoinverse](#wrench-matrix-pseudoinverse) for a given robot, given the thruster configuration in the [robot config file](#robot-config-file). It is used to generate the [CSV files](#csv-files) in the `data` directory.
 
+It performs all computations symbolically using the [SymPy](https://www.sympy.org) library, and only converts the results to numerical values at the end. This is done to ensure that the computations are as accurate as possible.
+
 #### comp_2023.py
-This file is a Python script that contains the task planning code used at RoboSub 2023.
+This file is a Python script that contains the task planning code used at RoboSub 2023. _This file has been kept for reference purposes only and is not actively maintained._
+
+#### controls_utils.py
+This file is a Python script that contains various helper functions used exclusively by the `comp_2023.py` script. _This file has been kept for reference purposes only and is not actively maintained._
 
 ## Config
 
@@ -293,11 +311,59 @@ One pair of CSV files is required for each robot. They should be located in the 
 >
 > Finally, do not manually edit the files. They are generated automatically by the `compute_wrench_matrix.py` script.
 
+### Launch Config
+The `launch` directory contains the following launch files:
+- `controls.launch`: Primary launch file for the system.
+- `controls_gdb.launch`: Launch file for debugging the system with GDB.
+- `controls_valgrind.launch`: Launch file for debugging the system with Valgrind.
+
+Each of these launch files contains the following parameters:
+- `sim`: Whether the system is being run in simulation or not. _Currently, this parameter is not used by the system,_ but it may be used in the future.
+- `enable_position_pid`: Whether the position PID loop is enabled or not. If `false`, the system will not run the position PID loop and setting a [desired position](#desired-position) will have no affect on the system. If `true`, the system will use the position PID loop to compute the [control efforts](#control-effort) needed to move the robot to the desired position.
+- `enable_velocity_pid`: Whether the velocity PID loop is enabled or not. If `false`, the system will not run the velocity PID loop and setting a [desired velocity](#desired-velocity) will have no affect on the system. If `true`, the system will use the velocity PID loop to compute the control efforts needed to move the robot to the desired velocity.
+- `cascaded_pid`: Whether the position PID loop is [cascaded](#cascaded-position-pid-loop) or not. If `true`, the system will use the control efforts output by the position PID loop as the [setpoints](#setpoint) for the velocity PID loop. If `false`, the system will use the control efforts output by the position PID loop to compute the [base power](#base-power) directly.
+
+> [!NOTE]
+> If `cascaded_pid` is `true`, then both `enable_position_pid` and `enable_velocity_pid` must also be `true` for the robot to move to the desired position, as both position and velocity PID loops are required to move the robot to the desired position when they are cascaded.
+
+## Dependencies
+### ROS
+- resource_retriever: A ROS package that provides C++ and Python interfaces for retrieving data from URLs. It is used by the system to read and write the [robot config files](#robot-config-file) and [CSV files](#csv-files).
+- roscpp: The C++ client library for ROS. It is used by the system to interface with ROS.
+- roslib: The core library for ROS. It is used by the system to interface with ROS.
+- rospy: The Python client library for ROS. It is used by the Python scripts to interface with ROS.
+- tf: The first version of the ROS transformation library. It is used by the `comp_2023.py` script to transform between different frames.
+- tf2_ros: The second version of the ROS transformation library. It is used by the system to transform between different frames.
+
+### ROS Messages
+- custom_msgs: Custom ROS messages used by the system. These are defined in the `custom_msgs` package in the `core` workspace.
+- [geometry_msgs](http://wiki.ros.org/geometry_msgs): ROS messages for geometric primitives such as points, vectors, and poses.
+- [nav_msgs](http://wiki.ros.org/nav_msgs): ROS messages for navigation-related data such as odometry, paths, and maps.
+- [std_msgs](http://wiki.ros.org/std_msgs): ROS messages for common data types such as strings, floats, and integers.
+- [std_srvs](http://wiki.ros.org/std_srvs): ROS services for common data types such as booleans and empty requests.
+
+### Non-ROS C++
+- [Eigen3](https://eigen.tuxfamily.org): A C++ library for linear algebra. It is used by the system to perform matrix operations.
+- [OSQP](https://osqp.org): A C library for solving [quadratic programming](#quadratic-programming) problems. It is used by the [thruster allocator](#thruster-allocator) to compute the [thrust allocation vector](#thrust-allocation-vector).
+- [OSQP-Eigen](https://robotology.github.io/osqp-eigen): A C++ wrapper for OSQP. It is used by the system to interface with OSQP.
+- [yaml-cpp](https://github.com/jbeder/yaml-cpp): A C++ library for parsing YAML files. It is used by the system to parse the [robot config files](#robot-config-file).
+
+### Non-ROS Python
+- [NumPy](https://numpy.org): A Python library for numerical computing. It is used by the `compute_wrench_matrix.py` script to perform matrix operations.
+- [PyYAML](https://pyyaml.org): A Python library for parsing YAML files. It is used by the `compute_wrench_matrix.py` script to parse the [robot config files](#robot-config-file).
+- [Pandas](https://pandas.pydata.org): A Python library for data manipulation and analysis. It is used by the `compute_wrench_matrix.py` script to write the [CSV files](#csv-files).
+- [SymPy](https://www.sympy.org): A Python library for symbolic mathematics. It is used by the `compute_wrench_matrix.py` script to perform symbolic computations.
+
+> [!NOTE]
+> C++ and Python standard libraries that the system depends on are not included in this list.
+
 ## Tuning
 ### Tuning PID
 The [PID gains](#pid-gains) can be tuned on the fly, without needing to restart the system. Call the `/controls/set_pid_gains` service with a list of PID gains to update and their new values. A list of the currently used PID gains is published to the `/controls/pid_gains` topic.
 
 It is recommended to keep position PID integral gains to zero. This is because the integral term accumulates error over time, and can make the system unstable. A non-zero integral gain is used to eliminate steady-state error, but this is not necessary in this system because any persistent external forces on the robot can be counteracted by setting the [static power global](#static-power-global). Thus, if the position PID outputs are zero, the robot will not move, and there will be no steady-state error.
+
+A separate set of PID gains is used for the regular position PID loop and [cascaded position PID loop](#cascaded-position-pid-loop). The gains for the cascaded position PID loops should be tuned to achieve the desired velocity setpoints.
 
 ### Tuning Static Power Global
 The [static power global](#static-power-global) can be tuned on the fly, without needing to restart the system. Call the `/controls/set_static_power_global` service with the new value of the static power global. The current value of the static power global is published to the `/controls/static_power_global` topic.
@@ -360,8 +426,6 @@ The controls package publishes to the following topics:
 #### `/controls/set_power`
 - Type: `geometry_msgs/Twist`
 - Description: The [set power](#set-power) the robot should exert along all six [axes](#axis).
-
-#### TODO: Add Base Power
 
 #### `/controls/actual_power`
 - Type: `geometry_msgs/Twist`
@@ -519,6 +583,9 @@ The controls package advertises the following services:
 ### Called
 The controls package does not call any services.
 
+## Development
+
+
 ## Glossary
 ### Actual Power
 The `actual power` is the amount of [power](#power) that the robot is actually exerting along all [axes](#axis). It is computed as $p_a = W t_c$, where $W$ is the [wrench matrix](#wrench-matrix) and $t_c$ is the [constrained thrust allocation vector](#constrained-thrust-allocation-vector).
@@ -528,6 +595,11 @@ An `axis` is a direction the robot can move in. There are six axes: x, y, z, rol
 
 ### Base Power
 The `base power` is a combination of the [control efforts](#control-effort) output by the position [PID loop](#pid-loop), velocity [PID loop](#pid-loop), and [desired power](#desired-power). The combination is based upon the [control types](#control-types) that are currently active. It is used to compute the [set power unscaled](#set-power-unscaled).
+
+### Cascaded Position PID Loop
+The `cascaded position PID loop` is a [PID loop](#pid-loop) that uses the output of the position PID loop to compute the [setpoint](#setpoint) for the velocity PID loop. Thus, instead of controling the [power](#power) directly, the `cascaded position PID loop` only controls the velocity, and the velocity PID loop controls the power.
+
+Cascaded or not, the end result of any position PID loop is to achieve a [desired position](#desired-position). However, cascading the position PID loop can make the robot's motion smoother and more stable.
 
 ### Constrained Thrust Allocation Vector
 The `constrained thrust allocation vector` is the amount of force each thruster needs to exert to achieve a given [set power](#set-power), _accounting for_ the [thrust constraints](#thrust-constraints). It is equal to the [unconstrained thrust allocation vector](#unconstrained-thrust-allocation-vector) if all entries are within the [thrust constraints](#thrust-constraints). Otherwise, it is the best approximate solution computed using [quadratic programming](#quadratic-programming) that is within the [thrust constraints](#thrust-constraints). It is denoted as $t_c$.
@@ -585,6 +657,8 @@ The `initial orientation` is the orientation of the robot when sensor fusion is 
 
 This package uses OSQP-Eigen as its [quadratic programming](#quadratic-programming) solver.
 
+See the [OSQP documentation](https://osqp.org/docs/index.html) and the [OSQP-Eigen documentation](https://robotology.github.io/osqp-eigen) for more information.
+
 ### PID Controller
 A `PID controller` is a control loop feedback mechanism widely used in robotics, industrial control systems, and other applications requiring continuously modulated control.
 
@@ -613,7 +687,7 @@ The `PID gains` are the parameters of a [PID controller](#pid-controller). $K_p$
 The `PID gains` are tuned to achieve a balance between the robot's response time, stability, and overshoot. They are typically tuned using a combination of intuition, trial and error, and tuning algorithms.
 
 ### PID Loop
-A `PID loop` is a control loop that uses a set of six [PID controllers](#pid-controller) to compute the [control efforts](#control-effort) based on the error between the [desired state](#desired-state) and the robot's current [state](#state). There are two PID loops in this package: one for position and one for velocity.
+A `PID loop` is a control loop that uses a set of six [PID controllers](#pid-controller) to compute the [control efforts](#control-effort) based on the error between the [desired state](#desired-state) and the robot's current [state](#state). There are two PID loops in this package: one for position and one for velocity. The position PID loop can be [cascaded](#cascaded-position-pid-loop) with the velocity PID loop.
 
 The typical definition of a `PID loop` is a control loop involving a _single_ PID controller. However, in this package, the term is used to refer to the entire set of six PID controllers, and the loops are distinguished by the [control type](#control-type) they are controlling.
 
@@ -715,7 +789,7 @@ The rows, in top to bottom order, correspond to the x, y, z, roll, pitch, and ya
 
 The columns, in left to right order, correspond to the thrusters in the [robot config file](#robot-config-file) in top to bottom order.
 
-It is used in the [thrust allocation](#thrust-allocation) problem to compute the amount of force each thruster needs to exert to achieve a given [set power](#set-power). It is computed using the [thruster configuration](#thruster-configuration) and the [thruster allocation](#thruster-allocation) matrix.
+It is used in [thrust allocation](#thrust-allocation) to compute the amount of force each thruster needs to exert to achieve a given [set power](#set-power).
 
 ### Wrench Matrix Pseudoinverse
 The `wrench matrix pseudoinverse` is the [Moore-Penrose inverse](https://en.wikipedia.org/wiki/Moore–Penrose_inverse) of the [wrench matrix](#wrench-matrix). It is used in the [thruster allocator](#thruster-allocator) to compute the [unconstrained thrust allocations](#unconstrained-thrust-allocations). It is sometimes abbreviated as `wrench matrix pinv` and is denoted as $W^+$.
