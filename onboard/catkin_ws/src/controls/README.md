@@ -21,13 +21,17 @@
     2. [Tuning Static Power Global](#tuning-static-power-global)
     3. [Tuning Power Scale Factor](#tuning-power-scale-factor)
 8. [Topics](#topics)
+    1. [Subscribed](#subscribed)
+    2. [Published](#published)
 9. [Services](#services)
+    1. [Advertised](#advertised)
+    2. [Called](#called)
 10. [Development](#development)
     1. Instructions for how to develop controls
     2. Compiling code
     3. Adding new libraries to CMakeLists
     4. Using controls_gdb and controls_valgrind
-11. [Glossary](#glossary)
+11. [Appendix](#appendix)
 
 ## Overview
 The controls package is responsible for taking in current [state](#state) and [desired state](#desired-state) messages and outputting a [thrust allocation vector](#thrust-allocation-vector) to achieve that state.
@@ -584,9 +588,108 @@ The controls package advertises the following services:
 The controls package does not call any services.
 
 ## Development
+### Modifying Dependencies
+If a new source file is added to the package, or if the package's dependencies are modified, the `CMakeLists.txt` and `package.xml` files must be updated to reflect these changes so that Catkin can compile the package.
+
+#### Adding Source Files
+To add a new source file to the package, add the file to the `src` directory and add the file's name to `SOURCES` variable in the `CMakeLists.txt` file. For example, if the file is named `new_file.cpp`, add the following line to the `CMakeLists.txt` file:
+```cmake
+set(SOURCES
+    ...
+    src/new_file.cpp
+    ...
+)
+```
+
+#### Adding ROS Dependencies
+To add a new ROS dependency to the package, add the dependency to the `find_package` and `catkin_package` calls in the `CMakeLists.txt` file. For example, to add the `new_dependency` dependency, add the following lines to the `CMakeLists.txt` file:
+```cmake
+find_package(catkin REQUIRED COMPONENTS
+    ...
+    new_dependency
+    ...
+)
+...
+catkin_package(
+    CATKIN_DEPENDS ... new_dependency ...
+)
+```
+Also add the dependency to the `package.xml` file. For example, to add the `new_dependency` dependency, add the following line to the `package.xml` file:
+```xml
+<depend>new_dependency</depend>
+```
+
+#### Adding Non-ROS C++ Dependencies
+To add a new non-ROS C++ dependency to the package, add the dependency to the `target_link_libraries` call in the `CMakeLists.txt` file. For example, to add the `new_dependency` dependency, add the following line to the `CMakeLists.txt` file:
+```cmake
+target_link_libraries(controls
+    ...
+    new_dependency
+    ...
+)
+```
+
+#### Adding Precompiled Headers
+The `controls` package precompiles some headers to speed up compilation, at the cost of increased memory usage.
+
+If a new header file is added to the package that takes a long time to compile, consider adding it to the precompiled headers list in the `CMakeLists.txt` file. For example, if the file is named `new_header.h`, add the following line to the `CMakeLists.txt` file:
+```cmake
+target_precompile_headers(controls
+    PRIVATE
+        ...
+        <src/new_header.h>
+        ...
+)
+```
+
+### Compiling
+When developing C++ code, first run
+```bash
+cd onboard/catkin_ws
+```
+to change to the `onboard/catkin_ws` directory. Then, compile the package with:
+```bash
+catkin build controls
+```
+Then, run the package with the following command:
+```bash
+roslaunch controls controls.launch
+```
+
+> [!NOTE]
+> If only the controls package is modified, it is not necessary to recompile the entire workspace with `./build.sh`. Instead, only the controls package can be recompiled with the above command.
+>
+> However, if any compiled dependencies of the controls package are modified, then they must be recompiled. For example, if the `custom_msgs` package is modified, then the `core` workspace must be recompiled with `./build.sh` or with `catkin build` from the `core/catkin_ws` directory.
+
+### Debugging
+When developing C++ code, it is often useful to debug the code with GDB or Valgrind. The `controls` package provides launch files for debugging with GDB and Valgrind. Run them with the following commands:
+```bash
+roslaunch controls controls_gdb.launch
+```
+```bash
+roslaunch controls controls_valgrind.launch
+```
+
+### Structural Principles
+The `controls` package is designed to be modular and extensible. It is divided into several classes, each of which is responsible for a specific aspect of the system. The classes are designed to be as independent as possible, so that they can be modified or replaced without affecting the rest of the system.
+
+Helper functions are used to perform common tasks that are used by multiple classes. These functions are defined in the `controls_utils` namespace in the `controls_utils.h` and `controls_utils.cpp` files.
+
+The `Controls` class is the main class of the system. It is responsible for initializing the system, running the main loop, and interfacing with ROS. It uses the other classes to perform the tasks required to control the robot. Its primary functionality is achieved in two methods: `run` and `state_callback`.
+
+The `state_callback` method is called whenever a new [state](#state) message is received. It is responsible for updating the system's state, running the [PID loops](#pid-loop) and computing the [control efforts](#control-effort) needed to move the robot to the [desired state](#desired-state). It publishes the [control efforts](#control-effort) and other information computed by the PID loops. It also updates the [static power local](#static-power-local) based on the robot's current orientation and publishes it.
+
+The `run` method is the main loop of the system, run at a fixed rate defined in the `THRUSTER_ALLOCS_RATE` constant. It is responsible for computing the [base power](#base-power), [set power unscaled](#set-power-unscaled), and [set power](#set-power). It calls the [thruster allocator](#thrust-allocation) to obtain the [thrust allocation vector](#thrust-allocation-vector). It publishes the thrust allocation vector, along with other values computed by the thruster allocator and current values of configurable system parameters.
+
+### On-the-Fly Parameter Updates
+The system is designed to allow the [PID gains](#pid-gains), [static power global](#static-power-global), and [power scale factor](#power-scale-factor) to be updated on the fly, without needing to restart the system. This is achieved by using a pair of a ROS service and a ROS topic for each parameter.
+
+To update a parameter, call the appropriate service with the new value of the parameter. The service will update the parameter and the [robot config file](#robot-config-file) with the new value. The system will then use the new value of the parameter in its calculations. The new value of the parameter is also published to the appropriate topic, so that it can be monitored.
+
+The [robot config file](#robot-config-file) is updated to ensure that the new value of the parameter is saved and will be used when the system is restarted. It also allows the parameters to be committed to version control, so that the changes can be tracked and reverted if necessary.
 
 
-## Glossary
+## Appendix
 ### Actual Power
 The `actual power` is the amount of [power](#power) that the robot is actually exerting along all [axes](#axis). It is computed as $p_a = W t_c$, where $W$ is the [wrench matrix](#wrench-matrix) and $t_c$ is the [constrained thrust allocation vector](#constrained-thrust-allocation-vector).
 
