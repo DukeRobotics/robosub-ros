@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   custom_msgs
   std_srvs
   tf
-  pid
+  tf2_ros
   resource_retriever
 )
 
