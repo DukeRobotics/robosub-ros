@@ -49,7 +49,7 @@ class PIDManager {
     AxesMap<PIDGainsMap> get_axes_pid_gains() const;
 
     /**
-     * @brief Run PID loops.
+     * @brief Run PID loop.
      *
      * @param errors Errors for each axis.
      * @param deltaTimes Delta times for each axis.
@@ -57,15 +57,13 @@ class PIDManager {
      * @param[out] infos PID info for each axis.
      * @param derivatives Provided derivatives for each axis.
      */
-    void run_loops(const AxesMap<double> &errors, const AxesMap<double> &deltaTimes, AxesMap<double> &outputs,
-                   AxesMap<PIDInfo> &infos, const AxesMap<double> &derivatives = AxesMap<double>());
+    void run_loop(const AxesMap<double> &errors, const AxesMap<double> &deltaTimes, AxesMap<double> &outputs,
+                  AxesMap<PIDInfo> &infos, const AxesMap<double> &derivatives = AxesMap<double>());
 
     /**
-     * @brief Reset PID loop for a given axis.
-     *
-     * @param axis_to_reset Axis to reset.
+     * @brief Reset all PID controllers.
      */
-    void reset(AxesEnum axis_to_reset);
+    void reset();
 };
 
 #endif

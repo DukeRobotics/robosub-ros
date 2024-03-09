@@ -55,7 +55,7 @@ class PID {
 
     /**
      * @brief The weights of the proportional, integral, derviative, and feedforward terms. Changes to this map will be
-     *  immediately reflected in the next iteration of the PID loop.
+     *  immediately reflected in the next iteration of the PID controller.
      */
     PIDGainsMap pid_gains;
 
@@ -63,7 +63,7 @@ class PID {
     // State variables
 
     /**
-     * @brief The integral of the error function. Updated every iteration of the PID loop.
+     * @brief The integral of the error function. Updated every iteration of the PID controller.
      */
     double integral = 0;
 
@@ -123,7 +123,7 @@ class PID {
     const PIDGainsMap &get_pid_gains() const;
 
     /**
-     * @brief Reset PID loop in preparation for change in setpoint.
+     * @brief Reset PID controller in preparation for change in setpoint.
      */
     void reset();
 
@@ -138,17 +138,17 @@ class PID {
     double second_order_butterworth(const std::array<double, 3> &values, const std::array<double, 3> &filtered_values);
 
     /**
-     * @brief Run one iteration of the PID loop. `pid_gains` and `pid_terms` must be set before calling this function.
+     * @brief Run one iteration of the controller. `pid_gains` and `pid_terms` must be set before calling this function.
      *
      * @param error The difference between the setpoint and the current value. If angular, this should be in radians in
      *  the range [-pi, pi].
-     * @param delta_time The time elapsed since the last iteration of the PID loop. Must be positive.
-     * @param[out] info The PIDInfo object containing values computed by the PID loop.
+     * @param delta_time The time elapsed since the last iteration of the PID controller. Must be positive.
+     * @param[out] info The PIDInfo object containing values computed by the PID controller.
      * @param provided_derivative The derivative of the error, used only if `derivative_type` is
      *  `PIDDerivativeTypesEnum::provided`.
      * @return The control effort.
      */
-    double run_loop(double error, double delta_time, PIDInfo &info, double provided_derivative = 0);
+    double run(double error, double delta_time, PIDInfo &info, double provided_derivative = 0);
 };
 
 #endif

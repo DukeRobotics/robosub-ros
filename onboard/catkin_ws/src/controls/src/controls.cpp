@@ -225,8 +225,8 @@ void Controls::state_callback(const nav_msgs::Odometry msg) {
     // Run position PID loop
     if (enable_position_pid)
         pid_managers.at(PIDLoopTypesEnum::POSITION)
-            .run_loops(position_error_map, delta_time_map, position_pid_outputs, position_pid_infos,
-                       position_pid_provided_derivatives);
+            .run_loop(position_error_map, delta_time_map, position_pid_outputs, position_pid_infos,
+                      position_pid_provided_derivatives);
 
     // Publish position control efforts
     geometry_msgs::Twist position_efforts_msg;
@@ -266,8 +266,8 @@ void Controls::state_callback(const nav_msgs::Odometry msg) {
     // Run velocity PID loop
     if (enable_velocity_pid)
         pid_managers.at(PIDLoopTypesEnum::VELOCITY)
-            .run_loops(velocity_error_map, delta_time_map, velocity_pid_outputs, velocity_pid_infos,
-                       velocity_pid_provided_derivatives);
+            .run_loop(velocity_error_map, delta_time_map, velocity_pid_outputs, velocity_pid_infos,
+                      velocity_pid_provided_derivatives);
 
     // Publish velocity control efforts
     geometry_msgs::Twist velocity_efforts_msg;
@@ -341,20 +341,8 @@ bool Controls::set_pid_gains_callback(custom_msgs::SetPIDGains::Request &req, cu
 }
 
 bool Controls::reset_pid_loops_callback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res) {
-    // Reset all active PID loops
-    for (const AxesEnum &axis : AXES) {
-        // Reset position PID loop if control type is desired position
-        if (control_types[axis] == ControlTypesEnum::DESIRED_POSITION) {
-            pid_managers[PIDLoopTypesEnum::POSITION].reset(axis);
-
-            // Reset velocity PID loop if PID is cascaded, as position PID acts on the robot through velocity PID
-            if (cascaded_pid) pid_managers[PIDLoopTypesEnum::VELOCITY].reset(axis);
-        }
-
-        // Reset velocity PID loop if control type is desired twist
-        else if (control_types[axis] == ControlTypesEnum::DESIRED_VELOCITY)
-            pid_managers[PIDLoopTypesEnum::VELOCITY].reset(axis);
-    }
+    // Reset all PID loops
+    for (const PIDLoopTypesEnum &loop : PID_LOOP_TYPES) pid_managers[loop].reset();
 
     res.success = true;
     res.message = "Reset PID loops successfully.";
@@ -364,17 +352,6 @@ bool Controls::reset_pid_loops_callback(std_srvs::Trigger::Request &req, std_srv
 bool Controls::set_static_power_global_callback(custom_msgs::SetStaticPower::Request &req,
                                                 custom_msgs::SetStaticPower::Response &res) {
     tf2::fromMsg(req.static_power, static_power_global);
-
-    // TODO: Move this comment to the README
-    // Update robot config file if static power was updated successfully
-    // Logs an error if file could not be updated and shuts down the node.
-    // Why throw an exception if file could not be updated, but not if static power was invalid?
-    // Answer: because if the static power was invalid, then we give the user another chance to enter valid static power
-    // and don't make any changes. If the file could not be updated successfully, then we don't want to give the user
-    // another chance to enter valid static power because the file will likely still not be updated successfully and
-    // despite being incomplete, we have no way of undoing the changes (if any) that were made to the file. It is likely
-    // users will make frequent mistakes when calling this service, but it is unlikely writing to config file will
-    // frequently fail.
 
     // Update static power in robot config file
     // Throws an exception if file could not be updated successfully; will shut down the node
@@ -431,7 +408,7 @@ void Controls::run() {
     while (ros::ok()) {
         // Get set power based on control types
         for (int i = 0; i < AXES_COUNT; i++) {
-            switch (control_types[AXES[i]]) {
+            switch (control_types.at(AXES[i])) {
                 case custom_msgs::ControlTypes::DESIRED_POSITION:
                     // If cascaded PID is enabled, then use velocity PID outputs as set power for DESIRED_POSITION
                     // control type

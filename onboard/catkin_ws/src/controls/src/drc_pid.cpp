@@ -49,7 +49,7 @@ double PID::second_order_butterworth(const std::array<double, 3> &values,
             ((-2 * c * c) + 2) * filtered_values.at(1));
 }
 
-double PID::run_loop(double error, double delta_time, PIDInfo &info, double provided_derivative) {
+double PID::run(double error, double delta_time, PIDInfo &info, double provided_derivative) {
     // If there are validation errors, an exception is not thrown to maintain continuous operation of controls in the
     // event of a temporary error. Instead, the function returns 0 and prints an error message.
 

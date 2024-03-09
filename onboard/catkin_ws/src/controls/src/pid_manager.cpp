@@ -33,18 +33,18 @@ AxesMap<PIDGainsMap> PIDManager::get_axes_pid_gains() const {
     return axes_pid_gains;
 }
 
-void PIDManager::run_loops(const AxesMap<double> &errors, const AxesMap<double> &deltaTimes, AxesMap<double> &outputs,
-                           AxesMap<PIDInfo> &infos, const AxesMap<double> &derivatives) {
-    // Run PID loops with given errors and delta times
+void PIDManager::run_loop(const AxesMap<double> &errors, const AxesMap<double> &deltaTimes, AxesMap<double> &outputs,
+                          AxesMap<PIDInfo> &infos, const AxesMap<double> &derivatives) {
+    // Run PID loop with given errors and delta times
     // Store outputs in given outputs map
     for (const AxesEnum &axis : AXES) {
         double provided_derivative = (derivatives.count(axis) > 0) ? derivatives.at(axis) : 0;
         outputs[axis] =
-            pid_controllers.at(axis).run_loop(errors.at(axis), deltaTimes.at(axis), infos[axis], provided_derivative);
+            pid_controllers.at(axis).run(errors.at(axis), deltaTimes.at(axis), infos[axis], provided_derivative);
     }
 }
 
-void PIDManager::reset(AxesEnum axis_to_reset) {
-    // Reset PID loop at given axis
-    pid_controllers.at(axis_to_reset).reset();
+void PIDManager::reset() {
+    // Reset all PID controllers
+    for (const AxesEnum &axis : AXES) pid_controllers.at(axis).reset();
 }
