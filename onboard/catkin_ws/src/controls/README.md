@@ -193,8 +193,9 @@ pid:
       Ki: <float>
       Kd: <float>
       Ff: <float>
-      control_effort_min: <float>
-      control_effort_max: <float>
+      control_effort:
+        min: <float>
+        max: <float>
       derivative_type: <0 or 1>
       error_ramp_rate: <float>
     y:
@@ -264,7 +265,7 @@ wrench_matrix_file_path: <string>
 wrench_matrix_pseudoinverse_file_path: <string>
 ```
 
-The `pid` field contains the [PID gains](#pid-gains) and other PID configuration for the system. It contains subfields for each type of [PID loop](#pid-loop): `position`, `position_cascaded`, and `velocity`. Each of these subfields contains subfields for each [axis](#axis) that the system can control: `x`, `y`, `z`, `roll`, `pitch`, and `yaw`. Each of these subfields contains further subfields for the PID gains and other PID configuration for that combination of axis and PID loop, including the [`control_effort_min` and `control_effort_max`](#control-effort-limits), [`derivative type`](#derivative-type), and [`error ramp rate`](#error-ramp-rate). The `control_effort_min` must be less than or equal to `control_effort_max`.
+The `pid` field contains the [PID gains](#pid-gains) and other PID configuration for the system. It contains subfields for each type of [PID loop](#pid-loop): `position`, `position_cascaded`, and `velocity`. Each of these subfields contains subfields for each [axis](#axis) that the system can control: `x`, `y`, `z`, `roll`, `pitch`, and `yaw`. Each of these subfields contains further subfields for the PID gains and other PID configuration for that combination of axis and PID loop, including the [`control_effort: min` and `control_effort: max`](#control-effort-limits), [`derivative type`](#derivative-type), and [`error ramp rate`](#error-ramp-rate). The `control_effort: min` must be less than or equal to `control_effort: max`.
 
 The [`desired_power_limits`](#desired-power-limits) field contains the minimum and maximum [desired power](#desired-power) that can be used for each axis. It contains subfields for each axis: `x`, `y`, `z`, `roll`, `pitch`, and `yaw`. Each of these subfields contains subfields `min` and `max` for the minimum and maximum desired power, respectively. The minimum desired power must be less than or equal to the maximum desired power.
 
