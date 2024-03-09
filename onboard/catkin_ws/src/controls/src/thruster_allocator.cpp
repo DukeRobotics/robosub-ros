@@ -85,10 +85,6 @@ void ThrusterAllocator::allocate_thrusters(const Eigen::VectorXd &set_power, Eig
     // Clip constrained allocs to guarantee that they are within the limits
     clip_allocs(constrained_allocs);
 
-    // Warn if constrained allocations are different from unconstrained allocations, within tolerance
-    if (!constrained_allocs.isApprox(unconstrained_allocs))
-        ROS_WARN("Thruster Allocator: Thruster allocations constrained.");
-
     // Compute the power that will actually be delivered to the thrusters with constrained allocations
     actual_power = wrench * constrained_allocs;
 
