@@ -392,15 +392,15 @@ The controls package subscribes to the following topics:
 
 #### `/controls/desired_position`
 - Type: `geometry_msgs/Pose`
-- Description: The [desired position](#desired-position) the robot should move to. It must be defined in the `odom` (Earth-fixed) frame. Its orientation quaternion must have unit length.
+- Description: The [desired position](#desired-position) the robot should move to. It must be defined in the `odom` (Earth-fixed) frame. Its orientation quaternion must have unit length. By default, a desired position of `x: 0, y: 0, z: 0` is used, with orientation quaternion `x: 0, y: 0, z: 0, w: 1`.
 
 #### `/controls/desired_velocity`
 - Type: `geometry_msgs/Twist`
-- Description: The [desired velocity](#desired-velocity) the robot should move with.
+- Description: The [desired velocity](#desired-velocity) the robot should move with. By default, a desired velocity of `linear: x: 0, y: 0, z: 0`, `angular: x: 0, y: 0, z: 0` is used.
 
 #### `/controls/desired_power`
 - Type: `geometry_msgs/Twist`
-- Description: The [desired power](#desired-power) the robot should exert along all six [axes](#axis). It must be within the [desired power limits](#desired-power-limits).
+- Description: The [desired power](#desired-power) the robot should exert along all six [axes](#axis). It must be within the [desired power limits](#desired-power-limits). By default, a desired power of `linear: x: 0, y: 0, z: 0`, `angular: x: 0, y: 0, z: 0` is used.
 
 ### Published
 The controls package publishes to the following topics:
@@ -507,27 +507,27 @@ The controls package advertises the following services:
 - Description: Enables or disables the system, effectively starting or stopping the robot. If enabled, the system will start publishing [thrust allocation vectors](#thrust-allocation-vector) to the `/controls/thruster_allocs` topic. If disabled, the system will stop publishing thrust allocation vectors.
 - Request:
     - `bool data`
-        - `true`: Enable the system
-        - `false`: Disable the system
+        - `true`: Enable the system.
+        - `false`: Disable the system.
 - Response:
     - `bool success`
-        - `true`: The system was successfully enabled or disabled
-        - `false`: The system was not successfully enabled or disabled
+        - `true`: The system was successfully enabled or disabled.
+        - `false`: The system was not successfully enabled or disabled.
     - `string message`
-        - A human-readable message indicating the success or failure of the request
+        - A human-readable message indicating the success or failure of the request.
 
 #### `/controls/set_control_types`
 - Type: `custom_msgs/SetControlTypes`
-- Description: Sets the [control types](#control-types) for each axis.
+- Description: Sets the [control types](#control-types) for each [axis](#axis). By default, `DESIRED_POSITION` is used for all axes.
 - Request:
     - `custom_msgs/ControlTypes control_types`
-        - The new [control types](#control-types) for each axis
+        - The new [control types](#control-types) for each axis.
 - Response:
     - `bool success`
-        - `true`: The control types were successfully set
-        - `false`: The control types were not successfully set
+        - `true`: The control types were successfully set.
+        - `false`: The control types were not successfully set.
     - `string message`
-        - A human-readable message indicating the success or failure of the request
+        - A human-readable message indicating the success or failure of the request.
 
 #### `/controls/set_pid_gains`
 - Type: `custom_msgs/SetPIDGains`
@@ -537,10 +537,10 @@ The controls package advertises the following services:
         - The updated [PID gains](#pid-gains) for the system. PID gains that are not included in the request will not be updated.
 - Response:
     - `bool success`
-        - `true`: The PID gains were successfully set
-        - `false`: The PID gains were not successfully set
+        - `true`: The PID gains were successfully set.
+        - `false`: The PID gains were not successfully set.
     - `string message`
-        - A human-readable message indicating the success or failure of the request
+        - A human-readable message indicating the success or failure of the request.
 
 #### `/controls/reset_pid_loops`
 - Type: `std_srvs/Trigger`
@@ -549,10 +549,10 @@ The controls package advertises the following services:
     - None
 - Response:
     - `bool success`
-        - `true`: The PID loops were successfully reset
-        - `false`: The PID loops were not successfully reset
+        - `true`: The PID loops were successfully reset.
+        - `false`: The PID loops were not successfully reset.
     - `string message`
-        - A human-readable message indicating the success or failure of the request
+        - A human-readable message indicating the success or failure of the request.
 
 #### `/controls/set_static_power_global`
 - Type: `custom_msgs/SetStaticPower`
@@ -562,23 +562,23 @@ The controls package advertises the following services:
         - The updated [static power global](#static-power-global) for the system
 - Response:
     - `bool success`
-        - `true`: The static power global was successfully set
-        - `false`: The static power global was not successfully set
+        - `true`: The static power global was successfully set.
+        - `false`: The static power global was not successfully set.
     - `string message`
-        - A human-readable message indicating the success or failure of the request
+        - A human-readable message indicating the success or failure of the request.
 
 #### `/controls/set_power_scale_factor`
 - Type: `custom_msgs/SetPowerScaleFactor`
 - Description: Sets the [power scale factor](#power-scale-factor) for the system. Updates the [robot config file](#robot-config-file) with the new power scale factor.
 - Request:
     - `float64 power_scale_factor`
-        - The updated [power scale factor](#power-scale-factor) for the system
+        - The updated [power scale factor](#power-scale-factor) for the system.
 - Response:
     - `bool success`
-        - `true`: The power scale factor was successfully set
-        - `false`: The power scale factor was not successfully set
+        - `true`: The power scale factor was successfully set.
+        - `false`: The power scale factor was not successfully set.
     - `string message`
-        - A human-readable message indicating the success or failure of the request
+        - A human-readable message indicating the success or failure of the request.
 
 > [!NOTE]
 > When calling one of the services above to update the PID gains, static power global, or power scale factor, if the request is not valid, the system will not update the respective value(s), will return `false` in the response, and will continue operation.
