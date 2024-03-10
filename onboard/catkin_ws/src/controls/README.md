@@ -9,7 +9,7 @@ Once the system obtains the power needed along each axis, the [thruster allocato
 
 The system can be enabled and disabled, meaning it will start and stop publishing thruster allocations. Disabling the system acts as a software emergency stop.
 
-The system supports mixing and matching [control types](#control-types), whereby different forms of desired state inputs can be used for different axes. For example, if desired velocity is used for x, y, and z, and, at the same time, desired position is used for roll, pitch, and yaw, the robot will move with the given linear velocity while keeping a fixed orientation.
+The system supports mixing [control types](#control-types), whereby different forms of desired state inputs can be used for different axes. For example, if desired velocity is used for x, y, and z, and, at the same time, desired position is used for roll, pitch, and yaw, the robot will move with the given linear velocity while keeping a fixed orientation.
 
 The system also supports applying [static power](#static-power-global) – a fixed amount of power, regardless of the desired state, added to the power applied along the linear axes. This is useful for counteracting constant external forces such as buoyancy or water currents.
 
