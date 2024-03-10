@@ -112,7 +112,8 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
 
     // Initialize publishers for output topics
     thruster_allocs_pub = nh.advertise<custom_msgs::ThrusterAllocs>("controls/thruster_allocs", 1);
-    constrained_thruster_allocs_pub = nh.advertise<custom_msgs::ThrusterAllocs>("controls/constrained_thruster_allocs", 1);
+    constrained_thruster_allocs_pub =
+        nh.advertise<custom_msgs::ThrusterAllocs>("controls/constrained_thruster_allocs", 1);
     unconstrained_thruster_allocs_pub =
         nh.advertise<custom_msgs::ThrusterAllocs>("controls/unconstrained_thruster_allocs", 1);
     base_power_pub = nh.advertise<geometry_msgs::Twist>("controls/base_power", 1);
