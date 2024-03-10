@@ -27,16 +27,17 @@
     1. [Advertised](#advertised)
     2. [Called](#called)
 10. [Development](#development)
-    1. Instructions for how to develop controls
-    2. Compiling code
-    3. Adding new libraries to CMakeLists
-    4. Using controls_gdb and controls_valgrind
+    1. [Modifying Dependencies](#modifying-dependencies)
+    2. [Compiling](#compiling)
+    3. [Debugging](#debugging)
+    4. [Structural Principles](#structural-principles)
+    5. [On-the-Fly Parameter Updates](#on-the-fly-parameter-updates)
 11. [Appendix](#appendix)
 
 ## Overview
-The controls package is responsible for taking in current [state](#state) and [desired state](#desired-state) messages and outputting a [thrust allocation vector](#thrust-allocation-vector) to achieve that state.
+The controls package is responsible for taking in current [state](#state) and [desired state](#desired-state) messages and outputting a [thrust allocation vector](#thrust-allocation-vector) to achieve that desired state.
 
-It accepts [desired position](#desired-position), [velocity](#desired-velocity), and [power](#desired-power) as inputs. If desired position and velocity are provided, the system will use a [PID loop](#pid-loop) to compute the [power](#power) needed along each [axis](#axis) to move the robot to the desired position and/or velocity. If desired power is provided, the system will use the desired power directly.
+It accepts [desired position](#desired-position), [velocity](#desired-velocity), and [power](#desired-power) as inputs. If desired position and velocity are provided, the system will use [PID loops](#pid-loop) to compute the [power](#power) needed along each [axis](#axis) to move the robot to the desired position and/or velocity. If desired power is provided, the system will use the desired power directly.
 
 Once the system obtains the power needed along each axis, the [thruster allocator](#thrust-allocation) will compute the amount of force each thruster needs to exert to achieve that power, and outputs the thrust allocation vector.
 
@@ -53,7 +54,7 @@ PID constants and static power can be tuned on the fly, without needing to resta
 flowchart LR
     power_scale_factor[Power Scale Factor] --> set_power[Set Power]
     static_power_global[Static Power Global] ---> static_power_local[Static Power Local]
-    state[State] -- oriefntation --> static_power_local
+    state[State] -- orientation --> static_power_local
 
     state -- position --> pid_position[PID Position]
     desired_position[Desired Position] --> pid_position[PID Position]
@@ -632,12 +633,12 @@ target_link_libraries(controls
 #### Adding Precompiled Headers
 The `controls` package precompiles some headers to speed up compilation, at the cost of increased memory usage.
 
-If a new header file is added to the package that takes a long time to compile, consider adding it to the precompiled headers list in the `CMakeLists.txt` file. For example, if the file is named `new_header.h`, add the following line to the `CMakeLists.txt` file:
+If a new header file is added to the package that takes a long time to compile, consider adding it to the precompiled headers list in the `CMakeLists.txt` file. For example, if the file is named `new_header.h`, in `new_library`, add the following line to the `CMakeLists.txt` file:
 ```cmake
 target_precompile_headers(controls
     PRIVATE
         ...
-        <src/new_header.h>
+        <new_library/new_header.h>
         ...
 )
 ```
@@ -669,24 +670,29 @@ roslaunch controls controls_gdb.launch
 ```bash
 roslaunch controls controls_valgrind.launch
 ```
+To modify the options used to run GDB or Valgrind, modify the `launch-prefix` in the `node` tag in the `controls_gdb.launch` and `controls_valgrind.launch` files.
 
 ### Structural Principles
 The `controls` package is designed to be modular and extensible. It is divided into several classes, each of which is responsible for a specific aspect of the system. The classes are designed to be as independent as possible, so that they can be modified or replaced without affecting the rest of the system.
 
-Helper functions are used to perform common tasks that are used by multiple classes. These functions are defined in the `controls_utils` namespace in the `controls_utils.h` and `controls_utils.cpp` files.
+The `ControlsUtils` namespace contains a variety of functions that fall into one of the following categories:
+- Functions used by multiple classes
+- Functions that perform tasks that would clutter the classes if they were included in them
 
-The `Controls` class is the main class of the system. It is responsible for initializing the system, running the main loop, and interfacing with ROS. It uses the other classes to perform the tasks required to control the robot. Its primary functionality is achieved in two methods: `run` and `state_callback`.
+The `Controls` class is the main class of the system. It is responsible for initializing the system, running the main loop, and interfacing with ROS. It uses the other classes to perform the tasks required to control the robot. Its primary functionality is achieved in two functions: `state_callback` and `run`.
 
-The `state_callback` method is called whenever a new [state](#state) message is received. It is responsible for updating the system's state, running the [PID loops](#pid-loop) and computing the [control efforts](#control-effort) needed to move the robot to the [desired state](#desired-state). It publishes the [control efforts](#control-effort) and other information computed by the PID loops. It also updates the [static power local](#static-power-local) based on the robot's current orientation and publishes it.
+The `state_callback` function is called whenever a new [state](#state) message is received. It is responsible for updating the system's state, running the [PID loops](#pid-loop) and computing the [control efforts](#control-effort) needed to move the robot to the [desired state](#desired-state). It publishes the [control efforts](#control-effort) and other information computed by the PID loops. It also updates the [static power local](#static-power-local) based on the robot's current orientation and publishes it. All of this is done at the rate that the state messages are received, which is typically 30 Hz.
 
-The `run` method is the main loop of the system, run at a fixed rate defined in the `THRUSTER_ALLOCS_RATE` constant. It is responsible for computing the [base power](#base-power), [set power unscaled](#set-power-unscaled), and [set power](#set-power). It calls the [thruster allocator](#thrust-allocation) to obtain the [thrust allocation vector](#thrust-allocation-vector). It publishes the thrust allocation vector, along with other values computed by the thruster allocator and current values of configurable system parameters.
+The `run` function is the main loop of the system, run at a fixed rate defined by the `THRUSTER_ALLOCS_RATE` constant. It is responsible for computing the [base power](#base-power), [set power unscaled](#set-power-unscaled), and [set power](#set-power). It calls the [thruster allocator](#thrust-allocation) to obtain the [thrust allocation vector](#thrust-allocation-vector). It publishes the thrust allocation vector, along with other values computed by the thruster allocator and current values of configurable system parameters.
+
+Only the `Controls` class directly interfaces with ROS. This ensures that all inputs and outputs of the system flow through a single class, making it easier to understand and modify the system, especially in terms of where it fits into the robot software as a whole.
 
 ### On-the-Fly Parameter Updates
-The system is designed to allow the [PID gains](#pid-gains), [static power global](#static-power-global), and [power scale factor](#power-scale-factor) to be updated on the fly, without needing to restart the system. This is achieved by using a pair of a ROS service and a ROS topic for each parameter.
+To update parameters on the fly, without needing to restart the system, use a combination of a ROS service and a ROS topic for each parameter. When the service is called, update the parameter and, optionally, save the updated value to the [robot config file](#robot-config-file). Publish the latest value of the parameter to the topic in the `run` method.
 
-To update a parameter, call the appropriate service with the new value of the parameter. The service will update the parameter and the [robot config file](#robot-config-file) with the new value. The system will then use the new value of the parameter in its calculations. The new value of the parameter is also published to the appropriate topic, so that it can be monitored.
+Saving parameters to the [robot config file](#robot-config-file) ensures that the new value of the parameter will be used when the system is restarted. It also allows the parameters to be committed to version control, so that the changes can be tracked and reverted if necessary.
 
-The [robot config file](#robot-config-file) is updated to ensure that the new value of the parameter is saved and will be used when the system is restarted. It also allows the parameters to be committed to version control, so that the changes can be tracked and reverted if necessary.
+Currently, this pattern is used to allow the [PID gains](#pid-gains), [static power global](#static-power-global), and [power scale factor](#power-scale-factor) to be updated on the fly,.
 
 
 ## Appendix
