@@ -182,7 +182,7 @@ This file defines the `ControlsUtils` namespace, which includes various helper f
 This file defines the `Controls` class, as well as the `main` function. It takes in the current [state](#state) and [desired state](#desired-state) and outputs a [thrust allocation vector](#thrust-allocation-vector) to achieve that state. It handles all interfaces with ROS, including publishing, subscribing, and advertising. It contains the code that drives the system, calling the other classes and functions as needed.
 
 > [!IMPORTANT]
-> The `Controls` class is the _only_ class that interfaces with ROS.
+> The `Controls` class is the _only_ class that interfaces with ROS. Thus, this package creates only one node: `controls`.
 >
 > All other classes use pure C++ and do not depend on ROS, with the following exceptions:
 > - All classes use `ROS_ASSERT_MSG`, `ROS_ERROR`, and `ROS_WARN` to log errors and warnings and throw exceptions.
@@ -203,7 +203,7 @@ This file is a Python script that contains various helper functions used exclusi
 ## Config
 
 ### Robot Config File
-The `robot config file` is a YAML file that contains configuration information for this system that is unique for each robot. One config file is required for each robot. They are located in the `config` directory.
+The `robot config file` is a YAML file that contains configuration information for this system that is unique for each robot. One config file is required for each robot. They are located in the `config` directory. They should be named `<robot_name>.yaml`, where `<robot_name>` is the value of the `$ROBOT_NAME` environment variable associated with the robot.
 
 The robot config file contains the following fields:
 ```yaml
@@ -286,20 +286,25 @@ wrench_matrix_file_path: <string>
 wrench_matrix_pseudoinverse_file_path: <string>
 ```
 
-The `pid` field contains the [PID gains](#pid-gains) and other PID configuration for the system. It contains subfields for each type of [PID loop](#pid-loop): `position`, `position_cascaded`, and `velocity`. Each of these subfields contains subfields for each [axis](#axis) that the system can control: `x`, `y`, `z`, `roll`, `pitch`, and `yaw`. Each of these subfields contains further subfields for the PID gains and other PID configuration for that combination of axis and PID loop, including the [`control_effort: min` and `control_effort: max`](#control-effort-limits), [`derivative type`](#derivative-type), and [`error ramp rate`](#error-ramp-rate). The `control_effort: min` must be less than or equal to `control_effort: max`.
+The `pid` field contains the [PID gains](#pid-gains) and other PID configuration for the system. It contains subfields for each type of [PID loop](#pid-loop): `position`, `position_cascaded`, and `velocity`. Each of these subfields contains subfields for each [axis](#axis) that the system can control: `x`, `y`, `z`, `roll`, `pitch`, and `yaw`. Each of these subfields contains further subfields for the PID gains – `Kp`, `Ki`, `Kd`, `Ff` – and other PID configuration for that combination of axis and PID loop, including the [`control_effort: min` and `control_effort: max`](#control-effort-limits), [`derivative type`](#derivative-type), and [`error ramp rate`](#error-ramp-rate). The `control_effort: min` must be less than or equal to `control_effort: max`.
 
 The [`desired_power_limits`](#desired-power-limits) field contains the minimum and maximum [desired power](#desired-power) that can be used for each axis. It contains subfields for each axis: `x`, `y`, `z`, `roll`, `pitch`, and `yaw`. Each of these subfields contains subfields `min` and `max` for the minimum and maximum desired power, respectively. The minimum desired power must be less than or equal to the maximum desired power.
 
 The [`static_power_global`](#static-power-global) field contains the amount of power that should be added to the power applied along the linear axes. It contains subfields `x`, `y`, and `z` for the amount of power to be added along the x, y, and z axes, respectively.
 
-The `thrusters` field contains information about each thruster. It contains the following subfields:
+The `thrusters` field contains information about each thruster. From top to bottom, the thrusters in this file should be in the _same order that is expected by offboard comms,_ in the `allocs` part of the `custom_msgs/ThrusterAllocs` message. Each thruster config contains the following subfields:
 - `name`: The name of the thruster. Not used by the system; included for human use only.
 - `type`: The type of the thruster. Not used by the system; included for human use only.
 - `pos`: The position of the thruster in the `base_link` frame. The x, y, and z coordinates are given in that order in meters.
-- `rpy`: The orientation of the thruster in the `base_link` frame. The roll, pitch, and yaw are given in that order in degrees.
-    - An orientation of [0, 0, 0] means when the thruster is commanded to exert positive power, it will push the robot in the positive x direction.
-    - An orientation of [0, 0, 180] means the thruster is rotated 180 degrees around the z axis, so when the thruster is commanded to exert positive power, it will push the robot in the negative x direction.
+- `rpy`: The orientation of the thruster in the `base_link` frame, using extrinsic Euler angles. The rotations are performed specified in the order: roll, pitch, yaw. They are also given in that order in degrees. For example:
+    - An orientation of `[0, 0, 0]` means when the thruster is commanded to exert positive power, it will push the robot in the positive x direction.
+    - An orientation of `[0, 0, 180]` means the thruster is rotated 180 degrees around the z axis, so when the thruster is commanded to exert positive power, it will push the robot in the negative x direction.
+    - An orientation of `[0, 90, 0]` means the thruster is rotated 90 degrees around the y axis, so when the thruster is commanded to exert positive power, it will push the robot in the positive z direction.
+    > [!NOTE]
+    > Specifying a non-zero roll will not affect the direction the thruster pushes the robot in. This is because relative to itself, the force exerted by the thruster is always in the positive x direction. Thus, rotation about the x axis does not affect the axis of thrust.
 - `flipped`: Whether the thruster is flipped. This is used to account for ESCs that are wired in reverse. If `true`, when the thruster is commanded to exert positive power, it will push the robot in the direction opposite to what is expected based on its orientation.
+    > [!IMPORTANT]
+    > This should be the _only_ place in the _entire codebase_ where flipped thrusters are accounted for.
 
 The `wrench_matrix_file_path` and `wrench_matrix_pseudoinverse_file_path` fields contain the paths to the [CSV files](#csv-files) containing the [wrench matrix](#wrench-matrix) and its [pseudoinverse](#wrench-matrix-pseudoinverse), respectively. These files are used by the [thruster allocator](#thruster-allocator) to compute the [thrust allocation vector](#thrust-allocation-vector). They should be specified relative to the directory of this package. They should not contain a leading `/`. For example, if the CSV files are in the `data` directory, the paths should be `data/wrench_matrix.csv` and `data/wrench_matrix_pseudoinverse.csv`.
 
