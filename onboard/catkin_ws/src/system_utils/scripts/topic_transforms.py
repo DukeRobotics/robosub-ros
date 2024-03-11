@@ -65,8 +65,8 @@ class TopicTransforms:
                            Conversions.pose_to_twist),
         TopicTransformData('/vectornav/IMU', Imu, lambda x: x.orientation, '/transforms/vectornav/IMU', Vector3,
                            Conversions.quat_to_vector),
-        TopicTransformData('/controls/desired_position', Pose, lambda x: x, '/transforms/controls/desired_position', Twist,
-                           Conversions.pose_to_twist),
+        TopicTransformData('/controls/desired_position', Pose, lambda x: x, '/transforms/controls/desired_position',
+                           Twist, Conversions.pose_to_twist),
     ]
 
     def __init__(self):
