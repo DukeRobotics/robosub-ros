@@ -1,0 +1,2 @@
+# Disable formatting for Vectornav library, as it is not compatible with Google style.
+DisableFormat: true

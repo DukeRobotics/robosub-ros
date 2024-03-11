@@ -1,0 +1,2 @@
+# Disable formatting for Arduino code, as Arduino C++ libraries may not be compatible with Google style.
+DisableFormat: true
