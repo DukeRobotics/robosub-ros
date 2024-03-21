@@ -298,11 +298,11 @@ The `thrusters` field contains information about each thruster. From top to bott
     - An orientation of `[0, 0, 0]` means when the thruster is commanded to exert positive power, it will push the robot in the positive x direction.
     - An orientation of `[0, 0, 180]` means the thruster is rotated 180 degrees around the z axis, so when the thruster is commanded to exert positive power, it will push the robot in the negative x direction.
     - An orientation of `[0, 90, 0]` means the thruster is rotated 90 degrees around the y axis, so when the thruster is commanded to exert positive power, it will push the robot in the positive z direction.
-    > [!NOTE]
-    > Specifying a non-zero roll will not affect the direction the thruster pushes the robot in. This is because relative to itself, the force exerted by the thruster is always in the positive x direction. Thus, rotation about the x axis does not affect the axis of thrust.
+> [!NOTE]
+> Specifying a non-zero roll will not affect the direction the thruster pushes the robot in. This is because relative to itself, the force exerted by the thruster is always in the positive x direction. Thus, rotation about the x axis does not affect the axis of thrust.
 - `flipped`: Whether the thruster is flipped. This is used to account for ESCs that are wired in reverse. If `true`, when the thruster is commanded to exert positive power, it will push the robot in the direction opposite to what is expected based on its orientation.
-    > [!IMPORTANT]
-    > This should be the _only_ place in the _entire codebase_ where flipped thrusters are accounted for.
+> [!IMPORTANT]
+> This should be the _only_ place in the _entire codebase_ where flipped thrusters are accounted for.
 
 The `wrench_matrix_file_path` and `wrench_matrix_pseudoinverse_file_path` fields contain the paths to the [CSV files](#csv-files) containing the [wrench matrix](#wrench-matrix) and its [pseudoinverse](#wrench-matrix-pseudoinverse), respectively. These files are used by the [thruster allocator](#thruster-allocator) to compute the [thrust allocation vector](#thrust-allocation-vector). They should be unique for each robot. They should be specified relative to the directory of this package. They should not contain a leading `/`. For example, if the CSV files are in the `data` directory, the paths should be `data/wrench_matrix.csv` and `data/wrench_matrix_pseudoinverse.csv`.
 
@@ -330,8 +330,8 @@ Each of these launch files contains the following parameters:
 - `enable_position_pid`: Whether the position PID loop is enabled or not. If `false`, the system will not run the position PID loop and setting a [desired position](#desired-position) will have no affect on the system. If `true`, the system will use the position PID loop to compute the [control efforts](#control-effort) needed to move the robot to the desired position.
 - `enable_velocity_pid`: Whether the velocity PID loop is enabled or not. If `false`, the system will not run the velocity PID loop and setting a [desired velocity](#desired-velocity) will have no affect on the system. If `true`, the system will use the velocity PID loop to compute the control efforts needed to move the robot to the desired velocity.
 - `cascaded_pid`: Whether the position PID loop is [cascaded](#cascaded-position-pid-loop) or not. If `true`, the system will use the control efforts output by the position PID loop as the [setpoints](#setpoint) for the velocity PID loop. If `false`, the system will use the control efforts output by the position PID loop to compute the [base power](#base-power) directly.
-    > [!NOTE]
-    > If `cascaded_pid` is `true`, then both `enable_position_pid` and `enable_velocity_pid` must also be `true` for the robot to move to the desired position, as both position and velocity PID loops are required to move the robot to the desired position when they are cascaded.
+> [!NOTE]
+> If `cascaded_pid` is `true`, then both `enable_position_pid` and `enable_velocity_pid` must also be `true` for the robot to move to the desired position, as both position and velocity PID loops are required to move the robot to the desired position when they are cascaded.
 
 ## Dependencies
 ### ROS
