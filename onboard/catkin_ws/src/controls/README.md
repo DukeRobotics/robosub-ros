@@ -480,7 +480,7 @@ The controls package publishes to the following topics:
 
 #### `/controls/status`
 - Type: `std_msgs/Bool`
-- Description: Whether the system is enabled or not.
+- Description: The current [status](#status) of the system. `true` if controls are enabled, `false` if controls are disabled.
 
 #### `/controls/delta_time`
 - Type: `std_msgs/Float64`
@@ -696,7 +696,7 @@ To update parameters on the fly, without needing to restart the system, use a co
 
 Saving parameters to the [robot config file](#robot-config-file) ensures that the new value of the parameter will be used when the system is restarted. It also allows the parameters to be committed to version control, so that the changes can be tracked and reverted if necessary.
 
-Currently, this pattern is used to allow the [PID gains](#pid-gains), [static power global](#static-power-global), and [power scale factor](#power-scale-factor) to be updated on the fly and saved to the robot config file. This pattern is also used to update the status on-the-fly, but it is not saved to the robot config file.
+Currently, this pattern is used to allow the [PID gains](#pid-gains), [static power global](#static-power-global), and [power scale factor](#power-scale-factor) to be updated on the fly and saved to the robot config file. This pattern is also used to update the [status](#status) on-the-fly, but it is not saved to the robot config file.
 
 
 ## Appendix
@@ -870,6 +870,9 @@ Thus, `static power local` and [static power global](#static-power-global) alway
 
 > [!IMPORTANT]
 > The `static power local` will be scaled by the [power scale factor](#power-scale-factor). Thus, any changes to the power scale factor will affect the amount of static power applied to the robot.
+
+### Status
+The `status` is whether controls is enabled. It is `true` if controls are enabled, and `false` if controls are disabled.
 
 ### Thrust Allocation
 `Thrust allocation` is the process of computing the amount of force each thruster needs to exert to achieve a given [set power](#set-power). It is done by solving the following system of linear equations:
