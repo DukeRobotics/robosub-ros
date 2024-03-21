@@ -5,7 +5,23 @@ from custom_msgs.msg import CVObject
 from geometry_msgs.msg import Pose
 
 
-class CVInterface:
+class CV:
+    """
+    Interface for the CV.
+
+    Attributes:
+        _instance: The singleton instance of this class. Is a static attribute.
+        cv_data: Dictionary of the data of the objects
+    """
+
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(CV, cls).__new__(cls)
+            cls._instance.__init__()
+        return cls._instance
+
     MODELS_PATH = "package://cv/models/depthai_models.yaml"
     CV_CAMERA = "front"
     # TODO We may want a better way to sync this between here and the cv node
@@ -22,14 +38,28 @@ class CVInterface:
                 topic = f"{model['topic']}{self.CV_CAMERA}/{model_class}"
                 rospy.Subscriber(topic, CVObject, self._on_receive_cv_data, model_class)
 
-    def _on_receive_cv_data(self, cv_data, object_type):
+    def _on_receive_cv_data(self, cv_data, object_type) -> None:
+        """
+        Parse the received CV data and store it
+
+        Args:
+            cv_data: The received CV data as a CVObject
+            object_type: The name/type of the object
+        """
         self.cv_data[object_type] = cv_data
 
     # TODO add useful methods for getting data
-    def get_data(self, name):
-        return self.cv_data[name]
 
-    def get_pose(self, name):
+    def get_pose(self, name) -> Pose:
+        """
+        Get the pose of a detected object
+
+        Args:
+            name: The name/type of the object
+
+        Returns:
+            The pose of the object
+        """
         data = self.get_data(name)
         pose = Pose()
         pose.position.x = data.coords.x

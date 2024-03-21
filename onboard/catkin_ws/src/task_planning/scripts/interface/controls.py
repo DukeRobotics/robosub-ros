@@ -9,14 +9,39 @@ import os
 import yaml
 
 
-class ControlsInterface:
+class Controls:
+    """
+    A singleton class for the controls interface
 
+    Attributes:
+        _instance: The singleton instance of this class. Is a static attribute.
+        _set_control_types: The service proxy for setting control types
+        _all_axes_control_type: The control type for all axes
+        _reset_pid_loop: The service proxy for resetting the PID loops
+        _desired_position_pub: The publisher for the desired position
+        _desired_velocity_pub: The publisher for the desired velocity
+        _desired_power_pub: The publisher for the desired power
+        _read_config: The config file
+        num_thrusters: The number of thrusters
+        thruster_dict: The thruster dictionary
+        _thruster_pub: The publisher for thruster allocations
+    """
+
+    # ROS service name for setting control types
     CONTROL_TYPES_SERVICE = 'controls/set_control_types'
     RESET_PID_LOOPS_SERVICE = 'controls/reset_pid_loops'
     DESIRED_POSITION_TOPIC = 'controls/desired_position'
     DESIRED_VELOCITY_TOPIC = 'controls/desired_velocity'
     DESIRED_POWER_TOPIC = 'controls/desired_power'
     THRUSTER_ALLOCS_TOPIC = 'controls/thruster_allocs'
+
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(Controls, cls).__new__(cls)
+            cls._instance.__init__()
+        return cls._instance
 
     def __init__(self):
 
@@ -41,7 +66,13 @@ class ControlsInterface:
         self.get_thruster_dict()
         self._thruster_pub = rospy.Publisher(self.THRUSTER_ALLOCS_TOPIC, ThrusterAllocs, queue_size=1)
 
-    def get_thruster_dict(self):
+    def get_thruster_dict(self) -> None:
+        """
+        Get thruster dictionary
+
+        Returns:
+            The thruster dictionary
+        """
         CONFIG_FILE_PATH = 'package://controls/config/%s.yaml'
         filename = rr.get_filename(CONFIG_FILE_PATH % os.getenv("ROBOT_NAME", "oogway"), use_protocol=False)
         with open(filename) as f:
@@ -56,7 +87,13 @@ class ControlsInterface:
         self.thruster_dict = thruster_dict
         return thruster_dict
 
-    def _set_all_axes_control_type(self, type):
+    def _set_all_axes_control_type(self, type) -> None:
+        """
+        Set the control type for all axes
+
+        Args:
+            type: The control type to set
+        """
         if self._all_axes_control_type == type:
             return
         # TODO what if this doesn't return success?
@@ -72,24 +109,55 @@ class ControlsInterface:
         self.start_new_move()
 
     # Resets the PID loops. Should be called for every "new" movement
-    def start_new_move(self):
+    def start_new_move(self) -> None:
+        """
+        Start a new movement
+        """
         self._reset_pid_loops()
 
     # In global coordinates
-    def publish_desired_position(self, pose):
+    def publish_desired_position(self, pose) -> None:
+        """
+        Publish the desired position
+
+        Args:
+            pose: The desired position
+        """
         self._set_all_axes_control_type(ControlTypes.DESIRED_POSE)
         self._desired_position_pub.publish(pose)
 
     # In local coordinates
-    def publish_desired_velocity(self, twist):
+    def publish_desired_velocity(self, twist) -> None:
+        """
+        Publish the desired velocity
+
+        Args:
+            twist: The desired velocity
+        """
         self._set_all_axes_control_type(ControlTypes.DESIRED_TWIST)
         self._desired_velocity_pub.publish(twist)
 
-    def publish_desired_power(self, power):
+    def publish_desired_power(self, power) -> None:
+        """
+        Publish the desired power
+
+        Args:
+            power: The desired power
+        """
         self._set_all_axes_control_type(ControlTypes.DESIRED_POWER)
         self._desired_power_pub.publish(power)
 
-    def publish_thruster_allocs(self, **kwargs):
+    def publish_thruster_allocs(self, **kwargs) -> None:
+        """
+        Publish the thruster allocations
+
+        Args:
+            kwargs: The thruster allocations
+
+        Raises:
+            ValueError: If the thruster name is not in thruster_dict
+            ValueError: If the thruster alloc is not between -1 and 1 inclusive
+        """
         thruster_allocs = [0] * self.num_thrusters
 
         for kwarg_name, kwarg_value in kwargs.items():
