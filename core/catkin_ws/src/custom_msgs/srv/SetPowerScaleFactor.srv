@@ -1,0 +1,4 @@
+float64 power_scale_factor
+---
+bool success
+string message

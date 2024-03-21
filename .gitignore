@@ -52,5 +52,8 @@ node_modules
 dist
 build
 
+# Don't ignore wrench matrices
+!onboard/catkin_ws/src/controls/data/*.csv
+
 # Ignore offset.h in thruster arduino
 onboard/catkin_ws/src/offboard_comms/Arduino Sketchbooks/ThrusterArduino/offset.h

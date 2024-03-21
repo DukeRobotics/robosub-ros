@@ -1,0 +1,6 @@
+# Rules below apply to all C++ files, except when overridden by a .clang-format file in a subdirectory.
+Language: Cpp
+BasedOnStyle: Google
+ColumnLimit: 120
+IndentWidth: 4
+TabWidth: 4

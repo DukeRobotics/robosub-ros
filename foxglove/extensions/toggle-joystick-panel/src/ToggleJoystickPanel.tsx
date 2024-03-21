@@ -156,7 +156,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
 
     // Request payload to toggle control types
     const desiredControl: CustomMsgsControlTypesConst = state.joystickEnabled
-      ? CustomMsgsControlTypesConst.DESIRED_POSE
+      ? CustomMsgsControlTypesConst.DESIRED_POSITION
       : CustomMsgsControlTypesConst.DESIRED_POWER;
     const request: CustomMsgsSetControlTypesRequest = {
       control_types: {
