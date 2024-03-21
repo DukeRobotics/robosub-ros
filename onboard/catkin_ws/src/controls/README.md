@@ -794,6 +794,8 @@ See the [Wikipedia article on PID controllers](https://en.wikipedia.org/wiki/PID
 ### PID Axes Info
 The `PID axes info` is a set of values within a [PID loop](#pid-loop) that are used to compute the [control efforts](#control-effort).
 
+This includes all information in the `custom_msgs/PIDAxesInfo` message, which itself contains six `custom_msgs/PIDInfo` messages, one for each [axis](#axis). See the `custom_msgs/PIDInfo` message for more information on what specific values are included in the `PID axes info`.
+
 ### PID Gains
 The `PID gains` are the parameters of a [PID controller](#pid-controller). $K_p$, $K_i$, and $K_d$ are the coefficients of the error, its integral, and its derivative, respectively. Thus, the gains weight the proportional, integral, and derivative terms.
 
