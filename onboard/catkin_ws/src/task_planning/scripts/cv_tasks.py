@@ -1,24 +1,19 @@
 from typing import Optional
 
-from interface.cv import CVInterface
-from interface.controls import ControlsInterface
-from interface.state import StateInterface
+from interface.cv import CV
+# from interface.controls import Controls
+# from interface.state import State
 from move_tasks import move_to_pose_local
 from task import task, Yield, Task
 
 
 @task
-async def move_to_cv_obj(self: Task, controls: ControlsInterface, stateInterface: StateInterface, cv: CVInterface,
-                         name: str) -> Task[None, Optional[str], None]:
-
+async def move_to_cv_obj(self: Task, name: str) -> Task[None, Optional[str], None]:
     """
     Move to the pose of an object detected by CV. Returns when the robot is at the object's pose with zero velocity,
     within a small tolerance.
 
     Args:
-        controls: ControlsInterface
-        stateInterface: StateInterface
-        cv: CVInterface
         name: CV class name of the object to move to
 
     Send:
@@ -26,8 +21,8 @@ async def move_to_cv_obj(self: Task, controls: ControlsInterface, stateInterface
     """
 
     # Get initial object location and initialize task to move to it
-    pose = cv.get_pose(name)
-    move_task = move_to_pose_local(controls, stateInterface, pose)
+    pose = CV().get_pose(name)
+    move_task = move_to_pose_local(pose)
 
     # Move until the robot has reached the object's pose
     # TODO: Stop when stopped recieving decisions
@@ -39,7 +34,7 @@ async def move_to_cv_obj(self: Task, controls: ControlsInterface, stateInterface
         if updated_obj is not None:
             name = updated_obj
 
-        pose = cv.get_pose(name)
+        pose = CV().get_pose(name)
 
         # TODO: Add offset
         move_task.send(pose)

@@ -38,7 +38,7 @@ class CV:
                 topic = f"{model['topic']}{self.CV_CAMERA}/{model_class}"
                 rospy.Subscriber(topic, CVObject, self._on_receive_cv_data, model_class)
 
-    def _on_receive_cv_data(self, cv_data, object_type) -> None:
+    def _on_receive_cv_data(self, cv_data: CVObject, object_type: str) -> None:
         """
         Parse the received CV data and store it
 
@@ -50,7 +50,7 @@ class CV:
 
     # TODO add useful methods for getting data
 
-    def get_pose(self, name) -> Pose:
+    def get_pose(self, name: str) -> Pose:
         """
         Get the pose of a detected object
 

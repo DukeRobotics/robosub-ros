@@ -2,6 +2,7 @@ import rospy
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from nav_msgs.msg import Odometry
 from robot_localization.srv import SetPose
+from tf2_ros.buffer import Buffer
 
 
 class State:
@@ -27,7 +28,11 @@ class State:
     STATE_TOPIC = 'state'
     RESET_POSE_SERVICE = '/set_pose'
 
-    def __init__(self, tfBuffer):
+    def __init__(self, tfBuffer: Buffer):
+        """
+        Args:
+            tfBuffer: The transform buffer for the robot
+        """
         self._tfBuffer = tfBuffer
 
         rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state)

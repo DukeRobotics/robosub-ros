@@ -4,9 +4,9 @@ import rospy
 import tf2_ros
 
 from task import Task, TaskStatus, TaskUpdatePublisher
-from interface.controls import ControlsInterface
-from interface.state import StateInterface
-from interface.cv import CVInterface
+from interface.controls import Controls
+from interface.state import State
+from interface.cv import CV
 import move_tasks
 from utils import geometry_utils, other_utils
 
@@ -28,9 +28,9 @@ def main():
     _ = tf2_ros.TransformListener(tfBuffer)
 
     # Initialize interfaces
-    controls = ControlsInterface()
-    state = StateInterface(tfBuffer)
-    cv = CVInterface()
+    Controls()
+    state = State(tfBuffer)
+    CV()
 
     # Initialize the task update publisher
     TaskUpdatePublisher()
@@ -57,7 +57,7 @@ def main():
     try:
         # Tasks to run
         tasks = [
-            move_tasks.move_to_pose_local(controls, state, geometry_utils.create_pose(0, 0, -0.5, 0, 0, 0),
+            move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, -0.5, 0, 0, 0),
                                           parent=Task.MAIN_ID)
         ]
 

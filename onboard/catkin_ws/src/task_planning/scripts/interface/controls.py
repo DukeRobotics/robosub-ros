@@ -87,7 +87,7 @@ class Controls:
         self.thruster_dict = thruster_dict
         return thruster_dict
 
-    def _set_all_axes_control_type(self, type) -> None:
+    def _set_all_axes_control_type(self, type: ControlTypes) -> None:
         """
         Set the control type for all axes
 
@@ -116,7 +116,7 @@ class Controls:
         self._reset_pid_loops()
 
     # In global coordinates
-    def publish_desired_position(self, pose) -> None:
+    def publish_desired_position(self, pose: Pose) -> None:
         """
         Publish the desired position
 
@@ -127,7 +127,7 @@ class Controls:
         self._desired_position_pub.publish(pose)
 
     # In local coordinates
-    def publish_desired_velocity(self, twist) -> None:
+    def publish_desired_velocity(self, twist: Twist) -> None:
         """
         Publish the desired velocity
 
@@ -137,7 +137,7 @@ class Controls:
         self._set_all_axes_control_type(ControlTypes.DESIRED_TWIST)
         self._desired_velocity_pub.publish(twist)
 
-    def publish_desired_power(self, power) -> None:
+    def publish_desired_power(self, power: Twist) -> None:
         """
         Publish the desired power
 
