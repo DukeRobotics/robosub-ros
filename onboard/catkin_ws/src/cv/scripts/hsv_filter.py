@@ -21,15 +21,69 @@ HSV_MODELS_FILEPATH = 'package://cv/configs/hsv_models.yaml'
 
 
 class HSVFilter:
+    # Fitting functions for ellipse (e.g. path marker), rotated rectangle (e.g. bins), and circle (e.g. buoy).
+    # See https://docs.opencv.org/4.x/dd/d49/tutorial_py_contour_features.html
+    # For example, see detect_path_marker below for ellipse fitting.
+    # Each function should return a dictionary of detection data, as well as a ROS Message for publishing.
+    # You may utilize Circle and RotatedRect message types from opencv_apps:
+    # https://docs.ros.org/en/kinetic/api/opencv_apps/html/index-msg.html
+    def fit_ellipse(self, contours, width, height):
+        largest_contour = max(contours, key=cv2.contourArea)
+        center, dimensions, orientation = cv2.fitEllipse(largest_contour)
+
+        center_x = center[0] / width
+        center_y = center[1] / height
+
+        orientation_in_radians = math.radians(-orientation)
+
+        ellipse_msg = RotatedRect() 
+
+        ellipse_msg.center.x = center_x
+        ellipse_msg.center.y = center_y
+        ellipse_msg.angle = orientation_in_radians
+        ellipse_msg.size.width = dimensions[0]
+        ellipse_msg.size.height = dimensions[1]
+
+        return {"center": center, "dimensions": dimensions, "orientation": orientation_in_radians}, ellipse_msg
+
+    def fit_circle(self, contours, width, height):
+        largest_contour = max(contours, key=cv2.contourArea)
+        center, radius = cv2.minEnclosingCircle(largest_contour)
+
+        circle_msg = Circle()
+        
+        circle_msg.center.x = center[0]
+        circle_msg.center.y = center[1]
+        circle_msg.radius = radius
+
+        return {"center": center, "radius":radius}, circle_msg # TODO what is actually supposed to be returned here lmfao
+    
+    def fit_rotated_rectangle(self, contours, width, height):
+        largest_contour = max(contours, key=cv2.contourArea)
+        center, dimensions, orientation = cv2.minAreaRect(largest_contour)
+
+        rotated_rectangle_msg = RotatedRect()
+
+        orientation_in_radians = math.radians(-orientation)
+
+        rotated_rectangle_msg.center.x = center[0]
+        rotated_rectangle_msg.center.y = center[1]
+        rotated_rectangle_msg.angle = orientation_in_radians
+        rotated_rectangle_msg.size.width = dimensions[0]
+        rotated_rectangle_msg.size.height = dimensions[1]
+
+        return {"center": center, "dimensions": dimensions, "orientation": orientation_in_radians}, rotated_rectangle_msg
+
     FITTING_FUNCTIONS = {
-        # TODO: create mapping from object shape to fitting function used
+        "ellipse": fit_ellipse,
+        "circle": fit_circle,
+        "rotated_rectangle": fit_rotated_rectangle
     }
 
     # Load in models and other misc. setup work
     def __init__(self):
         rospy.init_node('hsv_filter', anonymous=True)
 
-        # TODO:
         # - Read in cameras.yaml and hsv_models.yaml and create a dict of cameras (see depthai_spatial_detection.py).
         # For example:
         # { "depthai_front": {
@@ -73,8 +127,6 @@ class HSVFilter:
         # - Also create a service to enable toggling of models. It calls self.toggle_service as a callback function.
         # see detection.py for details
         rospy.Service(f'enable_model', EnableModel, self.toggle_service)        
-        
-        
 
         self.image_tools = ImageTools()
 
@@ -112,8 +164,6 @@ class HSVFilter:
                     self.detection_feed_publisher.publish(detections_img_msg)
 
     def find_contours(self, image, lower_mask, upper_mask):
-        # TODO: write function to extract and return the contour from given image (see detect_path_marker below)
-
         # Convert image to HSV
         hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         orange_mask = cv2.inRange(hsv_image, lower_mask, upper_mask)
@@ -126,34 +176,7 @@ class HSVFilter:
 
         return contours
 
-    # TODO: write fitting functions for ellipse (e.g. path marker), rotated rectangle (e.g. bins), and circle (e.g. buoy).
-    # See https://docs.opencv.org/4.x/dd/d49/tutorial_py_contour_features.html
-    # For example, see detect_path_marker below for ellipse fitting.
-    # Each function should return a dictionary of detection data, as well as a ROS Message for publishing.
-    # You may utilize Circle and RotatedRect message types from opencv_apps:
-    # https://docs.ros.org/en/kinetic/api/opencv_apps/html/index-msg.html
-    def fit_ellipse(self,contours,width,height):
-        largest_contour = max(contours, key=cv2.contourArea)
-        center, dimensions, orientation = cv2.fitEllipse(largest_contour)
-
-        center_x = center[0] / width
-        center_y = center[1] / height
-
-        orientation_in_radians = math.radians(-orientation)
-
-        ellipse_msg = RotatedRect() # TODO: fix
-
-        ellipse_msg.center.x = center_x
-        ellipse_msg.center.y = center_y
-        ellipse_msg.angle = orientation_in_radians
-
-        return {"center": center, "dimensions": dimensions, "orientation": orientation_in_radians}, ellipse_msg
-
-    def fit_sqhere(self, contours, width, height):
-        pass
-
-    def fit_rotated_rectangle(self, contours, width, height):
-        pass
+    
 
     def detect_path_marker(self, image):
         height, width, _ = image.shape
@@ -190,7 +213,7 @@ class HSVFilter:
             return {"center": center, "dimensions": dimensions, "orientation": orientation_in_radians}
 
     def toggle_service(self, data):
-        # TODO: each ROSService message will contain the camera, model, and enabled (True or False).
+        # Each ROSService message will contain the camera, model, and enabled (True or False).
         # Toggle the "enabled" field of the corresponding model using the camera dict.
         # See run function in detection.py for Service syntax
         if data.camera in self.cameras_dict:
