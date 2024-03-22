@@ -6,7 +6,7 @@ import time
 import serial.tools.list_ports as list_ports
 from std_msgs.msg import Float64
 
-class Ping1D:
+class Ping1DPublisher:
 
     BAUD_RATE = 115200
     PING_INTERVAL = 100 # ms
@@ -15,9 +15,9 @@ class Ping1D:
     RANGE_END = 5000 # mm
     GAIN_SETTING = 6
     MODE_AUTO = 0
-    CONFIDANCE_THRESHOLD = 50
+    CONFIDANCE_THRESHOLD = 0
 
-    PING1D_FTDI_OOGWAY = "DK0C1WF7"
+    PING1D_FTDI_OOGWAY = "DP05ZD1V"
     _serial_port = None
 
     PING1D_DEST_TOPIC = 'sensors/ping/distance'
@@ -35,6 +35,7 @@ class Ping1D:
         except StopIteration:
             rospy.logerr("Ping1D not found. Go yell at Will.")
             rospy.signal_shutdown("Shutting down ping node.")
+            return
 
         self.ping1D.connect_serial(f'{self._serial_port}', 115200)
 
@@ -55,14 +56,14 @@ class Ping1D:
             if data:
                 distance = data["distance"]
                 confidance = data["confidence"]
-                if confidance > self.CONFIDANCE_THRESHOLD:
-                    self.ping_publisher.publish(float(distance))
+                if confidance >= self.CONFIDANCE_THRESHOLD:
+                    self.ping_publisher.publish(float(distance/1000.0))
             else:
                 rospy.logerr("Failed to get distance data from Ping1D")
             rate.sleep()
 
 if __name__ == '__main__':
     try:
-        Ping1D().run()
+        Ping1DPublisher().run()
     except rospy.ROSInterruptException:
         pass
