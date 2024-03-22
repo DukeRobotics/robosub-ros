@@ -1,0 +1,6 @@
+string camera
+string model_name
+bool enabled
+---
+bool success
+string message
