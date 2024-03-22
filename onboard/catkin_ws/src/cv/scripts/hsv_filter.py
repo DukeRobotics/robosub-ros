@@ -80,6 +80,12 @@ class HSVFilter:
         "rotated_rectangle": fit_rotated_rectangle
     }
 
+    MESSAGE_TYPES = {
+        "ellipse": RotatedRect,
+        "circle": Circle,
+        "rotated_rectangle": RotatedRect
+    }
+
     # Load in models and other misc. setup work
     def __init__(self):
         rospy.init_node('hsv_filter', anonymous=True)
@@ -137,7 +143,7 @@ class HSVFilter:
 
         :param img_msg: ROS Image message to compute predictions on.
         """
-        # TODO: this function should take in the camera and loop through all of its models.
+        # This function should take in the camera and loop through all of its models.
         # For each model, if it is enabled:
         # - Initialize a map of {class: detections}
         # - Call find_contours to get the contour
@@ -156,7 +162,7 @@ class HSVFilter:
                 contour = self.find_contours(data, model.lower_mask, model.upper_mask)
                 detections, message = self.FITTING_FUNCTIONS[model.shape](contour, data.width, data.height)
                 detections_map[model] = detections
-                if (message is not None) and (True):  # TODO: replace true with some sort of (*specified message type*)
+                if (message is not None) and (isinstance(message,self.MESSAGE_TYPES[model.shape])):
                     self.publishers[model].publish(message)
                     
                     detections_visualized = visualize_path_marker_detection(data, self.detect(data))
@@ -175,8 +181,6 @@ class HSVFilter:
         contours, _ = cv2.findContours(blurred_mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         return contours
-
-    
 
     def detect_path_marker(self, image):
         height, width, _ = image.shape
