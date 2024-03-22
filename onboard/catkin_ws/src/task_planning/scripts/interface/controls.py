@@ -73,7 +73,7 @@ class Controls:
         Returns:
             The thruster dictionary
         """
-        CONFIG_FILE_PATH = 'package://controls/config/%s.yaml'
+        CONFIG_FILE_PATH = 'package://controls/config/%s.config'
         filename = rr.get_filename(CONFIG_FILE_PATH % os.getenv("ROBOT_NAME", "oogway"), use_protocol=False)
         with open(filename) as f:
             full_thruster_dict = yaml.safe_load(f)

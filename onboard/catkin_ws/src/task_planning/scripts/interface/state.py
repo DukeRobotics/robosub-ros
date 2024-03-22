@@ -18,22 +18,23 @@ class State:
 
     _instance = None
 
-    def __new__(cls):
+    def __new__(cls, tfBuffer: Buffer = None):
         if cls._instance is None:
             cls._instance = super(State, cls).__new__(cls)
-            cls._instance.__init__()
+            cls._instance.__init__(tfBuffer)
         return cls._instance
 
     # ROS topics for the state and resetting the pose
     STATE_TOPIC = 'state'
     RESET_POSE_SERVICE = '/set_pose'
 
-    def __init__(self, tfBuffer: Buffer):
+    def __init__(self, tfBuffer: Buffer = None):
         """
         Args:
             tfBuffer: The transform buffer for the robot
         """
-        self._tfBuffer = tfBuffer
+        if tfBuffer:
+            self._tfBuffer = tfBuffer
 
         rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state)
         self._state = None
