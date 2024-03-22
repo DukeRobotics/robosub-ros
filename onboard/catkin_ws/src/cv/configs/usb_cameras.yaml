@@ -1,0 +1,7 @@
+front:
+  video_channel: "0"
+  topic: "front"
+
+bottom:
+  video_channel: "1"
+  topic: "bottom"
