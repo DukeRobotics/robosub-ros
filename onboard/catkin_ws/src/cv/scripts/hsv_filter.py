@@ -7,7 +7,6 @@ import resource_retriever as rr
 import yaml
 
 from opencv_apps.msg import Circle, RotatedRect
-from custom_msgs.msg import PathMarker
 from sensor_msgs.msg import CompressedImage
 from image_tools import ImageTools
 from utils import visualize_path_marker_detection
@@ -206,7 +205,7 @@ class HSVFilter:
 
             orientation_in_radians = math.radians(-orientation)
 
-            path_marker_msg = PathMarker()
+            path_marker_msg = Rotated2DObject()  # TODO wth is supposed to be te type here??
 
             path_marker_msg.center.x = center_x
             path_marker_msg.center.y = center_y
