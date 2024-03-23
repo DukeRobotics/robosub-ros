@@ -24,13 +24,13 @@ class USBCamera:
         rospy.init_node('usb_camera', anonymous=True)
 
         # Read custom camera configs from launch command
-        self.topic = rospy.get_param("~topic") if topic == None else topic
+        self.topic = topic if topic else rospy.get_param("~topic")
         self.topic = f'/camera/{self.topic}/compressed'
 
-        self.channel = rospy.get_param("~channel") if channel == None else channel
+        self.channel = channel if channel else rospy.get_param("~channel")
 
         # If no custom framerate is passed in, set self.framerate to None to trigger default framerate
-        self.framerate = rospy.get_param("~framerate") if framerate == None else framerate
+        self.framerate = framerate if framerate else rospy.get_param("~framerate")
 
         if self.framerate == -1:
             self.framerate = None
