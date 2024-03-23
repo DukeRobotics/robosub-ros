@@ -205,7 +205,8 @@ class HSVFilter:
 
             orientation_in_radians = math.radians(-orientation)
 
-            path_marker_msg = Rotated2DObject()  # TODO wth is supposed to be te type here??
+            path_marker_msg = Rotated2DObject()  # TODO wth is supposed to be te type here?? PathMarker type in other
+            # files but can't start container if PathMarker() is here
 
             path_marker_msg.center.x = center_x
             path_marker_msg.center.y = center_y
