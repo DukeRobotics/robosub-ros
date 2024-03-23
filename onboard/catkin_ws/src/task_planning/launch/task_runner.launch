@@ -1,3 +1,6 @@
 <launch>
-	<node pkg="task_planning" name="task_runner" type="task_runner.py" output="screen" />
+	<arg name="bypass" default="False" doc='{"type":"bool","allowEmpty":true,"help":"Whether to bypass rospy.wait_for_service()"}'/>
+	<node pkg="task_planning" name="task_runner" type="task_runner.py" output="screen">
+		<param name="bypass" value="$(arg bypass)" />
+	</node>
 </launch>

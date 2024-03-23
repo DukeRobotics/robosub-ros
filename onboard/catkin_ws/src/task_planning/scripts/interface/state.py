@@ -3,14 +3,8 @@ from geometry_msgs.msg import PoseWithCovarianceStamped
 from nav_msgs.msg import Odometry
 from robot_localization.srv import SetPose
 from tf2_ros.buffer import Buffer
+from utils.other_utils import singleton
 
-def singleton(cls):
-    instances = {}
-    def getinstance(*args, **kwargs):
-        if cls not in instances:
-            instances[cls] = cls(*args, **kwargs)
-        return instances[cls]
-    return getinstance
 
 @singleton
 class State:
@@ -28,18 +22,20 @@ class State:
     STATE_TOPIC = 'state'
     RESET_POSE_SERVICE = '/set_pose'
 
-    def __init__(self, tfBuffer: Buffer = None):
+    def __init__(self, bypass: bool = False, tfBuffer: Buffer = None):
         """
         Args:
             tfBuffer: The transform buffer for the robot
         """
+        self.bypass = bypass
         if tfBuffer:
             self._tfBuffer = tfBuffer
 
         rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state)
         self._state = None
 
-        rospy.wait_for_service(self.RESET_POSE_SERVICE)
+        if not bypass:
+            rospy.wait_for_service(self.RESET_POSE_SERVICE)
         self._reset_pose = rospy.ServiceProxy(self.RESET_POSE_SERVICE, SetPose)
 
     @property
@@ -65,4 +61,5 @@ class State:
         """
         poseCov = PoseWithCovarianceStamped()
         poseCov.pose.pose.orientation.w = 1
-        self._reset_pose(poseCov)
+        if not self.bypass:
+            self._reset_pose(poseCov)

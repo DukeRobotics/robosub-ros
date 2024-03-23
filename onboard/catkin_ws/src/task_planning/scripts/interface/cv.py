@@ -3,8 +3,10 @@ import yaml
 import resource_retriever as rr
 from custom_msgs.msg import CVObject
 from geometry_msgs.msg import Pose
+from utils.other_utils import singleton
 
 
+@singleton
 class CV:
     """
     Interface for the CV.
@@ -14,21 +16,14 @@ class CV:
         cv_data: Dictionary of the data of the objects
     """
 
-    _instance = None
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(CV, cls).__new__(cls)
-            cls._instance.__init__()
-        return cls._instance
-
     MODELS_PATH = "package://cv/models/depthai_models.yaml"
     CV_CAMERA = "front"
     # TODO We may want a better way to sync this between here and the cv node
     CV_MODEL = "yolov7_tiny_2023_main"
 
-    def __init__(self):
+    def __init__(self, bypass: bool = False):
         self.cv_data = {}
+        self.bypass = bypass
 
         with open(rr.get_filename(self.MODELS_PATH, use_protocol=False)) as f:
             model = yaml.safe_load(f)[self.CV_MODEL]

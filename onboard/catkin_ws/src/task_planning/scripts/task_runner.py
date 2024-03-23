@@ -12,9 +12,10 @@ from utils import geometry_utils, other_utils
 
 
 def main():
-    main_initialized = False
 
+    main_initialized = False
     rospy.init_node("task_planning")
+    bypass = rospy.get_param("~bypass")
 
     # When rospy is shutdown, if main finished initializing, publish that it has closed
     def publish_close():
@@ -28,9 +29,9 @@ def main():
     _ = tf2_ros.TransformListener(tfBuffer)
 
     # Initialize interfaces
-    Controls()
-    state = State(tfBuffer)
-    CV()
+    Controls(bypass)
+    state = State(bypass, tfBuffer)
+    CV(bypass)
 
     # Initialize the task update publisher
     TaskUpdatePublisher()

@@ -4,11 +4,13 @@ from std_srvs.srv import Trigger
 from geometry_msgs.msg import Pose, Twist
 from custom_msgs.msg import ControlTypes, ThrusterAllocs
 from custom_msgs.srv import SetControlTypes
+from utils.other_utils import singleton
 import resource_retriever as rr
 import os
 import yaml
 
 
+@singleton
 class Controls:
     """
     A singleton class for the controls interface
@@ -35,23 +37,17 @@ class Controls:
     DESIRED_POWER_TOPIC = 'controls/desired_power'
     THRUSTER_ALLOCS_TOPIC = 'controls/thruster_allocs'
 
-    _instance = None
+    def __init__(self, bypass: bool = False):
 
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(Controls, cls).__new__(cls)
-            cls._instance.__init__()
-        return cls._instance
-
-    def __init__(self):
-
-        rospy.wait_for_service(self.CONTROL_TYPES_SERVICE)
+        if not bypass:
+            rospy.wait_for_service(self.CONTROL_TYPES_SERVICE)
         self._set_control_types = rospy.ServiceProxy(self.CONTROL_TYPES_SERVICE, SetControlTypes)
         # Note: if this variable gets out of sync with the actual control types,
         # bad things may happen
         self._all_axes_control_type = None
 
-        rospy.wait_for_service(self.RESET_PID_LOOPS_SERVICE)
+        if not bypass:
+            rospy.wait_for_service(self.RESET_PID_LOOPS_SERVICE)
         self._reset_pid_loops = rospy.ServiceProxy(self.RESET_PID_LOOPS_SERVICE, Trigger)
 
         self._desired_position_pub = rospy.Publisher(self.DESIRED_POSITION_TOPIC, Pose, queue_size=1)
@@ -65,6 +61,7 @@ class Controls:
 
         self.get_thruster_dict()
         self._thruster_pub = rospy.Publisher(self.THRUSTER_ALLOCS_TOPIC, ThrusterAllocs, queue_size=1)
+        self.bypass = bypass
 
     def get_thruster_dict(self) -> None:
         """
@@ -97,14 +94,15 @@ class Controls:
         if self._all_axes_control_type == type:
             return
         # TODO what if this doesn't return success?
-        self._set_control_types(ControlTypes(
-            x=type,
-            y=type,
-            z=type,
-            roll=type,
-            pitch=type,
-            yaw=type
-        ))
+        if not self.bypass:
+            self._set_control_types(ControlTypes(
+                x=type,
+                y=type,
+                z=type,
+                roll=type,
+                pitch=type,
+                yaw=type
+            ))
         self._all_axes_control_type = type
         self.start_new_move()
 
@@ -113,7 +111,8 @@ class Controls:
         """
         Start a new movement
         """
-        self._reset_pid_loops()
+        if not self.bypass:
+            self._reset_pid_loops()
 
     # In global coordinates
     def publish_desired_position(self, pose: Pose) -> None:
