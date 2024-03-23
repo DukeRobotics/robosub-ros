@@ -24,6 +24,8 @@ class HSVFilter:
     # Each function should return a dictionary of detection data, as well as a ROS Message for publishing.
     # You may utilize Circle and RotatedRect message types from opencv_apps:
     # https://docs.ros.org/en/kinetic/api/opencv_apps/html/index-msg.html
+
+    # First define fitting functions so we can have them as values in a dict
     def fit_ellipse(self, contours, width, height):
         largest_contour = max(contours, key=cv2.contourArea)
         center, dimensions, orientation = cv2.fitEllipse(largest_contour)
@@ -71,6 +73,7 @@ class HSVFilter:
 
         return {"center": center, "dimensions": dimensions, "orientation": orientation_in_radians}, rotated_rect_msg
 
+    # Fitting functions and associated message types
     FITTING_FUNCTIONS = {
         "ellipse": fit_ellipse,
         "circle": fit_circle,
