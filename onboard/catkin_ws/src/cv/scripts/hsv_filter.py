@@ -1,19 +1,16 @@
 #!/usr/bin/env python3
 
 import rospy
-import rostopic
 import cv2
-import depthai as dai
 import math
-import depthai_camera_connect
-import numpy as np
 import resource_retriever as rr
 import yaml
 
 from opencv_apps.msg import Circle, RotatedRect
+from custom_msgs.msg import PathMarker
 from sensor_msgs.msg import CompressedImage
 from image_tools import ImageTools
-from utils import visualize_path_marker_detection, DetectionVisualizer
+from utils import visualize_path_marker_detection
 from custom_msgs.srv import EnableModel, CVObject
 
 CAMERAS_FILEPATH = 'package://cv/configs/cameras.yaml'
@@ -36,7 +33,7 @@ class HSVFilter:
 
         orientation_in_radians = math.radians(-orientation)
 
-        ellipse_msg = RotatedRect() 
+        ellipse_msg = RotatedRect()
 
         ellipse_msg.center.x = center_x
         ellipse_msg.center.y = center_y
@@ -51,28 +48,28 @@ class HSVFilter:
         center, radius = cv2.minEnclosingCircle(largest_contour)
 
         circle_msg = Circle()
-        
+
         circle_msg.center.x = center[0]
         circle_msg.center.y = center[1]
         circle_msg.radius = radius
 
-        return {"center": center, "radius":radius}, circle_msg # TODO what is actually supposed to be returned here lmfao
-    
+        return {"center": center, "radius": radius}, circle_msg
+
     def fit_rotated_rectangle(self, contours, width, height):
         largest_contour = max(contours, key=cv2.contourArea)
         center, dimensions, orientation = cv2.minAreaRect(largest_contour)
 
-        rotated_rectangle_msg = RotatedRect()
+        rotated_rect_msg = RotatedRect()
 
         orientation_in_radians = math.radians(-orientation)
 
-        rotated_rectangle_msg.center.x = center[0]
-        rotated_rectangle_msg.center.y = center[1]
-        rotated_rectangle_msg.angle = orientation_in_radians
-        rotated_rectangle_msg.size.width = dimensions[0]
-        rotated_rectangle_msg.size.height = dimensions[1]
+        rotated_rect_msg.center.x = center[0]
+        rotated_rect_msg.center.y = center[1]
+        rotated_rect_msg.angle = orientation_in_radians
+        rotated_rect_msg.size.width = dimensions[0]
+        rotated_rect_msg.size.height = dimensions[1]
 
-        return {"center": center, "dimensions": dimensions, "orientation": orientation_in_radians}, rotated_rectangle_msg
+        return {"center": center, "dimensions": dimensions, "orientation": orientation_in_radians}, rotated_rect_msg
 
     FITTING_FUNCTIONS = {
         "ellipse": fit_ellipse,
@@ -103,7 +100,7 @@ class HSVFilter:
         #         "enabled": False
         #     }]
         # }}
-        # 
+        #
         # Each camera should be initialized with ALL the models, initially set enabled to False.
         # - Also create a self.publishers dict containing publisher for each model (see init_publishers).
         # For publishing topic names, follow naming conventions in init_publishers function
@@ -119,20 +116,20 @@ class HSVFilter:
         self.cameras_dict = {}
         self.publishers = {}
         self.subscribers = {}
-    
+
         for model, model_data in models.items():
             model_data["enabled"] = False
             models[model] = model_data
             self.publishers[model] = rospy.Publisher(f"cv/{model}", CVObject, queue_size=10)
-        
+
         for camera, camera_data in cameras.items():
             self.cameras_dict[camera] = camera_data
             self.cameras_dict[camera]["models"] = models
             self.subscribers[camera] = rospy.Subscriber(f"cv/{camera}", CompressedImage, self.detect(camera))
-        
+
         # - Also create a service to enable toggling of models. It calls self.toggle_service as a callback function.
         # see detection.py for details
-        rospy.Service(f'enable_model', EnableModel, self.toggle_service)        
+        rospy.Service('enable_model', EnableModel, self.toggle_service)
 
         self.image_tools = ImageTools()
 
@@ -162,9 +159,9 @@ class HSVFilter:
                 contour = self.find_contours(data, model.lower_mask, model.upper_mask)
                 detections, message = self.FITTING_FUNCTIONS[model.shape](contour, data.width, data.height)
                 detections_map[model] = detections
-                if (message is not None) and (isinstance(message,self.MESSAGE_TYPES[model.shape])):
+                if (message is not None) and (isinstance(message, self.MESSAGE_TYPES[model.shape])):
                     self.publishers[model].publish(message)
-                    
+
                     detections_visualized = visualize_path_marker_detection(data, self.detect(data))
                     detections_img_msg = self.image_tools.convert_to_ros_compressed_msg(detections_visualized)
                     self.detection_feed_publisher.publish(detections_img_msg)
@@ -206,7 +203,7 @@ class HSVFilter:
 
             orientation_in_radians = math.radians(-orientation)
 
-            path_marker_msg = Rotated2DObject()
+            path_marker_msg = PathMarker()
 
             path_marker_msg.center.x = center_x
             path_marker_msg.center.y = center_y
@@ -223,11 +220,15 @@ class HSVFilter:
         if data.camera in self.cameras_dict:
             if data.model_name in self.cameras_dict[data.camera]["models"]:
                 self.cameras_dict[data.camera]["models"][data.model_name]["enabled"] = data.enabled
-                return {"success":True,"message":f"Successfully set enabled to {data.enabled} for {data.camera} model {data.model_name}"}
+                return {"success": True, "message": f"""Successfully set enabled to {data.enabled} for {data.camera}
+                        model {data.model_name}"""}
             else:
-                return {"success":False,"message":f"Could not set enabled to {data.enabled} for {data.camera} model {data.model_name} | Camera does not have this model in the dictionary 'self.cameras_dict'"}
+                return {"success": False, "message": f"""Could not set enabled to {data.enabled} for {data.camera}
+                        model {data.model_name} | Camera does not have this model in the dictionary 'self.cameras_dict'
+                        """}
         else:
-            return {"success":False,"message":f"Could not set enabled to {data.enabled} for {data.camera} model {data.model_name} | Camera does exist in the dictionary 'self.cameras_dict'"}
+            return {"success": False, "message": f"""Could not set enabled to {data.enabled} for {data.camera}
+                    model {data.model_name} | Camera does exist in the dictionary 'self.cameras_dict'"""}
 
     def run(self):
         while not rospy.is_shutdown():
