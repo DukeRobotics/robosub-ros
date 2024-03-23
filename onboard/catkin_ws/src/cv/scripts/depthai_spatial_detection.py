@@ -50,6 +50,7 @@ class DepthAISpatialDetector:
             self.models = yaml.safe_load(f)
 
         self.pipeline = None
+        self.pipeline_nodes = {}
         self.publishers = {}  # Keys are the class names of a given model
         self.output_queues = {}  # Keys are "rgb", "depth", and "detections"
         self.connected = False
@@ -80,7 +81,7 @@ class DepthAISpatialDetector:
         self.desired_detection_feature = rospy.Subscriber(
             TASK_PLANNING_REQUESTS_PATH, String, self.update_priority)
 
-    def build_pipeline(self, nn_blob_path, sync_nn):
+    def build_pipeline(self, sync_nn):
         """
         Get the DepthAI Pipeline for 3D object localization. Inspiration taken from
         https://docs.luxonis.com/projects/api/en/latest/samples/SpatialDetection/spatial_tiny_yolo/.
@@ -98,97 +99,116 @@ class DepthAISpatialDetector:
             - "depth": contains ImgFrame messages with UINT16 values representing the depth in millimeters by default.
                 See the property depth in https://docs.luxonis.com/projects/api/en/latest/components/nodes/stereo_depth/
 
-        :param nn_blob_path: Path to blob file used for object detection.
+        # :param nn_blob_path: Path to blob file used for object detection.
         :param sync_nn: If True, sync the RGB output feed with the detection from the neural network. Needed if the RGB
         feed output will be used and needs to be synced with the object detections.
         :return: depthai.Pipeline object to compute
         """
-        model = self.models[self.running_model_name]
-
         pipeline = dai.Pipeline()
 
-        # Define sources and outputs
-        cam_rgb = pipeline.create(dai.node.ColorCamera)
-        spatial_detection_network = pipeline.create(dai.node.YoloSpatialDetectionNetwork)
-        mono_left = pipeline.create(dai.node.MonoCamera)
-        mono_right = pipeline.create(dai.node.MonoCamera)
-        stereo = pipeline.create(dai.node.StereoDepth)
-
-        xout_nn = pipeline.create(dai.node.XLinkOut)
-        xout_nn.setStreamName("detections")
-
-        if self.queue_rgb:
-            xout_rgb = pipeline.create(dai.node.XLinkOut)
-            xout_rgb.setStreamName("rgb")
-
-        if self.queue_depth:
-            xout_depth = pipeline.create(dai.node.XLinkOut)
-            xout_depth.setStreamName("depth")
+        # TODO: handle multiple inputs issue
+        # TODO: get node reference
 
         # Camera properties
-        cam_rgb.setPreviewSize(model['input_size'])
+        cam_rgb = pipeline.create(dai.node.ColorCamera)
+        # TODO: setPreviewSize depending on model
+        cam_rgb.setPreviewSize(0)
         cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
         cam_rgb.setInterleaved(False)
         cam_rgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
+
+        self.pipeline_nodes["cam_rgb"] = cam_rgb
+
+        # Mono properties
+        mono_left = pipeline.create(dai.node.MonoCamera)
+        mono_right = pipeline.create(dai.node.MonoCamera)
 
         mono_left.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
         mono_left.setBoardSocket(dai.CameraBoardSocket.CAM_B)
         mono_right.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
         mono_right.setBoardSocket(dai.CameraBoardSocket.CAM_C)
 
+        self.pipeline_nodes["mono_left"] = mono_left
+        self.pipeline_nodes["mono_right"] = mono_right
+
         # Stereo properties
+        stereo = pipeline.create(dai.node.StereoDepth)
+
         stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
         stereo.setDepthAlign(dai.CameraBoardSocket.CAM_A)
 
-        # General spatial detection network parameters
-        spatial_detection_network.setBlobPath(nn_blob_path)
-        spatial_detection_network.setConfidenceThreshold(model['confidence_threshold'])
-        spatial_detection_network.input.setBlocking(False)
-        spatial_detection_network.setBoundingBoxScaleFactor(0.5)
-        spatial_detection_network.setDepthLowerThreshold(100)
-        spatial_detection_network.setDepthUpperThreshold(5000)
+        self.pipeline_nodes["stereo"] = stereo
 
-        # Yolo specific parameters
-        spatial_detection_network.setNumClasses(len(model['classes']))
-        spatial_detection_network.setCoordinateSize(model['coordinate_size'])
-        spatial_detection_network.setAnchors(np.array(model['anchors']))
-        spatial_detection_network.setAnchorMasks(model['anchor_masks'])
-        spatial_detection_network.setIouThreshold(model['iou_threshold'])
+        # Script node to handle switching models on the fly
+        switch_model = pipeline.create(dai.node.Script)
+        self.pipeline_nodes["switch_model"] = switch_model
+
+        # Output queues
+        xout_nn = pipeline.create(dai.node.XLinkOut)
+        xout_nn.setStreamName("detections")
+        self.pipeline_nodes["xout_nn"] = xout_nn
+
+        if self.queue_rgb:
+            xout_rgb = pipeline.create(dai.node.XLinkOut)
+            xout_rgb.setStreamName("rgb")
+            self.pipeline_nodes["xout_rgb"] = xout_rgb
+
+        if self.queue_depth:
+            xout_depth = pipeline.create(dai.node.XLinkOut)
+            xout_depth.setStreamName("depth")
+            self.pipeline_nodes["xout_depth"] = xout_depth
 
         # Linking
         mono_left.out.link(stereo.left)
         mono_right.out.link(stereo.right)
 
-        cam_rgb.preview.link(spatial_detection_network.input)
+        cam_rgb.preview.link(switch_model.input)
+        stereo.depth.link(switch_model.inputDepth)
+
+        # Spatial detection network nodes
+        self.pipeline_nodes["spatial_detection_network"] = {}
+        for model_name in self.models:
+            model = self.models[model_name]
+
+            blob_path = rr.get_filename(f"package://cv/models/{model['weights']}", use_protocol=False)
+
+            # Set up a new network for each model
+            spatial_detection_network = pipeline.create(dai.node.YoloSpatialDetectionNetwork)
+
+            spatial_detection_network.setBlobPath(blob_path)
+            spatial_detection_network.setConfidenceThreshold(model['confidence_threshold'])
+            spatial_detection_network.input.setBlocking(False)
+            spatial_detection_network.setBoundingBoxScaleFactor(0.5)
+            spatial_detection_network.setDepthLowerThreshold(100)
+            spatial_detection_network.setDepthUpperThreshold(5000)
+
+            # Yolo specific parameters
+            spatial_detection_network.setNumClasses(len(model['classes']))
+            spatial_detection_network.setCoordinateSize(model['coordinate_size'])
+            spatial_detection_network.setAnchors(np.array(model['anchors']))
+            spatial_detection_network.setAnchorMasks(model['anchor_masks'])
+            spatial_detection_network.setIouThreshold(model['iou_threshold'])
+
+            self.pipeline_nodes["spatial_detection_network"][model] = spatial_detection_network 
+
+            # Linking switch node outputs to spatial detection network inputs
+            switch_model.outputs[f"{model}_input"].link(spatial_detection_network.input)
+            switch_model.outputs[f"{model}_inputDepth"].link(spatial_detection_network.inputDepth)
+
+            # # To sync RGB frames with NN, link passthrough to xout instead of preview
+            # if self.queue_rgb and sync_nn:
+            #     spatial_detection_network.passthrough.link(xout_rgb.input)
+
+            # if self.queue_depth:
+            #     spatial_detection_network.passthroughDepth.link(xout_depth.input)
+
+            # spatial_detection_network.out.link(xout_nn.input)
 
         if self.queue_rgb:
-            # To sync RGB frames with NN, link passthrough to xout instead of preview
             if sync_nn:
-                spatial_detection_network.passthrough.link(xout_rgb.input)
+                switch_model.outputs["cam_rgb"].link(xout_rgb.input)
             else:
                 cam_rgb.preview.link(xout_rgb.input)
-
-        spatial_detection_network.out.link(xout_nn.input)
-
-        if self.queue_depth:
-            spatial_detection_network.passthroughDepth.link(xout_depth.input)
-
-        stereo.depth.link(spatial_detection_network.inputDepth)
-
-        return pipeline
-
-    def reset_pipeline(self):
-        pipeline = dai.Pipeline()
-
-        cam_rgb = pipeline.create(dai.node.ColorCamera)
-        cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
-        cam_rgb.setInterleaved(False)
-        cam_rgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
-
-        xout_rgb = pipeline.create(dai.node.XLinkOut)
-        xout_rgb.setStreamName("rgb")
-
-        cam_rgb.preview.link(xout_rgb.input)
 
         return pipeline
 
@@ -281,12 +301,12 @@ class DepthAISpatialDetector:
 
         self.connected = True  # Flag that the output queues have been initialized
 
-        if not self.running_model_name:
-            self.output_queues["depth"] = None
-            self.output_queues["detections"] = None
-            self.detection_visualizer = None
+        # if not self.running_model_name:
+        #     self.output_queues["depth"] = None
+        #     self.output_queues["detections"] = None
+        #     self.detection_visualizer = None
 
-            return
+        #     return
 
         if self.queue_depth:
             self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
@@ -474,7 +494,8 @@ class DepthAISpatialDetector:
         self.current_priority = object
 
     def set_model(self, req):
-        # TODO: stop detections (how?)
+        # TODO: rewrite
+        # TODO: check init_publishers and remove publishers
         new_model_name = req.model_name
 
         if new_model_name == self.running_model_name:
@@ -483,11 +504,11 @@ class DepthAISpatialDetector:
         if new_model_name and new_model_name not in self.models:
             return {"success": False, "message": f"FAILURE: {new_model_name} is not a valid model name."}
         else:
-            self.init_model(new_model_name)
+            # self.init_model(new_model_name)
             self.init_publishers(new_model_name)
 
-            with depthai_camera_connect.connect(self.pipeline, self.camera) as device:
-                self.init_output_queues(device)
+            # with depthai_camera_connect.connect(self.pipeline, self.camera) as device:
+            #     self.init_output_queues(device)
 
             if new_model_name:
                 message = f"Sucessfully set {new_model_name} as new model for {self.camera} camera."
