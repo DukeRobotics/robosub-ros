@@ -4,7 +4,15 @@ from nav_msgs.msg import Odometry
 from robot_localization.srv import SetPose
 from tf2_ros.buffer import Buffer
 
+def singleton(cls):
+    instances = {}
+    def getinstance(*args, **kwargs):
+        if cls not in instances:
+            instances[cls] = cls(*args, **kwargs)
+        return instances[cls]
+    return getinstance
 
+@singleton
 class State:
     """
     Interface for the state of the robot.
@@ -15,14 +23,6 @@ class State:
         tfBuffer: The transform buffer for the robot.
         _reset_pose: The service proxy for resetting the pose
     """
-
-    _instance = None
-
-    def __new__(cls, tfBuffer: Buffer = None):
-        if cls._instance is None:
-            cls._instance = super(State, cls).__new__(cls)
-            cls._instance.__init__(tfBuffer)
-        return cls._instance
 
     # ROS topics for the state and resetting the pose
     STATE_TOPIC = 'state'
