@@ -5,7 +5,6 @@ import inspect
 import jsonpickle
 from typing import Any, Callable, Coroutine, Generator, Generic, Optional, Type, TypeVar, Union
 
-import genpy
 import rospy
 from custom_msgs.msg import TaskUpdate
 
