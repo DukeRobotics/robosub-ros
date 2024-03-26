@@ -11,8 +11,7 @@ from utils import geometry_utils, coroutine_utils
 
 
 @task
-async def move_to_pose_global(self: Task, pose: Pose) -> \
-        Task[None, Optional[Pose], None]:
+async def move_to_pose_global(self: Task, pose: Pose) -> Task[None, Optional[Pose], None]:
     """
     Move to a global pose in the "odom" frame. Returns when the robot is at the given pose with zero velocity, within
     a small tolerance.
@@ -35,8 +34,7 @@ async def move_to_pose_global(self: Task, pose: Pose) -> \
 
 
 @task
-async def move_to_pose_local(self: Task, pose: Pose) -> \
-        Task[None, Optional[Pose], None]:
+async def move_to_pose_local(self: Task, pose: Pose) -> Task[None, Optional[Pose], None]:
     """
     Move to local pose in the "base_link" frame. Returns when the robot is at the given pose with zero velocity, within
     a small tolerance.
@@ -54,8 +52,7 @@ async def move_to_pose_local(self: Task, pose: Pose) -> \
 
 
 @task
-async def move_with_velocity(self: Task, twist: Twist) -> \
-        Task[None, Optional[Twist], None]:
+async def move_with_velocity(self: Task, twist: Twist) -> Task[None, Optional[Twist], None]:
     """
     Move with a given velocity. Returns when the robot is moving with the given velocity.
 
@@ -76,8 +73,7 @@ async def move_with_velocity(self: Task, twist: Twist) -> \
 
 
 @task
-async def move_with_power_for_seconds(self: Task, power: Twist, seconds: float) -> \
-        Task[None, Optional[Twist], None]:
+async def move_with_power_for_seconds(self: Task, power: Twist, seconds: float) -> Task[None, Optional[Twist], None]:
     """
     Move with a given power for a given number of seconds. Returns when the time has elapsed.
 
