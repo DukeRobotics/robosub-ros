@@ -8,7 +8,7 @@ from interface.controls import Controls
 from interface.state import State
 from interface.cv import CV
 import move_tasks
-from utils import geometry_utils, other_utils
+from utils import geometry_utils
 
 
 def main():
@@ -74,8 +74,7 @@ def main():
     except BaseException as e:
 
         # Main has errored
-        TaskUpdatePublisher().publish_update(Task.MAIN_ID, Task.MAIN_ID, "main", TaskStatus.ERRORED,
-                                             other_utils.exception_to_dict(e))
+        TaskUpdatePublisher().publish_update(Task.MAIN_ID, Task.MAIN_ID, "main", TaskStatus.ERRORED, e)
         raise
 
     else:

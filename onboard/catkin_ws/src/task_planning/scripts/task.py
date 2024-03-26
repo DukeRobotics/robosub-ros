@@ -9,7 +9,6 @@ import rospy
 from custom_msgs.msg import TaskUpdate
 
 from jsonpickle_custom_handlers import register_custom_jsonpickle_handlers
-from utils import other_utils
 
 # Register all JSONPickle handlers for custom classes
 register_custom_jsonpickle_handlers()
@@ -287,7 +286,7 @@ class Task(Generic[YieldType, SendType, ReturnType]):
             return e.value
         except BaseException as e:
             self._done = True
-            self._publish_update(TaskStatus.ERRORED, other_utils.exception_to_dict(e))
+            self._publish_update(TaskStatus.ERRORED, e)
             raise e
 
     def throw(self, error: Type[BaseException]) -> Union[YieldType, ReturnType]:
@@ -306,7 +305,7 @@ class Task(Generic[YieldType, SendType, ReturnType]):
 
         self._started = True
         try:
-            self._publish_update(TaskStatus.THREW, other_utils.exception_to_dict(error))
+            self._publish_update(TaskStatus.THREW, error)
             ret_val = self._coroutine.throw(error)
             self._publish_update(TaskStatus.PAUSED, ret_val)
             return ret_val
@@ -316,7 +315,7 @@ class Task(Generic[YieldType, SendType, ReturnType]):
             return e.value
         except BaseException as e:
             self._done = True
-            self._publish_update(TaskStatus.ERRORED, other_utils.exception_to_dict(e))
+            self._publish_update(TaskStatus.ERRORED, e)
             raise e
 
     def close(self) -> None:
@@ -329,7 +328,7 @@ class Task(Generic[YieldType, SendType, ReturnType]):
                 self._publish_update(TaskStatus.CLOSED, None)
                 self._coroutine.close()
             except BaseException as e:
-                self._publish_update(TaskStatus.ERRORED, other_utils.exception_to_dict(e))
+                self._publish_update(TaskStatus.ERRORED, e)
                 raise e
             finally:
                 self._done = True
@@ -344,7 +343,7 @@ class Task(Generic[YieldType, SendType, ReturnType]):
                 self._publish_update(TaskStatus.DELETED, None)
                 self._coroutine.close()
             except BaseException as e:
-                self._publish_update(TaskStatus.ERRORED, other_utils.exception_to_dict(e))
+                self._publish_update(TaskStatus.ERRORED, e)
                 raise e
             finally:
                 self._done = True
