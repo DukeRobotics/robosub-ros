@@ -9,11 +9,11 @@ import genpy
 import rospy
 from custom_msgs.msg import TaskUpdate
 
-from message_conversion.ros_jsonpickle import ROSMessageHandler
+from jsonpickle_custom_handlers import register_custom_jsonpickle_handlers
 from utils import other_utils
 
-# Register the ROSMessageHandler with jsonpickle to allow it to encode and decode ROS messages
-jsonpickle.handlers.register(genpy.Message, ROSMessageHandler, base=True)
+# Register all JSONPickle handlers for custom classes
+register_custom_jsonpickle_handlers()
 
 
 class TaskStatus(IntEnum):
