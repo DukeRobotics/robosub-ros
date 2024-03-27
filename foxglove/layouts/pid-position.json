@@ -1,0 +1,398 @@
+{
+  "configById": {
+    "Plot!3gn30zb": {
+      "paths": [
+        {
+          "value": "/controls/position_error.linear.x",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "Error X",
+          "showLine": true,
+          "color": "#0080ff"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_efforts.linear.x",
+          "enabled": true,
+          "label": "Control Effort X",
+          "color": "#ff4000"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.x.filtered_error",
+          "enabled": true,
+          "label": "Filtered Error X"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.x.integral",
+          "enabled": true,
+          "label": "Integral X"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.x.filtered_derivative",
+          "enabled": true,
+          "label": "Filtered Derivative X"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.x.calculated_derivative",
+          "enabled": true,
+          "label": "Calculated Derivative X"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.x.provided_derivative",
+          "enabled": true,
+          "label": "Provided Derivative X"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "X",
+      "minYValue": -3,
+      "maxYValue": 3,
+      "followingViewWidth": 15
+    },
+    "Plot!3yf78kk": {
+      "paths": [
+        {
+          "value": "/controls/position_error.angular.x",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "Error Roll",
+          "showLine": true,
+          "color": "#0080ff"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_efforts.angular.x",
+          "enabled": true,
+          "label": "Control Effort Roll",
+          "color": "#ff4000"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.roll.filtered_error",
+          "enabled": true,
+          "label": "Filtered Error Roll"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.roll.integral",
+          "enabled": true,
+          "label": "Integral Roll"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.roll.filtered_derivative",
+          "enabled": true,
+          "label": "Filtered Derivative Roll"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.roll.calculated_derivative",
+          "enabled": true,
+          "label": "Calculated Derivative Roll"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.roll.provided_derivative",
+          "enabled": true,
+          "label": "Provided Derivative Roll"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Roll",
+      "minYValue": -3,
+      "maxYValue": 3,
+      "followingViewWidth": 15
+    },
+    "Plot!1vpzbmx": {
+      "paths": [
+        {
+          "value": "/controls/position_error.linear.y",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "Error Y",
+          "showLine": true,
+          "color": "#0080ff"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_efforts.linear.y",
+          "enabled": true,
+          "label": "Control Effort Y",
+          "color": "#ff4000"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.y.filtered_error",
+          "enabled": true,
+          "label": "Filtered Error Y"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.y.integral",
+          "enabled": true,
+          "label": "Integral Y"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.y.filtered_derivative",
+          "enabled": true,
+          "label": "Filtered Derivative Y"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.y.calculated_derivative",
+          "enabled": true,
+          "label": "Calculated Derivative Y"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.y.provided_derivative",
+          "enabled": true,
+          "label": "Provided Derivative Y"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Y",
+      "minYValue": -3,
+      "maxYValue": 3,
+      "followingViewWidth": 15
+    },
+    "Plot!266v8jj": {
+      "paths": [
+        {
+          "value": "/controls/position_error.angular.y",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "Error Pitch",
+          "showLine": true,
+          "color": "#0080ff"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_efforts.angular.y",
+          "enabled": true,
+          "label": "Control Effort Pitch",
+          "color": "#ff4000"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.pitch.filtered_error",
+          "enabled": true,
+          "label": "Filtered Error Pitch"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.pitch.integral",
+          "enabled": true,
+          "label": "Integral Pitch"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.pitch.filtered_derivative",
+          "enabled": true,
+          "label": "Filtered Derivative Pitch"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.pitch.calculated_derivative",
+          "enabled": true,
+          "label": "Calculated Derivative Pitch"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.pitch.provided_derivative",
+          "enabled": true,
+          "label": "Provided Derivative Pitch"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Pitch",
+      "minYValue": -3,
+      "maxYValue": 3,
+      "followingViewWidth": 15
+    },
+    "Plot!1p60d5": {
+      "paths": [
+        {
+          "value": "/controls/position_error.linear.z",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "Error Z",
+          "showLine": true,
+          "color": "#0080ff"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_efforts.linear.z",
+          "enabled": true,
+          "label": "Control Effort Z",
+          "color": "#ff4000"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.z.filtered_error",
+          "enabled": true,
+          "label": "Filtered Error Z"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.z.integral",
+          "enabled": true,
+          "label": "Integral Z"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.z.filtered_derivative",
+          "enabled": true,
+          "label": "Filtered Derivative Z"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.z.calculated_derivative",
+          "enabled": true,
+          "label": "Calculated Derivative Z"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.z.provided_derivative",
+          "enabled": true,
+          "label": "Provided Derivative Z"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Z",
+      "minYValue": -3,
+      "maxYValue": 3,
+      "followingViewWidth": 15
+    },
+    "Plot!3y2hu8l": {
+      "paths": [
+        {
+          "value": "/controls/position_error.angular.z",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "Error Yaw",
+          "showLine": true,
+          "color": "#0080ff"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_efforts.angular.z",
+          "enabled": true,
+          "label": "Control Effort Yaw",
+          "color": "#ff4000"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.yaw.filtered_error",
+          "enabled": true,
+          "label": "Filtered Error Yaw"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.yaw.integral",
+          "enabled": true,
+          "label": "Integral Yaw"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.yaw.filtered_derivative",
+          "enabled": true,
+          "label": "Filtered Derivative Yaw"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.yaw.calculated_derivative",
+          "enabled": true,
+          "label": "Calculated Derivative Yaw"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/position_pid_infos.yaw.provided_derivative",
+          "enabled": true,
+          "label": "Provided Derivative Yaw"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Yaw",
+      "minYValue": -3,
+      "maxYValue": 3,
+      "followingViewWidth": 15
+    }
+  },
+  "globalVariables": {},
+  "userNodes": {},
+  "playbackConfig": {
+    "speed": 1
+  },
+  "layout": {
+    "first": {
+      "first": {
+        "first": "Plot!3gn30zb",
+        "second": "Plot!3yf78kk",
+        "direction": "column"
+      },
+      "second": {
+        "first": "Plot!1vpzbmx",
+        "second": "Plot!266v8jj",
+        "direction": "column"
+      },
+      "direction": "row",
+      "splitPercentage": 50
+    },
+    "second": {
+      "first": "Plot!1p60d5",
+      "second": "Plot!3y2hu8l",
+      "direction": "column"
+    },
+    "direction": "row",
+    "splitPercentage": 66.66666666666666
+  }
+}

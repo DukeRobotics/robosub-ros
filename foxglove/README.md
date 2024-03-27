@@ -100,9 +100,14 @@ python foxglove.py clean
 - `pid-panel`: Panel to read/set PID gains
 
 ### Layouts
-- `controls-monitor.json`: 6 graphs for each control axis (x, y, z, roll, pitch, yaw) plotting setpoint and control effort against time
-- `current-pose.json`: 6 graphs for each axis (x, y, z, roll, pitch, yaw) plotting the current pose of the robot
+- `controls-power.json`: Plots the set power scaled, actual power, and their difference (power disparity) for each axis. Also plots the norm of the power disparity.
 - `drc.json`: All Duke Robotics's custom Foxglove panels
+- `pid-<position/velocity>.json`: Plots error, control effort, filtered error, integral, filtered derivative, calculated derivative, and provided derivative for each axis
+- `sensors.json`: Displays the sensor status, system status, and thruster allocs panels, along with the raw messages from each sensor and all camera feeds.
+- `state.json`: Plots state pose, state velocity, desired pose, and desired velocity for all axes, along with IMU orientation (angular axes only) and depth (Z only). It uses the following transformed topics:
+  - `/state.pose.pose` transformed to `/transforms/state/pose`
+  - `/vectornav/IMU.orientation` transformed to `/transforms/vectornav/IMU/orientation`
+  - `/controls/desired_position` transformed to `/transforms/controls/desired_position`
 
 ## Local Dependencies
 Local dependencies are located in the `shared` directory.
