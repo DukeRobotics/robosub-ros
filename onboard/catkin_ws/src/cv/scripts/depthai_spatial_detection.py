@@ -189,7 +189,7 @@ class DepthAISpatialDetector:
             spatial_detection_network.setAnchorMasks(model['anchor_masks'])
             spatial_detection_network.setIouThreshold(model['iou_threshold'])
 
-            self.pipeline_nodes["spatial_detection_network"][model] = spatial_detection_network 
+            self.pipeline_nodes["spatial_detection_network"][model] = spatial_detection_network
 
             # Linking switch node outputs to spatial detection network inputs
             switch_model.outputs[f"{model}_input"].link(spatial_detection_network.input)
@@ -295,24 +295,20 @@ class DepthAISpatialDetector:
         :param device: DepthAI.Device object for the connected device.
         See https://docs.luxonis.com/projects/api/en/latest/components/device/
         """
+        # If the output queues are already set, don't reinitialize
+        if self.connected:
+            return
+
         # Assign output queues
         if self.queue_rgb:
             self.output_queues["rgb"] = device.getOutputQueue(name="rgb", maxSize=1, blocking=False)
 
-        self.connected = True  # Flag that the output queues have been initialized
-
-        # if not self.running_model_name:
-        #     self.output_queues["depth"] = None
-        #     self.output_queues["detections"] = None
-        #     self.detection_visualizer = None
-
-        #     return
-
         if self.queue_depth:
             self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
 
-        self.output_queues["detections"] = (device.getOutputQueue(name="detections", maxSize=1, blocking=False)
-                                            if self.running_model_name else None)
+        self.output_queues["detections"] = device.getOutputQueue(name="detections", maxSize=1, blocking=False)
+
+        self.connected = True  # Flag that the output queues have been initialized
 
         self.detection_visualizer = DetectionVisualizer(self.classes, self.colors,
                                                         self.show_class_name, self.show_confidence)
