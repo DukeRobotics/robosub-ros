@@ -11,7 +11,7 @@ from utils import DetectionVisualizer
 from image_tools import ImageTools
 
 from custom_msgs.msg import CVObject, SonarSweepRequest
-from custom_msgs.srv import SetCVModel
+from custom_msgs.srv import SetDepthAIModel
 from geometry_msgs.msg import Pose
 from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import String
@@ -25,6 +25,7 @@ SONAR_RANGE = 1.75
 SONAR_REQUESTS_PATH = 'sonar/request'
 SONAR_RESPONSES_PATH = 'sonar/cv/response'
 TASK_PLANNING_REQUESTS_PATH = "controls/desired_feature"
+NO_DEPTHAI_MODEL_STRING = "rgb_raw"
 
 
 # Compute detections on live camera feed and publish spatial coordinates for detected objects
@@ -81,7 +82,7 @@ class DepthAISpatialDetector:
         self.desired_detection_feature = rospy.Subscriber(
             TASK_PLANNING_REQUESTS_PATH, String, self.update_priority)
 
-    def build_pipeline(self, sync_nn):
+    def build_pipeline(self, running_model_name):
         """
         Get the DepthAI Pipeline for 3D object localization. Inspiration taken from
         https://docs.luxonis.com/projects/api/en/latest/samples/SpatialDetection/spatial_tiny_yolo/.
@@ -105,9 +106,6 @@ class DepthAISpatialDetector:
         :return: depthai.Pipeline object to compute
         """
         pipeline = dai.Pipeline()
-
-        # TODO: handle multiple inputs issue
-        # TODO: get node reference
 
         # Camera properties
         cam_rgb = pipeline.create(dai.node.ColorCamera)
@@ -189,26 +187,29 @@ class DepthAISpatialDetector:
             spatial_detection_network.setAnchorMasks(model['anchor_masks'])
             spatial_detection_network.setIouThreshold(model['iou_threshold'])
 
-            self.pipeline_nodes["spatial_detection_network"][model] = spatial_detection_network
+            self.pipeline_nodes["spatial_detection_network"][model_name] = spatial_detection_network
 
             # Linking switch node outputs to spatial detection network inputs
             switch_model.outputs[f"{model}_input"].link(spatial_detection_network.input)
             switch_model.outputs[f"{model}_inputDepth"].link(spatial_detection_network.inputDepth)
 
-            # # To sync RGB frames with NN, link passthrough to xout instead of preview
-            # if self.queue_rgb and sync_nn:
-            #     spatial_detection_network.passthrough.link(xout_rgb.input)
-
-            # if self.queue_depth:
-            #     spatial_detection_network.passthroughDepth.link(xout_depth.input)
-
-            # spatial_detection_network.out.link(xout_nn.input)
-
+        # TODO: rewrite this
         if self.queue_rgb:
-            if sync_nn:
-                switch_model.outputs["cam_rgb"].link(xout_rgb.input)
-            else:
+            if not self.sync_nn:
                 cam_rgb.preview.link(xout_rgb.input)
+            elif running_model_name != NO_DEPTHAI_MODEL_STRING:
+                self.pipeline_nodes["spatial_detection_network"][running_model_name].passthrough.link(xout_rgb.input)
+            else:
+                switch_model.outputs["passthrough"].link(xout_rgb.input)
+
+        if self.queue_depth:
+            if running_model_name != NO_DEPTHAI_MODEL_STRING:
+                self.pipeline_nodes["spatial_detection_network"][running_model_name].passthroughDepth.link(xout_depth.input)
+            else:
+                switch_model.outputs["passthroughDepth"].link(xout_depth.input)
+
+        if running_model_name != NO_DEPTHAI_MODEL_STRING:
+            self.pipeline_nodes["spatial_detection_network"][running_model_name].out.link(xout_nn.input)
 
         return pipeline
 
@@ -230,28 +231,25 @@ class DepthAISpatialDetector:
 
         Then, a possible model name is "gate".
         """
-        # If the model is already set, don't reinitialize
-        if model_name == self.running_model_name:
-            return
+        self.current_model_name = model_name
 
-        # If model_name == "", all these values should be None
-        self.running_model_name = model_name
+        if model_name != NO_DEPTHAI_MODEL_STRING:
+            model = self.models[model_name]
 
-        model = self.models[model_name] if model_name else {}
+            self.classes = model['classes']
 
-        self.classes = model.get("classes")
+            self.camera_pixel_width, self.camera_pixel_height = model['input_size']
 
-        self.camera_pixel_width, self.camera_pixel_height = model.get("input_size")
+            self.colors = model['colors']
 
-        self.colors = model.get("colors")
-
-        if model_name:
-            blob_path = rr.get_filename(f"package://cv/models/{model['weights']}",
-                                        use_protocol=False)
-            self.pipeline = self.build_pipeline(blob_path, self.sync_nn)
+            self.detection_visualizer = DetectionVisualizer(self.classes, self.colors,
+                                                            self.show_class_name, self.show_confidence)
 
         else:
-            self.pipeline = self.reset_pipeline()
+            self.classes = None
+            self.camera_pixel_width, self.camera_pixel_height = None, None
+            self.colors = None
+            self.detection_visualizer = None
 
     def init_publishers(self, model_name):
         """
@@ -259,35 +257,32 @@ class DepthAISpatialDetector:
         The publishers are created in format: "cv/camera/model_name".
         :param model_name: Name of the model that is being used.
         """
-        self.remove_all_publishers()
+        # Unregister all current CVObject publishers and reset self.publishers
+        for publisher in self.publishers.values():
+            publisher.unregister()
 
-        model = self.models[model_name]
+        self.publishers = {}
 
-        # Create a CVObject publisher for each class
-        self.publisher_dict = {}
+        # (Re)create a CVObject publisher for each class
+        if model_name != NO_DEPTHAI_MODEL_STRING:
+            model = self.models[model_name]
+            for model_class in model['classes']:
+                publisher_name = f"cv/{self.camera}/{model_class}"
+                self.publishers[model_class] = rospy.Publisher(publisher_name, CVObject, queue_size=10)
 
-        if self.rgb_raw:
+        # Create CompressedImage publishers for the raw RGB feed, detections feed, and depth feed
+        # Only create these publishers once
+        if self.rgb_raw and not self.rgb_preview_publisher:
             self.rgb_preview_publisher = rospy.Publisher(f"camera/{self.camera}/rgb/preview/compressed",
                                                          CompressedImage, queue_size=10)
 
-        if not model_name:
-            self.detection_feed_publisher = None
-            self.depth_publisher = None
-
-            return
-
-        for model_class in model['classes']:
-            publisher_name = f"cv/{self.camera}/{model_class}"
-            self.publisher_dict[model_class] = rospy.Publisher(publisher_name, CVObject, queue_size=10)
-
-        # Create CompressedImage publishers for the raw RGB feed, detections feed, and depth feed
-        if self.rgb_detections:
-            self.detection_feed_publisher = rospy.Publisher(f"cv/{self.camera}/detections/compressed", CompressedImage,
-                                                            queue_size=10)
-
-        if self.queue_depth:
+        if self.queue_depth and not self.depth_publisher:
             self.depth_publisher = rospy.Publisher(f"camera/{self.camera}/depth/compressed", CompressedImage,
                                                    queue_size=10)
+
+        if self.rgb_detections and not self.detection_feed_publisher:
+            self.detection_feed_publisher = rospy.Publisher(f"cv/{self.camera}/detections/compressed", CompressedImage,
+                                                            queue_size=10)
 
     def init_output_queues(self, device):
         """
@@ -310,8 +305,18 @@ class DepthAISpatialDetector:
 
         self.connected = True  # Flag that the output queues have been initialized
 
-        self.detection_visualizer = DetectionVisualizer(self.classes, self.colors,
-                                                        self.show_class_name, self.show_confidence)
+    def reroute_pipeline(self, old_model_name, new_model_name, unlink_previous=False):
+        # TODO: concern: if model disabled:
+        #   - self.detection_feed_publisher does not publish? 
+        #   - still have xout_rgb and depth output queues, both must SYNC with spatial network
+        #   - detection output queue does not publish
+
+        if self.queue_rgb and self.sync_nn:
+            self.pipeline_nodes["spatial_detection_network"][model_name].passthrough.link(
+                self.pipeline_nodes["xout_rgb"].input
+            )
+
+        self.pipeline_nodes["spatial_detection_network"][model_name].out.link(self.pipeline_nodes["xout_nn"].input)
 
     def detect(self):
         """
@@ -323,8 +328,11 @@ class DepthAISpatialDetector:
             return
 
         # Get detections from output queues
-        inDet = self.output_queues["detections"].get()
-        detections = inDet.detections
+        if self.current_model_name != NO_DEPTHAI_MODEL_STRING:
+            inDet = self.output_queues["detections"].get()
+            detections = inDet.detections
+        else:
+            detections = []
 
         if self.queue_rgb:
             inPreview = self.output_queues["rgb"].get()
@@ -456,19 +464,6 @@ class DepthAISpatialDetector:
             if object_msg.coords.x != 0 and object_msg.coords.y != 0 and object_msg.coords.z != 0:
                 self.publishers[label].publish(object_msg)
 
-    def remove_all_publishers(self):
-        for publisher in self.publisher_dict.values():
-            publisher.unregister()
-
-        if self.detection_feed_publisher:
-            self.detection_feed_publisher.unregister()
-
-        if self.rgb_preview_publisher:
-            self.rgb_preview_publisher.unregister()
-
-        if self.depth_publisher:
-            self.depth_publisher.unregister()
-
     def update_sonar(self, sonar_results):
         """
         Callback function for listenting to sonar response
@@ -490,21 +485,18 @@ class DepthAISpatialDetector:
         self.current_priority = object
 
     def set_model(self, req):
-        # TODO: rewrite
-        # TODO: check init_publishers and remove publishers
         new_model_name = req.model_name
 
-        if new_model_name == self.running_model_name:
+        if new_model_name == self.current_model_name:
             return {"success": True, "message": f"Model {new_model_name} is already running on {self.camera} camera."}
 
-        if new_model_name and new_model_name not in self.models:
+        if new_model_name != NO_DEPTHAI_MODEL_STRING and new_model_name not in self.models:
             return {"success": False, "message": f"FAILURE: {new_model_name} is not a valid model name."}
-        else:
-            # self.init_model(new_model_name)
-            self.init_publishers(new_model_name)
 
-            # with depthai_camera_connect.connect(self.pipeline, self.camera) as device:
-            #     self.init_output_queues(device)
+        else:
+            self.reroute_pipeline(self.current_model_name, new_model_name)
+            self.init_model(new_model_name)
+            self.init_publishers(new_model_name)
 
             if new_model_name:
                 message = f"Sucessfully set {new_model_name} as new model for {self.camera} camera."
@@ -520,21 +512,22 @@ class DepthAISpatialDetector:
         Otherwise, the model will be run on the device.
         """
         # Check if model is valid
-        if self.initial_model_name not in self.models:
+        if self.initial_model_name != NO_DEPTHAI_MODEL_STRING and self.initial_model_name not in self.models:
             return False
 
         # Setup pipeline and publishers
-        self.init_model(self.initial_model_name)
-        rospy.Service(self.set_model_service, SetCVModel, self.set_model)
 
-        self.init_publishers(self.running_model_name)
+        rospy.Service(self.set_model_service, SetDepthAIModel, self.set_model)
+
+        self.init_model(self.initial_model_name)
+        self.build_pipeline(self.initial_model_name)
+        self.init_publishers(self.initial_model_name)
 
         with depthai_camera_connect.connect(self.pipeline, self.camera) as device:
             self.init_output_queues(device)
 
             while not rospy.is_shutdown():
-                if self.running_model_name:
-                    self.detect()
+                self.detect()
 
         return True
 
