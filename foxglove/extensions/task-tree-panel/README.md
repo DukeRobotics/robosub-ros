@@ -1,4 +1,4 @@
-# Task Graph Panel
+# Task Tree Panel
 This is a panel to display a tree of tasks representing the hierarchy of tasks.
 
 ## Usage

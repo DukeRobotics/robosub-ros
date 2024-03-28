@@ -1,6 +1,6 @@
 {
-  "name": "@duke-robotics/task-graph-panel",
-  "displayName": "Task Graph Panel",
+  "name": "@duke-robotics/task-tree-panel",
+  "displayName": "Task Tree Panel",
   "description": "Graph of tasks and children",
   "publisher": "Duke Robotics",
   "version": "0.0.0",

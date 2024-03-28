@@ -5,19 +5,19 @@ import { JsonViewer } from "@textea/json-viewer";
 import { useEffect, useState, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 
-type TaskGraphPanelState = {
+type TaskTreePanelState = {
   topic?: string;
   colorScheme?: RenderState["colorScheme"];
   topics?: readonly Topic[];
   message?: MessageEvent;
 };
 
-function TaskGraphPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
+function TaskTreePanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
 
   // Restore our state from the layout via the context.initialState property.
-  const [state, setState] = useState<TaskGraphPanelState>(() => {
-    return context.initialState as TaskGraphPanelState;
+  const [state, setState] = useState<TaskTreePanelState>(() => {
+    return context.initialState as TaskTreePanelState;
   });
 
   // Get topics
@@ -99,7 +99,7 @@ export function initTaskGraphPanel(context: PanelExtensionContext): () => void {
   context.panelElement.style.overflow = "auto"; // Enable scrolling
 
   const root = createRoot(context.panelElement as HTMLElement);
-  root.render(<TaskGraphPanel context={context} />);
+  root.render(<TaskTreePanel context={context} />);
 
   // Return a function to run when the panel is removed
   return () => {
