@@ -181,41 +181,6 @@ class HSVFilter:
 
         return contours
 
-    def detect_path_marker(self, image):
-        height, width, _ = image.shape
-
-        # Convert image to HSV
-        hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        orange_mask = cv2.inRange(hsv_image, self.LOWER_ORANGE, self.UPPER_ORANGE)
-
-        # Apply Gaussian blurring
-        blurred_mask = cv2.GaussianBlur(orange_mask, (5, 5), 0)
-
-        # Find contours in the mask
-        contours, _ = cv2.findContours(blurred_mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-        # Fit a line to the largest contour
-        if len(contours) > 0:
-            largest_contour = max(contours, key=cv2.contourArea)
-            center, dimensions, orientation = cv2.fitEllipse(largest_contour)
-
-            # Extract the center and orientation of the ellipse
-            center_x = center[0] / width
-            center_y = center[1] / height
-
-            orientation_in_radians = math.radians(-orientation)
-
-            path_marker_msg = Rotated2DObject()  # TODO wth is supposed to be te type here?? PathMarker type in other
-            # files but can't start container if PathMarker() is here
-
-            path_marker_msg.center.x = center_x
-            path_marker_msg.center.y = center_y
-            path_marker_msg.angle = orientation_in_radians
-
-            self.detection_publisher.publish(path_marker_msg)
-
-            return {"center": center, "dimensions": dimensions, "orientation": orientation_in_radians}
-
     def toggle_service(self, data):
         # Each ROSService message will contain the camera, model, and enabled (True or False).
         # Toggle the "enabled" field of the corresponding model using the camera dict.
