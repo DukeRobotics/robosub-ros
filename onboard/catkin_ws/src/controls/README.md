@@ -273,6 +273,7 @@ static_power_global:
   x: <float>
   y: <float>
   z: <float>
+power_scale_factor: <float>
 thrusters:
   - name: <string>
     type: <string>
@@ -289,6 +290,8 @@ The `pid` field contains the [PID gains](#pid-gains) and other PID configuration
 The [`desired_power_limits`](#desired-power-limits) field contains the minimum and maximum [desired power](#desired-power) that can be used for each axis. It contains subfields for each axis: `x`, `y`, `z`, `roll`, `pitch`, and `yaw`. Each of these subfields contains subfields `min` and `max` for the minimum and maximum desired power, respectively. The minimum desired power must be less than or equal to the maximum desired power.
 
 The [`static_power_global`](#static-power-global) field contains the amount of power that should be added to the power applied along the linear axes. It contains subfields `x`, `y`, and `z` for the amount of power to be added along the x, y, and z axes, respectively.
+
+The [`power_scale_factor`](#power-scale-factor) field contains the factor by which the [set power unscaled](#set-power-unscaled) should be multiplied to get the [set power](#set-power). It is a scalar value.
 
 The `thrusters` field contains information about each thruster. From top to bottom, the thrusters in this file should be in the _same order that is expected by offboard comms,_ in the `allocs` part of the `custom_msgs/ThrusterAllocs` message. Each thruster config contains the following subfields:
 - `name`: The uniquely identifying  name of the thruster. Not used by the system; included for human use only.
