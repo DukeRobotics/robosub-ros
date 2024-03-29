@@ -32,20 +32,20 @@
 class Controls {
    private:
     // Rate at which thruster allocations are published (Hz)
-    static const int THRUSTER_ALLOCS_RATE = 20;
+    static const int THRUSTER_ALLOCS_RATE;
 
     // Launch file parameters
-    bool sim = false;
-    bool enable_position_pid = false;
-    bool enable_velocity_pid = false;
-    bool cascaded_pid = false;
+    bool sim;
+    bool enable_position_pid;
+    bool enable_velocity_pid;
+    bool cascaded_pid;
 
     // Transform buffer
     // Unique pointer is used to avoid writing a custom constructor and destructor for this class
     std::unique_ptr<tf2_ros::Buffer> tf_buffer;
 
     // Whether controls are enabled
-    bool controls_enabled = false;
+    bool controls_enabled;
 
     // Control type to use for each axis
     AxesMap<ControlTypesEnum> control_types;

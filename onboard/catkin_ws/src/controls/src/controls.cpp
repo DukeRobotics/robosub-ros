@@ -37,12 +37,17 @@
 #include "pid_manager.h"
 #include "thruster_allocator.h"
 
+const int Controls::THRUSTER_ALLOCS_RATE = 20;
+
 Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<tf2_ros::Buffer> tf_buffer) {
     // Get parameters from launch file
-    ros::param::get("~sim", sim);
-    ros::param::get("~enable_position_pid", enable_position_pid);
-    ros::param::get("~enable_velocity_pid", enable_velocity_pid);
-    ros::param::get("~cascaded_pid", cascaded_pid);
+    ros::param::param("~sim", sim, false);
+    ros::param::param("~enable_position_pid", enable_position_pid, false);
+    ros::param::param("~enable_velocity_pid", enable_velocity_pid, false);
+    ros::param::param("~cascaded_pid", cascaded_pid, false);
+
+    // Initialize controls to be disabled
+    controls_enabled = false;
 
     // Store transform buffer
     this->tf_buffer = std::move(tf_buffer);
