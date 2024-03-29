@@ -780,9 +780,7 @@ A `PID controller` is a control loop feedback mechanism widely used in robotics,
 A PID controller continuously calculates an error value as the difference between the [setpoint](#setpoint), obtained from the [desired state](#desired-state), and the robot's current [state](#state). It computes the integral of the error function and its current derivative. It then multiplies the error, its integral, and its derivative by their respective [PID gains](#pid-gains). These three values are denoted the proportional (P), integral (I), and derivative (D) terms, which give the controller its name. It then sums these three terms, along with the constant feedforward gain, to compute the [control effort](#control-effort).
 
 This is summarized in the following equation
-$$
-u(t) = K_p e(t) + K_i \int_{t_0}^t e(t) dt + K_d \frac{d}{dt} e(t) + FF
-$$
+$$u(t) = K_p e(t) + K_i \int_{t_0}^t e(t) dt + K_d \frac{d}{dt} e(t) + FF$$
 where $u(t)$ is the control effort, $e(t)$ is the error, and $K_p$, $K_i$, $K_d$, and $FF$ are the [PID gains](#pid-gains).
 
 PID controllers are widely used in robotics because they are simple to implement and can provide satisfactory control performance in many applications. They do not require advanced knowledge of the robot's dynamics, and they are robust to noise and disturbances, and have a small set of parameters that can be tuned by humans within a reasonable amount of time.
@@ -807,7 +805,7 @@ The `PID gains` are tuned to achieve a balance between the robot's response time
 A `PID loop` is a control loop that uses a set of six [PID controllers](#pid-controller) to compute the [control efforts](#control-effort) based on the error between the [desired state](#desired-state) and the robot's current [state](#state). There are two PID loops in this package: one for position and one for velocity. The position PID loop can be [cascaded](#cascaded-position-pid-loop) with the velocity PID loop.
 
 > [!NOTE]
-> The typical definition of a `PID loop` is a control loop involving a _single_ PID controller. However, in this package, the term is used to refer to the entire set of six PID controllers, and the loops are distinguished by the [control type](#control-type) they are controlling.
+> The typical definition of a `PID loop` is a control loop involving a _single_ PID controller. However, in this package, the term is used to refer to the entire set of six PID controllers, and the loops are distinguished by the [control type](#control-types) they are controlling.
 
 ### PID Reset
 `PID reset` is the process of resetting the integral term of a [PID controller](#pid-controller) to zero. It is done by calling the `/controls/reset_pid_loops` service. This should be done before the robot's [desired state](#desired-state) is changed significantly.
@@ -876,17 +874,13 @@ The `status` is whether controls is enabled. It is `true` if controls are enable
 
 ### Thrust Allocation
 `Thrust allocation` is the process of computing the amount of force each thruster needs to exert to achieve a given [set power](#set-power). It is done by solving the following system of linear equations:
-$$
-Wt=p_s
-$$
+$$Wt=p_s$$
 where $W$ is the [wrench matrix](#wrench-matrix), $t$ is the [thrust allocation vector](#thrust-allocation-vector), and $p_s$ is the [set power](#set-power) vector.
 
 Let $t_u$ be the [unconstrained thrust allocation vector](#unconstrained-thrust-allocation-vector), and $t_c$ be the [constrained thrust allocation vector](#constrained-thrust-allocation-vector).
 
 The class `ThrusterAllocator` is responsible for solving this system of linear equations. It attempts to solve it first using the [wrench matrix pseudoinverse](#wrench-matrix-pseudoinverse), $W^+$, as follows:
-$$
-t_u = W^+ p_s
-$$
+$$t_u = W^+ p_s$$
 If all entries in $t_u$ are within the [thrust constraints](#thrust-constraints), $t_c = t_u$.
 
 Otherwise, if one or more entries in $t_u$ are outside the [thrust constraints](#thrust-constraints), the thruster allocator will use [quadratic programming](#quadratic-programming) to obtain the best approximate solution, $t_c$ that is within the [thrust constraints](#thrust-constraints).
