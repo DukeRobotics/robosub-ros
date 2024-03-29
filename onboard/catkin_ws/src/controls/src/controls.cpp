@@ -78,7 +78,7 @@ Controls::Controls(int argc, char **argv, ros::NodeHandle &nh, std::unique_ptr<t
     // Ensure that desired power min is less than or equal to desired power max for each axis
     for (const AxesEnum &axis : AXES)
         ROS_ASSERT_MSG(
-            desired_power_min[axis] <= desired_power_max[axis],
+            desired_power_min.at(axis) <= desired_power_max.at(axis),
             "Invalid desired power min and max for axis %s. Desired power min must be less than or equal to max.",
             AXES_NAMES.at(axis).c_str());
 
