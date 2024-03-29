@@ -308,8 +308,8 @@ void read_matrix_from_csv(const std::string &file_path, Eigen::MatrixXd &matrix)
  * @param loops_axes_derivative_types Map of PID loop types to axes to derivative types to populate.
  * @param loops_axes_error_ramp_rates Map of PID loop types to axes to error ramp rates to populate.
  * @param loops_axes_pid_gains Map of PID loop types to axes to PID gains to populate.
- * @param desired_power_max Map of axes to desired power maximum limits to populate.
  * @param desired_power_min Map of axes to desired power minimum limits to populate.
+ * @param desired_power_max Map of axes to desired power maximum limits to populate.
  * @param static_power_global Static power global vector to populate.
  * @param power_scale_factor Power scale factor to populate.
  * @param wrench_matrix_file_path Wrench matrix file path to populate.
@@ -323,8 +323,8 @@ void read_robot_config(const bool &cascaded_pid, LoopsMap<AxesMap<double>> &loop
                        LoopsMap<AxesMap<double>> &loops_axes_control_effort_maxes,
                        LoopsMap<AxesMap<PIDDerivativeTypesEnum>> &loops_axes_derivative_types,
                        LoopsMap<AxesMap<double>> &loops_axes_error_ramp_rates,
-                       LoopsMap<AxesMap<PIDGainsMap>> &loops_axes_pid_gains, AxesMap<double> &desired_power_max,
-                       AxesMap<double> &desired_power_min, tf2::Vector3 &static_power_global,
+                       LoopsMap<AxesMap<PIDGainsMap>> &loops_axes_pid_gains, AxesMap<double> &desired_power_min,
+                       AxesMap<double> &desired_power_max, tf2::Vector3 &static_power_global,
                        double &power_scale_factor, std::string &wrench_matrix_file_path,
                        std::string &wrench_matrix_pinv_file_path);
 
