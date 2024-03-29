@@ -58,15 +58,6 @@ bool ControlsUtils::quaternion_valid(const geometry_msgs::Quaternion &quaternion
     return std::abs(q.length() - 1.0) < 1e-6;
 }
 
-bool ControlsUtils::twist_in_range(const geometry_msgs::Twist &twist, AxesMap<double> min, AxesMap<double> max) {
-    return twist.linear.x >= min.at(AxesEnum::X) && twist.linear.x <= max.at(AxesEnum::X) &&
-           twist.linear.y >= min.at(AxesEnum::Y) && twist.linear.y <= max.at(AxesEnum::Y) &&
-           twist.linear.z >= min.at(AxesEnum::Z) && twist.linear.z <= max.at(AxesEnum::Z) &&
-           twist.angular.x >= min.at(AxesEnum::ROLL) && twist.angular.x <= max.at(AxesEnum::ROLL) &&
-           twist.angular.y >= min.at(AxesEnum::PITCH) && twist.angular.y <= max.at(AxesEnum::PITCH) &&
-           twist.angular.z >= min.at(AxesEnum::YAW) && twist.angular.z <= max.at(AxesEnum::YAW);
-}
-
 bool ControlsUtils::pid_gain_valid(const custom_msgs::PIDGain &pid_gain) {
     return value_in_pid_loop_types_enum(pid_gain.loop) && value_in_axes_enum(pid_gain.axis) &&
            value_in_pid_gain_types_enum(pid_gain.gain);

@@ -96,16 +96,6 @@ bool value_in_pid_derivative_types_enum(uint8_t value);
 bool quaternion_valid(const geometry_msgs::Quaternion &quaternion);
 
 /**
- * @brief Check if twist is in range.
- *
- * @param twist Twist to check.
- * @param min Minimum values for each axis.
- * @param max Maximum values for each axis.
- * @return True if all values in twist are in range [`min`, `max`], false otherwise.
- */
-bool twist_in_range(const geometry_msgs::Twist &twist, AxesMap<double> min, AxesMap<double> max);
-
-/**
  * @brief Check if pid gain message has valid loop, axis, and gain types.
  *
  * @param pid_gain PID gain message to check.
