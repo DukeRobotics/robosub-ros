@@ -362,8 +362,7 @@ bool Controls::set_static_power_global_callback(custom_msgs::SetStaticPower::Req
     ControlsUtils::update_robot_config_static_power_global(static_power_global);
 
     res.success = true;
-    res.message =
-        res.success ? "Updated static power successfully." : "Failed to update static power. Static power was invalid.";
+    res.message = "Updated static power successfully.";
 
     return true;
 }
@@ -377,8 +376,7 @@ bool Controls::set_power_scale_factor_callback(custom_msgs::SetPowerScaleFactor:
     ControlsUtils::update_robot_config_power_scale_factor(power_scale_factor);
 
     res.success = true;
-    res.message = res.success ? "Updated power scale factor successfully."
-                              : "Failed to update power scale factor. Power scale factor was invalid.";
+    res.message = "Updated power scale factor successfully.";
 
     return true;
 }
