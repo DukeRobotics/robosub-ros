@@ -90,7 +90,8 @@ class PID {
 
    public:
     /**
-     * @brief Default constructor. All configurable properties are uninitialized.
+     * @brief Default constructor. All configurable properties are uninitialized except for `pid_gains`, in which
+     *  all gains are set to zero.
      */
     PID();
 

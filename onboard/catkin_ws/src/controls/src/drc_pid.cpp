@@ -7,7 +7,13 @@
 #include "controls_types.h"
 #include "controls_utils.h"
 
-PID::PID(){};
+PID::PID() {
+    // Set all pid gains to zero
+    this->pid_gains = {{PIDGainTypesEnum::KP, 0.0},
+                       {PIDGainTypesEnum::KI, 0.0},
+                       {PIDGainTypesEnum::KD, 0.0},
+                       {PIDGainTypesEnum::FF, 0.0}};
+};
 
 PID::PID(const double &control_effort_min, const double &control_effort_max,
          const PIDDerivativeTypesEnum &derivative_type, const double &error_ramp_rate, const PIDGainsMap &pid_gains) {
@@ -53,12 +59,6 @@ double PID::second_order_butterworth(const std::array<double, 3> &values,
 double PID::run(double error, double delta_time, PIDInfo &info, double provided_derivative) {
     // If there are validation errors, an exception is not thrown to maintain continuous operation of controls in the
     // event of a temporary error. Instead, the function returns 0 and prints an error message.
-
-    // If pid_gains is not valid, return 0 and print error
-    if (!ControlsUtils::pid_gains_map_valid(pid_gains)) {
-        ROS_ERROR("PID run loop error: PID gains map is invalid.");
-        return 0;
-    }
 
     // If delta time is nonpositive, return 0 and print error
     if (delta_time <= 0) {
