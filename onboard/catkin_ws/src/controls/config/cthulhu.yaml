@@ -99,7 +99,7 @@ pid:
       control_effort:
         min: -1
         max: 1
-      derivative_type: 2
+      derivative_type: 0
       error_ramp_rate: 1000
     pitch:
       Kp: 0.25
