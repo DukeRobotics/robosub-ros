@@ -56,7 +56,8 @@ RUN apt-get update && \
     ros-noetic-foxglove-bridge \
     nmap \
     ignition-fortress \
-    libeigen3-dev
+    libeigen3-dev \
+    ros-noetic-opencv-apps
 
 # Get required python packages
 RUN pip3 install --no-cache-dir \
