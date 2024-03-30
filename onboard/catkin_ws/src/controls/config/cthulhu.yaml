@@ -207,22 +207,22 @@ static_power_global:
   z: 0
 power_scale_factor: 0.5
 thrusters:
-  - name: front_right
+  - name: top_front_right
     type: T200
     pos: [0.29845, -0.1778, 0]
     rpy: [0, 0, 45]
     flipped: true
-  - name: front_left
+  - name: top_front_left
     type: T200
     pos: [0.29845, 0.1778, 0]
     rpy: [0, 0, -45]
     flipped: true
-  - name: back_right
+  - name: top_back_right
     type: T200
     pos: [-0.29845, -0.1778, 0]
     rpy: [0, 0, 135]
     flipped: false
-  - name: back_left
+  - name: top_back_left
     type: T200
     pos: [-0.29845, 0.1778, 0]
     rpy: [0, 0, -135]
