@@ -1,5 +1,5 @@
 # Defined in udev rules, change according to your system. Typically /dev/ttyUSB0
-serial_port: /dev/ttyUSB0
+serial_port: /dev/ttyUSB1
 
 # Acceptable baud rates : 9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600
 # Datasheet states 128000 works but from experiments it does not.
