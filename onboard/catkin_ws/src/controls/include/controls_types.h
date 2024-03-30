@@ -89,7 +89,8 @@ const std::string CONTROLS_PACKAGE_PATH = ros::package::getPath("controls");
 
 // Path to robot config file
 const std::string ROBOT_CONFIG_FILE_PATH =
-    CONTROLS_PACKAGE_PATH + "/config/" + std::string(std::getenv("ROBOT_NAME")) + ".yaml";
+    CONTROLS_PACKAGE_PATH + "/config/" + std::string(std::getenv("ROBOT_NAME") ? std::getenv("ROBOT_NAME") : "oogway") +
+    ".yaml";
 
 // Map of PID gains
 typedef std::unordered_map<PIDGainTypesEnum, double> PIDGainsMap;
