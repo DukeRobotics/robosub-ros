@@ -211,20 +211,20 @@
       "panelMode": 0,
       "repeatPublish": null,
       "publisherThrusterAllocs": {
-        "frontLeft": 0,
-        "frontRight": 0,
-        "backLeft": 0,
-        "backRight": 0,
+        "topFrontLeft": 0,
+        "topFrontRight": 0,
+        "topBackLeft": 0,
+        "topBackRight": 0,
         "bottomFrontLeft": 0,
         "bottomFrontRight": 0,
         "bottomBackLeft": 0,
         "bottomBackRight": 0
       },
       "subscriberThrusterAllocs": {
-        "frontLeft": 0,
-        "frontRight": 0,
-        "backLeft": 0,
-        "backRight": 0,
+        "topFrontLeft": 0,
+        "topFrontRight": 0,
+        "topBackLeft": 0,
+        "topBackRight": 0,
         "bottomFrontLeft": 0,
         "bottomFrontRight": 0,
         "bottomBackLeft": 0,
@@ -238,7 +238,11 @@
         "bottomFrontLeft": "0.05",
         "bottomFrontRight": "0.05",
         "bottomBackLeft": "0.05",
-        "bottomBackRight": "0.05"
+        "bottomBackRight": "0.05",
+        "topFrontLeft": "0.05",
+        "topFrontRight": "0.05",
+        "topBackLeft": "0.05",
+        "topBackRight": "0.05"
       },
       "topic": "/controls/thruster_allocs",
       "colorScheme": "dark"
