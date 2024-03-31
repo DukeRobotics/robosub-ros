@@ -81,6 +81,7 @@ class TemperatureHumidityPublisher(SerialPublisher):
         if "H:" in tag:
             self._update_humidity(float(data))  # Filter out bad readings
             self._publish_current_humidity_msg()  # Publish humidity data
+        rospy.sleep(1)
 
     def _update_temperature(self, new_reading):
         """
