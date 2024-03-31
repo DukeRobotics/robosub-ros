@@ -19,4 +19,6 @@ arduino:
     core: arduino:avr
     sketch: Arduino Sketchbooks/ServoSensorArduino
     requires_ros_lib: false
-    pre_compile: arduino-cli lib install Servo
+    libraries:
+      - servo
+      - DHT11

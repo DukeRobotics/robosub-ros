@@ -1,9 +1,9 @@
 // from L to R: data (pin 4), power (5V), ground
 #include <Servo.h>
-#include <dht11.h>
+#include <DHT11.h>
 #define DHT11PIN 4  // digital pin 4
 
-dht11 DHT11;
+DHT11 dht11(DHT11PIN);
 Servo myservo;
 
 unsigned long myTime;
@@ -11,7 +11,7 @@ boolean servoMoved = false;
 unsigned long servoTime;
 unsigned long rateServo = 1000;  // how much to wait before returning servo to default position
 unsigned long rateTemp = 0;  // how often to print temp/humidity (no delay)
-unsigned long prevTime = 0; 
+unsigned long prevTime = 0;
 String humiditytag = "H:";
 String temperaturetag = "T:";
 String printHumidity = "";
@@ -27,7 +27,7 @@ void setup() {
 
 void loop() {
   myTime = millis();
-  
+
   if (Serial.available() > 0 && !servoMoved) {
     char state = Serial.read();
     if (Serial.available() > 0) {
@@ -45,7 +45,7 @@ void loop() {
         servoTime = myTime;
       }
   }
-  
+
   // return to default position after 1 second
   if(servoMoved && myTime - servoTime > rateServo) {
       myservo.writeMicroseconds(1500);  // 1500 micros = 90 write
@@ -55,12 +55,17 @@ void loop() {
   // printing humidity and temperature
   if(myTime - prevTime >= rateTemp) {
     prevTime = myTime;
-    int chk = DHT11.read(DHT11PIN);
+    int temperature = 0;
+    int humidity = 0;
+    int result = dht11.readTemperatureHumidity(temperature, humidity);
 
-    printHumidity = humiditytag + String((float)DHT11.humidity);
-    Serial.println(printHumidity);
+    if (result == 0) {
+      printHumidity = humiditytag + String((float)humidity);
+      Serial.println(printHumidity);
 
-    printTemp = temperaturetag + String((float)DHT11.temperature * 1.8 + 32);
-    Serial.println(printTemp);
+      printTemp = temperaturetag + String((float)temperature * 1.8 + 32); // convert Celsius to Fahrenheit
+      Serial.println(printTemp);
+    }
+    // else: error reading sensor
   }
 }
