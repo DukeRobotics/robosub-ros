@@ -2,17 +2,18 @@
 
 import rospy
 import os
-import time
-import serial
-import serial.tools.list_ports as list_ports
-import yaml
-import resource_retriever as rr
-import traceback
 from std_msgs.msg import Float64
+from std_srvs.srv import SetBool
 from serial_publisher import SerialPublisher
 
-# Used for sensor fusion
-from geometry_msgs.msg import PoseWithCovarianceStamped
+CONFIG_FILE_PATH = f'package://offboard_comms/config/{os.getenv("ROBOT_NAME", "oogway")}.yaml'
+CONFIG_NAME = 'servo_sensors'
+
+BAUDRATE = 9600
+NODE_NAME = 'servo_pub'
+HUMIDITY_DEST_TOPIC = 'sensors/humidity'
+TEMPERATURE_DEST_TOPIC = 'sensors/temperature'
+SERVO_SERVICE = 'servo_control'
 
 
 class TemperatureHumidityPublisher(SerialPublisher):
@@ -20,24 +21,19 @@ class TemperatureHumidityPublisher(SerialPublisher):
     Serial publisher to publish temperature and humidity data to ROS
     """
 
-    HUMIDITY_DEST_TOPIC = 'sensors/humidity'
-    TEMPERATURE_DEST_TOPIC = 'sensors/temperature'
-    CONFIG_FILE_PATH = f'package://offboard_comms/config/{os.getenv("ROBOT_NAME", "oogway")}.yaml'
-    CONFIG_NAME = 'servo_sensors'
-    
-    BAUDRATE = 9600
-    NODE_NAME = 'servo_pub'
-
     MEDIAN_FILTER_SIZE = 3
 
     def __init__(self):
-        super().__init__(self, node_name=self.NODE_NAME, baud=self.BAUDRATE, config_file_path=self.CONFIG_FILE_PATH, config_name=self.CONFIG_NAME)
+        super().__init__(NODE_NAME, BAUDRATE, CONFIG_FILE_PATH, CONFIG_NAME)
 
         self._temperature = None  # Temperature to publish
+        self._humidity = None
         self._previous_temperature = None  # Previous temperature readings for median filter
 
-        self._pub_temperature = rospy.Publisher(self.TEMPERATURE_DEST_TOPIC, Float64, queue_size=10)
-        self._pub_humidity = rospy.Publisher(self.HUMIDITY_DEST_TOPIC, Float64, queue_size=10)
+        self._pub_temperature = rospy.Publisher(TEMPERATURE_DEST_TOPIC, Float64, queue_size=10)
+        self._pub_humidity = rospy.Publisher(HUMIDITY_DEST_TOPIC, Float64, queue_size=10)
+
+        self._servo_service = rospy.Service(SERVO_SERVICE, SetBool, self.servo_control)
 
         self._current_temperature_msg = Float64()
         self._current_humidity_msg = Float64()
@@ -45,11 +41,24 @@ class TemperatureHumidityPublisher(SerialPublisher):
         self._serial_port = None
         self._serial = None
 
-    def process_line(self, l):
+    def servo_control(self, req):
+        """
+        Callback for servo control service
+
+        @param req: the request to control the servo
+        """
+        rospy.logdebug('ServoControl received.')
+        if req.data:
+            self.writeline('L')
+        else:
+            self.writeline('R')
+        return {'success': True, 'message': f'Successfully set servo to {"left" if req.data else "right"}.'}
+
+    def process_line(self, line):
         """"
         Reads and publishes individual lines
 
-        @param l: the line to read
+        @param line: the line to read
 
         Assumes data comes in the following format:
 
@@ -62,8 +71,10 @@ class TemperatureHumidityPublisher(SerialPublisher):
         T:69.8
         ...
         """
-        tag = l[0:2]  # T for temperature and H for humidity
-        data = l[2:]
+        tag = line[0:2]  # T for temperature and H for humidity
+        data = line[2:]
+        if data == "":
+            return
         if "T:" in tag:
             self._update_temperature(float(data))  # Filter out bad readings
             self._publish_current_temperature_msg()  # Publish temperature data
@@ -74,7 +85,7 @@ class TemperatureHumidityPublisher(SerialPublisher):
     def _update_temperature(self, new_reading):
         """
         Update temperature reading to publish and filter out bad readings
-        
+
         @param new_reading: new temperature value to be printed
         """
         # Ignore readings that are too large
@@ -95,7 +106,7 @@ class TemperatureHumidityPublisher(SerialPublisher):
     def _update_humidity(self, new_reading):
         """
         Update humidity reading to publish and filter out bad readings
-        
+
         @param new_reading: new humidity value to be printed
         """
         # Ignore readings that are too large
@@ -117,13 +128,14 @@ class TemperatureHumidityPublisher(SerialPublisher):
         """
         Publishes current temperature to ROS node
         """
+        self._current_temperature_msg.data = self._temperature
         self._pub_temperature.publish(self._current_temperature_msg)
-
 
     def _publish_current_humidity_msg(self):
         """
         Publishes current humidity to ROS node
         """
+        self._current_humidity_msg.data = self._humidity
         self._pub_humidity.publish(self._current_humidity_msg)
 
 
