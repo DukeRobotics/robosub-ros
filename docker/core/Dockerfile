@@ -54,6 +54,8 @@ RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
     touch /root/.ssh/environment
 
 COPY ssh_entry.sh /root/.bash_profile
+COPY ros_bashrc.sh /root/ros_bashrc.sh
+RUN echo "source /root/ros_bashrc.sh" >> /root/.bashrc 
 
 COPY tmux.conf /etc/
 

@@ -48,24 +48,32 @@ offboard_comms
 
 ## Arduino Config
 
-The `config/arduino.yaml` file is used to specify the Arduinos to be used. The file contains a set of Arduino names, each with a dictionary of properties. The properties are used to find the port that the Arduino is connected to, install the required libraries, compile the Arduino code, and upload the code to the Arduino. The file is structured as follows:
+Each robot has its own `config/<ROBOT_NAME>.yaml` file, where `<ROBOT_NAME>` is the value of the `ROBOT_NAME` environment variable associated with that robot. The CLI will use the value of the `ROBOT_NAME` enviornment variable in the Docker container it is run in to select the config file to use.
+
+Config files for all robots have the same structure. They contain a single top-level key: `arduino`. Under that top-level key, they contain a set of Arduino names, each with a dictionary of properties. The properties are used to find the port that the Arduino is connected to, install the required libraries, compile the Arduino code, and upload the code to the Arduino. The files are structured as follows:
+
 ```yaml
-arduino_name_1:
-    ftdi: arduino_1_ftdi_string
-    fqbn: arduino_1_fqbn
-    core: arduino_1_core
-    sketch: arduino_1_path_to_sketch_relative_to_offboard_comms
-    requires_ros_lib: boolean_true_or_false
-    (optional) pre_compile: arduino_1_pre_compile_command
-    (optional) post_compile: arduino_1_post_compile_command
-arduino_name_2:
-    ...
+arduino:
+    arduino_name_1:
+        ftdi: arduino_1_ftdi_string
+        fqbn: arduino_1_fqbn
+        core: arduino_1_core
+        sketch: arduino_1/path_to_sketch/relative_to_offboard_comms
+        requires_ros_lib: true or false
+        (optional) libraries:
+            - library_1
+            - library_2
+            - ...
+        (optional) pre_compile: arduino_1 pre_compile command
+        (optional) post_compile: arduino_1 post_compile command
+    arduino_name_2:
+        ...
 ```
 The structure shown for `arduino_name_1` is repeated for all Arduinos.
 
 Below are more details on the keys in the dictionary:
-- `arduino_name_1`, `arduino_name_2`, etc. are the names of the Arduinos. These names are used to refer to the Arduinos in the [CLI](#command-line-interface) and in other files. They can be any string, but should be descriptive of the Arduino. They must be unique. `all` is a special name used by the CLI to refer to all Arduinos; do **_not_** use it as a top-level key in this file. The names do not necessarily correspond to any name recognized by the Arduino CLI or operating system.
-- `ftdi` is the FTDI string of the Arduino. This is used to find the port that the Arduino is connected to. To obtain the FTDI string, run
+- `arduino_name_1`, `arduino_name_2`, etc. are the names of the Arduinos. These names are used to refer to the Arduinos in the [CLI](#command-line-interface) and in other files. They can be any string, but should be descriptive of the Arduino. They must be unique. `all` is a special name used by the CLI to refer to all Arduinos; do **_not_** use it as an Arduino name in this file. The names do not necessarily correspond to any names recognized by the Arduino CLI or operating system.
+- `ftdi` is the FTDI string of the Arduino. This is a unique identifier for the Arduino and is used to find the port that the Arduino is connected to. To obtain the FTDI string, run
     ```bash
     ls /dev/serial/by-id
     ```
@@ -78,8 +86,9 @@ Below are more details on the keys in the dictionary:
 - `core` is the name of the Arduino core that the Arduino uses; the core library will be installed before compiling and uploading code. It is the string that appears in the output of `arduino-cli board list` under the core column.
 - `sketch` is the path to the directory containing the Arduino sketch, relative to the `offboard_comms` package. The specified directory must contain a `.ino` file. This is the sketch that is compiled and uploaded to the Arduino. It must **_not_** include a leading `/` or `./`.
 - `requires_ros_lib` is a boolean that specifies whether the Arduino requires the ROS library. If `true`, the ROS library will be installed using the Arduino CLI before compiling code. If `false`, it will not be installed. The ROS library is required for the Arduino to communicate with ROS. If the Arduino does not communicate with ROS, this should be `false`.
-- `pre_compile` is an optional bash command to run _before_ compiling the Arduino code. It is useful for running any commands that are required before compiling the Arduino code, such as installing libraries or modifying files. If an Arduino does not require a pre compile command, this key must **_not_** be present under the Arduino's dictionary.
-- `post_compile` is an optional bash command to run _after_ compiling the Arduino code. It is useful for running any commands that are required after compiling the Arduino code, such as deleting temporary files. If an Arduino does not require a post compile command, this key must **_not_** be present under the Arduino's dictionary.
+- `libraries` is an optional list of libraries that the Arduino requires that are installed through the Arduino CLI. These libraries will be installed before compiling the Arduino code. If an Arduino does not require any libraries, this key must **_not_** be present under the Arduino's dictionary.
+- `pre_compile` is an optional bash command to run _immediately before_ compiling the Arduino code. It is useful for installing libraries or modifying files that will affect the compilation. If an Arduino does not require a pre compile command, this key must **_not_** be present under the Arduino's dictionary.
+- `post_compile` is an optional bash command to run _immediately after_ compiling the Arduino code. It is useful for deleting temporary files or performing any other cleanup after compilation. If an Arduino does not require a post compile command, this key must **_not_** be present under the Arduino's dictionary.
 
 
 ## Arduino Compile and Upload
