@@ -6,9 +6,6 @@ from std_msgs.msg import Float64
 from std_srvs.srv import SetBool
 from serial_publisher import SerialPublisher
 
-# Used for sensor fusion
-from geometry_msgs.msg import PoseWithCovarianceStamped
-
 CONFIG_FILE_PATH = f'package://offboard_comms/config/{os.getenv("ROBOT_NAME", "oogway")}.yaml'
 CONFIG_NAME = 'servo_sensors'
 
@@ -17,6 +14,7 @@ NODE_NAME = 'servo_pub'
 HUMIDITY_DEST_TOPIC = 'sensors/humidity'
 TEMPERATURE_DEST_TOPIC = 'sensors/temperature'
 SERVO_SERVICE = 'servo_control'
+
 
 class TemperatureHumidityPublisher(SerialPublisher):
     """
@@ -56,11 +54,11 @@ class TemperatureHumidityPublisher(SerialPublisher):
             self.writeline('R')
         return {'success': True, 'message': f'Successfully set servo to {"left" if req.data else "right"}.'}
 
-    def process_line(self, l):
+    def process_line(self, line):
         """"
         Reads and publishes individual lines
 
-        @param l: the line to read
+        @param line: the line to read
 
         Assumes data comes in the following format:
 
@@ -73,8 +71,8 @@ class TemperatureHumidityPublisher(SerialPublisher):
         T:69.8
         ...
         """
-        tag = l[0:2]  # T for temperature and H for humidity
-        data = l[2:]
+        tag = line[0:2]  # T for temperature and H for humidity
+        data = line[2:]
         if data == "":
             return
         if "T:" in tag:
@@ -132,7 +130,6 @@ class TemperatureHumidityPublisher(SerialPublisher):
         """
         self._current_temperature_msg.data = self._temperature
         self._pub_temperature.publish(self._current_temperature_msg)
-
 
     def _publish_current_humidity_msg(self):
         """
