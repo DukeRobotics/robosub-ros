@@ -31,9 +31,9 @@ pid:
       derivative_type: 1
       error_ramp_rate: 1000
     roll:
-      Kp: 0.8
+      Kp: 0.7
       Ki: 0
-      Kd: 0.4
+      Kd: 0.5
       Ff: 0
       control_effort:
         min: -1
@@ -41,9 +41,9 @@ pid:
       derivative_type: 1
       error_ramp_rate: 1000
     pitch:
-      Kp: 0.8
+      Kp: 0.7
       Ki: 0
-      Kd: 0.4
+      Kd: 0.5
       Ff: 0
       control_effort:
         min: -1
@@ -51,9 +51,9 @@ pid:
       derivative_type: 1
       error_ramp_rate: 1000
     yaw:
-      Kp: 1
+      Kp: 0.5
       Ki: 0
-      Kd: 0.5
+      Kd: 1
       Ff: 0
       control_effort:
         min: -1
@@ -226,7 +226,7 @@ thrusters:
     type: T200
     pos: [0.205315, -0.341812, -0.033285]
     rpy: [0, 90, 0]
-    flipped: false
+    flipped: true
   - name: bottom_back_left
     type: T200
     pos: [-0.204592, 0.397763, -0.032393]
