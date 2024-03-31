@@ -8,7 +8,7 @@ from typing import Any, Callable, Coroutine, Generator, Generic, Optional, Type,
 import rospy
 from custom_msgs.msg import TaskUpdate
 
-from jsonpickle_custom_handlers import register_custom_jsonpickle_handlers
+from message_conversion.jsonpickle_custom_handlers import register_custom_jsonpickle_handlers
 
 # Register all JSONPickle handlers for custom classes
 register_custom_jsonpickle_handlers()

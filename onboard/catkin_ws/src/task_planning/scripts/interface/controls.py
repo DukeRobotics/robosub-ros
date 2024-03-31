@@ -70,7 +70,7 @@ class Controls:
         Returns:
             The thruster dictionary
         """
-        CONFIG_FILE_PATH = 'package://controls/config/%s.config'
+        CONFIG_FILE_PATH = 'package://controls/config/%s.yaml'
         filename = rr.get_filename(CONFIG_FILE_PATH % os.getenv("ROBOT_NAME", "oogway"), use_protocol=False)
         with open(filename) as f:
             full_thruster_dict = yaml.safe_load(f)
@@ -122,7 +122,7 @@ class Controls:
         Args:
             pose: The desired position
         """
-        self._set_all_axes_control_type(ControlTypes.DESIRED_POSE)
+        self._set_all_axes_control_type(ControlTypes.DESIRED_POSITION)
         self._desired_position_pub.publish(pose)
 
     # In local coordinates

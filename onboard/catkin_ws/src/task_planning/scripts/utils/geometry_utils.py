@@ -142,7 +142,7 @@ def at_pose(current_pose: Pose, desired_pose: Pose, linear_tol: float = 0.02, an
 
     linear = point_linear_distance(current_pose.position, desired_pose.position) < linear_tol
     angular_dist = angular_distance_quat(current_pose.orientation, desired_pose.orientation)
-    angular = np.all(vector3_to_numpy(angular_dist)) < (np.ones((3)) * angular_tol)
+    angular = np.all(vector3_to_numpy(angular_dist) < (np.ones((3)) * angular_tol))
     return linear and angular
 
 
