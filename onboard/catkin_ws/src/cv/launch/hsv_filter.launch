@@ -1,0 +1,3 @@
+<launch>
+	<node pkg="cv" name="hsv_filter" type="hsv_filter.py" output="screen" />
+</launch>

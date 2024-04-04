@@ -36,6 +36,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     locales && \
     apt-get clean && \
+    ros-noetic-opencv-apps && \
     # Clear apt caches to reduce image size
     rm -rf /var/lib/apt/lists/*
 

@@ -23,7 +23,6 @@ add_message_files(
   SimObjectArray.msg
   RemoteLaunchInfo.msg
   RunningNode.msg
-  PathMarker.msg
   PIDGain.msg
   PIDGains.msg
   SonarSweepRequest.msg

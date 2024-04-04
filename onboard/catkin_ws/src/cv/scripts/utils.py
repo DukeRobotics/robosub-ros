@@ -150,6 +150,7 @@ class DetectionVisualizer:
         # dimensions are relative are absolute values or relative values (wrt the frame dimensions).
         # If it's not a path marker detection, draw a rectangle as usual.
         for detection in detections:
+            # TODO ensure handling of detections below are compatible w/ those from hsv_filter.py
             bbox = self.frame_norm(frame_copy, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
             # the code below specifies whether to display the bbox's class name and/or confidence value
             if self.show_class_name and self.show_confidence:

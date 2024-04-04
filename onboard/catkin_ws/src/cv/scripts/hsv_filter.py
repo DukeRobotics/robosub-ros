@@ -13,8 +13,10 @@ from utils import visualize_path_marker_detection
 from custom_msgs.srv import EnableModel, CVObject
 
 CAMERAS_FILEPATH = 'package://cv/configs/cameras.yaml'
-HSV_MODELS_FILEPATH = 'package://cv/configs/hsv_models.yaml'
-
+HSV_MODELS_FILEPATH = 'package://cv/configs/hsv_models.yaml' 
+# TODO create and populate based on what we're reading from depth AI
+# TODO utils.py update visualize_detections.py
+# TODO create yaml file, top level will be each model (bin, buoy, etc.)
 
 class HSVFilter:
     # Fitting functions for ellipse (e.g. path marker), rotated rectangle (e.g. bins), and circle (e.g. buoy).
@@ -119,15 +121,21 @@ class HSVFilter:
         self.publishers = {}
         self.subscribers = {}
 
-        for model, model_data in models.items():
-            model_data["enabled"] = False
-            models[model] = model_data
+        # for model, model_data in models.items():
+        for model in models:
+            models[model]["enabled"] = False
+            # model_data["enabled"] = False
+            # models[model] = model_data
             self.publishers[model] = rospy.Publisher(f"cv/{model}", CVObject, queue_size=10)
 
-        for camera, camera_data in cameras.items():
-            self.cameras_dict[camera] = camera_data
+        for camera in cameras:
+            # TODO add path to publish in cameras yaml file, talk with Vedarsh
+            # self.cameras_dict[camera] = camera_data
             self.cameras_dict[camera]["models"] = models
             self.subscribers[camera] = rospy.Subscriber(f"cv/{camera}", CompressedImage, self.detect(camera))
+            # self.subscribers[camera] = rospy.Subscriber(f"cv/{camera}", CompressedImage, self.detect, (camera,))
+
+            # TODO first param put path in camera yaml file
 
         # - Also create a service to enable toggling of models. It calls self.toggle_service as a callback function.
         # see detection.py for details
@@ -164,8 +172,11 @@ class HSVFilter:
                 if (message is not None) and (isinstance(message, self.MESSAGE_TYPES[model.shape])):
                     self.publishers[model].publish(message)
 
+                    # TODO change this fn to something similar to depthai spatial detection line 347
+                    # i.e., create our own detect visualization fn
                     detections_visualized = visualize_path_marker_detection(data, self.detect(data))
                     detections_img_msg = self.image_tools.convert_to_ros_compressed_msg(detections_visualized)
+                    # TODO also change the below
                     self.detection_feed_publisher.publish(detections_img_msg)
 
     def find_contours(self, image, lower_mask, upper_mask):
