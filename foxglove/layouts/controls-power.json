@@ -1,21 +1,47 @@
 {
   "configById": {
+    "Plot!21jaxjm": {
+      "paths": [
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/power_disparity_norm.data",
+          "enabled": true,
+          "label": "Power Disparity Norm"
+        }
+      ],
+      "minYValue": 0,
+      "maxYValue": 3,
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": false,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "followingViewWidth": 15
+    },
     "Plot!3gn30zb": {
       "paths": [
         {
-          "value": "/controls/position_error.linear.x",
+          "value": "/controls/set_power_scaled.linear.x",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Setpoint X",
+          "label": "Set Power Scaled X",
           "showLine": true,
           "color": "#0080ff"
         },
         {
           "timestampMethod": "receiveTime",
-          "value": "/controls/position_efforts.linear.x",
+          "value": "/controls/actual_power.linear.x",
           "enabled": true,
-          "label": "Control Effort X",
-          "color": "#ff4000"
+          "label": "Actual Power X"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/power_disparity.linear.x",
+          "enabled": true,
+          "label": "Power Disparity X"
         }
       ],
       "showXAxisLabels": true,
@@ -27,26 +53,31 @@
       "xAxisVal": "timestamp",
       "sidebarDimension": 240,
       "foxglovePanelTitle": "X",
-      "minYValue": -1,
-      "maxYValue": 1,
+      "minYValue": -3,
+      "maxYValue": 3,
       "followingViewWidth": 15
     },
     "Plot!3yf78kk": {
       "paths": [
         {
-          "value": "/controls/position_error.angular.x",
+          "value": "/controls/set_power_scaled.angular.x",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Setpoint Roll",
+          "label": "Set Power Scaled Roll",
           "showLine": true,
           "color": "#0080ff"
         },
         {
           "timestampMethod": "receiveTime",
-          "value": "/controls/position_efforts.angular.x",
+          "value": "/controls/actual_power.angular.x",
           "enabled": true,
-          "label": "Control Effort Roll",
-          "color": "#ff4000"
+          "label": "Actual Power Roll"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/power_disparity.angular.x",
+          "enabled": true,
+          "label": "Power Disparity Roll"
         }
       ],
       "showXAxisLabels": true,
@@ -58,26 +89,31 @@
       "xAxisVal": "timestamp",
       "sidebarDimension": 240,
       "foxglovePanelTitle": "Roll",
-      "minYValue": -1,
-      "maxYValue": 1,
+      "minYValue": -3,
+      "maxYValue": 3,
       "followingViewWidth": 15
     },
     "Plot!1vpzbmx": {
       "paths": [
         {
-          "value": "/controls/position_error.linear.y",
+          "value": "/controls/set_power_scaled.linear.y",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Setpoint Y",
+          "label": "Set Power Scaled Y",
           "showLine": true,
           "color": "#0080ff"
         },
         {
           "timestampMethod": "receiveTime",
-          "value": "/controls/position_efforts.linear.y",
+          "value": "/controls/actual_power.linear.y",
           "enabled": true,
-          "label": "Control Effort Y",
-          "color": "#ff4000"
+          "label": "Actual Power Y"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/power_disparity.linear.y",
+          "enabled": true,
+          "label": "Power Disparity Y"
         }
       ],
       "showXAxisLabels": true,
@@ -89,26 +125,31 @@
       "xAxisVal": "timestamp",
       "sidebarDimension": 240,
       "foxglovePanelTitle": "Y",
-      "minYValue": -1,
-      "maxYValue": 1,
+      "minYValue": -3,
+      "maxYValue": 3,
       "followingViewWidth": 15
     },
     "Plot!266v8jj": {
       "paths": [
         {
-          "value": "/controls/position_error.angular.y",
+          "value": "/controls/set_power_scaled.angular.y",
           "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Setpoint Pitch",
+          "label": "Set Power Scaled Pitch",
           "showLine": true,
           "color": "#0080ff"
         },
         {
           "timestampMethod": "receiveTime",
-          "value": "/controls/position_efforts.angular.y",
+          "value": "/controls/actual_power.angular.y",
           "enabled": true,
-          "label": "Control Effort Pitch",
-          "color": "#ff4000"
+          "label": "Actual Power Pitch"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/power_disparity.angular.y",
+          "enabled": true,
+          "label": "Power Disparity Pitch"
         }
       ],
       "showXAxisLabels": true,
@@ -120,26 +161,29 @@
       "xAxisVal": "timestamp",
       "sidebarDimension": 240,
       "foxglovePanelTitle": "Pitch",
-      "minYValue": -1,
-      "maxYValue": 1,
+      "minYValue": -3,
+      "maxYValue": 3,
       "followingViewWidth": 15
     },
     "Plot!1p60d5": {
       "paths": [
         {
-          "value": "/controls/position_error.linear.z",
-          "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Setpoint Z",
-          "showLine": true,
-          "color": "#0080ff"
+          "value": "/controls/set_power_scaled.linear.z",
+          "enabled": true,
+          "label": "Set Power Scaled Z"
         },
         {
           "timestampMethod": "receiveTime",
-          "value": "/controls/position_efforts.linear.z",
+          "value": "/controls/actual_power.linear.z",
           "enabled": true,
-          "label": "Control Effort Z",
-          "color": "#ff4000"
+          "label": "Actual Power Z"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/power_disparity.linear.z",
+          "enabled": true,
+          "label": "Power Disparity Z"
         }
       ],
       "showXAxisLabels": true,
@@ -151,26 +195,29 @@
       "xAxisVal": "timestamp",
       "sidebarDimension": 240,
       "foxglovePanelTitle": "Z",
-      "minYValue": -1,
-      "maxYValue": 1,
+      "minYValue": -3,
+      "maxYValue": 3,
       "followingViewWidth": 15
     },
     "Plot!3y2hu8l": {
       "paths": [
         {
-          "value": "/controls/position_error.angular.z",
-          "enabled": true,
           "timestampMethod": "receiveTime",
-          "label": "Setpoint Yaw",
-          "showLine": true,
-          "color": "#0080ff"
+          "value": "/controls/set_power_scaled.angular.z",
+          "enabled": true,
+          "label": "Set Power Scaled Yaw"
         },
         {
           "timestampMethod": "receiveTime",
-          "value": "/controls/position_efforts.angular.z",
+          "value": "/controls/actual_power.angular.z",
           "enabled": true,
-          "label": "Control Effort Yaw",
-          "color": "#ff4000"
+          "label": "Actual Power Yaw"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/power_disparity.angular.z",
+          "enabled": true,
+          "label": "Power Disparity Yaw"
         }
       ],
       "showXAxisLabels": true,
@@ -182,8 +229,8 @@
       "xAxisVal": "timestamp",
       "sidebarDimension": 240,
       "foxglovePanelTitle": "Yaw",
-      "minYValue": -1,
-      "maxYValue": 1,
+      "minYValue": -3,
+      "maxYValue": 3,
       "followingViewWidth": 15
     }
   },
@@ -193,26 +240,31 @@
     "speed": 1
   },
   "layout": {
-    "first": {
+    "direction": "row",
+    "first": "Plot!21jaxjm",
+    "second": {
       "first": {
-        "first": "Plot!3gn30zb",
-        "second": "Plot!3yf78kk",
-        "direction": "column"
+        "first": {
+          "first": "Plot!3gn30zb",
+          "second": "Plot!3yf78kk",
+          "direction": "column"
+        },
+        "second": {
+          "first": "Plot!1vpzbmx",
+          "second": "Plot!266v8jj",
+          "direction": "column"
+        },
+        "direction": "row",
+        "splitPercentage": 50
       },
       "second": {
-        "first": "Plot!1vpzbmx",
-        "second": "Plot!266v8jj",
+        "first": "Plot!1p60d5",
+        "second": "Plot!3y2hu8l",
         "direction": "column"
       },
       "direction": "row",
-      "splitPercentage": 50
+      "splitPercentage": 66.66666666666666
     },
-    "second": {
-      "first": "Plot!1p60d5",
-      "second": "Plot!3y2hu8l",
-      "direction": "column"
-    },
-    "direction": "row",
-    "splitPercentage": 66.66666666666666
+    "splitPercentage": 17.77777777777778
   }
 }
