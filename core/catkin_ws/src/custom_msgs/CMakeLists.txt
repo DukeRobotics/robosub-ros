@@ -30,6 +30,8 @@ add_message_files(
   SimObjectArray.msg
   SonarSweepRequest.msg
   SonarSweepResponse.msg
+  SystemUsage.msg
+  ThrusterAllocs.msg
 )
 
 add_service_files(
