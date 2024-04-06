@@ -10,7 +10,7 @@ CONFIG_FILE_PATH = f'package://offboard_comms/config/{os.getenv("ROBOT_NAME", "o
 CONFIG_NAME = 'servo_sensors'
 
 BAUDRATE = 9600
-NODE_NAME = 'servo_pub'
+NODE_NAME = 'servo_sensors_pub'
 HUMIDITY_DEST_TOPIC = 'sensors/humidity'
 TEMPERATURE_DEST_TOPIC = 'sensors/temperature'
 SERVO_SERVICE = 'servo_control'

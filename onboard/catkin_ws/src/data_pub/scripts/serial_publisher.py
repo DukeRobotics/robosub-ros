@@ -2,24 +2,18 @@
 
 from abc import ABC, abstractmethod
 import rospy
-import os
 import time
 import serial
 import serial.tools.list_ports as list_ports
 import yaml
 import resource_retriever as rr
 import traceback
-from std_msgs.msg import Float64
-
-# Used for sensor fusion
-from geometry_msgs.msg import PoseWithCovarianceStamped
 
 
 class SerialPublisher(ABC):
     """
     Abstract serial publisher for a ROS node
     """
-
 
     def __init__(self, node_name, baud, config_file_path, config_name):
         """
@@ -81,11 +75,11 @@ class SerialPublisher(ABC):
         self._serial.write(line.encode('utf-8') + b'\r\n')
 
     @abstractmethod
-    def process_line(self, l):
+    def process_line(self, line):
         """
         Abstract method to implement how serial input is formatted.
 
-        @param l: the line to be processed
+        @param line: the line to be processed
         """
         pass
 
@@ -103,7 +97,7 @@ class SerialPublisher(ABC):
         while not rospy.is_shutdown():
             try:
                 # Direct read from device
-                line = self.readline_nonblocking().strip() # P: 0.22
+                line = self.readline_nonblocking().strip()  # Example: "P: 0.22"
 
                 if not line or line == '':
                     rospy.logerr(f"Timeout in {self.config_name} serial read, trying again in 1 second.")

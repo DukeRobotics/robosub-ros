@@ -8,14 +8,15 @@ from serial_publisher import SerialPublisher
 # Used for sensor fusion
 from geometry_msgs.msg import PoseWithCovarianceStamped
 
-
-DEPTH_DEST_TOPIC = 'sensors/depth'
-VOLTAGE_DEST_TOPIC = 'sensors/voltage'
 CONFIG_FILE_PATH = f'package://offboard_comms/config/{os.getenv("ROBOT_NAME", "oogway")}.yaml'
 CONFIG_NAME = 'pressure'
 
 BAUDRATE = 9600
-NODE_NAME = 'pressure_pub'
+NODE_NAME = 'pressure_voltage_pub'
+DEPTH_DEST_TOPIC = 'sensors/depth'
+VOLTAGE_DEST_TOPIC = 'sensors/voltage'
+
+
 class PressureVoltagePublisher(SerialPublisher):
     """
     Serial publisher to publish voltage and pressure data to ROS
@@ -38,11 +39,11 @@ class PressureVoltagePublisher(SerialPublisher):
         self._serial_port = None
         self._serial = None
 
-    def process_line(self, l):
+    def process_line(self, line):
         """"
         Reads and publishes individual lines
 
-        @param l: the line to read
+        @param line: the line to read
 
         Assumes data comes in the following format:
 
@@ -54,8 +55,8 @@ class PressureVoltagePublisher(SerialPublisher):
         P:0.24
         ...
         """
-        tag = l[0:2]  # P for pressure and V for voltage
-        data = l[2:]
+        tag = line[0:2]  # P for pressure and V for voltage
+        data = line[2:]
         if "P:" in tag:
             self._update_pressure(float(data))  # Filter out bad readings
             self._parse_pressure()  # Parse pressure data
