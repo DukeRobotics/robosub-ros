@@ -15,6 +15,7 @@ from custom_msgs.srv import SetDepthAIModel
 from geometry_msgs.msg import Pose
 from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import String
+from std_srvs.srv import SetBool
 
 
 MM_IN_METER = 1000
@@ -25,7 +26,6 @@ SONAR_RANGE = 1.75
 SONAR_REQUESTS_PATH = 'sonar/request'
 SONAR_RESPONSES_PATH = 'sonar/cv/response'
 TASK_PLANNING_REQUESTS_PATH = "controls/desired_feature"
-NO_DEPTHAI_MODEL_STRING = "rgb_raw"
 
 
 # Compute detections on live camera feed and publish spatial coordinates for detected objects
@@ -51,8 +51,8 @@ class DepthAISpatialDetector:
             self.models = yaml.safe_load(f)
 
         self.pipeline = None
-        self.pipeline_nodes = {}
         self.publishers = {}  # Keys are the class names of a given model
+        self.input_queue_model = None
         self.output_queues = {}  # Keys are "rgb", "depth", and "detections"
         self.connected = False
         self.current_model_name = None
@@ -64,6 +64,7 @@ class DepthAISpatialDetector:
         self.detection_visualizer = None
 
         self.set_model_service = f'set_model_{self.camera}'
+        self.enable_model_service = f'enable_model_{self.camera}'
 
         self.image_tools = ImageTools()
 
@@ -82,7 +83,9 @@ class DepthAISpatialDetector:
         self.desired_detection_feature = rospy.Subscriber(
             TASK_PLANNING_REQUESTS_PATH, String, self.update_priority)
 
-    def build_pipeline(self, running_model_name):
+        self.detections_enabled = False
+
+    def build_pipeline(self):
         """
         Get the DepthAI Pipeline for 3D object localization. Inspiration taken from
         https://docs.luxonis.com/projects/api/en/latest/samples/SpatialDetection/spatial_tiny_yolo/.
@@ -115,8 +118,6 @@ class DepthAISpatialDetector:
         cam_rgb.setInterleaved(False)
         cam_rgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
 
-        self.pipeline_nodes["cam_rgb"] = cam_rgb
-
         # Mono properties
         mono_left = pipeline.create(dai.node.MonoCamera)
         mono_right = pipeline.create(dai.node.MonoCamera)
@@ -126,45 +127,46 @@ class DepthAISpatialDetector:
         mono_right.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
         mono_right.setBoardSocket(dai.CameraBoardSocket.CAM_C)
 
-        self.pipeline_nodes["mono_left"] = mono_left
-        self.pipeline_nodes["mono_right"] = mono_right
-
         # Stereo properties
         stereo = pipeline.create(dai.node.StereoDepth)
 
         stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
         stereo.setDepthAlign(dai.CameraBoardSocket.CAM_A)
 
-        self.pipeline_nodes["stereo"] = stereo
+        # Script nodes to handle switching models on the fly
+        switch_model_in = pipeline.create(dai.node.Script)
+        switch_model_out = pipeline.create(dai.node.Script)
 
-        # Script node to handle switching models on the fly
-        switch_model = pipeline.create(dai.node.Script)
-        self.pipeline_nodes["switch_model"] = switch_model
+        # Model input queue
+        xin_model = pipeline.create(dai.node.XLinkIn)
+        xin_model.setStreamName("model")
 
         # Output queues
         xout_nn = pipeline.create(dai.node.XLinkOut)
         xout_nn.setStreamName("detections")
-        self.pipeline_nodes["xout_nn"] = xout_nn
 
         if self.queue_rgb:
             xout_rgb = pipeline.create(dai.node.XLinkOut)
             xout_rgb.setStreamName("rgb")
-            self.pipeline_nodes["xout_rgb"] = xout_rgb
 
         if self.queue_depth:
             xout_depth = pipeline.create(dai.node.XLinkOut)
             xout_depth.setStreamName("depth")
-            self.pipeline_nodes["xout_depth"] = xout_depth
 
         # Linking
+        xin_model.out.link(switch_model_in.inputs["model"])
+        xin_model.out.link(switch_model_out.inputs["model"])
+
         mono_left.out.link(stereo.left)
         mono_right.out.link(stereo.right)
 
-        cam_rgb.preview.link(switch_model.input)
-        stereo.depth.link(switch_model.inputDepth)
+        cam_rgb.preview.link(switch_model_in.inputs["input"])
+        stereo.depth.link(switch_model_in.inputs["inputDepth"])
+
+        switch_model_in.outputs["rgb_raw_input"].link(switch_model_out.inputs["rgb_raw_passthrough"])
+        switch_model_in.outputs["rgb_raw_inputDepth"].link(switch_model_out.inputs["rgb_raw_passthroughDepth"])
 
         # Spatial detection network nodes
-        self.pipeline_nodes["spatial_detection_network"] = {}
         for model_name in self.models:
             model = self.models[model_name]
 
@@ -187,35 +189,31 @@ class DepthAISpatialDetector:
             spatial_detection_network.setAnchorMasks(model['anchor_masks'])
             spatial_detection_network.setIouThreshold(model['iou_threshold'])
 
-            self.pipeline_nodes["spatial_detection_network"][model_name] = spatial_detection_network
-
             # Linking switch node outputs to spatial detection network inputs
-            switch_model.outputs[f"{model}_input"].link(spatial_detection_network.input)
-            switch_model.outputs[f"{model}_inputDepth"].link(spatial_detection_network.inputDepth)
+            switch_model_in.outputs[f"{model}_input"].link(spatial_detection_network.input)
+            switch_model_in.outputs[f"{model}_inputDepth"].link(spatial_detection_network.inputDepth)
 
-        # TODO: rewrite this
+            spatial_detection_network.passthrough.link(switch_model_out.inputs[f"{model}_passthrough"])
+            spatial_detection_network.passthroughDepth.link(switch_model_out.inputs[f"{model}_passthroughDepth"])
+            spatial_detection_network.out.link(switch_model_out.inputs[f"{model}_out"])
+
         if self.queue_rgb:
-            if not self.sync_nn:
-                cam_rgb.preview.link(xout_rgb.input)
-            elif running_model_name != NO_DEPTHAI_MODEL_STRING:
-                self.pipeline_nodes["spatial_detection_network"][running_model_name].passthrough.link(xout_rgb.input)
+            # To sync RGB frames with NN, link passthrough to xout instead of preview
+            if self.sync_nn:
+                switch_model_out.outputs["passthrough"].link(xout_rgb.input)
             else:
-                switch_model.outputs["passthrough"].link(xout_rgb.input)
+                cam_rgb.preview.link(xout_rgb.input)
+
+        switch_model_out.outputs["out"].link(xout_nn.input)
 
         if self.queue_depth:
-            if running_model_name != NO_DEPTHAI_MODEL_STRING:
-                self.pipeline_nodes["spatial_detection_network"][running_model_name].passthroughDepth.link(xout_depth.input)
-            else:
-                switch_model.outputs["passthroughDepth"].link(xout_depth.input)
+            switch_model_out.outputs["passthroughDepth"].link(xout_depth.input)
 
-        if running_model_name != NO_DEPTHAI_MODEL_STRING:
-            self.pipeline_nodes["spatial_detection_network"][running_model_name].out.link(xout_nn.input)
-
-        return pipeline
+        self.pipeline = pipeline
 
     def init_model(self, model_name):
         """
-        Creates and assigns the pipeline and sets the current model name.
+        Sets the current model name and model attributes.
 
         :param model_name: Name of the model. The model name should match a key in cv/models/depthai_models.yaml.
         For example, if depthai_models.yaml is:
@@ -233,25 +231,20 @@ class DepthAISpatialDetector:
         """
         self.current_model_name = model_name
 
-        if model_name != NO_DEPTHAI_MODEL_STRING:
-            model = self.models[model_name]
+        model = self.models[model_name]
+        self.classes = model['classes']
+        self.camera_pixel_width, self.camera_pixel_height = model['input_size']
+        self.colors = model['colors']
 
-            self.classes = model['classes']
+        self.detection_visualizer = DetectionVisualizer(self.classes, self.colors,
+                                                        self.show_class_name, self.show_confidence)
 
-            self.camera_pixel_width, self.camera_pixel_height = model['input_size']
+        # Send model name to the pipeline
+        input_queue_msg = dai.Buffer()
+        input_queue_msg.setData(model_name)  # TODO: valid?
+        self.input_queue_model.send(input_queue_msg)
 
-            self.colors = model['colors']
-
-            self.detection_visualizer = DetectionVisualizer(self.classes, self.colors,
-                                                            self.show_class_name, self.show_confidence)
-
-        else:
-            self.classes = None
-            self.camera_pixel_width, self.camera_pixel_height = None, None
-            self.colors = None
-            self.detection_visualizer = None
-
-    def init_publishers(self, model_name):
+    def init_publishers(self):
         """
         Initialize the publishers for the node. A publisher is created for each class that the model predicts.
         The publishers are created in format: "cv/camera/model_name".
@@ -264,11 +257,10 @@ class DepthAISpatialDetector:
         self.publishers = {}
 
         # (Re)create a CVObject publisher for each class
-        if model_name != NO_DEPTHAI_MODEL_STRING:
-            model = self.models[model_name]
-            for model_class in model['classes']:
-                publisher_name = f"cv/{self.camera}/{model_class}"
-                self.publishers[model_class] = rospy.Publisher(publisher_name, CVObject, queue_size=10)
+        model = self.models[self.current_model_name]
+        for model_class in model['classes']:
+            publisher_name = f"cv/{self.camera}/{model_class}"
+            self.publishers[model_class] = rospy.Publisher(publisher_name, CVObject, queue_size=10)
 
         # Create CompressedImage publishers for the raw RGB feed, detections feed, and depth feed
         # Only create these publishers once
@@ -284,7 +276,7 @@ class DepthAISpatialDetector:
             self.detection_feed_publisher = rospy.Publisher(f"cv/{self.camera}/detections/compressed", CompressedImage,
                                                             queue_size=10)
 
-    def init_output_queues(self, device):
+    def init_device_queues(self, device):
         """
         Assigns output queues from the pipeline to dictionary of queues.
         :param device: DepthAI.Device object for the connected device.
@@ -293,6 +285,8 @@ class DepthAISpatialDetector:
         # If the output queues are already set, don't reinitialize
         if self.connected:
             return
+
+        self.input_queue_model = device.getInputQueue("model")
 
         # Assign output queues
         if self.queue_rgb:
@@ -305,18 +299,18 @@ class DepthAISpatialDetector:
 
         self.connected = True  # Flag that the output queues have been initialized
 
-    def reroute_pipeline(self, old_model_name, new_model_name, unlink_previous=False):
-        # TODO: concern: if model disabled:
-        #   - self.detection_feed_publisher does not publish? 
-        #   - still have xout_rgb and depth output queues, both must SYNC with spatial network
-        #   - detection output queue does not publish
+    # def reroute_pipeline(self, old_model_name, new_model_name, unlink_previous=False):
+    #     # TODO: concern: if model disabled:
+    #     #   - self.detection_feed_publisher does not publish?
+    #     #   - still have xout_rgb and depth output queues, both must SYNC with spatial network
+    #     #   - detection output queue does not publish
 
-        if self.queue_rgb and self.sync_nn:
-            self.pipeline_nodes["spatial_detection_network"][model_name].passthrough.link(
-                self.pipeline_nodes["xout_rgb"].input
-            )
+    #     if self.queue_rgb and self.sync_nn:
+    #         self.pipeline_nodes["spatial_detection_network"][model_name].passthrough.link(
+    #             self.pipeline_nodes["xout_rgb"].input
+    #         )
 
-        self.pipeline_nodes["spatial_detection_network"][model_name].out.link(self.pipeline_nodes["xout_nn"].input)
+    #     self.pipeline_nodes["spatial_detection_network"][model_name].out.link(self.pipeline_nodes["xout_nn"].input)
 
     def detect(self):
         """
@@ -327,27 +321,14 @@ class DepthAISpatialDetector:
             rospy.logwarn("Output queues are not initialized so cannot detect. Call init_output_queues first.")
             return
 
-        # Get detections from output queues
-        if self.current_model_name != NO_DEPTHAI_MODEL_STRING:
-            inDet = self.output_queues["detections"].get()
-            detections = inDet.detections
-        else:
-            detections = []
-
         if self.queue_rgb:
             inPreview = self.output_queues["rgb"].get()
             frame = inPreview.getCvFrame()
 
-            # Publish raw RGB feed
             if self.rgb_raw:
+                # Publish raw RGB feed
                 frame_img_msg = self.image_tools.convert_to_ros_compressed_msg(frame)
                 self.rgb_preview_publisher.publish(frame_img_msg)
-
-            # Publish detections feed
-            if self.rgb_detections:
-                detections_visualized = self.detection_visualizer.visualize_detections(frame, detections)
-                detections_img_msg = self.image_tools.convert_to_ros_compressed_msg(detections_visualized)
-                self.detection_feed_publisher.publish(detections_img_msg)
 
         # Publish depth feed
         if self.queue_depth:
@@ -356,72 +337,81 @@ class DepthAISpatialDetector:
             image_msg_depth = self.image_tools.convert_depth_to_ros_compressed_msg(img_depth, 'mono16')
             self.depth_publisher.publish(image_msg_depth)
 
-        # Process and publish detections. If using sonar, override det robot x coordinate
-        for detection in detections:
+        # Get detections from output queues
+        inDet = self.output_queues["detections"].tryGet()
+        if inDet:
+            detections = inDet.detections
 
-            # Bounding box
-            bbox = (detection.xmin, detection.ymin,
-                    detection.xmax, detection.ymax)
+            # Publish detections feed
+            if self.rgb_detections:
+                detections_visualized = self.detection_visualizer.visualize_detections(frame, detections)
+                detections_img_msg = self.image_tools.convert_to_ros_compressed_msg(detections_visualized)
+                self.detection_feed_publisher.publish(detections_img_msg)
 
-            # Label name
-            label_idx = detection.label
-            label = self.classes[label_idx]
+            # Process and publish detections. If using sonar, override det robot x coordinate
+            for detection in detections:
 
-            confidence = detection.confidence
+                # Bounding box
+                bbox = (detection.xmin, detection.ymin,
+                        detection.xmax, detection.ymax)
 
-            # x is left/right axis, where 0 is in middle of the frame,
-            # to the left is negative x, and to the right is positive x
-            # y is down/up axis, where 0 is in the middle of the frame,
-            # down is negative y, and up is positive y
-            # z is distance of object from camera in mm
-            x_cam_mm = detection.spatialCoordinates.x
-            y_cam_mm = detection.spatialCoordinates.y
-            z_cam_mm = detection.spatialCoordinates.z
+                # Label name
+                label_idx = detection.label
+                label = self.classes[label_idx]
 
-            x_cam_meters = mm_to_meters(x_cam_mm)
-            y_cam_meters = mm_to_meters(y_cam_mm)
-            z_cam_meters = mm_to_meters(z_cam_mm)
+                confidence = detection.confidence
 
-            det_coords_robot_mm = camera_frame_to_robot_frame(x_cam_meters,
-                                                              y_cam_meters,
-                                                              z_cam_meters)
+                # x is left/right axis, where 0 is in middle of the frame,
+                # to the left is negative x, and to the right is positive x
+                # y is down/up axis, where 0 is in the middle of the frame,
+                # down is negative y, and up is positive y
+                # z is distance of object from camera in mm
+                x_cam_mm = detection.spatialCoordinates.x
+                y_cam_mm = detection.spatialCoordinates.y
+                z_cam_mm = detection.spatialCoordinates.z
 
-            # Find yaw angle offset
-            left_end_compute = self.compute_angle_from_x_offset(detection.xmin * self.camera_pixel_width)
-            right_end_compute = self.compute_angle_from_x_offset(detection.xmax * self.camera_pixel_width)
-            midpoint = (left_end_compute + right_end_compute) / 2.0
-            yaw_offset = (midpoint) * (math.pi / 180.0)  # Degrees to radians
+                x_cam_meters = mm_to_meters(x_cam_mm)
+                y_cam_meters = mm_to_meters(y_cam_mm)
+                z_cam_meters = mm_to_meters(z_cam_mm)
 
-            # Create a new sonar request msg object if using sonar and the current detected
-            # class is the desired class to be returned to task planning
-            if self.using_sonar and label == self.current_priority:
+                det_coords_robot_mm = camera_frame_to_robot_frame(x_cam_meters, y_cam_meters, z_cam_meters)
 
-                # top_end_compute = self.compute_angle_from_y_offset(detection.ymin * self.camera_pixel_height)
-                # bottom_end_compute = self.compute_angle_from_y_offset(detection.ymax * self.camera_pixel_height)
+                # Find yaw angle offset
+                left_end_compute = self.compute_angle_from_x_offset(detection.xmin * self.camera_pixel_width)
+                right_end_compute = self.compute_angle_from_x_offset(detection.xmax * self.camera_pixel_width)
+                midpoint = (left_end_compute + right_end_compute) / 2.0
+                yaw_offset = (midpoint) * (math.pi / 180.0)  # Degrees to radians
 
-                # Construct sonar request message
-                sonar_request_msg = SonarSweepRequest()
-                sonar_request_msg.start_angle = int(left_end_compute)
-                sonar_request_msg.end_angle = int(right_end_compute)
-                sonar_request_msg.distance_of_scan = int(SONAR_DEPTH)
+                # Create a new sonar request msg object if using sonar and the current detected
+                # class is the desired class to be returned to task planning
+                if self.using_sonar and label == self.current_priority:
 
-                # Make a request to sonar if it is not busy
-                if not self.sonar_busy:
-                    self.sonar_requests_publisher.publish(sonar_request_msg)
-                    # Getting response...
-                    self.sonar_busy = True
+                    # top_end_compute = self.compute_angle_from_y_offset(detection.ymin * self.camera_pixel_height)
+                    # bottom_end_compute = self.compute_angle_from_y_offset(detection.ymax * self.camera_pixel_height)
 
-                # Try calling sonar on detected bounding box
-                # if sonar responds, then override existing robot-frame x info;
-                # else, keep default
-                if not (self.sonar_response == (0, 0)) and self.in_sonar_range:
-                    det_coords_robot_mm = (self.sonar_response[0],  # Override x
-                                           -x_cam_meters,  # Maintain original y
-                                           y_cam_meters)  # Maintain original z
+                    # Construct sonar request message
+                    sonar_request_msg = SonarSweepRequest()
+                    sonar_request_msg.start_angle = int(left_end_compute)
+                    sonar_request_msg.end_angle = int(right_end_compute)
+                    sonar_request_msg.distance_of_scan = int(SONAR_DEPTH)
 
-            self.publish_prediction(
-                bbox, det_coords_robot_mm, yaw_offset, label, confidence,
-                (self.camera_pixel_height, self.camera_pixel_width), self.using_sonar)
+                    # Make a request to sonar if it is not busy
+                    if not self.sonar_busy:
+                        self.sonar_requests_publisher.publish(sonar_request_msg)
+                        # Getting response...
+                        self.sonar_busy = True
+
+                    # Try calling sonar on detected bounding box
+                    # if sonar responds, then override existing robot-frame x info;
+                    # else, keep default
+                    if not (self.sonar_response == (0, 0)) and self.in_sonar_range:
+                        det_coords_robot_mm = (self.sonar_response[0],  # Override x
+                                               -x_cam_meters,  # Maintain original y
+                                               y_cam_meters)  # Maintain original z
+
+                self.publish_prediction(
+                    bbox, det_coords_robot_mm, yaw_offset, label, confidence,
+                    (self.camera_pixel_height, self.camera_pixel_width), self.using_sonar)
 
     def publish_prediction(self, bbox, det_coords, yaw, label, confidence,
                            shape, using_sonar):
@@ -490,20 +480,34 @@ class DepthAISpatialDetector:
         if new_model_name == self.current_model_name:
             return {"success": True, "message": f"Model {new_model_name} is already running on {self.camera} camera."}
 
-        if new_model_name != NO_DEPTHAI_MODEL_STRING and new_model_name not in self.models:
+        if new_model_name not in self.models:
             return {"success": False, "message": f"FAILURE: {new_model_name} is not a valid model name."}
 
         else:
-            self.reroute_pipeline(self.current_model_name, new_model_name)
+            self.detections_enabled = False
+
             self.init_model(new_model_name)
             self.init_publishers(new_model_name)
 
-            if new_model_name:
-                message = f"Sucessfully set {new_model_name} as new model for {self.camera} camera."
-            else:
-                message = f"Successfully disabled model for {self.camera} camera."
+            self.detections_enabled = True
 
-            return {"success": True, "message": message}
+            return {"success": True, "message": f"Sucessfully set new model {new_model_name} for {self.camera} camera."}
+
+    def enable_model(self, req):
+        """Service for toggling specific models on and off.
+
+        :param req: The request from another node or command line to enable the model.
+        """
+        input_queue_msg = dai.Buffer()
+        if req.data:
+            input_queue_msg.setData(self.current_model_name)  # TODO: valid?
+            message = "Successfully enabled model."
+        else:
+            input_queue_msg.setData("")
+            message = "Successfully disabled model."
+        self.input_queue_model.send(input_queue_msg)
+
+        return {"success": True, "message": message}
 
     def run(self):
         """
@@ -512,21 +516,24 @@ class DepthAISpatialDetector:
         Otherwise, the model will be run on the device.
         """
         # Check if model is valid
-        if self.initial_model_name != NO_DEPTHAI_MODEL_STRING and self.initial_model_name not in self.models:
+        if self.initial_model_name not in self.models:
             return False
 
         # Setup pipeline and publishers
-
         rospy.Service(self.set_model_service, SetDepthAIModel, self.set_model)
+        rospy.Service(self.enable_model_service, SetBool, self.enable_model)
+        # Allow service for toggling of models
 
+        self.build_pipeline()
         self.init_model(self.initial_model_name)
-        self.build_pipeline(self.initial_model_name)
-        self.init_publishers(self.initial_model_name)
+        self.init_publishers()
 
         with depthai_camera_connect.connect(self.pipeline, self.camera) as device:
-            self.init_output_queues(device)
+            self.init_device_queues(device)
 
-            while not rospy.is_shutdown():
+            self.detections_enabled = True
+
+            while not rospy.is_shutdown() and self.detections_enabled:
                 self.detect()
 
         return True
