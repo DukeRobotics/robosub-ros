@@ -13,10 +13,11 @@ from utils import visualize_path_marker_detection
 from custom_msgs.srv import EnableModel, CVObject
 
 CAMERAS_FILEPATH = 'package://cv/configs/cameras.yaml'
-HSV_MODELS_FILEPATH = 'package://cv/configs/hsv_models.yaml' 
+HSV_MODELS_FILEPATH = 'package://cv/configs/hsv_models.yaml'
 # TODO create and populate based on what we're reading from depth AI
 # TODO utils.py update visualize_detections.py
-# TODO create yaml file, top level will be each model (bin, buoy, etc.)
+# DONE create yaml file, top level will be each model (bin, buoy, etc.)
+
 
 class HSVFilter:
     # Fitting functions for ellipse (e.g. path marker), rotated rectangle (e.g. bins), and circle (e.g. buoy).

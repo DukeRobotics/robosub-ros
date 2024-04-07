@@ -1,0 +1,35 @@
+{ "buoy": {
+    "topic": "/path",
+    "models": [{
+        "msg_type": messagetype,
+        "upper_mask": [0, 0, 0],
+        "lower_mask": [1, 1, 1],
+        "shape": circle,
+        "visualizer_color": [255, 0, 0],
+        "enabled": False
+    }]
+}}
+
+{ "bin": {
+    "topic": "/path",
+    "models": [{
+        "msg_type": messagetype,
+        "upper_mask": [0, 0, 0],
+        "lower_mask": [1, 1, 1],
+        "shape": rotated_rectangle,
+        "visualizer_color": [0, 255, 0],
+        "enabled": False
+    }]
+}}
+
+{ "path_marker": {
+    "topic": "/path",
+    "models": [{
+        "msg_type": messagetype,
+        "upper_mask": [0, 0, 0],
+        "lower_mask": [1, 1, 1],
+        "shape": ellipse,
+        "visualizer_color": [0, 0, 255],
+        "enabled": False
+    }]
+}}
