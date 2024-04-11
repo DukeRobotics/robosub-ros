@@ -81,7 +81,7 @@ class DetectionVisualizer:
         self.classes = classes
         self.colors = []
         for color in colors:
-            self.colors.append(self.hex_to_rgb(color))
+            self.colors.append(hex_to_rgb(color))
         self.show_class_name = show_class_name
         self.show_confidence = show_confidence
 
