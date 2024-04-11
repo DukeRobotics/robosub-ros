@@ -33,6 +33,7 @@ add_service_files(
   ConnectDepthAICamera.srv
   ConnectUSBCamera.srv
   EnableModel.srv
+  SetDepthAIModel.srv
   SetServo.srv
   StartLaunch.srv
   StopLaunch.srv
