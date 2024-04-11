@@ -20,6 +20,7 @@ from std_srvs.srv import SetBool
 
 MM_IN_METER = 1000
 DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH = 'package://cv/models/depthai_models.yaml'
+DEPTHAI_SCRIPT_NODES_PATH = 'package://cv/scripts/depthai_script_nodes/'
 HORIZONTAL_FOV = 95
 SONAR_DEPTH = 10
 SONAR_RANGE = 1.75
@@ -46,28 +47,38 @@ class DepthAISpatialDetector:
         self.show_class_name = rospy.get_param("~show_class_name")
         self.show_confidence = rospy.get_param("~show_confidence")
 
-        with open(rr.get_filename(DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH,
-                                  use_protocol=False)) as f:
+        with open(rr.get_filename(DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH, use_protocol=False)) as f:
             self.models = yaml.safe_load(f)
 
+        # Pipeline
         self.pipeline = None
+        self.cam_rgb_node = None
+
+        # Publishers
         self.publishers = {}  # Keys are the class names of a given model
-        self.input_queue_model = None
-        self.output_queues = {}  # Keys are "rgb", "depth", and "detections"
-        self.connected = False
-        self.current_model_name = None
-        self.classes = None
-        self.camera_pixel_width = None
-        self.camera_pixel_height = None
         self.detection_feed_publisher = None
         self.rgb_preview_publisher = None
         self.detection_visualizer = None
 
+        # Input/Output queues
+        self.input_queue_model = None
+        self.output_queues = {}  # Keys are "rgb", "depth", and "detections"
+        self.connected = False
+
+        # Current DepthAI model
+        self.current_model_name = None
+        self.classes = None
+        self.camera_pixel_width = None
+        self.camera_pixel_height = None
+
+        # ROS Services
         self.set_model_service = f'set_model_{self.camera}'
         self.enable_model_service = f'enable_model_{self.camera}'
 
+        # Image tools
         self.image_tools = ImageTools()
 
+        # Sonar
         self.sonar_response = (0, 0)
         self.in_sonar_range = True
         self.sonar_busy = False
@@ -83,6 +94,7 @@ class DepthAISpatialDetector:
         self.desired_detection_feature = rospy.Subscriber(
             TASK_PLANNING_REQUESTS_PATH, String, self.update_priority)
 
+        # Enable detections
         self.detections_enabled = False
 
     def build_pipeline(self):
@@ -112,11 +124,12 @@ class DepthAISpatialDetector:
 
         # Camera properties
         cam_rgb = pipeline.create(dai.node.ColorCamera)
-        # TODO: setPreviewSize depending on model
-        cam_rgb.setPreviewSize(0)
         cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
         cam_rgb.setInterleaved(False)
         cam_rgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
+
+        # Saving the reference so we can set previewSize later on
+        self.cam_rgb_node = cam_rgb
 
         # Mono properties
         mono_left = pipeline.create(dai.node.MonoCamera)
@@ -135,7 +148,14 @@ class DepthAISpatialDetector:
 
         # Script nodes to handle switching models on the fly
         switch_model_in = pipeline.create(dai.node.Script)
+        switch_model_in_path = DEPTHAI_SCRIPT_NODES_PATH + 'switch_model_in.py'
+        with open(rr.get_filename(switch_model_in_path, use_protocol=False)) as f:
+            switch_model_in.setScript(f.read())
+
         switch_model_out = pipeline.create(dai.node.Script)
+        switch_model_out_path = DEPTHAI_SCRIPT_NODES_PATH + 'switch_model_out.py'
+        with open(rr.get_filename(switch_model_out_path, use_protocol=False)) as f:
+            switch_model_out.setScript(f.read())
 
         # Model input queue
         xin_model = pipeline.create(dai.node.XLinkIn)
@@ -236,6 +256,8 @@ class DepthAISpatialDetector:
         self.camera_pixel_width, self.camera_pixel_height = model['input_size']
         self.colors = model['colors']
 
+        self.cam_rgb_node.setPreviewSize(model['input_size'])
+
         self.detection_visualizer = DetectionVisualizer(self.classes, self.colors,
                                                         self.show_class_name, self.show_confidence)
 
@@ -298,19 +320,6 @@ class DepthAISpatialDetector:
         self.output_queues["detections"] = device.getOutputQueue(name="detections", maxSize=1, blocking=False)
 
         self.connected = True  # Flag that the output queues have been initialized
-
-    # def reroute_pipeline(self, old_model_name, new_model_name, unlink_previous=False):
-    #     # TODO: concern: if model disabled:
-    #     #   - self.detection_feed_publisher does not publish?
-    #     #   - still have xout_rgb and depth output queues, both must SYNC with spatial network
-    #     #   - detection output queue does not publish
-
-    #     if self.queue_rgb and self.sync_nn:
-    #         self.pipeline_nodes["spatial_detection_network"][model_name].passthrough.link(
-    #             self.pipeline_nodes["xout_rgb"].input
-    #         )
-
-    #     self.pipeline_nodes["spatial_detection_network"][model_name].out.link(self.pipeline_nodes["xout_nn"].input)
 
     def detect(self):
         """
@@ -503,7 +512,7 @@ class DepthAISpatialDetector:
             input_queue_msg.setData(self.current_model_name)  # TODO: valid?
             message = "Successfully enabled model."
         else:
-            input_queue_msg.setData("")
+            input_queue_msg.setData("rgb_raw")
             message = "Successfully disabled model."
         self.input_queue_model.send(input_queue_msg)
 
