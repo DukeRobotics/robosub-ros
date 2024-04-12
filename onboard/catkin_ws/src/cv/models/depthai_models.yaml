@@ -1,4 +1,5 @@
 gate:
+  id: 1
   classes: ['gate', 'gate_side', 'gate_tick', 'gate_top', 'start_gate']
   topic: cv/
   weights: yolo_v4_tiny_gate_openvino_2021.3_6shave-2022-7-21_416_416.blob
@@ -11,6 +12,7 @@ gate:
   colors: ["DC143C", "FFA500", "FFFF00", "00FF00", "000080"]
 
 gate_buoy:
+  id: 2
   classes: ['buoy_bootlegger', 'buoy_gman', 'gate']
   topic: cv/
   weights: yolo_v4_tiny_buoys_and_gate_6shave.blob
@@ -23,6 +25,7 @@ gate_buoy:
   colors: ["8A2BE2", "800000", "708090"]
 
 yolov8n_2023_main:
+  id: 3
   classes: ['buoy_abydos_serpenscaput','buoy_abydos_taurus','buoy_earth_auriga','buoy_earth_cetus','gate_abydos','gate_earth']
   topic: cv/
   weights: yolov8n-2023-main_openvino_2022.1_6shave.blob
@@ -35,6 +38,7 @@ yolov8n_2023_main:
   colors: ["DC143C", "FFA500", "FFFF00", "00FF00", "000080", "8A2BE2"]
 
 yolov7_tiny_2023_main:
+  id: 4
   classes: ['buoy_abydos_serpenscaput','buoy_abydos_taurus','buoy_earth_auriga','buoy_earth_cetus','gate_abydos','gate_earth']
   topic: cv/
   weights: yolov7-tiny-2023-main_openvino_2022.1_6shave.blob
