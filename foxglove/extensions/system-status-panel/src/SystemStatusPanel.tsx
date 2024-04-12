@@ -67,7 +67,7 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
       value: state.humidity,
       suffix: "%",
       warn: () => {
-        return state.humidity != undefined && state.humidity >= 90;
+        return state.humidity != undefined && state.humidity >= 80;
       },
     },
     {
