@@ -510,7 +510,7 @@ class DepthAISpatialDetector:
         """
         input_queue_msg = dai.Buffer()
         if req.data:
-            input_queue_msg.setData(self.models[self.current_model_name]['id'])  # TODO: valid?
+            input_queue_msg.setData(self.models[self.current_model_name]['id'])
             message = "Successfully enabled model."
         else:
             input_queue_msg.setData(0)
