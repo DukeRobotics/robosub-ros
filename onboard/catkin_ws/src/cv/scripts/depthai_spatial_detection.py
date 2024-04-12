@@ -239,6 +239,7 @@ class DepthAISpatialDetector:
         For example, if depthai_models.yaml is:
 
         gate:
+            id: 1
             classes: ['gate', 'gate_side', 'gate_tick', 'gate_top', 'start_gate']
             topic: cv/
             weights: yolo_v4_tiny_openvino_2021.3_6shave-2022-7-21_416_416.blob
@@ -263,7 +264,7 @@ class DepthAISpatialDetector:
 
         # Send model name to the pipeline
         input_queue_msg = dai.Buffer()
-        input_queue_msg.setData(model_name)  # TODO: valid?
+        input_queue_msg.setData(model['id'])
         self.input_queue_model.send(input_queue_msg)
 
     def init_publishers(self):
@@ -509,10 +510,10 @@ class DepthAISpatialDetector:
         """
         input_queue_msg = dai.Buffer()
         if req.data:
-            input_queue_msg.setData(self.current_model_name)  # TODO: valid?
+            input_queue_msg.setData(self.models[self.current_model_name]['id'])  # TODO: valid?
             message = "Successfully enabled model."
         else:
-            input_queue_msg.setData("rgb_raw")
+            input_queue_msg.setData(0)
             message = "Successfully disabled model."
         self.input_queue_model.send(input_queue_msg)
 
@@ -539,6 +540,8 @@ class DepthAISpatialDetector:
 
         with depthai_camera_connect.connect(self.pipeline, self.camera) as device:
             self.init_device_queues(device)
+            # self.init_model(self.initial_model_name)
+            # self.init_publishers()
 
             self.detections_enabled = True
 
