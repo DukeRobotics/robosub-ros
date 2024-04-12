@@ -145,24 +145,25 @@ class DetectionVisualizer:
         """Returns frame with bounding boxes, classes, and labels of each detection overlaid."""
         frame_copy = frame.copy()
 
-        # TODO: add logic to check if the detection is a path marker detection. If yes, call
-        # visualize_path_marker_detection with the appropriate argument instead. Remember to check if center and
+        # TODO Remember to check if center and
         # dimensions are relative are absolute values or relative values (wrt the frame dimensions).
-        # If it's not a path marker detection, draw a rectangle as usual.
         for detection in detections:
-            # TODO ensure handling of detections below are compatible w/ those from hsv_filter.py
-            bbox = self.frame_norm(frame_copy, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
-            # the code below specifies whether to display the bbox's class name and/or confidence value
-            if self.show_class_name and self.show_confidence:
-                self.putText(frame_copy, f"{self.classes[detection.label]} {int(detection.confidence * 100)}%",
-                             (bbox[0], bbox[1]), self.colors[detection.label])
-            elif self.show_class_name and not self.show_confidence:
-                self.putText(frame_copy, self.classes[detection.label],
-                             (bbox[0], bbox[1]), self.colors[detection.label])
-            elif not self.show_class_name and self.show_confidence:
-                self.putText(frame_copy, f"{int(detection.confidence * 100)}%",
-                             (bbox[0], bbox[1]), self.colors[detection.label])
+            if (detection.shape == "rotated_rect"):
+                self.visualize_path_marker_detection(frame_copy, detection["center"], detection["dimensions"],
+                                                     detection["orientation"], self.colors[detection.label])
+            else:
+                bbox = self.frame_norm(frame_copy, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
+                # the code below specifies whether to display the bbox's class name and/or confidence value
+                if self.show_class_name and self.show_confidence:
+                    self.putText(frame_copy, f"{self.classes[detection.label]} {int(detection.confidence * 100)}%",
+                                 (bbox[0], bbox[1]), self.colors[detection.label])
+                elif self.show_class_name and not self.show_confidence:
+                    self.putText(frame_copy, self.classes[detection.label],
+                                 (bbox[0], bbox[1]), self.colors[detection.label])
+                elif not self.show_class_name and self.show_confidence:
+                    self.putText(frame_copy, f"{int(detection.confidence * 100)}%",
+                                 (bbox[0], bbox[1]), self.colors[detection.label])
 
-            self.rectangle(frame_copy, bbox, self.colors[detection.label])
+                self.rectangle(frame_copy, bbox, self.colors[detection.label])
 
         return frame_copy

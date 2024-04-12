@@ -9,13 +9,13 @@ import yaml
 from opencv_apps.msg import Circle, RotatedRect
 from sensor_msgs.msg import CompressedImage
 from image_tools import ImageTools
-from utils import visualize_path_marker_detection
+from utils import visualize_detections
 from custom_msgs.srv import EnableModel, CVObject
 
 CAMERAS_FILEPATH = 'package://cv/configs/cameras.yaml'
 HSV_MODELS_FILEPATH = 'package://cv/configs/hsv_models.yaml'
 # TODO create and populate based on what we're reading from depth AI
-# TODO utils.py update visualize_detections.py
+# DONE utils.py update visualize_detections fn
 # DONE create yaml file, top level will be each model (bin, buoy, etc.)
 
 
@@ -45,7 +45,10 @@ class HSVFilter:
         ellipse_msg.size.width = dimensions[0]
         ellipse_msg.size.height = dimensions[1]
 
-        return {"center": center, "dimensions": dimensions, "orientation": orientation_in_radians}, ellipse_msg
+        return {"center": center, "dimensions": dimensions, "orientation": orientation_in_radians,
+                "xmin": center[0] - (dimensions[0] / 2), "xmax": center[0] + (dimensions[0] / 2),
+                "ymin": center[1] - (dimensions[1] / 2), "ymax": center[1] + (dimensions[1] / 2),
+                "shape": "ellipse", "confidence": 1}, ellipse_msg
 
     def fit_circle(self, contours, width, height):
         largest_contour = max(contours, key=cv2.contourArea)
@@ -57,7 +60,8 @@ class HSVFilter:
         circle_msg.center.y = center[1]
         circle_msg.radius = radius
 
-        return {"center": center, "radius": radius}, circle_msg
+        return {"center": center, "radius": radius, "xmin": center[0] - radius, "xmax": center[0] + radius,
+                "ymin": center[1] - radius, "ymax": center[1] + radius, "shape": "circle", "confidence": 1}, circle_msg
 
     def fit_rotated_rectangle(self, contours, width, height):
         largest_contour = max(contours, key=cv2.contourArea)
@@ -73,7 +77,10 @@ class HSVFilter:
         rotated_rect_msg.size.width = dimensions[0]
         rotated_rect_msg.size.height = dimensions[1]
 
-        return {"center": center, "dimensions": dimensions, "orientation": orientation_in_radians}, rotated_rect_msg
+        return {"center": center, "dimensions": dimensions, "orientation": orientation_in_radians,
+                "xmin": center[0] - (dimensions[0] / 2), "xmax": center[0] + (dimensions[0] / 2),
+                "ymin": center[1] - (dimensions[1] / 2), "ymax": center[1] + (dimensions[1] / 2),
+                "shape": "rotated_rect", "confidence": 1}, rotated_rect_msg
 
     # Fitting functions and associated message types
     FITTING_FUNCTIONS = {
@@ -133,6 +140,8 @@ class HSVFilter:
             # TODO add path to publish in cameras yaml file, talk with Vedarsh
             # self.cameras_dict[camera] = camera_data
             self.cameras_dict[camera]["models"] = models
+            self.cameras_dict[camera]["publisher"] = rospy.Publisher(f"cv/{camera}/detections/compressed",
+                                                                     CompressedImage, queue_size=10)
             self.subscribers[camera] = rospy.Subscriber(f"cv/{camera}", CompressedImage, self.detect(camera))
             # self.subscribers[camera] = rospy.Subscriber(f"cv/{camera}", CompressedImage, self.detect, (camera,))
 
@@ -164,21 +173,23 @@ class HSVFilter:
         # detections_visualized = visualize_path_marker_detection(frame, detection)
         # detections_img_msg = self.image_tools.convert_to_ros_compressed_msg(detections_visualized)
         # self.detection_feed_publisher.publish(detections_img_msg)
-        detections_map = {}
+        # DONE change this fn to something similar to depthai spatial detection line 347
+        # i.e., create our own detect visualization fn
+        detections = []
         for model in self.cameras_dict[camera]["models"]:
             if model["enabled"]:
                 contour = self.find_contours(data, model.lower_mask, model.upper_mask)
-                detections, message = self.FITTING_FUNCTIONS[model.shape](contour, data.width, data.height)
-                detections_map[model] = detections
+                detection, message = self.FITTING_FUNCTIONS[model.shape](contour, data.width, data.height)
+                detection["label"] = model.shape
+                detections.append(detection)
+
                 if (message is not None) and (isinstance(message, self.MESSAGE_TYPES[model.shape])):
                     self.publishers[model].publish(message)
 
-                    # TODO change this fn to something similar to depthai spatial detection line 347
-                    # i.e., create our own detect visualization fn
-                    detections_visualized = visualize_path_marker_detection(data, self.detect(data))
-                    detections_img_msg = self.image_tools.convert_to_ros_compressed_msg(detections_visualized)
-                    # TODO also change the below
-                    self.detection_feed_publisher.publish(detections_img_msg)
+        # Publishes frame with many detections on it (STC)
+        detections_visualized = visualize_detections(data, detections)
+        detections_img_msg = self.image_tools.convert_to_ros_compressed_msg(detections_visualized)
+        self.cameras_dict[camera]["publisher"].publish(detections_img_msg)
 
     def find_contours(self, image, lower_mask, upper_mask):
         # Convert image to HSV
