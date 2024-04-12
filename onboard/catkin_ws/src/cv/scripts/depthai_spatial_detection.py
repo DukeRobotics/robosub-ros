@@ -535,13 +535,11 @@ class DepthAISpatialDetector:
         # Allow service for toggling of models
 
         self.build_pipeline()
-        self.init_model(self.initial_model_name)
-        self.init_publishers()
 
         with depthai_camera_connect.connect(self.pipeline, self.camera) as device:
             self.init_device_queues(device)
-            # self.init_model(self.initial_model_name)
-            # self.init_publishers()
+            self.init_model(self.initial_model_name)
+            self.init_publishers()
 
             self.detections_enabled = True
 
