@@ -67,7 +67,7 @@
           <pose>${pose}</pose>
           <inertial>
             <pose>0 0 0 0 0 0</pose>
-            <mass>0.09</mass>
+            <mass>147.8671</mass>
             <inertia>
               <ixx>0.000143971303</ixx>
               <ixy>0.000000000008</ixy>
@@ -115,6 +115,16 @@
             </limit>
           </axis>
         </joint>
+
+        <plugin
+          filename="ignition-gazebo-thruster-system"
+          name="ignition::gazebo::systems::Thruster">
+          <namespace>robot</namespace>
+          <joint_name>joint_${name}</joint_name>
+          <thrust_coefficient>0.004422</thrust_coefficient>
+          <fluid_density>1000</fluid_density>
+          <propeller_diameter>0.2</propeller_diameter>
+        </plugin>
       </xacro:macro>
 
       <pose>0 0 0 0 0 0</pose>
@@ -166,23 +176,12 @@
       <xacro:thruster name="back_left" pose="-0.3302 0.358775 0.0254 0 0 -2.3561945" />
       <xacro:thruster name="bottom_back_right" pose="-0.1905 -0.37465 -0.0381 0 1.57079633 0" />
       <xacro:thruster name="back_right" pose="-0.3302 -0.358775 0.0254 0 0 2.3561945" />
-    </model>
-
-    <include>
-      <plugin
-        filename="gz-sim-thruster-system"
-        name="gz::sim::systems::Thruster">
-        <namespace>robot</namespace>
-        <joint_name>joint_front_left</joint_name>
-        <thrust_coefficient>0.004422</thrust_coefficient>
-        <fluid_density>1000</fluid_density>
-        <propeller_diameter>0.2</propeller_diameter>
-      </plugin>
 
       <!-- hydrodynamics plugin-->
       <plugin
-        filename="gz-sim-hydrodynamics-system"
-        name="gz::sim::systems::Hydrodynamics">
+        filename="ignition-gazebo-hydrodynamics-system"
+        name="ignition::gazebo::systems::Hydrodynamics">
+        <!-- TODO adjust parameters -->
         <link_name>base_link</link_name>
         <xDotU>-4.876161</xDotU>
         <yDotV>-126.324739</yDotV>
@@ -203,6 +202,19 @@
         <nRabsR>-632.698957</nRabsR>
         <nR>0</nR>
       </plugin>
-    </include>
+
+      <plugin
+        filename="ignition-gazebo-buoyancy-engine-system"
+        name="ignition::gazebo::systems::BuoyancyEngine">
+        <link_name>base_link</link_name>
+        <namespace>robot</namespace>
+        <min_volume>0.0</min_volume>
+        <neutral_volume>0.002</neutral_volume>
+        <default_volume>0.002</default_volume>
+        <max_volume>0.003</max_volume>
+        <max_inflation_rate>0.0003</max_inflation_rate>
+        <surface>0</surface>
+      </plugin>
+    </model>
   </world>
 </sdf>
