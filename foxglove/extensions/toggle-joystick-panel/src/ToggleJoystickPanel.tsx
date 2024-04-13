@@ -25,8 +25,8 @@ const DESIRED_POWER_SCHEMA = "geometry_msgs/Twist";
 const AXIS_MAP = {
   xIndex: 1, // Joystick Forward/Backward
   yIndex: 0, // Joystick Left/Right
-  zIndex: 2, // Throttle
-  yawIndex: 5, // Joystick Twist
+  zIndex: 5, // Throttle
+  yawIndex: 2, // Joystick Twist
   pitchIndex: 9, // Thumb Joystick Forward/Backward
   rollIndex: 9, // Thumb Joystick Right/Left
 };
@@ -235,7 +235,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         const transformedJoystickInputs = {
           xAxis: linearMapping(axes[AXIS_MAP.xIndex] ?? 0, -1),
           yAxis: linearMapping(axes[AXIS_MAP.yIndex] ?? 0, -1),
-          zAxis: linearMapping(axes[AXIS_MAP.zIndex] ?? 0, -1),
+          zAxis: linearMapping(axes[AXIS_MAP.zIndex] ?? 0, 1),
           yawAxis: linearMapping(axes[AXIS_MAP.yawIndex] ?? 0, -0.5),
           pitchAxis: pitchMapping(axes[AXIS_MAP.pitchIndex] ?? 0),
           rollAxis: rollMapping(axes[AXIS_MAP.rollIndex] ?? 0),
