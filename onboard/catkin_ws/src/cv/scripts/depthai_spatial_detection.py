@@ -263,9 +263,9 @@ class DepthAISpatialDetector:
                                                         self.show_class_name, self.show_confidence)
 
         # Send model name to the pipeline
-        input_queue_msg = dai.Buffer()
-        input_queue_msg.setData(model['id'])
-        self.input_queue_model.send(input_queue_msg)
+        input_model_msg = dai.Buffer()
+        input_model_msg.setData(model['id'])
+        self.input_queue_model.send(input_model_msg)
 
     def init_publishers(self):
         """
@@ -508,14 +508,14 @@ class DepthAISpatialDetector:
 
         :param req: The request from another node or command line to enable the model.
         """
-        input_queue_msg = dai.Buffer()
+        input_model_msg = dai.Buffer()
         if req.data:
-            input_queue_msg.setData(self.models[self.current_model_name]['id'])
+            input_model_msg.setData(self.models[self.current_model_name]['id'])
             message = "Successfully enabled model."
         else:
-            input_queue_msg.setData(0)
+            input_model_msg.setData(0)
             message = "Successfully disabled model."
-        self.input_queue_model.send(input_queue_msg)
+        self.input_queue_model.send(input_model_msg)
 
         return {"success": True, "message": message}
 
@@ -529,11 +529,11 @@ class DepthAISpatialDetector:
         if self.initial_model_name not in self.models:
             return False
 
-        # Setup pipeline and publishers
+        # Allow service for toggling of models
         rospy.Service(self.set_model_service, SetDepthAIModel, self.set_model)
         rospy.Service(self.enable_model_service, SetBool, self.enable_model)
-        # Allow service for toggling of models
 
+        # Setup pipeline and publishers
         self.build_pipeline()
 
         with depthai_camera_connect.connect(self.pipeline, self.camera) as device:
