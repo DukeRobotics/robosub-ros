@@ -11,7 +11,7 @@ MODEL_IDS = {}
 
 # Inputs: input, inputDepth, model
 # Outputs:
-#     - rgb_raw_input, rgb_raw_inputDepth
+#     - raw_input, raw_inputDepth
 #     - {model}_input, {model}_inputDepth for each model
 
 
@@ -33,8 +33,8 @@ while True:
         current_model_id = new_model.getRaw().data
 
     if current_model_id == 0:
-        node.io["rgb_raw_input"].send(input)
-        node.io["rgb_raw_inputDepth"].send(depth)
+        node.io["raw_input"].send(input)
+        node.io["raw_inputDepth"].send(depth)
     elif current_model_id in MODEL_IDS:
         node.io[f"{MODEL_IDS[current_model_id]}_input"].send(input)
         node.io[f"{MODEL_IDS[current_model_id]}_inputDepth"].send(depth)

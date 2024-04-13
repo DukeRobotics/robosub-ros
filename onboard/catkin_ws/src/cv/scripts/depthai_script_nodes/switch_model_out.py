@@ -8,8 +8,8 @@ from depthai import node
 
 # Inputs:
 #     - model
-#     - rgb_raw_passthrough, rgb_raw_passthroughDepth
-#     - {model}_passthrough, {model}_passthroughDepth, {model}_out
+#     - raw_passthrough, raw_passthroughDepth
+#     - {model}_passthrough, {model}_passthroughDepth, {model}_out for each model
 # Outputs: passthrough, passthroughDepth, out
 
 
@@ -31,8 +31,8 @@ while True:
         current_model_id = new_model.getRaw().data
 
     if current_model_id == 0:
-        passthrough = node.io['rgb_raw_passthrough'].get()
-        depth = node.io['rgb_raw_passthroughDepth'].get()
+        passthrough = node.io['raw_passthrough'].get()
+        depth = node.io['raw_passthroughDepth'].get()
     elif current_model_id in MODEL_IDS:
         passthrough = node.io[f"{MODEL_IDS[current_model_id]}_passthrough"].get()
         depth = node.io[f"{MODEL_IDS[current_model_id]}_passthroughDepth"].get()
