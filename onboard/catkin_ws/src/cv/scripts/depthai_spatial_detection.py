@@ -183,8 +183,8 @@ class DepthAISpatialDetector:
         cam_rgb.preview.link(switch_model_in.inputs["input"])
         stereo.depth.link(switch_model_in.inputs["inputDepth"])
 
-        switch_model_in.outputs["rgb_raw_input"].link(switch_model_out.inputs["rgb_raw_passthrough"])
-        switch_model_in.outputs["rgb_raw_inputDepth"].link(switch_model_out.inputs["rgb_raw_passthroughDepth"])
+        switch_model_in.outputs["raw_input"].link(switch_model_out.inputs["raw_passthrough"])
+        switch_model_in.outputs["raw_inputDepth"].link(switch_model_out.inputs["raw_passthroughDepth"])
 
         # Spatial detection network nodes
         for model_name in self.models:
