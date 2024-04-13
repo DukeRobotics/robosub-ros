@@ -5,14 +5,20 @@ import numpy as np
 import cv2
 import os
 import depthai_camera_connect
-from utils import DetectionVisualizer
 import rospy
 import yaml
 import resource_retriever as rr
+import rostopic
+
+from utils import DetectionVisualizer
+from image_tools import ImageTools
 from sensor_msgs.msg import CompressedImage
 from custom_msgs.msg import CVObject
-from image_tools import ImageTools
-import rostopic
+from custom_msgs.srv import SetDepthAIModel
+from std_srvs.srv import SetBool
+
+
+DEPTHAI_SCRIPT_NODES_PATH = 'package://cv/scripts/depthai_script_nodes/'
 
 
 class DepthAISimulateDetection:
@@ -43,11 +49,11 @@ class DepthAISimulateDetection:
 
         # Load the model parameters from the yaml file
         with open(rr.get_filename('package://cv/models/depthai_models.yaml', use_protocol=False)) as f:
-            models = yaml.safe_load(f)
-            self.model = models[self.depthai_model_name]
+            self.models = yaml.safe_load(f)
+            self.current_model = self.models[self.depthai_model_name]
 
         # Build NN pipeline using the model weights
-        self.nn_path = rr.get_filename(f"package://cv/models/{self.model['weights']}", use_protocol=False)
+        # self.nn_path = rr.get_filename(f"package://cv/models/{self.model['weights']}", use_protocol=False)
         self.pipeline = dai.Pipeline()
         self._build_pipeline()
 
@@ -63,8 +69,14 @@ class DepthAISimulateDetection:
         # Setup detection visualizer
         self.show_class_name = rospy.get_param("~show_class_name")
         self.show_confidence = rospy.get_param("~show_confidence")
-        self.detection_visualizer = DetectionVisualizer(self.model['classes'], self.model['colors'],
+        self.detection_visualizer = DetectionVisualizer(self.current_model['classes'], self.current_model['colors'],
                                                         self.show_class_name, self.show_confidence)
+
+        # Allow service for toggling of models
+        rospy.Service(f'simulate_set_model_{self.camera}', SetDepthAIModel, self.set_model)
+        rospy.Service(f'simulate_enable_model_{self.camera}', SetBool, self.enable_model)
+
+        self.detections_enabled = True
 
     def _build_pipeline(self):
         """
@@ -74,38 +86,73 @@ class DepthAISimulateDetection:
         neural network rather than the input to the neural network.
         """
 
-        # Define input stream
-        x_in = self.pipeline.create(dai.node.XLinkIn)
-        x_in.setStreamName("camIn")
+        # Define input streams
+        xin_cam = self.pipeline.create(dai.node.XLinkIn)
+        xin_cam.setStreamName("camIn")
+
+        xin_model = self.pipeline.create(dai.node.XLinkIn)
+        xin_model.setStreamName("model")
 
         # Define output stream
         x_out = self.pipeline.create(dai.node.XLinkOut)
         x_out.setStreamName("nn")
 
-        # Define neural net architecture
-        nn = self.pipeline.create(dai.node.YoloDetectionNetwork)
-
-        # Neural net / model properties
-        nn.setConfidenceThreshold(0.5)
-        nn.setBlobPath(self.nn_path)
-        nn.setNumInferenceThreads(2)
-        nn.input.setBlocking(False)
-        nn.setNumClasses(len(self.model['classes']))
-        nn.setCoordinateSize(self.model['coordinate_size'])
-        nn.setAnchors(np.array(self.model['anchors']))
-        nn.setAnchorMasks(self.model['anchor_masks'])
-        nn.setIouThreshold(0.5)
-
-        # Create a link between the neural net input and the local image stream output
-        x_in.out.link(nn.input)
-        nn.out.link(x_out.input)
-
         # Create a new node in the CV/NN pipeline that links to the local image stream
         feed_out = self.pipeline.create(dai.node.XLinkOut)
-
-        # Feed the image stream to the neural net input node
         feed_out.setStreamName("feed")
-        nn.passthrough.link(feed_out.input)
+
+        # Script nodes to handle switching models on the fly
+        switch_model_in = self.pipeline.create(dai.node.Script)
+        switch_model_in_path = DEPTHAI_SCRIPT_NODES_PATH + 'simulate_switch_model_in.py'
+        with open(rr.get_filename(switch_model_in_path, use_protocol=False)) as f:
+            switch_model_in.setScript(f.read())
+
+        switch_model_out = self.pipeline.create(dai.node.Script)
+        switch_model_out_path = DEPTHAI_SCRIPT_NODES_PATH + 'simulate_switch_model_out.py'
+        with open(rr.get_filename(switch_model_out_path, use_protocol=False)) as f:
+            switch_model_out.setScript(f.read())
+
+        # Neural network architecture nodes
+        for model_name in self.models:
+            model = self.models[model_name]
+
+            blob_path = rr.get_filename(f"package://cv/models/{model['weights']}", use_protocol=False)
+
+            # Set up a new network for each model
+            nn = self.pipeline.create(dai.node.YoloDetectionNetwork)
+
+            nn.setBlobPath(blob_path)
+            nn.setConfidenceThreshold(model['confidence_threshold'])
+            nn.setNumInferenceThreads(2)
+            nn.input.setBlocking(False)
+            nn.setBoundingBoxScaleFactor(0.5)
+            nn.setDepthLowerThreshold(100)
+            nn.setDepthUpperThreshold(5000)
+
+            # Yolo specific parameters
+            nn.setNumClasses(len(model['classes']))
+            nn.setCoordinateSize(model['coordinate_size'])
+            nn.setAnchors(np.array(model['anchors']))
+            nn.setAnchorMasks(model['anchor_masks'])
+            nn.setIouThreshold(model['iou_threshold'])
+
+            # Linking switch node outputs to spatial detection network inputs
+            switch_model_in.outputs[f"{model}_input"].link(nn.input)
+
+            nn.passthrough.link(switch_model_out.inputs[f"{model}_passthrough"])
+            nn.out.link(switch_model_out.inputs[f"{model}_out"])
+
+        # Linking
+        xin_model.out.link(switch_model_in.inputs["model"])
+        xin_model.out.link(switch_model_out.inputs["model"])
+
+        xin_cam.out.link(switch_model_in.inputs["input"])
+
+        switch_model_in.outputs["raw_input"].link(switch_model_out.inputs["raw_passthrough"])
+
+        # Create a link between the neural net input and the local image stream output
+        switch_model_out.outputs["out"].link(x_out.input)
+        switch_model_out.outputs["passthrough"].link(feed_out.input)
 
     def detect(self, device):
         """ Run detection on the input image
@@ -132,11 +179,11 @@ class DepthAISimulateDetection:
         passthrough_feed = passthrough_feed_queue.get()
 
         image_frame = passthrough_feed.getCvFrame()
-        detections = detections_queue.get().detections
+        detections = detections_queue.tryGet()
 
         return {
             "frame": image_frame,
-            "detections": detections
+            "detections": detections.detections if detections else None
         }
 
     def _load_image_from_feed_path(self):
@@ -177,8 +224,8 @@ class DepthAISimulateDetection:
         img = dai.ImgFrame()
         img.setType(dai.ImgFrame.Type.BGR888p)
         img.setData(to_planar(latest_img, (416, 416)))
-        img.setWidth(self.model['input_size'][0])
-        img.setHeight(self.model['input_size'][1])
+        img.setWidth(self.current_model['input_size'][0])
+        img.setHeight(self.current_model['input_size'][1])
         input_queue.send(img)
 
     def _publish_detections(self, detection_results):
@@ -187,7 +234,6 @@ class DepthAISimulateDetection:
         Args:
             detection_results (dict): Output from detect()
         """
-
         frame = detection_results["frame"]
         detections = detection_results["detections"]
 
@@ -197,7 +243,7 @@ class DepthAISimulateDetection:
             object_msg = CVObject()
 
             object_msg.score = detection.confidence
-            object_msg.label = self.model['classes'][detection.label]
+            object_msg.label = self.current_model['classes'][detection.label]
 
             object_msg.xmin = detection.xmin
             object_msg.ymin = detection.ymin
@@ -232,10 +278,12 @@ class DepthAISimulateDetection:
         TopicType, _, _ = rostopic.get_topic_class(self.feed_path)
         rospy.Subscriber(self.feed_path, TopicType, self._update_latest_img)
 
-        while not rospy.is_shutdown():
+        while not rospy.is_shutdown() and self.detections_enabled:
             detection_results = self.detect(device)
-            self._publish_detections(detection_results)
-            self._publish_visualized_detections(detection_results)
+
+            if detection_results["detections"]:
+                self._publish_detections(detection_results)
+                self._publish_visualized_detections(detection_results)
 
     def _run_detection_on_single_image(self, device, img):
         """ Run detection on the single image provided
@@ -262,10 +310,58 @@ class DepthAISimulateDetection:
                                                      use_protocol=False)
         cv2.imwrite(detection_results_filepath, visualized_detection_results)
 
+    def set_model(self, req):
+        new_model_name = req.model_name
+
+        if new_model_name == self.depthai_model_name:
+            return {"success": True, "message": f"Model {new_model_name} is already running on {self.camera} camera."}
+
+        if new_model_name not in self.models:
+            return {"success": False, "message": f"FAILURE: {new_model_name} is not a valid model name."}
+
+        else:
+            self.detections_enabled = False
+
+            self.depthai_model_name = new_model_name
+            self.current_model = self.models[new_model_name]
+
+            self.detection_visualizer = DetectionVisualizer(self.current_model['classes'], self.current_model['colors'],
+                                                            self.show_class_name, self.show_confidence)
+
+            # Send model name to the pipeline
+            input_model_msg = dai.Buffer()
+            input_model_msg.setData(self.current_model['id'])
+            self.device.getInputQueue("model").send(input_model_msg)
+
+            self.detections_enabled = True
+
+            return {"success": True, "message": f"Sucessfully set new model {new_model_name} for {self.camera} camera."}
+
+    def enable_model(self, req):
+        """Service for toggling specific models on and off.
+
+        :param req: The request from another node or command line to enable the model.
+        """
+        input_model_msg = dai.Buffer()
+        if req.data:
+            input_model_msg.setData(self.current_model['id'])
+            message = "Successfully enabled model."
+        else:
+            input_model_msg.setData(0)
+            message = "Successfully disabled model."
+        self.device.getInputQueue("model").send(input_model_msg)
+
+        return {"success": True, "message": message}
+
     def run(self):
         """ Run detection on the latest img message """
         with depthai_camera_connect.connect(self.pipeline, self.camera) as device:
             self.device = device
+
+            # Send model name to the pipeline
+            input_model_msg = dai.Buffer()
+            input_model_msg.setData(self.current_model['id'])
+            self.device.getInputQueue("model").send(input_model_msg)
 
             if self._feed_is_still_image():
                 rospy.loginfo(f'Running detection on still image provided: {self.feed_path}')
