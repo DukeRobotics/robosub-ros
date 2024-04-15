@@ -63,10 +63,10 @@ class TopicTransforms:
     TOPIC_TRANSFORM_DATA = [
         TopicTransformData('/state', Odometry, lambda x: x.pose.pose, '/transforms/state/pose', Twist,
                            Conversions.pose_to_twist),
-        TopicTransformData('/vectornav/IMU', Imu, lambda x: x.orientation, '/transforms/vectornav/IMU', Vector3,
-                           Conversions.quat_to_vector),
-        TopicTransformData('/controls/desired_pose', Pose, lambda x: x, '/transforms/controls/desired_pose', Twist,
-                           Conversions.pose_to_twist),
+        TopicTransformData('/vectornav/IMU', Imu, lambda x: x.orientation, '/transforms/vectornav/IMU/orientation',
+                           Vector3, Conversions.quat_to_vector),
+        TopicTransformData('/controls/desired_position', Pose, lambda x: x, '/transforms/controls/desired_position',
+                           Twist, Conversions.pose_to_twist),
     ]
 
     def __init__(self):

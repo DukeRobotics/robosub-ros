@@ -1,0 +1,311 @@
+{
+  "configById": {
+    "System Status Panel.System Status!1et3fkr": {},
+    "Sensors Status Panel.Sensors Status!4dwpz7w": {},
+    "RawMessages!jgbyop": {
+      "diffEnabled": false,
+      "diffMethod": "custom",
+      "diffTopicPath": "",
+      "showFullMessageForDiff": false,
+      "topicPath": "/sensors/depth.pose.pose.position.z"
+    },
+    "RawMessages!17rpts2": {
+      "diffEnabled": false,
+      "diffMethod": "custom",
+      "diffTopicPath": "",
+      "showFullMessageForDiff": false,
+      "topicPath": "/sensors/voltage.data"
+    },
+    "RawMessages!ef0t7i": {
+      "diffEnabled": false,
+      "diffMethod": "custom",
+      "diffTopicPath": "",
+      "showFullMessageForDiff": false,
+      "topicPath": "/sonar/status.data"
+    },
+    "Image!4i98sop": {
+      "cameraState": {
+        "distance": 20,
+        "perspective": true,
+        "phi": 60,
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "targetOffset": [
+          0,
+          0,
+          0
+        ],
+        "targetOrientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "thetaOffset": 45,
+        "fovy": 45,
+        "near": 0.5,
+        "far": 5000
+      },
+      "followMode": "follow-pose",
+      "scene": {},
+      "transforms": {},
+      "topics": {},
+      "layers": {},
+      "publish": {
+        "type": "point",
+        "poseTopic": "/move_base_simple/goal",
+        "pointTopic": "/clicked_point",
+        "poseEstimateTopic": "/initialpose",
+        "poseEstimateXDeviation": 0.5,
+        "poseEstimateYDeviation": 0.5,
+        "poseEstimateThetaDeviation": 0.26179939
+      },
+      "imageMode": {
+        "imageTopic": "/camera/usb_camera/compressed"
+      }
+    },
+    "RawMessages!1pnq8h1": {
+      "diffEnabled": false,
+      "diffMethod": "custom",
+      "diffTopicPath": "",
+      "showFullMessageForDiff": false,
+      "topicPath": "/sensors/dvl/raw",
+      "expansion": {
+        "header": "c",
+        "stamp~header": "c"
+      }
+    },
+    "RawMessages!1nh3hin": {
+      "diffEnabled": false,
+      "diffMethod": "custom",
+      "diffTopicPath": "",
+      "showFullMessageForDiff": false,
+      "topicPath": "/sensors/dvl/odom",
+      "expansion": {
+        "header": "c",
+        "stamp~header": "c",
+        "pose": "e",
+        "pose~pose": "e",
+        "position~pose~pose": "c",
+        "orientation~pose~pose": "e",
+        "twist": "e",
+        "twist~twist": "e",
+        "linear~twist~twist": "e",
+        "angular~twist~twist": "c"
+      }
+    },
+    "Image!17s2qmt": {
+      "cameraState": {
+        "distance": 20,
+        "perspective": true,
+        "phi": 60,
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "targetOffset": [
+          0,
+          0,
+          0
+        ],
+        "targetOrientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "thetaOffset": 45,
+        "fovy": 45,
+        "near": 0.5,
+        "far": 5000
+      },
+      "followMode": "follow-pose",
+      "scene": {},
+      "transforms": {},
+      "topics": {},
+      "layers": {},
+      "publish": {
+        "type": "point",
+        "poseTopic": "/move_base_simple/goal",
+        "pointTopic": "/clicked_point",
+        "poseEstimateTopic": "/initialpose",
+        "poseEstimateXDeviation": 0.5,
+        "poseEstimateYDeviation": 0.5,
+        "poseEstimateThetaDeviation": 0.26179939
+      },
+      "imageMode": {
+        "imageTopic": "/cv/front/detections/compressed"
+      }
+    },
+    "RawMessages!13cmsg4": {
+      "diffEnabled": false,
+      "diffMethod": "custom",
+      "diffTopicPath": "",
+      "showFullMessageForDiff": false,
+      "topicPath": "/vectornav/IMU",
+      "expansion": {
+        "header": "c",
+        "stamp~header": "c",
+        "orientation": "e",
+        "angular_velocity": "e",
+        "linear_acceleration": "e"
+      }
+    },
+    "RawMessages!2bnd5v": {
+      "diffEnabled": false,
+      "diffMethod": "custom",
+      "diffTopicPath": "",
+      "showFullMessageForDiff": false,
+      "topicPath": "/system/usage"
+    },
+    "Image!1i8f394": {
+      "cameraState": {
+        "distance": 20,
+        "perspective": true,
+        "phi": 60,
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "targetOffset": [
+          0,
+          0,
+          0
+        ],
+        "targetOrientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "thetaOffset": 45,
+        "fovy": 45,
+        "near": 0.5,
+        "far": 5000
+      },
+      "followMode": "follow-pose",
+      "scene": {},
+      "transforms": {},
+      "topics": {},
+      "layers": {},
+      "publish": {
+        "type": "point",
+        "poseTopic": "/move_base_simple/goal",
+        "pointTopic": "/clicked_point",
+        "poseEstimateTopic": "/initialpose",
+        "poseEstimateXDeviation": 0.5,
+        "poseEstimateYDeviation": 0.5,
+        "poseEstimateThetaDeviation": 0.26179939
+      },
+      "imageMode": {
+        "imageTopic": "/camera/usb_camera/compressed"
+      }
+    },
+    "Thruster Allocs Panel.Thruster Allocs!3988rq5": {
+      "hasError": false,
+      "panelMode": 0,
+      "repeatPublish": null,
+      "publisherThrusterAllocs": {
+        "topFrontLeft": 0,
+        "topFrontRight": 0,
+        "topBackLeft": 0,
+        "topBackRight": 0,
+        "bottomFrontLeft": 0,
+        "bottomFrontRight": 0,
+        "bottomBackLeft": 0,
+        "bottomBackRight": 0
+      },
+      "subscriberThrusterAllocs": {
+        "topFrontLeft": 0,
+        "topFrontRight": 0,
+        "topBackLeft": 0,
+        "topBackRight": 0,
+        "bottomFrontLeft": 0,
+        "bottomFrontRight": 0,
+        "bottomBackLeft": 0,
+        "bottomBackRight": 0
+      },
+      "tempThrusterAllocs": {
+        "frontLeft": "0.05",
+        "frontRight": "0.05",
+        "backLeft": "0.05",
+        "backRight": "0.05",
+        "bottomFrontLeft": "0.05",
+        "bottomFrontRight": "0.05",
+        "bottomBackLeft": "0.05",
+        "bottomBackRight": "0.05",
+        "topFrontLeft": "0.05",
+        "topFrontRight": "0.05",
+        "topBackLeft": "0.05",
+        "topBackRight": "0.05"
+      },
+      "topic": "/controls/thruster_allocs",
+      "colorScheme": "dark"
+    }
+  },
+  "globalVariables": {},
+  "userNodes": {},
+  "playbackConfig": {
+    "speed": 1
+  },
+  "layout": {
+    "first": {
+      "first": "System Status Panel.System Status!1et3fkr",
+      "second": {
+        "first": "Sensors Status Panel.Sensors Status!4dwpz7w",
+        "second": {
+          "first": {
+            "first": "RawMessages!jgbyop",
+            "second": "RawMessages!17rpts2",
+            "direction": "column"
+          },
+          "second": "RawMessages!ef0t7i",
+          "direction": "row"
+        },
+        "direction": "column",
+        "splitPercentage": 49.48148148148148
+      },
+      "direction": "column",
+      "splitPercentage": 21.144859813084114
+    },
+    "second": {
+      "first": {
+        "first": "Image!4i98sop",
+        "second": {
+          "first": "RawMessages!1pnq8h1",
+          "second": "RawMessages!1nh3hin",
+          "direction": "row"
+        },
+        "direction": "column",
+        "splitPercentage": 36.098130841121495
+      },
+      "second": {
+        "first": {
+          "first": "Image!17s2qmt",
+          "second": {
+            "first": "RawMessages!13cmsg4",
+            "second": "RawMessages!2bnd5v",
+            "direction": "row",
+            "splitPercentage": 58.30508474576269
+          },
+          "direction": "column"
+        },
+        "second": {
+          "first": "Image!1i8f394",
+          "second": "Thruster Allocs Panel.Thruster Allocs!3988rq5",
+          "direction": "column"
+        },
+        "direction": "row"
+      },
+      "direction": "row",
+      "splitPercentage": 26.188490408673903
+    },
+    "direction": "row",
+    "splitPercentage": 16.73611111111111
+  }
+}
