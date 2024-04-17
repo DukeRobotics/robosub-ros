@@ -100,7 +100,7 @@ def find_center_point_and_angle(array, threshold, eps, min_samples, get_plot=Tru
     if get_plot:
         x_vals_plot = np.arange(array.shape[0])  # Row indices
         y_vals_plot = intercept_sklearn + slope_sklearn * x_vals_plot
-        plt.plot(y_vals_plot, x_vals_plot, 'r', linewidth=4, 
+        plt.plot(y_vals_plot, x_vals_plot, 'r', linewidth=4,
                  label=f'Line: y = {slope_sklearn:.2f}x + {intercept_sklearn:.2f}')
         plt.scatter(average_column_index, array.shape[0]/2, color='k', s=150, zorder=3, label='Center Point')
 
