@@ -7,10 +7,10 @@ from sklearn.cluster import DBSCAN
 from sklearn.linear_model import LinearRegression
 import math
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-import cv2
 
 SONAR_IMAGE_WIDTH = 16
 SONAR_IMAGE_HEIGHT = 2
+
 
 def build_color_sonar_image_from_int_array(int_array, npy_save_path=None, jpeg_save_path=None):
     """ Build a sonar image from a list of data messages
@@ -37,6 +37,7 @@ def build_color_sonar_image_from_int_array(int_array, npy_save_path=None, jpeg_s
         np.save(npy_save_path, sonar_img)
 
     return sonar_img
+
 
 def find_center_point_and_angle(array, threshold, eps, min_samples, get_plot=True):
     """ Find the center point and angle of the largest cluster in the array
@@ -99,7 +100,8 @@ def find_center_point_and_angle(array, threshold, eps, min_samples, get_plot=Tru
     if get_plot:
         x_vals_plot = np.arange(array.shape[0])  # Row indices
         y_vals_plot = intercept_sklearn + slope_sklearn * x_vals_plot
-        plt.plot(y_vals_plot, x_vals_plot, 'r', linewidth=4, label=f'Line: y = {slope_sklearn:.2f}x + {intercept_sklearn:.2f}')
+        plt.plot(y_vals_plot, x_vals_plot, 'r', linewidth=4, 
+                 label=f'Line: y = {slope_sklearn:.2f}x + {intercept_sklearn:.2f}')
         plt.scatter(average_column_index, array.shape[0]/2, color='k', s=150, zorder=3, label='Center Point')
 
         plt.xticks([])
@@ -117,6 +119,7 @@ def find_center_point_and_angle(array, threshold, eps, min_samples, get_plot=Tru
         return average_column_index, angle, image
 
     return average_column_index, angle, array
+
 
 def build_sonar_img_from_log_file(filename, start_index=49, end_index=149):
     """ Builds a sonar image from a log file """
