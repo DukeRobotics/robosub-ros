@@ -210,12 +210,12 @@ class DepthAISpatialDetector:
             spatial_detection_network.setIouThreshold(model['iou_threshold'])
 
             # Linking switch node outputs to spatial detection network inputs
-            switch_model_in.outputs[f"{model}_input"].link(spatial_detection_network.input)
-            switch_model_in.outputs[f"{model}_inputDepth"].link(spatial_detection_network.inputDepth)
+            switch_model_in.outputs[f"{model['id']}_input"].link(spatial_detection_network.input)
+            switch_model_in.outputs[f"{model['id']}_inputDepth"].link(spatial_detection_network.inputDepth)
 
-            spatial_detection_network.passthrough.link(switch_model_out.inputs[f"{model}_passthrough"])
-            spatial_detection_network.passthroughDepth.link(switch_model_out.inputs[f"{model}_passthroughDepth"])
-            spatial_detection_network.out.link(switch_model_out.inputs[f"{model}_out"])
+            spatial_detection_network.passthrough.link(switch_model_out.inputs[f"{model['id']}_passthrough"])
+            spatial_detection_network.passthroughDepth.link(switch_model_out.inputs[f"{model['id']}_passthroughDepth"])
+            spatial_detection_network.out.link(switch_model_out.inputs[f"{model['id']}_out"])
 
         if self.queue_rgb:
             # To sync RGB frames with NN, link passthrough to xout instead of preview

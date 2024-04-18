@@ -137,10 +137,10 @@ class DepthAISimulateDetection:
             nn.setIouThreshold(model['iou_threshold'])
 
             # Linking switch node outputs to spatial detection network inputs
-            switch_model_in.outputs[f"{model}_input"].link(nn.input)
+            switch_model_in.outputs[f"{model['id']}_input"].link(nn.input)
 
-            nn.passthrough.link(switch_model_out.inputs[f"{model}_passthrough"])
-            nn.out.link(switch_model_out.inputs[f"{model}_out"])
+            nn.passthrough.link(switch_model_out.inputs[f"{model['id']}_passthrough"])
+            nn.out.link(switch_model_out.inputs[f"{model['id']}_out"])
 
         # Linking
         xin_model.out.link(switch_model_in.inputs["model"])
