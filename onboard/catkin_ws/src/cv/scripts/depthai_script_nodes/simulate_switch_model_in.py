@@ -20,7 +20,7 @@ while True:
     new_model = node.io['model'].tryGet()
 
     if new_model:
-        current_model_id = new_model.getRaw().data
+        current_model_id = new_model.getData()[0]
 
     if current_model_id == 0:
         node.io["raw_input"].send(input)
