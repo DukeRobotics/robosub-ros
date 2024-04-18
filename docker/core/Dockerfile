@@ -34,6 +34,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     python3-catkin-tools python3-osrf-pycommon \
     git \
+    gdb \
+    valgrind \
     locales && \
     apt-get clean && \
     # Clear apt caches to reduce image size
@@ -55,7 +57,7 @@ RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
 
 COPY ssh_entry.sh /root/.bash_profile
 COPY ros_bashrc.sh /root/ros_bashrc.sh
-RUN echo "source /root/ros_bashrc.sh" >> /root/.bashrc 
+RUN echo "source /root/ros_bashrc.sh" >> /root/.bashrc
 
 COPY tmux.conf /etc/
 

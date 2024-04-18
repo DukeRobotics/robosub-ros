@@ -1,47 +1,23 @@
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-import math
 from decode_ping_python_ping360 import get_bin_file_parser
 import os
+from sklearn.cluster import DBSCAN
+from sklearn.linear_model import LinearRegression
+import math
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
-
-def scan_and_build_sonar_image(sonar,
-                               display_results=False,
-                               npy_save_path=None,
-                               jpeg_save_path=None,
-                               start_angle=100,
-                               end_angle=300):
-    """ Execute a sweep with the sonar device and then build a sonar image out
-        of the results
-
-    Args:
-        sonar (Sonar): Sonar device being used
-        range_start (int, optional): Angle to start scanning in gradians.
-                                     Defaults to 100.
-        range_end (int, optional): Angle to stop scanning in gradians.
-                                   Defaults to 300.
-        display_results (bool, optional): Whether to display the resulting
-                                          sonar image. Defaults to False.
-        npy_save_path (str, optional): Path to save the sonar image as a
-                                       .npy file. Defaults to None.
-        jpeg_save_path (str, optional): Path to save the sonar image as a
-                                       .jpeg file. Defaults to None.
-
-    Returns:
-        ndarray: Sonar image from the scan
-    """
-    data_list = sonar.get_sweep(start_angle, end_angle)
-    sonar_img = build_sonar_image(data_list, display_results,
-                                  npy_save_path, jpeg_save_path)
-    return sonar_img
+SONAR_IMAGE_WIDTH = 16
+SONAR_IMAGE_HEIGHT = 2
 
 
 def build_color_sonar_image_from_int_array(int_array, npy_save_path=None, jpeg_save_path=None):
     """ Build a sonar image from a list of data messages
 
     Args:
-        int_array (List): array of ints from the sonar scan
+        data_list (List): List of data messages from either the Sonar device
+                        or from a .bin file
         npy_save_path (str, optional): Path to save the sonar image as a
                                     .npy file. Defaults to None.
         jpeg_save_path (str, optional): Path to save the sonar image as a
@@ -51,10 +27,8 @@ def build_color_sonar_image_from_int_array(int_array, npy_save_path=None, jpeg_s
         ndarray: Sonar image from the scan
     """
 
-    sonar_img = int_array.astype(np.uint8)
-    sonar_img = cv2.cvtColor(sonar_img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+    sonar_img = cv2.cvtColor(int_array.astype(np.uint8), cv2.COLOR_GRAY2BGR)
     sonar_img = cv2.applyColorMap(sonar_img, cv2.COLORMAP_VIRIDIS)
-
     if jpeg_save_path:
         plt.imsave(jpeg_save_path, sonar_img)
     if npy_save_path:
@@ -63,8 +37,102 @@ def build_color_sonar_image_from_int_array(int_array, npy_save_path=None, jpeg_s
     return sonar_img
 
 
+def find_center_point_and_angle(array, threshold, eps, min_samples, get_plot=True):
+    """ Find the center point and angle of the largest cluster in the array
+
+    Args:
+        array (ndarray): The sonar image array
+        threshold (int): The threshold to apply to the array
+        eps (float): The maximum distance between two samples for one to be
+                    considered as in the neighborhood of the other
+        min_samples (int): The number of samples in a neighborhood for a point
+                        to be considered as a core point
+        get_plot (bool, optional): Whether to return the plot of the results.
+                                Defaults to True.
+
+    Returns:
+        int: The average column index of the largest cluster in the array
+        float: The angle of the largest cluster in the array
+    """
+
+    # Set up the plot
+    if get_plot:
+        plt.figure(figsize=(SONAR_IMAGE_WIDTH, SONAR_IMAGE_HEIGHT))
+        plt.imshow(array, cmap='viridis', aspect='auto')
+
+    # Convert values > VALUE_THRESHOLD to list of points
+    points = np.argwhere(array > threshold)
+    if points.size == 0:
+        return None, None, None
+
+    # Perform DBSCAN clustering
+    db = DBSCAN(eps=eps, min_samples=min_samples).fit(points)
+    labels = db.labels_
+
+    # Get cluster with the most points
+    unique_labels = set(labels)
+    cluster_counts = {k: np.sum(labels == k) for k in unique_labels if k != -1}
+
+    if cluster_counts == {}:
+        return None, None, None
+
+    # Get the points of the largest cluster and calculate the average column index
+    largest_cluster_label = max(cluster_counts, key=cluster_counts.get)
+    class_member_mask = (labels == largest_cluster_label)
+    max_clust_points = points[class_member_mask]
+    average_column_index = np.mean(max_clust_points[:, 1])
+
+    # Get the X and Y of the buoy points and calc linear regression
+    X = max_clust_points[:, 0].reshape(-1, 1)
+    Y = max_clust_points[:, 1]
+    linreg_sklearn = LinearRegression()
+    linreg_sklearn.fit(X, Y)
+
+    # Extract the slope and calculate the angle
+    slope_sklearn = linreg_sklearn.coef_[0]
+    intercept_sklearn = linreg_sklearn.intercept_
+    angle = math.atan(slope_sklearn)
+    angle = math.degrees(angle)
+
+    # Plot the results
+    if get_plot:
+        x_vals_plot = np.arange(array.shape[0])  # Row indices
+        y_vals_plot = intercept_sklearn + slope_sklearn * x_vals_plot
+        plt.plot(y_vals_plot, x_vals_plot, 'r', linewidth=4,
+                 label=f'Line: y = {slope_sklearn:.2f}x + {intercept_sklearn:.2f}')
+        plt.scatter(average_column_index, array.shape[0]/2, color='k', s=150, zorder=3, label='Center Point')
+
+        plt.xticks([])
+        plt.yticks([])
+        plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
+
+        fig = plt.gcf()
+        canvas = FigureCanvas(fig)
+        canvas.draw()
+
+        image = np.frombuffer(canvas.tostring_rgb(), dtype='uint8')
+        image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        return average_column_index, angle, image
+
+    return average_column_index, angle, array
+
+
 def build_sonar_img_from_log_file(filename, start_index=49, end_index=149):
-    """ Builds a sonar image from a log file """
+    """ Build a sonar image from a .bin file
+
+    Args:
+        filename (str): Path to the .bin file
+        start_index (int, optional): The index to start building the sonar image.
+                                    Defaults to 49.
+        end_index (int, optional): The index to stop building the sonar image.
+                                Defaults to 149.
+
+    Returns:
+        ndarray: Sonar image from the scan
+
+    """
     assert filename.endswith('.bin'), 'filename must be a .bin file'
 
     parser = get_bin_file_parser(filename)
@@ -129,191 +197,3 @@ def build_sonar_image(data_list, display_results=False,
         cv2.waitKey(0)
 
     return sonar_img
-
-
-def arc_circ(c):
-    top = tuple(c[c[:, :, 1].argmin()][0])
-    bottom = tuple(c[c[:, :, 1].argmax()][0])
-    left = tuple(c[c[:, :, 0].argmin()][0])
-    right = tuple(c[c[:, :, 0].argmax()][0])
-    box = [top, bottom, left, right]
-
-    max = -1
-    for i in box:
-        for j in box:
-            if i == j:
-                continue
-            dist = ((i[0] - j[0])**2 + (i[1] - j[1])**2)**0.5
-            if dist > max:
-                max = dist
-
-    ac = cv2.arcLength(c, True) / 2.0
-    return max / ac
-
-
-def find_gate_posts(img, display_results=False):
-    """ Find gate posts from a sonar scan image
-
-    Args:
-        img (ndarray): Sonar image
-        display_results (bool, optional): Whether to display the results.
-                                          Defaults to False.
-
-    Returns:
-        List[Tuple]: List of of Tuples, where each tuple contains the (x,y)
-                     for a detected gate post in the image
-    """
-
-    greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
-    cm_image = cv2.applyColorMap(greyscale_image, cv2.COLORMAP_VIRIDIS)
-
-    kernel = np.ones((5, 5), np.uint8)
-
-    # cm_image = cv2.erode(cm_image, kernel, iterations=1)
-    kernel = np.ones((5, 5), np.uint8)
-    cm_image = cv2.dilate(cm_image, kernel, iterations=3)
-    kernel = np.ones((4, 4), np.uint8)
-    cm_image = cv2.erode(cm_image, kernel, iterations=1)
-
-    cm_image = cv2.medianBlur(cm_image, 5)  # Removes salt and pepper noise
-
-    cm_copy_image = cm_image
-    cv2.copyTo(cm_image, cm_copy_image)
-
-    mask = mask_sonar_image(cm_image, display_results)
-
-    cm_circles = cv2.findContours(mask, cv2.RETR_LIST,
-                                  cv2.CHAIN_APPROX_SIMPLE)[-2]
-
-    cm_circles = list(filter(lambda x: (cv2.contourArea(x) > 200
-                                        and cv2.contourArea(x) < 5000),
-                      cm_circles))
-    cm_circles = sorted(cm_circles,
-                        key=lambda x: (arc_circ(x)),
-                        reverse=False)
-
-    cm_circles = list(filter(lambda x: (cv2.arcLength(x, True)**2/(4
-                      * math.pi*cv2.contourArea(x)) > 2.5), cm_circles))
-
-    if len(cm_circles) < 1:
-        print("Not enough circles found")
-        return None
-
-    filtered_circles = cm_circles[0:1]
-
-    circle_positions = []
-    for circle in filtered_circles:  # find center of circle code
-        M = cv2.moments(circle)
-        cX = int(M["m10"] / M["m00"])
-        cY = int(M["m01"] / M["m00"])
-        circle_positions.append((cX, cY, arc_circ(circle), cv2.arcLength(
-            circle, True)**2/(4*math.pi*cv2.contourArea(circle))))
-
-    if display_results:
-        cv2.drawContours(cm_copy_image, filtered_circles, -1, (0, 255, 0), 2)
-        cv2.imshow("found_gate_posts", cm_copy_image)
-        cv2.waitKey(0)
-
-    return circle_positions
-
-
-def find_buoy(img, display_results=False):
-    """ Find buoys from a sonar scan image
-
-    Args:
-        img (ndarray): Sonar image
-        display_results (bool, optional): Whether to display the results.
-                                          Defaults to False.
-
-    Returns:
-        List[Tuple]: List of of Tuples, where each tuple contains the (x,y)
-                     for a detected buoy in the image
-    """
-
-    greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
-    cm_image = cv2.applyColorMap(greyscale_image, cv2.COLORMAP_VIRIDIS)
-
-    cm_copy_image = cm_image
-    cv2.copyTo(cm_image, cm_copy_image)
-    cm_image = cv2.medianBlur(cm_image, 5)  # Removes salt and pepper noise
-
-    mask = mask_sonar_image(cm_image, display_results)
-
-    cm_circs = cv2.findContours(mask, cv2.RETR_LIST,
-                                cv2.CHAIN_APPROX_SIMPLE)[-2]
-    cm_circs = list(filter(lambda x: (cv2.contourArea(x) > 250), cm_circs))
-
-    cm_circs = sorted(cm_circs, key=lambda x: (cv2.arcLength(x, True)**2/(
-                      4*math.pi*cv2.contourArea(x))), reverse=False)
-
-    filtered_circles = cm_circs[0:1]
-
-    circle_positions = []
-    for circle in filtered_circles:  # Find center of circle code
-        M = cv2.moments(circle)
-        cX = int(M["m10"] / M["m00"])
-        cY = int(M["m01"] / M["m00"])
-        circle_positions.append((cX, cY, (cv2.arcLength(circle, True)**2/(
-                                4*math.pi*cv2.contourArea(circle))),
-                                 cv2.contourArea(circle)))
-
-    if display_results:
-        cv2.drawContours(cm_copy_image, filtered_circles, -1, (0, 255, 0), 2)
-        cv2.imshow("found_buoys", cm_copy_image)
-        cv2.waitKey(0)
-
-    return circle_positions
-
-
-def mask_sonar_image(img, display_results=False):
-    """ Get mask of potential objects in a sonar image
-
-    Args:
-        img (ndarray): Image to mask
-        display_results (bool, optional): Whether to display the results.
-                                          Defaults to False.
-
-    Returns:
-        ndarray: Mask image
-    """
-    lower_color_bounds = (40, 80, 0)  # Filter out lower values (ie blue)
-    upper_color_bounds = (230, 250, 255)  # Filter out too high values
-    mask = cv2.inRange(img, lower_color_bounds, upper_color_bounds)
-
-    if display_results:
-        cv2.imshow("mask", mask)
-        cv2.waitKey(0)
-
-    return mask
-
-
-def test_img_proc(img, func=find_buoy):
-    if isinstance(img, np.ndarray):
-        sonar_img = img
-    elif isinstance(img, str):
-        if img.endswith('.bin'):
-            sonar_img = build_sonar_img_from_log_file('SampleTylerData.bin')
-        elif img.endswith('.npy'):
-            sonar_img = np.load(img)
-
-    locations = func(sonar_img, display_results=True)
-    print(locations)
-
-
-def to_polar_img(img, display_results=True):
-
-    img = np.pad(img.astype(np.uint8), ((80, 80), (0, 0)), 'constant')
-
-    greyscale_image = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
-    cm_image = cv2.applyColorMap(greyscale_image, cv2.COLORMAP_VIRIDIS)
-    polar_img = cv2.linearPolar(cm_image, (500, 200), 200.0,
-                                cv2.WARP_INVERSE_MAP)
-
-    if display_results:
-        cv2.imshow("Polar", polar_img)
-        cv2.waitKey(0)
-
-
-if __name__ == "__main__":
-    test_img_proc(os.path.join(os.path.dirname(__file__), 'sampleData',
-                               'gate.npy'), to_polar_img)

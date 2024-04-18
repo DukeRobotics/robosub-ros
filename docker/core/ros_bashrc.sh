@@ -9,7 +9,7 @@ then
     source /opt/ros/noetic/setup_network.bash
 fi
 
-if [ -f "${COMPUTER_TYPE}"/catkin_ws/devel/setup.bash ]
+if [ -f "/root/dev/robosub-ros/${COMPUTER_TYPE}"/catkin_ws/devel/setup.bash ]
 then
     source "/root/dev/robosub-ros/${COMPUTER_TYPE}"/catkin_ws/devel/setup.bash
 fi
