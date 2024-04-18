@@ -5,6 +5,9 @@ from brping import Ping1D
 import time
 import serial.tools.list_ports as list_ports
 from std_msgs.msg import Float64
+import yaml
+import os
+import resource_retriever as rr
 
 class Ping1DPublisher:
 
@@ -17,7 +20,7 @@ class Ping1DPublisher:
     MODE_AUTO = 0
     CONFIDANCE_THRESHOLD = 0
 
-    PING1D_FTDI_OOGWAY = "DP05ZD1V"
+    CONFIG_FILE_PATH = f'package://data_pub/config/{os.getenv("ROBOT_NAME", "oogway")}.yaml'
     _serial_port = None
 
     PING1D_DEST_TOPIC = 'sensors/ping/distance'
@@ -28,31 +31,34 @@ class Ping1DPublisher:
         rospy.init_node(self.NODE_NAME)
         self.ping_publisher = rospy.Publisher(self.PING1D_DEST_TOPIC, Float64, queue_size=10)
 
+        with open(rr.get_filename(self.CONFIG_FILE_PATH, use_protocol=False)) as f:
+            self._config_data = yaml.safe_load(f)
+
         # Make a new Ping
-        self.ping1D = Ping1D()
+        self._ping1D = Ping1D()
         try:
-            self._serial_port = next(list_ports.grep(self.PING1D_FTDI_OOGWAY)).device
+            ping1D_ftdi_string = self._config_data['ping1D']['ftdi']
+            self._serial_port = next(list_ports.grep(ping1D_ftdi_string)).device
+            self._ping1D.connect_serial(self._serial_port, 115200)
         except StopIteration:
-            rospy.logerr("Ping1D not found. Go yell at Will.")
-            rospy.signal_shutdown("Shutting down ping node.")
+            rospy.logerr("Ping1D not found, trying again in 0.1 seconds.")
+            rospy.sleep(0.1)
             return
 
-        self.ping1D.connect_serial(f'{self._serial_port}', 115200)
-
-        while self.ping1D.initialize() is False:
+        while self._ping1D.initialize() is False:
             print("Failed to init Ping1D, retrying in 0.5 seconds... ")
             time.sleep(0.5)
 
-        self.ping1D.set_speed_of_sound(self.SPEED_OF_SOUND) #mm/s
-        self.ping1D.set_ping_interval(self.PING_INTERVAL)
-        self.ping1D.set_mode_auto(self.MODE_AUTO)
-        self.ping1D.set_gain_setting(self.GAIN_SETTING)
-        self.ping1D.set_range(self.RANGE_START, self.RANGE_END)
+        self._ping1D.set_speed_of_sound(self.SPEED_OF_SOUND)  # mm/s
+        self._ping1D.set_ping_interval(self.PING_INTERVAL)
+        self._ping1D.set_mode_auto(self.MODE_AUTO)
+        self._ping1D.set_gain_setting(self.GAIN_SETTING)
+        self._ping1D.set_range(self.RANGE_START, self.RANGE_END)
 
     def run(self):
         rate = rospy.Rate(10)
         while not rospy.is_shutdown():
-            data = self.ping1D.get_distance_simple()
+            data = self._ping1D.get_distance_simple()
             if data:
                 distance = data["distance"]
                 confidance = data["confidence"]
