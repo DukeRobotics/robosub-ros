@@ -131,7 +131,7 @@ def build_sonar_img_from_log_file(filename, start_index=49, end_index=149):
 
     Returns:
         ndarray: Sonar image from the scan
-    
+
     """
     assert filename.endswith('.bin'), 'filename must be a .bin file'
 
