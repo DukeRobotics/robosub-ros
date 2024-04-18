@@ -31,4 +31,6 @@ while True:
         node.io["out"].send(out)
 
     node.io["passthrough"].send(passthrough)
-    node.io["passthrough_Depth"].send(depth)
+
+    if queue_depth:
+        node.io["passthroughDepth"].send(depth)
