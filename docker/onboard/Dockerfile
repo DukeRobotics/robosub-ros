@@ -66,7 +66,8 @@ RUN pip3 install --no-cache-dir \
     roboflow \
     python-nmap \
     transforms3d \
-    sympy
+    sympy \
+    scikit-learn
 
 # Install PyTorch and Torchvision
 COPY torch_installer.sh torch_deps/torch_installer.sh
