@@ -52,7 +52,6 @@ class DepthAISpatialDetector:
 
         # Pipeline
         self.pipeline = None
-        self.cam_rgb_node = None
 
         # Publishers
         self.publishers = {}  # Keys are the class names of a given model
@@ -127,9 +126,7 @@ class DepthAISpatialDetector:
         cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
         cam_rgb.setInterleaved(False)
         cam_rgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
-
-        # Saving the reference so we can set previewSize later on
-        self.cam_rgb_node = cam_rgb
+        cam_rgb.setPreviewSize([416, 416])
 
         # Mono properties
         mono_left = pipeline.create(dai.node.MonoCamera)
@@ -155,7 +152,7 @@ class DepthAISpatialDetector:
         switch_model_out = pipeline.create(dai.node.Script)
         switch_model_out_path = DEPTHAI_SCRIPT_NODES_PATH + 'switch_model_out.py'
         with open(rr.get_filename(switch_model_out_path, use_protocol=False)) as f:
-            switch_model_out.setScript(f.read())
+            switch_model_out.setScript(f"queue_depth = {self.queue_depth}\n\n{f.read()}")
 
         # Model input queue
         xin_model = pipeline.create(dai.node.XLinkIn)
@@ -256,8 +253,6 @@ class DepthAISpatialDetector:
         self.classes = model['classes']
         self.camera_pixel_width, self.camera_pixel_height = model['input_size']
         self.colors = model['colors']
-
-        self.cam_rgb_node.setPreviewSize(model['input_size'])
 
         self.detection_visualizer = DetectionVisualizer(self.classes, self.colors,
                                                         self.show_class_name, self.show_confidence)
