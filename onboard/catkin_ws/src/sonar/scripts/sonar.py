@@ -40,13 +40,12 @@ class Sonar:
     CONSTANT_SWEEP_START = 100
     CONSTANT_SWEEP_END = 300
 
-    VALUE_THRESHOLD = 95
-    DBSCAN_EPS = 3
-    DBSCAN_MIN_SAMPLES = 10
+    VALUE_THRESHOLD = 95  # Sonar intensity threshold
+    DBSCAN_EPS = 3  # DBSCAN epsilon
+    DBSCAN_MIN_SAMPLES = 10  # DBSCAN min samples
 
     def __init__(self):
         rospy.init_node(self.NODE_NAME)
-        rospy.loginfo("init sonar...")
         self.stream = rospy.get_param('~stream')
         self.debug = rospy.get_param('~debug')
 
@@ -58,7 +57,7 @@ class Sonar:
         if self.stream:
             self.sonar_image_publisher = rospy.Publisher(self.SONAR_IMAGE_TOPIC, CompressedImage, queue_size=1)
 
-        self.current_scan = (-1, -1, -1)
+        self.current_scan = (-1, -1, -1)  # (start_angle, end_angle, distance_of_scan)
 
     def init_sonar(self):
         # Create ping360
@@ -74,7 +73,7 @@ class Sonar:
         # Connect to sonar
         while not rospy.is_shutdown():
             try:
-                self.ping360.connect_serial(f'{self._serial_port}', self.BAUD_RATE)
+                self.ping360.connect_serial(str(self._serial_port), self.BAUD_RATE)
                 self.ping360.initialize()
                 break
             except Exception as e:
@@ -112,8 +111,8 @@ class Sonar:
             sample_period (int): sample period in ms
 
         """
-        d = 2 * range / (self.number_of_samples * self.SPEED_OF_SOUND_IN_WATER * self.SAMPLE_PERIOD_TICK_DURATION)
-        return round(d)
+        period = 2 * range / (self.number_of_samples * self.SPEED_OF_SOUND_IN_WATER * self.SAMPLE_PERIOD_TICK_DURATION)
+        return round(period)
 
     def range_to_transmit(self, range):
         """From a given range determines the transmit_duration
@@ -178,8 +177,8 @@ class Sonar:
                 https://bluerobotics.com/learn/understanding-and-using-scanning-sonars/
 
         Args:
-            sample_index (int | float): Index of the sample in the data array,
-            from 0 to N-1, where N = number of samples.
+            sample_index (int | float): Index of the sample in the
+                data array, from 0 to N-1, where N = number of samples.
 
         Returns:
             float: Distance in meters of the sample from the sonar device.
@@ -218,7 +217,6 @@ class Sonar:
 
         Returns:
             List: List of data messages from the Sonar device
-            hi :) - VC
         """
         sonar_sweep_data = []
         for i in range(range_start, range_end + 1):  # inclusive ends
@@ -243,7 +241,6 @@ class Sonar:
             sonar_utils.centered_gradians_to_radians(angle))
         y_pos = -1 * self.get_distance_of_sample(index)*np.sin(
             sonar_utils.centered_gradians_to_radians(angle))
-        rospy.loginfo(f"x_pos: {x_pos}, y_pos: {y_pos}")
         pos_of_point = Pose()
         pos_of_point.position.x = x_pos
         pos_of_point.position.y = y_pos
@@ -287,8 +284,9 @@ class Sonar:
         """ Convert any kind of image to ROS Compressed Image.
 
         Args:
-            image (int): numpy array of int values representing the sonar image
+            sonar_sweep (int): numpy array of int values representing the sonar image
             compressed_format (string): format to compress the image to
+            is_color (bool): Whether the image is color or not
 
         Returns:
             CompressedImage: ROS Compressed Image message
@@ -356,7 +354,6 @@ class Sonar:
         if new_range != self.DEFAULT_RANGE:
             self.set_new_range(new_range)
 
-        rospy.loginfo(f"starting sweep from {left_gradians} to {right_gradians}")
         object_pose, plot, normal_angle = self.get_xy_of_object_in_sweep(left_gradians, right_gradians)
 
         response = SonarSweepResponse()
@@ -388,7 +385,6 @@ class Sonar:
             self.constant_sweep(self.CONSTANT_SWEEP_START, self.CONSTANT_SWEEP_END, self.DEFAULT_RANGE)
         else:
             rospy.Subscriber(self.SONAR_REQUEST_TOPIC, SonarSweepRequest, self.on_sonar_request)
-            rospy.loginfo("starting sonar...")
             rate = rospy.Rate(5)
             while not rospy.is_shutdown():
                 if self.current_scan[0] != -1 and self.current_scan[1] != -1 and self.current_scan[2] != -1:

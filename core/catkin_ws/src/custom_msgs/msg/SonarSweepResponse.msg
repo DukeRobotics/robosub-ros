@@ -1,8 +1,8 @@
-#pose of object found
+# Pose of object found
 geometry_msgs/Pose pose
 
-#normal angle
+# Normal angle
 float64 normal_angle
 
-#object is there
+# Object is there
 bool is_object

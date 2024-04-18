@@ -18,8 +18,6 @@ def build_color_sonar_image_from_int_array(int_array, npy_save_path=None, jpeg_s
     Args:
         data_list (List): List of data messages from either the Sonar device
                         or from a .bin file
-        display_results (bool, optional): Whether to display the resulting
-                                        sonar image. Defaults to False.
         npy_save_path (str, optional): Path to save the sonar image as a
                                     .npy file. Defaults to None.
         jpeg_save_path (str, optional): Path to save the sonar image as a
@@ -49,8 +47,8 @@ def find_center_point_and_angle(array, threshold, eps, min_samples, get_plot=Tru
                     considered as in the neighborhood of the other
         min_samples (int): The number of samples in a neighborhood for a point
                         to be considered as a core point
-        jpeg_save_path (str, optional): Path to save the sonar image as a
-                                    .jpeg file. Defaults to None.
+        get_plot (bool, optional): Whether to return the plot of the results.
+                                Defaults to True.
 
     Returns:
         int: The average column index of the largest cluster in the array
@@ -122,7 +120,19 @@ def find_center_point_and_angle(array, threshold, eps, min_samples, get_plot=Tru
 
 
 def build_sonar_img_from_log_file(filename, start_index=49, end_index=149):
-    """ Builds a sonar image from a log file """
+    """ Build a sonar image from a .bin file
+
+    Args:
+        filename (str): Path to the .bin file
+        start_index (int, optional): The index to start building the sonar image.
+                                    Defaults to 49.
+        end_index (int, optional): The index to stop building the sonar image.
+                                Defaults to 149.
+
+    Returns:
+        ndarray: Sonar image from the scan
+    
+    """
     assert filename.endswith('.bin'), 'filename must be a .bin file'
 
     parser = get_bin_file_parser(filename)
