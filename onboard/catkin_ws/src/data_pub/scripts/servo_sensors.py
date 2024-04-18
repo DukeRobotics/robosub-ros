@@ -3,7 +3,7 @@
 import rospy
 import os
 from std_msgs.msg import Float64
-from std_srvs.srv import SetBool
+from std_srvs.srv import SetBool, SetBoolResponse
 from serial_publisher import SerialPublisher
 
 CONFIG_FILE_PATH = f'package://offboard_comms/config/{os.getenv("ROBOT_NAME", "oogway")}.yaml'
@@ -52,7 +52,7 @@ class TemperatureHumidityPublisher(SerialPublisher):
             self.writeline('L')
         else:
             self.writeline('R')
-        return {'success': True, 'message': f'Successfully set servo to {"left" if req.data else "right"}.'}
+        return SetBoolResponse(True, f'Successfully set servo to {"left" if req.data else "right"}.')
 
     def process_line(self, line):
         """"
