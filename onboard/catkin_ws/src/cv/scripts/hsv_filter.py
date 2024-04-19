@@ -6,11 +6,15 @@ import math
 import resource_retriever as rr
 import yaml
 
+from copy import deepcopy
 from opencv_apps.msg import Circle, RotatedRect
 from sensor_msgs.msg import CompressedImage
 from image_tools import ImageTools
-from utils import visualize_detections
-from custom_msgs.srv import EnableModel, CVObject
+from utils import DetectionVisualizer
+from custom_msgs.srv import EnableModel
+from custom_msgs.msg import CVObject
+from image_tools import ImageTools
+
 
 CAMERAS_FILEPATH = 'package://cv/configs/cameras.yaml'
 HSV_MODELS_FILEPATH = 'package://cv/configs/hsv_models.yaml'
@@ -138,11 +142,12 @@ class HSVFilter:
 
         for camera in cameras:
             # TODO add path to publish in cameras yaml file, talk with Vedarsh
-            # self.cameras_dict[camera] = camera_data
-            self.cameras_dict[camera]["models"] = models
+            self.cameras_dict[camera] = {}
+            self.cameras_dict[camera]["models"] = deepcopy(models)
             self.cameras_dict[camera]["publisher"] = rospy.Publisher(f"cv/{camera}/detections/compressed",
                                                                      CompressedImage, queue_size=10)
-            self.subscribers[camera] = rospy.Subscriber(f"cv/{camera}", CompressedImage, self.detect(camera))
+            # self.subscribers[camera] = rospy.Subscriber(f"cv/{camera}", CompressedImage, self.detect, (camera,))
+            self.subscribers[camera] = rospy.Subscriber(f"camera/{camera}/rgb/preview/compressed", CompressedImage, self.detect, camera)
             # self.subscribers[camera] = rospy.Subscriber(f"cv/{camera}", CompressedImage, self.detect, (camera,))
 
             # TODO first param put path in camera yaml file
@@ -152,6 +157,12 @@ class HSVFilter:
         rospy.Service('enable_model', EnableModel, self.toggle_service)
 
         self.image_tools = ImageTools()
+
+        self.detection_visualizer = DetectionVisualizer(["bin", "collection_bin", "path_marker", "buoy"],
+                                                        ["FF00000", "FF000000", "FF00000", "FF00000"])
+        
+        self.image_tools = ImageTools()
+
 
     def detect(self, data, camera):
         """Compute predictions on a raw image frame and publish results.
@@ -176,8 +187,12 @@ class HSVFilter:
         # DONE change this fn to something similar to depthai spatial detection line 347
         # i.e., create our own detect visualization fn
         detections = []
-        for model in self.cameras_dict[camera]["models"]:
-            if model["enabled"]:
+        camera_models = self.cameras_dict[camera]["models"]
+        print(camera)
+        print()
+        for model in camera_models:
+            # print(model["enabled"])
+            if camera_models[model]["enabled"]:
                 contour = self.find_contours(data, model.lower_mask, model.upper_mask)
                 detection, message = self.FITTING_FUNCTIONS[model.shape](contour, data.width, data.height)
                 detection["label"] = model.shape
@@ -187,7 +202,8 @@ class HSVFilter:
                     self.publishers[model].publish(message)
 
         # Publishes frame with many detections on it (STC)
-        detections_visualized = visualize_detections(data, detections)
+        current_image = self.image_tools.convert_to_cv2(data)
+        detections_visualized = self.detection_visualizer.visualize_detections(current_image, detections)
         detections_img_msg = self.image_tools.convert_to_ros_compressed_msg(detections_visualized)
         self.cameras_dict[camera]["publisher"].publish(detections_img_msg)
 
@@ -222,8 +238,8 @@ class HSVFilter:
                     model {data.model_name} | Camera does exist in the dictionary 'self.cameras_dict'"""}
 
     def run(self):
-        while not rospy.is_shutdown():
-            self.detect()
+        # while not rospy.is_shutdown():
+        #     self.detect()
 
         # Keep node running until shut down
         rospy.spin()
