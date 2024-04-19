@@ -94,6 +94,7 @@ class SerialPublisher(ABC):
 
         rospy.init_node(self.node_name)
         self.connect()
+
         while not rospy.is_shutdown():
             try:
                 # Direct read from device
