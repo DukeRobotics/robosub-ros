@@ -34,6 +34,7 @@ class Ping1DPublisher:
         with open(rr.get_filename(self.CONFIG_FILE_PATH, use_protocol=False)) as f:
             self._config_data = yaml.safe_load(f)
 
+    def connect(self):
         # Make a new Ping
         self._ping1D = Ping1D()
         while self._serial_port is None and not rospy.is_shutdown():
@@ -43,8 +44,7 @@ class Ping1DPublisher:
             except StopIteration:
                 rospy.logerr("Ping1D not found, trying again in 0.1 seconds.")
                 rospy.sleep(0.1)
-                return
-        
+
         self._ping1D.connect_serial(self._serial_port, 115200)
 
         while self._ping1D.initialize() is False:
@@ -59,6 +59,7 @@ class Ping1DPublisher:
 
     def run(self):
         rate = rospy.Rate(10)
+        self.connect()
         while not rospy.is_shutdown():
             data = self._ping1D.get_distance_simple()
             if data:
