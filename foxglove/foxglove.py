@@ -44,7 +44,7 @@ EXTENSION_PATHS = [d for d in (FOXGLOVE_PATH / "extensions").iterdir() if d.is_d
 LAYOUTS_PATH = FOXGLOVE_PATH / "layouts"
 
 
-def run_at_path(command: Union[str, Sequence[str]], directory: pathlib.Path, system: str = SYSTEM):
+def run_at_path(command: Union[str, Sequence[str]], directory: pathlib.Path, system: str = SYSTEM, windows_append_cmd = True):
     """
     Run a command at a given path.
 
@@ -65,7 +65,7 @@ def run_at_path(command: Union[str, Sequence[str]], directory: pathlib.Path, sys
     else:
         args = list(command)
 
-    if system == "Windows":
+    if system == "Windows" and windows_append_cmd:
         args[0] += ".cmd"
 
     print(f"{directory.name}: {command}")
@@ -278,7 +278,7 @@ def clean_foxglove():
     """
     Clean up the foxglove monorepo.
     """
-    run_at_path("git clean -fdx", FOXGLOVE_PATH)
+    run_at_path("git clean -fdx", FOXGLOVE_PATH, windows_append_cmd=False)
 
 
 if __name__ == "__main__":
