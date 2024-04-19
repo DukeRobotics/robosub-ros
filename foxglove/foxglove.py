@@ -44,14 +44,16 @@ EXTENSION_PATHS = [d for d in (FOXGLOVE_PATH / "extensions").iterdir() if d.is_d
 LAYOUTS_PATH = FOXGLOVE_PATH / "layouts"
 
 
-def run_at_path(command: Union[str, Sequence[str]], directory: pathlib.Path, system: str = SYSTEM, windows_append_cmd = True):
+def run_at_path(command: Union[str, Sequence[str]], directory: pathlib.Path, system: str = SYSTEM,
+                windows_append_cmd: bool = True):
     """
     Run a command at a given path.
 
     Args:
         command: Command to run.
         directory: Path to run command at.
-        system: If "Windows", run command with .cmd extension. Defaults to platform.system().
+        system: Can be "Linux", "Darwin", or "Windows". Defaults to platform.system().
+        windows_append_cmd: If True, append ".cmd" to command on Windows systems.
 
     Raises:
         ValueError: If command empty.
