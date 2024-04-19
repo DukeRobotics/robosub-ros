@@ -214,6 +214,8 @@ class DepthAISpatialDetector:
             spatial_detection_network.passthroughDepth.link(switch_model_out.inputs[f"{model['id']}_passthroughDepth"])
             spatial_detection_network.out.link(switch_model_out.inputs[f"{model['id']}_out"])
 
+            print(f"{model['id']}_passthrough")
+
         if self.queue_rgb:
             # To sync RGB frames with NN, link passthrough to xout instead of preview
             if self.sync_nn:
@@ -327,7 +329,9 @@ class DepthAISpatialDetector:
             return
 
         if self.queue_rgb:
-            inPreview = self.output_queues["rgb"].get()
+            inPreview = self.output_queues["rgb"].tryGet()
+            if not inPreview:
+                return
             frame = inPreview.getCvFrame()
 
             if self.rgb_raw:

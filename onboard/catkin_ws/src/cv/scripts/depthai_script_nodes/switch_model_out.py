@@ -20,11 +20,19 @@ while True:
     if new_model:
         current_model_id = new_model.getData()[0]
 
+    node.warn(f"Current model: {current_model_id}")
+
     if current_model_id == 0:
         passthrough = node.io['raw_passthrough'].get()
         depth = node.io['raw_passthroughDepth'].get()
     elif current_model_id:
-        passthrough = node.io[f"{current_model_id}_passthrough"].get()
+        node.warn(f"{current_model_id}_passthrough")
+        passthrough = node.io[f"{current_model_id}_passthrough"].tryGet()
+
+        if not passthrough:
+            node.warn("No passthrough")
+            continue
+
         depth = node.io[f"{current_model_id}_passthroughDepth"].get()
 
         out = node.io[f"{current_model_id}_out"].get()
