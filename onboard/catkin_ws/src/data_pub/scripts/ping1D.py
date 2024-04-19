@@ -36,14 +36,15 @@ class Ping1DPublisher:
 
         # Make a new Ping
         self._ping1D = Ping1D()
-        try:
-            ping1D_ftdi_string = self._config_data['ping1D']['ftdi']
-            self._serial_port = next(list_ports.grep(ping1D_ftdi_string)).device
-            self._ping1D.connect_serial(self._serial_port, 115200)
-        except StopIteration:
-            rospy.logerr("Ping1D not found, trying again in 0.1 seconds.")
-            rospy.sleep(0.1)
-            return
+        while self._serial_port is None and not rospy.is_shutdown():
+            try:
+                ping1D_ftdi_string = self._config_data['ping1D']['ftdi']
+                self._serial_port = next(list_ports.grep(ping1D_ftdi_string)).device
+                self._ping1D.connect_serial(self._serial_port, 115200)
+            except StopIteration:
+                rospy.logerr("Ping1D not found, trying again in 0.1 seconds.")
+                rospy.sleep(0.1)
+                return
 
         while self._ping1D.initialize() is False:
             print("Failed to init Ping1D, retrying in 0.5 seconds... ")
