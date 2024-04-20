@@ -329,9 +329,7 @@ class DepthAISpatialDetector:
             return
 
         if self.queue_rgb:
-            inPreview = self.output_queues["rgb"].tryGet()
-            if not inPreview:
-                return
+            inPreview = self.output_queues["rgb"].get()
             frame = inPreview.getCvFrame()
 
             if self.rgb_raw:

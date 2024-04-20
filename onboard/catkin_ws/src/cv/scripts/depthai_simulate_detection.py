@@ -125,9 +125,6 @@ class DepthAISimulateDetection:
             nn.setConfidenceThreshold(model['confidence_threshold'])
             nn.setNumInferenceThreads(2)
             nn.input.setBlocking(False)
-            nn.setBoundingBoxScaleFactor(0.5)
-            nn.setDepthLowerThreshold(100)
-            nn.setDepthUpperThreshold(5000)
 
             # Yolo specific parameters
             nn.setNumClasses(len(model['classes']))
