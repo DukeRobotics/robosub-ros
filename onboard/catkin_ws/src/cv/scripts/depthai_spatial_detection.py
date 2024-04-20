@@ -162,6 +162,14 @@ class DepthAISpatialDetector:
         xout_nn = pipeline.create(dai.node.XLinkOut)
         xout_nn.setStreamName("detections")
 
+        # For debugging purposes
+        xout_input = pipeline.create(dai.node.XLinkOut)
+        xout_input.setStreamName("test_input")
+        switch_model_in.outputs["4_input"].link(xout_input.input)
+
+        xout_passthrough = pipeline.create(dai.node.XLinkOut)
+        xout_passthrough.setStreamName("test_passthrough")
+
         if self.queue_rgb:
             xout_rgb = pipeline.create(dai.node.XLinkOut)
             xout_rgb.setStreamName("rgb")
@@ -214,7 +222,9 @@ class DepthAISpatialDetector:
             spatial_detection_network.passthroughDepth.link(switch_model_out.inputs[f"{model['id']}_passthroughDepth"])
             spatial_detection_network.out.link(switch_model_out.inputs[f"{model['id']}_out"])
 
-            print(f"{model['id']}_passthrough")
+            # FOR TESTING
+            if model['id'] == 4:
+                spatial_detection_network.passthrough.link(xout_passthrough.input)
 
         if self.queue_rgb:
             # To sync RGB frames with NN, link passthrough to xout instead of preview
@@ -534,6 +544,7 @@ class DepthAISpatialDetector:
         self.build_pipeline()
 
         with depthai_camera_connect.connect(self.pipeline, self.camera) as device:
+            device.setLogLevel(dai.LogLevel.TRACE)
             self.init_device_queues(device)
             self.init_model(self.initial_model_name)
             self.init_publishers()
