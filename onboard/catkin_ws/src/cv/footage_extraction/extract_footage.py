@@ -123,7 +123,7 @@ class FootageExtractor:
         for image in images:
             image_path = os.path.join(directory, image)
 
-            success = self.upload_images_to_roboflow_with_success(rf_project, image_path, batch_name)
+            success = self.upload_image_to_roboflow_with_success(rf_project, image_path, batch_name)
 
             if success:
                 status['successful'].append(image)
@@ -371,8 +371,9 @@ class FootageExtractor:
                     uploaded_topic_dir_path = os.path.join(uploaded_dir_path, topic)
 
                     if file_dict[topic]:
-                        inp = input("Are you sure you want to upload the images",
-                                    f"in {extracted_directory}/{topic}? (Y/N): ")
+                        inp = input(
+                            f"Are you sure you want to upload the images in {extracted_directory}/{topic}? (Y/N): "
+                        )
                         if inp.lower() == "y":
 
                             # creating directory for the file and topic subdirectories for uploaded images (if required)
