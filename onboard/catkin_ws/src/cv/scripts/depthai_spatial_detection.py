@@ -215,7 +215,7 @@ class DepthAISpatialDetector:
             spatial_detection_network.setIouThreshold(model['iou_threshold'])
 
             # Linking switch node outputs to spatial detection network inputs
-            switch_model_in.outputs[f"{model['id']}_input"].link(spatial_detection_network.input)
+            # switch_model_in.outputs[f"{model['id']}_input"].link(spatial_detection_network.input)
             switch_model_in.outputs[f"{model['id']}_inputDepth"].link(spatial_detection_network.inputDepth)
 
             spatial_detection_network.passthrough.link(switch_model_out.inputs[f"{model['id']}_passthrough"])
@@ -327,6 +327,9 @@ class DepthAISpatialDetector:
 
         self.output_queues["detections"] = device.getOutputQueue(name="detections", maxSize=1, blocking=False)
 
+        # FOR TESTING
+        self.output_queues["test_input"] = device.getOutputQueue(name="test_input")
+
         self.connected = True  # Flag that the output queues have been initialized
 
     def detect(self):
@@ -337,6 +340,10 @@ class DepthAISpatialDetector:
         if not self.connected:
             rospy.logwarn("Output queues are not initialized so cannot detect. Call init_output_queues first.")
             return
+
+        test_input = self.output_queues["test_input"].tryGet()
+        if test_input:
+            print("Received input")
 
         if self.queue_rgb:
             inPreview = self.output_queues["rgb"].get()
@@ -544,7 +551,6 @@ class DepthAISpatialDetector:
         self.build_pipeline()
 
         with depthai_camera_connect.connect(self.pipeline, self.camera) as device:
-            device.setLogLevel(dai.LogLevel.TRACE)
             self.init_device_queues(device)
             self.init_model(self.initial_model_name)
             self.init_publishers()
