@@ -55,7 +55,7 @@ class CV:
         Returns:
             The pose of the object
         """
-        data = self.get_data(name)
+        data = self.cv_data[name]
         pose = Pose()
         pose.position.x = data.coords.x
         pose.position.y = data.coords.y
