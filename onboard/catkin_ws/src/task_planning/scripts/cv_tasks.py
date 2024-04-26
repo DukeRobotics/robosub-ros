@@ -22,14 +22,15 @@ async def move_to_cv_obj(self: Task, name: str) -> Task[None, Optional[str], Non
 
     # Get initial object location and initialize task to move to it
     pose = CV().get_pose(name)
-    move_task = move_to_pose_local(pose)
+    move_task = move_to_pose_local(pose, parent=self)
+    move_task.send(None)
 
     # Move until the robot has reached the object's pose
     # TODO: Stop when stopped recieving decisions
     # TODO: Stop within stop_distance (param)
     while not move_task.done:
         # Update object to move to
-        updated_obj = await Yield()
+        updated_obj = await Yield(pose)
 
         if updated_obj is not None:
             name = updated_obj
