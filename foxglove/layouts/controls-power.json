@@ -1,0 +1,270 @@
+{
+  "configById": {
+    "Plot!21jaxjm": {
+      "paths": [
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/power_disparity_norm.data",
+          "enabled": true,
+          "label": "Power Disparity Norm"
+        }
+      ],
+      "minYValue": 0,
+      "maxYValue": 3,
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": false,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "followingViewWidth": 15
+    },
+    "Plot!3gn30zb": {
+      "paths": [
+        {
+          "value": "/controls/set_power_scaled.linear.x",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "Set Power Scaled X",
+          "showLine": true,
+          "color": "#0080ff"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/actual_power.linear.x",
+          "enabled": true,
+          "label": "Actual Power X"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/power_disparity.linear.x",
+          "enabled": true,
+          "label": "Power Disparity X"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "X",
+      "minYValue": -3,
+      "maxYValue": 3,
+      "followingViewWidth": 15
+    },
+    "Plot!3yf78kk": {
+      "paths": [
+        {
+          "value": "/controls/set_power_scaled.angular.x",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "Set Power Scaled Roll",
+          "showLine": true,
+          "color": "#0080ff"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/actual_power.angular.x",
+          "enabled": true,
+          "label": "Actual Power Roll"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/power_disparity.angular.x",
+          "enabled": true,
+          "label": "Power Disparity Roll"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Roll",
+      "minYValue": -3,
+      "maxYValue": 3,
+      "followingViewWidth": 15
+    },
+    "Plot!1vpzbmx": {
+      "paths": [
+        {
+          "value": "/controls/set_power_scaled.linear.y",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "Set Power Scaled Y",
+          "showLine": true,
+          "color": "#0080ff"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/actual_power.linear.y",
+          "enabled": true,
+          "label": "Actual Power Y"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/power_disparity.linear.y",
+          "enabled": true,
+          "label": "Power Disparity Y"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Y",
+      "minYValue": -3,
+      "maxYValue": 3,
+      "followingViewWidth": 15
+    },
+    "Plot!266v8jj": {
+      "paths": [
+        {
+          "value": "/controls/set_power_scaled.angular.y",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "Set Power Scaled Pitch",
+          "showLine": true,
+          "color": "#0080ff"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/actual_power.angular.y",
+          "enabled": true,
+          "label": "Actual Power Pitch"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/power_disparity.angular.y",
+          "enabled": true,
+          "label": "Power Disparity Pitch"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Pitch",
+      "minYValue": -3,
+      "maxYValue": 3,
+      "followingViewWidth": 15
+    },
+    "Plot!1p60d5": {
+      "paths": [
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/set_power_scaled.linear.z",
+          "enabled": true,
+          "label": "Set Power Scaled Z"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/actual_power.linear.z",
+          "enabled": true,
+          "label": "Actual Power Z"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/power_disparity.linear.z",
+          "enabled": true,
+          "label": "Power Disparity Z"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Z",
+      "minYValue": -3,
+      "maxYValue": 3,
+      "followingViewWidth": 15
+    },
+    "Plot!3y2hu8l": {
+      "paths": [
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/set_power_scaled.angular.z",
+          "enabled": true,
+          "label": "Set Power Scaled Yaw"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/actual_power.angular.z",
+          "enabled": true,
+          "label": "Actual Power Yaw"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/power_disparity.angular.z",
+          "enabled": true,
+          "label": "Power Disparity Yaw"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Yaw",
+      "minYValue": -3,
+      "maxYValue": 3,
+      "followingViewWidth": 15
+    }
+  },
+  "globalVariables": {},
+  "userNodes": {},
+  "playbackConfig": {
+    "speed": 1
+  },
+  "layout": {
+    "direction": "row",
+    "first": "Plot!21jaxjm",
+    "second": {
+      "first": {
+        "first": {
+          "first": "Plot!3gn30zb",
+          "second": "Plot!3yf78kk",
+          "direction": "column"
+        },
+        "second": {
+          "first": "Plot!1vpzbmx",
+          "second": "Plot!266v8jj",
+          "direction": "column"
+        },
+        "direction": "row",
+        "splitPercentage": 50
+      },
+      "second": {
+        "first": "Plot!1p60d5",
+        "second": "Plot!3y2hu8l",
+        "direction": "column"
+      },
+      "direction": "row",
+      "splitPercentage": 66.66666666666666
+    },
+    "splitPercentage": 17.77777777777778
+  }
+}

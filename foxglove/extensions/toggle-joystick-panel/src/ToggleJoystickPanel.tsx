@@ -156,7 +156,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
 
     // Request payload to toggle control types
     const desiredControl: CustomMsgsControlTypesConst = state.joystickEnabled
-      ? CustomMsgsControlTypesConst.DESIRED_POSE
+      ? CustomMsgsControlTypesConst.DESIRED_POSITION
       : CustomMsgsControlTypesConst.DESIRED_POWER;
     const request: CustomMsgsSetControlTypesRequest = {
       control_types: {
@@ -235,7 +235,7 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
         const transformedJoystickInputs = {
           xAxis: linearMapping(axes[AXIS_MAP.xIndex] ?? 0, -1),
           yAxis: linearMapping(axes[AXIS_MAP.yIndex] ?? 0, -1),
-          zAxis: linearMapping(axes[AXIS_MAP.zIndex] ?? 0, -1),
+          zAxis: linearMapping(axes[AXIS_MAP.zIndex] ?? 0, 1),
           yawAxis: linearMapping(axes[AXIS_MAP.yawIndex] ?? 0, -0.5),
           pitchAxis: pitchMapping(axes[AXIS_MAP.pitchIndex] ?? 0),
           rollAxis: rollMapping(axes[AXIS_MAP.rollIndex] ?? 0),

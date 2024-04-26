@@ -16,8 +16,12 @@ add_message_files(
   DVLRaw.msg
   HydrophoneSet.msg
   Memory.msg
+  PIDAxesInfo.msg
+  PIDDerivativeType.msg
   PIDGain.msg
   PIDGains.msg
+  PIDInfo.msg
+  PIDTerms.msg
   PWMAllocs.msg
   RemoteLaunchInfo.msg
   RunningNode.msg
@@ -25,6 +29,7 @@ add_message_files(
   SimObject.msg
   SimObjectArray.msg
   SonarSweepRequest.msg
+  SonarSweepResponse.msg
   SystemUsage.msg
   TaskUpdate.msg
   ThrusterAllocs.msg
@@ -38,7 +43,9 @@ add_service_files(
   GetRunningNodes.srv
   SetControlTypes.srv
   SetPIDGains.srv
+  SetPowerScaleFactor.srv
   SetServo.srv
+  SetStaticPower.srv
   StartLaunch.srv
   StopLaunch.srv
 )

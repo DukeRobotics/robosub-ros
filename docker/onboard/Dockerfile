@@ -45,7 +45,6 @@ RUN apt-get update && \
     unzip \
     zip \
     util-linux \
-    ros-noetic-pid \
     ros-noetic-smach-ros \
     ros-noetic-rosserial \
     ros-noetic-rosserial-arduino \
@@ -66,7 +65,9 @@ RUN pip3 install --no-cache-dir \
     bluerobotics-ping \
     roboflow \
     python-nmap \
-    transforms3d
+    transforms3d \
+    sympy \
+    scikit-learn
 
 # Install PyTorch and Torchvision
 COPY torch_installer.sh torch_deps/torch_installer.sh

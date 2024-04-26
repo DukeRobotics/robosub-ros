@@ -66,7 +66,7 @@ async function generateThrusterConfigs(): Promise<void> {
     .map((key) => key)) {
     try {
       // Reading and loading YAML configuration file for each robot
-      const configData = await readFile(`${CONFIG_FILE_PATH}${robot.toLowerCase()}.config`, { encoding: "utf8" });
+      const configData = await readFile(`${CONFIG_FILE_PATH}${robot.toLowerCase()}.yaml`, { encoding: "utf8" });
       const config: RobotConfig = load(configData) as RobotConfig;
 
       // Mapping thruster configurations and orders

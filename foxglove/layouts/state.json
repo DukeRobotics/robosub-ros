@@ -1,0 +1,306 @@
+{
+  "configById": {
+    "Plot!3gn30zb": {
+      "paths": [
+        {
+          "value": "/transforms/state/pose.linear.x",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "State Pose X",
+          "showLine": true
+        },
+        {
+          "value": "/state.twist.twist.linear.x",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "State Velocity X",
+          "showLine": true
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/controls/desired_position.linear.x",
+          "enabled": true,
+          "label": "Desired Pose X"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/desired_velocity.linear.x",
+          "enabled": true,
+          "label": "Desired Velocity X"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "X",
+      "minYValue": -10,
+      "maxYValue": 10,
+      "followingViewWidth": 15
+    },
+    "Plot!3yf78kk": {
+      "paths": [
+        {
+          "value": "/transforms/state/pose.angular.x",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "State Pose Roll",
+          "showLine": true
+        },
+        {
+          "value": "/state.twist.twist.angular.x",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "State Velocity Roll",
+          "showLine": true
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/controls/desired_position.angular.x",
+          "enabled": true,
+          "label": "Desired Pose Roll"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/desired_velocity.angular.x",
+          "enabled": true,
+          "label": "Desired Velocity Roll"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/vectornav/IMU/orientation.x",
+          "enabled": true,
+          "label": "IMU Roll"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Roll",
+      "minYValue": -180,
+      "maxYValue": 180,
+      "followingViewWidth": 15
+    },
+    "Plot!1vpzbmx": {
+      "paths": [
+        {
+          "value": "/transforms/state/pose.linear.y",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "State Pose Y",
+          "showLine": true
+        },
+        {
+          "value": "/state.twist.twist.linear.y",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "State Velocity Y",
+          "showLine": true
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/controls/desired_position.linear.y",
+          "enabled": true,
+          "label": "Desired Pose Y"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/desired_velocity.linear.y",
+          "enabled": true,
+          "label": "Desired Velocity Y"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Y",
+      "minYValue": -10,
+      "maxYValue": 10,
+      "followingViewWidth": 15
+    },
+    "Plot!266v8jj": {
+      "paths": [
+        {
+          "value": "/transforms/state/pose.angular.y",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "State Pose Pitch",
+          "showLine": true
+        },
+        {
+          "value": "/state.twist.twist.angular.y",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "State Velocity Pitch",
+          "showLine": true
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/controls/desired_position.angular.y",
+          "enabled": true,
+          "label": "Desired Pose Pitch"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/desired_velocity.angular.y",
+          "enabled": true,
+          "label": "Desired Velocity Pitch"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/vectornav/IMU/orientation.y",
+          "enabled": true,
+          "label": "IMU Pitch"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Pitch",
+      "minYValue": -180,
+      "maxYValue": 180,
+      "followingViewWidth": 15
+    },
+    "Plot!1p60d5": {
+      "paths": [
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/state/pose.linear.z",
+          "enabled": true,
+          "label": "State Pose Z"
+        },
+        {
+          "value": "/state.twist.twist.linear.z",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "State Velocity Z",
+          "showLine": true
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/controls/desired_position.linear.z",
+          "enabled": true,
+          "label": "Desired Pose Z"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/desired_velocity.linear.z",
+          "enabled": true,
+          "label": "Desired Velocity Z"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/sensors/depth.pose.pose.position.z",
+          "enabled": true,
+          "label": "Depth"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Z",
+      "minYValue": -5,
+      "maxYValue": 1,
+      "followingViewWidth": 15
+    },
+    "Plot!3y2hu8l": {
+      "paths": [
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/state/pose.angular.z",
+          "enabled": true,
+          "label": "State Pose Yaw"
+        },
+        {
+          "value": "/state.twist.twist.angular.z",
+          "enabled": true,
+          "timestampMethod": "receiveTime",
+          "label": "State Velocity Yaw",
+          "showLine": true
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/controls/desired_position.angular.z",
+          "enabled": true,
+          "label": "Desired Pose Yaw"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controls/desired_velocity.angular.z",
+          "enabled": true,
+          "label": "Desired Velocity Yaw"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/transforms/vectornav/IMU/orientation.z",
+          "enabled": true,
+          "label": "IMU Yaw"
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "foxglovePanelTitle": "Yaw",
+      "minYValue": -180,
+      "maxYValue": 180,
+      "followingViewWidth": 15
+    }
+  },
+  "globalVariables": {},
+  "userNodes": {},
+  "playbackConfig": {
+    "speed": 1
+  },
+  "layout": {
+    "first": {
+      "first": {
+        "first": "Plot!3gn30zb",
+        "second": "Plot!3yf78kk",
+        "direction": "column"
+      },
+      "second": {
+        "first": "Plot!1vpzbmx",
+        "second": "Plot!266v8jj",
+        "direction": "column"
+      },
+      "direction": "row",
+      "splitPercentage": 50
+    },
+    "second": {
+      "first": "Plot!1p60d5",
+      "second": "Plot!3y2hu8l",
+      "direction": "column"
+    },
+    "direction": "row",
+    "splitPercentage": 66.66666666666666
+  }
+}
