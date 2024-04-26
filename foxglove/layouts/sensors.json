@@ -7,6 +7,13 @@
       "diffMethod": "custom",
       "diffTopicPath": "",
       "showFullMessageForDiff": false,
+      "topicPath": "/sensors/ping/distance.data"
+    },
+    "RawMessages!3bt4nmt": {
+      "diffEnabled": false,
+      "diffMethod": "custom",
+      "diffTopicPath": "",
+      "showFullMessageForDiff": false,
       "topicPath": "/sensors/depth.pose.pose.position.z"
     },
     "RawMessages!17rpts2": {
@@ -260,15 +267,20 @@
         "first": "Sensors Status Panel.Sensors Status!4dwpz7w",
         "second": {
           "first": {
-            "first": "RawMessages!jgbyop",
+            "first": {
+              "first": "RawMessages!jgbyop",
+              "second": "RawMessages!3bt4nmt",
+              "direction": "column"
+            },
             "second": "RawMessages!17rpts2",
-            "direction": "column"
+            "direction": "column",
+            "splitPercentage": 66.27565982404694
           },
           "second": "RawMessages!ef0t7i",
           "direction": "row"
         },
         "direction": "column",
-        "splitPercentage": 49.48148148148148
+        "splitPercentage": 46.66666666666665
       },
       "direction": "column",
       "splitPercentage": 21.144859813084114
