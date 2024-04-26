@@ -25,8 +25,8 @@ const DESIRED_POWER_SCHEMA = "geometry_msgs/Twist";
 const AXIS_MAP = {
   xIndex: 1, // Joystick Forward/Backward
   yIndex: 0, // Joystick Left/Right
-  zIndex: 5, // Throttle
-  yawIndex: 2, // Joystick Twist
+  zIndex: 2, // Throttle
+  yawIndex: 5, // Joystick Twist
   pitchIndex: 9, // Thumb Joystick Forward/Backward
   rollIndex: 9, // Thumb Joystick Right/Left
 };
