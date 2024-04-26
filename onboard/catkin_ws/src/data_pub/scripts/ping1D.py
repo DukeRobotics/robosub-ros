@@ -9,13 +9,14 @@ import yaml
 import os
 import resource_retriever as rr
 
+
 class Ping1DPublisher:
 
     BAUD_RATE = 115200
-    PING_INTERVAL = 100 # ms
-    SPEED_OF_SOUND = 1482000 # mm/s
-    RANGE_START = 0 # mm
-    RANGE_END = 5000 # mm
+    PING_INTERVAL = 100  # ms
+    SPEED_OF_SOUND = 1482000  # mm/s
+    RANGE_START = 0  # mm
+    RANGE_END = 5000  # mm
     GAIN_SETTING = 6
     MODE_AUTO = 0
     CONFIDANCE_THRESHOLD = 0
@@ -70,6 +71,7 @@ class Ping1DPublisher:
             else:
                 rospy.logerr("Failed to get distance data from Ping1D")
             rate.sleep()
+
 
 if __name__ == '__main__':
     try:
