@@ -13,6 +13,7 @@ const TOPICS_MAP = {
   "Front Camera": "/camera/front/rgb/preview/compressed",
   Mono: "/camera/usb_camera/compressed",
   Sonar: "/sonar/status",
+  Ping1D: "/sensors/ping/distance",
 };
 
 type topicsMapKeys = keyof typeof TOPICS_MAP;
