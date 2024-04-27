@@ -46,7 +46,7 @@ yolov7_tiny_2023_main:
   confidence_threshold: 0.5
   colors: ["DC143C", "FFA500", "FFFF00", "00FF00", "000080", "8A2BE2"]
 
-gate_glyphs_2:
+2024_gate_glyphs_2:
   classes: ["gate_blue_ccw", "gate_red_cw", "gate_tick", "gate_whole"]
   topic: cv/
   weights: gate_glyphs_2.blob
