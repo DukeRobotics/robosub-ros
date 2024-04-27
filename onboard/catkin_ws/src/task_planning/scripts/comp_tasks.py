@@ -17,62 +17,53 @@ async def prequal_task(self: Task) -> Task[None, None, None]:
     with zero velocity, within a small tolerance, completing the prequalifiacation task.
     """
 
+    async def move_with_directions(directions):
+        for direction in directions:
+            # Add zeroes for roll, pitch, and yaw if they are not specified
+            if len(direction) == 3:
+                direction += (0, 0, 0)
+
+            rospy.loginfo(f"Moving to {direction}")
+            await move_tasks.move_to_pose_local(
+                geometry_utils.create_pose(*direction),
+                global_pose_overrides={"yaw": "init", "roll": "init", "pitch": "init"},
+                parent=self)
+            rospy.loginfo(f"Moved to {direction}")
+            rospy.loginfo()
+
+    async def move_to_cv_obj_with_debug(name, stop_dist=0):
+        rospy.loginfo(f"Moving to {name}")
+        await cv_tasks.move_to_cv_obj(name,
+                                      stop_dist=stop_dist,
+                                      global_pose_overrides={"yaw": "init", "roll": "init", "pitch": "init"},
+                                      parent=self)
+        rospy.loginfo(f"Moved to {name}")
+        rospy.loginfo()
+
     directions = [
         (0, 0, -0.7),  # Submerge
         (2.5, 0, -0.2),  # Move up to the gate
         (4.75, 0, -0.2),  # Move through the gate and a few meters forward
     ]
-    for direction in directions:
-        rospy.loginfo(f"Moving to {direction}")
-        await move_tasks.move_to_pose_local(
-            geometry_utils.create_pose(direction[0], direction[1], direction[2], 0, 0, 0),
-            parent=self)
-        rospy.loginfo(f"Moved to {direction}")
-        rospy.loginfo()
+    await move_with_directions(directions)
 
-    # Move towards the buoy
-    cv_task = cv_tasks.move_to_cv_obj("buoy_earth_cetus", parent=self)
-    cv_pose = cv_task.send(None)
-    while not geometry_utils.at_pose(geometry_utils.create_pose(0, 0, 0, 0, 0, 0), cv_pose, linear_tol=0.5,
-                                     angular_tol=0.5):
-        cv_pose = cv_task.send(None)
-        rospy.loginfo(cv_pose.position)
-    rospy.loginfo("Moved to buoy")
+    # Move towards the buoy glyph
+    await move_to_cv_obj_with_debug("buoy_earth_cetus", stop_dist=0.5)
 
     directions = [
         (0, 2, -0.1),  # Go around to the left side of the marker
         (-3, 0, -0.1),  # Come back in front of the marker
         (0, -1, 0),  # Move back to the center of lane in front of the marker
+        (0, 0, 0, 0, 0, math.radians(180)),  # Yaw 180
+        (4.75, 0, -0.2)  # Move back through the gate
     ]
-    for direction in directions:
-        await move_tasks.move_to_pose_local(
-            geometry_utils.create_pose(direction[0], direction[1], direction[2], 0, 0, 0),
-            parent=self)
-        rospy.loginfo(f"Moved to {direction}")
-
-    # Yaw 180 so camera is facing the gate
-    await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, 0, 0, math.pi), parent=self)
-    rospy.loginfo("Yawed 180")
-
-    # Move forward until so there is a clear view of the gate glyph
-    await move_tasks.move_to_pose_local(geometry_utils.create_pose(4.75, 0, -0.2, 0, 0, 0), parent=self)
-    rospy.loginfo("Moved (4.75, 0, -0.2)")
+    await move_with_directions(directions)
 
     # Move to the gate glyph
-    cv_task = cv_tasks.move_to_cv_obj("gate_abydos", parent=self)
-    cv_pose = cv_task.send(None)
-    while not geometry_utils.at_pose(geometry_utils.create_pose(0, 0, 0, 0, 0, 0), cv_pose, linear_tol=1,
-                                     angular_tol=0.5):
-        cv_pose = cv_task.send(None)
-        rospy.loginfo(cv_pose.position)
-    rospy.loginfo("Moved to gate")
+    await move_to_cv_obj_with_debug("gate_abydos", stop_dist=0.5)
 
     directions = [
         (0, 0, -0.5),  # Submerge below the gate
         (3, 0, -0.15)  # Move through the gate, back to the starting position
     ]
-    for direction in directions:
-        await move_tasks.move_to_pose_local(
-            geometry_utils.create_pose(direction[0], direction[1], direction[2], 0, 0, 0),
-            parent=self)
-        rospy.loginfo(f"Moved to {direction}")
+    await move_with_directions(directions)
