@@ -1,0 +1,13 @@
+<launch>
+	<arg name="sim" default="false" />
+    <arg name="enable_position_pid" default="true" />
+    <arg name="enable_velocity_pid" default="true" />
+    <arg name="cascaded_pid" default="false" />
+
+	<node pkg="controls" name="controls" type="controls" output="screen" launch-prefix="gdb -ex run --args">
+        <param name="sim" value="$(arg sim)" />
+        <param name="enable_position_pid" value="$(arg enable_position_pid)" />
+        <param name="enable_velocity_pid" value="$(arg enable_velocity_pid)" />
+        <param name="cascaded_pid" value="$(arg cascaded_pid)" />
+    </node>
+</launch>
