@@ -22,7 +22,7 @@ class CV:
     CV_MODEL = "yolov7_tiny_2023_main"
 
     def __init__(self, bypass: bool = False):
-        self.cv_data = {}
+        self.cv_data: dict[str, CVObject] = {}
         self.bypass = bypass
 
         with open(rr.get_filename(self.MODELS_PATH, use_protocol=False)) as f:
@@ -42,8 +42,6 @@ class CV:
             object_type: The name/type of the object
         """
         self.cv_data[object_type] = cv_data
-
-    # TODO add useful methods for getting data
 
     def get_pose(self, name: str) -> Pose:
         """
@@ -65,3 +63,15 @@ class CV:
         pose.orientation.z = 0
         pose.orientation.w = 1
         return pose
+
+    def get_timestamp(self, name: str) -> float:
+        """
+        Get the timestamp of a detected object
+
+        Args:
+            name: The name/type of the object
+
+        Returns:
+            The timestamp of the object in seconds since the epoch
+        """
+        return self.cv_data[name].header.stamp.to_sec()
