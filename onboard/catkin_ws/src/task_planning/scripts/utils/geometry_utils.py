@@ -63,6 +63,19 @@ def geometry_quat_to_transforms3d_quat(quat: Quaternion) -> np.ndarray:
     return np.array([quat.w, quat.x, quat.y, quat.z])
 
 
+def point_norm(point: Point) -> float:
+    """
+    Find the norm of the vector pointing to a point in 3D space.
+
+    Args:
+        point: The point.
+
+    Returns:
+        The norm of the vector pointing to the point.
+    """
+    return np.linalg.norm(point_to_numpy(point))
+
+
 def point_linear_distance(point1: Point, point2: Point) -> float:
     """
     Find the linear distance between two points in 3D space.
@@ -249,6 +262,22 @@ def parse_pose(pose: Pose) -> dict:
     pose_dict['roll'], pose_dict['pitch'], pose_dict['yaw'] = quat2euler(
         geometry_quat_to_transforms3d_quat(pose.orientation))
     return pose_dict
+
+
+def parse_pose_dict(pose_dict: dict) -> Pose:
+    """
+    Convert a dictionary to a Pose message.
+
+    Args:
+        pose_dict: A dictionary with the keys 'x', 'y', 'z', 'roll', 'pitch', and 'yaw'. Roll, pitch, and yaw are in
+        radians.
+
+    Returns:
+        The Pose message.
+    """
+
+    return create_pose(pose_dict['x'], pose_dict['y'], pose_dict['z'], pose_dict['roll'], pose_dict['pitch'],
+                       pose_dict['yaw'])
 
 
 def create_pose(x: float, y: float, z: float, roll: float, pitch: float, yaw: float) -> Pose:
