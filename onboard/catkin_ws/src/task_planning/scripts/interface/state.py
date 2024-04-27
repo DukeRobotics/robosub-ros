@@ -33,26 +33,36 @@ class State:
 
         rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state)
         self._state = None
+        self._init_state = None
 
         if not bypass:
             rospy.wait_for_service(self.RESET_POSE_SERVICE)
         self._reset_pose = rospy.ServiceProxy(self.RESET_POSE_SERVICE, SetPose)
 
     @property
-    def state(self):
+    def state(self) -> Odometry:
         """
         The state
         """
         return self._state
 
     @property
-    def tfBuffer(self):
+    def init_state(self) -> Odometry:
+        """
+        The first state recieved
+        """
+        return self._init_state
+
+    @property
+    def tfBuffer(self) -> Buffer:
         """
         The transform buffer
         """
         return self._tfBuffer
 
     def _on_receive_state(self, state):
+        if not self._init_state:
+            self._init_state = state
         self._state = state
 
     def reset_pose(self):
