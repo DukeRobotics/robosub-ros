@@ -64,7 +64,7 @@ class CV:
         pose.orientation.w = 1
         return pose
 
-    def get_timestamp(self, name: str) -> float:
+    def get_timestamp(self, name: str) -> rospy.Time:
         """
         Get the timestamp of a detected object
 
@@ -74,4 +74,4 @@ class CV:
         Returns:
             The timestamp of the object in seconds since the epoch
         """
-        return self.cv_data[name].header.stamp.to_sec()
+        return self.cv_data[name].header.stamp
