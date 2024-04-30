@@ -1,6 +1,6 @@
 # Data Pub
 
-The `data_pub` package contains scripts that interface with various sensors, currently interfacing with the DVL (Doppler Velocity Log), pressure sensor (depth), and voltage sensor. You can launch all nodes in this package using the `pub_all.launch` file.
+The `data_pub` package contains scripts that interface with various sensors, currently interfacing with the DVL (Doppler Velocity Log), pressure sensor (depth), voltage sensor, and temperature/humidity. You can launch all nodes in this package using the `pub_all.launch` file.
 
 ## Config File
 This package contains a config file for each robot, stored at `config/<ROBOT_NAME>.yaml`, where `<ROBOT_NAME>` is the value of the `ROBOT_NAME` enviornment variable corresponding to each robot. Config files for all robots must be structured as below:
@@ -20,7 +20,7 @@ There must be only one top-level key, `dvl`. Under it, there must be the followi
 
 ## DVL
 
-We use the [Teledyne Pathfinder DVL](https://www.teledynemarine.com/brands/rdi/pathfinder-dvl) for velocity measurements. The DVL is connected to the robot's main computer via USB.
+We use the [Teledyne Pathfinder DVL](https://www.teledynemarine.com/brands/rdi/pathfinder-dvl) for velocity measurements. The DVL is connected to the robot's main computer via a USB serial converter.
 
 The `dvl_raw` script publishes the raw DVL data to the `/sensors/dvl/raw` topic with type `custom_msgs/DVLRaw`. It obtains the DVL's FTDI string from the config file mentioned above and uses it to find the DVL's port.
 
@@ -32,11 +32,11 @@ You can launch both scripts using the `pub_dvl.launch` file.
 
 The pressure Arduino obtains data from the [Blue Robotics Bar02 Pressure Sensor](https://bluerobotics.com/store/sensors-cameras/sensors/bar02-sensor-r1-rp/) and a generic voltage sensor and sends the data as raw serial messages to the robot's main computer.
 
-To connect to the pressure Arduino, the `sensors.py` script obtains its FTDI string from the config file for the current robot (as indicated by the `ROBOT_NAME` environment variable) in the `offboard_comms` package. The FTDI string is used to find the pressure Arduino's port.
+To connect to the pressure Arduino, the `pressure_voltage.py` script obtains its FTDI string from the config file for the current robot (as indicated by the `ROBOT_NAME` environment variable) in the `offboard_comms` package. The FTDI string is used to find the pressure Arduino's port.
 
 The data obtained from serial contains tags `P:` and `V:` identifying pressure (depth) and voltage, respectively.
 
-The `sensors.py` script can be launched using the `pub_sensors.launch` file.
+The `pressure_voltage.py` script can be launched using the `pub_pressure_voltage.launch` file.
 
 ### Pressure/Depth
 The depth data obtained is filtered, converted into a `geometry_msgs/PoseWithCovarianceStamped` message, and published to the `/sensors/depth` topic, for use in `sensor_fusion`.
@@ -51,3 +51,12 @@ All data in this `PoseWithCovarianceStamped` message is set to 0 except for the 
 
 ### Voltage
 The same node also gets voltage data from the voltage sensor on the same arduino and is published as a Float64 to `/sensors/voltage`, without modification.
+
+### Temperature/Humidity
+On a different Arduino, both temperature and humidity readings are gathered by a [DHT11 sensor](https://www.adafruit.com/product/386), dumped over serial, and published to the `/sensors/temperature` and `/sensors/humidity` topics, respectively. The data is published as a Float64.
+
+The data obtained from serial contains tags `T:` and `H:` identifying temperature and humidity, respectively.
+
+Temperature is measured in degrees Fahrenheit and humidity is measured in percentage.
+
+The `servo_sensors.py` script can be launched using the `pub_servo_sensors.launch` file. This Arduino also houses the servo for the marker dropper, and is designed to be a general-purpose sensor Arduino for future use.
