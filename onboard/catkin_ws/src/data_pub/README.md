@@ -2,6 +2,8 @@
 
 The `data_pub` package contains scripts that interface with various sensors, currently interfacing with the DVL (Doppler Velocity Log), pressure sensor (depth), voltage sensor, and temperature/humidity. You can launch all nodes in this package using the `pub_all.launch` file.
 
+Additionally, the package allows control over the marker dropper servo. The servo is controlled by publishing a Bool message to the `servo_control` service.
+
 ## Config File
 This package contains a config file for each robot, stored at `config/<ROBOT_NAME>.yaml`, where `<ROBOT_NAME>` is the value of the `ROBOT_NAME` enviornment variable corresponding to each robot. Config files for all robots must be structured as below:
 ```yaml
@@ -60,3 +62,8 @@ The data obtained from serial contains tags `T:` and `H:` identifying temperatur
 Temperature is measured in degrees Fahrenheit and humidity is measured in percentage.
 
 The `servo_sensors.py` script can be launched using the `pub_servo_sensors.launch` file. This Arduino also houses the servo for the marker dropper, and is designed to be a general-purpose sensor Arduino for future use.
+
+### Servo
+The `servo_control` service allows control over the marker dropper servo. The marker dropper holds two rounds that can be dropped individually. The service takes a `Bool` message with the following values:
+- `True`: Drop the "left" round.
+- `False`: Drop the "right" round.
