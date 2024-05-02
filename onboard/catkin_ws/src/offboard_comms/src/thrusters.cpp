@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 
 #include "nonlinear_thrusters.h"
+#include "serial_thrusters.h"
 
 
 int main(int argc, char **argv) {

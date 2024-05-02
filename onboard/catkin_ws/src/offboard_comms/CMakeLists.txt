@@ -14,6 +14,14 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
 )
 
+find_package(yaml-cpp REQUIRED)
+include_directories(${YAML_CPP_INCLUDE_DIR})
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBUDEV REQUIRED libudev)
+
+include_directories(${LIBUDEV_INCLUDE_DIRS})
+
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
 catkin_package(CATKIN_DEPENDS roscpp roslib rosserial rosserial_arduino std_msgs custom_msgs sensor_msgs geometry_msgs)
@@ -23,5 +31,6 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(thrusters src/thrusters.cpp)
-target_link_libraries(thrusters ${catkin_LIBRARIES})
+add_executable(thrusters src/thrusters.cpp src/serial_thrusters.cpp src/nonlinear_thrusters.cpp)
+target_link_libraries(thrusters ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES} ${LIBUDEV_LIBRARIES})
+

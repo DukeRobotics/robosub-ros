@@ -8,7 +8,7 @@
 class SerialThrusters {
    private:
     ros::Subscriber pwm_sub;
-    thruster_allocs_callback(const custom_msgs::ThrusterAllocs &msg);
+    // void thruster_allocs_callback(const custom_msgs::ThrusterAllocs &msg);
 
     std::string get_serial_port(const std::string &ftdi);
     std::string serial_port;
