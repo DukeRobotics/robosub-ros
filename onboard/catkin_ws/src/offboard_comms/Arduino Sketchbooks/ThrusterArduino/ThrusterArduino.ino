@@ -1,7 +1,5 @@
 #include "Adafruit_PWMServoDriver.h"
 #include "MultiplexedBasicESC.h"
-#include <ros.h>
-#include <custom_msgs/PWMAllocs.h>
 #include <Arduino.h>
 #include "offset.h"
 
@@ -22,34 +20,33 @@ uint16_t pwms[NUM_THRUSTERS];
 
 MultiplexedBasicESC thrusters[NUM_THRUSTERS];
 
-// Sets node handle to have 0 publishers, 1 subscriber, and 128 bytes for input and output buffer
-ros::NodeHandle_<ArduinoHardware, 1, 1, 128, 128> nh;
+bool pwms_changed = true;
 
-// Reusing ESC library code
-
-void thruster_pwm_callback(const custom_msgs::PWMAllocs &pwm_msg)
+void write_pwms()
 {
-    // Check if allocations were received for the correct number of thrusters
-    if (pwm_msg.allocs_length != NUM_THRUSTERS)
+    bool timeout = last_cmd_ms_ts + THRUSTER_TIMEOUT_MS < millis();
+
+    for (uint8_t i = 0; i < NUM_THRUSTERS; ++i)
     {
-        String msg = "Received PWM message with incorrect number of allocations. Recieved: " +
-                     String(pwm_msg.allocs_length) + ", expected: " + String(NUM_THRUSTERS) + ".";
-        nh.logerror(msg.c_str());
-        return;
+        uint16_t pwm = timeout ? THRUSTER_STOP_PWM : pwms[i];
+
+        // If PWM is out of bounds, stop thruster
+        if (pwm < THRUSTER_PWM_MIN || pwm > THRUSTER_PWM_MAX)
+        {
+            pwm = THRUSTER_STOP_PWM;
+        }
+
+        thrusters[i].write(pwm + THRUSTER_PWM_OFFSET);
     }
-
-    // Copy the contents of the pwm message to the local array
-    memcpy(pwms, pwm_msg.allocs, sizeof(pwms));
-    last_cmd_ms_ts = millis();
 }
-
-ros::Subscriber<custom_msgs::PWMAllocs> ts_sub("/offboard/pwm", &thruster_pwm_callback);
 
 void setup()
 {
     // Set all PWMs to stop for proper initialization of thrusters
     for (uint8_t i = 0; i < NUM_THRUSTERS; ++i)
+    {
         pwms[i] = THRUSTER_STOP_PWM;
+    }
 
     pwm_multiplexer.begin();
     for (uint8_t i = 0; i < NUM_THRUSTERS; ++i)
@@ -63,31 +60,45 @@ void setup()
         thrusters[i].write(THRUSTER_STOP_PWM + THRUSTER_PWM_OFFSET);
 
     Serial.begin(BAUD_RATE);
-    nh.getHardware()->setBaud(BAUD_RATE);
-    nh.initNode();
-    nh.subscribe(ts_sub);
 }
 
 void loop()
 {
     // Check if last version of data has timed out, if so, stop all thrusters
-    bool timeout = last_cmd_ms_ts + THRUSTER_TIMEOUT_MS < millis();
 
-    for (uint8_t i = 0; i < NUM_THRUSTERS; ++i)
+    // Read from serial as a string of 8 integers separated by commas
+    // Ex.
+    // 1496,1497,1498,1499,1500,1501,1502,1503
+
+    if (Serial.available() > 0)
     {
-        uint16_t pwm = timeout ? THRUSTER_STOP_PWM : pwms[i];
-
-        // If PWM is out of bounds, log error and stop thruster
-        if (pwm < THRUSTER_PWM_MIN || pwm > THRUSTER_PWM_MAX)
+        String input = Serial.readStringUntil('\n');
+        int i = 0;
+        int j = 0;
+        while (input.length() > 0)
         {
-            String msg = "Stopping thruster " + String(i) + ". PWM out of bounds: " + String(pwm);
-            nh.logerror(msg.c_str());
-
-            pwm = THRUSTER_STOP_PWM;
+            int comma = input.indexOf(',');
+            if (comma == -1)
+            {
+                pwms[j] = input.toInt();
+                break;
+            }
+            else
+            {
+                pwms[j] = input.substring(0, comma).toInt();
+                input = input.substring(comma + 1);
+            }
+            j++;
         }
-
-        thrusters[i].write(pwm + THRUSTER_PWM_OFFSET);
+        last_cmd_ms_ts = millis();
+        pwms_changed = true;
     }
 
-    nh.spinOnce();
+    // Write the PWMs to the thrusters if they have changed
+    if (pwms_changed)
+    {
+        write_pwms();
+        pwms_changed = false;
+    }
+
 }
