@@ -2,18 +2,15 @@
 
 #include <ros/ros.h>
 #include <ros/package.h>
-#include <boost/asio/serial_port.hpp>
-#include <boost/asio.hpp>
-#include <vector>
 #include <dirent.h>
-#include <errno.h>
-#include <libudev.h>
+#include <unistd.h>
+#include <boost/asio.hpp>
 
 #include "yaml-cpp/yaml.h"
 
 
 SerialThrusters::SerialThrusters(int argc, char **argv, ros::NodeHandle &nh) {
-    // pwm_sub = nh.subscribe<custom_msgs::ThrusterAllocs>("thruster_allocs", 1, &SerialThrusters::thruster_allocs_callback, this);
+    pwm_sub = nh.subscribe("/offboard/pwm", 1, &SerialThrusters::thruster_allocs_callback, this);
 
     // Read environment variable to determine which robot we are using
     const char *robot_name = std::getenv("ROBOT_NAME"); // Should be "oogway"
@@ -33,112 +30,79 @@ SerialThrusters::SerialThrusters(int argc, char **argv, ros::NodeHandle &nh) {
 
     // Get the serial port that corresponds to the ftid string
     serial_port = get_serial_port(ftdi);
+
+    ROS_INFO("Thruster serial port: %s", serial_port.c_str());
 }
 
-std::string get_serial_number(const std::string& port_name) {
-    struct udev *udev;
-    struct udev_device *dev;
-    const char *serial;
 
-    // Create a new udev object
-    udev = udev_new();
-    if (!udev) {
-        ROS_ERROR("Can't create udev");
-        return "";
-    }
-
-    // Get a device object for the given port
-    dev = udev_device_new_from_subsystem_sysname(udev, "tty", port_name.c_str());
-    if (!dev) {
-        ROS_ERROR("Failed to get device: %s", port_name.c_str());
-        udev_unref(udev);
-        return "";
-    }
-
-    // Get the parent device, with the subsystem "usb"
-    dev = udev_device_get_parent_with_subsystem_devtype(dev, "usb", "usb_device");
-    if (!dev) {
-        ROS_ERROR("Unable to find parent usb device of %s", port_name.c_str());
-        udev_unref(udev);
-        return "";
-    }
-
-    // Get the serial number
-    serial = udev_device_get_sysattr_value(dev, "serial");
-    if (!serial) {
-        ROS_ERROR("Unable to get serial number of %s", port_name.c_str());
-        udev_unref(udev);
-        return "";
-    }
-
-    // Clean up and return the serial number
-    udev_unref(udev);
-    return std::string(serial);
-}
 
 std::string SerialThrusters::get_serial_port(const std::string &ftdi) {
-    // Get a list of all serial ports on the system
-    std::vector<std::string> ports;
+    DIR* dir;
+    struct dirent* ent;
+    char target_path[1024];
 
-    // Fill the ports vector with the available serial ports
-    DIR *dir;
-    struct dirent *ent;
-    if ((dir = opendir("/dev")) != NULL) {
-        while((ent = readdir(dir)) != NULL) {
-            std::string port_name = ent->d_name;
-            if(port_name.find("ttyUSB") != std::string::npos || port_name.find("ttyACM") != std::string::npos) {
-                ports.push_back("/dev/" + port_name);
+    if ((dir = opendir("/dev/serial/by-id/")) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (strstr(ent->d_name, ftdi.c_str()) != NULL) {
+                std::string full_path = "/dev/serial/by-id/" + std::string(ent->d_name);
+                ssize_t len = readlink(full_path.c_str(), target_path, sizeof(target_path)-1);
+                if (len != -1) {
+                    target_path[len] = '\0';
+                    closedir(dir);
+                    // Slice off up to the /
+                    std::string path_str(target_path);
+                    size_t pos = path_str.find_last_of("/");
+                    return "/dev/" + path_str.substr(pos + 1);
+                }
             }
         }
         closedir(dir);
-    } else {
-        // Could not open directory
-        ROS_ERROR("Could not open /dev directory: %s", strerror(errno));
-        return "";
     }
 
-    // Iterate over the ports and find the one that matches the ftdi string
-    for (const auto &port_name : ports) {
-
-        // Get the serial number of the port
-        boost::asio::io_service io;
-        boost::asio::serial_port port(io);
-        port.open(port_name);
-        if (!port.is_open()) {
-            ROS_ERROR("Could not open serial port %s", port_name.c_str());
-            continue;
-        }
-
-        ROS_INFO("Opened port %s", port_name.c_str());
-
-        // Get the serial number of device
-        std::string serial = get_serial_number(port_name);
-        if (serial == ftdi) {
-            ROS_INFO("Found matching port %s", port_name.c_str());
-            return port_name;
-        }
-    }
-
-    // If no matching port was found, return an empty string
-    ROS_ERROR("Could not find serial port for ftdi %s", ftdi.c_str());
+    ROS_ERROR("Could not find serial port for FTDI %s", ftdi.c_str());
     return "";
 }
 
+void SerialThrusters::thruster_allocs_callback(const custom_msgs::PWMAllocs &msg) {
+    // Write to serial the thruster allocations after we receive them
+    // Since the thrusters store the previous values, we do not need to store them here
+    // We just need to write the values to the serial port
 
-// void SerialThrusters::thruster_allocs_callback(const custom_msgs::ThrusterAllocs &msg) {
-//     // Write to serial the thruster allocations after we receive them
-//     // Since the thrusters store the previous values, we do not need to store them here
-//     // We just need to write the values to the serial port
+    // Write to serial
+    boost::asio::io_service io;
+    boost::asio::serial_port port(io);
+    port.open(serial_port);
+    if (!port.is_open()) {
+        ROS_ERROR("Could not open serial port %s", serial_port.c_str());
+        return;
+    }
 
-//     // Write to serial
-//     boost::asio::io_service io;
-//     boost::asio::serial_port port(io);
-//     port.open(serial_port);
-//     if (!port.is_open()) {
-//         ROS_ERROR("Could not open serial port %s", serial_port.c_str());
-//         return;
-//     }
+    port.set_option(boost::asio::serial_port_base::baud_rate(57600));
+    port.set_option(boost::asio::serial_port_base::character_size(8));
+    port.set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
+    port.set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
 
-//     // Write the thruster allocations to the serial port as comma separated values
-//     // TODO
-// }
+    // Write as comma separated values
+    std::string write_str = std::to_string(msg.allocs[0]);
+    for (int i = 1; i < 8; i++) {
+        write_str += "," + std::to_string(msg.allocs[i]);
+    }
+
+    write_str += "\n";
+
+    ROS_INFO("Writing to serial: %s", write_str.c_str());
+    std::size_t bytes_written =  boost::asio::write(port, boost::asio::buffer(write_str.c_str(), write_str.size()));
+
+    if (bytes_written != write_str.size()) {
+        ROS_ERROR("Could not write to serial port %s", serial_port.c_str());
+    }
+
+    port.close();
+
+    ROS_INFO("Wrote to serial");
+
+    //Delay for 100ms to allow the thrusters to process the data
+    usleep(100000);
+
+
+}
