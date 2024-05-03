@@ -4,12 +4,11 @@
 #include <ros/package.h>
 #include <dirent.h>
 #include <unistd.h>
-#include <boost/asio.hpp>
 
 #include "yaml-cpp/yaml.h"
 
 
-SerialThrusters::SerialThrusters(int argc, char **argv, ros::NodeHandle &nh) {
+SerialThrusters::SerialThrusters(boost::asio::io_service& io, int argc, char **argv, ros::NodeHandle &nh) : port(io) {
     pwm_sub = nh.subscribe("/offboard/pwm", 1, &SerialThrusters::thruster_allocs_callback, this);
 
     // Read environment variable to determine which robot we are using
@@ -32,9 +31,25 @@ SerialThrusters::SerialThrusters(int argc, char **argv, ros::NodeHandle &nh) {
     serial_port = get_serial_port(ftdi);
 
     ROS_INFO("Thruster serial port: %s", serial_port.c_str());
+
+    // Write to serial
+    port.open(serial_port);
+    if (!port.is_open()) {
+        ROS_ERROR("Could not open serial port %s", serial_port.c_str());
+        return;
+    }
+
+    port.set_option(boost::asio::serial_port_base::baud_rate(57600));
+    port.set_option(boost::asio::serial_port_base::character_size(8));
+    port.set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
+    port.set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
+
+    ROS_INFO("Thrusters initialized");
 }
 
-
+SerialThrusters::~SerialThrusters() {
+    port.close();
+}
 
 std::string SerialThrusters::get_serial_port(const std::string &ftdi) {
     DIR* dir;
@@ -68,19 +83,6 @@ void SerialThrusters::thruster_allocs_callback(const custom_msgs::PWMAllocs &msg
     // Since the thrusters store the previous values, we do not need to store them here
     // We just need to write the values to the serial port
 
-    // Write to serial
-    boost::asio::io_service io;
-    boost::asio::serial_port port(io);
-    port.open(serial_port);
-    if (!port.is_open()) {
-        ROS_ERROR("Could not open serial port %s", serial_port.c_str());
-        return;
-    }
-
-    port.set_option(boost::asio::serial_port_base::baud_rate(57600));
-    port.set_option(boost::asio::serial_port_base::character_size(8));
-    port.set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
-    port.set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
 
     // Write as comma separated values
     std::string write_str = std::to_string(msg.allocs[0]);
@@ -91,18 +93,13 @@ void SerialThrusters::thruster_allocs_callback(const custom_msgs::PWMAllocs &msg
     write_str += "\n";
 
     ROS_INFO("Writing to serial: %s", write_str.c_str());
+
     std::size_t bytes_written =  boost::asio::write(port, boost::asio::buffer(write_str.c_str(), write_str.size()));
 
     if (bytes_written != write_str.size()) {
         ROS_ERROR("Could not write to serial port %s", serial_port.c_str());
     }
 
-    port.close();
-
-    ROS_INFO("Wrote to serial");
-
-    //Delay for 100ms to allow the thrusters to process the data
-    usleep(100000);
-
-
+    // Sleep for 10ms to allow the thrusters to process the data
+    usleep(10000);
 }
