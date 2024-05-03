@@ -80,12 +80,21 @@ void loop()
             int comma = input.indexOf(',');
             if (comma == -1)
             {
-                pwms[j] = input.toInt();
+                uint16_t val = input.toInt();
+                if (val < THRUSTER_PWM_MIN || val > THRUSTER_PWM_MAX)
+                {
+                    val = THRUSTER_STOP_PWM;
+                }
                 break;
             }
             else
             {
-                pwms[j] = input.substring(0, comma).toInt();
+                uint16_t val = input.substring(0, comma).toInt();
+                if (val < THRUSTER_PWM_MIN || val > THRUSTER_PWM_MAX)
+                {
+                    val = THRUSTER_STOP_PWM;
+                }
+                pwms[j] = val;
                 input = input.substring(comma + 1);
             }
             j++;
