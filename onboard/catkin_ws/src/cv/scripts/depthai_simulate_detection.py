@@ -168,6 +168,13 @@ class DepthAISimulateDetection:
             return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
 
         latest_img = self.image_tools.convert_to_cv2(img_msg)
+        
+        # ccm = np.array([[1.047912, 0.022906, -0.050127],
+        #             [0.029542, 0.990484, -0.017060],
+        #             [-0.009234, 0.015043, 0.752131]])
+
+        # # Apply the color correction matrix
+        # latest_img = cv2.transform(latest_img, ccm)
 
         # Input queue will be used to send video frames to the device.
         input_queue = self.device.getInputQueue("camIn")
@@ -264,6 +271,7 @@ class DepthAISimulateDetection:
     def run(self):
         """ Run detection on the latest img message """
         with depthai_camera_connect.connect(self.pipeline) as device:
+            rospy.loginfo('Connected to DAI camera!')
             self.device = device
 
             if self._feed_is_still_image():
