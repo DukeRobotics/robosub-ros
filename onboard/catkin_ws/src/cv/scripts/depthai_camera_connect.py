@@ -23,7 +23,7 @@ def connect(pipeline):
     device = None
 
     # IP address used for local connection
-    device_info = dai.DeviceInfo("169.254.1.222")
+    device_info = dai.DeviceInfo("10.144.27.171")
 
     # Number of attempts that will be made to connect to the camera
     total_tries = 5
