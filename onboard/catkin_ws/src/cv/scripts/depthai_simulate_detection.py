@@ -269,7 +269,6 @@ class DepthAISimulateDetection:
     def run(self):
         """ Run detection on the latest img message """
         with depthai_camera_connect.connect(self.pipeline) as device:
-            rospy.loginfo('Connected to DAI camera!')
             self.device = device
 
             if self._feed_is_still_image():
