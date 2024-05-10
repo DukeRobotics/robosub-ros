@@ -1,3 +1,8 @@
+"""
+Adapted from dive-color-corrector by bornfree
+https://github.com/bornfree/dive-color-corrector/blob/81f2664f4da4c025454dcff38b957fb43ca41b86/correct.py
+"""
+
 import sys
 import numpy as np
 import cv2
