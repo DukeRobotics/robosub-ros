@@ -13,6 +13,7 @@ from sensor_msgs.msg import CompressedImage
 from custom_msgs.msg import CVObject
 from image_tools import ImageTools
 import rostopic
+import correct
 
 
 class DepthAISimulateDetection:
@@ -169,12 +170,9 @@ class DepthAISimulateDetection:
 
         latest_img = self.image_tools.convert_to_cv2(img_msg)
         
-        # ccm = np.array([[1.047912, 0.022906, -0.050127],
-        #             [0.029542, 0.990484, -0.017060],
-        #             [-0.009234, 0.015043, 0.752131]])
-
-        # # Apply the color correction matrix
-        # latest_img = cv2.transform(latest_img, ccm)
+        # Underwater color correction
+        mat = cv2.cvtColor(latest_img, cv2.COLOR_BGR2RGB)
+        latest_img = correct.correct(mat)
 
         # Input queue will be used to send video frames to the device.
         input_queue = self.device.getInputQueue("camIn")
