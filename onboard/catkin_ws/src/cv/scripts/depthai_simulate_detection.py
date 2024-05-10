@@ -169,7 +169,7 @@ class DepthAISimulateDetection:
             return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
 
         latest_img = self.image_tools.convert_to_cv2(img_msg)
-        
+
         # Underwater color correction
         mat = cv2.cvtColor(latest_img, cv2.COLOR_BGR2RGB)
         latest_img = correct.correct(mat)
