@@ -9,6 +9,8 @@ import depthai as dai
 import numpy as np
 from utils import DetectionVisualizer
 from image_tools import ImageTools
+import cv2
+import correct
 
 from custom_msgs.msg import CVObject, SonarSweepRequest, SonarSweepResponse
 from sensor_msgs.msg import CompressedImage
@@ -112,13 +114,15 @@ class DepthAISpatialDetector:
         xout_nn = pipeline.create(dai.node.XLinkOut)
         xout_nn.setStreamName("detections")
 
-        if self.queue_rgb:
-            xout_rgb = pipeline.create(dai.node.XLinkOut)
-            xout_rgb.setStreamName("rgb")
+        xout_rgb = pipeline.create(dai.node.XLinkOut)
+        xout_rgb.setStreamName("rgb")
 
         if self.queue_depth:
             xout_depth = pipeline.create(dai.node.XLinkOut)
             xout_depth.setStreamName("depth")
+
+        xin_nn_input = pipeline.create(dai.node.XLinkIn)
+        xin_nn_input.setStreamName("nn_input")
 
         # Camera properties
         cam_rgb.setPreviewSize(model['input_size'])
@@ -154,7 +158,7 @@ class DepthAISpatialDetector:
         mono_left.out.link(stereo.left)
         mono_right.out.link(stereo.right)
 
-        cam_rgb.preview.link(spatial_detection_network.input)
+        xin_nn_input.out.link(spatial_detection_network.input)
 
         if self.queue_rgb:
             # To sync RGB frames with NN, link passthrough to xout instead of preview
@@ -248,8 +252,7 @@ class DepthAISpatialDetector:
             return
 
         # Assign output queues
-        if self.queue_rgb:
-            self.output_queues["rgb"] = device.getOutputQueue(name="rgb", maxSize=1, blocking=False)
+        self.output_queues["rgb"] = device.getOutputQueue(name="rgb", maxSize=1, blocking=False)
 
         if self.queue_depth:
             self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
@@ -274,9 +277,28 @@ class DepthAISpatialDetector:
         inDet = self.output_queues["detections"].get()
         detections = inDet.detections
 
+        # Format a cv2 image to be sent to the device
+        def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
+            return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
+
         if self.queue_rgb:
             inPreview = self.output_queues["rgb"].get()
             frame = inPreview.getCvFrame()
+
+            # Color correction
+            mat = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame = correct.correct(mat)
+
+            # Input queue will be used to send video frames to the device.
+            input_queue = self.device.getInputQueue("nn_input")
+
+            # Send a message to the ColorCamera to capture a still image
+            img = dai.ImgFrame()
+            img.setType(dai.ImgFrame.Type.BGR888p)
+            img.setData(to_planar(frame, (416, 416)))
+            img.setWidth(self.model['input_size'][0])
+            img.setHeight(self.model['input_size'][1])
+            input_queue.send(img)
 
             # Publish raw RGB feed
             if self.rgb_raw:
