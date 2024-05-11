@@ -253,7 +253,7 @@ class DepthAISpatialDetector:
             self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
 
         self.output_queues["detections"] = device.getOutputQueue(name="detections", maxSize=1, blocking=False)
-        
+
         self.input_queue = device.getInputQueue(name="nn_input")
 
         self.connected = True  # Flag that the output queues have been initialized
@@ -270,14 +270,11 @@ class DepthAISpatialDetector:
             rospy.logwarn("Output queues are not initialized so cannot detect. Call init_output_queues first.")
             return
 
-
         # Format a cv2 image to be sent to the device
         def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
             return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
 
-        rospy.loginfo('trying to get rgb')
         inPreview = self.output_queues["rgb"].get()
-        rospy.loginfo('success!')
         frame = inPreview.getCvFrame()
 
         # Publish raw RGB feed
@@ -309,13 +306,11 @@ class DepthAISpatialDetector:
             self.depth_publisher.publish(image_msg_depth)
 
         # Get detections from output queues
-        rospy.loginfo('trying to get detection...')
         inDet = self.output_queues["detections"].tryGet()
         if not inDet:
             return
-        rospy.loginfo('success!')
         detections = inDet.detections
-        
+
         # Publish detections feed
         if self.rgb_detections:
             detections_visualized = self.detection_visualizer.visualize_detections(frame, detections)
@@ -463,12 +458,9 @@ class DepthAISpatialDetector:
         self.init_publishers(self.running_model)
 
         with depthai_camera_connect.connect(self.pipeline) as device:
-            rospy.loginfo("connected")
             self.init_queues(device)
 
-            rospy.loginfo('initialized output queues')
             while not rospy.is_shutdown():
-                rospy.loginfo('detect loop')
                 self.detect()
 
         return True
