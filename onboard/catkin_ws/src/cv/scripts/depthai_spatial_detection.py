@@ -42,6 +42,7 @@ class DepthAISpatialDetector:
         self.using_sonar = rospy.get_param("~using_sonar")
         self.show_class_name = rospy.get_param("~show_class_name")
         self.show_confidence = rospy.get_param("~show_confidence")
+        self.correct_color = rospy.get_param("~correct_color")
 
         with open(rr.get_filename(DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH,
                                   use_protocol=False)) as f:
@@ -285,8 +286,9 @@ class DepthAISpatialDetector:
             self.rgb_preview_publisher.publish(frame_img_msg)
 
         # Underwater color correction
-        mat = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame = correct.correct(mat)
+        if self.correct_color:
+            mat = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame = correct.correct(mat)
 
         # Input queue will be used to send video frames to the device.
         # input_queue = self.device.getInputQueue("nn_input")

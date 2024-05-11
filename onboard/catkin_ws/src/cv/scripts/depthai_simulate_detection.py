@@ -30,6 +30,8 @@ class DepthAISimulateDetection:
         self.feed_path = rospy.get_param("~feed_path")
         self.latest_img = None
 
+        self.correct_color = rospy.get_param("~correct_color")
+
         # No feed path is passed in -- throw an expcetion
         if self.feed_path == "":
             rospy.logerr("No feed path variable given")
@@ -171,8 +173,9 @@ class DepthAISimulateDetection:
         latest_img = self.image_tools.convert_to_cv2(img_msg)
 
         # Underwater color correction
-        mat = cv2.cvtColor(latest_img, cv2.COLOR_BGR2RGB)
-        latest_img = correct.correct(mat)
+        if self.correct_color:
+            mat = cv2.cvtColor(latest_img, cv2.COLOR_BGR2RGB)
+            latest_img = correct.correct(mat)
 
         # Input queue will be used to send video frames to the device.
         input_queue = self.device.getInputQueue("camIn")
