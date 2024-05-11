@@ -284,7 +284,7 @@ class DepthAISpatialDetector:
             frame_img_msg = self.image_tools.convert_to_ros_compressed_msg(frame)
             self.rgb_preview_publisher.publish(frame_img_msg)
 
-        # Color correction
+        # Underwater color correction
         mat = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = correct.correct(mat)
 
