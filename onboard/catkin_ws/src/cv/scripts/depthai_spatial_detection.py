@@ -287,9 +287,6 @@ class DepthAISpatialDetector:
             mat = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame = correct.correct(mat)
 
-        # Input queue will be used to send video frames to the device.
-        # input_queue = self.device.getInputQueue("nn_input")
-
         # Send a message to the ColorCamera to capture a still image
         img = dai.ImgFrame()
         img.setType(dai.ImgFrame.Type.BGR888p)
