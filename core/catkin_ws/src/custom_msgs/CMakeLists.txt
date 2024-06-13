@@ -31,6 +31,7 @@ add_message_files(
   SonarSweepRequest.msg
   SonarSweepResponse.msg
   SystemUsage.msg
+  TaskUpdate.msg
   ThrusterAllocs.msg
 )
 

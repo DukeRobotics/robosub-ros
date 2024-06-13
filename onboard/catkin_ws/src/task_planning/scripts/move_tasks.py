@@ -1,249 +1,108 @@
-from geometry_msgs.msg import Pose, Quaternion, Twist, Point, Vector3
-from tf.transformations import quaternion_from_euler
-import task_utils
-import smach
+import copy
+from typing import Optional
+
 import rospy
+from geometry_msgs.msg import Pose, Twist
+
+from interface.controls import Controls
+from interface.state import State
+from task import task, Yield, Task
+from utils import geometry_utils, coroutine_utils
 
 
-class MoveToPoseGlobalTask(smach.State):
-    """Move to pose given in global coordinates."""
+@task
+async def move_to_pose_global(self: Task, pose: Pose) -> Task[None, Optional[Pose], None]:
+    """
+    Move to a global pose in the "odom" frame. Returns when the robot is at the given pose with zero velocity, within
+    a small tolerance.
 
-    def __init__(self, x, y, z, roll, pitch, yaw, controls, input_keys=[]):
-        """
-        Parameters:
-            x (float): x-component of position
-            y (float): y-component of position
-            z (float): z-component of position
-            roll (float): roll-component of orientation
-            pitch (float): pitch-component of orientation
-            yaw (float): yaw-component of orientation
-            controls (interface.ControlsInterface): interface to interact with controls
-        """
-        super(MoveToPoseGlobalTask, self).__init__(outcomes=['done', 'continue'], input_keys=input_keys)
+    Args:
+        pose: Global pose to move to
 
-        self.controls = controls
-        self.last_pose = None
-        self.desired_pose = Pose()
-        self.desired_pose.position = Point(x=x, y=y, z=z)
-        self.desired_pose.orientation = Quaternion(
-            *
-            quaternion_from_euler(
-                roll,
-                pitch,
-                yaw))
+    Send:
+        New global pose to move to
+    """
+    Controls().start_new_move()
+    Controls().publish_desired_position(pose)
+    while not geometry_utils.stopped_at_pose(State().state.pose.pose, pose, State().state.twist.twist):
+        # Allow users of this task to update the pose
+        new_pose = await Yield()
+        if new_pose is not None:
+            pose = new_pose
 
-    def execute(self, _):
-        new_pose = self._get_pose()
-        # Only resend the movement goal if our desired pose has changed
-        if self.last_pose is None or not task_utils.at_pose(self.last_pose, new_pose, 0.0001, 0.0001):
-            self.last_pose = new_pose
-            self.controls.move_to_pose_global(new_pose)
-
-    def run(self, userdata):
-        print("moving to ", self.desired_pose)
-        rate = rospy.Rate(15)
-        while not (
-            self.state and task_utils.stopped_at_pose(
-                self.state.pose.pose,
-                self.getPose(),
-                self.state.twist.twist)):
-            self.publish_desired_pose_global(self.getPose())
-            rate.sleep()
-        return "done"
-
-    def getPose(self):
-        return self.desired_pose
+        Controls().publish_desired_position(pose)
 
 
-class MoveToUserDataPoseGlobalTask(MoveToPoseGlobalTask):
-    """Move to pose passed through userdata given in global coordinates."""
+@task
+async def move_to_pose_local(self: Task, pose: Pose) -> Task[None, Optional[Pose], None]:
+    """
+    Move to local pose in the "base_link" frame. Returns when the robot is at the given pose with zero velocity, within
+    a small tolerance.
 
-    def __init__(self, controls):
-        """
-        Parameters:
-            controls (interface.ControlsInterface): interface to interact with controls
-        """
-        super(MoveToUserDataPoseGlobalTask, self).__init__(0, 0, 0, 0, 0, 0, controls, input_keys=['pose'])
+    Args:
+        pose: Local pose to move to
 
-    def execute(self, userdata):
-        # Get pose from userdata
-        self.desired_pose = userdata.pose
-
-        return super(MoveToUserDataPoseGlobalTask, self).execute(userdata)
-
-
-class MoveToPoseLocalTask(MoveToPoseGlobalTask):
-    """Move to pose given in local coordinates."""
-
-    def __init__(self, x, y, z, roll, pitch, yaw, controls, listener, input_keys=[]):
-        """
-        Move to pose given in local coordinates.
-
-        Parameters:
-            x (float): x-component of position
-            y (float): y-component of position
-            z (float): z-component of position
-            roll (float): roll-component of orientation
-            pitch (float): pitch-component of orientation
-            yaw (float): yaw-component of orientation
-            controls (interface.ControlsInterface): interface to interact with controls
-            listener (tf.TransformListener): transform listener to go from local to global
-        """
-        super(MoveToPoseLocalTask, self).__init__(x, y, z, roll, pitch, yaw, controls, input_keys=input_keys)
-        self.listener = listener
-        self.first_pose = True
-
-    def _get_pose(self):
-        if self.first_pose:
-            self.local_pose = task_utils.transform_pose(self.listener, 'base_link', 'odom', self.desired_pose)
-            self.first_pose = False
-        return self.local_pose
+    Send:
+        New local pose to move to
+    """
+    global_pose = geometry_utils.local_pose_to_global(State().tfBuffer, pose)
+    return await coroutine_utils.transform(
+        move_to_pose_global(global_pose, parent=self),
+        send_transformer=lambda p: geometry_utils.local_pose_to_global(State().tfBuffer, p) if p else p)
 
 
-class MoveToUserDataPoseLocalTask(MoveToPoseLocalTask):
-    """Move to pose passed through userdata given in local coordinates."""
+@task
+async def move_with_velocity(self: Task, twist: Twist) -> Task[None, Optional[Twist], None]:
+    """
+    Move with a given velocity. Returns when the robot is moving with the given velocity.
 
-    def __init__(self, controls, listener):
-        """
-        Move to pose passed through userdata given in local coordinates.
+    Args:
+        twist: Desired velocity
 
-        Parameters:
-            controls (interface.ControlsInterface): interface to interact with controls
-            listener (tf.TransformListener): transform listener to go from local to global
-        """
-        super(MoveToUserDataPoseLocalTask, self).__init__(0, 0, 0, 0, 0, 0, controls, listener, input_keys=['pose'])
+    Send:
+        New desired velocity to move with
+    """
+    Controls().start_new_move()
+    Controls().publish_desired_velocity(twist)
+    while not geometry_utils.at_vel(State().state.twist.twist, twist):
+        new_twist = await Yield()
+        if new_twist is not None:
+            twist = new_twist
 
-    def execute(self, userdata):
-        # Get pose from userdata
-        self.desired_pose = userdata.pose
-
-        return super(MoveToUserDataPoseLocalTask, self).execute(userdata)
-
-
-class AllocateVelocityLocalTask(smach.State):
-    """Allocate specified velocity in a direction relative to the robot"""
-
-    def __init__(self, x, y, z, roll, pitch, yaw, controls, input_keys=[]):
-        """
-        Allocate specified velocity in a direction relative to the robot
-
-        Parameters:
-            x (float): x-component of linear velocity
-            y (float): y-component of linear velocity
-            z (float): z-component of linear velocity
-            roll (float): roll-component of angular velocity
-            pitch (float): pitch-component of angular velocity
-            yaw (float): yaw-component of angular velocity
-            controls (interface.ControlsInterface): interface to interact with controls
-        """
-        super(AllocateVelocityLocalTask, self).__init__(outcomes=['done'], input_keys=input_keys)
-        self.controls = controls
-        linear = Vector3(x, y, z)
-        angular = Vector3(roll, pitch, yaw)
-        self.desired_twist = Twist(linear=linear, angular=angular)
-        self.last_twist = None
-
-    def execute(self, _):
-        new_twist = self._get_twist()
-
-        # Only resend the movement goal if our desired pose has changed
-        if self.last_twist is None or not task_utils.at_vel(self.last_twist, new_twist, 0.0001, 0.0001):
-            self.last_twist = new_twist
-            self.controls.move_with_velocity(new_twist)
-
-        return 'done'
-
-    def _get_twist(self):
-        return self.desired_twist
+        Controls().publish_desired_velocity(twist)
 
 
-class AllocateUserDataVelocityLocalTask(AllocateVelocityLocalTask):
-    """Allocate specified velocity passed through userdata in a direction relative to the robot"""
+@task
+async def move_with_power_for_seconds(self: Task, power: Twist, seconds: float) -> Task[None, Optional[Twist], None]:
+    """
+    Move with a given power for a given number of seconds. Returns when the time has elapsed.
 
-    def __init__(self, controls):
-        """
-        Parameters:
-            controls (interface.ControlsInterface): interface to interact with controls
-        """
-        super(AllocateUserDataVelocityLocalTask, self).__init__(0, 0, 0, 0, 0, 0, controls, input_keys=['twist'])
-        self.first_pose = True
+    Args:
+        power: Desired power
+        seconds: Number of seconds to move with the given power
 
-    def execute(self, userdata):
-        # Get pose from userdata if supplied
-        self.desired_twist = userdata.twist
+    Send:
+        New desired power to move with
+    """
+    Controls().publish_desired_power(power)
+    endtime = rospy.time.now() + seconds
+    while (rospy.time.now() < endtime):
+        new_power = await Yield()
+        if new_power is not None:
+            power = new_power
 
-    def run(self, userdata):
-        # rospy.loginfo("publishing desired twist...")
-        rate = rospy.Rate(15)
-        while True:
-            if self.preempt_requested():
-                self.service_preempt()
-                return 'preempted'
-            self.publish_desired_twist(self.desired_twist)
-            rate.sleep()
+        Controls().publish_desired_power(power)
 
 
-class AllocateVelocityGlobalTask(AllocateVelocityLocalTask):
-    """Allocate specified velocity in a direction relative to the global space"""
+@task
+async def hold_position(self: Task) -> Task[bool, None, None]:
+    """
+    Hold the position and orientation the robot is at when this task is first run. Does not return.
 
-    def __init__(self, x, y, z, roll, pitch, yaw, controls, listener, input_keys=[]):
-        """
-        Parameters:
-            x (float): x-component of linear velocity
-            y (float): y-component of linear velocity
-            z (float): z-component of linear velocity
-            roll (float): roll-component of angular velocity
-            pitch (float): pitch-component of angular velocity
-            yaw (float): yaw-component of angular velocity
-            controls (interface.ControlsInterface): interface to interact with controls
-            listener (tf.TransformListener): transform listener to go from global to local
-        """
-        super(AllocateVelocityGlobalTask, self).__init__(x, y, z, roll, pitch, yaw, controls, input_keys=input_keys)
-        self.listener = listener
-        self.first_twist = True
-
-    def _get_twist(self):
-        if self.first_twist:
-            self.global_twist = task_utils.transform_pose(self.listener, 'odom', 'base_link', self.desired_twist)
-            self.first_twist = False
-        return self.global_twist
-
-
-class AllocateUserDataVelocityGlobalTask(AllocateVelocityGlobalTask):
-    """Allocate specified velocity passed through userdata in a direction relative to the global space"""
-
-    def __init__(self, controls):
-        """
-        Parameters:
-            controls (interface.ControlsInterface): interface to interact with controls
-        """
-        super(AllocateUserDataVelocityGlobalTask, self).__init__(0, 0, 0, 0, 0, 0, controls, input_keys=['twist'])
-
-    def execute(self, userdata):
-        # Get pose from userdata if supplied
-        self.desired_twist = userdata.twist
-
-        return super(AllocateUserDataVelocityGlobalTask, self).execute(userdata)
-
-
-class HoldPositionTask(smach.State):
-    """Hold position at the place the robot is at the first time this runs"""
-
-    def __init__(self, controls):
-        """
-        Hold position at the place the robot is at the first time this runs
-
-        Parameters:
-            controls (interface.ControlsInterface): interface to interact with controls
-        """
-        super(HoldPositionTask, self).__init__(outcomes=['done'])
-        self.controls = controls
-        self.first_pose = True
-
-    def execute(self, userdata):
-        if self.first_pose:
-            self.hold_pose = self.controls.get_state().pose.pose
-            self.controls.move_to_pose_global(self.hold_pose)
-            self.first_pose = False
-
-        return 'done'
+    Yields:
+        If the robot is at the pose it should be holding with zero velocity, within a small tolerance
+    """
+    pose_to_hold = copy.deepcopy(State().state.pose.pose)
+    while True:
+        await Yield(geometry_utils.stopped_at_pose(State().state.pose.pose, pose_to_hold, State().state.twist.twist))
+        Controls().publish_desired_position(pose_to_hold)

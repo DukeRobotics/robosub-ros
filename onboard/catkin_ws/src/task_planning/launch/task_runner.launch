@@ -1,6 +1,6 @@
 <launch>
-	<!-- Commenting node because Task Planning is quite broken at the moment/-->
-	<!-- Need to debug smach in digestible chunks. This will be a large effort./-->
-	<node pkg="task_planning" name="task_runner" type="task_runner.py" output="screen" />
-	<!-- <node pkg="task_planning" name="test_move" type="test_move.py" output="screen" /> -->
+	<arg name="bypass" default="False" doc='{"type":"bool","allowEmpty":true,"help":"Whether to bypass rospy.wait_for_service()"}'/>
+	<node pkg="task_planning" name="task_runner" type="task_runner.py" output="screen">
+		<param name="bypass" value="$(arg bypass)" />
+	</node>
 </launch>
