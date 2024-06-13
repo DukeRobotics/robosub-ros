@@ -1,0 +1,3 @@
+<launch>
+	<node name="ping" pkg="data_pub" type="ping1D.py" />
+</launch>
