@@ -1,5 +1,6 @@
 <launch>
 	<include file="$(find data_pub)/launch/pub_dvl.launch" />
-	<include file="$(find data_pub)/launch/pub_sensors.launch" />
 	<include file="$(find data_pub)/launch/pub_ping1D.launch" />
+	<include file="$(find data_pub)/launch/pub_pressure_voltage.launch" />
+	<include file="$(find data_pub)/launch/pub_servo_sensors.launch" />
 </launch>
