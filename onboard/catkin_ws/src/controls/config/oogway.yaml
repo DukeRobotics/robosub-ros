@@ -1,9 +1,9 @@
 pid:
   position:
     x:
-      Kp: 4
+      Kp: 1.8
       Ki: 0
-      Kd: 5
+      Kd: 1.2
       Ff: 0
       control_effort:
         min: -1
@@ -11,9 +11,9 @@ pid:
       derivative_type: 1
       error_ramp_rate: 1000
     y:
-      Kp: 3.5
+      Kp: 1.8
       Ki: 0
-      Kd: 5
+      Kd: 1.2
       Ff: 0
       control_effort:
         min: -1
@@ -21,9 +21,9 @@ pid:
       derivative_type: 1
       error_ramp_rate: 1000
     z:
-      Kp: 1
+      Kp: 1.9
       Ki: 0
-      Kd: 1.5
+      Kd: 0
       Ff: 0
       control_effort:
         min: -1
@@ -31,9 +31,9 @@ pid:
       derivative_type: 1
       error_ramp_rate: 1000
     roll:
-      Kp: 0.7
+      Kp: 0.6
       Ki: 0
-      Kd: 0.5
+      Kd: 0.4
       Ff: 0
       control_effort:
         min: -1
@@ -41,9 +41,9 @@ pid:
       derivative_type: 1
       error_ramp_rate: 1000
     pitch:
-      Kp: 0.7
+      Kp: 0.6
       Ki: 0
-      Kd: 0.5
+      Kd: 0.4
       Ff: 0
       control_effort:
         min: -1
@@ -204,7 +204,7 @@ desired_power_limits:
 static_power_global:
   x: 0
   y: 0
-  z: -0.19
+  z: -0.5
 power_scale_factor: 1
 thrusters:
   - name: bottom_front_left
