@@ -23,6 +23,7 @@ add_message_files(
   PIDInfo.msg
   PIDTerms.msg
   PWMAllocs.msg
+  RectInfo.msg
   RemoteLaunchInfo.msg
   RunningNode.msg
   ServoAngleArray.msg
