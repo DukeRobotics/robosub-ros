@@ -3,6 +3,7 @@ import yaml
 import resource_retriever as rr
 from custom_msgs.msg import CVObject
 from geometry_msgs.msg import Pose
+from std_msgs.msg import Float64
 from utils.other_utils import singleton
 
 
@@ -33,6 +34,12 @@ class CV:
                 topic = f"{model['topic']}{self.CV_CAMERA}/{model_class}"
                 rospy.Subscriber(topic, CVObject, self._on_receive_cv_data, model_class)
 
+        rospy.Subscriber("/cv/bottom/rect_angle", Float64, self._on_receive_rect_angle)
+        self.rect_angles = []
+
+        rospy.Subscriber("/cv/bottom/rect_dist", Float64, self._on_receive_rect_dist)
+        self.rect_dists = []
+
     def _on_receive_cv_data(self, cv_data: CVObject, object_type: str) -> None:
         """
         Parse the received CV data and store it
@@ -45,6 +52,36 @@ class CV:
 
     # TODO add useful methods for getting data
 
+    def _on_receive_rect_angle(self, angle: Float64) -> None:
+        """
+        Parse the received angle of the blue rectangle and store it
+
+        Args:
+            angle: The received angle of the blue rectangle in degrees
+        """
+        filter_len = 10
+        if len(self.rect_angles) == filter_len:
+            self.rect_angles.pop(0)
+
+        self.rect_angles.append(angle.data)
+
+        self.cv_data["blue_rectangle_angle"] = sum(self.rect_angles) / len(self.rect_angles)
+
+    def _on_receive_rect_dist(self, dist: Float64) -> None:
+        """
+        Parse the received dist of the blue rectangle and store it
+
+        Args:
+            dist: The received dist of the blue rectangle in pixels
+        """
+        filter_len = 10
+        if len(self.rect_dists) == filter_len:
+            self.rect_dists.pop(0)
+
+        self.rect_dists.append(dist.data)
+
+        self.cv_data["blue_rectangle_dist"] = sum(self.rect_dists) / len(self.rect_dists)
+
     def get_pose(self, name: str) -> Pose:
         """
         Get the pose of a detected object
@@ -55,7 +92,7 @@ class CV:
         Returns:
             The pose of the object
         """
-        data = self.get_data(name)
+        data = self.cv_data[name]
         pose = Pose()
         pose.position.x = data.coords.x
         pose.position.y = data.coords.y
