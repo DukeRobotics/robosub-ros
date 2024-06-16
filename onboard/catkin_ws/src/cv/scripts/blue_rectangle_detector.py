@@ -26,15 +26,12 @@ class BlueRectangleDetector:
             # Process the frame to find the angle of the blue rectangle and draw the rectangle
             angle, distance, rect_info, processed_frame = self.get_angle_and_distance_of_rectangle(frame)
             if angle is not None:
-                rospy.loginfo(f"Detected angle: {angle} degrees")
                 self.angle_pub.publish(Float64(data=angle))
 
             if distance is not None:
-                rospy.loginfo(f"Distance from center: {distance} pixels")
                 self.distance_pub.publish(Float64(data=distance))
 
             if rect_info is not None:
-                rospy.loginfo(f"Rectangle info: {rect_info}")
                 self.rect_info_pub.publish(rect_info)
 
             # Publish the processed frame with the rectangle drawn
