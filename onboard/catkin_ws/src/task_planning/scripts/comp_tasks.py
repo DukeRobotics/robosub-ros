@@ -18,6 +18,7 @@ def get_sign(value):
     else:
         return 0
 
+RECT_HEIGHT_METERS = 0.3048
 
 @task
 async def prequal_task(self: Task) -> Task[None, None, None]:
@@ -72,32 +73,55 @@ async def prequal_task(self: Task) -> Task[None, None, None]:
     #     rospy.loginfo(f"Moved to {direction}")
 
     async def track_blue_rectangle(distance, direction):
-        for i in range(distance):
+        rospy.loginfo(f"track_blue_rectangle {distance} {direction}")
+        repeats = math.ceil(distance)
+        total_dist = 0
+        for i in range(repeats):
+            step = distance % 1 if i == repeats-1 else 1
             await move_tasks.move_to_pose_local(
-                geometry_utils.create_pose(1 * direction, 0, 0, 0, 0, 0),
+                geometry_utils.create_pose(step * direction, 0, 0, 0, 0, 0),
                 parent=self)
 
-            rospy.loginfo(f"Moved forward {i}")
+            total_dist += step
+            rospy.loginfo(f"Moved forward {total_dist}")
 
             angle = CV().cv_data["blue_rectangle_angle"] * -1
-            rad_angle = math.radians(angle)
-            await move_tasks.move_to_pose_local(
-                geometry_utils.create_pose(0, 0, 0, 0, 0, rad_angle),
-                parent=self)
-            rospy.loginfo(f"Rotate {angle}")
-
-            dist = CV().cv_data["blue_rectangle_dist"] - 75
-            if abs(dist) > 100:
-                correction = 0.2 * get_sign(dist)
+            if abs(angle) > 0:
+                rad_angle = math.radians(angle)
                 await move_tasks.move_to_pose_local(
-                    geometry_utils.create_pose(0, correction, 0, 0, 0, 0),
+                    geometry_utils.create_pose(0, 0, 0, 0, 0, rad_angle),
                     parent=self)
-                rospy.loginfo(f"Correction {correction}")
+                rospy.loginfo(f"Rotate {angle}")
 
-    await track_blue_rectangle(15, 1)
+            dist_pixels = CV().cv_data["blue_rectangle_dist"]
+            height_pixels = CV().cv_data["blue_rectangle_height"]
+            dist_meters = dist_pixels * RECT_HEIGHT_METERS / height_pixels
+            if abs(dist_meters) > 0:
+                await move_tasks.move_to_pose_local(
+                    geometry_utils.create_pose(0, dist_meters, 0, 0, 0, 0),
+                    parent=self)
+                rospy.loginfo(f"Correction {dist_meters}")
+
+    await track_blue_rectangle(2.5, 1)
+
+    await move_tasks.move_to_pose_local(
+        geometry_utils.create_pose(0, 0, -0.2, 0, 0, 0),
+        parent=self)
+    rospy.loginfo("Moved to (0, 0, -0.2)")
+
+    await track_blue_rectangle(3, 1)
+
+    await move_tasks.move_to_pose_local(
+        geometry_utils.create_pose(0, 0, 0.2, 0, 0, 0),
+        parent=self)
+    rospy.loginfo("Moved to (0, 0, 0.2)")
+
+    await track_blue_rectangle(7, 1)
 
     directions = [
-        (0, 1, 0),
+        (0, -0.5, 0),
+        (1.5, 0, 0),
+        (0, 1.5, 0),
         (-1, 0, 0),
         (-1, 0, 0),
         (0, -1, 0),
