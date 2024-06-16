@@ -1,7 +1,7 @@
 import rospy
 import yaml
 import resource_retriever as rr
-from custom_msgs.msg import CVObject
+from custom_msgs.msg import CVObject, RectInfo
 from geometry_msgs.msg import Pose
 from std_msgs.msg import Float64
 from utils.other_utils import singleton
@@ -39,6 +39,9 @@ class CV:
 
         rospy.Subscriber("/cv/bottom/rect_dist", Float64, self._on_receive_rect_dist)
         self.rect_dists = []
+
+        rospy.Subscriber("/cv/bottom/rect", RectInfo, self._on_receive_rect_info)
+        self.rect_heights = []
 
     def _on_receive_cv_data(self, cv_data: CVObject, object_type: str) -> None:
         """
@@ -81,6 +84,21 @@ class CV:
         self.rect_dists.append(dist.data)
 
         self.cv_data["blue_rectangle_dist"] = sum(self.rect_dists) / len(self.rect_dists)
+
+    def _on_receive_rect_info(self, rect_info: RectInfo) -> None:
+        """
+        Parse the received info of the blue rectangle and store it
+
+        Args:
+            rect_info: The received info of the blue rectangle
+        """
+        filter_len = 10
+        if len(self.rect_heights) == filter_len:
+            self.rect_heights.pop(0)
+
+        self.rect_heights.append(rect_info.height)
+
+        self.cv_data["blue_rectangle_height"] = sum(self.rect_heights) / len(self.rect_heights)
 
     def get_pose(self, name: str) -> Pose:
         """
