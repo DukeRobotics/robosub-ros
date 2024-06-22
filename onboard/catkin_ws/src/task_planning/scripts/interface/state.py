@@ -20,6 +20,7 @@ class State:
 
     # ROS topics for the state and resetting the pose
     STATE_TOPIC = 'state'
+    DEPTH_TOPIC = '/sensors/depth'
     RESET_POSE_SERVICE = '/set_pose'
 
     def __init__(self, bypass: bool = False, tfBuffer: Buffer = None):
@@ -38,12 +39,21 @@ class State:
             rospy.wait_for_service(self.RESET_POSE_SERVICE)
         self._reset_pose = rospy.ServiceProxy(self.RESET_POSE_SERVICE, SetPose)
 
+        rospy.Subscriber(self.DEPTH_TOPIC, PoseWithCovarianceStamped, self._on_receive_depth)
+
     @property
     def state(self):
         """
         The state
         """
         return self._state
+
+    @property
+    def depth(self):
+        """
+        The depth from the pressure sensor
+        """
+        return self._depth
 
     @property
     def tfBuffer(self):
@@ -54,6 +64,9 @@ class State:
 
     def _on_receive_state(self, state):
         self._state = state
+
+    def _on_receive_depth(self, depth_msg):
+        self._depth = depth_msg.pose.pose.position.z
 
     def reset_pose(self):
         """
