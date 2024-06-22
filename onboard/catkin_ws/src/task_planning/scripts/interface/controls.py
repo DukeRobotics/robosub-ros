@@ -1,6 +1,6 @@
 import rospy
 
-from std_srvs.srv import Trigger
+from std_srvs.srv import Trigger, SetBool
 from geometry_msgs.msg import Pose, Twist
 from custom_msgs.msg import ControlTypes, ThrusterAllocs
 from custom_msgs.srv import SetControlTypes
@@ -32,6 +32,7 @@ class Controls:
     # ROS service name for setting control types
     CONTROL_TYPES_SERVICE = 'controls/set_control_types'
     RESET_PID_LOOPS_SERVICE = 'controls/reset_pid_loops'
+    ENABLE_CONTROLS_SERVICE = 'controls/enable'
     DESIRED_POSITION_TOPIC = 'controls/desired_position'
     DESIRED_VELOCITY_TOPIC = 'controls/desired_velocity'
     DESIRED_POWER_TOPIC = 'controls/desired_power'
@@ -49,6 +50,8 @@ class Controls:
         if not bypass:
             rospy.wait_for_service(self.RESET_PID_LOOPS_SERVICE)
         self._reset_pid_loops = rospy.ServiceProxy(self.RESET_PID_LOOPS_SERVICE, Trigger)
+
+        self._enable_controls = rospy.ServiceProxy(self.ENABLE_CONTROLS_SERVICE, SetBool)
 
         self._desired_position_pub = rospy.Publisher(self.DESIRED_POSITION_TOPIC, Pose, queue_size=1)
         self._desired_velocity_pub = rospy.Publisher(self.DESIRED_VELOCITY_TOPIC, Twist, queue_size=1)
@@ -83,6 +86,15 @@ class Controls:
         self.num_thrusters = len(full_thruster_dict['thrusters'])
         self.thruster_dict = thruster_dict
         return thruster_dict
+
+    def call_enable_controls(self, enable: bool):
+        """"
+        Enable or disable controls.
+
+        Args:
+            enable: Whether to enable (true) or disable (false).
+        """
+        self._enable_controls(enable)
 
     def _set_all_axes_control_type(self, type: ControlTypes) -> None:
         """
