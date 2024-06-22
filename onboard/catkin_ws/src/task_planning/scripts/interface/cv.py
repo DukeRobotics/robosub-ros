@@ -43,6 +43,8 @@ class CV:
         rospy.Subscriber("/cv/bottom/rect", RectInfo, self._on_receive_rect_info)
         self.rect_heights = []
 
+        self.rect_angle_publisher = rospy.Publisher("/task_planning/cv/bottom/rect_angle", Float64, queue_size=1)
+
     def _on_receive_cv_data(self, cv_data: CVObject, object_type: str) -> None:
         """
         Parse the received CV data and store it
@@ -63,14 +65,14 @@ class CV:
             angle: The received angle of the blue rectangle in degrees
         """
         filter_len = 10
-        skip = 1
+        skip = 0
         if len(self.rect_angles) == filter_len:
             self.rect_angles.pop(0)
 
         self.rect_angles.append(angle.data)
-        self.rect_angles.sort()
 
         self.cv_data["blue_rectangle_angle"] = sum(self.rect_angles[skip:filter_len-skip]) / len(self.rect_angles)
+        self.rect_angle_publisher.publish(self.cv_data["blue_rectangle_angle"])
 
     def _on_receive_rect_dist(self, dist: Float64) -> None:
         """
@@ -80,12 +82,11 @@ class CV:
             dist: The received dist of the blue rectangle in pixels
         """
         filter_len = 10
-        skip = 1
+        skip = 0
         if len(self.rect_dists) == filter_len:
             self.rect_dists.pop(0)
 
         self.rect_dists.append(dist.data)
-        self.rect_dists.sort()
 
         self.cv_data["blue_rectangle_dist"] = sum(self.rect_dists[skip:filter_len-skip]) / len(self.rect_dists)
 
@@ -97,12 +98,11 @@ class CV:
             rect_info: The received info of the blue rectangle
         """
         filter_len = 10
-        skip = 1
+        skip = 0
         if len(self.rect_heights) == filter_len:
             self.rect_heights.pop(0)
 
         self.rect_heights.append(rect_info.height)
-        self.rect_heights.sort()
 
         self.cv_data["blue_rectangle_height"] = sum(self.rect_heights[skip:filter_len-skip]) / len(self.rect_heights)
 
