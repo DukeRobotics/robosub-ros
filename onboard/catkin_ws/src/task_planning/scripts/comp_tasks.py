@@ -27,10 +27,14 @@ async def prequal_task(self: Task) -> Task[None, None, None]:
     with zero velocity, within a small tolerance, completing the prequalifiacation task.
     """
 
+    DEPTH_LEVEL = -0.5
+
     await move_tasks.move_to_pose_local(
-            geometry_utils.create_pose(0, 0, -0.5, 0, 0, 0),
+            geometry_utils.create_pose(0, 0, DEPTH_LEVEL, 0, 0, 0),
             parent=self)
-    rospy.loginfo("Moved to (0, 0, -0.5)")
+    rospy.loginfo(f"Moved to (0, 0, {DEPTH_LEVEL})")
+
+    DEPTH_LEVEL = State().depth
 
     # angle = 30
     # rad_angle = math.radians(angle)
@@ -77,7 +81,7 @@ async def prequal_task(self: Task) -> Task[None, None, None]:
         repeats = math.ceil(distance)
         total_dist = 0
         for i in range(repeats):
-            step = distance % 1 if i == repeats-1 else 1
+            step = distance - total_dist if i == repeats-1 else 1
             await move_tasks.move_to_pose_local(
                 geometry_utils.create_pose(step * direction, 0, 0, 0, 0, 0),
                 parent=self)
@@ -85,7 +89,20 @@ async def prequal_task(self: Task) -> Task[None, None, None]:
             total_dist += step
             rospy.loginfo(f"Moved forward {total_dist}")
 
-            angle = CV().cv_data["blue_rectangle_angle"] * -1
+            touching_top = CV().cv_data["blue_rectangle_touching_top"]
+            touching_bottom = CV().cv_data["blue_rectangle_touching_bottom"]
+            if touching_top and not touching_bottom:
+                await move_tasks.move_to_pose_local(
+                    geometry_utils.create_pose(0, 0.2, 0, 0, 0, 0),
+                    parent=self)
+                rospy.loginfo("Touching top correction (0, 0.2, 0)")
+            elif not touching_top and touching_bottom:
+                await move_tasks.move_to_pose_local(
+                    geometry_utils.create_pose(0, -0.2, 0, 0, 0, 0),
+                    parent=self)
+                rospy.loginfo("Touching bottom correction (0, -0.2, 0)")
+
+            angle = (CV().cv_data["blue_rectangle_angle"] * -1) + 5
             if abs(angle) > 0:
                 rad_angle = math.radians(angle)
                 await move_tasks.move_to_pose_local(
@@ -102,29 +119,44 @@ async def prequal_task(self: Task) -> Task[None, None, None]:
                     parent=self)
                 rospy.loginfo(f"Correction {dist_meters}")
 
+            depth_delta = DEPTH_LEVEL - State().depth
+            if abs(depth_delta) > 0:
+                await move_tasks.move_to_pose_local(
+                    geometry_utils.create_pose(0, 0, depth_delta, 0, 0, 0),
+                    parent=self)
+                rospy.loginfo(f"Depth correction {depth_delta}")
+
     await track_blue_rectangle(2.5, 1)
 
     await move_tasks.move_to_pose_local(
         geometry_utils.create_pose(0, 0, -0.2, 0, 0, 0),
         parent=self)
     rospy.loginfo("Moved to (0, 0, -0.2)")
+    DEPTH_LEVEL = State().depth
 
-    await track_blue_rectangle(3, 1)
+    await track_blue_rectangle(2, 1)
 
     await move_tasks.move_to_pose_local(
         geometry_utils.create_pose(0, 0, 0.2, 0, 0, 0),
         parent=self)
     rospy.loginfo("Moved to (0, 0, 0.2)")
+    DEPTH_LEVEL = State().depth
 
-    await track_blue_rectangle(7, 1)
+    await track_blue_rectangle(10, 1)
 
     directions = [
-        (0, -0.5, 0),
-        (1.5, 0, 0),
-        (0, 1.5, 0),
+        # (0, 0, 0.2),
+        # (0, -0.3, 0),
+        # (1, 0, 0),
+        # (1, 0, 0),
+        (0, 1, 0),
+        (0, 1, 0),
+        (-1, 0, 0),
         (-1, 0, 0),
         (-1, 0, 0),
         (0, -1, 0),
+        (0, -1, 0),
+        (0, 0, -0.2)
     ]
     for direction in directions:
         await move_tasks.move_to_pose_local(
