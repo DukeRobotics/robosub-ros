@@ -66,19 +66,33 @@ class BlueRectangleDetector:
             # Get the minimum area rectangle that encloses the combined contour
             rect = cv2.minAreaRect(all_points)
 
-            # Get the angle of the rectangle
-            angle = rect[-1]
-
-            # Adjust angle to be within the range [-90, 90]
-            if angle < -45:
-                angle += 90
-            elif angle > 45:
-                angle -= 90
-
             # Draw the rectangle on the frame
             box = cv2.boxPoints(rect)
             box = np.int0(box)
             cv2.drawContours(frame, [box], 0, (0, 0, 255), 3)
+
+            # Sort the points based on their x-coordinates to identify left and right sides
+            box = sorted(box, key=lambda pt: pt[0])
+
+            # Identify left and right side points
+            left_pts = box[:2]
+            right_pts = box[2:]
+
+            # Determine which point is higher on the left side
+            left_top = min(left_pts, key=lambda pt: pt[1])
+
+            # Determine which point is higher on the right side
+            right_top = min(right_pts, key=lambda pt: pt[1])
+
+            angle = rect[-1]
+
+            # Compare the y-coordinates
+            if right_top[1] < left_top[1]:
+                # Right side is higher than left side
+                angle = rect[-1] - 90
+
+            if angle == -90 or angle == 90:
+                angle = 0
 
             # Calculate the center of the rectangle
             rect_center = rect[0]
