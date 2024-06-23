@@ -254,7 +254,7 @@ class DepthAISpatialDetector:
 
         self.output_queues["detections"] = device.getOutputQueue(name="detections", maxSize=1, blocking=False)
 
-        self.input_queue = device.getInputQueue(name="nn_input")
+        self.input_queue = device.getInputQueue(name="nn_input", maxSize=1, blocking=False)
 
         self.connected = True  # Flag that the output queues have been initialized
 
