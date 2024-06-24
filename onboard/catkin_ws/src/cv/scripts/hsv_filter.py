@@ -5,6 +5,7 @@ import cv2
 import math
 import resource_retriever as rr
 import yaml
+import numpy as np
 
 from copy import deepcopy
 from opencv_apps.msg import Circle, RotatedRect
@@ -52,7 +53,7 @@ class HSVFilter:
         return {"center": center, "dimensions": dimensions, "orientation": orientation_in_radians,
                 "xmin": center[0] - (dimensions[0] / 2), "xmax": center[0] + (dimensions[0] / 2),
                 "ymin": center[1] - (dimensions[1] / 2), "ymax": center[1] + (dimensions[1] / 2),
-                "shape": "ellipse", "confidence": 1}, ellipse_msg
+                "shape": "ellipse", "confidence": 1, "label": 0}, ellipse_msg
 
     def fit_circle(self, contours, width, height):
         largest_contour = max(contours, key=cv2.contourArea)
@@ -68,35 +69,38 @@ class HSVFilter:
                 "ymin": center[1] - radius, "ymax": center[1] + radius, "shape": "circle", "confidence": 1}, circle_msg
 
     def fit_rotated_rectangle(self, contours, width, height):
-        largest_contour = max(contours, key=cv2.contourArea)
-        center, dimensions, orientation = cv2.minAreaRect(largest_contour)
+        if len(contours) > 0:
+            largest_contour = max(contours, key=cv2.contourArea)
+            center, dimensions, orientation = cv2.minAreaRect(largest_contour)
 
-        rotated_rect_msg = RotatedRect()
+            rotated_rect_msg = RotatedRect()
 
-        orientation_in_radians = math.radians(-orientation)
+            orientation_in_radians = math.radians(-orientation)
 
-        rotated_rect_msg.center.x = center[0]
-        rotated_rect_msg.center.y = center[1]
-        rotated_rect_msg.angle = orientation_in_radians
-        rotated_rect_msg.size.width = dimensions[0]
-        rotated_rect_msg.size.height = dimensions[1]
+            rotated_rect_msg.center.x = center[0]
+            rotated_rect_msg.center.y = center[1]
+            rotated_rect_msg.angle = orientation_in_radians
+            rotated_rect_msg.size.width = dimensions[0]
+            rotated_rect_msg.size.height = dimensions[1]
 
-        return {"center": center, "dimensions": dimensions, "orientation": orientation_in_radians,
-                "xmin": center[0] - (dimensions[0] / 2), "xmax": center[0] + (dimensions[0] / 2),
-                "ymin": center[1] - (dimensions[1] / 2), "ymax": center[1] + (dimensions[1] / 2),
-                "shape": "rotated_rect", "confidence": 1}, rotated_rect_msg
+            return {"center": center, "dimensions": dimensions, "orientation": orientation_in_radians,
+                    "xmin": center[0] - (dimensions[0] / 2), "xmax": center[0] + (dimensions[0] / 2),
+                    "ymin": center[1] - (dimensions[1] / 2), "ymax": center[1] + (dimensions[1] / 2),
+                    "shape": "rotated_rect", "confidence": 1,"label":0}, rotated_rect_msg
+        else:
+            return None, None
 
     # Fitting functions and associated message types
     FITTING_FUNCTIONS = {
         "ellipse": fit_ellipse,
         "circle": fit_circle,
-        "rotated_rectangle": fit_rotated_rectangle
+        "rotated_rect": fit_rotated_rectangle
     }
 
     MESSAGE_TYPES = {
         "ellipse": RotatedRect,
         "circle": Circle,
-        "rotated_rectangle": RotatedRect
+        "rotated_rect": RotatedRect
     }
 
     # Load in models and other misc. setup work
@@ -135,10 +139,11 @@ class HSVFilter:
 
         # for model, model_data in models.items():
         for model in models:
-            models[model]["enabled"] = False
+            models[model]["lower_mask"] = np.array(models[model]["lower_mask"])
+            models[model]["upper_mask"] = np.array(models[model]["upper_mask"])
             # model_data["enabled"] = False
             # models[model] = model_data
-            self.publishers[model] = rospy.Publisher(f"cv/{model}", CVObject, queue_size=10)
+            self.publishers[model] = rospy.Publisher(f"cv/{model}", self.MESSAGE_TYPES[models[model]["msg_type"]], queue_size=10)
 
         for camera in cameras:
             # TODO add path to publish in cameras yaml file, talk with Vedarsh
@@ -147,7 +152,7 @@ class HSVFilter:
             self.cameras_dict[camera]["publisher"] = rospy.Publisher(f"cv/{camera}/detections/compressed",
                                                                      CompressedImage, queue_size=10)
             # self.subscribers[camera] = rospy.Subscriber(f"cv/{camera}", CompressedImage, self.detect, (camera,))
-            self.subscribers[camera] = rospy.Subscriber(f"camera/{camera}/rgb/preview/compressed", CompressedImage, self.detect, camera)
+            self.subscribers[camera] = rospy.Subscriber(f"camera/{camera}/compressed", CompressedImage, self.detect, camera)
             # self.subscribers[camera] = rospy.Subscriber(f"cv/{camera}", CompressedImage, self.detect, (camera,))
 
             # TODO first param put path in camera yaml file
@@ -188,21 +193,19 @@ class HSVFilter:
         # i.e., create our own detect visualization fn
         detections = []
         camera_models = self.cameras_dict[camera]["models"]
-        print(camera)
-        print()
+        current_image = self.image_tools.convert_to_cv2(data)
         for model in camera_models:
             # print(model["enabled"])
             if camera_models[model]["enabled"]:
-                contour = self.find_contours(data, model.lower_mask, model.upper_mask)
-                detection, message = self.FITTING_FUNCTIONS[model.shape](contour, data.width, data.height)
-                detection["label"] = model.shape
-                detections.append(detection)
-
-                if (message is not None) and (isinstance(message, self.MESSAGE_TYPES[model.shape])):
+                contour = self.find_contours(current_image, camera_models[model]["lower_mask"], camera_models[model]["upper_mask"])
+                height, width, _ =  current_image.shape
+                detection, message = self.FITTING_FUNCTIONS[camera_models[model]["shape"]](self,contour, height, width)
+                if detection:
+                    detections.append(detection)
+                if (message is not None) and (isinstance(message, self.MESSAGE_TYPES[camera_models[model]["shape"]])):
                     self.publishers[model].publish(message)
 
         # Publishes frame with many detections on it (STC)
-        current_image = self.image_tools.convert_to_cv2(data)
         detections_visualized = self.detection_visualizer.visualize_detections(current_image, detections)
         detections_img_msg = self.image_tools.convert_to_ros_compressed_msg(detections_visualized)
         self.cameras_dict[camera]["publisher"].publish(detections_img_msg)

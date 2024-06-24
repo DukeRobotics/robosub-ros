@@ -1,31 +1,31 @@
 bin:
-    msg_type: "rotated_rect"
-    shape: "rotated_rect"
-    lower_mask: [0,0,0]
-    upper_mask: [1,1,1]
-    color: "red"
-    enabled: False
+  msg_type: "rotated_rect"
+  shape: "rotated_rect"
+  lower_mask: [0, 0, 0]
+  upper_mask: [1, 1, 1]
+  color: "red"
+  enabled: False
 
 collection_bin:
-    msg_type: "rotated_rect"
-    shape: "rotated_rect"
-    lower_mask: [0,0,0]
-    upper_mask: [1,1,1]
-    color: "red"
-    enabled: False
+  msg_type: "rotated_rect"
+  shape: "rotated_rect"
+  lower_mask: [0, 0, 0]
+  upper_mask: [1, 1, 1]
+  color: "red"
+  enabled: True
 
 path_marker:
-    msg_type: "ellipse"
-    shape: "elipse"
-    lower_mask: [0,0,0]
-    upper_mask: [1,1,1]
-    color: "red"
-    enabled: False
+  msg_type: "rotated_rect"
+  shape: "ellipse"
+  lower_mask: [0, 0, 0]
+  upper_mask: [1, 1, 1]
+  color: "red"
+  enabled: False
 
 buoy:
-    msg_typ: "circle"
-    shape: "circle"
-    lower_mask: [0,0,0]
-    upper_mask: [1,1,1]
-    color: "red"
-    enabled: False
+  msg_type: "circle"
+  shape: "circle"
+  lower_mask: [0, 0, 0]
+  upper_mask: [1, 1, 1]
+  color: "red"
+  enabled: False

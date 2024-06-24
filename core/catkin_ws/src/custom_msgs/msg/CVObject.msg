@@ -6,6 +6,9 @@ float64 ymin
 float64 xmax
 float64 ymax
 
+# Angle for HSV filtering
+float64 angle
+
 # Yaw value for task planning
 float64 yaw
 

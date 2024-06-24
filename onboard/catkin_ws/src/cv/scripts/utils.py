@@ -115,7 +115,7 @@ class DetectionVisualizer:
         norm_vals[::2] = frame.shape[1]
         return (np.clip(np.array(bbox), 0, 1) * norm_vals).astype(int)
 
-    def visualize_path_marker_detection(frame, center, dimensions, orientation, color):
+    def visualize_path_marker_detection(self, frame, center, dimensions, orientation, color):
         """Returns frame with bounding boxes of the detection."""
         center_x, center_y = center
         width, height = dimensions
@@ -148,9 +148,9 @@ class DetectionVisualizer:
         # TODO Remember to check if center and
         # dimensions are relative are absolute values or relative values (wrt the frame dimensions).
         for detection in detections:
-            if (detection.shape == "rotated_rect"):
+            if (detection["shape"] == "rotated_rect"):
                 self.visualize_path_marker_detection(frame_copy, detection["center"], detection["dimensions"],
-                                                     detection["orientation"], self.colors[detection.label])
+                                                     detection["orientation"], self.colors[detection["label"]])
             else:
                 bbox = self.frame_norm(frame_copy, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
                 # the code below specifies whether to display the bbox's class name and/or confidence value

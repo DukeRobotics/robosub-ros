@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   actionlib_msgs
+  opencv_apps
 )
 
 add_message_files(
@@ -60,5 +61,5 @@ generate_messages(
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
 catkin_package(
-  CATKIN_DEPENDS message_runtime std_msgs geometry_msgs actionlib_msgs
+  CATKIN_DEPENDS message_runtime std_msgs geometry_msgs actionlib_msgs opencv_apps
 )

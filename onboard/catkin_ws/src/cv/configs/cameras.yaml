@@ -4,3 +4,6 @@ front:
 bottom:
   mac_address: "44:A9:2C:30:DC:B0"
   mx_id: "1844301041A7C31200"
+
+usb_camera:
+  
