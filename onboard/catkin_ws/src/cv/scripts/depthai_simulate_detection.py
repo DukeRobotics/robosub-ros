@@ -102,15 +102,10 @@ class DepthAISimulateDetection:
         feed_out.setStreamName("feed")
 
         # Script nodes to handle switching models on the fly
-        switch_model_in = self.pipeline.create(dai.node.Script)
-        switch_model_in_path = DEPTHAI_SCRIPT_NODES_PATH + 'simulate_switch_model_in.py'
-        with open(rr.get_filename(switch_model_in_path, use_protocol=False)) as f:
-            switch_model_in.setScript(f.read())
-
-        switch_model_out = self.pipeline.create(dai.node.Script)
-        switch_model_out_path = DEPTHAI_SCRIPT_NODES_PATH + 'simulate_switch_model_out.py'
-        with open(rr.get_filename(switch_model_out_path, use_protocol=False)) as f:
-            switch_model_out.setScript(f.read())
+        switch_model = self.pipeline.create(dai.node.Script)
+        switch_model_path = DEPTHAI_SCRIPT_NODES_PATH + 'simulate_switch_model.py'
+        with open(rr.get_filename(switch_model_path, use_protocol=False)) as f:
+            switch_model.setScript(f.read())
 
         # Neural network architecture nodes
         for model_name in self.models:
@@ -134,25 +129,23 @@ class DepthAISimulateDetection:
             nn.setIouThreshold(model['iou_threshold'])
 
             # Linking switch node outputs to spatial detection network inputs
-            switch_model_in.outputs[f"{model['id']}_input"].link(nn.input)
+            switch_model.outputs[f"{model['id']}_input"].link(nn.input)
 
-            nn.passthrough.link(switch_model_out.inputs[f"{model['id']}_passthrough"])
-            nn.out.link(switch_model_out.inputs[f"{model['id']}_out"])
+            nn.passthrough.link(switch_model.inputs[f"{model['id']}_passthrough"])
+            nn.out.link(switch_model.inputs[f"{model['id']}_out"])
 
         # Linking
-        xin_model.out.link(switch_model_in.inputs["model"])
-        xin_model.out.link(switch_model_out.inputs["model"])
+        xin_model.out.link(switch_model.inputs["model"])
 
-        xin_cam.out.link(switch_model_in.inputs["input"])
-
-        switch_model_in.outputs["raw_input"].link(switch_model_out.inputs["raw_passthrough"])
+        xin_cam.out.link(switch_model.inputs["input"])
 
         # Create a link between the neural net input and the local image stream output
-        switch_model_out.outputs["out"].link(x_out.input)
-        switch_model_out.outputs["passthrough"].link(feed_out.input)
+        switch_model.outputs["out"].link(x_out.input)
+        switch_model.outputs["passthrough"].link(feed_out.input)
 
     def detect(self, device):
-        """ Run detection on the input image
+        """
+        Run detection on the input image.
 
         Send the still image through to the input queue (qIn) after converting it to the proper format.
         Then retrieve what was fed into the neural network. The input to the neural network should be the same
@@ -167,30 +160,29 @@ class DepthAISimulateDetection:
             and detections is an depthai.ImgDetections object.
         """
 
-        passthrough_feed_queue = device.getOutputQueue(
-            name="feed", maxSize=4, blocking=False)
+        passthrough_feed_queue = device.getOutputQueue(name="feed", maxSize=4, blocking=False)
 
-        detections_queue = device.getOutputQueue(
-            name="nn", maxSize=4, blocking=False)
+        detections_queue = device.getOutputQueue(name="nn", maxSize=4, blocking=False)
 
-        passthrough_feed = passthrough_feed_queue.get()
-
-        image_frame = passthrough_feed.getCvFrame()
+        passthrough_feed = passthrough_feed_queue.tryGet()
         detections = detections_queue.tryGet()
 
         return {
-            "frame": image_frame,
+            "frame": passthrough_feed.getCvFrame() if passthrough_feed else None,
             "detections": detections.detections if detections else None
         }
 
     def _load_image_from_feed_path(self):
-        """ Load a still image from the feed path """
+        """
+        Load a still image from the feed path.
+        """
         image_path = rr.get_filename(f"package://cv/assets/{self.feed_path}", use_protocol=False)
         image = cv2.imread(image_path, cv2.IMREAD_COLOR)
         return image
 
     def _feed_is_still_image(self):
-        """ Check if the feed_path is to a still image
+        """
+        Check if the feed_path is to a still image.
 
         Returns:
             bool: Whether the feed_path points to a still image
@@ -202,7 +194,8 @@ class DepthAISimulateDetection:
             return False
 
     def _update_latest_img(self, img_msg):
-        """ Send an image to the device for detection
+        """
+        Send an image to the device for detection.
 
         Args:
             img_msg (sensor_msgs.msg.CompressedImage): Image to send to the device
@@ -226,7 +219,8 @@ class DepthAISimulateDetection:
         input_queue.send(img)
 
     def _publish_detections(self, detection_results):
-        """ Run detection on an image and publish the predictions
+        """
+        Run detection on an image and publish the predictions.
 
         Args:
             detection_results (dict): Output from detect()
@@ -254,7 +248,8 @@ class DepthAISimulateDetection:
             self.detection_publisher.publish(object_msg)
 
     def _publish_visualized_detections(self, detection_results):
-        """ Publish the detection results visualized as an Image message
+        """
+        Publish the detection results visualized as an Image message.
 
         Args:
             detection_results (dict): Output from detect()
@@ -267,7 +262,8 @@ class DepthAISimulateDetection:
         self.visualized_detection_publisher.publish(visualized_detection_results_msg)
 
     def _run_detection_on_image_topic(self, device):
-        """ Run and publish detections on the provided topic
+        """
+        Run and publish detections on the provided topic.
 
         Args:
             device (depthai.Device): DepthAI device being used
@@ -280,10 +276,14 @@ class DepthAISimulateDetection:
 
             if detection_results["detections"]:
                 self._publish_detections(detection_results)
-                self._publish_visualized_detections(detection_results)
 
+                if detection_results["frame"]:
+                    self._publish_visualized_detections(detection_results)
+
+    # This wouldn't work due to the non-blocking nature of tryGet which is needed for this pipeline
     def _run_detection_on_single_image(self, device, img):
-        """ Run detection on the single image provided
+        """
+        Run detection on the single image provided.
 
         Args:
             device (depthai.Device): DepthAI device being used
@@ -297,7 +297,8 @@ class DepthAISimulateDetection:
         self._save_visualized_detection_results(visualized_detection_results)
 
     def _save_visualized_detection_results(self, visualized_detection_results):
-        """ Save the visualized detection results as a jpg file
+        """
+        Save the visualized detection results as a jpg file.
 
         Args:
             visualized_detection_results (ndarray): Image to save
@@ -335,7 +336,8 @@ class DepthAISimulateDetection:
             return {"success": True, "message": f"Sucessfully set new model {new_model_name} for {self.camera} camera."}
 
     def enable_model(self, req):
-        """Service for toggling specific models on and off.
+        """
+        Service for toggling specific models on and off.
 
         :param req: The request from another node or command line to enable the model.
         """
@@ -351,7 +353,9 @@ class DepthAISimulateDetection:
         return {"success": True, "message": message}
 
     def run(self):
-        """ Run detection on the latest img message """
+        """
+        Run detection on the latest img message.
+        """
         with depthai_camera_connect.connect(self.pipeline, self.camera) as device:
             self.device = device
 
