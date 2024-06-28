@@ -2,6 +2,8 @@ import rospy
 import math
 import time
 
+from geometry_msgs.msg import Twist
+
 from task import Task, task
 import move_tasks
 from utils import geometry_utils
@@ -161,3 +163,58 @@ async def prequal_task(self: Task) -> Task[None, None, None]:
     await track_blue_rectangle(3, -1)
 
     Controls().call_enable_controls(False)
+
+
+@task
+async def gate_style_task(self: Task) -> Task[None, None, None]:
+    """
+    Complete two full barrel rolls.
+    """
+
+    await move_tasks.move_to_pose_local(
+        geometry_utils.create_pose(0, 0, -0.7, 0, 0, 0),
+        parent=self)
+    rospy.loginfo("Moved to (0, 0, -0.7)")
+
+    DEPTH_LEVEL = State().depth
+
+    power = Twist()
+    power.angular.x = 1
+    Controls().publish_desired_power(power)
+    rospy.loginfo("Published roll power")
+
+    duration = rospy.Duration(3)
+    start_time = rospy.Time.now()
+    while start_time + duration > rospy.Time.now():
+        rospy.loginfo(start_time + duration - rospy.Time.now())
+        await Yield()
+
+    rospy.loginfo(f"Completed main roll of {duration}")
+
+    slow_down_duration = rospy.Duration(2)
+    start_time = rospy.Time.now()
+    while start_time + slow_down_duration > rospy.Time.now():
+        time_left = rospy.Time.now() - start_time
+        power.angular.x = time_left / slow_down_duration
+        Controls().publish_desired_power(power)
+
+        rospy.loginfo(start_time + slow_down_duration - rospy.Time.now())
+        await Yield()
+
+    rospy.loginfo(f"Completed slow down roll of {slow_down_duration}")
+
+    Controls().publish_desired_power(Twist())
+    rospy.loginfo("Published zero power")
+
+    State().reset_pose()
+    rospy.loginfo("Reset pose")
+
+    depth_delta = DEPTH_LEVEL - State().depth
+    if abs(depth_delta) > 0:
+        await move_tasks.move_to_pose_local(
+            geometry_utils.create_pose(0, 0, depth_delta, 0, 0, 0),
+            parent=self)
+        rospy.loginfo(f"Depth correction {depth_delta}")
+
+
+
