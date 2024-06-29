@@ -9,6 +9,7 @@
   "plugins": ["jest"],
   "extends": ["plugin:@foxglove/base", "plugin:@foxglove/react"],
   "rules": {
+    "import/order": "off",
     "no-warning-comments": [
       "warn"
     ],
