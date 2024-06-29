@@ -2,7 +2,9 @@ import rospy
 import math
 import time
 
-from geometry_msgs.msg import Twist
+from transforms3d.euler import quat2euler
+
+from geometry_msgs.msg import Twist, Pose
 
 from task import Task, task
 import move_tasks
@@ -171,25 +173,71 @@ async def gate_style_task(self: Task) -> Task[None, None, None]:
     Complete two full barrel rolls.
     """
 
+    init_depth = -0.7
     await move_tasks.move_to_pose_local(
-        geometry_utils.create_pose(0, 0, -0.7, 0, 0, 0),
+        geometry_utils.create_pose(0, 0, init_depth, 0, 0, 0),
         parent=self)
-    rospy.loginfo("Moved to (0, 0, -0.7)")
+    rospy.loginfo(f"Moved to (0, 0, {init_depth})")
 
     DEPTH_LEVEL = State().depth
 
-    power = Twist()
-    power.angular.x = 1
-    Controls().publish_desired_power(power)
-    rospy.loginfo("Published roll power")
+    rospy.loginfo(f"DEPTH_LEVEL: {DEPTH_LEVEL}")
 
-    duration = rospy.Duration(3)
-    start_time = rospy.Time.now()
-    while start_time + duration > rospy.Time.now():
-        rospy.loginfo(start_time + duration - rospy.Time.now())
-        await Yield()
+    async def sleep(secs):
+        duration = rospy.Duration(secs)
+        start_time = rospy.Time.now()
+        while start_time + duration > rospy.Time.now():
+            # rospy.loginfo(start_time + duration - rospy.Time.now())
+            await Yield()
 
-    rospy.loginfo(f"Completed main roll of {duration}")
+    async def roll():
+        power = Twist()
+        power.angular.x = 1
+        Controls().publish_desired_power(power)
+        rospy.loginfo("Published roll power")
+
+        await sleep(2.25)
+
+        rospy.loginfo("Completed roll")
+
+        Controls().publish_desired_power(Twist())
+        rospy.loginfo("Published zero power")
+
+        await sleep(5)
+
+        rospy.loginfo("Completed zero")
+
+    async def depth_correction():
+        rospy.loginfo(f"State().depth: {State().depth}")
+        depth_delta = DEPTH_LEVEL - State().depth
+        rospy.loginfo(f"depth_delta: {depth_delta}")
+
+        rospy.loginfo(f"Started depth correction {depth_delta}")
+        await move_tasks.move_to_pose_local(
+            geometry_utils.create_pose(0, 0, depth_delta, 0, 0, 0),
+            parent=self)
+        rospy.loginfo(f"Finished depth correction {depth_delta}")
+
+    await roll()
+    State().reset_pose()
+    # await depth_correction()
+    await roll()
+    State().reset_pose()
+    await sleep(3)
+    await depth_correction()
+    await sleep(3)
+
+    imu_orientation = State().imu.orientation
+    euler_angles = quat2euler([imu_orientation.w, imu_orientation.x, imu_orientation.y, imu_orientation.z])
+    roll_correction = -euler_angles[0]
+    pitch_correction = -euler_angles[1]
+
+    rospy.loginfo(f"Roll, pitch correction: {roll_correction, pitch_correction}")
+    await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, roll_correction, pitch_correction, 0),
+                                        parent=self)
+    rospy.loginfo("Reset orientation")
+
+    return
 
     slow_down_duration = rospy.Duration(2)
     start_time = rospy.Time.now()
