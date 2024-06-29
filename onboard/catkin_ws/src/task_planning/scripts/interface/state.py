@@ -2,6 +2,7 @@ import rospy
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from nav_msgs.msg import Odometry
 from robot_localization.srv import SetPose
+from sensor_msgs.msg import Imu
 from tf2_ros.buffer import Buffer
 from utils.other_utils import singleton
 
@@ -21,6 +22,7 @@ class State:
     # ROS topics for the state and resetting the pose
     STATE_TOPIC = 'state'
     DEPTH_TOPIC = '/sensors/depth'
+    IMU_TOPIC = '/vectornav/IMU'
     RESET_POSE_SERVICE = '/set_pose'
 
     def __init__(self, bypass: bool = False, tfBuffer: Buffer = None):
@@ -41,6 +43,8 @@ class State:
 
         rospy.Subscriber(self.DEPTH_TOPIC, PoseWithCovarianceStamped, self._on_receive_depth)
 
+        rospy.Subscriber(self.IMU_TOPIC, Imu, self._on_receive_imu)
+
     @property
     def state(self):
         """
@@ -56,6 +60,13 @@ class State:
         return self._depth
 
     @property
+    def imu(self):
+        """
+        The IMU data
+        """
+        return self._imu
+
+    @property
     def tfBuffer(self):
         """
         The transform buffer
@@ -67,6 +78,9 @@ class State:
 
     def _on_receive_depth(self, depth_msg):
         self._depth = depth_msg.pose.pose.position.z
+
+    def _on_receive_imu(self, imu_msg):
+        self._imu = imu_msg
 
     def reset_pose(self):
         """
