@@ -1,30 +1,30 @@
 import {
+  Box,
+  Button,
+  Grid,
+  Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tabs,
+  TextField,
+} from "@mui/material";
+import {
   CustomMsgsPidGainConst,
   CustomMsgsPidGains,
   CustomMsgsSetPidGainsRequest,
   CustomMsgsSetPidGainsResponse,
 } from "@duke-robotics/defs/types";
-import useTheme from "@duke-robotics/theme";
-import { Immutable, PanelExtensionContext, RenderState, MessageEvent } from "@foxglove/studio";
-import {
-  Alert,
-  Tab,
-  Tabs,
-  TableBody,
-  TableContainer,
-  TableCell,
-  TableRow,
-  TableHead,
-  Table,
-  Box,
-  Button,
-  Grid,
-  TextField,
-} from "@mui/material";
-import { ThemeProvider } from "@mui/material/styles";
+import { Immutable, MessageEvent, PanelExtensionContext, RenderState } from "@foxglove/studio";
 import React, { useEffect, useState } from "react";
+
 import { JSX } from "react/jsx-runtime";
+import { ThemeProvider } from "@mui/material/styles";
 import { createRoot } from "react-dom/client";
+import useTheme from "@duke-robotics/theme";
 
 const PID_TOPIC = "/controls/pid_gains";
 const PID_SERVICE = "/controls/set_pid_gains";
@@ -233,22 +233,6 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>
-        {/* Error messages */}
-        {(context.callService == undefined || state.error != undefined) && (
-          <Box mb={1}>
-            {context.callService == undefined && (
-              <Alert variant="filled" severity="error">
-                Calling services is not supported by this connection.
-              </Alert>
-            )}
-            {state.error != undefined && (
-              <Alert variant="filled" severity="error">
-                {state.error.message}
-              </Alert>
-            )}
-          </Box>
-        )}
-
         {/* PID Loop Tabs */}
         <Tabs value={state.loop} onChange={handleLoopChange} variant="fullWidth">
           <Tab label="Position" value={CustomMsgsPidGainConst.LOOP_POSITION} />
@@ -321,13 +305,7 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
               </Button>
             </Grid>
             <Grid item xs={6}>
-              <Button
-                variant="contained"
-                fullWidth
-                onClick={handleSubmit}
-                color="success"
-                disabled={context.callService == undefined}
-              >
+              <Button variant="contained" fullWidth onClick={handleSubmit} color="success">
                 Submit
               </Button>
             </Grid>

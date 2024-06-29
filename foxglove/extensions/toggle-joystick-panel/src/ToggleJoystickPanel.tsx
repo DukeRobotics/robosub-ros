@@ -1,16 +1,17 @@
-import { allDatatypeMaps } from "@duke-robotics/defs/datatype_maps";
+import { Alert, Box, Button, ThemeProvider } from "@mui/material";
 import {
-  GeometryMsgsTwist,
+  CustomMsgsControlTypesConst,
   CustomMsgsSetControlTypesRequest,
   CustomMsgsSetControlTypesResponse,
-  CustomMsgsControlTypesConst,
+  GeometryMsgsTwist,
 } from "@duke-robotics/defs/types";
-import useTheme from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
-import { Button, Box, Alert, ThemeProvider } from "@mui/material";
-import { JsonViewer } from "@textea/json-viewer";
 import { useCallback, useEffect, useState } from "react";
+
+import { JsonViewer } from "@textea/json-viewer";
+import { allDatatypeMaps } from "@duke-robotics/defs/datatype_maps";
 import { createRoot } from "react-dom/client";
+import useTheme from "@duke-robotics/theme";
 
 const DEBUG = false; // Set to true to display live transformed joystick inputs
 
@@ -298,22 +299,6 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>
-        {/* Error messages */}
-        {(context.callService == undefined || state.error != undefined) && (
-          <Box mb={1}>
-            {context.callService == undefined && (
-              <Alert variant="filled" severity="error">
-                Calling services is not supported by this connection.
-              </Alert>
-            )}
-            {state.error != undefined && (
-              <Alert variant="filled" severity="error">
-                {state.error.message}
-              </Alert>
-            )}
-          </Box>
-        )}
-
         {/* Toggle button */}
         <Box my={1}>
           <Button
@@ -321,7 +306,6 @@ function ToggleJoystickPanel({ context }: { context: PanelExtensionContext }): J
             variant="contained"
             color={state.joystickEnabled ? "error" : "success"}
             onClick={toggleJoystick}
-            disabled={context.callService == undefined || !state.joystickConnected}
           >
             {state.joystickEnabled ? "Disable Joystick" : "Enable Joystick"}
           </Button>

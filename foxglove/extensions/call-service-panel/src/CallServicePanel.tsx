@@ -1,11 +1,22 @@
-import useTheme from "@duke-robotics/theme";
-import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
-import { Box, Button, InputAdornment, TextField, ThemeProvider, Typography } from "@mui/material";
-import Alert from "@mui/material/Alert";
-import { JsonViewer } from "@textea/json-viewer";
+import {
+  Box,
+  Button,
+  InputAdornment,
+  TextField,
+  ThemeProvider,
+  Typography,
+} from "@mui/material";
+import {
+  Immutable,
+  PanelExtensionContext,
+  RenderState,
+} from "@foxglove/studio";
 import { useEffect, useState } from "react";
+
 import { JSX } from "react/jsx-runtime";
+import { JsonViewer } from "@textea/json-viewer";
 import { createRoot } from "react-dom/client";
+import useTheme from "@duke-robotics/theme";
 
 type CallServicePanelState = {
   serviceName: string;
@@ -15,11 +26,17 @@ type CallServicePanelState = {
   colorScheme?: RenderState["colorScheme"];
 };
 
-function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.Element {
+function CallServicePanel({
+  context,
+}: {
+  context: PanelExtensionContext;
+}): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
 
   const [state, setState] = useState<CallServicePanelState>(() => {
-    const initialState = context.initialState as CallServicePanelState | undefined;
+    const initialState = context.initialState as
+      | CallServicePanelState
+      | undefined;
 
     return {
       serviceName: initialState?.serviceName ?? "",
@@ -35,7 +52,10 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
   // Update color scheme
   useEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
-      setState((oldState) => ({ ...oldState, colorScheme: renderState.colorScheme }));
+      setState((oldState) => ({
+        ...oldState,
+        colorScheme: renderState.colorScheme,
+      }));
       setRenderDone(() => done);
     };
   }, [context]);
@@ -52,42 +72,28 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
       return;
     }
 
-    context.callService(`/${state.serviceName}`, JSON.parse(state.request)).then(
-      (response) => {
-        JSON.stringify(response); // Attempt serializing the response, to throw an error on failure
-        setState((oldState) => ({
-          ...oldState,
-          response,
-          error: undefined,
-        }));
-      },
-      (error) => {
-        // Handle service call errors (e.g., service is not advertised)
-        setState((oldState) => ({ ...oldState, error: error as Error }));
-      },
-    );
+    context
+      .callService(`/${state.serviceName}`, JSON.parse(state.request))
+      .then(
+        (response) => {
+          JSON.stringify(response); // Attempt serializing the response, to throw an error on failure
+          setState((oldState) => ({
+            ...oldState,
+            response,
+            error: undefined,
+          }));
+        },
+        (error) => {
+          // Handle service call errors (e.g., service is not advertised)
+          setState((oldState) => ({ ...oldState, error: error as Error }));
+        },
+      );
   };
 
   const theme = useTheme();
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>
-        {/* Error messages */}
-        {(context.callService == undefined || state.error != undefined) && (
-          <Box mb={1}>
-            {context.callService == undefined && (
-              <Alert variant="filled" severity="error">
-                Calling services is not supported by this connection.
-              </Alert>
-            )}
-            {state.error != undefined && (
-              <Alert variant="filled" severity="error">
-                {state.error.message}
-              </Alert>
-            )}
-          </Box>
-        )}
-
         {/* Service Name Input */}
         <TextField
           label="Service Name"
@@ -125,12 +131,7 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
 
         <Box my={1}>
           {/* Call Service Button */}
-          <Button
-            fullWidth
-            variant="contained"
-            disabled={context.callService == undefined || state.serviceName === ""}
-            onClick={callService}
-          >
+          <Button fullWidth variant="contained" onClick={callService}>
             {`Call Service`}
           </Button>
         </Box>
@@ -153,7 +154,9 @@ function CallServicePanel({ context }: { context: PanelExtensionContext }): JSX.
   );
 }
 
-export function initCallServicePanel(context: PanelExtensionContext): () => void {
+export function initCallServicePanel(
+  context: PanelExtensionContext,
+): () => void {
   context.panelElement.style.overflow = "auto"; // Enable scrolling
 
   const root = createRoot(context.panelElement as HTMLElement);

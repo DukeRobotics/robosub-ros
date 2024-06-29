@@ -1,12 +1,12 @@
-import { StdSrvsSetBoolRequest, StdMsgsBool } from "@duke-robotics/defs/types";
-import useTheme from "@duke-robotics/theme";
-import { ThemeProvider } from "@emotion/react";
-import { PanelExtensionContext, RenderState, Immutable, MessageEvent } from "@foxglove/studio";
-import Alert from "@mui/material/Alert";
+import { Immutable, MessageEvent, PanelExtensionContext, RenderState } from "@foxglove/studio";
+import { StdMsgsBool, StdSrvsSetBoolRequest } from "@duke-robotics/defs/types";
+import { useEffect, useState } from "react";
+
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button/Button";
-import { useState, useEffect } from "react";
+import { ThemeProvider } from "@emotion/react";
 import { createRoot } from "react-dom/client";
+import useTheme from "@duke-robotics/theme";
 
 // Define the service name for enabling/disabling controls
 const ENABLE_CONTROLS_SERVICE = "/controls/enable";
@@ -71,29 +71,12 @@ function ToggleControlsPanel({ context }: { context: PanelExtensionContext }): J
   return (
     <ThemeProvider theme={theme}>
       <Box m={1}>
-        {/* Error messages */}
-        {(context.callService == undefined || state.error != undefined) && (
-          <Box mb={1}>
-            {context.callService == undefined && (
-              <Alert variant="filled" severity="error">
-                Calling services is not supported by this connection.
-              </Alert>
-            )}
-            {state.error != undefined && (
-              <Alert variant="filled" severity="error">
-                {state.error.message}
-              </Alert>
-            )}
-          </Box>
-        )}
-
         {/* Toggle button */}
         <Button
           fullWidth
           variant="contained"
           color={state.controlsEnabled ? "error" : "success"}
           onClick={toggleControls}
-          disabled={context.callService == undefined}
         >
           {state.controlsEnabled ? "Disable Controls" : "Enable Controls"}
         </Button>
