@@ -2,9 +2,10 @@ import rospy
 import yaml
 import resource_retriever as rr
 from custom_msgs.msg import CVObject, RectInfo
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose, Polygon
 from std_msgs.msg import Float64
 from utils.other_utils import singleton
+from utils import geometry_utils
 
 
 @singleton
@@ -21,6 +22,8 @@ class CV:
     CV_CAMERA = "front"
     # TODO We may want a better way to sync this between here and the cv node
     CV_MODEL = "yolov7_tiny_2023_main"
+
+    BUOY_WIDTH = 0.2032  # Width of buoy in meters
 
     def __init__(self, bypass: bool = False):
         self.cv_data = {}
@@ -44,6 +47,8 @@ class CV:
         self.rect_heights = []
 
         self.rect_angle_publisher = rospy.Publisher("/task_planning/cv/bottom/rect_angle", Float64, queue_size=1)
+
+        rospy.Subscriber("/cv/front_usb/bounding_box", Polygon, self._on_receive_buoy_bounding_box)
 
     def _on_receive_cv_data(self, cv_data: CVObject, object_type: str) -> None:
         """
@@ -109,6 +114,35 @@ class CV:
         # Based on rect_info.center_y and height, determine if rect is touching top and/or bottom of frame
         self.cv_data["blue_rectangle_touching_top"] = rect_info.center_y - rect_info.height / 2 <= 0
         self.cv_data["blue_rectangle_touching_bottom"] = rect_info.center_y + rect_info.height / 2 >= 480
+
+    def _on_receive_buoy_bounding_box(self, bounding_box: Polygon) -> None:
+        """
+        Parse the received bounding box of the buoy and store it
+
+        Args:
+            bounding_box: The received bounding box of the buoy
+        """
+        self.cv_data["buoy_bounding_box"] = bounding_box
+
+        # Compute width of bounding box
+        width, height = geometry_utils.compute_bbox_dimensions(bounding_box)
+
+        self.cv_data["buoy_dimensions"] = (width, height)
+
+        # Get meters per pixel
+        meters_per_pixel = self.BUOY_WIDTH / width
+
+        self.cv_data["buoy_meters_per_pixel"] = meters_per_pixel
+
+        # Compute distance between center of bounding box and center of image
+        # Here, image x is robot's y, and image y is robot's z
+        dist_x, dist_y = geometry_utils.compute_center_distance(bounding_box, 640, 480)
+
+        # Compute distance between center of bounding box and center of image in meters
+        dist_x_meters = dist_x * meters_per_pixel
+        dist_y_meters = dist_y * meters_per_pixel
+
+        self.cv_data["buoy_center_distance"] = (dist_x_meters, dist_y_meters)
 
     def get_pose(self, name: str) -> Pose:
         """
