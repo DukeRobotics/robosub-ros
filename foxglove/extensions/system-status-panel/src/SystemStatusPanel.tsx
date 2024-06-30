@@ -75,7 +75,7 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
       value: state.temperature,
       suffix: "F",
       warn: () => {
-        return state.temperature != undefined && state.temperature >= 100;
+        return state.temperature != undefined && state.temperature >= 80;
       },
     },
   ];
