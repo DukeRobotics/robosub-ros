@@ -12,24 +12,13 @@ class BuoyDetectorContourMatching:
     def __init__(self):
         rospy.init_node('buoy_detector_contour_matching', anonymous=True)
 
-        path_to_reference_img = rr.get_filename('package://cv/assets/polyform-a0-buoy.png', use_protocol=False)
+        path_to_reference_img = rr.get_filename('package://cv/assets/polyform-a0-buoy-contour.png', use_protocol=False)
 
-        # Load the reference image and find its contours
-        self.reference_image = cv2.imread(path_to_reference_img, cv2.IMREAD_COLOR)
-        hsv_image = cv2.cvtColor(self.reference_image, cv2.COLOR_BGR2HSV)
+        # Load the reference image in grayscale (assumes the image is already binary: white and black)
+        self.reference_image = cv2.imread(path_to_reference_img, cv2.IMREAD_GRAYSCALE)
 
-        # Define the range for HSV filtering on the red buoy
-        lower_red = np.array([0, 120, 70])
-        upper_red = np.array([10, 255, 255])
-        lower_red_upper = np.array([170, 120, 70])
-        upper_red_upper = np.array([180, 255, 255])
-
-        # Apply HSV filtering on the reference image
-        mask1 = cv2.inRange(hsv_image, lower_red, upper_red)
-        mask2 = cv2.inRange(hsv_image, lower_red_upper, upper_red_upper)
-        red_hsv = cv2.bitwise_or(mask1, mask2)
-
-        self.ref_contours, _ = cv2.findContours(red_hsv, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        # Compute the contours directly on the binary image
+        self.ref_contours, _ = cv2.findContours(self.reference_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber('/camera/usb_camera/compressed', CompressedImage, self.image_callback)
@@ -69,15 +58,9 @@ class BuoyDetectorContourMatching:
         # Find contours in the image
         contours, _ = cv2.findContours(red_hsv, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-        # Filter contours by area
-        min_area = 500  # Adjust as necessary
-        max_area = 5000  # Adjust as necessary
-        filtered_contours = [cnt for cnt in contours if min_area < cv2.contourArea(cnt) < max_area]
-
         image_with_contours = image.copy()
-        cv2.drawContours(image_with_contours, filtered_contours, -1, (255, 0, 0), 2)
+        cv2.drawContours(image_with_contours, contours, -1, (255, 0, 0), 2)
 
-        red_hsv_colored = cv2.cvtColor(red_hsv, cv2.COLOR_GRAY2BGR)
         contour_image_msg = self.bridge.cv2_to_imgmsg(image_with_contours, "bgr8")
         self.contour_image_pub.publish(contour_image_msg)
 
@@ -87,14 +70,14 @@ class BuoyDetectorContourMatching:
         best_match = float('inf')
 
         # Match contours with the reference image contours
-        for cnt in filtered_contours:
+        for cnt in contours:
             match = cv2.matchShapes(self.ref_contours[0], cnt, cv2.CONTOURS_MATCH_I1, 0.0)
             match_list.append(match)
             if match < best_match:
                 best_match = match
                 best_cnt = cnt
 
-        if best_cnt is not None:
+        if best_cnt is not None and best_match < 15:
             x, y, w, h = cv2.boundingRect(best_cnt)
             bounding_box = Polygon()
             bounding_box.points = [Point32(x, y, 0), Point32(x + w, y, 0), Point32(x + w, y + h, 0), Point32(x, y + h, 0)]
@@ -108,7 +91,7 @@ class BuoyDetectorContourMatching:
             self.contour_image_pub.publish(image_msg)
 
         match_list.sort()
-        formatted_match_list = ['%.5f' % elem for elem in match_list[:5]]
+        formatted_match_list = ['%.5f' % elem for elem in match_list[:2]]
         rospy.loginfo(formatted_match_list)
 
 
