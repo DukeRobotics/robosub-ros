@@ -8,6 +8,7 @@ from cv_bridge import CvBridge
 from sensor_msgs.msg import CompressedImage, Image
 from geometry_msgs.msg import Polygon, Point32
 
+
 class BuoyDetectorContourMatching:
     def __init__(self):
         rospy.init_node('buoy_detector_contour_matching', anonymous=True)
@@ -25,6 +26,10 @@ class BuoyDetectorContourMatching:
         self.bounding_box_pub = rospy.Publisher('/contour_matching/bounding_box', Polygon, queue_size=10)
         self.hsv_filtered_pub = rospy.Publisher('/contour_matching/hsv_filtered', Image, queue_size=10)
         self.contour_image_pub = rospy.Publisher('/contour_matching/contour_image', Image, queue_size=10)
+        self.contour_image_with_bbox_pub = rospy.Publisher('/contour_matching/contour_image_with_bbox', Image, queue_size=10)
+
+        self.last_n_bboxes = []
+        self.n = 10  # Set the number of last bounding boxes to store
 
     def image_callback(self, data):
         try:
@@ -64,36 +69,58 @@ class BuoyDetectorContourMatching:
         contour_image_msg = self.bridge.cv2_to_imgmsg(image_with_contours, "bgr8")
         self.contour_image_pub.publish(contour_image_msg)
 
-        match_list = []
-
         best_cnt = None
         best_match = float('inf')
 
         # Match contours with the reference image contours
         for cnt in contours:
             match = cv2.matchShapes(self.ref_contours[0], cnt, cv2.CONTOURS_MATCH_I1, 0.0)
-            match_list.append(match)
             if match < best_match:
                 best_match = match
                 best_cnt = cnt
 
         if best_cnt is not None and best_match < 15:
             x, y, w, h = cv2.boundingRect(best_cnt)
-            bounding_box = Polygon()
-            bounding_box.points = [Point32(x, y, 0), Point32(x + w, y, 0), Point32(x + w, y + h, 0), Point32(x, y + h, 0)]
-            self.bounding_box_pub.publish(bounding_box)
+            bbox = (x, y, w, h)
+            self.last_n_bboxes.append(bbox)
+            if len(self.last_n_bboxes) > self.n:
+                self.last_n_bboxes.pop(0)
 
-            # Draw bounding box on the image
-            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            filtered_bboxes = self.filter_outliers(self.last_n_bboxes)
+            if filtered_bboxes:
+                central_bbox = self.find_most_central_bbox(filtered_bboxes)
+                self.publish_bbox(central_bbox, image)
 
-            # Convert the image with the bounding box to ROS Image message and publish
-            image_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
-            self.contour_image_pub.publish(image_msg)
+    def filter_outliers(self, bboxes):
+        if len(bboxes) <= 2:
+            return bboxes
 
-        match_list.sort()
-        formatted_match_list = ['%.5f' % elem for elem in match_list[:2]]
-        rospy.loginfo(formatted_match_list)
+        centers = [(x + w / 2, y + h / 2) for x, y, w, h in bboxes]
+        mean_center = np.mean(centers, axis=0)
+        distances = [np.linalg.norm(np.array(center) - mean_center) for center in centers]
+        std_distance = np.std(distances)
+        filtered_bboxes = [bboxes[i] for i in range(len(bboxes)) if distances[i] <= mean_center[0] + 2 * std_distance]
+        return filtered_bboxes
 
+    def find_most_central_bbox(self, bboxes):
+        centers = [(x + w / 2, y + h / 2) for x, y, w, h in bboxes]
+        mean_center = np.mean(centers, axis=0)
+        distances = [np.linalg.norm(np.array(center) - mean_center) for center in centers]
+        central_bbox_index = np.argmin(distances)
+        return bboxes[central_bbox_index]
+
+    def publish_bbox(self, bbox, image):
+        x, y, w, h = bbox
+        bounding_box = Polygon()
+        bounding_box.points = [Point32(x, y, 0), Point32(x + w, y, 0), Point32(x + w, y + h, 0), Point32(x, y + h, 0)]
+        self.bounding_box_pub.publish(bounding_box)
+
+        # Draw bounding box on the image
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+        # Convert the image with the bounding box to ROS Image message and publish
+        image_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
+        self.contour_image_with_bbox_pub.publish(image_msg)
 
 if __name__ == '__main__':
     try:
