@@ -59,7 +59,7 @@ def main():
     try:
         # Tasks to run
         tasks = [
-            comp_tasks.gate_style_task(parent=Task.MAIN_ID)
+            comp_tasks.buoy_task(parent=Task.MAIN_ID)
         ]
 
         # Step through tasks, stopping if rospy is shutdown
