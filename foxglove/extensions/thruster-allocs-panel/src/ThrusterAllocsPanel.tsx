@@ -278,17 +278,7 @@ function ThrusterAllocsPanel({ context }: { context: PanelExtensionContext }): J
           <Tab label="Publishing" value={PanelMode.PUBLISHING} />
         </Tabs>
         {/* Alert to be displayed if the panel is in PUBLISHING mode but cannot publish to THRUSTER_ALLOCS_TOPIC */}
-        <Box my={1}>
-          {state.panelMode === PanelMode.SUBSCRIBING ? (
-            <></>
-          ) : (
-            (context.advertise == undefined || context.publish == undefined) && (
-              <Alert variant="filled" severity="error">
-                Publishing topics is not supported by this connection.
-              </Alert>
-            )
-          )}
-        </Box>
+        <Box my={2}></Box>
         <Box>
           {/* Grid for displaying thruster allocs. If in SUBSCRIBING mode, displays subscribed allocs, otherwise
           displays TextFields for user to input thruster allocs values */}
@@ -342,7 +332,6 @@ function ThrusterAllocsPanel({ context }: { context: PanelExtensionContext }): J
                     }
                   : toggleInterval
               }
-              disabled={context.callService == undefined}
             >
               {state.repeatPublish == null ? "Start Publishing" : "Stop Publishing"}
             </Button>
