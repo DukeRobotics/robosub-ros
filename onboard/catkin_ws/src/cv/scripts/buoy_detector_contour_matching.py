@@ -23,10 +23,10 @@ class BuoyDetectorContourMatching:
 
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber('/camera/usb_camera/compressed', CompressedImage, self.image_callback)
-        self.bounding_box_pub = rospy.Publisher('/contour_matching/bounding_box', Polygon, queue_size=10)
-        self.hsv_filtered_pub = rospy.Publisher('/contour_matching/hsv_filtered', Image, queue_size=10)
-        self.contour_image_pub = rospy.Publisher('/contour_matching/contour_image', Image, queue_size=10)
-        self.contour_image_with_bbox_pub = rospy.Publisher('/contour_matching/contour_image_with_bbox', Image, queue_size=10)
+        self.bounding_box_pub = rospy.Publisher('/cv/front_usb/bounding_box', Polygon, queue_size=1)
+        self.hsv_filtered_pub = rospy.Publisher('/cv/front_usb/hsv_filtered', Image, queue_size=1)
+        self.contour_image_pub = rospy.Publisher('/cv/front_usb/contour_image', Image, queue_size=1)
+        self.contour_image_with_bbox_pub = rospy.Publisher('/cv/front_usb/contour_image_with_bbox', Image, queue_size=1)
 
         self.last_n_bboxes = []
         self.n = 10  # Set the number of last bounding boxes to store
@@ -42,9 +42,9 @@ class BuoyDetectorContourMatching:
             return
 
         # Define the range for HSV filtering on the red buoy
-        lower_red = np.array([0, 120, 70])
-        upper_red = np.array([10, 255, 255])
-        lower_red_upper = np.array([170, 120, 70])
+        lower_red = np.array([0, 180, 120])
+        upper_red = np.array([7, 255, 255])
+        lower_red_upper = np.array([175, 120, 70])
         upper_red_upper = np.array([180, 255, 255])
 
         # Apply HSV filtering on the image
@@ -63,6 +63,12 @@ class BuoyDetectorContourMatching:
         # Find contours in the image
         contours, _ = cv2.findContours(red_hsv, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
+        # Sort contours by area
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)
+
+        # Get the top 3 contours with the largest area
+        contours = contours[:3]
+
         image_with_contours = image.copy()
         cv2.drawContours(image_with_contours, contours, -1, (255, 0, 0), 2)
 
@@ -70,16 +76,24 @@ class BuoyDetectorContourMatching:
         self.contour_image_pub.publish(contour_image_msg)
 
         best_cnt = None
-        best_match = float('inf')
+        similar_size_contours = []
 
         # Match contours with the reference image contours
         for cnt in contours:
             match = cv2.matchShapes(self.ref_contours[0], cnt, cv2.CONTOURS_MATCH_I1, 0.0)
-            if match < best_match:
-                best_match = match
-                best_cnt = cnt
+            if match < 0.05:
+                print(match)
+                similar_size_contours.append(cnt)
 
-        if best_cnt is not None and best_match < 15:
+        if similar_size_contours:
+            similar_size_contours.sort(key=lambda x: cv2.contourArea(x[0]))
+            best_cnt = similar_size_contours[0]
+            for cnt in similar_size_contours:
+                x, y, w, h = cv2.boundingRect(cnt)
+                if y + h > cv2.boundingRect(best_cnt)[1] + cv2.boundingRect(best_cnt)[3]:
+                    best_cnt = cnt
+
+        if best_cnt is not None:
             x, y, w, h = cv2.boundingRect(best_cnt)
             bbox = (x, y, w, h)
             self.last_n_bboxes.append(bbox)
@@ -88,8 +102,8 @@ class BuoyDetectorContourMatching:
 
             filtered_bboxes = self.filter_outliers(self.last_n_bboxes)
             if filtered_bboxes:
-                central_bbox = self.find_most_central_bbox(filtered_bboxes)
-                self.publish_bbox(central_bbox, image)
+                most_recent_bbox = filtered_bboxes[-1]  # Get the most recent bbox
+                self.publish_bbox(most_recent_bbox, image)
 
     def filter_outliers(self, bboxes):
         if len(bboxes) <= 2:
@@ -99,15 +113,16 @@ class BuoyDetectorContourMatching:
         mean_center = np.mean(centers, axis=0)
         distances = [np.linalg.norm(np.array(center) - mean_center) for center in centers]
         std_distance = np.std(distances)
-        filtered_bboxes = [bboxes[i] for i in range(len(bboxes)) if distances[i] <= mean_center[0] + 2 * std_distance]
-        return filtered_bboxes
 
-    def find_most_central_bbox(self, bboxes):
-        centers = [(x + w / 2, y + h / 2) for x, y, w, h in bboxes]
-        mean_center = np.mean(centers, axis=0)
-        distances = [np.linalg.norm(np.array(center) - mean_center) for center in centers]
-        central_bbox_index = np.argmin(distances)
-        return bboxes[central_bbox_index]
+        areas = [w * h for x, y, w, h in bboxes]
+        mean_area = np.mean(areas)
+        std_area = np.std(areas)
+
+        filtered_bboxes = [
+            bboxes[i] for i in range(len(bboxes))
+            if distances[i] <= mean_center[0] + 2 * std_distance and abs(areas[i] - mean_area) <= 1 * std_area
+        ]
+        return filtered_bboxes
 
     def publish_bbox(self, bbox, image):
         x, y, w, h = bbox
@@ -121,6 +136,7 @@ class BuoyDetectorContourMatching:
         # Convert the image with the bounding box to ROS Image message and publish
         image_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
         self.contour_image_with_bbox_pub.publish(image_msg)
+
 
 if __name__ == '__main__':
     try:
