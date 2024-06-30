@@ -301,3 +301,54 @@ def global_pose_to_local(tfBuffer: tf2_ros.Buffer, pose: Pose) -> Pose:
     """
 
     return transform_pose(tfBuffer, 'odom', 'base_link', pose)
+
+
+def compute_center_distance(polygon, frame_width, frame_height):
+    # Ensure there are points in the polygon
+    if len(polygon.points) < 4:
+        raise ValueError("Polygon does not represent a bounding box with four points.")
+
+    # Compute the center of the bounding box
+    sum_x = sum(point.x for point in polygon.points)
+    sum_y = sum(point.y for point in polygon.points)
+    bbox_center_x = sum_x / len(polygon.points)
+    bbox_center_y = sum_y / len(polygon.points)
+
+    # Compute the center of the frame
+    frame_center_x = frame_width / 2
+    frame_center_y = frame_height / 2
+
+    # Compute the distances between the centers
+    distance_x = bbox_center_x - frame_center_x
+    distance_y = bbox_center_y - frame_center_y
+
+    return distance_x, distance_y
+
+
+def compute_bbox_dimensions(polygon):
+    # Ensure there are points in the polygon
+    if len(polygon.points) < 4:
+        raise ValueError("Polygon does not represent a bounding box with four points.")
+
+    # Initialize min_x, max_x, min_y, and max_y with the coordinates of the first point
+    min_x = polygon.points[0].x
+    max_x = polygon.points[0].x
+    min_y = polygon.points[0].y
+    max_y = polygon.points[0].y
+
+    # Iterate through all points to find the min and max x and y coordinates
+    for point in polygon.points:
+        if point.x < min_x:
+            min_x = point.x
+        if point.x > max_x:
+            max_x = point.x
+        if point.y < min_y:
+            min_y = point.y
+        if point.y > max_y:
+            max_y = point.y
+
+    # Compute the width and height
+    width = max_x - min_x
+    height = max_y - min_y
+
+    return width, height
