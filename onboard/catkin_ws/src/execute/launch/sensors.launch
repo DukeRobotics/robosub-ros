@@ -24,5 +24,9 @@
         <include file="$(find cv)/launch/blue_rectangle_detector.launch">
         </include>
     </group>
+    <group unless="$(arg sim)">
+        <include file="$(find cv)/launch/buoy_detector_contour_matching.launch">
+        </include>
+    </group>
 
 </launch>
