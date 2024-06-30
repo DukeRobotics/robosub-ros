@@ -82,7 +82,6 @@ class BuoyDetectorContourMatching:
         for cnt in contours:
             match = cv2.matchShapes(self.ref_contours[0], cnt, cv2.CONTOURS_MATCH_I1, 0.0)
             if match < 0.05:
-                print(match)
                 similar_size_contours.append(cnt)
 
         if similar_size_contours:
