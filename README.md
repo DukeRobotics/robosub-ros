@@ -72,13 +72,13 @@ flowchart TD
     Hydrophones:::sensor --> Acoustics:::package
     Acoustics --> |Pinger Positions| TaskPlanning
     TaskPlanning --> |Desired State| Controls
-    TaskPlanning --> |Torpedo Commands| OffboardComms[Offboard Comms]:::package
+    TaskPlanning --> |Servo Commands| OffboardComms[Offboard Comms]:::package
     Controls --> |Thruster Allocations| OffboardComms
     DataPub --> |Voltage| OffboardComms
     OffboardComms --> |Pulse Widths| ThrusterArduino[Thruster Arduino]:::intermediateHardware
-    OffboardComms --> |Servo Angles| TorpedoArduino[Torpedo Arduino]:::intermediateHardware
+    OffboardComms --> |Servo Angles| ServoSensorArduino[Servo Sensor Arduino]:::intermediateHardware
     ThrusterArduino --> Thrusters:::outputs
-    TorpedoArduino --> Torpedoes:::outputs
+    ServoSensorArduino --> MarkerDropperServo[Marker Dropper Servo]:::outputs
 
     classDef sensor fill:#c00;
     classDef package fill:#00c;
