@@ -28,6 +28,14 @@ This is the size of the image, which is 416 * 416 * 3 = 519168 (height * width *
 getData() is a memoryview object (see https://docs.python.org/3/library/stdtypes.html#memoryview)
 """
 
+import math
+
+THRESHOLD_RATIO = 2000
+MIN_AVG_RED = 60
+MAX_HUE_SHIFT = 120
+BLUE_MAGIC_VALUE = 1.2
+SAMPLE_SECONDS = 2  # Extracts color correction from every N seconds
+
 channel_size = 416 * 416
 
 def print(val):
@@ -39,6 +47,7 @@ def calculate_average(channel_data):
 
 # Assuming `data` is your bytearray and `channel_size` is the size of each channel
 def get_channel_averages(data):
+    channel_size = len(data) // 3
     # Extract each channel's data
     channel_1 = data[:channel_size]
     channel_2 = data[channel_size:channel_size*2]
@@ -52,9 +61,43 @@ def get_channel_averages(data):
     # Return the averages as a tuple
     return (avg_channel_1, avg_channel_2, avg_channel_3)
 
+def hue_shift_red(data, h):
+    channel_size = len(data) // 3
+    U = math.cos(h * math.pi / 180)
+    W = math.sin(h * math.pi / 180)
+
+    c1 = 0.299 + 0.701 * U + 0.168 * W
+    c2 = 0.587 - 0.587 * U + 0.330 * W
+    c3 = 0.114 - 0.114 * U - 0.497 * W
+
+    shifted_data = bytearray(len(data))
+
+    for i in range(channel_size):
+        r = data[i]
+        g = data[i + channel_size]
+        b = data[i + 2 * channel_size]
+
+        shifted_data[i] = min(255, max(0, int(c1 * r)))
+        shifted_data[i + channel_size] = min(255, max(0, int(c2 * g)))
+        shifted_data[i + 2 * channel_size] = min(255, max(0, int(c3 * b)))
+
+    return shifted_data
+
 def get_correction(data: memoryview):
     avg_mat = get_channel_averages(data)
-    print(avg_mat)
+
+    new_avg_r = avg_mat[2]  # Red channel is at index 2
+    hue_shift = 0
+
+    while new_avg_r < MIN_AVG_RED:
+        shifted = hue_shift_red(data, hue_shift)
+        new_avg_r = calculate_average(shifted[len(data)//3*2:])  # Calculate average of the red channel in shifted data
+        hue_shift += 1
+        if hue_shift > MAX_HUE_SHIFT:
+            new_avg_r = MIN_AVG_RED
+
+    print(hue_shift)
+    print(new_avg_r)
 
 def set_color(data: memoryview, channel: 0 | 1 | 2):
     # blue = 0
