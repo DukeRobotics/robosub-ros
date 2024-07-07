@@ -47,7 +47,6 @@ def calculate_average(channel_data):
 
 # Assuming `data` is your bytearray and `channel_size` is the size of each channel
 def get_channel_averages(data):
-    channel_size = len(data) // 3
     # Extract each channel's data
     channel_1 = data[:channel_size]
     channel_2 = data[channel_size:channel_size*2]
@@ -62,7 +61,6 @@ def get_channel_averages(data):
     return (avg_channel_1, avg_channel_2, avg_channel_3)
 
 def hue_shift_red(data, h):
-    channel_size = len(data) // 3
     U = math.cos(h * math.pi / 180)
     W = math.sin(h * math.pi / 180)
 
