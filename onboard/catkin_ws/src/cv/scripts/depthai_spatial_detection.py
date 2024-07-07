@@ -17,6 +17,7 @@ from std_msgs.msg import String
 
 MM_IN_METER = 1000
 DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH = 'package://cv/models/depthai_models.yaml'
+COLOR_CORRECTION_FILEPATH = 'package://cv/scripts/color_correction.py'
 HORIZONTAL_FOV = 95
 SONAR_DEPTH = 10
 SONAR_RANGE = 1.75
@@ -41,6 +42,7 @@ class DepthAISpatialDetector:
         self.using_sonar = rospy.get_param("~using_sonar")
         self.show_class_name = rospy.get_param("~show_class_name")
         self.show_confidence = rospy.get_param("~show_confidence")
+        self.correct_color = rospy.get_param("~correct_color")
 
         with open(rr.get_filename(DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH,
                                   use_protocol=False)) as f:
@@ -109,6 +111,11 @@ class DepthAISpatialDetector:
         mono_right = pipeline.create(dai.node.MonoCamera)
         stereo = pipeline.create(dai.node.StereoDepth)
 
+        if self.correct_color:
+            color_correction_script = pipeline.create(dai.node.Script)
+            with open(rr.get_filename(COLOR_CORRECTION_FILEPATH, use_protocol=False)) as f:
+                color_correction_script.setScript(f.read())
+
         xout_nn = pipeline.create(dai.node.XLinkOut)
         xout_nn.setStreamName("detections")
 
@@ -154,7 +161,11 @@ class DepthAISpatialDetector:
         mono_left.out.link(stereo.left)
         mono_right.out.link(stereo.right)
 
-        cam_rgb.preview.link(spatial_detection_network.input)
+        if self.correct_color:
+            cam_rgb.preview.link(color_correction_script.inputs['cam_rgb'])
+            color_correction_script.outputs['spatial_detection_network'].link(spatial_detection_network.input)
+        else:
+            cam_rgb.preview.link(spatial_detection_network.input)
 
         if self.queue_rgb:
             # To sync RGB frames with NN, link passthrough to xout instead of preview
