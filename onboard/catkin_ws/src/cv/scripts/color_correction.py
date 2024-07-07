@@ -37,17 +37,29 @@ def set_color(data: memoryview, channel: 0 | 1 | 2):
     # blue = 0
     # green = 1
     # red = 2
-    for i in range(0, len(data)):
-        if i >= channel_size * channel and i < channel_size * (channel+1):
-            data[i] = 255
-        else:
-            data[i] = 0
+
+    # Calculate start and end indices for the current channel
+    start_index = channel_size * channel
+    end_index = start_index + channel_size
+
+    # Create a new bytearray with the required values
+    new_data = bytearray(len(data))
+
+    # Use slicing to set the values more efficiently
+    new_data[:start_index] = b'\x00' * start_index
+    new_data[start_index:end_index] = b'\xff' * channel_size
+    new_data[end_index:] = b'\x00' * (len(data) - end_index)
+
+    # Update the original data
+    return new_data
+
 
 while True:
     frame: 'lpb.ImgFrame' = node.io['cam_rgb'].get()
     data: memoryview = frame.getData()
 
-    set_color(data, channel=0)
+    new_data = set_color(data, channel=0)
+    frame.setData(new_data)
 
     node.io['spatial_detection_network'].send(frame)
 
