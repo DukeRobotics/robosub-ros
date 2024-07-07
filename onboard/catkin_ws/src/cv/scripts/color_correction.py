@@ -9,5 +9,5 @@ See depthai_spatial_detection.py for an example.
 
 while True:
     node.warn('Performing NN inferencing')
-    frame = node.io['rgb'].get()
-    node.io['nn'].send(frame)
+    frame = node.io['cam_rgb'].get()
+    node.io['spatial_detection_network'].send(frame)
