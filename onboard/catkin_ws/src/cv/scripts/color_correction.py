@@ -33,6 +33,29 @@ channel_size = 416 * 416
 def print(val):
     node.warn(str(val))
 
+# Function to calculate the average of a list of integers
+def calculate_average(channel_data):
+    return sum(channel_data) // len(channel_data)
+
+# Assuming `data` is your bytearray and `channel_size` is the size of each channel
+def get_channel_averages(data):
+    # Extract each channel's data
+    channel_1 = data[:channel_size]
+    channel_2 = data[channel_size:channel_size*2]
+    channel_3 = data[channel_size*2:channel_size*3]
+
+    # Calculate the average for each channel
+    avg_channel_1 = calculate_average(channel_1)
+    avg_channel_2 = calculate_average(channel_2)
+    avg_channel_3 = calculate_average(channel_3)
+
+    # Return the averages as a tuple
+    return (avg_channel_1, avg_channel_2, avg_channel_3)
+
+def get_correction(data: memoryview):
+    avg_mat = get_channel_averages(data)
+    print(avg_mat)
+
 def set_color(data: memoryview, channel: 0 | 1 | 2):
     # blue = 0
     # green = 1
@@ -58,8 +81,9 @@ while True:
     frame: 'lpb.ImgFrame' = node.io['cam_rgb'].get()
     data: memoryview = frame.getData()
 
-    new_data = set_color(data, channel=0)
-    frame.setData(new_data)
+    # new_data = set_color(data, channel=0)
+    new_data = get_correction(data)
+    # frame.setData(new_data)
 
     node.io['spatial_detection_network'].send(frame)
 
