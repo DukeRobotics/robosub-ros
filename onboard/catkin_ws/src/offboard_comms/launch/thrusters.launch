@@ -1,3 +1,5 @@
 <launch>
+    <param name="device" command="$(find offboard_comms)/scripts/arduino.py find-ports thruster --nl" />
+    
     <node pkg="offboard_comms" type="thrusters" name="thrusters" output="screen" />
 </launch>

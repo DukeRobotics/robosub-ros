@@ -5,37 +5,23 @@
 #include <dirent.h>
 #include <unistd.h>
 
-#include "yaml-cpp/yaml.h"
-
 
 SerialThrusters::SerialThrusters(boost::asio::io_service& io, int argc, char **argv, ros::NodeHandle &nh) : port(io) {
     pwm_sub = nh.subscribe("/offboard/pwm", 1, &SerialThrusters::thruster_allocs_callback, this);
 
-    // Read environment variable to determine which robot we are using
-    const char *robot_name = std::getenv("ROBOT_NAME"); // Should be "oogway"
 
-    // Read YAML for proper robot to determine ftdi string for the thruster Arduino
-    ROS_ASSERT_MSG(robot_name != NULL, "ROBOT_NAME environment variable not set");
+    std::string device;
+    if (!nh.getParam("device", device)) {
+        ROS_ERROR("Failed to get parameter 'device'");
+        return;
+    }
 
-    std::string yaml_path = ros::package::getPath("offboard_comms") + "/config/" + robot_name + ".yaml";
-
-    ROS_INFO("Reading from %s", yaml_path.c_str());
-
-    // Get the serial port for the thruster Arduino
-    YAML::Node config = YAML::LoadFile(yaml_path);
-    std::string ftdi = config["arduino"]["thruster"]["ftdi"].as<std::string>();
-
-    ROS_INFO("Thruster FTDI: %s", ftdi.c_str());
-
-    // Get the serial port that corresponds to the ftid string
-    serial_port = get_serial_port(ftdi);
-
-    ROS_INFO("Thruster serial port: %s", serial_port.c_str());
+    ROS_INFO("Thruster serial port: %s", device.c_str());
 
     // Write to serial
-    port.open(serial_port);
+    port.open(device);
     if (!port.is_open()) {
-        ROS_ERROR("Could not open serial port %s", serial_port.c_str());
+        ROS_ERROR("Could not open serial port %s", device.c_str());
         return;
     }
 
