@@ -7,9 +7,8 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "thrusters");
     ros::NodeHandle nh;
 
-    boost::asio::io_service io;
     NonlinearThrusters nonlinear_thrusters(argc, argv, nh);
-    SerialThrusters serial_thrusters(io, argc, argv, nh);
+    SerialThrusters serial_thrusters(argc, argv, nh);
 
     ros::spin();
     return 0;

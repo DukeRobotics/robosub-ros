@@ -18,8 +18,7 @@
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
-
-  <build_depend>yaml-cpp</build_depend>
+  <depend>serial</depend>
 
   <buildtool_depend>catkin</buildtool_depend>
 
