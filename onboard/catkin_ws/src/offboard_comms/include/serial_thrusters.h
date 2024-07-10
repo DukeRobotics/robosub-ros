@@ -3,15 +3,11 @@
 
 #include <custom_msgs/PWMAllocs.h>
 #include <ros/ros.h>
-#include <serial/serial.h>
-
-#define BAUDRATE 57600
-#define TIMEOUT 1000
 
 class SerialThrusters {
    private:
     ros::Subscriber pwm_sub;
-    serial::Serial* ser;
+    int serial_fd;
     void thruster_allocs_callback(const custom_msgs::PWMAllocs &msg);
 
    public:
