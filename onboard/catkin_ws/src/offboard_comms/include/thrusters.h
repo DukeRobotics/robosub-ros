@@ -16,7 +16,7 @@ const int NUM_LOOKUP_ENTRIES = 201;
 const double VOLTAGE_LOWER = 14.0;
 const double VOLTAGE_UPPER = 18.0;
 
-class NonlinearThrusters {
+class Thrusters {
    private:
     double voltage;
     std::array<uint16_t, NUM_LOOKUP_ENTRIES> v14_lookup_table;
@@ -38,8 +38,8 @@ class NonlinearThrusters {
     void write_to_serial(const std::array<uint16_t, NUM_THRUSTERS> &allocs);
 
    public:
-    NonlinearThrusters(int argc, char **argv, ros::NodeHandle &nh);
-    ~NonlinearThrusters();
+    Thrusters(int argc, char **argv, ros::NodeHandle &nh);
+    ~Thrusters();
 };
 
 #endif

@@ -13,7 +13,7 @@
 #include <unistd.h>
 #include <termios.h>
 
-NonlinearThrusters::NonlinearThrusters(int argc, char **argv, ros::NodeHandle &nh) {
+Thrusters::Thrusters(int argc, char **argv, ros::NodeHandle &nh) {
 
     std::string device;
     if (!nh.getParam("device", device)) {
@@ -61,13 +61,13 @@ NonlinearThrusters::NonlinearThrusters(int argc, char **argv, ros::NodeHandle &n
     load_lookup_tables();
 
     // Instantiate a subscriber to the voltage sensor, should read voltages from range in [14.0, 18.0]
-    voltage_sub = nh.subscribe("/sensors/voltage", 1, &NonlinearThrusters::voltage_callback, this);
+    voltage_sub = nh.subscribe("/sensors/voltage", 1, &Thrusters::voltage_callback, this);
 
     // Subscribe to thruster allocation (desired range in [-1.0, 1.0])
-    thruster_allocs_sub = nh.subscribe("/controls/thruster_allocs", 1, &NonlinearThrusters::thruster_allocs_callback, this);
+    thruster_allocs_sub = nh.subscribe("/controls/thruster_allocs", 1, &Thrusters::thruster_allocs_callback, this);
 }
 
-NonlinearThrusters::~NonlinearThrusters() {
+Thrusters::~Thrusters() {
     if (serial_fd != -1) {
         close(serial_fd);
     }
@@ -76,7 +76,7 @@ NonlinearThrusters::~NonlinearThrusters() {
 // This method reads in the csv files for 14.0, 16.0, 18.0V volt conversions
 // Each lookup table stores all thruster allocations from -1.0 to 1.0 in 0.01 increments
 // with voltage in 14.0 to 18.0V and the appropriate pwm output
-void NonlinearThrusters::load_lookup_tables() {
+void Thrusters::load_lookup_tables() {
     std::string package_path = ros::package::getPath("offboard_comms");
 
     read_lookup_table_csv(package_path + "/data/14.csv", v14_lookup_table);
@@ -85,7 +85,7 @@ void NonlinearThrusters::load_lookup_tables() {
 }
 
 // Read lookup table for voltage, thruster alloc, and pwm alloc; thurster alloc/force is stored with 2 decimal precision
-void NonlinearThrusters::read_lookup_table_csv(const std::string &filename,
+void Thrusters::read_lookup_table_csv(const std::string &filename,
                                       std::array<uint16_t, NUM_LOOKUP_ENTRIES> &lookup_table) {
     std::ifstream file(filename);
     ROS_ASSERT_MSG(file.is_open(), "Error opening file %s", filename.c_str());
@@ -132,7 +132,7 @@ void NonlinearThrusters::read_lookup_table_csv(const std::string &filename,
 }
 
 // Update the voltage field; used in pwm interpolation
-void NonlinearThrusters::voltage_callback(const std_msgs::Float64 &msg) {
+void Thrusters::voltage_callback(const std_msgs::Float64 &msg) {
     // Clamp voltage to be within bounds
     voltage = std::max(VOLTAGE_LOWER, std::min(msg.data, VOLTAGE_UPPER));
 
@@ -143,7 +143,7 @@ void NonlinearThrusters::voltage_callback(const std_msgs::Float64 &msg) {
 
 // Given thruster allocation, we reference our last received voltage
 // to calculate the appropriate pwm allocation based on voltage and thruster alloc
-void NonlinearThrusters::thruster_allocs_callback(const custom_msgs::ThrusterAllocs &msg) {
+void Thrusters::thruster_allocs_callback(const custom_msgs::ThrusterAllocs &msg) {
 
     std::array<uint16_t, NUM_THRUSTERS> pwm_allocs;
 
@@ -160,7 +160,7 @@ void NonlinearThrusters::thruster_allocs_callback(const custom_msgs::ThrusterAll
 
 // Given thruster alloc (force) and the current voltage stored as a field, compute which lookup tables
 // to use to perform linear interpolation
-double NonlinearThrusters::lookup(double force) {
+double Thrusters::lookup(double force) {
     // Check to make sure force and voltage are not out of bounds
     ROS_ASSERT_MSG(-1.0 <= force && force <= 1.0, "Force must be in [-1.0, 1.0]");
     ROS_ASSERT_MSG(14.0 <= voltage && voltage <= 18.0, "Voltage must be in [14.0, 18.0]");
@@ -178,35 +178,52 @@ double NonlinearThrusters::lookup(double force) {
 }
 
 // Perform linear interpolation to compute PWM given force and voltage
-double NonlinearThrusters::interpolate(double x1, uint16_t y1, double x2, uint16_t y2, double x_interpolate) {
+double Thrusters::interpolate(double x1, uint16_t y1, double x2, uint16_t y2, double x_interpolate) {
     return y1 + ((y2 - y1) * (x_interpolate - x1)) / (x2 - x1);
 }
 
 // Round to two decimal places
-int NonlinearThrusters::round_to_two_decimals(double num) { return static_cast<int>(std::lround((num * 100) + 100)); }
+int Thrusters::round_to_two_decimals(double num) { return static_cast<int>(std::lround((num * 100) + 100)); }
 
-void NonlinearThrusters::write_to_serial(const std::array<uint16_t, NUM_THRUSTERS> &allocs) {
-    // Write to serial the thruster allocations after receiving them
-    std::string write_str = std::to_string(allocs[0]);
-    for (int i = 1; i < NUM_THRUSTERS; i++) {
-        write_str += "," + std::to_string(allocs[i]);
+void Thrusters::write_to_serial(const std::array<uint16_t, NUM_THRUSTERS> &allocs) {
+
+    //ros info all the data
+    for (int i = 0; i < NUM_THRUSTERS; i++) {
+        ROS_INFO("Thruster %d: %d", i, allocs[i]);
     }
-    write_str += "\n";
 
-    ssize_t bytes_written = write(serial_fd, write_str.c_str(), write_str.size());
+    size_t num_bytes = NUM_THRUSTERS * sizeof(uint16_t) + 1; // include checksum byte
+
+    uint8_t buffer[num_bytes];
+
+    // Copy data (little-endian) to buffer
+    for (size_t i = 0; i < NUM_THRUSTERS; i++) {
+        buffer[2*i] = allocs[i] & 0xFF;          // lower byte
+        buffer[2*i + 1] = (allocs[i] >> 8) & 0xFF; // upper byte
+    }
+
+    // Calculate and append checksum with xor
+    uint8_t checksum = 0;
+    for (size_t i = 0; i < num_bytes - 1; i++) {
+        checksum ^= buffer[i];
+    }
+
+    buffer[num_bytes - 1] = checksum;
+
+    // Write data + checksum to serial
+    ssize_t bytes_written = write(serial_fd, buffer, num_bytes);
     if (bytes_written < 0) {
         ROS_ERROR("Error writing to serial port: %d", errno);
+    } else if (bytes_written != num_bytes) {
+        ROS_ERROR("Error writing to serial port. Wrote %ld bytes, expected %ld bytes.", bytes_written, num_bytes);
     }
-
-    // Sleep for 10ms to allow the thrusters to process the data
-    usleep(10000);
 }
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "thrusters");
     ros::NodeHandle nh;
 
-    NonlinearThrusters nonlinear_thrusters(argc, argv, nh);
+    Thrusters nonlinear_thrusters(argc, argv, nh);
 
     ros::spin();
     return 0;
