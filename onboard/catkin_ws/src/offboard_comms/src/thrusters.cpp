@@ -187,11 +187,6 @@ int Thrusters::round_to_two_decimals(double num) { return static_cast<int>(std::
 
 void Thrusters::write_to_serial(const std::array<uint16_t, NUM_THRUSTERS> &allocs) {
 
-    //ros info all the data
-    for (int i = 0; i < NUM_THRUSTERS; i++) {
-        ROS_INFO("Thruster %d: %d", i, allocs[i]);
-    }
-
     size_t num_bytes = NUM_THRUSTERS * sizeof(uint16_t) + 1; // include checksum byte
 
     uint8_t buffer[num_bytes];

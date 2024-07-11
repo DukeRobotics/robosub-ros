@@ -1,0 +1,5 @@
+<launch>
+    <!-- Deprecated, please use thrusters.launch -->
+    <include file="$(find offboard_comms)/launch/thrusters.launch" />
+
+</launch>
