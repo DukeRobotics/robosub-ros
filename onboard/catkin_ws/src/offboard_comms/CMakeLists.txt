@@ -23,6 +23,6 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(thrusters src/nonlinear_thrusters.cpp)
+add_executable(thrusters src/thrusters.cpp)
 
 target_link_libraries(thrusters ${catkin_LIBRARIES})

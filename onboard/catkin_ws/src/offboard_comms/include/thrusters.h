@@ -7,7 +7,7 @@
 
 #include <array>
 
-#define NUM_THRUSTERS 8
+const int NUM_THRUSTERS = 8;
 
 // Number of entries in each lookup table
 const int NUM_LOOKUP_ENTRIES = 201;
@@ -26,7 +26,7 @@ class NonlinearThrusters {
     ros::Subscriber thruster_allocs_sub;
     ros::Subscriber voltage_sub;
 
-    int serial_fd;
+    int serial_fd = -1;
 
     void load_lookup_tables();
     void read_lookup_table_csv(const std::string &filename, std::array<uint16_t, NUM_LOOKUP_ENTRIES> &lookup_table);

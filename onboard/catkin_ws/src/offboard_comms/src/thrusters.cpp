@@ -1,4 +1,4 @@
-#include "nonlinear_thrusters.h"
+#include "thrusters.h"
 
 #include <custom_msgs/PWMAllocs.h>
 #include <ros/assert.h>

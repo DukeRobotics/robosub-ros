@@ -22,92 +22,82 @@ MultiplexedBasicESC thrusters[NUM_THRUSTERS];
 
 bool pwms_changed = true;
 
-void write_pwms()
-{
-    bool timeout = last_cmd_ms_ts + THRUSTER_TIMEOUT_MS < millis();
+void write_pwms() {
 
-    for (uint8_t i = 0; i < NUM_THRUSTERS; ++i)
-    {
-        uint16_t pwm = timeout ? THRUSTER_STOP_PWM : pwms[i];
-
-        // If PWM is out of bounds, stop thruster
-        if (pwm < THRUSTER_PWM_MIN || pwm > THRUSTER_PWM_MAX)
-        {
-            pwm = THRUSTER_STOP_PWM;
+    if (last_cmd_ms_ts + THRUSTER_TIMEOUT_MS < millis()) {
+        // Stop all thrusters if no command has been received in the last THRUSTER_TIMEOUT_MS milliseconds
+        for (uint8_t i = 0; i < NUM_THRUSTERS; i++) {
+            thrusters[i].write(THRUSTER_STOP_PWM + THRUSTER_PWM_OFFSET);
         }
+    } else {
+        for (uint8_t i = 0; i < NUM_THRUSTERS; i++) {
+            uint16_t pwm_value = pwms[i];
 
-        thrusters[i].write(pwm + THRUSTER_PWM_OFFSET);
+            // Clamp the PWM value to be within bounds
+            // We optionally can stop the thruster if the PWM value is out of bounds, but this way improves performance
+            pwm_value = max(THRUSTER_PWM_MIN, min(pwm_value, THRUSTER_PWM_MAX));
+
+            thrusters[i].write(pwm_value + THRUSTER_PWM_OFFSET);
+        }
     }
 }
 
-void setup()
-{
-    // Set all PWMs to stop for proper initialization of thrusters
-    for (uint8_t i = 0; i < NUM_THRUSTERS; ++i)
-    {
+
+void setup() {
+    // Initialize the PWMs to stop
+    for (uint8_t i = 0; i < NUM_THRUSTERS; i++) {
         pwms[i] = THRUSTER_STOP_PWM;
     }
 
     pwm_multiplexer.begin();
-    for (uint8_t i = 0; i < NUM_THRUSTERS; ++i)
-    {
+    for (uint8_t i = 0; i < NUM_THRUSTERS; i++) {
         thrusters[i].initialize(&pwm_multiplexer);
         thrusters[i].attach(i);
     }
 
-    // Write the 1500 PWM to all thrusters to stop them
-    for (uint8_t i = 0; i < NUM_THRUSTERS; ++i)
+    // Write the stop PWM to all thrusters
+    for (uint8_t i = 0; i < NUM_THRUSTERS; i++) {
         thrusters[i].write(THRUSTER_STOP_PWM + THRUSTER_PWM_OFFSET);
+    }
 
     Serial.begin(BAUD_RATE);
 }
 
-void loop()
-{
-    // Check if last version of data has timed out, if so, stop all thrusters
+void loop() {
+    static char inputBuffer[64];
+    static uint8_t inputPos = 0;
 
-    // Read from serial as a string of 8 integers separated by commas
-    // Ex.
-    // 1496,1497,1498,1499,1500,1501,1502,1503
+    if (Serial.available() > 0) {
+        while (Serial.available() > 0) {
+            char c = Serial.read();
+            if (c == '\n' || inputPos >= sizeof(inputBuffer) - 1) {
+                inputBuffer[inputPos] = '\0';
+                inputPos = 0;
 
-    if (Serial.available() > 0)
-    {
-        String input = Serial.readStringUntil('\n');
-        int i = 0;
-        int j = 0;
-        while (input.length() > 0)
-        {
-            int comma = input.indexOf(',');
-            if (comma == -1)
-            {
-                uint16_t val = input.toInt();
-                if (val < THRUSTER_PWM_MIN || val > THRUSTER_PWM_MAX)
-                {
-                    val = THRUSTER_STOP_PWM;
+                // Parse the inputBuffer
+                char *token = strtok(inputBuffer, ",");
+                uint8_t index = 0;
+                while (token != NULL && index < NUM_THRUSTERS) {
+                    uint16_t val = atoi(token);
+                    if (val < THRUSTER_PWM_MIN || val > THRUSTER_PWM_MAX) {
+                        val = THRUSTER_STOP_PWM;
+                    }
+                    pwms[index] = val;
+                    token = strtok(NULL, ",");
+                    index++;
                 }
+                last_cmd_ms_ts = millis();
+                pwms_changed = true;
                 break;
+            } else {
+                inputBuffer[inputPos++] = c;
             }
-            else
-            {
-                uint16_t val = input.substring(0, comma).toInt();
-                if (val < THRUSTER_PWM_MIN || val > THRUSTER_PWM_MAX)
-                {
-                    val = THRUSTER_STOP_PWM;
-                }
-                pwms[j] = val;
-                input = input.substring(comma + 1);
-            }
-            j++;
         }
-        last_cmd_ms_ts = millis();
-        pwms_changed = true;
     }
 
     // Write the PWMs to the thrusters if they have changed
-    if (pwms_changed)
-    {
+    if (pwms_changed) {
         write_pwms();
         pwms_changed = false;
     }
-
 }
