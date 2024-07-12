@@ -42,10 +42,10 @@ class BuoyDetectorContourMatching:
             return
 
         # Define the range for HSV filtering on the red buoy
-        lower_red = np.array([0, 180, 120])
-        upper_red = np.array([7, 255, 255])
-        lower_red_upper = np.array([175, 120, 70])
-        upper_red_upper = np.array([180, 255, 255])
+        lower_red = np.array([0, 191, 191])
+        upper_red = np.array([4, 255, 255])
+        lower_red_upper = np.array([175, 191, 191])
+        upper_red_upper = np.array([179, 255, 255])
 
         # Apply HSV filtering on the image
         mask1 = cv2.inRange(hsv_image, lower_red, upper_red)
@@ -95,14 +95,16 @@ class BuoyDetectorContourMatching:
         if best_cnt is not None:
             x, y, w, h = cv2.boundingRect(best_cnt)
             bbox = (x, y, w, h)
-            self.last_n_bboxes.append(bbox)
-            if len(self.last_n_bboxes) > self.n:
-                self.last_n_bboxes.pop(0)
+            self.publish_bbox(bbox, image)
+            
+            # self.last_n_bboxes.append(bbox)
+            # if len(self.last_n_bboxes) > self.n:
+            #     self.last_n_bboxes.pop(0)
 
-            filtered_bboxes = self.filter_outliers(self.last_n_bboxes)
-            if filtered_bboxes:
-                most_recent_bbox = filtered_bboxes[-1]  # Get the most recent bbox
-                self.publish_bbox(most_recent_bbox, image)
+            # filtered_bboxes = self.filter_outliers(self.last_n_bboxes)
+            # if filtered_bboxes:
+            #     most_recent_bbox = filtered_bboxes[-1]  # Get the most recent bbox
+            #     self.publish_bbox(most_recent_bbox, image)
 
     def filter_outliers(self, bboxes):
         if len(bboxes) <= 2:
