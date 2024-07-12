@@ -10,7 +10,7 @@ arduino:
     fqbn: arduino:megaavr:nona4809
     core: arduino:megaavr
     sketch: Arduino Sketchbooks/ThrusterArduino
-    requires_ros_lib: true
+    requires_ros_lib: false
     pre_compile: rosrun offboard_comms copy_offset.sh 1
     post_compile: rosrun offboard_comms copy_offset.sh 0
   servo_sensors:

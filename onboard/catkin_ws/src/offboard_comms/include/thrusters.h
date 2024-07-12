@@ -26,6 +26,8 @@ class Thrusters {
     ros::Subscriber thruster_allocs_sub;
     ros::Subscriber voltage_sub;
 
+    ros::Publisher pwm_pub;
+
     int serial_fd = -1;
 
     void load_lookup_tables();

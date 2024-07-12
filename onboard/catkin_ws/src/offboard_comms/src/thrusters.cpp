@@ -65,6 +65,10 @@ Thrusters::Thrusters(int argc, char **argv, ros::NodeHandle &nh) {
 
     // Subscribe to thruster allocation (desired range in [-1.0, 1.0])
     thruster_allocs_sub = nh.subscribe("/controls/thruster_allocs", 1, &Thrusters::thruster_allocs_callback, this);
+
+    // Publish pwm allocation based on calculated conversions
+    // Debug purposes only
+    pwm_pub = nh.advertise<custom_msgs::PWMAllocs>("/offboard/pwm", 1);
 }
 
 Thrusters::~Thrusters() {
@@ -147,14 +151,23 @@ void Thrusters::thruster_allocs_callback(const custom_msgs::ThrusterAllocs &msg)
 
     std::array<uint16_t, NUM_THRUSTERS> pwm_allocs;
 
+    // Set timestamp to now; set up PWMAllocs object to publish
+    custom_msgs::PWMAllocs pwm_msg;
+    pwm_msg.header.stamp = ros::Time::now();
+
     // For each of the 8 thrusters in thruster alloc (all of values in -1.0, 1.0)
     // perform a linear interpolation based on the nearest lookup table entries
     for (int i = 0; i < NUM_THRUSTERS; i++) {
-        pwm_allocs[i] = lookup(msg.allocs[i]);
+        uint16_t alloc = lookup(msg.allocs[i]);
+        pwm_allocs[i] = alloc;
+        pwm_msg.allocs.push_back(alloc);
     }
 
     // Write the pwm allocations to the serial port
     write_to_serial(pwm_allocs);
+
+    // Publish the pwm allocations to the /offboard/pwm topic
+    pwm_pub.publish(pwm_msg);
 
 }
 
@@ -218,7 +231,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "thrusters");
     ros::NodeHandle nh;
 
-    Thrusters nonlinear_thrusters(argc, argv, nh);
+    Thrusters thrusters(argc, argv, nh);
 
     ros::spin();
     return 0;
