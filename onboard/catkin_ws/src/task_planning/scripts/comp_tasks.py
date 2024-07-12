@@ -244,7 +244,7 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
     Circumnavigate the buoy.
     """
 
-    init_depth = -0.5
+    init_depth = -1
     await move_tasks.move_to_pose_local(
         geometry_utils.create_pose(0, 0, init_depth, 0, 0, 0),
         parent=self)
@@ -253,12 +253,12 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
     DEPTH_LEVEL = State().depth
 
     async def correct_y():
-        y = CV().cv_data["buoy_center_distance"][0]
-        await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, -y, 0, 0, 0, 0), parent=self)
+        y = -(CV().cv_data["buoy_center_distance"][0])
+        await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, y, 0, 0, 0, 0), parent=self)
         rospy.loginfo(f"Corrected y {y}")
 
     async def correct_z():
-        z = CV().cv_data["buoy_center_distance"][1]
+        z = -(CV().cv_data["buoy_center_distance"][1])
         await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, z, 0, 0, 0), parent=self)
         rospy.loginfo(f"Corrected z {z}")
 
@@ -271,25 +271,40 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
         await move_tasks.move_to_pose_local(geometry_utils.create_pose(step, 0, 0, 0, 0, 0), parent=self)
         rospy.loginfo(f"Moved x {step}")
 
-    while CV().cv_data["buoy_dimensions"][0] < 80:
-        await move_x()
+    buoy_width_pixels = CV().cv_data["buoy_dimensions"][0]
+    await correct_y()
+    await correct_depth()
+    while buoy_width_pixels < 75:
+        await move_x(step=(0.25 if buoy_width_pixels > 50 else 0.5))
         await correct_y()
         await correct_depth()
+        await Yield()
+        buoy_width_pixels = CV().cv_data["buoy_dimensions"][0]
+        rospy.loginfo(f"Buoy dimensions: {CV().cv_data['buoy_dimensions']}")
+
+    await correct_depth()
 
     directions = [
-        (0, -0.5, 0),
-        (1, 0, 0),
-        (1, 0, 0),
-        (0, 1, 0),
-        (-1, 0, 0),
-        (-1, 0, 0),
         (0, -1, 0),
         (1, 0, 0),
         (1, 0, 0),
+        (0.5, 0, 0),
+        (0, 1, 0),
+        (0, 1, 0),
         (0, 0.5, 0),
+        (-1, 0, 0),
+        (-1, 0, 0),
+        (-0.5, 0, 0),
+        (0, -1, 0),
+        (0, -1, 0),
+        (1, 0, 0),
+        (1, 0, 0),
+        (0.5, 0, 0),
+        (0, 1, 0),
     ]
     for direction in directions:
         await move_tasks.move_to_pose_local(
             geometry_utils.create_pose(direction[0], direction[1], direction[2], 0, 0, 0),
             parent=self)
         rospy.loginfo(f"Moved to {direction}")
+        await correct_depth()
