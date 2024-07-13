@@ -1,0 +1,3 @@
+# Ignore weight file they are to heavy for a git repository
+**/weights/*.pt
+**/__pycache__

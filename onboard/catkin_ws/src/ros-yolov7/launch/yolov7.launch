@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<launch>
+    <node pkg="yolov7" type="YoloV7.py" name="yolov7">
+        <!-- Path to your weight -->
+        <param name="weights_path" type="str" value="path_to_your/weights/weight.pt"/>
+        <!-- Path to a class_labels.txt file, if you leave it empty then no class labels are visualized.-->
+        <param name="classes_path" type="str" value="path_to_your/class_labels/labels.txt" />
+        <!-- Input image topic name to subscribe to -->
+        <param name="img_topic" type="str" value="/camera/image" />
+        <!-- [optional]  Confidence threshold (default=0.25) -->
+        <param name="conf_thresh" type="double" value="0.20" />
+        <!-- [optional]  Intersection over union threshold (default=0.45) -->
+        <param name="iou_thresh" type="double" value="0.45" />
+        <!-- [optional]  Queue size for publishing (default=3) -->
+        <param name="queue_size" type="int" value="1" />
+        <!-- [optional] Image size to which to resize each input image before feeding into the network (the final output is rescaled to the original image size) (default=640) -->
+        <param name="img_size" type="int" value="640" />
+        <!-- [optional] Flag whether to also publish image with the visualized detections (default=false) -->
+        <param name="visualize" type="bool" value="true" />
+        <!-- [optional] Torch device 'cuda' or 'cpu' (default="cuda") -->
+        <param name="device" type="str" value="cuda" />
+        <!-- [optional] Node frequency (default=10) -->
+        <param name="frequency" type="int" value="10" />
+    </node>
+</launch>
