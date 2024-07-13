@@ -23,7 +23,7 @@ pid:
     z:
       Kp: 1.9
       Ki: 0
-      Kd: 0
+      Kd: 1.2
       Ff: 0
       control_effort:
         min: -1
@@ -31,7 +31,7 @@ pid:
       derivative_type: 1
       error_ramp_rate: 1000
     roll:
-      Kp: 0.6
+      Kp: 0.2
       Ki: 0
       Kd: 0.4
       Ff: 0
@@ -41,7 +41,7 @@ pid:
       derivative_type: 1
       error_ramp_rate: 1000
     pitch:
-      Kp: 0.6
+      Kp: 0.2
       Ki: 0
       Kd: 0.4
       Ff: 0
@@ -51,9 +51,9 @@ pid:
       derivative_type: 1
       error_ramp_rate: 1000
     yaw:
-      Kp: 0.5
+      Kp: 0.2
       Ki: 0
-      Kd: 1
+      Kd: 0.4
       Ff: 0
       control_effort:
         min: -1
