@@ -2,7 +2,7 @@
 <launch>
     <node pkg="yolov7" type="YoloV7.py" name="yolov7">
         <!-- Path to your weight -->
-        <param name="weights_path" type="str" value="/root/dev/robosub-ros/onboard/catkin_ws/src/ros-yolov7/best.pt"/>
+        <param name="weights_path" type="str" value="/root/dev/robosub-ros/onboard/catkin_ws/src/ros-yolov7/gate_glyphs_2-4.pt"/>
         <!-- Path to a class_labels.txt file, if you leave it empty then no class labels are visualized.-->
         <param name="classes_path" type="str" value="/root/dev/robosub-ros/onboard/catkin_ws/src/ros-yolov7/labels.txt" />
         <!-- Input image topic name to subscribe to -->
