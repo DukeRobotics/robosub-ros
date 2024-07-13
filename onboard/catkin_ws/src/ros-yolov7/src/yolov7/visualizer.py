@@ -39,6 +39,7 @@ LABEL_MARGIN = 12
 
 def draw_detections(img: np.ndarray, bboxes: List[List[int]], classes: List[int],
                     class_labels: Union[List[str], None]):
+    img = img.copy()
     for bbox, cls in zip(bboxes, classes):
         x1, y1, x2, y2   = bbox
         height, width, _ = img.shape

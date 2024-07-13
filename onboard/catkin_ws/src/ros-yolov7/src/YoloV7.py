@@ -143,7 +143,7 @@ class YoloV7:
         channel = 3
         height  = self.img_buffer.height
         width   = self.img_buffer.width
-        buffer  = np.frombuffer(self.img_buffer.data,dtype=np.uint8)
+        buffer  = np.frombuffer(bytes(self.img_buffer.data),dtype=np.uint8)
         np_img_orig   = np.reshape(buffer,(height, width, channel))
 
         # handle possible different img formats
