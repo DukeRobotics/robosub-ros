@@ -1,0 +1,4 @@
+gate_red_cw
+gate_blue_ccw
+gate_tick
+gate_whole

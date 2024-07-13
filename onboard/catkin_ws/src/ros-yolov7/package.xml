@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>yolov7</name>
+  <version>0.0.0</version>
+  <description>The ros-yolov7 package</description>
+
+  <maintainer email="foucher@univ-ubs.fr">Alexandre Foucher</maintainer>
+
+  <license>Apache License 2.0</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>rospy</depend>
+  <depend>std_msgs</depend>
+  <depend>vision_msgs</depend>
+
+  <exec_depend>image_transport_py</exec_depend>
+</package>

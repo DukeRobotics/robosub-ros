@@ -48,6 +48,7 @@ RUN apt-get update && \
     ros-noetic-smach-ros \
     ros-noetic-rosserial \
     ros-noetic-rosserial-arduino \
+    ros-noetic-vision-msgs \
     ffmpeg \
     nmap \
     iputils-ping \
@@ -68,7 +69,8 @@ RUN pip3 install --no-cache-dir \
     python-nmap \
     transforms3d \
     sympy \
-    scikit-learn
+    scikit-learn \
+    opencv-python
 
 # Install PyTorch and Torchvision
 COPY torch_installer.sh torch_deps/torch_installer.sh
