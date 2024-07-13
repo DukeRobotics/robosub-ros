@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>image_transport_py</name>
+  <version>0.0.0</version>
+  <description>The image_transport_py package</description>
+
+  <license>Apache License 2.0</license>
+
+  <author email="foucher@univ-ubs.fr">Alexandre Foucher</author>
+  <maintainer email="foucher@univ-ubs.fr">Alexandre Foucher</maintainer>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>rospy</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>message_generation</build_depend>
+
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+</package>
