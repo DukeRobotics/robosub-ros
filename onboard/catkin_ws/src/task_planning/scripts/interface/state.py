@@ -45,6 +45,8 @@ class State:
 
         rospy.Subscriber(self.IMU_TOPIC, Imu, self._on_receive_imu)
 
+        self.received_imu = False
+
     @property
     def state(self):
         """
@@ -67,6 +69,13 @@ class State:
         return self._imu
 
     @property
+    def orig_imu(self):
+        """
+        The first IMU message received
+        """
+        return self._orig_imu
+
+    @property
     def tfBuffer(self):
         """
         The transform buffer
@@ -81,6 +90,10 @@ class State:
 
     def _on_receive_imu(self, imu_msg):
         self._imu = imu_msg
+
+        if not self.received_imu:
+            self._orig_imu = imu_msg
+            self.received_imu = True
 
     def reset_pose(self):
         """
