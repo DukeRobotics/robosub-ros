@@ -1,10 +1,11 @@
 import rospy
 import math
 import time
+import copy
 
 from transforms3d.euler import quat2euler
 
-from geometry_msgs.msg import Twist, Pose
+from geometry_msgs.msg import Twist, Pose, Quaternion
 
 from task import Task, task
 import move_tasks
@@ -308,3 +309,108 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
             parent=self)
         rospy.loginfo(f"Moved to {direction}")
         await correct_depth()
+
+@task
+async def initial_submerge(self: Task, submerge_dist: float) -> Task[None, None, None]:
+    """
+    Submerge the robot a given amount.
+
+    Args:
+        submerge_dist: The distance to submerge the robot in meters.
+    """
+    await move_tasks.move_to_pose_local(
+        geometry_utils.create_pose(0, 0, submerge_dist, 0, 0, 0),
+        parent=self
+    )
+    rospy.loginfo(f"Submerged {submerge_dist} meters")
+
+@task
+async def coin_flip(self: Task) -> Task[None, None, None]:
+    DEPTH_LEVEL = State().depth
+
+    def get_yaw_correction():
+        orig_imu_orientation = copy.deepcopy(State().orig_imu.orientation)
+        orig_imu_euler_angles = quat2euler(geometry_utils.geometry_quat_to_transforms3d_quat(orig_imu_orientation))
+
+        rospy.loginfo(f"orig: {orig_imu_euler_angles}")
+
+        cur_imu_orientation = copy.deepcopy(State().imu.orientation)
+        cur_imu_euler_angles = quat2euler(geometry_utils.geometry_quat_to_transforms3d_quat(cur_imu_orientation))
+
+        rospy.loginfo(f"cur: {cur_imu_euler_angles}")
+
+        return orig_imu_euler_angles[2] - cur_imu_euler_angles[2]
+
+    while abs(yaw_correction := get_yaw_correction()) > math.radians(5):
+        rospy.loginfo(f"Yaw correction: {yaw_correction}")
+        await move_tasks.move_to_pose_local(
+            geometry_utils.create_pose(0, 0, 0, 0, 0, yaw_correction),
+            parent=self
+        )
+        rospy.loginfo("Back to original orientation")
+
+    rospy.loginfo(f"Final yaw correction: {get_yaw_correction()}")
+
+    depth_delta = DEPTH_LEVEL - State().depth
+    await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, depth_delta, 0, 0, 0), parent=self)
+    rospy.loginfo(f"Corrected depth {depth_delta}")
+
+    rospy.loginfo("Completed coin flip")
+
+
+@task
+async def gate_task(self: Task) -> Task[None, None, None]:
+
+    DEPTH_LEVEL = State().depth
+
+    async def correct_y():
+        y = CV().cv_data["gate_red_cw_properties"]["y"] + 0.2
+        await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, y, 0, 0, 0, 0), parent=self)
+        rospy.loginfo(f"Corrected y {y}")
+
+    async def correct_z():
+        z = CV().cv_data["gate_red_cw_properties"]["z"]
+        await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, z, 0, 0, 0), parent=self)
+        rospy.loginfo(f"Corrected z {z}")
+
+    async def correct_depth():
+        depth_delta = DEPTH_LEVEL - State().depth
+        await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, depth_delta, 0, 0, 0), parent=self)
+        rospy.loginfo(f"Corrected depth {depth_delta}")
+
+    async def move_x(step=1):
+        await move_tasks.move_to_pose_local(geometry_utils.create_pose(step, 0, 0, 0, 0, 0), parent=self)
+        rospy.loginfo(f"Moved x {step}")
+
+    def get_step_size(dist):
+        if dist > 3:
+            return 1
+        elif dist > 2.5:
+            return 0.5
+        else:
+            return 0.25
+
+    gate_dist = CV().cv_data["gate_red_cw_properties"]["x"]
+    await correct_y()
+    await correct_depth()
+    while gate_dist > 2.125:
+        await move_x(step=get_step_size(gate_dist))
+        await correct_y()
+        await correct_depth()
+        await Yield()
+        gate_dist = CV().cv_data["gate_red_cw_properties"]["x"]
+
+    directions = [
+        (1, 0, 0),
+        (1, 0, 0),
+        (1, 0, 0),
+        (1, 0, 0)
+    ]
+    for direction in directions:
+        await move_tasks.move_to_pose_local(
+            geometry_utils.create_pose(direction[0], direction[1], direction[2], 0, 0, 0),
+            parent=self)
+        rospy.loginfo(f"Moved to {direction}")
+        await correct_depth()
+
+    rospy.loginfo("Moved through gate")
