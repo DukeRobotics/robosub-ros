@@ -9,8 +9,51 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <fcntl.h>
+#include <unistd.h>
+#include <termios.h>
 
 Thrusters::Thrusters(int argc, char **argv, ros::NodeHandle &nh) {
+
+    std::string device;
+    if (!nh.getParam("device", device)) {
+        ROS_ERROR("Failed to get parameter 'device'");
+        return;
+    }
+
+    if (device.find("/dev/") == std::string::npos) {
+        ROS_ERROR("Invalid device path: %s", device.c_str());
+        return;
+    }
+
+    ROS_INFO("Thruster serial port: %s", device.c_str());
+
+    // Open the serial port
+    serial_fd = open(device.c_str(), O_WRONLY | O_NOCTTY | O_NONBLOCK); // write only, no controlling terminal, non-blocking
+    if (serial_fd == -1) {
+        ROS_ERROR("Failed to open serial port %s", device.c_str());
+        return;
+    }
+
+    // Configure serial port settings
+    struct termios tty;
+    if (tcgetattr(serial_fd, &tty) != 0) {
+        ROS_ERROR("Error %d from tcgetattr", errno);
+        close(serial_fd);
+        return;
+    }
+
+    tty.c_cflag &= ~CBAUD; // Clear baud rate bits
+    tty.c_cflag |= B57600; // Set baud to 57600
+
+    if (tcsetattr(serial_fd, TCSANOW, &tty) != 0) {
+        ROS_ERROR("Error %d from tcsetattr", errno);
+        close(serial_fd);
+        return;
+    }
+
+    ROS_INFO("Thrusters initialized");
+
     // Set the default voltage
     voltage = 15.5;
 
@@ -22,9 +65,12 @@ Thrusters::Thrusters(int argc, char **argv, ros::NodeHandle &nh) {
 
     // Subscribe to thruster allocation (desired range in [-1.0, 1.0])
     thruster_allocs_sub = nh.subscribe("/controls/thruster_allocs", 1, &Thrusters::thruster_allocs_callback, this);
+}
 
-    // Publish pwm allocation based on calculated conversions
-    pwm_pub = nh.advertise<custom_msgs::PWMAllocs>("/offboard/pwm", 1);
+Thrusters::~Thrusters() {
+    if (serial_fd != -1) {
+        close(serial_fd);
+    }
 }
 
 // This method reads in the csv files for 14.0, 16.0, 18.0V volt conversions
@@ -98,16 +144,18 @@ void Thrusters::voltage_callback(const std_msgs::Float64 &msg) {
 // Given thruster allocation, we reference our last received voltage
 // to calculate the appropriate pwm allocation based on voltage and thruster alloc
 void Thrusters::thruster_allocs_callback(const custom_msgs::ThrusterAllocs &msg) {
-    // Set timestamp to now; set up PWMAllocs object to publish
-    custom_msgs::PWMAllocs pwm_msg;
-    pwm_msg.header.stamp = ros::Time::now();
+
+    std::array<uint16_t, NUM_THRUSTERS> pwm_allocs;
 
     // For each of the 8 thrusters in thruster alloc (all of values in -1.0, 1.0)
     // perform a linear interpolation based on the nearest lookup table entries
-    for (int i = 0; i < msg.allocs.size(); i++) pwm_msg.allocs.push_back(lookup(msg.allocs[i]));
+    for (int i = 0; i < NUM_THRUSTERS; i++) {
+        pwm_allocs[i] = lookup(msg.allocs[i]);
+    }
 
-    // Publish interpolated values for each thruster
-    pwm_pub.publish(pwm_msg);
+    // Write the pwm allocations to the serial port
+    write_to_serial(pwm_allocs);
+
 }
 
 // Given thruster alloc (force) and the current voltage stored as a field, compute which lookup tables
@@ -137,11 +185,40 @@ double Thrusters::interpolate(double x1, uint16_t y1, double x2, uint16_t y2, do
 // Round to two decimal places
 int Thrusters::round_to_two_decimals(double num) { return static_cast<int>(std::lround((num * 100) + 100)); }
 
+void Thrusters::write_to_serial(const std::array<uint16_t, NUM_THRUSTERS> &allocs) {
+
+    size_t num_bytes = NUM_THRUSTERS * sizeof(uint16_t) + 1; // include checksum byte
+
+    uint8_t buffer[num_bytes];
+
+    // Copy data (little-endian) to buffer
+    for (size_t i = 0; i < NUM_THRUSTERS; i++) {
+        buffer[2*i] = allocs[i] & 0xFF;          // lower byte
+        buffer[2*i + 1] = (allocs[i] >> 8) & 0xFF; // upper byte
+    }
+
+    // Calculate and append checksum with xor
+    uint8_t checksum = 0;
+    for (size_t i = 0; i < num_bytes - 1; i++) {
+        checksum ^= buffer[i];
+    }
+
+    buffer[num_bytes - 1] = checksum;
+
+    // Write data + checksum to serial
+    ssize_t bytes_written = write(serial_fd, buffer, num_bytes);
+    if (bytes_written < 0) {
+        ROS_ERROR("Error writing to serial port: %d", errno);
+    } else if (bytes_written != num_bytes) {
+        ROS_ERROR("Error writing to serial port. Wrote %ld bytes, expected %ld bytes.", bytes_written, num_bytes);
+    }
+}
+
 int main(int argc, char **argv) {
     ros::init(argc, argv, "thrusters");
     ros::NodeHandle nh;
 
-    Thrusters thrusters(argc, argv, nh);
+    Thrusters nonlinear_thrusters(argc, argv, nh);
 
     ros::spin();
     return 0;

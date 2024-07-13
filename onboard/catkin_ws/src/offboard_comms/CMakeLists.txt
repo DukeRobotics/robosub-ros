@@ -24,4 +24,5 @@ include_directories(
 )
 
 add_executable(thrusters src/thrusters.cpp)
+
 target_link_libraries(thrusters ${catkin_LIBRARIES})
