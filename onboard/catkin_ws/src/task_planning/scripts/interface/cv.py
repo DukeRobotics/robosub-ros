@@ -4,6 +4,9 @@ import resource_retriever as rr
 from custom_msgs.msg import CVObject, RectInfo
 from geometry_msgs.msg import Pose, Polygon
 from std_msgs.msg import Float64
+from vision_msgs.msg import Detection2DArray
+from vision_msgs.msg import Detection2D
+from vision_msgs.msg import ObjectHypothesisWithPose
 from utils.other_utils import singleton
 from utils import geometry_utils
 
@@ -24,6 +27,12 @@ class CV:
     CV_MODEL = "yolov7_tiny_2023_main"
 
     BUOY_WIDTH = 0.2032  # Width of buoy in meters
+    GATE_IMAGE_WIDTH = 0.2452  # Width of gate images in meters
+    GATE_IMAGE_HEIGHT = 0.2452  # Height of gate images in meters
+
+    MONO_CAM_IMG_SHAPE = (640, 480)  # Width, height in pixels
+    MONO_CAM_SENSOR_SIZE = (3.054, 1.718)  # Width, height in mm
+    MONO_CAM_FOCAL_LENGTH = 2.65  # Focal length in mm
 
     def __init__(self, bypass: bool = False):
         self.cv_data = {}
@@ -49,6 +58,8 @@ class CV:
         self.rect_angle_publisher = rospy.Publisher("/task_planning/cv/bottom/rect_angle", Float64, queue_size=1)
 
         rospy.Subscriber("/cv/front_usb/bounding_box", Polygon, self._on_receive_buoy_bounding_box)
+
+        rospy.Subscriber('/yolov7/detection', Detection2DArray, self._on_receive_gate_detection)
 
     def _on_receive_cv_data(self, cv_data: CVObject, object_type: str) -> None:
         """
@@ -136,13 +147,94 @@ class CV:
 
         # Compute distance between center of bounding box and center of image
         # Here, image x is robot's y, and image y is robot's z
-        dist_x, dist_y = geometry_utils.compute_center_distance(bounding_box, 640, 480)
+        dist_x, dist_y = geometry_utils.compute_center_distance(bounding_box, *self.MONO_CAM_IMG_SHAPE)
 
         # Compute distance between center of bounding box and center of image in meters
         dist_x_meters = dist_x * meters_per_pixel
         dist_y_meters = dist_y * meters_per_pixel
 
         self.cv_data["buoy_center_distance"] = (dist_x_meters, dist_y_meters)
+
+    def _on_receive_gate_detection(self, msg: Detection2DArray) -> None:
+        for detection in msg.detections:
+            for result in detection.results:
+                if result.id == 0:  # gate_blue_ccw
+                    self.cv_data["gate_blue_ccw_bbox"] = detection.bbox
+                elif result.id == 1:  # gate_red_cw
+                    self.cv_data["gate_red_cw_bbox"] = detection.bbox
+
+        highest_confidence_blue = -1
+        highest_confidence_red = -1
+        best_bbox_blue = None
+        best_bbox_red = None
+
+        for detection in msg.detections:
+            for result in detection.results:
+                if result.id == 0 and result.score > highest_confidence_blue:  # gate_blue_ccw
+                    highest_confidence_blue = result.score
+                    best_bbox_blue = detection.bbox
+                elif result.id == 1 and result.score > highest_confidence_red:  # gate_red_cw
+                    highest_confidence_red = result.score
+                    best_bbox_red = detection.bbox
+
+        if best_bbox_blue is not None:
+            self.cv_data["gate_blue_ccw_bbox"] = best_bbox_blue
+            self.compute_gate_properties("gate_blue_ccw")
+        if best_bbox_red is not None:
+            self.cv_data["gate_red_cw_bbox"] = best_bbox_red
+            self.compute_gate_properties("gate_red_cw")
+
+    def compute_gate_properties(self, gate_class):
+        if gate_class + "_bbox" not in self.cv_data or self.cv_data[gate_class + "_bbox"] is None:
+            rospy.logwarn(f"No bounding box data available for {gate_class}")
+            return None
+
+        bbox = self.cv_data[gate_class + "_bbox"]
+
+        # Assuming bbox is of type vision_msgs/BoundingBox2D
+        bbox_width, bbox_height = bbox.size_x, bbox.size_y
+
+        # Compute the meters per pixel (assuming GATE_IMAGE_WIDTH is the real width in meters)
+        meters_per_pixel = self.GATE_IMAGE_WIDTH / bbox_width
+
+        # Use geometry_utils to compute center distances
+        # Here, image x is robot's y, and image y is robot's z
+        dist_x = bbox.center.x - self.MONO_CAM_IMG_SHAPE[0] / 2
+        dist_y = bbox.center.y - self.MONO_CAM_IMG_SHAPE[1] / 2
+
+        # Compute distance between center of bounding box and center of image in meters
+        dist_x_meters = dist_x * meters_per_pixel * -1
+        dist_y_meters = dist_y * meters_per_pixel * -1
+
+        dist_with_obj_width = self.mono_cam_dist_with_obj_width(bbox_width, self.GATE_IMAGE_WIDTH)
+        dist_with_obj_height = self.mono_cam_dist_with_obj_height(bbox_height, self.GATE_IMAGE_HEIGHT)
+        dist_to_obj = (dist_with_obj_width + dist_with_obj_height) / 2
+
+        self.cv_data[gate_class + "_properties"] = {
+            "bbox_width": bbox_width,
+            "bbox_height": bbox_height,
+            "meters_per_pixel": meters_per_pixel,
+            "x": dist_to_obj,
+            "y": dist_x_meters,
+            "z": dist_y_meters,
+        }
+
+        # log_dict = {
+        #     "x": dist_to_obj,
+        #     "y": dist_x_meters,
+        #     "z": dist_y_meters,
+        # }
+
+        # if gate_class == "gate_red_cw":
+        #     rospy.loginfo(log_dict)
+
+    def mono_cam_dist_with_obj_width(self, width_pixels, width_meters):
+        return (self.MONO_CAM_FOCAL_LENGTH * width_meters * self.MONO_CAM_IMG_SHAPE[0]) \
+            / (width_pixels * self.MONO_CAM_SENSOR_SIZE[0])
+
+    def mono_cam_dist_with_obj_height(self, height_pixels, height_meters):
+        return (self.MONO_CAM_FOCAL_LENGTH * height_meters * self.MONO_CAM_IMG_SHAPE[1]) \
+            / (height_pixels * self.MONO_CAM_SENSOR_SIZE[1])
 
     def get_pose(self, name: str) -> Pose:
         """
