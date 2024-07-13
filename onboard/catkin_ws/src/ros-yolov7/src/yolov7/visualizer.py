@@ -29,9 +29,16 @@ from typing import List, Union
 #                                         C O N S T A N T S
 # ==================================================================================================
 
-BOX_COLOR = (0,0,255)
 BOX_THICKNESS = 6
 LABEL_MARGIN = 12
+CLASS_COLORS = [
+    (0, 0, 255),      # Red
+    (0, 255, 0),      # Green
+    (255, 0, 0),      # Blue
+    (0, 255, 255),    # Yellow
+    (255, 0, 255),    # Magenta
+    (255, 255, 0)     # Cyan
+]
 
 # ==================================================================================================
 #                                              C O D E
@@ -44,12 +51,15 @@ def draw_detections(img: np.ndarray, bboxes: List[List[int]], classes: List[int]
         x1, y1, x2, y2   = bbox
         height, width, _ = img.shape
 
+        # Select the color based on the class index
+        color = CLASS_COLORS[int(cls) % len(CLASS_COLORS)]
+
         # Draw the projection on the camera output
         cv.rectangle(
             img,
             (int(x1), int(y1)),
             (int(x2), int(y2)),
-            BOX_COLOR,
+            color,
             BOX_THICKNESS
         )
 
@@ -68,7 +78,7 @@ def draw_detections(img: np.ndarray, bboxes: List[List[int]], classes: List[int]
                 img,
                 (xpos-LABEL_MARGIN, ypos),
                 (xpos+text_size[0]+LABEL_MARGIN, ypos+text_size[1]+LABEL_MARGIN*2),
-                BOX_COLOR,
+                color,
                 -1
             )
             # Print label
