@@ -174,15 +174,7 @@ async def gate_style_task(self: Task) -> Task[None, None, None]:
     Complete two full barrel rolls.
     """
 
-    init_depth = -0.7
-    await move_tasks.move_to_pose_local(
-        geometry_utils.create_pose(0, 0, init_depth, 0, 0, 0),
-        parent=self)
-    rospy.loginfo(f"Moved to (0, 0, {init_depth})")
-
     DEPTH_LEVEL = State().depth
-
-    rospy.loginfo(f"DEPTH_LEVEL: {DEPTH_LEVEL}")
 
     async def sleep(secs):
         duration = rospy.Duration(secs)
@@ -236,6 +228,7 @@ async def gate_style_task(self: Task) -> Task[None, None, None]:
     rospy.loginfo(f"Roll, pitch correction: {roll_correction, pitch_correction}")
     await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, roll_correction, pitch_correction, 0),
                                         parent=self)
+    State().reset_pose()
     rospy.loginfo("Reset orientation")
 
 
@@ -320,9 +313,11 @@ async def initial_submerge(self: Task, submerge_dist: float) -> Task[None, None,
     """
     await move_tasks.move_to_pose_local(
         geometry_utils.create_pose(0, 0, submerge_dist, 0, 0, 0),
+        keep_level=True,
         parent=self
     )
     rospy.loginfo(f"Submerged {submerge_dist} meters")
+
 
 @task
 async def coin_flip(self: Task) -> Task[None, None, None]:
@@ -343,8 +338,10 @@ async def coin_flip(self: Task) -> Task[None, None, None]:
 
     while abs(yaw_correction := get_yaw_correction()) > math.radians(5):
         rospy.loginfo(f"Yaw correction: {yaw_correction}")
+        sign = 1 if yaw_correction > 0.1 else (-1 if yaw_correction < -0.1 else 0)
         await move_tasks.move_to_pose_local(
-            geometry_utils.create_pose(0, 0, 0, 0, 0, yaw_correction),
+            geometry_utils.create_pose(0, 0, 0, 0, 0, yaw_correction + (sign * 0.1)),
+            keep_level=True,
             parent=self
         )
         rospy.loginfo("Back to original orientation")
@@ -363,8 +360,8 @@ async def gate_task(self: Task) -> Task[None, None, None]:
 
     DEPTH_LEVEL = State().depth
 
-    async def correct_y():
-        y = CV().cv_data["gate_red_cw_properties"]["y"] + 0.2
+    async def correct_y(factor=1):
+        y = (CV().cv_data["gate_red_cw_properties"]["y"] + 0.2) * factor
         await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, y, 0, 0, 0, 0), parent=self)
         rospy.loginfo(f"Corrected y {y}")
 
@@ -390,15 +387,29 @@ async def gate_task(self: Task) -> Task[None, None, None]:
         else:
             return 0.25
 
+    async def sleep(secs):
+        duration = rospy.Duration(secs)
+        start_time = rospy.Time.now()
+        while start_time + duration > rospy.Time.now():
+            # rospy.loginfo(start_time + duration - rospy.Time.now())
+            await Yield()
+
+    rospy.loginfo("Begin sleep")
+    await sleep(2)
+    rospy.loginfo("End sleep")
+
     gate_dist = CV().cv_data["gate_red_cw_properties"]["x"]
-    await correct_y()
+    await correct_y(factor=0.5)
     await correct_depth()
-    while gate_dist > 2.125:
+    num_corrections = 1
+    while gate_dist > 3:
         await move_x(step=get_step_size(gate_dist))
-        await correct_y()
+        await correct_y(factor=(0.5 if num_corrections < 2 else 1))
         await correct_depth()
         await Yield()
         gate_dist = CV().cv_data["gate_red_cw_properties"]["x"]
+        rospy.loginfo(f"Gate dist: {gate_dist}")
+        num_corrections += 1
 
     directions = [
         (1, 0, 0),
