@@ -1,6 +1,8 @@
 import copy
 from typing import Optional
 
+from transforms3d.euler import quat2euler, euler2quat
+
 import rospy
 from geometry_msgs.msg import Pose, Twist
 
@@ -34,7 +36,7 @@ async def move_to_pose_global(self: Task, pose: Pose) -> Task[None, Optional[Pos
 
 
 @task
-async def move_to_pose_local(self: Task, pose: Pose) -> Task[None, Optional[Pose], None]:
+async def move_to_pose_local(self: Task, pose: Pose, keep_level=True) -> Task[None, Optional[Pose], None]:
     """
     Move to local pose in the "base_link" frame. Returns when the robot is at the given pose with zero velocity, within
     a small tolerance.
@@ -46,6 +48,14 @@ async def move_to_pose_local(self: Task, pose: Pose) -> Task[None, Optional[Pose
         New local pose to move to
     """
     global_pose = geometry_utils.local_pose_to_global(State().tfBuffer, pose)
+
+    if keep_level:
+        orig_euler_angles = quat2euler(geometry_utils.geometry_quat_to_transforms3d_quat(
+            State().orig_state.pose.pose.orientation))
+        euler_angles = quat2euler(geometry_utils.geometry_quat_to_transforms3d_quat(global_pose.orientation))
+        global_pose.orientation = geometry_utils.transforms3d_quat_to_geometry_quat(
+            euler2quat(orig_euler_angles[0], orig_euler_angles[1], euler_angles[2]))
+
     return await coroutine_utils.transform(
         move_to_pose_global(global_pose, parent=self),
         send_transformer=lambda p: geometry_utils.local_pose_to_global(State().tfBuffer, p) if p else p)
