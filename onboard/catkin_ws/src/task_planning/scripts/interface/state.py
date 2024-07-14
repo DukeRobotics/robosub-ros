@@ -34,6 +34,9 @@ class State:
         if tfBuffer:
             self._tfBuffer = tfBuffer
 
+        self.received_imu = False
+        self.received_state = False
+
         rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state)
         self._state = None
 
@@ -45,14 +48,19 @@ class State:
 
         rospy.Subscriber(self.IMU_TOPIC, Imu, self._on_receive_imu)
 
-        self.received_imu = False
-
     @property
     def state(self):
         """
         The state
         """
         return self._state
+
+    @property
+    def orig_state(self):
+        """
+        The first state message received
+        """
+        return self._orig_state
 
     @property
     def depth(self):
@@ -84,6 +92,10 @@ class State:
 
     def _on_receive_state(self, state):
         self._state = state
+
+        if not self.received_state:
+            self._orig_state = state
+            self.received_state = True
 
     def _on_receive_depth(self, depth_msg):
         self._depth = depth_msg.pose.pose.position.z
