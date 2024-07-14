@@ -61,6 +61,8 @@ def main():
         tasks = [
             comp_tasks.initial_submerge(-0.7, parent=Task.MAIN_ID),
             comp_tasks.coin_flip(parent=Task.MAIN_ID),
+            comp_tasks.gate_style_task(parent=Task.MAIN_ID),
+            comp_tasks.coin_flip(parent=Task.MAIN_ID),
             comp_tasks.gate_task(parent=Task.MAIN_ID)
         ]
 
