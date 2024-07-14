@@ -145,6 +145,7 @@ class YoloV7:
         width   = self.img_buffer.width
         buffer  = np.frombuffer(bytes(self.img_buffer.data),dtype=np.uint8)
         np_img_orig   = np.reshape(buffer,(height, width, channel))
+        np_img_orig = np_img_orig[:, :, ::-1]  # UPDATE: BGR to RGB
 
         # handle possible different img formats
         if len(np_img_orig.shape) == 2:
@@ -157,7 +158,7 @@ class YoloV7:
         np_img_resized = cv2.resize(np_img_orig, (h_scaled, w_scaled))
 
         # conversion to torch tensor (copied from original yolov7 repo)
-        img = np_img_resized.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
+        img = np_img_resized.transpose((2, 0, 1))  # HWC to CHW, UPDATE: Removed BGR to RGB conversion here
         img = torch.from_numpy(np.ascontiguousarray(img))
         img = img.float()  # uint8 to fp16/32
         img /= 255  # 0 - 255 to 0.0 - 1.

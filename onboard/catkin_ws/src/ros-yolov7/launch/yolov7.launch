@@ -8,7 +8,7 @@
         <!-- Input image topic name to subscribe to -->
         <param name="img_topic" type="str" value="/camera/usb_camera/compressed" />
         <!-- [optional]  Confidence threshold (default=0.25) -->
-        <param name="conf_thresh" type="double" value="0.70" />
+        <param name="conf_thresh" type="double" value="0.90" />
         <!-- [optional]  Intersection over union threshold (default=0.45) -->
         <param name="iou_thresh" type="double" value="0.45" />
         <!-- [optional]  Queue size for publishing (default=3) -->
@@ -18,7 +18,7 @@
         <!-- [optional] Flag whether to also publish image with the visualized detections (default=false) -->
         <param name="visualize" type="bool" value="true" />
         <!-- [optional] Torch device 'cuda' or 'cpu' (default="cuda") -->
-        <param name="device" type="str" value="cuda" />
+        <param name="device" type="str" value="cpu" />
         <!-- [optional] Node frequency (default=10) -->
         <param name="frequency" type="int" value="10" />
     </node>
