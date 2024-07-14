@@ -28,7 +28,7 @@ class CV:
 
     BUOY_WIDTH = 0.2032  # Width of buoy in meters
     GATE_IMAGE_WIDTH = 0.2452  # Width of gate images in meters
-    GATE_IMAGE_HEIGHT = 0.2452  # Height of gate images in meters
+    GATE_IMAGE_HEIGHT = 0.2921  # Height of gate images in meters
 
     MONO_CAM_IMG_SHAPE = (640, 480)  # Width, height in pixels
     MONO_CAM_SENSOR_SIZE = (3.054, 1.718)  # Width, height in mm
@@ -207,8 +207,9 @@ class CV:
         dist_y_meters = dist_y * meters_per_pixel * -1
 
         dist_with_obj_width = self.mono_cam_dist_with_obj_width(bbox_width, self.GATE_IMAGE_WIDTH)
-        dist_with_obj_height = self.mono_cam_dist_with_obj_height(bbox_height, self.GATE_IMAGE_HEIGHT)
-        dist_to_obj = (dist_with_obj_width + dist_with_obj_height) / 2
+        # dist_with_obj_height = self.mono_cam_dist_with_obj_height(bbox_height, self.GATE_IMAGE_HEIGHT)
+        # dist_to_obj = (dist_with_obj_width + dist_with_obj_height) / 2
+        dist_to_obj = dist_with_obj_width
 
         self.cv_data[gate_class + "_properties"] = {
             "bbox_width": bbox_width,
