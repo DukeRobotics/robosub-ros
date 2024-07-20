@@ -26,6 +26,12 @@ SONAR_REQUESTS_PATH = 'sonar/request'
 SONAR_RESPONSES_PATH = 'sonar/cv/response'
 TASK_PLANNING_REQUESTS_PATH = "controls/desired_feature"
 
+GATE_IMAGE_WIDTH = 0.2452  # Width of gate images in meters
+GATE_IMAGE_HEIGHT = 0.2921  # Height of gate images in meters
+FOCAL_LENGTH = 2.75  # Focal length of camera in mm
+SENSOR_SIZE = (6.2868, 4.712)  # Sensor size in mm
+ISP_IMG_SHAPE = (4056, 3040)  # Size of ISP image
+
 
 # Compute detections on live camera feed and publish spatial coordinates for detected objects
 class DepthAISpatialDetector:
@@ -344,6 +350,7 @@ class DepthAISpatialDetector:
                 detections_dict[detection.label] = detection.confidence, detection
 
         detections = [detection for _, detection in detections_dict.values()]
+        model = self.models[self.current_model_name]
 
         # Process and publish detections. If using sonar, override det robot x coordinate
         for detection in detections:
@@ -363,17 +370,36 @@ class DepthAISpatialDetector:
             # y is down/up axis, where 0 is in the middle of the frame,
             # down is negative y, and up is positive y
             # z is distance of object from camera in mm
-            x_cam_mm = (detection.xmin + detection.xmax) / 2
-            y_cam_mm = (detection.ymin + detection.ymax) / 2
-            z_cam_mm = 0
+            if detection.label in [0, 1]:
+                bbox_width = (detection.xmax - detection.xmin) * model['input_size'][0]
+                bbox_center_x = (detection.xmin + detection.xmax) / 2 * model['input_size'][0]
+                bbox_center_y = (detection.ymin + detection.ymax) / 2 * model['input_size'][1]
+                meters_per_pixel = GATE_IMAGE_WIDTH / bbox_width
+                dist_x = bbox_center_x - model['input_size'][0] // 2
+                dist_y = bbox_center_y - model['input_size'][1] // 2
 
-            x_cam_meters = mm_to_meters(x_cam_mm)
-            y_cam_meters = mm_to_meters(y_cam_mm)
-            z_cam_meters = mm_to_meters(z_cam_mm)
+                y_meters = dist_x * meters_per_pixel * -1
+                z_meters = dist_y * meters_per_pixel * -1
 
-            det_coords_robot_mm = camera_frame_to_robot_frame(x_cam_meters,
-                                                              y_cam_meters,
-                                                              z_cam_meters)
+                # isp_img_to_det_ratio = ISP_IMG_SHAPE[0] / model['input_size'][0]
+
+                # print(bbox_width)
+
+                x_meters = (FOCAL_LENGTH * GATE_IMAGE_WIDTH * model['input_size'][0]) / (bbox_width * SENSOR_SIZE[0]) * 2
+                # print(x_meters)
+                det_coords_robot_mm = [x_meters, y_meters, z_meters]
+            else:
+                x_cam_mm = (detection.xmin + detection.xmax) / 2
+                y_cam_mm = (detection.ymin + detection.ymax) / 2
+                z_cam_mm = 0
+
+                x_cam_meters = mm_to_meters(x_cam_mm)
+                y_cam_meters = mm_to_meters(y_cam_mm)
+                z_cam_meters = mm_to_meters(z_cam_mm)
+
+                det_coords_robot_mm = camera_frame_to_robot_frame(x_cam_meters,
+                                                                  y_cam_meters,
+                                                                  z_cam_meters)
 
             # Find yaw angle offset
             left_end_compute = self.compute_angle_from_x_offset(detection.xmin * self.camera_pixel_width)
@@ -447,8 +473,8 @@ class DepthAISpatialDetector:
 
         if self.publishers:
             # Flush out 0, 0, 0 values
-            if object_msg.coords.x != 0 and object_msg.coords.y != 0 and object_msg.coords.z != 0:
-                self.publishers[label].publish(object_msg)
+            # if object_msg.coords.x != 0 and object_msg.coords.y != 0 and object_msg.coords.z != 0:
+            self.publishers[label].publish(object_msg)
 
     def update_sonar(self, sonar_results):
         """

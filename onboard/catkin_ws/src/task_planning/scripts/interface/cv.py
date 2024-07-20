@@ -59,7 +59,9 @@ class CV:
 
         rospy.Subscriber("/cv/front_usb/bounding_box", Polygon, self._on_receive_buoy_bounding_box)
 
-        rospy.Subscriber('/yolov7/detection', Detection2DArray, self._on_receive_gate_detection)
+        # rospy.Subscriber('/yolov7/detection', Detection2DArray, self._on_receive_gate_detection)
+
+        rospy.Subscriber('/cv/front/gate_red_cw', CVObject, self._on_receive_gate_red_cw_detection_depthai)
 
     def _on_receive_cv_data(self, cv_data: CVObject, object_type: str) -> None:
         """
@@ -154,6 +156,19 @@ class CV:
         dist_y_meters = dist_y * meters_per_pixel
 
         self.cv_data["buoy_center_distance"] = (dist_x_meters, dist_y_meters)
+
+    def _on_receive_gate_red_cw_detection_depthai(self, msg: CVObject) -> None:
+        """
+        Parse the received detection of the red gate and store it
+
+        Args:
+            msg: The received detection of the red gate
+        """
+        self.cv_data["gate_red_cw_properties"] = {
+            "x": msg.coords.x,
+            "y": msg.coords.y,
+            "z": msg.coords.z
+        }
 
     def _on_receive_gate_detection(self, msg: Detection2DArray) -> None:
         for detection in msg.detections:

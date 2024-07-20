@@ -174,6 +174,8 @@ async def gate_style_task(self: Task) -> Task[None, None, None]:
     Complete two full barrel rolls.
     """
 
+    rospy.loginfo("Started gate style task")
+
     DEPTH_LEVEL = State().depth
 
     async def sleep(secs):
@@ -196,7 +198,7 @@ async def gate_style_task(self: Task) -> Task[None, None, None]:
         Controls().publish_desired_power(Twist())
         rospy.loginfo("Published zero power")
 
-        await sleep(5)
+        await sleep(2)
 
         rospy.loginfo("Completed zero")
 
@@ -321,18 +323,19 @@ async def initial_submerge(self: Task, submerge_dist: float) -> Task[None, None,
 
 @task
 async def coin_flip(self: Task) -> Task[None, None, None]:
+    rospy.loginfo("Started coin flip")
     DEPTH_LEVEL = State().depth
 
     def get_yaw_correction():
         orig_imu_orientation = copy.deepcopy(State().orig_imu.orientation)
         orig_imu_euler_angles = quat2euler(geometry_utils.geometry_quat_to_transforms3d_quat(orig_imu_orientation))
 
-        rospy.loginfo(f"orig: {orig_imu_euler_angles}")
+        # rospy.loginfo(f"orig: {orig_imu_euler_angles}")
 
         cur_imu_orientation = copy.deepcopy(State().imu.orientation)
         cur_imu_euler_angles = quat2euler(geometry_utils.geometry_quat_to_transforms3d_quat(cur_imu_orientation))
 
-        rospy.loginfo(f"cur: {cur_imu_euler_angles}")
+        # rospy.loginfo(f"cur: {cur_imu_euler_angles}")
 
         return orig_imu_euler_angles[2] - cur_imu_euler_angles[2]
 

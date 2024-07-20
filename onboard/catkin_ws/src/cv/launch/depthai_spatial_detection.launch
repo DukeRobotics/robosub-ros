@@ -4,7 +4,7 @@
     <arg name="rgb_detections" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the rgb stream with detections overlaid."}'/>
     <arg name="depth" default="False" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the depth map."}'/>
     <arg name="sync_nn" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to sync the RGB frames with the detections so the latest published detections correspond to the latest published RGB frame."}'/>
-    <arg name="using_sonar" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to use sonar to estimate depth instead of stereo."}'/>
+    <arg name="using_sonar" default="False" doc='{"type":"bool","allowEmpty":false,"help":"Whether to use sonar to estimate depth instead of stereo."}'/>
     <arg name="show_class_name" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to show the class name."}'/>
     <arg name="show_confidence" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to show the confidence value."}'/>
     <arg name="correct_color" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to apply underwater color correction."}'/>

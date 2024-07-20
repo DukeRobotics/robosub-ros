@@ -1,5 +1,8 @@
 <launch>
-    <!-- Deprecated, please use thrusters.launch -->
-    <include file="$(find offboard_comms)/launch/thrusters.launch" />
-
+    <node pkg="rosserial_python" type="serial_node.py" name="serial_node" output="screen" >
+        <param
+            name="port"
+            command="$(find offboard_comms)/scripts/arduino.py find-ports thruster --nl"
+        />
+    </node>
 </launch>
