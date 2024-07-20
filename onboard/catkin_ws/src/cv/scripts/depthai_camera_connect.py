@@ -23,7 +23,7 @@ def connect(pipeline):
     device = None
 
     # IP address used for local connection
-    device_info = dai.DeviceInfo("169.254.1.222")
+    device_info = dai.DeviceInfo("10.144.27.171")
 
     # Number of attempts that will be made to connect to the camera
     total_tries = 5
@@ -32,36 +32,36 @@ def connect(pipeline):
         if rospy.is_shutdown():
             break
 
-        try:
-            # Scan for camera IP address using custom autodiscovery
-            ip = custom_autodiscovery()
+        # try:
+        #     # Scan for camera IP address using custom autodiscovery
+        #     ip = custom_autodiscovery()
 
-            # Try connecting with the discovered IP address
-            device = dai.Device(pipeline, dai.DeviceInfo(ip))
+        #     # Try connecting with the discovered IP address
+        #     device = dai.Device(pipeline, dai.DeviceInfo(ip))
 
-            # If the execution reaches the following return statement, the lines above did not raise an exception, so a
-            # successful camera connection was made, and device should be returned
-            return device
+        #     # If the execution reaches the following return statement, the lines above did not raise an exception, so a
+        #     # successful camera connection was made, and device should be returned
+        #     return device
 
-        except RuntimeError:
-            pass
+        # except RuntimeError:
+        #     pass
 
-        if rospy.is_shutdown():
-            break
+        # if rospy.is_shutdown():
+        #     break
 
-        try:
-            # Try connecting with DepthAI autodiscovery
-            device = dai.Device(pipeline)
+        # try:
+        #     # Try connecting with DepthAI autodiscovery
+        #     device = dai.Device(pipeline)
 
-            # If the execution reaches the following return statement, the line above did not raise an exception, so a
-            # successful camera connection was made, and device should be returned
-            return device
+        #     # If the execution reaches the following return statement, the line above did not raise an exception, so a
+        #     # successful camera connection was made, and device should be returned
+        #     return device
 
-        except RuntimeError:
-            pass
+        # except RuntimeError:
+        #     pass
 
-        if rospy.is_shutdown():
-            break
+        # if rospy.is_shutdown():
+        #     break
 
         try:
             # Try connecting with static IP address
