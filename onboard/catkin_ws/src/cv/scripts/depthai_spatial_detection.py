@@ -110,6 +110,7 @@ class DepthAISpatialDetector:
         # mono_left = pipeline.create(dai.node.MonoCamera)
         # mono_right = pipeline.create(dai.node.MonoCamera)
         # stereo = pipeline.create(dai.node.StereoDepth)
+        image_manip = pipeline.create(dai.node.ImageManip)
 
         xout_nn = pipeline.create(dai.node.XLinkOut)
         xout_nn.setStreamName("detections")
@@ -129,21 +130,26 @@ class DepthAISpatialDetector:
         # Camera properties
         cam_rgb.setPreviewSize(model['input_size'])
         # cam_rgb.setVideoSize(416,416) # breaks
-        cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
+        cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_12_MP)
         cam_rgb.setInterleaved(False)
         cam_rgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
+        cam_rgb.setPreviewKeepAspectRatio(False)
 
-        rospy.loginfo('isp pool size: '+ str(cam_rgb.getIspNumFramesPool()))
-        rospy.loginfo('preview pool size: '+ str(cam_rgb.getPreviewNumFramesPool()))
-        rospy.loginfo('Raw pool size: '+ str(cam_rgb.getRawNumFramesPool()))
-        rospy.loginfo('Still pool size: '+ str(cam_rgb.getStillNumFramesPool()))
-        rospy.loginfo('video pool size: '+ str(cam_rgb.getVideoNumFramesPool()))
-        cam_rgb.setIspNumFramesPool(3) # keep this high default
-        cam_rgb.setPreviewNumFramesPool(1) # need at least 1
-        cam_rgb.setRawNumFramesPool(2) # breaks if <2
+        # rospy.loginfo('isp pool size: ' + str(cam_rgb.getIspNumFramesPool()))
+        # rospy.loginfo('preview pool size: ' + str(cam_rgb.getPreviewNumFramesPool()))
+        # rospy.loginfo('Raw pool size: ' + str(cam_rgb.getRawNumFramesPool()))
+        # rospy.loginfo('Still pool size: ' + str(cam_rgb.getStillNumFramesPool()))
+        # rospy.loginfo('video pool size: ' + str(cam_rgb.getVideoNumFramesPool()))
+        cam_rgb.setIspNumFramesPool(3)  # keep this high default
+        cam_rgb.setPreviewNumFramesPool(1)  # need at least 1
+        cam_rgb.setRawNumFramesPool(2)  # breaks if <2
         cam_rgb.setStillNumFramesPool(0)
-        cam_rgb.setVideoNumFramesPool(1) # breaks if <1
+        cam_rgb.setVideoNumFramesPool(1)  # breaks if <1
 
+        image_manip.initialConfig.setResize(model['input_size'])
+        image_manip.initialConfig.setKeepAspectRatio(False)
+        image_manip.setMaxOutputFrameSize(model['input_size'][0] * model['input_size'][1] * 3)
+        image_manip.setNumFramesPool(1)
 
         # mono_left.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
         # mono_left.setBoardSocket(dai.CameraBoardSocket.CAM_B)
@@ -175,7 +181,9 @@ class DepthAISpatialDetector:
 
         xin_nn_input.out.link(spatial_detection_network.input)
 
-        cam_rgb.preview.link(xout_rgb.input)
+        # cam_rgb.preview.link(xout_rgb.input)
+        cam_rgb.isp.link(image_manip.inputImage)
+        image_manip.out.link(xout_rgb.input)
 
         spatial_detection_network.out.link(xout_nn.input)
 
@@ -328,6 +336,14 @@ class DepthAISpatialDetector:
             detections_visualized = self.detection_visualizer.visualize_detections(frame, detections)
             detections_img_msg = self.image_tools.convert_to_ros_compressed_msg(detections_visualized)
             self.detection_feed_publisher.publish(detections_img_msg)
+
+        detections_dict = {}
+        for detection in detections:
+            prev_conf, prev_detection = detections_dict.get(detection.label, (None, None))
+            if (prev_conf is not None and detection.confidence > prev_conf) or prev_conf is None:
+                detections_dict[detection.label] = detection.confidence, detection
+
+        detections = [detection for _, detection in detections_dict.values()]
 
         # Process and publish detections. If using sonar, override det robot x coordinate
         for detection in detections:
