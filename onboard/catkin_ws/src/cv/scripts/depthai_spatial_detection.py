@@ -106,10 +106,10 @@ class DepthAISpatialDetector:
 
         # Define sources and outputs
         cam_rgb = pipeline.create(dai.node.ColorCamera)
-        spatial_detection_network = pipeline.create(dai.node.YoloSpatialDetectionNetwork)
-        mono_left = pipeline.create(dai.node.MonoCamera)
-        mono_right = pipeline.create(dai.node.MonoCamera)
-        stereo = pipeline.create(dai.node.StereoDepth)
+        spatial_detection_network = pipeline.create(dai.node.YoloDetectionNetwork)
+        # mono_left = pipeline.create(dai.node.MonoCamera)
+        # mono_right = pipeline.create(dai.node.MonoCamera)
+        # stereo = pipeline.create(dai.node.StereoDepth)
 
         xout_nn = pipeline.create(dai.node.XLinkOut)
         xout_nn.setStreamName("detections")
@@ -117,35 +117,50 @@ class DepthAISpatialDetector:
         xout_rgb = pipeline.create(dai.node.XLinkOut)
         xout_rgb.setStreamName("rgb")
 
-        if self.queue_depth:
-            xout_depth = pipeline.create(dai.node.XLinkOut)
-            xout_depth.setStreamName("depth")
+        # if self.queue_depth:
+        #     xout_depth = pipeline.create(dai.node.XLinkOut)
+        #     xout_depth.setStreamName("depth")
 
         xin_nn_input = pipeline.create(dai.node.XLinkIn)
         xin_nn_input.setStreamName("nn_input")
+        xin_nn_input.setNumFrames(2)
+        xin_nn_input.setMaxDataSize(416*416*3)
 
         # Camera properties
         cam_rgb.setPreviewSize(model['input_size'])
+        # cam_rgb.setVideoSize(416,416) # breaks
         cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
         cam_rgb.setInterleaved(False)
         cam_rgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
 
-        mono_left.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
-        mono_left.setBoardSocket(dai.CameraBoardSocket.CAM_B)
-        mono_right.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
-        mono_right.setBoardSocket(dai.CameraBoardSocket.CAM_C)
+        rospy.loginfo('isp pool size: '+ str(cam_rgb.getIspNumFramesPool()))
+        rospy.loginfo('preview pool size: '+ str(cam_rgb.getPreviewNumFramesPool()))
+        rospy.loginfo('Raw pool size: '+ str(cam_rgb.getRawNumFramesPool()))
+        rospy.loginfo('Still pool size: '+ str(cam_rgb.getStillNumFramesPool()))
+        rospy.loginfo('video pool size: '+ str(cam_rgb.getVideoNumFramesPool()))
+        cam_rgb.setIspNumFramesPool(3) # keep this high default
+        cam_rgb.setPreviewNumFramesPool(1) # need at least 1
+        cam_rgb.setRawNumFramesPool(2) # breaks if <2
+        cam_rgb.setStillNumFramesPool(0)
+        cam_rgb.setVideoNumFramesPool(1) # breaks if <1
+
+
+        # mono_left.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
+        # mono_left.setBoardSocket(dai.CameraBoardSocket.CAM_B)
+        # mono_right.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
+        # mono_right.setBoardSocket(dai.CameraBoardSocket.CAM_C)
 
         # Stereo properties
-        stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
-        stereo.setDepthAlign(dai.CameraBoardSocket.CAM_A)
+        # stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
+        # stereo.setDepthAlign(dai.CameraBoardSocket.CAM_A)
 
         # General spatial detection network parameters
         spatial_detection_network.setBlobPath(nn_blob_path)
         spatial_detection_network.setConfidenceThreshold(model['confidence_threshold'])
         spatial_detection_network.input.setBlocking(False)
-        spatial_detection_network.setBoundingBoxScaleFactor(0.5)
-        spatial_detection_network.setDepthLowerThreshold(100)
-        spatial_detection_network.setDepthUpperThreshold(5000)
+        # spatial_detection_network.setBoundingBoxScaleFactor(0.5)
+        # spatial_detection_network.setDepthLowerThreshold(100)
+        # spatial_detection_network.setDepthUpperThreshold(5000)
 
         # Yolo specific parameters
         spatial_detection_network.setNumClasses(len(model['classes']))
@@ -155,8 +170,8 @@ class DepthAISpatialDetector:
         spatial_detection_network.setIouThreshold(model['iou_threshold'])
 
         # Linking
-        mono_left.out.link(stereo.left)
-        mono_right.out.link(stereo.right)
+        # mono_left.out.link(stereo.left)
+        # mono_right.out.link(stereo.right)
 
         xin_nn_input.out.link(spatial_detection_network.input)
 
@@ -164,10 +179,10 @@ class DepthAISpatialDetector:
 
         spatial_detection_network.out.link(xout_nn.input)
 
-        if self.queue_depth:
-            spatial_detection_network.passthroughDepth.link(xout_depth.input)
+        # if self.queue_depth:
+        #     spatial_detection_network.passthroughDepth.link(xout_depth.input)
 
-        stereo.depth.link(spatial_detection_network.inputDepth)
+        # stereo.depth.link(spatial_detection_network.inputDepth)
 
         return pipeline
 
@@ -233,8 +248,8 @@ class DepthAISpatialDetector:
             self.detection_feed_publisher = rospy.Publisher("cv/front/detections/compressed", CompressedImage,
                                                             queue_size=10)
 
-        if self.queue_depth:
-            self.depth_publisher = rospy.Publisher("camera/front/depth/compressed", CompressedImage, queue_size=10)
+        # if self.queue_depth:
+        #     self.depth_publisher = rospy.Publisher("camera/front/depth/compressed", CompressedImage, queue_size=10)
 
     def init_queues(self, device):
         """
@@ -249,8 +264,8 @@ class DepthAISpatialDetector:
         # Assign output queues
         self.output_queues["rgb"] = device.getOutputQueue(name="rgb", maxSize=1, blocking=False)
 
-        if self.queue_depth:
-            self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
+        # if self.queue_depth:
+        #     self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
 
         self.output_queues["detections"] = device.getOutputQueue(name="detections", maxSize=1, blocking=False)
 
@@ -296,11 +311,11 @@ class DepthAISpatialDetector:
         self.input_queue.send(img)
 
         # Publish depth feed
-        if self.queue_depth:
-            raw_img_depth = self.output_queues["depth"].get()
-            img_depth = raw_img_depth.getCvFrame()
-            image_msg_depth = self.image_tools.convert_depth_to_ros_compressed_msg(img_depth, 'mono16')
-            self.depth_publisher.publish(image_msg_depth)
+        # if self.queue_depth:
+        #     raw_img_depth = self.output_queues["depth"].get()
+        #     img_depth = raw_img_depth.getCvFrame()
+        #     image_msg_depth = self.image_tools.convert_depth_to_ros_compressed_msg(img_depth, 'mono16')
+        #     self.depth_publisher.publish(image_msg_depth)
 
         # Get detections from output queues
         inDet = self.output_queues["detections"].tryGet()
@@ -332,9 +347,9 @@ class DepthAISpatialDetector:
             # y is down/up axis, where 0 is in the middle of the frame,
             # down is negative y, and up is positive y
             # z is distance of object from camera in mm
-            x_cam_mm = detection.spatialCoordinates.x
-            y_cam_mm = detection.spatialCoordinates.y
-            z_cam_mm = detection.spatialCoordinates.z
+            x_cam_mm = (detection.xmin + detection.xmax) / 2
+            y_cam_mm = (detection.ymin + detection.ymax) / 2
+            z_cam_mm = 0
 
             x_cam_meters = mm_to_meters(x_cam_mm)
             y_cam_meters = mm_to_meters(y_cam_mm)
