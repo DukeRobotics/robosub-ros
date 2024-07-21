@@ -81,7 +81,7 @@ class BuoyDetectorContourMatching:
         # Match contours with the reference image contours
         for cnt in contours:
             match = cv2.matchShapes(self.ref_contours[0], cnt, cv2.CONTOURS_MATCH_I1, 0.0)
-            if match < 0.05:
+            if match < 0.2:
                 similar_size_contours.append(cnt)
 
         if similar_size_contours:
@@ -96,7 +96,7 @@ class BuoyDetectorContourMatching:
             x, y, w, h = cv2.boundingRect(best_cnt)
             bbox = (x, y, w, h)
             self.publish_bbox(bbox, image)
-            
+
             # self.last_n_bboxes.append(bbox)
             # if len(self.last_n_bboxes) > self.n:
             #     self.last_n_bboxes.pop(0)
