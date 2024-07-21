@@ -337,12 +337,6 @@ class DepthAISpatialDetector:
             return
         detections = inDet.detections
 
-        # Publish detections feed
-        if self.rgb_detections:
-            detections_visualized = self.detection_visualizer.visualize_detections(frame, detections)
-            detections_img_msg = self.image_tools.convert_to_ros_compressed_msg(detections_visualized)
-            self.detection_feed_publisher.publish(detections_img_msg)
-
         detections_dict = {}
         for detection in detections:
             prev_conf, prev_detection = detections_dict.get(detection.label, (None, None))
@@ -351,6 +345,12 @@ class DepthAISpatialDetector:
 
         detections = [detection for _, detection in detections_dict.values()]
         model = self.models[self.current_model_name]
+
+        # Publish detections feed
+        if self.rgb_detections:
+            detections_visualized = self.detection_visualizer.visualize_detections(frame, detections)
+            detections_img_msg = self.image_tools.convert_to_ros_compressed_msg(detections_visualized)
+            self.detection_feed_publisher.publish(detections_img_msg)
 
         # Process and publish detections. If using sonar, override det robot x coordinate
         for detection in detections:
