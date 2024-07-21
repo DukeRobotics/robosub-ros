@@ -155,7 +155,13 @@ class CV:
         dist_x_meters = dist_x * meters_per_pixel
         dist_y_meters = dist_y * meters_per_pixel
 
-        self.cv_data["buoy_center_distance"] = (dist_x_meters, dist_y_meters)
+        self.cv_data["buoy_properties"] = {
+            "x": self.mono_cam_dist_with_obj_width(width, self.BUOY_WIDTH),
+            "y": dist_x_meters,
+            "z": dist_y_meters
+        }
+
+        # rospy.loginfo("Buoy properties: %s", self.cv_data["buoy_properties"])
 
     def _on_receive_gate_red_cw_detection_depthai(self, msg: CVObject) -> None:
         """
