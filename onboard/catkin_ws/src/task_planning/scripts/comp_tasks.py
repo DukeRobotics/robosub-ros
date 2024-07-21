@@ -237,24 +237,18 @@ async def gate_style_task(self: Task) -> Task[None, None, None]:
 @task
 async def buoy_task(self: Task) -> Task[None, None, None]:
     """
-    Circumnavigate the buoy.
+    Circumnavigate the buoy. Requires robot to have submerged 0.5 meters.
     """
-
-    init_depth = -1
-    await move_tasks.move_to_pose_local(
-        geometry_utils.create_pose(0, 0, init_depth, 0, 0, 0),
-        parent=self)
-    rospy.loginfo(f"Moved to (0, 0, {init_depth})")
 
     DEPTH_LEVEL = State().depth
 
     async def correct_y():
-        y = -(CV().cv_data["buoy_center_distance"][0])
+        y = -(CV().cv_data["buoy_properties"]["y"])
         await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, y, 0, 0, 0, 0), parent=self)
         rospy.loginfo(f"Corrected y {y}")
 
     async def correct_z():
-        z = -(CV().cv_data["buoy_center_distance"][1])
+        z = -(CV().cv_data["buoy_properties"]["z"])
         await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, z, 0, 0, 0), parent=self)
         rospy.loginfo(f"Corrected z {z}")
 
@@ -267,43 +261,91 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
         await move_tasks.move_to_pose_local(geometry_utils.create_pose(step, 0, 0, 0, 0, 0), parent=self)
         rospy.loginfo(f"Moved x {step}")
 
-    buoy_width_pixels = CV().cv_data["buoy_dimensions"][0]
-    await correct_y()
-    await correct_depth()
-    while buoy_width_pixels < 75:
-        await move_x(step=(0.25 if buoy_width_pixels > 50 else 0.5))
+    def get_step_size(dist, dist_threshold):
+        if dist > 3:
+            return 1
+        elif dist > 2:
+            return 0.5
+        else:
+            return max(dist - dist_threshold + 0.1, 0.25)
+
+    async def move_to_buoy(buoy_dist_threshold=1):
+        buoy_dist = CV().cv_data["buoy_properties"]["x"]
         await correct_y()
         await correct_depth()
-        await Yield()
-        buoy_width_pixels = CV().cv_data["buoy_dimensions"][0]
-        rospy.loginfo(f"Buoy dimensions: {CV().cv_data['buoy_dimensions']}")
+        while buoy_dist > buoy_dist_threshold:
+            await move_x(step=get_step_size(buoy_dist, buoy_dist_threshold))
+            rospy.loginfo(f"Buoy properties: {CV().cv_data['buoy_properties']}")
+            await correct_y()
+            await correct_depth()
+            await Yield()
+            buoy_dist = CV().cv_data["buoy_properties"]["x"]
+            rospy.loginfo(f"Buoy properties: {CV().cv_data['buoy_properties']}")
 
-    await correct_depth()
+        await correct_depth()
 
+    await move_to_buoy()
+
+    start_imu_orientation = copy.deepcopy(State().imu.orientation)
+    start_imu_euler_angles = quat2euler(geometry_utils.geometry_quat_to_transforms3d_quat(start_imu_orientation))
+
+    def get_yaw_correction():
+        cur_imu_orientation = copy.deepcopy(State().imu.orientation)
+        cur_imu_euler_angles = quat2euler(geometry_utils.geometry_quat_to_transforms3d_quat(cur_imu_orientation))
+
+        return start_imu_euler_angles[2] - cur_imu_euler_angles[2]
+
+    async def correct_yaw():
+        yaw_correction = get_yaw_correction()
+        rospy.loginfo(f"Yaw correction: {yaw_correction}")
+        sign = 1 if yaw_correction > 0.1 else (-1 if yaw_correction < -0.1 else 0)
+        await move_tasks.move_to_pose_local(
+            geometry_utils.create_pose(0, 0, 0, 0, 0, yaw_correction + (sign * 0.1)),
+            keep_level=True,
+            parent=self
+        )
+        rospy.loginfo("Corrected yaw")
+
+    async def move_with_directions(directions):
+        for direction in directions:
+            await move_tasks.move_to_pose_local(
+                geometry_utils.create_pose(direction[0], direction[1], direction[2], 0, 0, 0),
+                parent=self)
+            rospy.loginfo(f"Moved to {direction}")
+            await correct_yaw()
+            await correct_depth()
+
+    # Circumnavigate buoy
     directions = [
-        (0, -1, 0),
-        (1, 0, 0),
-        (1, 0, 0),
-        (0.5, 0, 0),
-        (0, 1, 0),
         (0, 1, 0),
         (0, 0.5, 0),
-        (-1, 0, 0),
-        (-1, 0, 0),
-        (-0.5, 0, 0),
-        (0, -1, 0),
-        (0, -1, 0),
         (1, 0, 0),
         (1, 0, 0),
-        (0.5, 0, 0),
+        (1, 0, 0),
+        (0, -1, 0),
+        (0, -1, 0),
+        (0, -1, 0),
+        (-1, 0, 0),
+        (-1, 0, 0),
+        (-1, 0, 0),
         (0, 1, 0),
+        (0, 0.5, 0)
     ]
-    for direction in directions:
-        await move_tasks.move_to_pose_local(
-            geometry_utils.create_pose(direction[0], direction[1], direction[2], 0, 0, 0),
-            parent=self)
-        rospy.loginfo(f"Moved to {direction}")
-        await correct_depth()
+    await move_with_directions(directions)
+
+    await move_to_buoy()
+
+    # Link up with path marker
+    directions = [
+        (0, 1, 0),
+        (0, 0.5, 0),
+        (1, 0, 0),
+        (1, 0, 0),
+        (1, 0, 0),
+        (0, -1, 0),
+        (0, -0.5, 0)
+    ]
+    await move_with_directions(directions)
 
 @task
 async def initial_submerge(self: Task, submerge_dist: float) -> Task[None, None, None]:
@@ -364,7 +406,7 @@ async def gate_task(self: Task) -> Task[None, None, None]:
     DEPTH_LEVEL = State().depth
 
     async def correct_y(factor=1):
-        y = (CV().cv_data["gate_red_cw_properties"]["y"] + 0.2) * factor
+        y = (CV().cv_data["gate_red_cw_properties"]["y"] - 0.2) * factor
         await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, y, 0, 0, 0, 0), parent=self)
         rospy.loginfo(f"Corrected y {y}")
 
@@ -383,12 +425,10 @@ async def gate_task(self: Task) -> Task[None, None, None]:
         rospy.loginfo(f"Moved x {step}")
 
     def get_step_size(dist):
-        if dist > 3:
+        if dist > 4:
             return 1
-        elif dist > 2.5:
-            return 0.5
         else:
-            return 0.25
+            return max(dist-3 + 0.25, 0.25)
 
     async def sleep(secs):
         duration = rospy.Duration(secs)
@@ -418,7 +458,7 @@ async def gate_task(self: Task) -> Task[None, None, None]:
         (1, 0, 0),
         (1, 0, 0),
         (1, 0, 0),
-        (1, 0, 0)
+        (1, 0, 0),
     ]
     for direction in directions:
         await move_tasks.move_to_pose_local(
