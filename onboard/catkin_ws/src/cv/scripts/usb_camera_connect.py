@@ -19,7 +19,7 @@ def connect_all():
         topic = data["topic"]
 
         # Set framerate to -1 to bypass reading rosparam
-        USBCamera(topic, channel, -1)
+        USBCamera(topic, channel, -1).run()
 
 
 if __name__ == "__main__":
