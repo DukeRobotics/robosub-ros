@@ -6,9 +6,9 @@ arduino:
     sketch: Arduino Sketchbooks/PressureArduino
     requires_ros_lib: false
   thruster:
-    ftdi: E49AFA8B51514C4B39202020FF024242
-    fqbn: arduino:megaavr:nona4809
-    core: arduino:megaavr
+    ftdi: B0004VDI
+    fqbn: arduino:avr:nano
+    core: arduino:avr
     sketch: Arduino Sketchbooks/ThrusterArduino
     requires_ros_lib: false
     pre_compile: rosrun offboard_comms copy_offset.sh 1
