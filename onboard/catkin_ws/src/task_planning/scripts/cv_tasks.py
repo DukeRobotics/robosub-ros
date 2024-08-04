@@ -1,10 +1,13 @@
 from typing import Optional
+import rospy
 
 from interface.cv import CV
 # from interface.controls import Controls
 # from interface.state import State
 from move_tasks import move_to_pose_local
 from task import task, Yield, Task
+import move_tasks
+from utils import geometry_utils
 
 
 @task
@@ -39,3 +42,17 @@ async def move_to_cv_obj(self: Task, name: str) -> Task[None, Optional[str], Non
 
         # TODO: Add offset
         move_task.send(pose)
+
+
+@task
+async def correct_y(self: Task, prop: str, add_factor: float = 0, mult_factor: float = 1):
+    y = (CV().cv_data[prop]["y"] + add_factor) * mult_factor
+    await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, y, 0, 0, 0, 0), parent=self)
+    rospy.loginfo(f"Corrected y {y}")
+
+
+@task
+async def correct_z(self: Task, prop: str):
+    z = CV().cv_data[prop]["z"]
+    await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, z, 0, 0, 0), parent=self)
+    rospy.loginfo(f"Corrected z {z}")

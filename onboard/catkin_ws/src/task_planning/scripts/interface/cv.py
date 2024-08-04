@@ -52,12 +52,12 @@ class CV:
         rospy.Subscriber("/cv/bottom/rect_dist", Float64, self._on_receive_rect_dist)
         self.rect_dists = []
 
-        rospy.Subscriber("/cv/bottom/rect", RectInfo, self._on_receive_rect_info)
+        rospy.Subscriber("/cv/bottom/x", RectInfo, self._on_receive_rect_info)
         self.rect_heights = []
 
         self.rect_angle_publisher = rospy.Publisher("/task_planning/cv/bottom/rect_angle", Float64, queue_size=1)
 
-        rospy.Subscriber("/cv/front_usb/bounding_box", Polygon, self._on_receive_buoy_bounding_box)
+        rospy.Subscriber("/cv/front_usb/bounding_box", CVObject, self._on_receive_buoy_bounding_box)
 
         # rospy.Subscriber('/yolov7/detection', Detection2DArray, self._on_receive_gate_detection)
 
@@ -128,7 +128,7 @@ class CV:
         self.cv_data["blue_rectangle_touching_top"] = rect_info.center_y - rect_info.height / 2 <= 0
         self.cv_data["blue_rectangle_touching_bottom"] = rect_info.center_y + rect_info.height / 2 >= 480
 
-    def _on_receive_buoy_bounding_box(self, bounding_box: Polygon) -> None:
+    def _on_receive_buoy_bounding_box(self, bounding_box: CVObject) -> None:
         """
         Parse the received bounding box of the buoy and store it
 
@@ -155,7 +155,7 @@ class CV:
         dist_x_meters = dist_x * meters_per_pixel
         dist_y_meters = dist_y * meters_per_pixel
 
-        self.cv_data["buoy_properties"] = {
+        self.cv_data["buoy"] = {
             "x": self.mono_cam_dist_with_obj_width(width, self.BUOY_WIDTH),
             "y": dist_x_meters,
             "z": dist_y_meters

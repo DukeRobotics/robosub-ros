@@ -16,6 +16,7 @@ from custom_msgs.msg import CVObject
 from transforms3d.euler import euler2quat, quat2euler
 from transforms3d.quaternions import qmult
 
+
 def check_file_writable(filepath):
     """
     Check if a file can be created or overwritten.
@@ -34,6 +35,21 @@ def check_file_writable(filepath):
         pdir = '.'
     # target is creatable if parent dir is writable
     return os.access(pdir, os.W_OK)
+
+
+def cam_dist_with_obj_width(width_pixels, width_meters,
+                            focal_length, img_shape, sensor_size, adjustment_factor=1):
+    '''
+        Note that adjustment factor is 1 for mono camera and 2 for depthAI camera
+    '''
+    return (focal_length * width_meters * img_shape[0]) \
+        / (width_pixels * sensor_size[0]) * adjustment_factor
+
+
+def cam_dist_with_obj_height(height_pixels, height_meters,
+                             focal_length, img_shape, sensor_size, adjustment_factor=1):
+    return (focal_length * height_meters * img_shape[1]) \
+        / (height_pixels * sensor_size[1]) * adjustment_factor
 
 
 def compute_yaw(xmin, xmax, camera_pixel_width):
@@ -57,19 +73,44 @@ def compute_angle_from_x_offset(x_offset, camera_pixel_width):
     return math.degrees(math.atan(((x_offset - image_center_x) * 0.005246675486)))
 
 
-def compute_center_distance(polygon, frame_width, frame_height):
+def calculate_relative_pose(bbox_bounds, input_size, label_shape, FOCAL_LENGTH, SENSOR_SIZE, adjustment_factor):
+    """
+        Returns rel pose, to be used as a part of the CVObject
 
-    ''''''''''''
+        Parameters:
+            bbox_bounds: the detection object
+            input_size: array wrt input size ([0] is width, [1] is height)
+            label_shape: the label shape ([0] is width --> only this is accessed, [1] is height)
+            FOCAL_LENGTH: a constant to pass in
+            SENSOR_SIZE: a constant to pass in
+            adjustment_factor: 1 if mono 2 if depthai
+    """
+    xmin, xmax, ymin, ymax = bbox_bounds
 
-    # Ensure there are points in the polygon
-    if len(polygon.points) < 4:
-        raise ValueError("Polygon does not represent a bounding box with four points.")
+    bbox_width = (xmax - xmin) * input_size[0]
+    bbox_center_x = (xmin + xmax) / 2 * input_size[0]
+    bbox_center_y = (ymin + ymax) / 2 * input_size[1]
+    meters_per_pixel = label_shape[0] / bbox_width
+    dist_x = bbox_center_x - input_size[0] // 2
+    dist_y = bbox_center_y - input_size[1] // 2
 
-    # Compute the center of the bounding box
-    sum_x = sum(point.x for point in polygon.points)
-    sum_y = sum(point.y for point in polygon.points)
-    bbox_center_x = sum_x / len(polygon.points)
-    bbox_center_y = sum_y / len(polygon.points)
+    y_meters = dist_x * meters_per_pixel * -1
+    z_meters = dist_y * meters_per_pixel * -1
+
+    # isp_img_to_det_ratio = ISP_IMG_SHAPE[0] / model['input_size'][0]
+
+    # print(bbox_width)
+    x_meters = cam_dist_with_obj_width(bbox_width, label_shape[0], FOCAL_LENGTH, input_size, SENSOR_SIZE,
+                                       adjustment_factor)
+
+    return [x_meters, y_meters, z_meters]
+
+# TODO make redundant and delete
+def compute_center_distance(bbox_center_x, bbox_center_y, frame_width, frame_height):
+
+    '''
+    Note that x, y is in the camera's reference frame
+    '''
 
     # Compute the center of the frame
     frame_center_x = frame_width / 2
@@ -84,9 +125,11 @@ def compute_center_distance(polygon, frame_width, frame_height):
 
 def compute_bbox_dimensions(polygon):
     """
-        Given: Polygon object
-        Return: as a CV object, the following properties of the given Polygon:
+        Returns a CVObject messages, containing the following properties of the given Polygon:
             width, height, xmin, ymin, xmax, ymax as
+
+        Args:
+            polygon: Polygon object
     """
 
     # Ensure there are points in the polygon

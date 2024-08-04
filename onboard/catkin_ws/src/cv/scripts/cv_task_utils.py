@@ -1,4 +1,3 @@
-
 import rospy
 import yaml
 import resource_retriever as rr

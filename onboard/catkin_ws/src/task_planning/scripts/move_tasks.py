@@ -1,5 +1,5 @@
+from typing import Optional, List, Tuple, Union
 import copy
-from typing import Optional
 
 from transforms3d.euler import quat2euler, euler2quat
 
@@ -121,7 +121,7 @@ async def hold_position(self: Task) -> Task[bool, None, None]:
 @task
 async def depth_correction(self: Task, desired_depth: float) -> Task[None, None, None]:
     rospy.loginfo(f"State().depth: {State().depth}")
-    depth_delta = State().orig_depth - desired_depth
+    depth_delta = desired_depth - State().depth
     rospy.loginfo(f"depth_delta: {depth_delta}")
 
     rospy.loginfo(f"Started depth correction {depth_delta}")
@@ -129,3 +129,34 @@ async def depth_correction(self: Task, desired_depth: float) -> Task[None, None,
         geometry_utils.create_pose(0, 0, depth_delta, 0, 0, 0),
         parent=self)
     rospy.loginfo(f"Finished depth correction {depth_delta}")
+
+
+@task
+async def correct_depth(self: Task, desired_depth: float):
+    await depth_correction(desired_depth, parent=self)
+
+
+@task
+async def move_x(self: Task, step=1):
+    await move_to_pose_local(geometry_utils.create_pose(step, 0, 0, 0, 0, 0), parent=self)
+    rospy.loginfo(f"Moved x {step}")
+
+
+Direction = Union[Tuple[float, float, float], Tuple[float, float, float, float, float, float]]
+Directions = List[Direction]
+
+
+@task
+async def move_with_directions(self: Task, correct_yaw: False, correct_depth: False,  directions: Directions):
+    assert len(directions) in [3, 6], "The list must contain exactly 3 or 6 floats"
+
+    for direction in directions:
+        await move_to_pose_local(
+            geometry_utils.create_pose(direction[0], direction[1], direction[2], 0, 0, 0),
+            parent=self)
+        rospy.loginfo(f"Moved to {direction}")
+
+        if correct_yaw:
+            await self.parent.correct_yaw()
+        if correct_depth:
+            await self.parent.correct_depth()

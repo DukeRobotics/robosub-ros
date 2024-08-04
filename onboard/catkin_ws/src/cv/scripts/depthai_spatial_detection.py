@@ -7,7 +7,7 @@ import math
 import depthai_camera_connect
 import depthai as dai
 import numpy as np
-from utils import DetectionVisualizer
+from utils import DetectionVisualizer, calculate_relative_pose
 from image_tools import ImageTools
 import cv2
 import correct
@@ -365,41 +365,8 @@ class DepthAISpatialDetector:
 
             confidence = detection.confidence
 
-            # x is left/right axis, where 0 is in middle of the frame,
-            # to the left is negative x, and to the right is positive x
-            # y is down/up axis, where 0 is in the middle of the frame,
-            # down is negative y, and up is positive y
-            # z is distance of object from camera in mm
-            if detection.label in [0, 1]:
-                bbox_width = (detection.xmax - detection.xmin) * model['input_size'][0]
-                bbox_center_x = (detection.xmin + detection.xmax) / 2 * model['input_size'][0]
-                bbox_center_y = (detection.ymin + detection.ymax) / 2 * model['input_size'][1]
-                meters_per_pixel = GATE_IMAGE_WIDTH / bbox_width
-                dist_x = bbox_center_x - model['input_size'][0] // 2
-                dist_y = bbox_center_y - model['input_size'][1] // 2
-
-                y_meters = dist_x * meters_per_pixel * -1
-                z_meters = dist_y * meters_per_pixel * -1
-
-                # isp_img_to_det_ratio = ISP_IMG_SHAPE[0] / model['input_size'][0]
-
-                # print(bbox_width)
-
-                x_meters = (FOCAL_LENGTH * GATE_IMAGE_WIDTH * model['input_size'][0]) / (bbox_width * SENSOR_SIZE[0]) * 2
-                # print(x_meters)
-                det_coords_robot_mm = [x_meters, y_meters, z_meters]
-            else:
-                x_cam_mm = (detection.xmin + detection.xmax) / 2
-                y_cam_mm = (detection.ymin + detection.ymax) / 2
-                z_cam_mm = 0
-
-                x_cam_meters = mm_to_meters(x_cam_mm)
-                y_cam_meters = mm_to_meters(y_cam_mm)
-                z_cam_meters = mm_to_meters(z_cam_mm)
-
-                det_coords_robot_mm = camera_frame_to_robot_frame(x_cam_meters,
-                                                                  y_cam_meters,
-                                                                  z_cam_meters)
+            # This function does stuff
+            det_coords_robot_mm = calculate_relative_pose(bbox, model['input_size'], model["sizes"][label], FOCAL_LENGTH, SENSOR_SIZE, 2)
 
             # Find yaw angle offset
             left_end_compute = self.compute_angle_from_x_offset(detection.xmin * self.camera_pixel_width)

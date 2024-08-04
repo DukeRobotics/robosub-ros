@@ -1,3 +1,4 @@
+import rospy
 from typing import Callable, Coroutine, Optional, TypeVar
 
 from task import Task, Yield
@@ -65,3 +66,14 @@ async def transform(task: Task[YieldType, TransformedSendType, ReturnType],
         output = return_transformer(output)
 
     return output
+
+
+async def sleep(secs: float):
+    """
+    Sleep for a given number of seconds. Yields frequently, then returns when the time has elapsed.
+    """
+
+    duration = rospy.Duration(secs)
+    start_time = rospy.Time.now()
+    while start_time + duration > rospy.Time.now():
+        await Yield()

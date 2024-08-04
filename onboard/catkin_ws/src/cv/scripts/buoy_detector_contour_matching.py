@@ -8,10 +8,17 @@ from cv_bridge import CvBridge
 from sensor_msgs.msg import CompressedImage, Image
 from geometry_msgs.msg import Polygon, Point, Point32
 from custom_msgs.msg import CVObject
-from cv.utils import compute_yaw
+from utils import compute_yaw, calculate_relative_pose
 
 
 class BuoyDetectorContourMatching:
+
+    BUOY_WIDTH = 0.2032  # Width of buoy in meters
+
+    MONO_CAM_IMG_SHAPE = (640, 480)  # Width, height in pixels
+    MONO_CAM_SENSOR_SIZE = (3.054, 1.718)  # Width, height in mm
+    MONO_CAM_FOCAL_LENGTH = 2.65  # Focal length in mm
+
     def __init__(self):
         rospy.init_node('buoy_detector_contour_matching', anonymous=True)
 
@@ -143,12 +150,15 @@ class BuoyDetectorContourMatching:
         bounding_box.width = w
         bounding_box.height = h
 
+        bbox_bounds = (x, x + w, y, y + h)
+
         # Point coords represents the 3D position of the object represented by the bounding box relative to the robot
-        pose = Point()
-        pose.x = 0
-        pose.y = 0
-        pose.z = 0
-        bounding_box.coords = pose
+        coords_list = calculate_relative_pose(bbox_bounds,
+                                              self.MONO_CAM_IMG_SHAPE,
+                                              (self.BUOY_WIDTH, 0),
+                                              self.MONO_CAM_FOCAL_LENGTH,
+                                              self.MONO_CAM_SENSOR_SIZE, 1)
+        bounding_box.coords.x, bounding_box.coords.y, bounding_box.coords.z = coords_list
 
         self.bounding_box_pub.publish(bounding_box)
 

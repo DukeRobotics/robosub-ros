@@ -18,19 +18,19 @@ class USBCamera:
     :param framerate: custom framerate to stream the camera at; default is set to device default
     """
 
-    def __init__(self):
+    def __init__(self, topic=None, channel=None, framerate=None):
 
         # Instantiate new USB camera node
-        rospy.init_node('usb_camera', anonymous=True)
+        rospy.init_node(f'usb_camera_{channel}', anonymous=True)
 
         # Read custom camera configs from launch command
-        self.topic = rospy.get_param("~topic")
+        self.topic = topic if topic else rospy.get_param("~topic")
         self.topic = f'/camera/{self.topic}/compressed'
 
-        self.channel = rospy.get_param("~channel")
+        self.channel = channel if channel else rospy.get_param("~channel")
 
         # If no custom framerate is passed in, set self.framerate to None to trigger default framerate
-        self.framerate = rospy.get_param("~framerate")
+        self.framerate = framerate if framerate else rospy.get_param("~framerate")
 
         if self.framerate == -1:
             self.framerate = None
@@ -46,20 +46,43 @@ class USBCamera:
         and stream every image as it comes in at the device framerate
         """
 
-        # Try connecting to the camera unless a connection is refused
-        try:
-            # Connect to camera at channel
-            cap = cv2.VideoCapture(self.channel)
-            # Read first frame
-            success, img = cap.read()
+        total_tries = 5
+        success = False
 
-            # Set publisher rate (framerate) to custom framerate if specified, otherwise, set to default
-            loop_rate = None
-            if self.framerate is None:
-                loop_rate = rospy.Rate(cap.get(cv2.CAP_PROP_FPS))
-            else:
-                loop_rate = rospy.Rate(self.framerate)
+        for _ in range(total_tries):
+            if rospy.is_shutdown():
+                break
 
+            # Try connecting to the camera unless a connection is refused
+            try:
+                # Connect to camera at channel
+                cap = cv2.VideoCapture(self.channel)
+                # Read first frame
+                success, img = cap.read()
+
+                # Set publisher rate (framerate) to custom framerate if specified, otherwise, set to default
+                loop_rate = None
+                if self.framerate is None:
+                    loop_rate = rospy.Rate(cap.get(cv2.CAP_PROP_FPS))
+                else:
+                    loop_rate = rospy.Rate(self.framerate)
+
+                # If the execution reaches the following statement, and the first frame was successfully read,
+                # then a successful camera connection was made, and we enter the main while loop
+                if success:
+                    break
+
+            except RuntimeError:
+                pass
+
+            if rospy.is_shutdown():
+                break
+
+            # Wait two seconds before trying again
+            # This ensures the script does not terminate if the camera is just temporarily unavailable
+            rospy.sleep(2)
+
+        if success:
             # Including 'not rospy.is_shutdown()' in the loop condition here to ensure if this script is exited
             # while this loop is running, the script quits without escalating to SIGTERM or SIGKILL
             while not rospy.is_shutdown() and success:
@@ -72,8 +95,9 @@ class USBCamera:
                 success, img = cap.read()
                 # Sleep loop to maintain frame rate
                 loop_rate.sleep()
-        except Exception:
-            rospy.logerr(f"Camera not found at channel {self.channel}")
+        else:
+            raise RuntimeError(f"{total_tries} attempts were made to connect to the USB camera. "
+                               f"The camera was not found at channel {self.channel}. All attempts failed.")
 
 
 if __name__ == '__main__':
