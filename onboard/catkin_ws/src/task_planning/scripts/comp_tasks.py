@@ -33,7 +33,6 @@ async def gate_style_task(self: Task) -> Task[None, None, None]:
         duration = rospy.Duration(secs)
         start_time = rospy.Time.now()
         while start_time + duration > rospy.Time.now():
-            # rospy.loginfo(start_time + duration - rospy.Time.now())
             await Yield()
 
     async def roll():
@@ -55,7 +54,6 @@ async def gate_style_task(self: Task) -> Task[None, None, None]:
 
     await roll()
     State().reset_pose()
-    # await depth_correction()
     await roll()
     State().reset_pose()
     await sleep(3)
@@ -83,25 +81,16 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
     DEPTH_LEVEL = State().orig_depth - 0.5
 
     async def correct_y():
-        # y = -(CV().cv_data["buoy_properties"]["y"])
-        # await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, y, 0, 0, 0, 0), parent=self)
-        # rospy.loginfo(f"Corrected y {y}")
         await cv_tasks.correct_y("buoy_propeties", parent=self)
 
     async def correct_z():
-        # z = -(CV().cv_data["buoy_properties"]["z"])
-        # await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, z, 0, 0, 0), parent=self)
-        # rospy.loginfo(f"Corrected z {z}")
         await cv_tasks.correct_z(prop="buoy_properties", parent=self)
 
     async def correct_depth():
-        # await move_tasks.depth_correction(DEPTH_LEVEL, parent=self)
         await move_tasks.correct_depth(desired_depth=DEPTH_LEVEL, parent=self)
     self.correct_depth = correct_depth
 
     async def move_x(step=1):
-        # await move_tasks.move_to_pose_local(geometry_utils.create_pose(step, 0, 0, 0, 0, 0), parent=self)
-        # rospy.loginfo(f"Moved x {step}")
         await move_tasks.move_x(step=step, parent=self)
 
     def get_step_size(dist, dist_threshold):
@@ -151,14 +140,6 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
     self.correct_yaw = correct_yaw
 
     async def move_with_directions(directions):
-        # for direction in directions:
-        #     await move_tasks.move_to_pose_local(
-        #         geometry_utils.create_pose(direction[0], direction[1], direction[2], 0, 0, 0),
-        #         parent=self)
-        #     rospy.loginfo(f"Moved to {direction}")
-        #     await correct_yaw()
-        #     await correct_depth()
-
         move_tasks.move_with_directions(directions, correct_yaw=True, correct_depth=True, parent=self)
 
     # Circumnavigate buoy
@@ -219,12 +200,8 @@ async def coin_flip(self: Task) -> Task[None, None, None]:
         orig_imu_orientation = copy.deepcopy(State().orig_imu.orientation)
         orig_imu_euler_angles = quat2euler(geometry_utils.geometry_quat_to_transforms3d_quat(orig_imu_orientation))
 
-        # rospy.loginfo(f"orig: {orig_imu_euler_angles}")
-
         cur_imu_orientation = copy.deepcopy(State().imu.orientation)
         cur_imu_euler_angles = quat2euler(geometry_utils.geometry_quat_to_transforms3d_quat(cur_imu_orientation))
-
-        # rospy.loginfo(f"cur: {cur_imu_euler_angles}")
 
         return orig_imu_euler_angles[2] - cur_imu_euler_angles[2]
 
@@ -249,29 +226,20 @@ async def coin_flip(self: Task) -> Task[None, None, None]:
 
 @task
 async def gate_task(self: Task) -> Task[None, None, None]:
-
+    rospy.loginfo("Started gate task")
     DEPTH_LEVEL = State().orig_depth - 0.7
 
     async def correct_y(factor=1):
-        # y = (CV().cv_data["gate_red_cw_properties"]["y"] - 0.2) * factor
-        # await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, y, 0, 0, 0, 0), parent=self)
-        # rospy.loginfo(f"Corrected y {y}")
         await cv_tasks.correct_y(prop="gate_red_cw_properties", add_factor=-0.2, mult_factor=factor, parent=self)
 
     async def correct_z():
-        # z = CV().cv_data["gate_red_cw_properties"]["z"]
-        # await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, z, 0, 0, 0), parent=self)
-        # rospy.loginfo(f"Corrected z {z}")
         await cv_tasks.correct_z(prop="gate_red_cw_propeties", parent=self)
 
     async def correct_depth():
-        # await move_tasks.depth_correction(DEPTH_LEVEL, parent=self)
         await move_tasks.correct_depth(desired_depth=DEPTH_LEVEL, parent=self)
     self.correct_depth = correct_depth
 
     async def move_x(step=1):
-        # await move_tasks.move_to_pose_local(geometry_utils.create_pose(step, 0, 0, 0, 0, 0), parent=self)
-        # rospy.loginfo(f"Moved x {step}")
         await move_tasks.move_x(step=step, parent=self)
 
     def get_step_size(dist):
@@ -284,7 +252,6 @@ async def gate_task(self: Task) -> Task[None, None, None]:
         duration = rospy.Duration(secs)
         start_time = rospy.Time.now()
         while start_time + duration > rospy.Time.now():
-            # rospy.loginfo(start_time + duration - rospy.Time.now())
             await Yield()
 
     rospy.loginfo("Begin sleep")

@@ -147,7 +147,7 @@ Directions = List[Direction]
 
 
 @task
-async def move_with_directions(self: Task, correct_yaw: False, correct_depth: False,  directions: Directions):
+async def move_with_directions(self: Task, correct_yaw: False, correct_depth: False, directions: Directions):
     assert len(directions) in [3, 6], "The list must contain exactly 3 or 6 floats"
 
     for direction in directions:

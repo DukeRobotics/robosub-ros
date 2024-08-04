@@ -52,7 +52,7 @@ class CV:
         rospy.Subscriber("/cv/bottom/rect_dist", Float64, self._on_receive_rect_dist)
         self.rect_dists = []
 
-        rospy.Subscriber("/cv/bottom/x", RectInfo, self._on_receive_rect_info)
+        rospy.Subscriber("/cv/bottom/rect", RectInfo, self._on_receive_rect_info)
         self.rect_heights = []
 
         self.rect_angle_publisher = rospy.Publisher("/task_planning/cv/bottom/rect_angle", Float64, queue_size=1)

@@ -2,8 +2,6 @@ from typing import Optional
 import rospy
 
 from interface.cv import CV
-# from interface.controls import Controls
-# from interface.state import State
 from move_tasks import move_to_pose_local
 from task import task, Yield, Task
 import move_tasks
