@@ -62,11 +62,12 @@ class USBCamera:
 
             # Including 'not rospy.is_shutdown()' in the loop condition here to ensure if this script is exited
             # while this loop is running, the script quits without escalating to SIGTERM or SIGKILL
-            while not rospy.is_shutdown() and success:
-                # Convert image read from cv2.videoCapture to image message to be published
-                image_msg = self.image_tools.convert_to_ros_compressed_msg(img)  # Compress image
-                # Publish the image
-                self.publisher.publish(image_msg)
+            while not rospy.is_shutdown():
+                if success:
+                    # Convert image read from cv2.videoCapture to image message to be published
+                    image_msg = self.image_tools.convert_to_ros_compressed_msg(img)  # Compress image
+                    # Publish the image
+                    self.publisher.publish(image_msg)
 
                 # Read next image
                 success, img = cap.read()
