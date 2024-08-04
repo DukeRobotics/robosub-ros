@@ -2,6 +2,9 @@ import rospy
 import math
 import copy
 
+from numpy import sign
+
+from typing import Literal
 from transforms3d.euler import quat2euler
 
 from geometry_msgs.msg import Twist
@@ -86,7 +89,7 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
         # y = -(CV().cv_data["buoy_properties"]["y"])
         # await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, y, 0, 0, 0, 0), parent=self)
         # rospy.loginfo(f"Corrected y {y}")
-        await cv_tasks.correct_y("buoy_propeties", parent=self)
+        await cv_tasks.correct_y("buoy_properties", parent=self)
 
     async def correct_z():
         # z = -(CV().cv_data["buoy_properties"]["z"])
@@ -313,11 +316,33 @@ async def gate_task(self: Task) -> Task[None, None, None]:
 
     await move_tasks.move_with_directions(directions, correct_yaw=False, correct_depth=True, parent=self)
 
-    for direction in directions:
-        await move_tasks.move_to_pose_local(
-            geometry_utils.create_pose(direction[0], direction[1], direction[2], 0, 0, 0),
-            parent=self)
-        rospy.loginfo(f"Moved to {direction}")
-        await correct_depth()
-
     rospy.loginfo("Moved through gate")
+
+
+@task
+async def yaw_to_cv_object(self: Task, cv_object_type: Literal['gate', 'buoy'], yaw_threshold=5) -> Task[None, None, None]:
+    """
+    Corrects the yaw relative to the CV object
+    """
+    DEPTH_LEVEL = State().orig_depth
+    PROP_NAME = 'buoy_properties' if cv_object_type == 'buoy' else 'gate_whole_properties'
+
+    async def correct_depth():
+        # await move_tasks.depth_correction(DEPTH_LEVEL, parent=self)
+        await move_tasks.correct_depth(desired_depth=DEPTH_LEVEL, parent=self)
+    self.correct_depth = correct_depth
+
+    cv_object_yaw = CV().cv_data[PROP_NAME]["yaw"]
+
+    await correct_depth()
+    while abs(cv_object_yaw) > yaw_threshold:
+        sign_cv_object_yaw = sign(cv_object_yaw)
+        correction = min(abs(cv_object_yaw), 15)
+        await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, 0, 0, sign_cv_object_yaw*correction), parent=self)
+        rospy.loginfo(f"{PROP_NAME} properties: {CV().cv_data[PROP_NAME]}")
+        await correct_depth()
+        await Yield()
+        cv_object_yaw = CV().cv_data[PROP_NAME]["yaw"]
+        rospy.loginfo(f"{PROP_NAME} properties: {CV().cv_data[PROP_NAME]}")
+
+    await correct_depth()

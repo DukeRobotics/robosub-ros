@@ -62,6 +62,7 @@ class CV:
         # rospy.Subscriber('/yolov7/detection', Detection2DArray, self._on_receive_gate_detection)
 
         rospy.Subscriber('/cv/front/gate_red_cw', CVObject, self._on_receive_gate_red_cw_detection_depthai)
+        rospy.Subscriber('/cv/front/gate_whole', CVObject, self._on_receive_gate_whole_detection_depthai)
 
     def _on_receive_cv_data(self, cv_data: CVObject, object_type: str) -> None:
         """
@@ -174,6 +175,20 @@ class CV:
             "x": msg.coords.x,
             "y": msg.coords.y,
             "z": msg.coords.z
+        }
+
+    def _on_receive_gate_whole_detection_depthai(self, msg: CVObject) -> None:
+        """
+        Parse the received detection of the whole gate and store it
+
+        Args:
+            msg: The received detection of the whole gate
+        """
+        self.cv_data["gate_whole_properties"] = {
+            "x": msg.coords.x,
+            "y": msg.coords.y,
+            "z": msg.coords.z,
+            "yaw": msg.coords.yaw
         }
 
     def _on_receive_gate_detection(self, msg: Detection2DArray) -> None:
