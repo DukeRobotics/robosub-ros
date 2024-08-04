@@ -202,24 +202,13 @@ async def gate_style_task(self: Task) -> Task[None, None, None]:
 
         rospy.loginfo("Completed zero")
 
-    async def depth_correction():
-        rospy.loginfo(f"State().depth: {State().depth}")
-        depth_delta = DEPTH_LEVEL - State().depth
-        rospy.loginfo(f"depth_delta: {depth_delta}")
-
-        rospy.loginfo(f"Started depth correction {depth_delta}")
-        await move_tasks.move_to_pose_local(
-            geometry_utils.create_pose(0, 0, depth_delta, 0, 0, 0),
-            parent=self)
-        rospy.loginfo(f"Finished depth correction {depth_delta}")
-
     await roll()
     State().reset_pose()
     # await depth_correction()
     await roll()
     State().reset_pose()
     await sleep(3)
-    await depth_correction()
+    await move_tasks.depth_correction(State().depth, parent=self)
     await sleep(3)
 
     imu_orientation = State().imu.orientation
@@ -253,9 +242,7 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
         rospy.loginfo(f"Corrected z {z}")
 
     async def correct_depth():
-        depth_delta = DEPTH_LEVEL - State().depth
-        await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, depth_delta, 0, 0, 0), parent=self)
-        rospy.loginfo(f"Corrected depth {depth_delta}")
+        await move_tasks.depth_correction(State().depth, parent=self)
 
     async def move_x(step=1):
         await move_tasks.move_to_pose_local(geometry_utils.create_pose(step, 0, 0, 0, 0, 0), parent=self)
@@ -416,9 +403,7 @@ async def gate_task(self: Task) -> Task[None, None, None]:
         rospy.loginfo(f"Corrected z {z}")
 
     async def correct_depth():
-        depth_delta = DEPTH_LEVEL - State().depth
-        await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, depth_delta, 0, 0, 0), parent=self)
-        rospy.loginfo(f"Corrected depth {depth_delta}")
+        move_tasks.depth_correction(State().depth, parent=self)
 
     async def move_x(step=1):
         await move_tasks.move_to_pose_local(geometry_utils.create_pose(step, 0, 0, 0, 0, 0), parent=self)

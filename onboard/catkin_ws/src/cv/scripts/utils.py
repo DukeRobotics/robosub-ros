@@ -1,9 +1,20 @@
 #!/usr/bin/env python3
 
 import numpy as np
+import math
 import cv2
 import os
+# from typing import List, Tuple
 
+# import rospy
+from geometry_msgs.msg import Vector3, Pose, PoseStamped, \
+     Twist, Point, Quaternion, Polygon
+from custom_msgs.msg import CVObject
+# import tf2_geometry_msgs
+# import tf2_ros
+
+from transforms3d.euler import euler2quat, quat2euler
+from transforms3d.quaternions import qmult
 
 def check_file_writable(filepath):
     """
@@ -23,6 +34,112 @@ def check_file_writable(filepath):
         pdir = '.'
     # target is creatable if parent dir is writable
     return os.access(pdir, os.W_OK)
+
+
+def compute_yaw(xmin, xmax, camera_pixel_width):
+    # Find yaw angle offset
+    left_end_compute = compute_angle_from_x_offset(xmin * camera_pixel_width, camera_pixel_width)
+    right_end_compute = compute_angle_from_x_offset(xmax * camera_pixel_width, camera_pixel_width)
+    midpoint = (left_end_compute + right_end_compute) / 2.0
+    return (midpoint) * (math.pi / 180.0)  # Degrees to radians
+
+
+def compute_angle_from_x_offset(x_offset, camera_pixel_width):
+    """
+    See: https://math.stackexchange.com/questions/1320285/convert-a-pixel-displacement-to-angular-rotation
+    for implementation details.
+
+    :param x_offset: x pixels from center of image
+
+    :return: angle in degrees
+    """
+    image_center_x = camera_pixel_width / 2.0
+    return math.degrees(math.atan(((x_offset - image_center_x) * 0.005246675486)))
+
+
+def compute_center_distance(polygon, frame_width, frame_height):
+
+    ''''''''''''
+
+    # Ensure there are points in the polygon
+    if len(polygon.points) < 4:
+        raise ValueError("Polygon does not represent a bounding box with four points.")
+
+    # Compute the center of the bounding box
+    sum_x = sum(point.x for point in polygon.points)
+    sum_y = sum(point.y for point in polygon.points)
+    bbox_center_x = sum_x / len(polygon.points)
+    bbox_center_y = sum_y / len(polygon.points)
+
+    # Compute the center of the frame
+    frame_center_x = frame_width / 2
+    frame_center_y = frame_height / 2
+
+    # Compute the distances between the centers
+    distance_x = bbox_center_x - frame_center_x
+    distance_y = bbox_center_y - frame_center_y
+
+    return distance_x, distance_y
+
+
+def compute_bbox_dimensions(polygon):
+    """
+        Given: Polygon object
+        Return: as a CV object, the following properties of the given Polygon:
+            width, height, xmin, ymin, xmax, ymax as
+    """
+
+    # Ensure there are points in the polygon
+    if len(polygon.points) < 4:
+        raise ValueError("Polygon does not represent a bounding box with four points.")
+
+    # Initialize min_x, max_x, min_y, and max_y with the coordinates of the first point
+    min_x = polygon.points[0].x
+    max_x = polygon.points[0].x
+    min_y = polygon.points[0].y
+    max_y = polygon.points[0].y
+
+    # Iterate through all points to find the min and max x and y coordinates
+    for point in polygon.points:
+        if point.x < min_x:
+            min_x = point.x
+        if point.x > max_x:
+            max_x = point.x
+        if point.y < min_y:
+            min_y = point.y
+        if point.y > max_y:
+            max_y = point.y
+
+    # Compute the width and height
+    width = max_x - min_x
+    height = max_y - min_y
+
+    # Create and populate message of CVObject type using polygon fields
+    msg = CVObject()
+
+    msg.width = width
+    msg.height = height
+
+    msg.xmin = min_x
+    msg.xmax = max_x
+
+    msg.ymin = min_y
+    msg.ymax = max_y
+
+    # TODO double check is coords field of CVObject centre?
+    center = Point()
+    center.x = (min_x + max_x) / 2
+    center.y = (min_y + max_y) / 2
+
+    # TODO calculate centre based on distance of centre to robot
+    # is x,y,z already relative to robot??
+    # TODO z coordinate???
+    msg.coords = center
+
+    # TODO add rico function here
+    msg.yaw = 0
+
+    return msg
 
 
 class DetectionVisualizer:

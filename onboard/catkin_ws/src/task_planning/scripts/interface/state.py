@@ -34,8 +34,9 @@ class State:
         if tfBuffer:
             self._tfBuffer = tfBuffer
 
-        self.received_imu = False
         self.received_state = False
+        self.received_depth = False
+        self.received_imu = False
 
         rospy.Subscriber(self.STATE_TOPIC, Odometry, self._on_receive_state)
         self._state = None
@@ -70,6 +71,13 @@ class State:
         return self._depth
 
     @property
+    def orig_depth(self):
+        """
+        The depth from the pressure sensor
+        """
+        return self._orig_depth
+
+    @property
     def imu(self):
         """
         The IMU data
@@ -99,6 +107,10 @@ class State:
 
     def _on_receive_depth(self, depth_msg):
         self._depth = depth_msg.pose.pose.position.z
+
+        if not self.received_depth:
+            self._orig_depth = depth_msg.pose.pose.position.z
+            self.received_depth = True
 
     def _on_receive_imu(self, imu_msg):
         self._imu = imu_msg

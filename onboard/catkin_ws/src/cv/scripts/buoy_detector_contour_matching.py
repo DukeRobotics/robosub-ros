@@ -6,7 +6,9 @@ import cv2
 import numpy as np
 from cv_bridge import CvBridge
 from sensor_msgs.msg import CompressedImage, Image
-from geometry_msgs.msg import Polygon, Point32
+from geometry_msgs.msg import Polygon, Point, Point32
+from custom_msgs.msg import CVObject
+from cv.utils import compute_yaw
 
 
 class BuoyDetectorContourMatching:
@@ -23,7 +25,7 @@ class BuoyDetectorContourMatching:
 
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber('/camera/usb_camera/compressed', CompressedImage, self.image_callback)
-        self.bounding_box_pub = rospy.Publisher('/cv/front_usb/bounding_box', Polygon, queue_size=1)
+        self.bounding_box_pub = rospy.Publisher('/cv/front_usb/bounding_box', CVObject, queue_size=1)
         self.hsv_filtered_pub = rospy.Publisher('/cv/front_usb/hsv_filtered', Image, queue_size=1)
         self.contour_image_pub = rospy.Publisher('/cv/front_usb/contour_image', Image, queue_size=1)
         self.contour_image_with_bbox_pub = rospy.Publisher('/cv/front_usb/contour_image_with_bbox', Image, queue_size=1)
@@ -126,9 +128,28 @@ class BuoyDetectorContourMatching:
         return filtered_bboxes
 
     def publish_bbox(self, bbox, image):
+
         x, y, w, h = bbox
-        bounding_box = Polygon()
-        bounding_box.points = [Point32(x, y, 0), Point32(x + w, y, 0), Point32(x + w, y + h, 0), Point32(x, y + h, 0)]
+
+        bounding_box = CVObject()
+
+        bounding_box.xmin = x
+        bounding_box.ymin = y
+        bounding_box.xmax = x + w
+        bounding_box.ymax = y + h
+
+        bounding_box.yaw = compute_yaw(x, x + w, 0)  # Update 0 with whatever is self.camera_pixel_width
+
+        bounding_box.width = w
+        bounding_box.height = h
+
+        # Point coords represents the 3D position of the object represented by the bounding box relative to the robot
+        pose = Point()
+        pose.x = 0
+        pose.y = 0
+        pose.z = 0
+        bounding_box.coords = pose
+
         self.bounding_box_pub.publish(bounding_box)
 
         # Draw bounding box on the image

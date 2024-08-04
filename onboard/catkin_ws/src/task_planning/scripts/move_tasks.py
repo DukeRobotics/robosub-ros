@@ -116,3 +116,16 @@ async def hold_position(self: Task) -> Task[bool, None, None]:
     while True:
         await Yield(geometry_utils.stopped_at_pose(State().state.pose.pose, pose_to_hold, State().state.twist.twist))
         Controls().publish_desired_position(pose_to_hold)
+
+
+@task
+async def depth_correction(self: Task, desired_depth: float) -> Task[None, None, None]:
+    rospy.loginfo(f"State().depth: {State().depth}")
+    depth_delta = State().orig_depth - desired_depth
+    rospy.loginfo(f"depth_delta: {depth_delta}")
+
+    rospy.loginfo(f"Started depth correction {depth_delta}")
+    await move_to_pose_local(
+        geometry_utils.create_pose(0, 0, depth_delta, 0, 0, 0),
+        parent=self)
+    rospy.loginfo(f"Finished depth correction {depth_delta}")
