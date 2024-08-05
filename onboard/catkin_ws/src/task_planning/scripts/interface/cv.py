@@ -61,8 +61,8 @@ class CV:
 
         # rospy.Subscriber('/yolov7/detection', Detection2DArray, self._on_receive_gate_detection)
 
-        rospy.Subscriber('/cv/front/gate_red_cw', CVObject, self._on_receive_gate_red_cw_detection_depthai)
-        rospy.Subscriber('/cv/front/gate_whole', CVObject, self._on_receive_gate_whole_detection_depthai)
+        rospy.Subscriber('/cv/front/gate_red_cw', CVObject, self._on_receive_cv_data, "gate_red_cw")
+        rospy.Subscriber('/cv/front/gate_whole', CVObject, self._on_receive_cv_data, "gate_whole")
 
     def _on_receive_cv_data(self, cv_data: CVObject, object_type: str) -> None:
         """
@@ -128,57 +128,6 @@ class CV:
         # Based on rect_info.center_y and height, determine if rect is touching top and/or bottom of frame
         self.cv_data["blue_rectangle_touching_top"] = rect_info.center_y - rect_info.height / 2 <= 0
         self.cv_data["blue_rectangle_touching_bottom"] = rect_info.center_y + rect_info.height / 2 >= 480
-
-    def _on_receive_buoy_bounding_box(self, bounding_box: CVObject) -> None:
-        """
-        Parse the received bounding box of the buoy and store it
-
-        Args:
-            bounding_box: The received bounding box of the buoy
-        """
-        self.cv_data["buoy_bounding_box"] = bounding_box
-
-
-        # Compute distance between center of bounding box and center of image
-        # Here, image x is robot's y, and image y is robot's z
-        dist_x, dist_y = geometry_utils.compute_center_distance(bounding_box, *self.MONO_CAM_IMG_SHAPE)
-
-        self.cv_data["buoy"] = {
-            "x": self.mono_cam_dist_with_obj_width(width, self.BUOY_WIDTH),
-            "y": dist_x_meters,
-            "z": dist_y_meters,
-            "secs": bounding_box.header.stamp.secs
-        }
-
-        # rospy.loginfo("Buoy properties: %s", self.cv_data["buoy_properties"])
-
-    def _on_receive_gate_red_cw_detection_depthai(self, msg: CVObject) -> None:
-        """
-        Parse the received detection of the red gate and store it
-
-        Args:
-            msg: The received detection of the red gate
-        """
-        self.cv_data["gate_red_cw_properties"] = {
-            "x": msg.coords.x,
-            "y": msg.coords.y,
-            "z": msg.coords.z
-        }
-
-    def _on_receive_gate_whole_detection_depthai(self, msg: CVObject) -> None:
-        """
-        Parse the received detection of the whole gate and store it
-
-        Args:
-            msg: The received detection of the whole gate
-        """
-        self.cv_data["gate_whole_properties"] = {
-            "x": msg.coords.x,
-            "y": msg.coords.y,
-            "z": msg.coords.z,
-            "yaw": msg.coords.yaw,
-            "secs": msg.header.stamp.secs
-        }
 
     def _on_receive_gate_detection(self, msg: Detection2DArray) -> None:
         for detection in msg.detections:

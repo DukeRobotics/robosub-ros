@@ -52,7 +52,7 @@ tmux select-pane -t 5
 tmux send-keys 'ssh robot@192.168.1.1' 'Enter'
 tmux send-keys 'sleep 1' C-m
 tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
-tmux send-keys 'rosservice call /controls/enable" True'
+tmux send-keys 'rosservice call /controls/enable True'
 
 tmux select-pane -t 1
 

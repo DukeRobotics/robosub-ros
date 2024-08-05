@@ -148,9 +148,11 @@ Directions = List[Direction]
 
 @task
 async def move_with_directions(self: Task, directions: Directions, correct_yaw=False, correct_depth=False):
-    assert len(directions) in [3, 6], "The list must contain exactly 3 or 6 floats"
 
     for direction in directions:
+        assert len(direction) in [3, 6], "Each tuple in the directions list must be of length 3 or 6. Tuple "
+        f"{direction} has length {len(direction)}."
+
         await move_to_pose_local(
             geometry_utils.create_pose(direction[0], direction[1], direction[2], 0, 0, 0),
             parent=self)

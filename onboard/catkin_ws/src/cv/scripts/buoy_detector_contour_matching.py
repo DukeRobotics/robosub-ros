@@ -50,8 +50,8 @@ class BuoyDetectorContourMatching:
             return
 
         # Define the range for HSV filtering on the red buoy
-        lower_red = np.array([0, 130, 245])
-        upper_red = np.array([6, 255, 255])
+        lower_red = np.array([0, 110, 245])
+        upper_red = np.array([12, 255, 255])
         lower_red_upper = np.array([175, 180, 191])
         upper_red_upper = np.array([179, 255, 255])
 

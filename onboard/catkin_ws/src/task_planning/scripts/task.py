@@ -161,8 +161,10 @@ class Task(Generic[YieldType, SendType, ReturnType]):
 
         # Ensure parent is a Task or the MAIN_ID
         if parent == Task.MAIN_ID:
+            self.parent = None
             self._parent_id = Task.MAIN_ID
         elif isinstance(parent, Task):
+            self.parent = parent
             self._parent_id = parent.id
         else:
             raise ValueError("Task parent must be a Task or MAIN_ID. Instead got " + str(parent))
