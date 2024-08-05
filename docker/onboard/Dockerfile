@@ -149,16 +149,6 @@ RUN arduino-cli core install arduino:megaavr arduino:avr
 RUN arduino-cli lib update-index
 RUN arduino-cli lib install "servo" "DHT11"
 
-# Install ROS packages for Arduino
-RUN rm -rf ros_lib && \
-    rm -f ros_lib.zip && \
-    rosrun rosserial_arduino make_libraries.py . && \
-    zip -r ros_lib.zip ros_lib && \
-    export ARDUINO_LIBRARY_ENABLE_UNSAFE_INSTALL=true && \
-    arduino-cli lib install --zip-path ros_lib.zip && \
-    rm -f ros_lib.zip && \
-    rm -rf ros_lib
-
 # Set ROS_IP to avoid unresolvable hostnames
 COPY setup_network.bash /opt/ros/noetic/setup_network.bash
 RUN chmod +x /opt/ros/noetic/setup_network.bash
