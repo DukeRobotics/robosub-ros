@@ -49,15 +49,6 @@ add_service_files(
   StopLaunch.srv
 )
 
-add_action_files(
-  FILES
-  AcousticsProcessing.action
-  AcousticsGuess.action
-  AcousticsWrapper.action
-  Saleae.action
-  AcousticsData.action
-)
-
 generate_messages(
   DEPENDENCIES
   std_msgs
