@@ -7,9 +7,7 @@ from task import Task, TaskStatus, TaskUpdatePublisher
 from interface.controls import Controls
 from interface.state import State
 from interface.cv import CV
-import move_tasks
 import comp_tasks
-from utils import geometry_utils
 
 
 def main():

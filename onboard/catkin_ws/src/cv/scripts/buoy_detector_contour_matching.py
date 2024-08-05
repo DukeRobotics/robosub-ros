@@ -6,7 +6,6 @@ import cv2
 import numpy as np
 from cv_bridge import CvBridge
 from sensor_msgs.msg import CompressedImage, Image
-from geometry_msgs.msg import Polygon, Point, Point32
 from custom_msgs.msg import CVObject
 from utils import compute_yaw, calculate_relative_pose
 
@@ -139,6 +138,9 @@ class BuoyDetectorContourMatching:
         x, y, w, h = bbox
 
         bounding_box = CVObject()
+
+        bounding_box.header.stamp.secs = rospy.Time.now().secs
+        bounding_box.header.stamp.nsecs = rospy.Time.now().nsecs
 
         bounding_box.xmin = x
         bounding_box.ymin = y
