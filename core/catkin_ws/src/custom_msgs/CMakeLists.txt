@@ -14,7 +14,6 @@ add_message_files(
   ControlTypes.msg
   CVObject.msg
   DVLRaw.msg
-  HydrophoneSet.msg
   Memory.msg
   PIDAxesInfo.msg
   PIDDerivativeType.msg
@@ -47,15 +46,6 @@ add_service_files(
   SetStaticPower.srv
   StartLaunch.srv
   StopLaunch.srv
-)
-
-add_action_files(
-  FILES
-  AcousticsProcessing.action
-  AcousticsGuess.action
-  AcousticsWrapper.action
-  Saleae.action
-  AcousticsData.action
 )
 
 generate_messages(

@@ -48,6 +48,7 @@ RUN apt-get update && \
     ros-noetic-smach-ros \
     ros-noetic-rosserial \
     ros-noetic-rosserial-arduino \
+    ros-noetic-vision-msgs \
     ffmpeg \
     nmap \
     iputils-ping \
@@ -55,7 +56,8 @@ RUN apt-get update && \
     ros-noetic-foxglove-bridge \
     nmap \
     ignition-fortress \
-    libeigen3-dev
+    libeigen3-dev \
+    libudev-dev
 
 # Get required python packages
 RUN pip3 install --no-cache-dir \
@@ -67,7 +69,10 @@ RUN pip3 install --no-cache-dir \
     python-nmap \
     transforms3d \
     sympy \
-    scikit-learn
+    scikit-learn \
+    opencv-python \
+    jsonpickle \
+    seaborn
 
 # Install PyTorch and Torchvision
 COPY torch_installer.sh torch_deps/torch_installer.sh

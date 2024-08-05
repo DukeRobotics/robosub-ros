@@ -1,5 +1,5 @@
 <launch>
-	<!-- Include all launch files for peripheral sensors, i.e. CV, sonar, acoustics. -->
+	<!-- Include all launch files for peripheral sensors, i.e. CV, sonar. -->
 
 	<arg name="sim" default="false" />
 
