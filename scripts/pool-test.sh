@@ -7,14 +7,14 @@ session="pool-test"
 
 tmux new-session -d -s $session
 
-tmux split-window -h -p 50
-tmux split-window -v -p 0
+tmux split-window -h -l 50
+tmux split-window -v -l 0
 tmux select-pane -t 0
-tmux split-window -v -p 100
-tmux split-window -v -p 83
-tmux split-window -v -p 66
-tmux split-window -v -p 50
-tmux split-window -v -p 33
+tmux split-window -v -l 100
+tmux split-window -v -l 83
+tmux split-window -v -l 66
+tmux split-window -v -l 50
+tmux split-window -v -l 33
 
 tmux select-pane -t 0
 tmux send-keys 'ssh robot@192.168.1.1' 'Enter'
