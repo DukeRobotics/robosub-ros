@@ -1,14 +1,14 @@
 # Offboard Communications Package
 
-This package provides communications and functionality for Arduinos to be integrated with our main ROS system. The Arduinos handle thruster controls, pressure (depth), and voltage readings.
+This package provides communications and functionality for Arduinos to be integrated with our main ROS system. The Arduinos handle thruster controls, pressure (depth), voltage, temperature, and humidity readings, as well as controlling servos (currently used for marker dropper, but can be expanded for torpedos).
 
-There are two Arduinos handled by the package, one for thrusters and one for the pressure sensor. The thruster Arduino runs a ROS node while the pressure Arduino dumps data over serial to the main computer, from which the `data_pub` package publishes the data to ROS. Supporting the thruster Arduino is `thrusters.cpp`, which maps thruster allocations to pulse widths sent to the thruster Arduino.
+There are three Arduinos handled by the package, compartmentalized by vitality. The most critical feature supported by the Arduinos is the thruster controls, which are handled by the Thruster Arduino. The Pressure Arduino is responsible for depth and voltage readings, and the Servo Arduino is responsible for controlling servos and temperature/humidity readings. Any future sensors or actuators should be added to the Servo Arduino as the existing sensors need the least-current data from a control perspective.
 
-`offboard_comms` supports functionality for both a single Arduino and multiple Arduinos. Multiple Arduinos serve to support hardware that require different serial baud rates. This was necessitated by thruster publishers requiring the default 57600 baud while the pressure sensor is factory-optimized for 9600 baud.
+The thruster Arduino runs a ROS node (should be migrated away from to improve cimpatability with ROS2 and for overall reliability) while the other Arduinos dump data over serial to the main computer, from which the `data_pub` package publishes the data to ROS. 
 
-Multiple software serial ports is supported on some Arduinos, but launching both of these nodes independently is not feasable. Only one ROS node is currently being run as to avoid issue where the master ROS node loses sync with one or both of the Arduinos. Migration to a RP2040 (Pico) was attempted, but proved cumbersome for programming purposes, so it was reverted to a Nano Every.
+Supporting the thruster Arduino is `thrusters.cpp`, which maps thruster allocations to pulse widths sent to the thruster Arduino. This is a ROS node that converts voltage and thruster allocations to PWM signals. The node subscribes to `/controls/thruster_allocs` and `/sensors/voltage` and publishes to `/offboard/pwm`, the topic that the thruster Arduino subscribes to.
 
-Oogway is currently configured to use two Arduinos, one for thrusters and one for the pressure and voltage sensors. However, functionality is still included for a single Arduino, as described below.
+`offboard_comms` supports functionality for multiple Arduinos. Multiple Arduinos serve to support hardware that require different serial baud rates. This was necessitated by thruster publishers requiring the default 57600 baud while the pressure sensor is factory-optimized for 9600 baud.
 
 ## Directory Structure
 
@@ -23,10 +23,13 @@ offboard_comms
 │   ├── ThrusterArduino
 │   │   ├── ThrusterArduino.ino  # Arduino code for thrusters
 │   │   ├── ... Libraries for thrusters
+│   ├── ServoSensorArduino
+│   │   ├── ServoArduino.ino  # Arduino code for servos, temp-humidity, and any future sensors
 │   ├── cthulhuThrusterOffset.h  # PWM offset for Cthulhu thrusters
 │   ├── oogwayThrusterOffset.h  # PWM offset for Oogway thrusters
-├── config
-│   ├── arduino.yaml # Arduino config file
+├── config # Config files include Arduino FTDI, the FQBN per Arduino CLI, the core type, and the sketch path
+│   ├── cthulhu.yaml  # Config file for Cthulhu
+│   ├── oogway.yaml  # Config file for Oogway
 ├── data
 │   ├── ... Thruster lookup tables
 ├── include
@@ -182,7 +185,7 @@ Messages with incorrect length will be ignored. If any value is out of range, th
 Additionally, if it has been over 500 miliseconds since the last message was recieved, the thruster Arduino will stop all thrusters. This is to prevent the robot from continuing to move if controls is disabled or if the connection to the main computer is lost.
 
 ### ESC Offset
-Note that an inaccuracy in the ESCs required adding a 31 microsecond offset to the PWM signal for Oogway. This correction was determined to be a hardware defect with Oogway's Blue Robotics Basic ESCs. When sending a stop/configuration PWM signal of 1500 microseconds, the thrusters would interpret the command as a spin command. The introduced offset corrects for this issue.
+Note that an inaccuracy in the ESCs required adding a 31 microsecond offset to the PWM signal for Oogway for some ESCs. This is batch dependent, and may not always be needed. This correction was determined to be a hardware defect with Oogway's Blue Robotics Basic ESCs. When sending a stop/configuration PWM signal of 1500 microseconds, the thrusters would interpret the command as a spin command. The introduced offset corrects for this issue.
 
 This offset is set in a header file corresponding to each robot, with file name `<ROBOT_NAME>ThrusterOffset.h` where `<ROBOT_NAME>` is the value of the `ROBOT_NAME` enviornment variable. The offset is added to the PWM signal in the Arduino code.
 
@@ -276,3 +279,26 @@ Errors in reading the pressure sensor do not affect the voltage sensor. Voltage 
 Voltage publishing over serial is also handled by the Pressure Arduino. The voltage is published as a float over serial, and is published at 1 Hz.
 
 The votage is calibrated based on the onboard Arduino's voltage. This is important as the used voltage sensor requires knowledge of its own voltage as it uses a voltage divider to measure the voltage. The voltage sensor used is the a generic voltage sensor.
+
+## Servo Arduino
+
+The Servo Arduino is responsible for controlling servos, temperature, and humidity readings. The servos are used to control the marker dropper, but can be expanded to control torpedos or other actuators.
+
+The Servo Arduino publishes temperature and humidity readings over serial. The temperature and humidity sensor used is the DHT11.
+
+The servos are controlled by sending simply a byte over serial. The byte should be either `L` or `R` to control the left and right acuation modes, respectively. The servos are controlled by the `Servo` library, as indicated in the configuration file.
+
+As for the temperature and humidity sensor, the `DHT11` library is used. The sensor is factory-optimized for 9600 baud, so the Servo Arduino is set to 9600 baud.
+
+The temperature and humidity readings are published as follows:
+```
+T:89.5
+H:37.2
+T:89.5
+H:37.0
+T:89.5
+H:37.1
+T:89.6
+```
+
+Note that humidity is a percentage, and temperature is in Fahrenheit.
