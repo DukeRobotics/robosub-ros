@@ -133,6 +133,7 @@ def run_commands(commands: Sequence[str], print_output: bool, env_updates: Optio
     for command in commands:
         run_command(command, print_output, env_updates=env_updates, path_to_run_at=path_to_run_at)
 
+
 def get_arduino_cores(arduino_names: List[str]) -> List[str]:
     """
     Get the list of Arduino cores of the given Arduino names without duplicates.
@@ -238,6 +239,7 @@ def check_if_arduino_cores_installed(arduino_cores: List[str]) -> bool:
         
     return True
 
+
 def check_if_ros_lib_installed() -> bool:
     """
     Check if the ROS library for Arduino is installed.
@@ -253,6 +255,7 @@ def check_if_ros_lib_installed() -> bool:
         return False
 
     return True
+
 
 def check_if_arduino_libs_installed(arduino_libs: List[str]) -> bool:
     """
