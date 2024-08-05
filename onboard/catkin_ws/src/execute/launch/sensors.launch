@@ -17,7 +17,7 @@
         </include>
     </group>
     <group unless="$(arg sim)">
-        <include file="$(find cv)/launch/usb_camera.launch">
+        <include file="$(find cv)/launch/usb_camera_connect.launch">
         </include>
     </group>
     <group unless="$(arg sim)">
