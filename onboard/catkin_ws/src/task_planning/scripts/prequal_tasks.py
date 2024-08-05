@@ -62,8 +62,8 @@ async def prequal_task(self: Task) -> Task[None, None, None]:
             total_dist += step
             rospy.loginfo(f"Moved forward {total_dist}")
 
-            touching_top = CV().cv_data["blue_rectangle_touching_top"]
-            touching_bottom = CV().cv_data["blue_rectangle_touching_bottom"]
+            touching_top = CV().cv_data["lane_marker_touching_top"]
+            touching_bottom = CV().cv_data["lane_marker_touching_bottom"]
             if touching_top and not touching_bottom:
                 await move_tasks.move_to_pose_local(
                     geometry_utils.create_pose(0, 0.2, 0, 0, 0, 0),
@@ -79,7 +79,7 @@ async def prequal_task(self: Task) -> Task[None, None, None]:
                 if not prev_touching_top and prev_touching_bottom:
                     await rotate_deg(-20)
 
-            angle = (CV().cv_data["blue_rectangle_angle"] * -1)
+            angle = (CV().cv_data["lane_marker_angle"] * -1)
             if abs(angle) > 0:
                 rad_angle = math.radians(angle)
                 await move_tasks.move_to_pose_local(
@@ -87,8 +87,8 @@ async def prequal_task(self: Task) -> Task[None, None, None]:
                     parent=self)
                 rospy.loginfo(f"Yaw correction {angle}")
 
-            dist_pixels = CV().cv_data["blue_rectangle_dist"]
-            height_pixels = CV().cv_data["blue_rectangle_height"]
+            dist_pixels = CV().cv_data["lane_marker_dist"]
+            height_pixels = CV().cv_data["lane_marker_height"]
             dist_meters = dist_pixels * RECT_HEIGHT_METERS / height_pixels
             if abs(dist_meters) > 0:
                 await move_tasks.move_to_pose_local(
