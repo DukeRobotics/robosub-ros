@@ -1,0 +1,39 @@
+diff --git a/node_modules/create-foxglove-extension/dist/package.js b/node_modules/create-foxglove-extension/dist/package.js
+index 7769e05..3880ab9 100644
+--- a/node_modules/create-foxglove-extension/dist/package.js
++++ b/node_modules/create-foxglove-extension/dist/package.js
+@@ -157,10 +157,17 @@ async function collect(extensionPath, pkg) {
+     const files = new Set();
+     const baseFiles = [
+         (0, path_1.join)(extensionPath, "package.json"),
+-        (0, path_1.join)(extensionPath, "README.md"),
+-        (0, path_1.join)(extensionPath, "CHANGELOG.md"),
+         (0, path_1.join)(extensionPath, pkg.main),
+     ];
++    const optionalFiles = [
++        (0, path_1.join)(extensionPath, "README.md"),
++        (0, path_1.join)(extensionPath, "CHANGELOG.md"),
++    ]
++    for (const file of optionalFiles) {
++        if (await pathExists(file, FileType.File)) {
++            files.add(file);
++        }
++    }
+     for (const file of baseFiles) {
+         if (!(await pathExists(file, FileType.File))) {
+             throw new Error(`Missing required file ${file}`);
+diff --git a/node_modules/create-foxglove-extension/dist/webpackConfigExtension.js b/node_modules/create-foxglove-extension/dist/webpackConfigExtension.js
+index 3477c89..5009cbf 100644
+--- a/node_modules/create-foxglove-extension/dist/webpackConfigExtension.js
++++ b/node_modules/create-foxglove-extension/dist/webpackConfigExtension.js
+@@ -83,7 +83,9 @@ exports.default = (extensionPath, entryPoint, env) => {
+                 },
+             ],
+         },
+-        plugins: [new clean_webpack_plugin_1.CleanWebpackPlugin()],
++        plugins: [new clean_webpack_plugin_1.CleanWebpackPlugin({
++            cleanOnceBeforeBuildPatterns: ["extension.js"],
++        })],
+     };
+     return config;
+ };
