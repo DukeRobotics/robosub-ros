@@ -148,7 +148,6 @@ class CV:
         """
         self.cv_data["buoy_bounding_box"] = bounding_box
 
-
         # Compute distance between center of bounding box and center of image
         # Here, image x is robot's y, and image y is robot's z
         dist_x, dist_y = geometry_utils.compute_center_distance(bounding_box, *self.MONO_CAM_IMG_SHAPE)
@@ -221,6 +220,10 @@ class CV:
         # Here, image x is robot's y, and image y is robot's z
         dist_x, dist_y = geometry_utils.compute_center_distance(bounding_box, *self.MONO_CAM_IMG_SHAPE)
 
+        # Compute distance between center of bounding box and center of image in meters
+        dist_x_meters = dist_x * meters_per_pixel
+        dist_y_meters = dist_y * meters_per_pixel
+
         self.cv_data["bin_blue"] = {
             "z": -1 * self.mono_cam_dist_with_obj_width(width, self.BIN_WIDTH), # negated
             "y": dist_x_meters,
@@ -247,7 +250,7 @@ class CV:
         self.cv_data["bin_both_dimensions"] = (width, height)
 
         # Get meters per pixel
-        meters_per_pixel = (self.BIN_WIDTH*2) / width # both bins double widht of single bin
+        meters_per_pixel = (self.BIN_WIDTH * 2) / width # both bins double widht of single bin
 
         self.cv_data["bin_both_meters_per_pixel"] = meters_per_pixel
 
