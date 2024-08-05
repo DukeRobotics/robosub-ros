@@ -7,44 +7,43 @@ session="pool-test"
 
 tmux new-session -d -s $session
 
-tmux split-window -h -l 50
-tmux split-window -v -l 0
+tmux split-window -h
+tmux split-window -h
+tmux select-layout even-horizontal
+
 tmux select-pane -t 0
-tmux split-window -v -l 100
-tmux split-window -v -l 83
-tmux split-window -v -l 66
+tmux split-window -v -l 50
+
+tmux select-pane -t 2
+tmux split-window -v -l 50
+
+tmux select-pane -t 4
 tmux split-window -v -l 50
 
 tmux select-pane -t 0
-tmux send-keys 'ssh robot@192.168.1.1' 'Enter'
-tmux send-keys 'cd robosub-ros' 'Enter'
-
-tmux select-pane -t 1
-tmux send-keys 'ssh robot@192.168.1.1' 'Enter'
-tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
-tmux send-keys 'roscore' 'Enter'
+tmux send-keys 'tmux kill-server'
 
 tmux select-pane -t 2
 tmux send-keys 'ssh robot@192.168.1.1' 'Enter'
 tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
-tmux send-keys 'fg-ws' 'Enter'
-
-tmux select-pane -t 3
-tmux send-keys 'ssh -XY robot@192.168.1.1' 'Enter'
-tmux send-keys 'sshpass -p robotics ssh -XY -p 2201 root@192.168.1.1' 'Enter'
-tmux send-keys 'roslaunch execute motion.launch enable_recording:=true'
+tmux send-keys 'roscore' 'Enter'
 
 tmux select-pane -t 4
 tmux send-keys 'ssh robot@192.168.1.1' 'Enter'
 tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
-tmux send-keys 'roslaunch task_planning task_runner.launch'
+tmux send-keys 'fg-ws' 'Enter'
 
-tmux select-pane -t 6
+tmux select-pane -t 1
 tmux send-keys 'ssh robot@192.168.1.1' 'Enter'
 tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
-tmux send-keys 'rostopic echo /state'
+tmux send-keys 'roslaunch execute motion.launch enable_recording:=true'
 
-tmux select-pane -t 7
+tmux select-pane -t 3
+tmux send-keys 'ssh robot@192.168.1.1' 'Enter'
+tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
+tmux send-keys 'roslaunch task_planning task_runner.launch'
+
+tmux select-pane -t 5
 tmux send-keys 'ssh robot@192.168.1.1' 'Enter'
 tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
 tmux send-keys 'rosservice call /controls/enable" True'
