@@ -19,13 +19,12 @@ class USBCamera:
     """
 
     def __init__(self, topic=None, channel=None, framerate=None):
-
         # Instantiate new USB camera node
-        rospy.init_node(f'usb_camera_{channel}', anonymous=True)
+        rospy.init_node(f'usb_camera_{topic}', anonymous=True)
 
         # Read custom camera configs from launch command
         self.topic = topic if topic else rospy.get_param("~topic")
-        self.topic = f'/camera/{self.topic}/compressed'
+        self.topic = f'/camera/usb/{self.topic}/compressed'
 
         self.channel = channel if channel else rospy.get_param("~channel")
 
