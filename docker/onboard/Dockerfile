@@ -70,7 +70,9 @@ RUN pip3 install --no-cache-dir \
     transforms3d \
     sympy \
     scikit-learn \
-    opencv-python
+    opencv-python \
+    jsonpickle \
+    seaborn
 
 # Install PyTorch and Torchvision
 COPY torch_installer.sh torch_deps/torch_installer.sh
