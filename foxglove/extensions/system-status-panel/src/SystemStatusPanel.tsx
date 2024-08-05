@@ -18,18 +18,27 @@ import { createRoot } from "react-dom/client";
 // Topic to watch for system usage data
 const SYSTEM_USAGE_TOPIC = "/system/usage";
 const VOLTAGE_TOPIC = "/sensors/voltage";
+const HUMIDITY_TOPIC = "/sensors/humidity";
+const TEMPERATURE_TOPIC = "/sensors/temperature";
 
 type SystemStatusPanelState = {
   cpuUsage?: number;
   ramUsage?: number;
   voltage?: number;
+  humidity?: number;
+  temperature?: number;
 };
 
 function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
   const [state, setState] = useState<SystemStatusPanelState>({});
 
-  context.subscribe([{ topic: SYSTEM_USAGE_TOPIC }, { topic: VOLTAGE_TOPIC }]);
+  context.subscribe([
+    { topic: SYSTEM_USAGE_TOPIC },
+    { topic: VOLTAGE_TOPIC },
+    { topic: HUMIDITY_TOPIC },
+    { topic: TEMPERATURE_TOPIC },
+  ]);
 
   // Define values in table
   const rows = [
@@ -51,6 +60,22 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
       suffix: "V",
       warn: () => {
         return state.voltage != undefined && state.voltage <= 15;
+      },
+    },
+    {
+      statusName: "Humidity",
+      value: state.humidity,
+      suffix: "%",
+      warn: () => {
+        return state.humidity != undefined && state.humidity >= 80;
+      },
+    },
+    {
+      statusName: "Temperature",
+      value: state.temperature,
+      suffix: "F",
+      warn: () => {
+        return state.temperature != undefined && state.temperature >= 100;
       },
     },
   ];
@@ -80,6 +105,18 @@ function SystemStatusPanel({ context }: { context: PanelExtensionContext }): JSX
           setState((prevState) => ({
             ...prevState,
             voltage: voltageLatestFrame.message.data,
+          }));
+        } else if (latestFrame.topic === HUMIDITY_TOPIC) {
+          const humidityLatestFrame = latestFrame as MessageEvent<StdMsgsFloat64>;
+          setState((prevState) => ({
+            ...prevState,
+            humidity: humidityLatestFrame.message.data,
+          }));
+        } else if (latestFrame.topic === TEMPERATURE_TOPIC) {
+          const temperatureLatestFrame = latestFrame as MessageEvent<StdMsgsFloat64>;
+          setState((prevState) => ({
+            ...prevState,
+            temperature: temperatureLatestFrame.message.data,
           }));
         }
       }
