@@ -236,7 +236,7 @@ def check_if_arduino_cores_installed(arduino_cores: List[str]) -> bool:
                 return False
         except subprocess.CalledProcessError:
             return False
-        
+
     return True
 
 
@@ -274,9 +274,9 @@ def check_if_arduino_libs_installed(arduino_libs: List[str]) -> bool:
                 return False
         except subprocess.CalledProcessError:
             return False
-        
+
     return True
-    
+
 
 def install_libs(arduino_names: List[str], print_output: bool) -> None:
     """
@@ -301,7 +301,7 @@ def install_libs(arduino_names: List[str], print_output: bool) -> None:
         if not check_if_ros_lib_installed():
             print(f'{OUTPUT_PREFIX}: Installing ROS library...')
             run_commands(ROS_LIB_INSTALL_COMMANDS, print_output, env_updates=ROS_LIB_ENV_UPDATES,
-                        path_to_run_at=ROS_LIB_INSTALL_PATH)
+                            path_to_run_at=ROS_LIB_INSTALL_PATH)
             print(f'{OUTPUT_PREFIX}: ROS library installed.')
         else:
             print(f'{OUTPUT_PREFIX}: Skipped installing ROS library because it is already installed.')
