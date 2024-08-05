@@ -1,0 +1,3 @@
+<launch>
+	<node name="bin_detector" pkg="cv" type="bin_detector.py" output="screen"/>
+</launch>
