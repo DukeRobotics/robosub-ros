@@ -72,8 +72,8 @@ class BinDetector:
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         # Define range for blue color and create mask
-        lower_blue = np.array([100, 150, 50])
-        upper_blue = np.array([140, 255, 255])
+        lower_blue = np.array([110, 150, 140])
+        upper_blue = np.array([125, 255, 205])
         mask_blue = cv2.inRange(hsv, lower_blue, upper_blue)
 
         lower_red = np.array([50, 150, 100])
