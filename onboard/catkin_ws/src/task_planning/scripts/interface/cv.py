@@ -159,7 +159,8 @@ class CV:
         self.cv_data["buoy"] = {
             "x": self.mono_cam_dist_with_obj_width(width, self.BUOY_WIDTH),
             "y": dist_x_meters,
-            "z": dist_y_meters
+            "z": dist_y_meters,
+            "secs": bounding_box.header.stamp.secs
         }
 
         # rospy.loginfo("Buoy properties: %s", self.cv_data["buoy_properties"])
@@ -188,7 +189,8 @@ class CV:
             "x": msg.coords.x,
             "y": msg.coords.y,
             "z": msg.coords.z,
-            "yaw": msg.coords.yaw
+            "yaw": msg.coords.yaw,
+            "secs": msg.header.stamp.secs
         }
 
     def _on_receive_gate_detection(self, msg: Detection2DArray) -> None:

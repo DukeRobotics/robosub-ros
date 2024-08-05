@@ -7,9 +7,7 @@ from task import Task, TaskStatus, TaskUpdatePublisher
 from interface.controls import Controls
 from interface.state import State
 from interface.cv import CV
-import move_tasks
 import comp_tasks
-from utils import geometry_utils
 
 
 def main():
@@ -61,7 +59,7 @@ def main():
         tasks = [
             comp_tasks.initial_submerge(-0.7, parent=Task.MAIN_ID),
             # comp_tasks.coin_flip(parent=Task.MAIN_ID),
-            comp_tasks.yaw_to_cv_object("gate", parent=Task.MAIN_ID),
+            comp_tasks.yaw_to_cv_object("gate_whole_properties", parent=Task.MAIN_ID),
             comp_tasks.gate_task(parent=Task.MAIN_ID),
             comp_tasks.initial_submerge(0.2, parent=Task.MAIN_ID),
             comp_tasks.yaw_to_cv_object("buoy", parent=Task.MAIN_ID),
