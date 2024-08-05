@@ -12,10 +12,10 @@ class BlueRectangleDetector:
     def __init__(self):
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("/camera/usb_camera/compressed", CompressedImage, self.image_callback)
-        self.angle_pub = rospy.Publisher("/cv/bottom/rect_angle", Float64, queue_size=10)
-        self.distance_pub = rospy.Publisher("/cv/bottom/rect_dist", Float64, queue_size=10)
+        self.angle_pub = rospy.Publisher("/cv/bottom/lane_marker_angle", Float64, queue_size=10)
+        self.distance_pub = rospy.Publisher("/cv/bottom/lane_marker_dist", Float64, queue_size=10)
         self.detections_pub = rospy.Publisher("/cv/bottom/detections/compressed", CompressedImage, queue_size=10)
-        self.rect_info_pub = rospy.Publisher("/cv/bottom/rect", RectInfo, queue_size=10)
+        self.rect_info_pub = rospy.Publisher("/cv/bottom/lane_marker", RectInfo, queue_size=10)
 
     def image_callback(self, data):
         try:
