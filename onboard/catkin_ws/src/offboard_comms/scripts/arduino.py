@@ -40,6 +40,8 @@ ARDUINO_CORE_INSTALL_COMMAND_TEMPLATE = 'arduino-cli core install {core}'
 ARDUINO_LIBRARY_INSTALL_COMMAND_TEMPLATE = 'arduino-cli lib install {library}'
 ARDUINO_COMPILE_COMMAND_TEMPLATE = 'arduino-cli compile -b {fqbn} "{sketch_path}"'
 ARDUINO_UPLOAD_COMMAND_TEMPLATE = 'arduino-cli upload -b {fqbn} -p {port} "{sketch_path}"'
+ARDUINO_GET_INSTALLED_LIBS = 'arduino-cli lib list'
+ARDUINO_GET_INSTALLED_CORES = 'arduino-cli core list'
 
 # Prefix for all output displayed by this script (not including subcommands)
 OUTPUT_PREFIX = pathlib.Path(__file__).name.capitalize()
@@ -131,7 +133,6 @@ def run_commands(commands: Sequence[str], print_output: bool, env_updates: Optio
     for command in commands:
         run_command(command, print_output, env_updates=env_updates, path_to_run_at=path_to_run_at)
 
-
 def get_arduino_cores(arduino_names: List[str]) -> List[str]:
     """
     Get the list of Arduino cores of the given Arduino names without duplicates.
@@ -217,6 +218,62 @@ def get_arduino_sketch_path_absolute(arduino_name: str) -> str:
 # ======================================================================================================================
 # Subparser functions
 
+def check_if_arduino_cores_installed(arduino_cores: List[str]) -> bool:
+    """
+    Check if the given Arduino cores are installed.
+
+    Args:
+        arduino_cores: List of Arduino cores.
+
+    Returns:
+        True if all cores are installed, False otherwise.
+    """
+    for core in arduino_cores:
+        try:
+            installed_libs = subprocess.check_output(ARDUINO_GET_INSTALLED_CORES, shell=True, text=True)
+            if core not in installed_libs:
+                return False
+        except subprocess.CalledProcessError:
+            return False
+        
+    return True
+
+def check_if_ros_lib_installed() -> bool:
+    """
+    Check if the ROS library for Arduino is installed.
+
+    Returns:
+        True if the ROS library is installed, False otherwise.
+    """
+    try:
+        installed_libs = subprocess.check_output(ARDUINO_GET_INSTALLED_LIBS, shell=True, text=True)
+        if 'ros_lib' not in installed_libs:
+            return False
+    except subprocess.CalledProcessError:
+        return False
+
+    return True
+
+def check_if_arduino_libs_installed(arduino_libs: List[str]) -> bool:
+    """
+    Check if the given Arduino libraries are installed.
+
+    Args:
+        arduino_libs: List of Arduino libraries.
+
+    Returns:
+        True if all libraries are installed, False otherwise.
+    """
+    for lib in arduino_libs:
+        try:
+            installed_libs = subprocess.check_output(ARDUINO_GET_INSTALLED_LIBS, shell=True, text=True)
+            if lib.lower() not in installed_libs.lower():
+                return False
+        except subprocess.CalledProcessError:
+            return False
+        
+    return True
+    
 
 def install_libs(arduino_names: List[str], print_output: bool) -> None:
     """
@@ -238,10 +295,13 @@ def install_libs(arduino_names: List[str], print_output: bool) -> None:
 
     # Install the ROS library for Arduino if required
     if check_if_ros_lib_is_required(arduino_names):
-        print(f'{OUTPUT_PREFIX}: Installing ROS library...')
-        run_commands(ROS_LIB_INSTALL_COMMANDS, print_output, env_updates=ROS_LIB_ENV_UPDATES,
-                     path_to_run_at=ROS_LIB_INSTALL_PATH)
-        print(f'{OUTPUT_PREFIX}: ROS library installed.')
+        if not check_if_ros_lib_installed():
+            print(f'{OUTPUT_PREFIX}: Installing ROS library...')
+            run_commands(ROS_LIB_INSTALL_COMMANDS, print_output, env_updates=ROS_LIB_ENV_UPDATES,
+                        path_to_run_at=ROS_LIB_INSTALL_PATH)
+            print(f'{OUTPUT_PREFIX}: ROS library installed.')
+        else:
+            print(f'{OUTPUT_PREFIX}: Skipped installing ROS library because it is already installed.')
     else:
         print(f'{OUTPUT_PREFIX}: Skipped installing ROS library because it is not required for '
               f'{", ".join(arduino_names)} arduino(s).')
@@ -251,9 +311,12 @@ def install_libs(arduino_names: List[str], print_output: bool) -> None:
 
     # Install the Arduino cores
     if core_install_commands:
-        print(f'{OUTPUT_PREFIX}: Installing arduino cores...')
-        run_commands(core_install_commands, print_output)
-        print(f'{OUTPUT_PREFIX}: Arduino cores installed.')
+        if check_if_arduino_cores_installed(arduino_cores):
+            print(f'{OUTPUT_PREFIX}: Skipped installing arduino cores because they are already installed.')
+        else:
+            print(f'{OUTPUT_PREFIX}: Installing arduino cores...')
+            run_commands(core_install_commands, print_output)
+            print(f'{OUTPUT_PREFIX}: Arduino cores installed.')
     else:
         print(f'{OUTPUT_PREFIX}: Skipped installing arduino cores because they are not required for '
               f'{", ".join(arduino_names)} arduino(s).')
@@ -263,9 +326,12 @@ def install_libs(arduino_names: List[str], print_output: bool) -> None:
 
     # Install the Arduino libraries
     if lib_install_commands:
-        print(f'{OUTPUT_PREFIX}: Installing arduino libraries...')
-        run_commands(lib_install_commands, print_output)
-        print(f'{OUTPUT_PREFIX}: Arduino libraries installed.')
+        if check_if_arduino_libs_installed(arduino_libs):
+            print(f'{OUTPUT_PREFIX}: Skipped installing arduino libraries because they are already installed.')
+        else:
+            print(f'{OUTPUT_PREFIX}: Installing arduino libraries...')
+            run_commands(lib_install_commands, print_output)
+            print(f'{OUTPUT_PREFIX}: Arduino libraries installed.')
     else:
         print(f'{OUTPUT_PREFIX}: Skipped installing arduino libraries because they are not required for '
               f'{", ".join(arduino_names)} arduino(s).')
