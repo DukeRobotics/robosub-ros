@@ -14,7 +14,6 @@ add_message_files(
   ControlTypes.msg
   CVObject.msg
   DVLRaw.msg
-  HydrophoneSet.msg
   Memory.msg
   PIDAxesInfo.msg
   PIDDerivativeType.msg
