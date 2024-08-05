@@ -52,12 +52,12 @@ class CV:
         rospy.Subscriber("/cv/bottom/rect_dist", Float64, self._on_receive_rect_dist)
         self.rect_dists = []
 
-        rospy.Subscriber("/cv/bottom/x", RectInfo, self._on_receive_rect_info)
+        rospy.Subscriber("/cv/bottom/rect", RectInfo, self._on_receive_rect_info)
         self.rect_heights = []
 
         self.rect_angle_publisher = rospy.Publisher("/task_planning/cv/bottom/rect_angle", Float64, queue_size=1)
 
-        rospy.Subscriber("/cv/front_usb/bounding_box", CVObject, self._on_receive_buoy_bounding_box)
+        rospy.Subscriber("/cv/front_usb/bounding_box", CVObject, self._on_receive_cv_data, "buoy")
 
         # rospy.Subscriber('/yolov7/detection', Detection2DArray, self._on_receive_gate_detection)
 
@@ -137,23 +137,10 @@ class CV:
         """
         self.cv_data["buoy_bounding_box"] = bounding_box
 
-        # Compute width of bounding box
-        width, height = geometry_utils.compute_bbox_dimensions(bounding_box)
-
-        self.cv_data["buoy_dimensions"] = (width, height)
-
-        # Get meters per pixel
-        meters_per_pixel = self.BUOY_WIDTH / width
-
-        self.cv_data["buoy_meters_per_pixel"] = meters_per_pixel
 
         # Compute distance between center of bounding box and center of image
         # Here, image x is robot's y, and image y is robot's z
         dist_x, dist_y = geometry_utils.compute_center_distance(bounding_box, *self.MONO_CAM_IMG_SHAPE)
-
-        # Compute distance between center of bounding box and center of image in meters
-        dist_x_meters = dist_x * meters_per_pixel
-        dist_y_meters = dist_y * meters_per_pixel
 
         self.cv_data["buoy"] = {
             "x": self.mono_cam_dist_with_obj_width(width, self.BUOY_WIDTH),

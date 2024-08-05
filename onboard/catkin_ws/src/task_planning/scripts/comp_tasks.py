@@ -80,19 +80,19 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
     Circumnavigate the buoy. Requires robot to have submerged 0.5 meters.
     """
 
-    DEPTH_LEVEL = State().orig_depth - 0.5
+    DEPTH_LEVEL = State().orig_depth - 0.7
 
     async def correct_y():
         # y = -(CV().cv_data["buoy_properties"]["y"])
         # await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, y, 0, 0, 0, 0), parent=self)
         # rospy.loginfo(f"Corrected y {y}")
-        await cv_tasks.correct_y("buoy_propeties", parent=self)
+        await cv_tasks.correct_y("buoy", parent=self)
 
     async def correct_z():
         # z = -(CV().cv_data["buoy_properties"]["z"])
         # await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, z, 0, 0, 0), parent=self)
         # rospy.loginfo(f"Corrected z {z}")
-        await cv_tasks.correct_z(prop="buoy_properties", parent=self)
+        await cv_tasks.correct_z(prop="buoy", parent=self)
 
     async def correct_depth():
         # await move_tasks.depth_correction(DEPTH_LEVEL, parent=self)
@@ -110,20 +110,20 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
         elif dist > 2:
             return 0.5
         else:
-            return max(dist - dist_threshold + 0.1, 0.25)
+            return min(dist - dist_threshold + 0.1, 0.25)
 
     async def move_to_buoy(buoy_dist_threshold=1):
-        buoy_dist = CV().cv_data["buoy_properties"]["x"]
+        buoy_dist = CV().cv_data["buoy"].coords.x
         await correct_y()
         await correct_depth()
         while buoy_dist > buoy_dist_threshold:
             await move_x(step=get_step_size(buoy_dist, buoy_dist_threshold))
-            rospy.loginfo(f"Buoy properties: {CV().cv_data['buoy_properties']}")
+            rospy.loginfo(f"Buoy dist: {CV().cv_data['buoy'].coords.x}")
             await correct_y()
             await correct_depth()
             await Yield()
-            buoy_dist = CV().cv_data["buoy_properties"]["x"]
-            rospy.loginfo(f"Buoy properties: {CV().cv_data['buoy_properties']}")
+            buoy_dist = CV().cv_data["buoy"].coords.x
+            rospy.loginfo(f"Buoy dist: {CV().cv_data['buoy'].coords.x}")
 
         await correct_depth()
 

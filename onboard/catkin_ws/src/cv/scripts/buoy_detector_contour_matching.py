@@ -51,9 +51,9 @@ class BuoyDetectorContourMatching:
             return
 
         # Define the range for HSV filtering on the red buoy
-        lower_red = np.array([0, 191, 191])
-        upper_red = np.array([4, 255, 255])
-        lower_red_upper = np.array([175, 191, 191])
+        lower_red = np.array([0, 130, 245])
+        upper_red = np.array([6, 255, 255])
+        lower_red_upper = np.array([175, 180, 191])
         upper_red_upper = np.array([179, 255, 255])
 
         # Apply HSV filtering on the image
@@ -150,7 +150,11 @@ class BuoyDetectorContourMatching:
         bounding_box.width = w
         bounding_box.height = h
 
-        bbox_bounds = (x, x + w, y, y + h)
+        # bbox_bounds = (x, y, x + w, y + h)
+
+        bbox_bounds = (x / self.MONO_CAM_IMG_SHAPE[0], y / self.MONO_CAM_IMG_SHAPE[1], (x+w) / self.MONO_CAM_IMG_SHAPE[0], (y+h) / self.MONO_CAM_IMG_SHAPE[1])
+
+        # rospy.loginfo(bbox_bounds)
 
         # Point coords represents the 3D position of the object represented by the bounding box relative to the robot
         coords_list = calculate_relative_pose(bbox_bounds,

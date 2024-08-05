@@ -59,14 +59,12 @@ def main():
     try:
         # Tasks to run
         tasks = [
-            comp_tasks.initial_submerge(-0.7, parent=Task.MAIN_ID),
-            comp_tasks.coin_flip(parent=Task.MAIN_ID),
-            comp_tasks.gate_task(parent=Task.MAIN_ID),
-            comp_tasks.initial_submerge(0.2, parent=Task.MAIN_ID),
+            comp_tasks.initial_submerge(-0.5, parent=Task.MAIN_ID),
+            # comp_tasks.coin_flip(parent=Task.MAIN_ID),
+            # comp_tasks.gate_task(parent=Task.MAIN_ID),
+            # comp_tasks.initial_submerge(0.2, parent=Task.MAIN_ID),
             comp_tasks.buoy_task(parent=Task.MAIN_ID),
         ]
-
-        input("Press enter to run tasks")
         rospy.loginfo("Running tasks...")
 
         # Step through tasks, stopping if rospy is shutdown

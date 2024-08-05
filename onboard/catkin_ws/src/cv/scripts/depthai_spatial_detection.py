@@ -366,7 +366,7 @@ class DepthAISpatialDetector:
             confidence = detection.confidence
 
             # This function does stuff
-            det_coords_robot_mm = calculate_relative_pose(bbox, model['input_size'], model["sizes"][label], FOCAL_LENGTH, SENSOR_SIZE, 2)
+            det_coords_robot_mm = calculate_relative_pose(bbox, model['input_size'], model['sizes'][label], FOCAL_LENGTH, SENSOR_SIZE, 2)
 
             # Find yaw angle offset
             left_end_compute = self.compute_angle_from_x_offset(detection.xmin * self.camera_pixel_width)

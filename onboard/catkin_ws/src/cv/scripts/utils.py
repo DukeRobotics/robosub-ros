@@ -4,6 +4,7 @@ import numpy as np
 import math
 import cv2
 import os
+import rospy
 # from typing import List, Tuple
 
 # import rospy
@@ -85,7 +86,7 @@ def calculate_relative_pose(bbox_bounds, input_size, label_shape, FOCAL_LENGTH, 
             SENSOR_SIZE: a constant to pass in
             adjustment_factor: 1 if mono 2 if depthai
     """
-    xmin, xmax, ymin, ymax = bbox_bounds
+    xmin, ymin, xmax, ymax = bbox_bounds
 
     bbox_width = (xmax - xmin) * input_size[0]
     bbox_center_x = (xmin + xmax) / 2 * input_size[0]
@@ -96,6 +97,8 @@ def calculate_relative_pose(bbox_bounds, input_size, label_shape, FOCAL_LENGTH, 
 
     y_meters = dist_x * meters_per_pixel * -1
     z_meters = dist_y * meters_per_pixel * -1
+
+    # rospy.loginfo(bbox_width, bbox_center_x, bbox_center_y, )
 
     # isp_img_to_det_ratio = ISP_IMG_SHAPE[0] / model['input_size'][0]
 

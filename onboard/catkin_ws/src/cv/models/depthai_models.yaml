@@ -48,6 +48,7 @@ yolov7_tiny_2023_main:
 
 2024_gate_glyphs:
   classes: ["gate_blue_ccw", "gate_red_cw", "gate_tick", "gate_whole"]
+  sizes: {"gate_blue_ccw": [0.24, 0.3], "gate_red_cw": [0.24, 0.3], "gate_tick": [0.051, 0.61], "gate_whole": [3.048, 1.52]}
   topic: cv/
   weights: 2024_gate_glyphs_5shave.blob
   input_size: [416, 416]
@@ -60,6 +61,7 @@ yolov7_tiny_2023_main:
 
 2024_gate_glyphs_5shave:
   classes: ["gate_blue_ccw", "gate_red_cw", "gate_tick", "gate_whole"]
+  sizes: {"gate_blue_ccw": [0.24, 0.3], "gate_red_cw": [0.24, 0.3], "gate_tick": [0.051, 0.61], "gate_whole": [3.048, 1.52]}
   topic: cv/
   weights: 2024_gate_glyphs_5shave.blob
   input_size: [416, 416]
@@ -72,7 +74,7 @@ yolov7_tiny_2023_main:
 
 2024_gate_glyphs_10shave:
   classes: ["gate_blue_ccw", "gate_red_cw", "gate_tick", "gate_whole"]
-  sizes: {"gate_blue_ccw": [w, h], "gate_red_cw": [w, h], "gate_tick": [w, h], "gate_whole": [w, h]}
+  sizes: {"gate_blue_ccw": [0.24, 0.3], "gate_red_cw": [0.24, 0.3], "gate_tick": [0.051, 0.61], "gate_whole": [3.048, 1.52]}
   topic: cv/
   weights: 2024_gate_glyphs_10shave.blob
   input_size: [416, 416]
