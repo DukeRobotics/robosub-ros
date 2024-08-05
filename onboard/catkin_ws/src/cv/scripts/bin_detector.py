@@ -37,11 +37,13 @@ class BinDetector:
 
     def __init__(self):
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("/camera/usb/bottom/compressed", CompressedImage, self.image_callback)
-        self.blue_hsv = rospy.Publisher("/cv/front_usb/blue_bin/hsv_filtered", Image, queue_size=10)
+        self.image_sub = rospy.Subscriber("/camera/usb_camera/compressed", CompressedImage, self.image_callback)
+        self.blue_hsv = rospy.Publisher("/cv/front_usb/blue_bin/contour_image", Image, queue_size=10)
         self.blue_bbox = rospy.Publisher("/cv/front_usb/blue_bin/bounding_box", RectInfo, queue_size=10)
-        self.red_hsv = rospy.Publisher("/cv/front_usb/red_bin/hsv_filtered", Image, queue_size=10)
+        self.red_hsv = rospy.Publisher("/cv/front_usb/red_bin/contour_image", Image, queue_size=10)
         self.red_bbox = rospy.Publisher("/cv/front_usb/red_bin/bounding_box", RectInfo, queue_size=10)
+        self.both_hsv = rospy.Publisher("/cv/front_usb/both_bin/contour_image", Image, queue_size=10)
+        self.both_bbox = rospy.Publisher("/cv/front_usb/both_bin/bounding_box", RectInfo, queue_size=10)
 
     def image_callback(self, data):
         try:
@@ -51,18 +53,20 @@ class BinDetector:
 
             # Process the frame to find the angle of the blue rectangle and draw the rectangle
             boxes = self.process_frame(frame)
-            
             if boxes["red"]:
-                hsv_filtered_msg = self.bridge.cv2_to_imgmsg(boxes["red"][3], "mono8")
-                self.red_hsv.publish(hsv_filtered_msg)
+                contour_image_msg = self.bridge.cv2_to_imgmsg(boxes["red"][3], "bgr8")
+                self.red_hsv.publish(contour_image_msg)
                 self.red_bbox.publish(boxes["red"][2])
             
             if boxes["blue"]:
-                hsv_filtered_msg = self.bridge.cv2_to_imgmsg(boxes["blue"][3], "mono8")
-                self.blue_hsv.publish(hsv_filtered_msg)
+                contour_image_msg = self.bridge.cv2_to_imgmsg(boxes["blue"][3], "bgr8")
+                self.blue_hsv.publish(contour_image_msg)
                 self.blue_bbox.publish(boxes["blue"][2])
             
-            if boxes["bot"]
+            if boxes["both"]:
+                contour_image_msg = self.bridge.cv2_to_imgmsg(boxes["blue"][3], "bgr8")
+                self.both_hsv.publish(contour_image_msg)
+                self.both_bbox.publish(boxes["both"][2])
             
         except CvBridgeError as e:
             rospy.logerr(f"Could not convert image: {e}")
@@ -72,12 +76,12 @@ class BinDetector:
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         # Define range for blue color and create mask
-        lower_blue = np.array([100, 150, 50])
-        upper_blue = np.array([140, 255, 255])
+        lower_blue = np.array([180, 191, 191])
+        upper_blue = np.array([280, 255, 255])
         mask_blue = cv2.inRange(hsv, lower_blue, upper_blue)
 
-        lower_red = np.array([50, 150, 100])
-        upper_red = np.array([255, 255, 140])
+        lower_red = np.array([0, 191, 191])
+        upper_red = np.array([4, 255, 255])
         mask_red = cv2.inRange(hsv, lower_red, upper_red)
 
         # Find contours in the mask
@@ -85,17 +89,16 @@ class BinDetector:
         contours_red, _ = cv2.findContours(mask_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         res = {"blue": None, "red": None, "both": None}
-        
+
         if contours_blue:
-            res["blue"] = self.get_rect_info(frame, contours_blue)
+            res["blue"] = self.get_rect_info(frame.copy(), contours_blue)        
         if contours_red:
-            res["red"] = self.get_rect_info(frame, contours_blue)
+            res["red"] = self.get_rect_info(frame.copy(), contours_red)
         if contours_blue and contours_red:
-            res["both"] = self.get_rect_info(frame, (contours_blue, contours_red))
-            
+            res["both"] = self.get_rect_info(frame, (contours_blue+contours_red))        
         return res
 
-    def get_rect_info(frame, contours):
+    def get_rect_info(self,frame, contours):
         # Combine all contours to form the large rectangle
         all_points = np.vstack(contours)
 
