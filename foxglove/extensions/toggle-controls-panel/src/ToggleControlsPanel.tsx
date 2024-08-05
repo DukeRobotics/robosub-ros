@@ -1,7 +1,7 @@
 import { StdSrvsSetBoolRequest, StdMsgsBool } from "@duke-robotics/defs/types";
 import useTheme from "@duke-robotics/theme";
 import { ThemeProvider } from "@emotion/react";
-import { PanelExtensionContext, RenderState, Immutable, MessageEvent } from "@foxglove/studio";
+import { PanelExtensionContext, RenderState, Immutable, MessageEvent } from "@foxglove/extension";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button/Button";
