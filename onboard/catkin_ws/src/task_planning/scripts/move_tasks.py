@@ -142,6 +142,12 @@ async def move_x(self: Task, step=1):
     rospy.loginfo(f"Moved x {step}")
 
 
+@task
+async def move_y(self: Task, step=1):
+    await move_to_pose_local(geometry_utils.create_pose(0, step, 0, 0, 0, 0), parent=self)
+    rospy.loginfo(f"Moved y {step}")
+
+
 Direction = Union[Tuple[float, float, float], Tuple[float, float, float, float, float, float]]
 Directions = List[Direction]
 

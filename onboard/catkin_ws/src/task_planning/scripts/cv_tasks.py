@@ -43,6 +43,13 @@ async def move_to_cv_obj(self: Task, name: str) -> Task[None, Optional[str], Non
 
 
 @task
+async def correct_x(self: Task, prop: str, add_factor: float = 0, mult_factor: float = 1):
+    x = (CV().cv_data[prop]["x"] + add_factor) * mult_factor
+    await move_tasks.move_to_pose_local(geometry_utils.create_pose(x, 0, 0, 0, 0, 0), parent=self)
+    rospy.loginfo(f"Corrected x {x}")
+
+
+@task
 async def correct_y(self: Task, prop: str, add_factor: float = 0, mult_factor: float = 1):
     y = (CV().cv_data[prop]["y"] + add_factor) * mult_factor
     await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, y, 0, 0, 0, 0), parent=self)
