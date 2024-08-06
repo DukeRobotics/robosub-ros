@@ -18,7 +18,7 @@ signal.alarm(timeout_duration)
 try:
     s = saleae.Saleae(args='-disablepopups socket')
     # Set all analog channels active
-    print(s.__dir__())
+    s.set_active_channels([], [0, 1, 2, 3, 4, 5, 6, 7])
     s.set_sample_rate(s.get_all_sample_rates()[3]) #6.25 MS/s
     print('Saleae connected')
     # Disable the alarm after successful connection
@@ -46,7 +46,4 @@ def record(seconds: int, filename: str='data') -> bool:
 if __name__ == '__main__':
     print('Recording data for 5 seconds')
     record(5, filename=f'data_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}')
-    print('Recording complete')
-    print('Recording data for 10 seconds')
-    record(10, filename=f'data_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}')
     print('Recording complete')
