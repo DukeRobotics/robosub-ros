@@ -13,7 +13,7 @@ from custom_msgs.msg import RectInfo
 class PathMarkerDetector:
     def __init__(self):
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("/camera/usb/bottom/compressed", CompressedImage, self.image_callback)
+        self.image_sub = rospy.Subscriber("/camera/usb_camera/compressed", CompressedImage, self.image_callback)
 
         self.path_marker_hsv_filtered_pub = rospy.Publisher("/cv/bottom/path_marker/hsv_filtered", Image, queue_size=10)
         self.path_marker_contour_image_pub = rospy.Publisher("/cv/bottom/path_marker/contour_image", Image, queue_size=10)
@@ -32,7 +32,7 @@ class PathMarkerDetector:
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         # Define range for blue color and create mask
-        lower_orange = np.array([5, 50, 50])
+        lower_orange = np.array([5, 180, 150])
         upper_orange = np.array([33, 255, 255])
         mask = cv2.inRange(hsv, lower_orange, upper_orange)
 
@@ -56,23 +56,24 @@ class PathMarkerDetector:
 
             bounding_box = CVObject()
 
-            bounding_box.yaw = orientation_in_radians
+            bounding_box.yaw = orientation_in_radians if orientation_in_radians < math.pi /2 else orientation_in_radians - math.pi
+            
 
-            bounding_box.width = dimensions[0]
-            bounding_box.height = dimensions[1]
+            bounding_box.width = int(dimensions[0])
+            bounding_box.height = int(dimensions[1])
 
             self.path_marker_bounding_box_pub.publish(bounding_box)
 
-            visualized_frame = self.visualize_path_marker_detection(bounding_box, center)
+            visualized_frame = self.visualize_path_marker_detection(frame, bounding_box, center)
             self.path_marker_contour_image_pub.publish(self.bridge.cv2_to_imgmsg(visualized_frame))
         
-    def visualize_path_marker_detection(frame, bounding_box, center):
+    def visualize_path_marker_detection(self, frame, bounding_box, center):
         """Returns frame with bounding boxes of the detection."""
         frame_copy = frame.copy()
 
         center_x, center_y = center
         width, height = bounding_box.width, bounding_box.height
-        orientation = math.pi / 2 - orientation
+        orientation = bounding_box.yaw if bounding_box.yaw > 0 else bounding_box.yaw + math.pi
 
         # Calculate the four corners of the rectangle
         angle_cos = math.cos(orientation)
@@ -90,10 +91,10 @@ class PathMarkerDetector:
         y4 = int(center_y - half_width * angle_sin + half_height * angle_cos)
 
         # Draw the rotated rectangle
-        cv2.line(frame_copy, (x1, y1), (x2, y2), (255, 0, 0), 3)
-        cv2.line(frame_copy, (x2, y2), (x3, y3), (255, 0, 0), 3)
-        cv2.line(frame_copy, (x3, y3), (x4, y4), (255, 0, 0), 3)
-        cv2.line(frame_copy, (x4, y4), (x1, y1), (255, 0, 0), 3)
+        cv2.line(frame_copy, (x1, y1), (x2, y2), (0, 0, 255), 3)
+        cv2.line(frame_copy, (x2, y2), (x3, y3), (0, 0, 255), 3)
+        cv2.line(frame_copy, (x3, y3), (x4, y4), (0, 0, 255), 3)
+        cv2.line(frame_copy, (x4, y4), (x1, y1), (0, 0, 255), 3)
 
         return frame_copy
 
