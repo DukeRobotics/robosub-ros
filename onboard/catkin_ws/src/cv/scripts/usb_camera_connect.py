@@ -22,10 +22,10 @@ def connect_all():
     for camera_name in cameras:
 
         camera = cameras[camera_name]
-        channel = camera["channel"]
+        device_path = camera["device_path"]
         topic = camera["topic"]
 
-        cli_args = ["cv", "usb_camera.launch", f"topic:={topic}", f"channel:={channel}", "framerate:=-1"]
+        cli_args = ["cv", "usb_camera.launch", f"topic:={topic}", f"device_path:={device_path}", "framerate:=-1"]
         roslaunch_file = roslaunch.rlutil.resolve_launch_arguments(cli_args)[0]
         roslaunch_files.append((roslaunch_file, cli_args[2:]))
 
