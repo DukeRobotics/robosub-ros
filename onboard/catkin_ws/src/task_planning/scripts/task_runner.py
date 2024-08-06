@@ -57,13 +57,13 @@ def main():
     try:
         # Tasks to run
         tasks = [
-            comp_tasks.initial_submerge(-0.5, parent=Task.MAIN_ID),
+            comp_tasks.initial_submerge(-0.8, parent=Task.MAIN_ID),
             # comp_tasks.coin_flip(parent=Task.MAIN_ID),
             # comp_tasks.gate_task(parent=Task.MAIN_ID),
             # comp_tasks.gate_style_task(parent=Task.MAIN_ID),
-            # comp_tasks.initial_submerge(0.2, parent=Task.MAIN_ID),
-            comp_tasks.yaw_to_cv_object('buoy', parent=Task.MAIN_ID),
+            comp_tasks.yaw_to_cv_object('buoy', depth_level=0.8, parent=Task.MAIN_ID),
             comp_tasks.buoy_task(parent=Task.MAIN_ID),
+            # comp_tasks.bin_task(parent=Task.MAIN_ID),
         ]
         rospy.loginfo("Running tasks...")
 

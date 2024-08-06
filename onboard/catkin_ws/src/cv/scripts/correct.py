@@ -8,9 +8,13 @@ import cv2
 import math
 
 THRESHOLD_RATIO = 2000
-MIN_AVG_RED = 60
-MAX_HUE_SHIFT = 120
-BLUE_MAGIC_VALUE = 1.2
+
+# TODO: MAY NEED TO TUNE THESE VALUES
+MIN_AVG_RED = 30
+MAX_HUE_SHIFT = 255
+BLUE_MAGIC_VALUE = 1.8
+##################################
+
 SAMPLE_SECONDS = 2  # Extracts color correction from every N seconds
 
 

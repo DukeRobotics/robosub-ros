@@ -88,15 +88,17 @@ class DepthAISimulateDetection:
         nn = self.pipeline.create(dai.node.YoloDetectionNetwork)
 
         # Neural net / model properties
-        nn.setConfidenceThreshold(0.5)
-        nn.setBlobPath(self.nn_path)
         nn.setNumInferenceThreads(2)
+
+        nn.setBlobPath(self.nn_path)
+        nn.setConfidenceThreshold(self.model['confidence_threshold'])
         nn.input.setBlocking(False)
+
         nn.setNumClasses(len(self.model['classes']))
         nn.setCoordinateSize(self.model['coordinate_size'])
         nn.setAnchors(np.array(self.model['anchors']))
         nn.setAnchorMasks(self.model['anchor_masks'])
-        nn.setIouThreshold(0.5)
+        nn.setIouThreshold(self.model['iou_threshold'])
 
         # Create a link between the neural net input and the local image stream output
         x_in.out.link(nn.input)

@@ -86,7 +86,7 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
 
     rospy.loginfo('starting buoy_task')
 
-    DEPTH_LEVEL = State().orig_depth - 0.5
+    DEPTH_LEVEL = State().orig_depth - 0.8
 
     async def correct_y():
         # y = -(CV().cv_data["buoy_properties"]["y"])
@@ -167,18 +167,18 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
     # Circumnavigate buoy
     directions = [
         (0, 1, 0),
-        # (0, 0.5, 0),
+        (0, 0.5, 0),
         (1, 0, 0),
         (1, 0, 0),
         # (1, 0, 0),
         (0, -1, 0),
         (0, -1, 0),
-        # (0, -1, 0),
+        (0, -1, 0),
         (-1, 0, 0),
         (-1, 0, 0),
         # (-1, 0, 0),
         (0, 1, 0),
-        # (0, 0.5, 0)
+        (0, 0.5, 0)
     ]
     await move_with_directions(directions)
 
@@ -187,12 +187,12 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
     # Link up with path marker
     directions = [
         (0, 1, 0),
-        # (0, 0.5, 0),
+        (0, 0.5, 0),
         (1, 0, 0),
         (1, 0, 0),
         # (1, 0, 0),
         (0, -1, 0),
-        # (0, -0.5, 0)
+        (0, -0.5, 0)
     ]
     await move_with_directions(directions)
 

@@ -46,6 +46,8 @@ yolov7_tiny_2023_main:
   confidence_threshold: 0.5
   colors: ["DC143C", "FFA500", "FFFF00", "00FF00", "000080", "8A2BE2"]
 
+##################
+# COMPETITION MODEL
 2024_gate_glyphs:
   classes: ["gate_blue_ccw", "gate_red_cw", "gate_tick", "gate_whole"]
   sizes: {"gate_blue_ccw": [0.24, 0.3], "gate_red_cw": [0.24, 0.3], "gate_tick": [0.051, 0.61], "gate_whole": [3.048, 1.52]}
@@ -58,6 +60,7 @@ yolov7_tiny_2023_main:
   iou_threshold: 0.5
   confidence_threshold: 0.9
   colors: ["800000", "3C14DC", "00FFFF", "00A5FF"]
+###################
 
 2024_gate_glyphs_5shave:
   classes: ["gate_blue_ccw", "gate_red_cw", "gate_tick", "gate_whole"]
