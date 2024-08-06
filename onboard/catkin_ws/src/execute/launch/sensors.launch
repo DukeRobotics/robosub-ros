@@ -32,5 +32,9 @@
         <include file="$(find cv)/launch/bin_detector.launch">
         </include>
     </group>
+    <group unless="$(arg sim)">
+        <include file="$(find cv)/launch/path_marker_detector.launch">
+        </include>
+    </group>
 
 </launch>
