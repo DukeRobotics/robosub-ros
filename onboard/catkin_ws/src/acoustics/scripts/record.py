@@ -1,35 +1,10 @@
 import saleae
-import signal
 import datetime
 
-class TimeoutException(Exception):
-    pass
-
-def timeout_handler(signum, frame):
-    raise TimeoutException
-
-# Set the timeout duration (in seconds)
-timeout_duration = 5
-
-# Register the timeout handler
-signal.signal(signal.SIGALRM, timeout_handler)
-signal.alarm(timeout_duration)
-
-try:
-    s = saleae.Saleae(args='-disablepopups socket')
-    # Set all analog channels active
-    s.set_active_channels([], [0, 1, 2, 3, 4, 5, 6, 7])
-    s.set_sample_rate(s.get_all_sample_rates()[3]) #6.25 MS/s
-    print('Saleae connected')
-    # Disable the alarm after successful connection
-    signal.alarm(0)
-except TimeoutException:
-    print('Failed to connect to Saleae: Connection timed out')
-except Exception as e:
-    print(f'Failed to connect to Saleae: {e}')
-    # Disable the alarm in case of other exceptions
-    signal.alarm(0)
-
+s = saleae.Saleae(args='-disablepopups socket')
+s.set_active_channels([], [0, 1, 2, 3, 4, 5, 6, 7])
+s.set_sample_rate(s.get_all_sample_rates()[3]) #6.25 MS/s
+print('Saleae connected')
 
 def record(seconds: int, filename: str='data') -> bool:
     try:
