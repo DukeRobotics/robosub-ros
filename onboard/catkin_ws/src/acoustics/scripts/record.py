@@ -16,7 +16,7 @@ signal.alarm(timeout_duration)
 
 try:
     s = saleae.Saleae(args='-disablepopups socket')
-    # s.set_active_channels([], [0, 1, 2, 3])
+    s.set_active_channels([], [0, 1, 2, 3, 4, 5, 6, 7])
     s.set_sample_rate(s.get_all_sample_rates()[3]) #6.25 MS/s
     print('Saleae connected')
     # Disable the alarm after successful connection
