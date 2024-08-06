@@ -10,7 +10,6 @@ import numpy as np
 from utils import DetectionVisualizer, calculate_relative_pose
 from image_tools import ImageTools
 import cv2
-import correct
 
 from custom_msgs.msg import CVObject, SonarSweepRequest, SonarSweepResponse
 from sensor_msgs.msg import CompressedImage
@@ -56,6 +55,7 @@ class DepthAISpatialDetector:
         self.show_class_name = rospy.get_param("~show_class_name")
         self.show_confidence = rospy.get_param("~show_confidence")
         self.correct_color = rospy.get_param("~correct_color")
+        self.device = None
 
         with open(rr.get_filename(DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH,
                                   use_protocol=False)) as f:
@@ -91,7 +91,7 @@ class DepthAISpatialDetector:
             TASK_PLANNING_REQUESTS_PATH, String, self.update_priority)
 
         TopicType, _, _ = rostopic.get_topic_class(self.feed_path)
-        rospy.Subscriber(self.feed_path, TopicType, self._update_latest_img)
+        rospy.Subscriber(self.feed_path, TopicType, self._update_latest_img, queue_size=1)
 
     def _update_latest_img(self, img_msg):
         """ Send an image to the device for detection
@@ -108,15 +108,19 @@ class DepthAISpatialDetector:
         latest_img = self.image_tools.convert_to_cv2(img_msg)
 
         # Input queue will be used to send video frames to the device.
-        input_queue = self.device.getInputQueue("nn_input")
+        if self.device:
+            input_queue = self.device.getInputQueue("nn_input")
 
-        # Send a message to the ColorCamera to capture a still image
-        img = dai.ImgFrame()
-        img.setType(dai.ImgFrame.Type.BGR888p)
-        img.setData(to_planar(latest_img, (416, 416)))
-        img.setWidth(model['input_size'][0])
-        img.setHeight(model['input_size'][1])
-        input_queue.send(img)
+            # Send a message to the ColorCamera to capture a still image
+            img = dai.ImgFrame()
+            img.setType(dai.ImgFrame.Type.BGR888p)
+
+            img.setData(to_planar(latest_img, (416, 416)))
+
+            img.setWidth(model['input_size'][0])
+            img.setHeight(model['input_size'][1])
+
+            input_queue.send(img)
 
     def build_pipeline(self, nn_blob_path, sync_nn):
         """
@@ -148,6 +152,7 @@ class DepthAISpatialDetector:
         # Define sources and outputs
         # cam_rgb = pipeline.create(dai.node.ColorCamera)
         spatial_detection_network = pipeline.create(dai.node.YoloDetectionNetwork)
+        feed_out = pipeline.create(dai.node.XLinkOut)
         # mono_left = pipeline.create(dai.node.MonoCamera)
         # mono_right = pipeline.create(dai.node.MonoCamera)
         # stereo = pipeline.create(dai.node.StereoDepth)
@@ -156,8 +161,8 @@ class DepthAISpatialDetector:
         xout_nn = pipeline.create(dai.node.XLinkOut)
         xout_nn.setStreamName("detections")
 
-        xout_rgb = pipeline.create(dai.node.XLinkOut)
-        xout_rgb.setStreamName("rgb")
+        # xout_rgb = pipeline.create(dai.node.XLinkOut)
+        # xout_rgb.setStreamName("rgb")
 
         # if self.queue_depth:
         #     xout_depth = pipeline.create(dai.node.XLinkOut)
@@ -228,6 +233,10 @@ class DepthAISpatialDetector:
 
         spatial_detection_network.out.link(xout_nn.input)
 
+        # Feed the image stream to the neural net input node
+        feed_out.setStreamName("feed")
+        spatial_detection_network.passthrough.link(feed_out.input)
+
         # if self.queue_depth:
         #     spatial_detection_network.passthroughDepth.link(xout_depth.input)
 
@@ -289,9 +298,9 @@ class DepthAISpatialDetector:
         self.publishers = publisher_dict
 
         # Create CompressedImage publishers for the raw RGB feed, detections feed, and depth feed
-        if self.rgb_raw:
-            self.rgb_preview_publisher = rospy.Publisher("camera/front/rgb/preview/compressed", CompressedImage,
-                                                         queue_size=10)
+        # if self.rgb_raw:
+        #     self.rgb_preview_publisher = rospy.Publisher("camera/front/rgb/preview/compressed", CompressedImage,
+        #                                                  queue_size=10)
 
         if self.rgb_detections:
             self.detection_feed_publisher = rospy.Publisher("cv/front/detections/compressed", CompressedImage,
@@ -311,12 +320,14 @@ class DepthAISpatialDetector:
             return
 
         # Assign output queues
-        self.output_queues["rgb"] = device.getOutputQueue(name="rgb", maxSize=1, blocking=False)
+        # self.output_queues["rgb"] = device.getOutputQueue(name="rgb", maxSize=1, blocking=False)
 
         # if self.queue_depth:
         #     self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
 
         self.output_queues["detections"] = device.getOutputQueue(name="detections", maxSize=1, blocking=False)
+        self.output_queues["passthrough"] = device.getOutputQueue(
+            name="feed", maxSize=1, blocking=False)
 
         self.input_queue = device.getInputQueue(name="nn_input", maxSize=1, blocking=False)
 
@@ -334,30 +345,23 @@ class DepthAISpatialDetector:
             rospy.logwarn("Output queues are not initialized so cannot detect. Call init_output_queues first.")
             return
 
-        # Format a cv2 image to be sent to the device
-        def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
-            return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
-
-        inPreview = self.output_queues["rgb"].get()
-        frame = inPreview.getCvFrame()
-
         # Publish raw RGB feed
-        if self.rgb_raw:
-            frame_img_msg = self.image_tools.convert_to_ros_compressed_msg(frame)
-            self.rgb_preview_publisher.publish(frame_img_msg)
+        # if self.rgb_raw:
+        #     frame_img_msg = self.image_tools.convert_to_ros_compressed_msg(frame)
+        #     self.rgb_preview_publisher.publish(frame_img_msg)
 
         # Underwater color correction
-        if self.correct_color:
-            mat = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            frame = correct.correct(mat)
+        # if self.correct_color:
+        #     mat = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        #     frame = correct.correct(mat)
 
         # Send a message to the ColorCamera to capture a still image
-        img = dai.ImgFrame()
-        img.setType(dai.ImgFrame.Type.BGR888p)
-        img.setData(to_planar(frame, (416, 416)))
-        img.setWidth(416)
-        img.setHeight(416)
-        self.input_queue.send(img)
+        # img = dai.ImgFrame()
+        # img.setType(dai.ImgFrame.Type.BGR888p)
+        # img.setData(to_planar(frame, (416, 416)))
+        # img.setWidth(416)
+        # img.setHeight(416)
+        # self.input_queue.send(img)
 
         # Publish depth feed
         # if self.queue_depth:
@@ -382,6 +386,11 @@ class DepthAISpatialDetector:
         model = self.models[self.current_model_name]
 
         # Publish detections feed
+        passthrough_feed = self.output_queues["passthrough"].tryGet()
+        if not passthrough_feed:
+            return
+        frame = passthrough_feed.getCvFrame()
+
         if self.rgb_detections:
             detections_visualized = self.detection_visualizer.visualize_detections(frame, detections)
             detections_img_msg = self.image_tools.convert_to_ros_compressed_msg(detections_visualized)
@@ -402,7 +411,7 @@ class DepthAISpatialDetector:
 
             # This function does stuff
             det_coords_robot_mm = calculate_relative_pose(bbox, model['input_size'], model['sizes'][label],
-                                                          FOCAL_LENGTH, SENSOR_SIZE, 2)
+                                                          FOCAL_LENGTH, SENSOR_SIZE, 0.814)
 
             # Find yaw angle offset
             left_end_compute = self.compute_angle_from_x_offset(detection.xmin * self.camera_pixel_width)
@@ -515,6 +524,8 @@ class DepthAISpatialDetector:
         self.init_publishers(self.running_model)
 
         with depthai_camera_connect.connect(self.pipeline) as device:
+            rospy.loginfo("Connected to DepthAI device")
+            self.device = device
             self.init_queues(device)
 
             while not rospy.is_shutdown():
