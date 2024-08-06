@@ -1,7 +1,21 @@
 front:
   channel: "0"
   topic: "front"
+  focal_length: 2.65
+  sensor_size:
+    width: 3.054
+    height: 1.718
+  img_size:
+    width: 640
+    height: 480
 
 bottom:
   channel: "4"
   topic: "bottom"
+  focal_length: 2.65
+  sensor_size:
+    width: 3.054
+    height: 1.718
+  img_size:
+    width: 640
+    height: 480
