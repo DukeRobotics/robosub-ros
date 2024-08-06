@@ -1,0 +1,3 @@
+<launch>
+    <node name="localization_pub" pkg="acoustics" type="localization.py" output="screen"/>
+</launch>
