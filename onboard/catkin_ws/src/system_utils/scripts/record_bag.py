@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from pathlib import Path
 import rospy
 from std_msgs.msg import Float64
 
@@ -66,6 +67,8 @@ class RecordBag:
         human_readable_time = datetime.fromtimestamp(current_time_sec).strftime('%Y.%m.%d_%I-%M-%S_%p')
 
         # Start recording all topics to a bag file
+        Path("/root/dev/robosub-ros/bag_files/").mkdir(parents=False, exist_ok=True)
+
         command = f"rosbag record -a -O /root/dev/robosub-ros/bag_files/{human_readable_time}.bag"
         self.process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, shell=True,
                                         preexec_fn=os.setsid)
