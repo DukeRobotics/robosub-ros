@@ -88,7 +88,7 @@ jobs:
       - name: Start containers
         run: |
           docker tag ${IMAGE_NAME} dukerobotics/robosub-ros:onboard
-          docker-compose up -d
+          docker compose up -d
       - name: Test build
         run: docker exec ${SERVICE_NAME} ./build.sh
       - name: Test Arduino build
@@ -115,7 +115,7 @@ jobs:
           echo "${{ secrets.DOCKER_BOT_TOKEN }}" | docker login -u dukeroboticsbot --password-stdin
           docker buildx imagetools create --tag dukerobotics/robosub-ros:core dukerobotics/robosub-ros:core-amd64 dukerobotics/robosub-ros:core-arm64
           docker buildx imagetools create --tag dukerobotics/robosub-ros:onboard dukerobotics/robosub-ros:onboard-amd64 dukerobotics/robosub-ros:onboard-arm64
-  
+
   cleanup-docker:
     runs-on: ubuntu-22.04
     needs: [check-docker, push-docker]
@@ -150,7 +150,7 @@ jobs:
           cd docker/${SERVICE_NAME}
           docker build --build-arg BASE_IMAGE=${BASE_IMAGE} -t  ${IMAGE_NAME} .
       - name: Start containers
-        run: docker-compose up -d
+        run: docker compose up -d
       - name: Test build
         run: docker exec ${SERVICE_NAME} ./build.sh
       - name: Test ROS launchfiles
