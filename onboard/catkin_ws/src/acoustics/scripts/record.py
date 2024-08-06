@@ -18,7 +18,7 @@ signal.alarm(timeout_duration)
 try:
     s = saleae.Saleae(args='-disablepopups socket')
     # Set all analog channels active
-    s.__dir__()
+    print(s.__dir__())
     s.set_sample_rate(s.get_all_sample_rates()[3]) #6.25 MS/s
     print('Saleae connected')
     # Disable the alarm after successful connection
@@ -36,7 +36,7 @@ def record(seconds: int, filename: str='data') -> bool:
         s.set_capture_seconds(seconds)
         s.capture_start_and_wait_until_finished()
         # Export as binary
-        s.export_data2(f'{filename}.bin', format='bin', analog_channels=[0, 1, 2, 3, 4, 5, 6, 7])
+        s.export_data2(f'{filename}.bin')
         print(f'Data recorded to {filename}.bin')
         return True
     except Exception as e:
