@@ -2,11 +2,11 @@ import rospy
 import yaml
 import resource_retriever as rr
 from custom_msgs.msg import CVObject, RectInfo
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose, Polygon, Point
 from std_msgs.msg import Float64
 from vision_msgs.msg import Detection2DArray
 from utils.other_utils import singleton
-from utils.geometry_utils import compute_center_distance
+
 
 @singleton
 class CV:
@@ -63,9 +63,13 @@ class CV:
         rospy.Subscriber('/cv/front/gate_red_cw', CVObject, self._on_receive_cv_data, "gate_red_cw")
         rospy.Subscriber('/cv/front/gate_whole', CVObject, self._on_receive_cv_data, "gate_whole")
 
-        # rospy.Subscriber("/cv/front_usb/blue_bin/bounding_box", RectInfo, self._on_receive_bin_blue_bounding_box)
-        # rospy.Subscriber("/cv/front_usb/red_bin/bounding_box", RectInfo, self._on_receive_bin_red_bounding_box)
-        # rospy.Subscriber("/cv/front_usb/both_bin/bounding_box", RectInfo, self._on_receive_bin_both_bounding_box)
+        rospy.Subscriber("/cv/bottom/bin_blue/bounding_box", CVObject, self._on_receive_cv_data, "bin_blue")
+        rospy.Subscriber("/cv/bottom/bin_red/bounding_box", CVObject, self._on_receive_cv_data, "bin_red")
+        rospy.Subscriber("/cv/bottom/bin_center/bounding_box", CVObject, self._on_receive_cv_data, "bin_center")
+
+        rospy.Subscriber("/cv/bottom/bin_blue/distance", CVObject, self._on_receive_distance_data, "bin_blue")
+        rospy.Subscriber("/cv/bottom/bin_red/distance", CVObject, self._on_receive_distance_data, "bin_red")
+        rospy.Subscriber("/cv/bottom/bin_center/distance", CVObject, self._on_receive_distance_data, "bin_center")
 
     def _on_receive_cv_data(self, cv_data: CVObject, object_type: str) -> None:
         """
@@ -76,6 +80,18 @@ class CV:
             object_type: The name/type of the object
         """
         self.cv_data[object_type] = cv_data
+    
+    def _on_receive_distance_data(self, distance_data: Point, object_type: str) -> None:
+        """
+        Parse the received distance data and store it
+
+        Args:
+            distance_data: The received distance data as a Point
+            object_type: The name/type of the object
+        """
+
+        # pictured below is someone's future problem of deciding how cv_data should be structured
+        self.cv_data[object_type]["distance"] = distance_data
 
     # TODO add useful methods for getting data
 
@@ -131,120 +147,6 @@ class CV:
         # Based on lane_marker_info.center_y and height, determine if lane marker is touching top and/or bottom of frame
         self.cv_data["lane_marker_touching_top"] = lane_marker_info.center_y - lane_marker_info.height / 2 <= 0
         self.cv_data["lane_marker_touching_bottom"] = lane_marker_info.center_y + lane_marker_info.height / 2 >= 480
-
-    def _on_receive_bin_red_bounding_box(self, bounding_box: RectInfo) -> None:
-        """
-        Parse the received bounding box of the red bin and store it
-
-        Args:
-            bounding_box: The received bounding box of the red bin
-        """
-        self.cv_data["bin_red_bounding_box"] = bounding_box
-
-        # Compute width of bounding box
-        width, height = compute_bbox_dimensions(bounding_box)
-
-        self.cv_data["bin_red_dimensions"] = (width, height)
-
-        # Get meters per pixel
-        meters_per_pixel = self.BIN_WIDTH / width
-
-        self.cv_data["bin_red_meters_per_pixel"] = meters_per_pixel
-
-        # Compute distance between center of bounding box and center of image
-        # Here, image x is robot's y, and image y is robot's z
-        dist_x, dist_y = compute_center_distance(bounding_box, *self.MONO_CAM_IMG_SHAPE)
-
-        # Compute distance between center of bounding box and center of image in meters
-        dist_x_meters = dist_x * meters_per_pixel
-        dist_y_meters = dist_y * meters_per_pixel
-
-        self.cv_data["bin_red"] = {
-            "z": -1 * self.mono_cam_dist_with_obj_width(width, self.BIN_WIDTH), # negated
-            "y": dist_x_meters,
-            "x": dist_y_meters,
-            "distance_x": dist_x,
-            "distance_y": dist_y,
-            "fully_in_frame": not((bounding_box.center_y - bounding_box.height / 2 <= 0) or (bounding_box.center_y + bounding_box.height / 2 >= 480)
-                                or (bounding_box.center_x - bounding_box.width / 2 <= 0) or (bounding_box.center_x + bounding_box.width / 2 >= 640)),
-            "time": rospy.Time.now()
-        }
-
-    def _on_receive_bin_blue_bounding_box(self, bounding_box: RectInfo) -> None:
-        """
-        Parse the received bounding box of the blue bin and store it
-
-        Args:
-            bounding_box: The received bounding box of the blue bin
-        """
-        self.cv_data["bin_blue_bounding_box"] = bounding_box
-
-        # Compute width of bounding box
-        width, height = compute_bbox_dimensions(bounding_box)
-
-        self.cv_data["bin_blue_dimensions"] = (width, height)
-
-        # Get meters per pixel
-        meters_per_pixel = self.BIN_WIDTH / width
-
-        self.cv_data["bin_blue_meters_per_pixel"] = meters_per_pixel
-
-        # Compute distance between center of bounding box and center of image
-        # Here, image x is robot's y, and image y is robot's z
-        dist_x, dist_y = compute_center_distance(bounding_box, *self.MONO_CAM_IMG_SHAPE)
-
-        # Compute distance between center of bounding box and center of image in meters
-        dist_x_meters = dist_x * meters_per_pixel
-        dist_y_meters = dist_y * meters_per_pixel
-
-        self.cv_data["bin_blue"] = {
-            "z": -1 * self.mono_cam_dist_with_obj_width(width, self.BIN_WIDTH), # negated
-            "y": dist_x_meters,
-            "x": dist_y_meters,
-            "distance_x": dist_x,
-            "distance_y": dist_y,
-            "fully_in_frame": not((bounding_box.center_y - bounding_box.height / 2 <= 0) or (bounding_box.center_y + bounding_box.height / 2 >= 480)
-                                or (bounding_box.center_x - bounding_box.width / 2 <= 0) or (bounding_box.center_x + bounding_box.width / 2 >= 640)),
-            "time": rospy.Time.now()
-        }
-
-    def _on_receive_bin_both_bounding_box(self, bounding_box: RectInfo) -> None:
-        """
-        Parse the received bounding box of both bins and store it
-
-        Args:
-            bounding_box: The received bounding box of both bins
-        """
-        self.cv_data["bin_both_bounding_box"] = bounding_box
-
-        # Compute width of bounding box
-        width, height = compute_bbox_dimensions(bounding_box)
-
-        self.cv_data["bin_both_dimensions"] = (width, height)
-
-        # Get meters per pixel
-        meters_per_pixel = (self.BIN_WIDTH * 2) / width # both bins double widht of single bin
-
-        self.cv_data["bin_both_meters_per_pixel"] = meters_per_pixel
-
-        # Compute distance between center of bounding box and center of image
-        # Here, image x is robot's y, and image y is robot's z
-        dist_x, dist_y = compute_center_distance(bounding_box, *self.MONO_CAM_IMG_SHAPE)
-
-        # Compute distance between center of bounding box and center of image in meters
-        dist_x_meters = dist_x * meters_per_pixel
-        dist_y_meters = dist_y * meters_per_pixel
-
-        self.cv_data["bin_both"] = {
-            "z": -1 * self.mono_cam_dist_with_obj_width(width, self.BIN_WIDTH * 2), # negated
-            "y": dist_x_meters,
-            "x": dist_y_meters,
-            "distance_x": dist_x,
-            "distance_y": dist_y,
-            "fully_in_frame": not((bounding_box.center_y - bounding_box.height / 2 <= 0) or (bounding_box.center_y + bounding_box.height / 2 >= 480)
-                                or (bounding_box.center_x - bounding_box.width / 2 <= 0) or (bounding_box.center_x + bounding_box.width / 2 >= 640)),
-            "time": rospy.Time.now()
-        }
 
     def _on_receive_gate_red_cw_detection_depthai(self, msg: CVObject) -> None:
         """
