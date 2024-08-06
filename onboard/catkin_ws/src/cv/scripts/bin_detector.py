@@ -4,32 +4,13 @@ import rospy
 import cv2
 import numpy as np
 from sensor_msgs.msg import CompressedImage, Image
-from std_msgs.msg import Float64
-from cv_bridge import CvBridge, CvBridgeError
-from custom_msgs.msg import RectInfo
-
-
-"""
-TODO: make these changes in cv.py in task_planning/interface
-    - z position of red and blue bins (this should be NEGATIVE)
-    - Write callback functions for subscribers
-    - Calculate bin center position from red and blue
-        - x, y, z of bin center should all be average of red and blue bin's x, y, and z
-
-    self.cv_data["bin_red"] = {
-        "x": ...,
-        "y": ...,
-        "z": ...,
-        "distance_x": ...,
-        "distance_y":  ...,
-        "fully_in_frame": ...,
-        "time": rospy.Time.now()
-    }
-"""
-
+from cv_bridge import CvBridge
+from custom_msgs.msg import CVObject
+from geometry_msgs.msg import Point
+from utils import compute_yaw, calculate_relative_pose, compute_center_distance
 
 class BinDetector:
-    BIN_WIDTH = 0  # TODO: get this
+    BIN_WIDTH = 0.3048 # width of one square of the bin, in m
 
     MONO_CAM_IMG_SHAPE = (640, 480)  # Width, height in pixels
     MONO_CAM_SENSOR_SIZE = (3.054, 1.718)  # Width, height in mm
@@ -37,69 +18,89 @@ class BinDetector:
 
     def __init__(self):
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("/camera/usb/bottom/compressed", CompressedImage, self.image_callback)
-        self.blue_hsv = rospy.Publisher("/cv/front_usb/blue_bin/contour_image", Image, queue_size=10)
-        self.blue_bbox = rospy.Publisher("/cv/front_usb/blue_bin/bounding_box", RectInfo, queue_size=10)
-        self.red_hsv = rospy.Publisher("/cv/front_usb/red_bin/contour_image", Image, queue_size=10)
-        self.red_bbox = rospy.Publisher("/cv/front_usb/red_bin/bounding_box", RectInfo, queue_size=10)
-        self.both_hsv = rospy.Publisher("/cv/front_usb/both_bin/contour_image", Image, queue_size=10)
-        self.both_bbox = rospy.Publisher("/cv/front_usb/both_bin/bounding_box", RectInfo, queue_size=10)
+        self.image_sub = rospy.Subscriber("/camera/usb_camera/compressed", CompressedImage, self.image_callback)
+
+        self.blue_bin_hsv_filtered_pub = rospy.Publisher("/cv/bottom/bin_blue/hsv_filtered", Image, queue_size=10)
+        self.blue_bin_contour_image_pub = rospy.Publisher("/cv/bottom/bin_blue/contour_image", Image, queue_size=10)
+        self.blue_bin_bounding_box_pub = rospy.Publisher("/cv/bottom/bin_blue/bounding_box", CVObject, queue_size=10)
+        self.blue_bin_distance_pub = rospy.Publisher("/cv/bottom/bin_blue/distance", Point, queue_size=10)
+        
+        self.red_bin_hsv_filtered_pub = rospy.Publisher("/cv/bottom/bin_red/hsv_filtered", Image, queue_size=10)
+        self.red_bin_contour_image_pub = rospy.Publisher("/cv/bottom/bin_red/contour_image", Image, queue_size=10)
+        self.red_bin_bounding_box_pub = rospy.Publisher("/cv/bottom/bin_red/bounding_box", CVObject, queue_size=10)
+        self.red_bin_distance_pub = rospy.Publisher("/cv/bottom/bin_red/distance", Point, queue_size=10)
+        
+        self.bin_center_hsv_filtered_pub = rospy.Publisher("/cv/bottom/bin_center/hsv_filtered", Image, queue_size=10)
+        self.bin_center_contour_image_pub = rospy.Publisher("/cv/bottom/bin_center/contour_image", Image, queue_size=10)
+        self.bin_center_bounding_box_pub = rospy.Publisher("/cv/bottom/bin_center/bounding_box", CVObject, queue_size=10)
+        self.bin_center_distance_pub = rospy.Publisher("/cv/bottom/bin_center/distance", Point, queue_size=10)
 
     def image_callback(self, data):
-        try:
-            # Convert the compressed ROS image to OpenCV format
-            np_arr = np.frombuffer(data.data, np.uint8)
-            frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        # Convert the compressed ROS image to OpenCV format
+        np_arr = np.frombuffer(data.data, np.uint8)
+        frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
-            # Process the frame to find the angle of the blue rectangle and draw the rectangle
-            boxes = self.process_frame(frame)
-            rospy.loginfo(boxes)
-            if boxes["red"]:
-                contour_image_msg = self.bridge.cv2_to_imgmsg(boxes["red"][3], "bgr8")
-                self.red_hsv.publish(contour_image_msg)
-                self.red_bbox.publish(boxes["red"][2])
-
-            if boxes["blue"]:
-                contour_image_msg = self.bridge.cv2_to_imgmsg(boxes["blue"][3], "bgr8")
-                self.blue_hsv.publish(contour_image_msg)
-                self.blue_bbox.publish(boxes["blue"][2])
-
-            if boxes["both"]:
-                contour_image_msg = self.bridge.cv2_to_imgmsg(boxes["blue"][3], "bgr8")
-                self.both_hsv.publish(contour_image_msg)
-                self.both_bbox.publish(boxes["both"][2])
-
-        except CvBridgeError as e:
-            rospy.logerr(f"Could not convert image: {e}")
+        # Process the frame to find and publish information on the bin
+        self.process_frame(frame)
 
     def process_frame(self, frame):
         # Convert frame to HSV color space
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         # Define range for blue color and create mask
-        lower_blue = np.array([100, 150, 50])
-        upper_blue = np.array([140, 255, 255])
+        lower_blue = np.array([110, 200, 130])
+        upper_blue = np.array([125, 255, 215])
         mask_blue = cv2.inRange(hsv, lower_blue, upper_blue)
 
-        lower_red = np.array([0, 191, 191])
-        upper_red = np.array([4, 255, 255])
+        blue_hsv_filtered_msg = self.bridge.cv2_to_imgmsg(mask_blue, "mono8")
+        self.blue_bin_hsv_filtered_pub.publish(blue_hsv_filtered_msg)
+
+        # Define the range for HSV filtering on the red bin
+        lower_red = np.array([0, 191, 150])
+        upper_red = np.array([6, 255, 255])
         mask_red = cv2.inRange(hsv, lower_red, upper_red)
+
+        """
+        # Define the range for HSV filtering on the red buoy
+        lower_red_low = np.array([0, 110, 245])
+        upper_red_low = np.array([12, 255, 255])
+        lower_red_high = np.array([175, 180, 191])
+        upper_red_high = np.array([179, 255, 255])
+
+        # Apply HSV filtering on the image
+        mask_red1 = cv2.inRange(hsv_image, lower_red, upper_red)
+        mask_red2 = cv2.inRange(hsv_image, lower_red_upper, upper_red_upper)
+        mask_red = cv2.bitwise_or(mask_red1, mask_red2)
+        """
+
+        # Apply morphological operations to clean up the binary image
+        kernel = np.ones((5, 5), np.uint8)
+        mask_blue = cv2.morphologyEx(mask_blue, cv2.MORPH_OPEN, kernel)
+
+        red_hsv_filtered_msg = self.bridge.cv2_to_imgmsg(mask_red, "mono8")
+        self.red_bin_hsv_filtered_pub.publish(red_hsv_filtered_msg)
 
         # Find contours in the mask
         contours_blue, _ = cv2.findContours(mask_blue, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         contours_red, _ = cv2.findContours(mask_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-        res = {"blue": None, "red": None, "both": None}
-
         if contours_blue:
-            res["blue"] = self.get_rect_info(frame.copy(), contours_blue)
+            bbox, image, dist = self.process_contours(frame.copy(), contours_blue)
+            self.blue_bin_contour_image_pub.publish(image)
+            self.blue_bin_bounding_box_pub.publish(bbox)
+            self.blue_bin_distance_pub.publish(dist)
         if contours_red:
-            res["red"] = self.get_rect_info(frame.copy(), contours_red)
-        if contours_blue and contours_red:
-            res["both"] = self.get_rect_info(frame, (contours_blue+contours_red))
-        return res
-
-    def get_rect_info(self,frame, contours):
+            bbox, image, dist = self.process_contours(frame.copy(), contours_red)
+            self.red_bin_contour_image_pub.publish(image)
+            self.red_bin_bounding_box_pub.publish(bbox)
+            self.red_bin_distance_pub.publish(dist)
+        # if contours_blue and contours_red:
+        #     bbox, image, dist = self.process_contours(frame.copy(), (contours_blue+contours_red))
+        #     self.bin_center_contour_image_pub.publish(image)
+        #     self.bin_center_bounding_box_pub.publish(bbox)
+        #     self.bin_center_distance_pub.publish(dist)
+            
+    def process_contours(self, frame, contours):
         # Combine all contours to form the large rectangle
         all_points = np.vstack(contours)
 
@@ -111,50 +112,71 @@ class BinDetector:
         box = np.int0(box)
         cv2.drawContours(frame, [box], 0, (0, 0, 255), 3)
 
-        # Sort the points based on their x-coordinates to identify left and right sides
-        box = sorted(box, key=lambda pt: pt[0])
-
-        # Identify left and right side points
-        left_pts = box[:2]
-        right_pts = box[2:]
-
-        # Determine which point is higher on the left side
-        left_top = min(left_pts, key=lambda pt: pt[1])
-
-        # Determine which point is higher on the right side
-        right_top = min(right_pts, key=lambda pt: pt[1])
-
-        angle = rect[-1]
-
-        # Compare the y-coordinates
-        if right_top[1] < left_top[1]:
-            # Right side is higher than left side
-            angle = rect[-1] - 90
-
-        if angle == -90 or angle == 90:
-            angle = 0
-
         # Calculate the center of the rectangle
         rect_center = rect[0]
 
-        # Calculate the center of the frame
-        frame_center = (frame.shape[1] / 2, frame.shape[0] / 2)
+        x, y, w, h = (rect_center[0], rect_center[1], rect[1][0], rect[1][1])
 
-        # Calculate the vertical distance between the two centers
-        vertical_distance = rect_center[1] - frame_center[1]
+        # edge cases integer rounding idk something
+        if (w==0):
+            return
 
-        # The distance is positive if the rectangle is below the centerline, negative if above
-        distance = -vertical_distance
+        x=x+w/2
+        y=y+w/2
 
-        # Create RectInfo message
-        rect_info = RectInfo()
-        rect_info.center_x = rect_center[0]
-        rect_info.center_y = rect_center[1]
-        rect_info.width = rect[1][0]
-        rect_info.height = rect[1][1]
-        rect_info.angle = angle
+        bounding_box = CVObject()
 
-        return angle, distance, rect_info, frame
+        bounding_box.header.stamp.secs = rospy.Time.now().secs
+        bounding_box.header.stamp.nsecs = rospy.Time.now().nsecs
+
+        bounding_box.xmin = x
+        bounding_box.ymin = y
+        bounding_box.xmax = x + w
+        bounding_box.ymax = y + h
+
+        bounding_box.yaw = compute_yaw(x, x + w, self.MONO_CAM_SENSOR_SIZE[0])  # width of camera in in mm
+
+        bounding_box.width = w
+        bounding_box.height = h
+
+        meters_per_pixel = self.BIN_WIDTH / w
+        # Compute distance between center of bounding box and center of image
+        # Here, image x is robot's y, and image y is robot's z
+        dist_x, dist_y = compute_center_distance(x, y, *self.MONO_CAM_IMG_SHAPE)
+
+        # Compute distance between center of bounding box and center of image in meters
+        dist_x_meters = dist_x * meters_per_pixel
+        dist_y_meters = dist_y * meters_per_pixel
+        dist_z_meters = -1 * self.mono_cam_dist_with_obj_width(w, self.BIN_WIDTH)
+
+        dist_point = Point()
+        dist_point.z = dist_z_meters
+        dist_point.x = -dist_y_meters
+        dist_point.y = -dist_x_meters
+
+        # {
+        #     "fully_in_frame": not((bounding_box.center_y - bounding_box.height / 2 <= 0) or (bounding_box.center_y + bounding_box.height / 2 >= 480)
+        #                         or (bounding_box.center_x - bounding_box.width / 2 <= 0) or (bounding_box.center_x + bounding_box.width / 2 >= 640)),
+        #     "time": rospy.Time.now()ject
+        # }
+
+        bbox_bounds = (x / self.MONO_CAM_IMG_SHAPE[0], y / self.MONO_CAM_IMG_SHAPE[1], (x+w) / self.MONO_CAM_IMG_SHAPE[0], (y+h) / self.MONO_CAM_IMG_SHAPE[1])
+
+        # Point coords represents the 3D position of the object represented by the bounding box relative to the robot
+        coords_list = calculate_relative_pose(bbox_bounds,
+                                              self.MONO_CAM_IMG_SHAPE,
+                                              (self.BIN_WIDTH, 0),
+                                              self.MONO_CAM_FOCAL_LENGTH,
+                                              self.MONO_CAM_SENSOR_SIZE, 1)
+        bounding_box.coords.x, bounding_box.coords.y, bounding_box.coords.z = coords_list
+
+        # Convert the image with the bounding box to ROS Image message and publish
+        image_msg = self.bridge.cv2_to_imgmsg(frame, "bgr8")
+        return bounding_box, image_msg, dist_point
+
+    def mono_cam_dist_with_obj_width(self, width_pixels, width_meters):
+        return (self.MONO_CAM_FOCAL_LENGTH * width_meters * self.MONO_CAM_IMG_SHAPE[0]) \
+            / (width_pixels * self.MONO_CAM_SENSOR_SIZE[0])
 
 if __name__ == "__main__":
     rospy.init_node('bin_detector', anonymous=True)
