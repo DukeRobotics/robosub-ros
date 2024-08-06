@@ -33,7 +33,7 @@ async def gate_style_task(self: Task) -> Task[None, None, None]:
 
     rospy.loginfo("Started gate style task")
 
-    DEPTH_LEVEL = State().orig_depth - 0.7
+    DEPTH_LEVEL = State().orig_depth - 0.8
 
     async def sleep(secs):
         duration = rospy.Duration(secs)
@@ -108,9 +108,9 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
         await move_tasks.move_x(step=step, parent=self)
 
     def get_step_size(dist, dist_threshold):
-        if dist > 3:
+        if dist > 2:
             return 1
-        elif dist > 2:
+        elif dist > 1.5:
             return 0.5
         else:
             return min(dist - dist_threshold + 0.1, 0.25)
@@ -170,13 +170,13 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
         (0, 0.5, 0),
         (1, 0, 0),
         (1, 0, 0),
-        # (1, 0, 0),
+        (1, 0, 0),
         (0, -1, 0),
         (0, -1, 0),
-        (0, -1, 0),
+        (0, -0.5, 0),
         (-1, 0, 0),
         (-1, 0, 0),
-        # (-1, 0, 0),
+        (-1, 0, 0),
         (0, 1, 0),
         (0, 0.5, 0)
     ]
@@ -190,7 +190,7 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
         (0, 0.5, 0),
         (1, 0, 0),
         (1, 0, 0),
-        # (1, 0, 0),
+        (1, 0, 0),
         (0, -1, 0),
         (0, -0.5, 0)
     ]
@@ -217,7 +217,7 @@ async def initial_submerge(self: Task, submerge_dist: float) -> Task[None, None,
 @task
 async def coin_flip(self: Task) -> Task[None, None, None]:
     rospy.loginfo("Started coin flip")
-    DEPTH_LEVEL = State().orig_depth - 0.7
+    DEPTH_LEVEL = State().orig_depth - 0.8
 
     def get_yaw_correction():
         orig_imu_orientation = copy.deepcopy(State().orig_imu.orientation)
@@ -246,11 +246,23 @@ async def coin_flip(self: Task) -> Task[None, None, None]:
 
     rospy.loginfo("Completed coin flip")
 
+@task
+async def gate_task_dead_reckoning(self: Task) -> Task[None, None, None]:
+    rospy.loginfo("Started gate task")
+    DEPTH_LEVEL = State().orig_depth - 0.8
+    STEPS = 5
+
+    for _ in range(STEPS):
+        await move_tasks.move_x(step=1, parent=self)
+        await move_tasks.correct_depth(desired_depth=DEPTH_LEVEL, parent=self)
+
+    rospy.loginfo("Moved through gate")
+
 
 @task
 async def gate_task(self: Task) -> Task[None, None, None]:
     rospy.loginfo("Started gate task")
-    DEPTH_LEVEL = State().orig_depth - 0.7
+    DEPTH_LEVEL = State().orig_depth - 0.8
 
     async def correct_y(factor=1):
         await cv_tasks.correct_y(prop="gate_red_cw", add_factor=-0.2, mult_factor=factor, parent=self)
@@ -340,7 +352,7 @@ async def yaw_to_cv_object(self: Task, cv_object: str,
 
     if not is_receiving_cv_data():
         power = Twist()
-        power.angular.z = 0.05
+        power.angular.z = -0.05
         Controls().set_axis_control_type(yaw=ControlTypes.DESIRED_POWER)
         Controls().publish_desired_power(power, set_control_types=False)
         rospy.loginfo("Published yaw power")
