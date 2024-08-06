@@ -15,7 +15,12 @@ import correct
 from custom_msgs.msg import CVObject, SonarSweepRequest, SonarSweepResponse
 from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import String
+import rostopic
 
+CAMERA_CONFIG_PATH = 'package://cv/configs/usb_cameras.yaml'
+with open(rr.get_filename(CAMERA_CONFIG_PATH, use_protocol=False)) as f:
+    cameras = yaml.safe_load(f)
+CAMERA = cameras['front']
 
 MM_IN_METER = 1000
 DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH = 'package://cv/models/depthai_models.yaml'
@@ -28,9 +33,10 @@ TASK_PLANNING_REQUESTS_PATH = "controls/desired_feature"
 
 GATE_IMAGE_WIDTH = 0.2452  # Width of gate images in meters
 GATE_IMAGE_HEIGHT = 0.2921  # Height of gate images in meters
-FOCAL_LENGTH = 2.75  # Focal length of camera in mm
-SENSOR_SIZE = (6.2868, 4.712)  # Sensor size in mm
-ISP_IMG_SHAPE = (4056, 3040)  # Size of ISP image
+
+# MONO CAMERA CONSTANTS
+FOCAL_LENGTH = CAMERA['focal_length']  # Focal length of camera in mm
+SENSOR_SIZE = (CAMERA['sensor_size']['width'], CAMERA['sensor_size']['height'])  # Sensor size in mm
 
 
 # Compute detections on live camera feed and publish spatial coordinates for detected objects
@@ -40,6 +46,7 @@ class DepthAISpatialDetector:
         Initializes the ROS node. Loads the yaml file at cv/models/depthai_models.yaml
         """
         rospy.init_node('depthai_spatial_detection', anonymous=True)
+        self.feed_path = rospy.get_param("~feed_path")
         self.running_model = rospy.get_param("~model")
         self.rgb_raw = rospy.get_param("~rgb_raw")
         self.rgb_detections = rospy.get_param("~rgb_detections")
@@ -83,6 +90,34 @@ class DepthAISpatialDetector:
         self.desired_detection_feature = rospy.Subscriber(
             TASK_PLANNING_REQUESTS_PATH, String, self.update_priority)
 
+        TopicType, _, _ = rostopic.get_topic_class(self.feed_path)
+        rospy.Subscriber(self.feed_path, TopicType, self._update_latest_img)
+
+    def _update_latest_img(self, img_msg):
+        """ Send an image to the device for detection
+
+        Args:
+            img_msg (sensor_msgs.msg.CompressedImage): Image to send to the device
+        """
+        model = self.models[self.current_model_name]
+
+        # Format a cv2 image to be sent to the device
+        def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
+            return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
+
+        latest_img = self.image_tools.convert_to_cv2(img_msg)
+
+        # Input queue will be used to send video frames to the device.
+        input_queue = self.device.getInputQueue("nn_input")
+
+        # Send a message to the ColorCamera to capture a still image
+        img = dai.ImgFrame()
+        img.setType(dai.ImgFrame.Type.BGR888p)
+        img.setData(to_planar(latest_img, (416, 416)))
+        img.setWidth(model['input_size'][0])
+        img.setHeight(model['input_size'][1])
+        input_queue.send(img)
+
     def build_pipeline(self, nn_blob_path, sync_nn):
         """
         Get the DepthAI Pipeline for 3D object localization. Inspiration taken from
@@ -111,12 +146,12 @@ class DepthAISpatialDetector:
         pipeline = dai.Pipeline()
 
         # Define sources and outputs
-        cam_rgb = pipeline.create(dai.node.ColorCamera)
+        # cam_rgb = pipeline.create(dai.node.ColorCamera)
         spatial_detection_network = pipeline.create(dai.node.YoloDetectionNetwork)
         # mono_left = pipeline.create(dai.node.MonoCamera)
         # mono_right = pipeline.create(dai.node.MonoCamera)
         # stereo = pipeline.create(dai.node.StereoDepth)
-        image_manip = pipeline.create(dai.node.ImageManip)
+        # image_manip = pipeline.create(dai.node.ImageManip)
 
         xout_nn = pipeline.create(dai.node.XLinkOut)
         xout_nn.setStreamName("detections")
@@ -134,28 +169,28 @@ class DepthAISpatialDetector:
         xin_nn_input.setMaxDataSize(416*416*3)
 
         # Camera properties
-        cam_rgb.setPreviewSize(model['input_size'])
+        # cam_rgb.setPreviewSize(model['input_size'])
         # cam_rgb.setVideoSize(416,416) # breaks
-        cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_12_MP)
-        cam_rgb.setInterleaved(False)
-        cam_rgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
-        cam_rgb.setPreviewKeepAspectRatio(False)
+        # cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_12_MP)
+        # cam_rgb.setInterleaved(False)
+        # cam_rgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
+        # cam_rgb.setPreviewKeepAspectRatio(False)
 
         # rospy.loginfo('isp pool size: ' + str(cam_rgb.getIspNumFramesPool()))
         # rospy.loginfo('preview pool size: ' + str(cam_rgb.getPreviewNumFramesPool()))
         # rospy.loginfo('Raw pool size: ' + str(cam_rgb.getRawNumFramesPool()))
         # rospy.loginfo('Still pool size: ' + str(cam_rgb.getStillNumFramesPool()))
         # rospy.loginfo('video pool size: ' + str(cam_rgb.getVideoNumFramesPool()))
-        cam_rgb.setIspNumFramesPool(3)  # keep this high default
-        cam_rgb.setPreviewNumFramesPool(1)  # need at least 1
-        cam_rgb.setRawNumFramesPool(2)  # breaks if <2
-        cam_rgb.setStillNumFramesPool(0)
-        cam_rgb.setVideoNumFramesPool(1)  # breaks if <1
+        # cam_rgb.setIspNumFramesPool(3)  # keep this high default
+        # cam_rgb.setPreviewNumFramesPool(1)  # need at least 1
+        # cam_rgb.setRawNumFramesPool(2)  # breaks if <2
+        # cam_rgb.setStillNumFramesPool(0)
+        # cam_rgb.setVideoNumFramesPool(1)  # breaks if <1
 
-        image_manip.initialConfig.setResize(model['input_size'])
-        image_manip.initialConfig.setKeepAspectRatio(False)
-        image_manip.setMaxOutputFrameSize(model['input_size'][0] * model['input_size'][1] * 3)
-        image_manip.setNumFramesPool(1)
+        # image_manip.initialConfig.setResize(model['input_size'])
+        # image_manip.initialConfig.setKeepAspectRatio(False)
+        # image_manip.setMaxOutputFrameSize(model['input_size'][0] * model['input_size'][1] * 3)
+        # image_manip.setNumFramesPool(1)
 
         # mono_left.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
         # mono_left.setBoardSocket(dai.CameraBoardSocket.CAM_B)
@@ -188,8 +223,8 @@ class DepthAISpatialDetector:
         xin_nn_input.out.link(spatial_detection_network.input)
 
         # cam_rgb.preview.link(xout_rgb.input)
-        cam_rgb.isp.link(image_manip.inputImage)
-        image_manip.out.link(xout_rgb.input)
+        # cam_rgb.isp.link(image_manip.inputImage)
+        # image_manip.out.link(xout_rgb.input)
 
         spatial_detection_network.out.link(xout_nn.input)
 
@@ -366,7 +401,8 @@ class DepthAISpatialDetector:
             confidence = detection.confidence
 
             # This function does stuff
-            det_coords_robot_mm = calculate_relative_pose(bbox, model['input_size'], model['sizes'][label], FOCAL_LENGTH, SENSOR_SIZE, 2)
+            det_coords_robot_mm = calculate_relative_pose(bbox, model['input_size'], model['sizes'][label],
+                                                          FOCAL_LENGTH, SENSOR_SIZE, 2)
 
             # Find yaw angle offset
             left_end_compute = self.compute_angle_from_x_offset(detection.xmin * self.camera_pixel_width)
@@ -376,27 +412,27 @@ class DepthAISpatialDetector:
 
             # Create a new sonar request msg object if using sonar and the current detected
             # class is the desired class to be returned to task planning
-            if self.using_sonar and label == self.current_priority:
+            # if self.using_sonar and label == self.current_priority:
 
-                # top_end_compute = self.compute_angle_from_y_offset(detection.ymin * self.camera_pixel_height)
-                # bottom_end_compute = self.compute_angle_from_y_offset(detection.ymax * self.camera_pixel_height)
+            #     # top_end_compute = self.compute_angle_from_y_offset(detection.ymin * self.camera_pixel_height)
+            #     # bottom_end_compute = self.compute_angle_from_y_offset(detection.ymax * self.camera_pixel_height)
 
-                # Construct sonar request message
-                sonar_request_msg = SonarSweepRequest()
-                sonar_request_msg.start_angle = int(left_end_compute)
-                sonar_request_msg.end_angle = int(right_end_compute)
-                sonar_request_msg.distance_of_scan = int(SONAR_DEPTH)
+            #     # Construct sonar request message
+            #     sonar_request_msg = SonarSweepRequest()
+            #     sonar_request_msg.start_angle = int(left_end_compute)
+            #     sonar_request_msg.end_angle = int(right_end_compute)
+            #     sonar_request_msg.distance_of_scan = int(SONAR_DEPTH)
 
-                # Make a request to sonar if it is not busy
-                self.sonar_requests_publisher.publish(sonar_request_msg)
+            #     # Make a request to sonar if it is not busy
+            #     self.sonar_requests_publisher.publish(sonar_request_msg)
 
-                # Try calling sonar on detected bounding box
-                # if sonar responds, then override existing robot-frame x info;
-                # else, keep default
-                if not (self.sonar_response == (0, 0)) and self.in_sonar_range:
-                    det_coords_robot_mm = (self.sonar_response[0],  # Override x
-                                           -x_cam_meters,  # Maintain original y
-                                           y_cam_meters)  # Maintain original z
+            #     # Try calling sonar on detected bounding box
+            #     # if sonar responds, then override existing robot-frame x info;
+            #     # else, keep default
+            #     if not (self.sonar_response == (0, 0)) and self.in_sonar_range:
+            #         det_coords_robot_mm = (self.sonar_response[0],  # Override x
+            #                                -x_cam_meters,  # Maintain original y
+            #                                y_cam_meters)  # Maintain original z
 
             self.publish_prediction(
                 bbox, det_coords_robot_mm, yaw_offset, label, confidence,
