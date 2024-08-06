@@ -85,11 +85,17 @@ class BinDetector:
         contours_red, _ = cv2.findContours(mask_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         if contours_blue:
+            contours_blue = sorted(contours_blue, key=cv2.contourArea, reverse=True)
+            contours_blue = contours_blue[:3]
+
             bbox, image, dist = self.process_contours(frame.copy(), contours_blue)
             self.blue_bin_contour_image_pub.publish(image)
             self.blue_bin_bounding_box_pub.publish(bbox)
             self.blue_bin_distance_pub.publish(dist)
         if contours_red:
+            contours_red = sorted(contours_red, key=cv2.contourArea, reverse=True)
+            contours_red = contours_red[:3]
+
             bbox, image, dist = self.process_contours(frame.copy(), contours_red)
             self.red_bin_contour_image_pub.publish(image)
             self.red_bin_bounding_box_pub.publish(bbox)
