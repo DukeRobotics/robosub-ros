@@ -4,7 +4,7 @@ import signal
 class TimeoutException(Exception):
     pass
 
-def timeout_handler():
+def timeout_handler(signum, frame):
     raise TimeoutException
 
 # Set the timeout duration (in seconds)
