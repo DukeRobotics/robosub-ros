@@ -34,7 +34,7 @@ def record(seconds: int, filename: str='data') -> bool:
         s.set_capture_seconds(seconds)
         s.capture_start_and_wait_until_finished()
         # Export as binary
-        s.export_data2(f'{filename}.bin', analog_channels=[0, 1, 2, 3])
+        s.export_data2(f'{filename}.bin', analog_channels=[0, 1, 2, 3], format='binary')
         print(f'Data recorded to {filename}.bin')
         return True
     except Exception as e:
