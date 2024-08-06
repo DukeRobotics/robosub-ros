@@ -18,6 +18,7 @@ class BinDetector:
 
     def __init__(self):
         self.bridge = CvBridge()
+        # TODO change back
         self.image_sub = rospy.Subscriber("/camera/usb/bottom/compressed", CompressedImage, self.image_callback)
 
         self.blue_bin_hsv_filtered_pub = rospy.Publisher("/cv/bottom/bin_blue/hsv_filtered", Image, queue_size=10)
@@ -48,39 +49,33 @@ class BinDetector:
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         # Define range for blue color and create mask
-        lower_blue = np.array([110, 200, 130])
-        upper_blue = np.array([125, 255, 215])
+        lower_blue = np.array([90, 150, 50])
+        upper_blue = np.array([125, 255, 255])
         mask_blue = cv2.inRange(hsv, lower_blue, upper_blue)
 
         blue_hsv_filtered_msg = self.bridge.cv2_to_imgmsg(mask_blue, "mono8")
         self.blue_bin_hsv_filtered_pub.publish(blue_hsv_filtered_msg)
 
         # Define the range for HSV filtering on the red bin
-        lower_red = np.array([0, 150, 150])
-        upper_red = np.array([6, 255, 255])
-        mask_red = cv2.inRange(hsv, lower_red, upper_red)
-
-        red_hsv_filtered_msg = self.bridge.cv2_to_imgmsg(mask_red, "mono8")
-        self.red_bin_hsv_filtered_pub.publish(red_hsv_filtered_msg)
-
-        """
-        # Define the range for HSV filtering on the red buoy
-        lower_red_low = np.array([0, 110, 245])
+        lower_red_low = np.array([0, 110, 150])
         upper_red_low = np.array([12, 255, 255])
-        lower_red_high = np.array([175, 180, 191])
+        lower_red_high = np.array([170, 50, 85])
         upper_red_high = np.array([179, 255, 255])
 
         # Apply HSV filtering on the image
-        mask_red1 = cv2.inRange(hsv_image, lower_red, upper_red)
-        mask_red2 = cv2.inRange(hsv_image, lower_red_upper, upper_red_upper)
+        mask_red1 = cv2.inRange(hsv, lower_red_low, upper_red_low)
+        mask_red2 = cv2.inRange(hsv, lower_red_high, upper_red_high)
         mask_red = cv2.bitwise_or(mask_red1, mask_red2)
-        """
+
+        red_hsv_filtered_msg = self.bridge.cv2_to_imgmsg(mask_red, "mono8")
+        self.red_bin_hsv_filtered_pub.publish(red_hsv_filtered_msg)
 
         # Apply morphological operations to clean up the binary image
         kernel = np.ones((5, 5), np.uint8)
         mask_blue = cv2.morphologyEx(mask_blue, cv2.MORPH_OPEN, kernel)
 
         # Apply morphological operations to clean up the binary image
+        mask_red = cv2.morphologyEx(mask_red, cv2.MORPH_OPEN, kernel)
         mask_red = cv2.morphologyEx(mask_red, cv2.MORPH_OPEN, kernel)
 
         # Find contours in the mask
@@ -89,7 +84,7 @@ class BinDetector:
 
         if contours_blue:
             contours_blue = sorted(contours_blue, key=cv2.contourArea, reverse=True)
-            contours_blue = contours_blue[:3]
+            contours_blue = contours_blue[0]
 
             bbox, image, dist = self.process_contours(frame.copy(), contours_blue)
             if bbox and image and dist:
@@ -99,7 +94,7 @@ class BinDetector:
 
         if contours_red:
             contours_red = sorted(contours_red, key=cv2.contourArea, reverse=True)
-            contours_red = contours_red[:3]
+            contours_red = contours_red[0]
 
             bbox, image, dist = self.process_contours(frame.copy(), contours_red)
             if bbox and image and dist:
