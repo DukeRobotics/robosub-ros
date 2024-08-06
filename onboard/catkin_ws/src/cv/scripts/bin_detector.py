@@ -76,8 +76,8 @@ class BinDetector:
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         # Define range for blue color and create mask
-        lower_blue = np.array([180, 191, 191])
-        upper_blue = np.array([280, 255, 255])
+        lower_blue = np.array([110, 230, 180])
+        upper_blue = np.array([125, 260, 215])
         mask_blue = cv2.inRange(hsv, lower_blue, upper_blue)
 
         lower_red = np.array([0, 191, 191])
@@ -85,7 +85,7 @@ class BinDetector:
         mask_red = cv2.inRange(hsv, lower_red, upper_red)
 
         # Find contours in the mask
-        contours_blue, _ = cv2.findContours(mask_blue, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        contours_blue, _ = cv2.findContours(mask_blue, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
         contours_red, _ = cv2.findContours(mask_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         res = {"blue": None, "red": None, "both": None}
