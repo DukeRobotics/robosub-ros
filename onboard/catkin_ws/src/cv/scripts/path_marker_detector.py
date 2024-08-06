@@ -13,7 +13,7 @@ from custom_msgs.msg import RectInfo
 class PathMarkerDetector:
     def __init__(self):
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("/camera/usb_camera/compressed", CompressedImage, self.image_callback)
+        self.image_sub = rospy.Subscriber("/camera/usb/bottom/compressed", CompressedImage, self.image_callback)
 
         self.path_marker_hsv_filtered_pub = rospy.Publisher("/cv/bottom/path_marker/hsv_filtered", Image, queue_size=10)
         self.path_marker_contour_image_pub = rospy.Publisher("/cv/bottom/path_marker/contour_image", Image, queue_size=10)
