@@ -463,11 +463,11 @@ async def bin_task(self: Task) -> Task[None, None, None]:
         pixel_y = CV().cv_data[target]["pixel_y"]
 
         while pixel_x > pixel_threshold or pixel_y > pixel_threshold:
-            dist_x_pixels = CV().cv_data[target]["distance_x"]
-            dist_y_pixels = CV().cv_data[target]["distance_y"]
+            dist_x_pixels = CV().cv_data[target]["pixel_x"]
+            dist_y_pixels = CV().cv_data[target]["pixel_y"]
 
-            await move_tasks.move_x(step=get_step_size(dist_x_pixels))
-            await move_tasks.move_y(step=get_step_size(dist_y_pixels))
+            await move_tasks.move_x(step=step_size)
+            await move_tasks.move_y(step=step_size)
             rospy.loginfo(f"Moved x: {get_step_size(dist_x_pixels)}")
             rospy.loginfo(f"Moved y: {get_step_size(dist_y_pixels)}")
 
@@ -480,14 +480,14 @@ async def bin_task(self: Task) -> Task[None, None, None]:
 
     # await search_for_bin(target="bin_red")
     await correct_depth(desired_depth=START_DEPTH_LEVEL)
-    await track_bin(target="bin_red", desired_depth=MID_DEPTH_LEVEL)
+    await track_bin(target="bin_red", desired_depth=MID_DEPTH_LEVEL, step_size=0.5, pixel_threshold=50)
     # await search_for_bin(target="bin_red")
 
     await correct_depth(desired_depth=MID_DEPTH_LEVEL)
-    await track_bin(target="bin_red")
+    await track_bin(target="bin_red", step_size=0.3, pixel_threshold=50)
 
     await correct_depth(desired_depth=FINAL_DEPTH_LEVEL)
-    await track_bin(target="bin_red")
+    await track_bin(target="bin_red", step_size=0.1, pixel_threshold=50)
     # await track_and_descend(target="bin_red", desired_depth=FINAL_DEPTH_LEVEL)
 
     await sleep(1)

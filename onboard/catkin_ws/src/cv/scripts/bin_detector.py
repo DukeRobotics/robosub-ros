@@ -48,17 +48,34 @@ class BinDetector:
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         # Define range for blue color and create mask
-        lower_blue = np.array([110, 230, 180])
-        upper_blue = np.array([125, 260, 215])
+        lower_blue = np.array([110, 200, 130])
+        upper_blue = np.array([125, 255, 215])
         mask_blue = cv2.inRange(hsv, lower_blue, upper_blue)
 
         blue_hsv_filtered_msg = self.bridge.cv2_to_imgmsg(mask_blue, "mono8")
         self.blue_bin_hsv_filtered_pub.publish(blue_hsv_filtered_msg)
 
         # Define the range for HSV filtering on the red bin
-        lower_red = np.array([0, 191, 191])
-        upper_red = np.array([4, 255, 255])
+        lower_red = np.array([0, 191, 150])
+        upper_red = np.array([6, 255, 255])
         mask_red = cv2.inRange(hsv, lower_red, upper_red)
+
+        """
+        # Define the range for HSV filtering on the red buoy
+        lower_red_low = np.array([0, 110, 245])
+        upper_red_low = np.array([12, 255, 255])
+        lower_red_high = np.array([175, 180, 191])
+        upper_red_high = np.array([179, 255, 255])
+
+        # Apply HSV filtering on the image
+        mask_red1 = cv2.inRange(hsv_image, lower_red, upper_red)
+        mask_red2 = cv2.inRange(hsv_image, lower_red_upper, upper_red_upper)
+        mask_red = cv2.bitwise_or(mask_red1, mask_red2)
+        """
+
+        # Apply morphological operations to clean up the binary image
+        kernel = np.ones((5, 5), np.uint8)
+        mask_blue = cv2.morphologyEx(mask_blue, cv2.MORPH_OPEN, kernel)
 
         red_hsv_filtered_msg = self.bridge.cv2_to_imgmsg(mask_red, "mono8")
         self.red_bin_hsv_filtered_pub.publish(red_hsv_filtered_msg)
@@ -100,15 +117,22 @@ class BinDetector:
 
         x, y, w, h = (rect_center[0], rect_center[1], rect[1][0], rect[1][1])
 
+        # edge cases integer rounding idk something
+        if (w==0):
+            return
+
+        x=x+w/2
+        y=y+w/2
+
         bounding_box = CVObject()
 
         bounding_box.header.stamp.secs = rospy.Time.now().secs
         bounding_box.header.stamp.nsecs = rospy.Time.now().nsecs
 
-        bounding_box.xmin = x - w/2
-        bounding_box.ymin = y - w/2
-        bounding_box.xmax = x + w/2
-        bounding_box.ymax = y + h/2
+        bounding_box.xmin = x
+        bounding_box.ymin = y
+        bounding_box.xmax = x + w
+        bounding_box.ymax = y + h
 
         bounding_box.yaw = compute_yaw(x, x + w, self.MONO_CAM_SENSOR_SIZE[0])  # width of camera in in mm
 
@@ -118,7 +142,7 @@ class BinDetector:
         meters_per_pixel = self.BIN_WIDTH / w
         # Compute distance between center of bounding box and center of image
         # Here, image x is robot's y, and image y is robot's z
-        dist_x, dist_y = compute_center_distance(x+w/2,y+h/2, *self.MONO_CAM_IMG_SHAPE)
+        dist_x, dist_y = compute_center_distance(x, y, *self.MONO_CAM_IMG_SHAPE)
 
         # Compute distance between center of bounding box and center of image in meters
         dist_x_meters = dist_x * meters_per_pixel
