@@ -1,5 +1,6 @@
 import saleae
 import signal
+import datetime
 
 class TimeoutException(Exception):
     pass
@@ -43,8 +44,8 @@ def record(seconds: int, filename: str='data') -> bool:
     
 if __name__ == '__main__':
     print('Recording data for 5 seconds')
-    record(5)
+    record(5, filename=f'data_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}')
     print('Recording complete')
     print('Recording data for 10 seconds')
-    record(10)
+    record(10, filename=f'data_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}')
     print('Recording complete')
