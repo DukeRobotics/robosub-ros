@@ -59,6 +59,10 @@ RUN apt-get update && \
     libeigen3-dev \
     libudev-dev
 
+# Install Rust
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
+    . "$HOME/.cargo/env"
+
 # Get required python packages
 RUN pip3 install --no-cache-dir \
     numpy==1.24.4 scipy pymba python-dateutil \
@@ -85,6 +89,11 @@ RUN cd torch_deps && \
 
 # Install CV Dependencies
 RUN pip3 install --no-cache-dir detecto depthai
+
+# Install Acoustics Dependencies
+RUN pip3 install virtualenv && \
+
+
 
 ### ROS Plugins and Dependencies ###
 
@@ -163,3 +172,4 @@ RUN apt-get clean && \
 
 # Set working directory to codebase
 WORKDIR /root/dev/robosub-ros
+

@@ -52,3 +52,14 @@ cd ../..
 
 echo "If you did not source this script, please run"
 echo "source ${COMPUTER_TYPE}/catkin_ws/devel/setup.bash"
+
+cd /root/dev/robosub-ros/onboard/catkin_ws/src/acoustics/rust && \
+virtualenv .venv && \
+. .venv/bin/activate && \
+pip install maturin && \
+maturin develop --release \
+cd .venv/lib/python3.8/site-packages && \
+mv ./spike_detection /usr/local/bin/python3.8/site-packages/dist-packages/spike_detection && \
+mv ./spike_detection.dist-info /usr/local/bin/python3.8/site-packages/dist-packages/spike_detection.dist-info
+    
+
