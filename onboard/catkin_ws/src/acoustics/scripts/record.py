@@ -44,3 +44,7 @@ def record(seconds: int, filename: str='data') -> bool:
 if __name__ == '__main__':
     print('Recording data for 5 seconds')
     record(5)
+    print('Recording complete')
+    print('Recording data for 10 seconds')
+    record(10)
+    print('Recording complete')
