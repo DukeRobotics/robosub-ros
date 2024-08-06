@@ -1,7 +1,7 @@
 front:
-  video_channel: "0"
+  channel: "4"
   topic: "front"
 
 bottom:
-  video_channel: "1"
+  channel: "0"
   topic: "bottom"

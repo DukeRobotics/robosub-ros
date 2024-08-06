@@ -8,7 +8,7 @@ from vision_msgs.msg import Detection2DArray
 from vision_msgs.msg import Detection2D
 from vision_msgs.msg import ObjectHypothesisWithPose
 from utils.other_utils import singleton
-from utils import geometry_utils
+from utils.geometry_utils import compute_bbox_dimensions, compute_center_distance
 
 
 @singleton
@@ -145,7 +145,7 @@ class CV:
         self.cv_data["bin_red_bounding_box"] = bounding_box
 
         # Compute width of bounding box
-        width, height = geometry_utils.compute_bbox_dimensions(bounding_box)
+        width, height = compute_bbox_dimensions(bounding_box)
 
         self.cv_data["bin_red_dimensions"] = (width, height)
 
@@ -156,7 +156,7 @@ class CV:
 
         # Compute distance between center of bounding box and center of image
         # Here, image x is robot's y, and image y is robot's z
-        dist_x, dist_y = geometry_utils.compute_center_distance(bounding_box, *self.MONO_CAM_IMG_SHAPE)
+        dist_x, dist_y = compute_center_distance(bounding_box, *self.MONO_CAM_IMG_SHAPE)
 
         # Compute distance between center of bounding box and center of image in meters
         dist_x_meters = dist_x * meters_per_pixel
@@ -183,7 +183,7 @@ class CV:
         self.cv_data["bin_blue_bounding_box"] = bounding_box
 
         # Compute width of bounding box
-        width, height = geometry_utils.compute_bbox_dimensions(bounding_box)
+        width, height = compute_bbox_dimensions(bounding_box)
 
         self.cv_data["bin_blue_dimensions"] = (width, height)
 
@@ -194,7 +194,7 @@ class CV:
 
         # Compute distance between center of bounding box and center of image
         # Here, image x is robot's y, and image y is robot's z
-        dist_x, dist_y = geometry_utils.compute_center_distance(bounding_box, *self.MONO_CAM_IMG_SHAPE)
+        dist_x, dist_y = compute_center_distance(bounding_box, *self.MONO_CAM_IMG_SHAPE)
 
         # Compute distance between center of bounding box and center of image in meters
         dist_x_meters = dist_x * meters_per_pixel
@@ -221,7 +221,7 @@ class CV:
         self.cv_data["bin_both_bounding_box"] = bounding_box
 
         # Compute width of bounding box
-        width, height = geometry_utils.compute_bbox_dimensions(bounding_box)
+        width, height = compute_bbox_dimensions(bounding_box)
 
         self.cv_data["bin_both_dimensions"] = (width, height)
 
@@ -232,7 +232,7 @@ class CV:
 
         # Compute distance between center of bounding box and center of image
         # Here, image x is robot's y, and image y is robot's z
-        dist_x, dist_y = geometry_utils.compute_center_distance(bounding_box, *self.MONO_CAM_IMG_SHAPE)
+        dist_x, dist_y = compute_center_distance(bounding_box, *self.MONO_CAM_IMG_SHAPE)
 
         # Compute distance between center of bounding box and center of image in meters
         dist_x_meters = dist_x * meters_per_pixel

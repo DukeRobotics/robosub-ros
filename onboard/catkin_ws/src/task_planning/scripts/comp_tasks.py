@@ -337,8 +337,8 @@ async def bin_task(self: Task) -> Task[None, None, None]:
 
     rospy.loginfo("Started bin task")
     START_DEPTH_LEVEL = State().orig_depth - 0.7
-    MID_DEPTH_LEVEL = State().orig_depth - 1.2
-    FINAL_DEPTH_LEVEL = State().orig_depth - 1.7
+    MID_DEPTH_LEVEL = State().orig_depth - 1.0
+    FINAL_DEPTH_LEVEL = State().orig_depth - 1.3
 
     DropMarker = rospy.ServiceProxy('servo_control', SetBool)
 
