@@ -67,9 +67,9 @@ class CV:
         rospy.Subscriber("/cv/bottom/bin_red/bounding_box", CVObject, self._on_receive_cv_data, "bin_red")
         rospy.Subscriber("/cv/bottom/bin_center/bounding_box", CVObject, self._on_receive_cv_data, "bin_center")
 
-        rospy.Subscriber("/cv/bottom/bin_blue/distance", CVObject, self._on_receive_distance_data, "bin_blue")
-        rospy.Subscriber("/cv/bottom/bin_red/distance", CVObject, self._on_receive_distance_data, "bin_red")
-        rospy.Subscriber("/cv/bottom/bin_center/distance", CVObject, self._on_receive_distance_data, "bin_center")
+        rospy.Subscriber("/cv/bottom/bin_blue/distance", Point, self._on_receive_distance_data, "bin_blue")
+        rospy.Subscriber("/cv/bottom/bin_red/distance", Point, self._on_receive_distance_data, "bin_red")
+        rospy.Subscriber("/cv/bottom/bin_center/distance", Point, self._on_receive_distance_data, "bin_center")
 
     def _on_receive_cv_data(self, cv_data: CVObject, object_type: str) -> None:
         """
@@ -91,7 +91,7 @@ class CV:
         """
 
         # pictured below is someone's future problem of deciding how cv_data should be structured
-        self.cv_data[object_type]["distance"] = distance_data
+        self.cv_data[f"{object_type}_distance"] = distance_data
 
     # TODO add useful methods for getting data
 
