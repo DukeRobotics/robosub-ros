@@ -53,21 +53,19 @@ class BinDetector:
 
             # Process the frame to find the angle of the blue rectangle and draw the rectangle
             boxes = self.process_frame(frame)
+            rospy.loginfo(boxes)
             if boxes["red"]:
                 contour_image_msg = self.bridge.cv2_to_imgmsg(boxes["red"][3], "bgr8")
                 self.red_hsv.publish(contour_image_msg)
                 self.red_bbox.publish(boxes["red"][2])
-            
             if boxes["blue"]:
                 contour_image_msg = self.bridge.cv2_to_imgmsg(boxes["blue"][3], "bgr8")
                 self.blue_hsv.publish(contour_image_msg)
                 self.blue_bbox.publish(boxes["blue"][2])
-            
             if boxes["both"]:
                 contour_image_msg = self.bridge.cv2_to_imgmsg(boxes["blue"][3], "bgr8")
                 self.both_hsv.publish(contour_image_msg)
                 self.both_bbox.publish(boxes["both"][2])
-            
         except CvBridgeError as e:
             rospy.logerr(f"Could not convert image: {e}")
 
@@ -91,11 +89,11 @@ class BinDetector:
         res = {"blue": None, "red": None, "both": None}
 
         if contours_blue:
-            res["blue"] = self.get_rect_info(frame.copy(), contours_blue)        
+            res["blue"] = self.get_rect_info(frame.copy(), contours_blue)
         if contours_red:
             res["red"] = self.get_rect_info(frame.copy(), contours_red)
         if contours_blue and contours_red:
-            res["both"] = self.get_rect_info(frame, (contours_blue+contours_red))        
+            res["both"] = self.get_rect_info(frame.copy(), (contours_blue+contours_red))
         return res
 
     def get_rect_info(self,frame, contours):
@@ -152,7 +150,6 @@ class BinDetector:
         rect_info.width = rect[1][0]
         rect_info.height = rect[1][1]
         rect_info.angle = angle
-        
         return angle, distance, rect_info, frame
 
 if __name__ == "__main__":

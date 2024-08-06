@@ -50,5 +50,5 @@ catkin build
 source devel/setup.bash
 cd ../..
 
-echo "If you did not source this scipt, please run"
+echo "If you did not source this script, please run"
 echo "source ${COMPUTER_TYPE}/catkin_ws/devel/setup.bash"

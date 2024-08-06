@@ -1,6 +1,6 @@
 import { AllDatatypeMapsType, allDatatypeMaps } from "@duke-robotics/defs/datatype_maps";
 import useTheme from "@duke-robotics/theme";
-import { PanelExtensionContext } from "@foxglove/studio";
+import { PanelExtensionContext } from "@foxglove/extension";
 import { Autocomplete, Box, Button, Grid, InputAdornment, TextField, ThemeProvider } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import { useEffect, useState } from "react";

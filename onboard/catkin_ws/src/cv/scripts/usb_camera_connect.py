@@ -12,8 +12,6 @@ CAMERA_CONFIG_PATH = 'package://cv/configs/usb_cameras.yaml'
 
 def connect_all():
 
-    rospy.init_node("usb_camera_connect_all", anonymous=True)
-
     with open(rr.get_filename(CAMERA_CONFIG_PATH, use_protocol=False)) as f:
         cameras = yaml.safe_load(f)
 
@@ -28,11 +26,14 @@ def connect_all():
         topic = camera["topic"]
 
         cli_args = ["cv", "usb_camera.launch", f"topic:={topic}", f"channel:={channel}", "framerate:=-1"]
-        roslaunch_file = roslaunch.rlutil.resolve_launch_arguments(cli_args)
+        roslaunch_file = roslaunch.rlutil.resolve_launch_arguments(cli_args)[0]
         roslaunch_files.append((roslaunch_file, cli_args[2:]))
 
     parent = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_files)
     parent.start()
+
+    while not rospy.is_shutdown():
+        rospy.spin()
 
 
 if __name__ == "__main__":

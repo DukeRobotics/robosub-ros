@@ -1,4 +1,4 @@
-import { ExtensionContext } from "@foxglove/studio";
+import { ExtensionContext } from "@foxglove/extension";
 
 import { initSubscribeTopicPanel as subscribeTopicPanel } from "./SubscribeTopicPanel";
 

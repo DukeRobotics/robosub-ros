@@ -87,6 +87,19 @@ def check_npm():
         raise SystemExit("npm not found. Install npm and try again.")
 
 
+def check_foxglove_cli():
+    """
+    Check if the Foxglove CLI is installed.
+
+    Raises:
+        SystemExit: If the Foxglove CLI is not found.
+    """
+    try:
+        run_at_path("foxglove version", FOXGLOVE_PATH)
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        raise SystemExit("The Foxglove CLI was not found. Install the Foxglove CLI and try again.")
+
+
 def build_deps(skip_ci: bool = False, extension_paths: Sequence[pathlib.Path] = EXTENSION_PATHS):
     """
     Build all necessary dependencies for Foxglove.
@@ -145,6 +158,34 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
         successes += 1
 
     print(f"Successfully installed {successes} extension(s)\n")
+
+
+def publish_extensions(extension_paths: Sequence[pathlib.Path]):
+    """
+    Publish custom Foxglove extensions.
+
+    Args:
+        extension_paths: Sequence of extension paths to publish.
+    """
+    successes = 0
+    for extension in extension_paths:
+        if not (extension / "package.json").is_file():
+            print(f"{extension.name}: skipped (no package.json)")
+            continue
+
+        run_at_path("npm run package", extension)
+
+        package_name = f'{ORGANIZATION}.{extension.name}-0.0.0.foxe'
+        try:
+            run_at_path(f"foxglove extensions publish {package_name}", extension)
+        finally:
+            run_at_path(f"rm {package_name}", extension)
+
+        print(f"{extension.name}: published")
+
+        successes += 1
+
+    print(f"Successfully published {successes} extension(s)\n")
 
 
 def install_layouts(layouts_path: pathlib.Path = LAYOUTS_PATH, install_path: pathlib.Path = LAYOUT_INSTALL_PATH):
@@ -343,6 +384,19 @@ if __name__ == "__main__":
         help='Clean up the foxglove monorepo.'
     )
 
+    publish_parser = subparsers.add_parser(
+        'publish',
+        aliases=['p'],
+        help='Publish Foxglove extensions. By default, all extensions are published.'
+    )
+    publish_parser.add_argument(
+        '-e', '--extensions',
+        action='extend',
+        nargs='*',
+        type=extension_package,
+        help="Publish extension(s) by name. If no name(s) are given, all extensions are published."
+    )
+
     args = parser.parse_args()
 
     if args.action in ("install", "i"):
@@ -360,6 +414,15 @@ if __name__ == "__main__":
             install_extensions(args.extensions)
         if args.layouts:
             install_layouts()
+
+    elif args.action in ("publish", "p"):
+        # Without flags, publish all extensions
+        if args.extensions is None or args.extensions == []:
+            args.extensions = EXTENSION_PATHS
+
+        check_npm()
+        check_foxglove_cli()
+        publish_extensions(args.extensions)
 
     elif args.action in ("uninstall", "u"):
         # Without flags, uninstall everything

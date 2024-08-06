@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
 import rospy
+import cv2
 from brping import Ping360
 import numpy as np
+import os
+from datetime import datetime
 import sonar_utils
 import serial.tools.list_ports as list_ports
 from geometry_msgs.msg import Pose
@@ -25,6 +28,7 @@ class Sonar:
 
     FILTER_INDEX = 100  # First x values are filtered out
     DEFAULT_RANGE = 5  # m
+    prev_range = DEFAULT_RANGE
     DEFAULT_NUMER_OF_SAMPLES = 1200  # 1200 is max resolution
 
     SONAR_FTDI_OOGWAY = "DK0C1WF7"
@@ -148,6 +152,7 @@ class Sonar:
         Returns:
             Nothing
         """
+        self.prev_range = range
         self.sample_period = self.range_to_period(range)
         self.ping360.set_sample_period(self.sample_period)
 
@@ -269,9 +274,19 @@ class Sonar:
         """
         sonar_sweep_array = self.get_sweep(start_angle, end_angle)
 
+        # save the array
+        current_time = datetime.now().strftime("%m%d_%H%M%S")
+        directory = '/root/dev/robosub-ros/sonar_scans/'
+        file_path = os.path.join(directory, f'scan_{current_time}_{start_angle}_{end_angle}.npy')
+        np.save(file_path, sonar_sweep_array)
+
         sonar_index, normal_angle, plot = find_center_point_and_angle(
             sonar_sweep_array, self.VALUE_THRESHOLD, self.DBSCAN_EPS,
             self.DBSCAN_MIN_SAMPLES, True)
+
+        if plot is not None:
+            file_path = os.path.join(directory, f'scan_{current_time}_{start_angle}_{end_angle}.jpeg')
+            cv2.imwrite(file_path, plot)
 
         if sonar_index is None:
             return (None, sonar_sweep_array, None)
@@ -351,7 +366,7 @@ class Sonar:
             rospy.loginfo("Bad sonar request")
             return
 
-        if new_range != self.DEFAULT_RANGE:
+        if new_range != self.prev_range:
             self.set_new_range(new_range)
 
         object_pose, plot, normal_angle = self.get_xy_of_object_in_sweep(left_gradians, right_gradians)

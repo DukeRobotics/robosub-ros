@@ -33,6 +33,7 @@ async def gate_style_task(self: Task) -> Task[None, None, None]:
     rospy.loginfo("Started gate style task")
 
     DEPTH_LEVEL = State().orig_depth - 0.7
+    Y_LEVEL = State().state.pose.pose.position.y
 
     async def sleep(secs):
         duration = rospy.Duration(secs)
@@ -42,11 +43,11 @@ async def gate_style_task(self: Task) -> Task[None, None, None]:
 
     async def roll():
         power = Twist()
-        power.angular.x = 1
+        power.angular.x = 0.7
         Controls().publish_desired_power(power)
         rospy.loginfo("Published roll power")
 
-        await sleep(2.25)
+        await sleep(7)
 
         rospy.loginfo("Completed roll")
 
@@ -58,21 +59,8 @@ async def gate_style_task(self: Task) -> Task[None, None, None]:
         rospy.loginfo("Completed zero")
 
     await roll()
-    State().reset_pose()
-    await roll()
-    State().reset_pose()
-    await sleep(3)
-    await move_tasks.depth_correction(DEPTH_LEVEL, parent=self)
-    await sleep(3)
 
-    imu_orientation = State().imu.orientation
-    euler_angles = quat2euler([imu_orientation.w, imu_orientation.x, imu_orientation.y, imu_orientation.z])
-    roll_correction = -euler_angles[0]
-    pitch_correction = -euler_angles[1]
-
-    rospy.loginfo(f"Roll, pitch correction: {roll_correction, pitch_correction}")
-    await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, roll_correction, pitch_correction, 0),
-                                        parent=self)
+    # reset pose
     State().reset_pose()
     rospy.loginfo("Reset orientation")
 
@@ -83,7 +71,7 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
     Circumnavigate the buoy. Requires robot to have submerged 0.5 meters.
     """
 
-    DEPTH_LEVEL = State().orig_depth - 0.7
+    DEPTH_LEVEL = State().orig_depth - 0.5
 
     async def correct_y():
         # y = -(CV().cv_data["buoy_properties"]["y"])
@@ -151,23 +139,31 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
     self.correct_yaw = correct_yaw
 
     async def move_with_directions(directions):
-        move_tasks.move_with_directions(directions, correct_yaw=True, correct_depth=True, parent=self)
+        # for direction in directions:
+        #     await move_tasks.move_to_pose_local(
+        #         geometry_utils.create_pose(direction[0], direction[1], direction[2], 0, 0, 0),
+        #         parent=self)
+        #     rospy.loginfo(f"Moved to {direction}")
+        #     await correct_yaw()
+        #     await correct_depth()
+
+        await move_tasks.move_with_directions(directions, correct_yaw=True, correct_depth=True, parent=self)
 
     # Circumnavigate buoy
     directions = [
         (0, 1, 0),
-        (0, 0.5, 0),
+        # (0, 0.5, 0),
         (1, 0, 0),
         (1, 0, 0),
-        (1, 0, 0),
+        # (1, 0, 0),
         (0, -1, 0),
         (0, -1, 0),
-        (0, -1, 0),
+        # (0, -1, 0),
         (-1, 0, 0),
         (-1, 0, 0),
-        (-1, 0, 0),
+        # (-1, 0, 0),
         (0, 1, 0),
-        (0, 0.5, 0)
+        # (0, 0.5, 0)
     ]
     await move_with_directions(directions)
 
@@ -176,12 +172,12 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
     # Link up with path marker
     directions = [
         (0, 1, 0),
-        (0, 0.5, 0),
+        # (0, 0.5, 0),
         (1, 0, 0),
         (1, 0, 0),
-        (1, 0, 0),
+        # (1, 0, 0),
         (0, -1, 0),
-        (0, -0.5, 0)
+        # (0, -0.5, 0)
     ]
     await move_with_directions(directions)
 
@@ -242,10 +238,10 @@ async def gate_task(self: Task) -> Task[None, None, None]:
     DEPTH_LEVEL = State().orig_depth - 0.7
 
     async def correct_y(factor=1):
-        await cv_tasks.correct_y(prop="gate_red_cw_properties", add_factor=-0.2, mult_factor=factor, parent=self)
+        await cv_tasks.correct_y(prop="gate_red_cw", add_factor=-0.2, mult_factor=factor, parent=self)
 
     async def correct_z():
-        await cv_tasks.correct_z(prop="gate_red_cw_propeties", parent=self)
+        await cv_tasks.correct_z(prop="gate_red_cw", parent=self)
 
     async def correct_depth():
         await move_tasks.correct_depth(desired_depth=DEPTH_LEVEL, parent=self)
@@ -270,7 +266,7 @@ async def gate_task(self: Task) -> Task[None, None, None]:
     await sleep(2)
     rospy.loginfo("End sleep")
 
-    gate_dist = CV().cv_data["gate_red_cw_properties"]["x"]
+    gate_dist = CV().cv_data["gate_red_cw"].coords.x
     await correct_y(factor=0.5)
     await correct_depth()
     num_corrections = 1
@@ -279,7 +275,7 @@ async def gate_task(self: Task) -> Task[None, None, None]:
         await correct_y(factor=(0.5 if num_corrections < 2 else 1))
         await correct_depth()
         await Yield()
-        gate_dist = CV().cv_data["gate_red_cw_properties"]["x"]
+        gate_dist = CV().cv_data["gate_red_cw"].coords.x
         rospy.loginfo(f"Gate dist: {gate_dist}")
         num_corrections += 1
 
@@ -296,7 +292,8 @@ async def gate_task(self: Task) -> Task[None, None, None]:
 
 
 @task
-async def bin_task(self: Task) -> Task[None, None, None]:
+async def yaw_to_cv_object(self: Task, cv_object: str,
+                           yaw_threshold=5, latency_threshold=10) -> Task[None, None, None]:
     """
     Detects and drops markers into the red bin. Requires robot to have submerged 0.7 meters.
     """
@@ -305,6 +302,88 @@ async def bin_task(self: Task) -> Task[None, None, None]:
     START_DEPTH_LEVEL = State().orig_depth - 0.7
     MID_DEPTH_LEVEL = State().orig_depth - 1.2
     FINAL_DEPTH_LEVEL = State().orig_depth - 1.7
+
+    DropMarker = rospy.ServiceProxy('servo_control', SetBool)
+
+    async def correct_x(target):
+        await cv_tasks.correct_x(prop=target, parent=self)
+
+    async def correct_y(target):
+        await cv_tasks.correct_y(prop=target, parent=self)
+
+    async def correct_z():
+        pass
+
+    async def correct_depth(desired_depth):
+        await move_tasks.correct_depth(desired_depth=desired_depth, parent=self)
+    self.correct_depth = correct_depth
+
+    async def move_x(step=1):
+        await move_tasks.move_x(step=step, parent=self)
+
+    async def move_y(step=1):
+        await move_tasks.move_y(step=step, parent=self)
+
+    def get_step_size(dist):
+        direction = 1 if dist > 0 else -1
+        return direction * min(0.5, abs(dist))
+
+    async def sleep(secs):
+        duration = rospy.Duration(secs)
+        start_time = rospy.Time.now()
+        while start_time + duration > rospy.Time.now():
+            await Yield()
+
+    async def search_for_bin(target):
+        red_in_frame = CV().cv_data["bin_red"]["fully_in_frame"]
+        blue_in_frame = CV().cv_data["bin_blue"]["fully_in_frame"]
+        while not red_in_frame or not blue_in_frame:
+            dist_x_pixels = CV().cv_data[target]["distance_x"]
+            dist_y_pixels = CV().cv_data[target]["distance_y"]
+
+            await move_tasks.move_x(step=get_step_size(dist_x_pixels))
+            await move_tasks.move_y(step=get_step_size(dist_y_pixels))
+            rospy.loginfo(f"Moved x: {get_step_size(dist_x_pixels)}")
+            rospy.loginfo(f"Moved y: {get_step_size(dist_y_pixels)}")
+
+            await Yield()
+
+            red_in_frame = CV().cv_data["bin_red"]["fully_in_frame"]
+            blue_in_frame = CV().cv_data["bin_blue"]["fully_in_frame"]
+
+        rospy.loginfo("Found both bins fully in frame")
+
+    async def track_and_descend(target, desired_depth, threshold=0.1):
+        dist_x = CV().cv_data[target]["x"]
+        dist_y = CV().cv_data[target]["y"]
+        await correct_x(factor=0.5)
+        await correct_y(factor=0.5)
+        await correct_depth()
+
+        while dist_x >= threshold or dist_y >= threshold:
+            # TODO: balance the robot
+            await correct_x(factor=0.5)
+            await correct_y(factor=0.5)
+            await correct_depth()
+            await Yield()
+
+            dist_x = CV().cv_data[target]["x"]
+            dist_y = CV().cv_data[target]["y"]
+            rospy.loginfo(f"{target} properties: {CV().cv_data[target]}")
+
+    await correct_depth()
+
+
+@task
+async def bin_task(self: Task) -> Task[None, None, None]:
+    """
+    Detects and drops markers into the red bin. Requires robot to have submerged 0.7 meters.
+    """
+
+    rospy.loginfo("Started bin task")
+    START_DEPTH_LEVEL = State().orig_depth - 0.7
+    MID_DEPTH_LEVEL = State().orig_depth - 1.0
+    FINAL_DEPTH_LEVEL = State().orig_depth - 1.3
 
     DropMarker = rospy.ServiceProxy('servo_control', SetBool)
 
