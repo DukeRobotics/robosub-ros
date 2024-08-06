@@ -6,7 +6,7 @@ import {
   CustomMsgsControlTypesConst,
 } from "@duke-robotics/defs/types";
 import useTheme from "@duke-robotics/theme";
-import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
+import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/extension";
 import { Button, Box, Alert, ThemeProvider } from "@mui/material";
 import { JsonViewer } from "@textea/json-viewer";
 import { useCallback, useEffect, useState } from "react";

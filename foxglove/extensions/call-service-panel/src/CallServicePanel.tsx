@@ -1,5 +1,5 @@
 import useTheme from "@duke-robotics/theme";
-import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
+import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/extension";
 import { Box, Button, InputAdornment, TextField, ThemeProvider, Typography } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import { JsonViewer } from "@textea/json-viewer";
