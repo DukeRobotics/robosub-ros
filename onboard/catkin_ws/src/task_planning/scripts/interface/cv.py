@@ -2,14 +2,11 @@ import rospy
 import yaml
 import resource_retriever as rr
 from custom_msgs.msg import CVObject, RectInfo
-from geometry_msgs.msg import Pose, Polygon
+from geometry_msgs.msg import Pose
 from std_msgs.msg import Float64
 from vision_msgs.msg import Detection2DArray
-from vision_msgs.msg import Detection2D
-from vision_msgs.msg import ObjectHypothesisWithPose
 from utils.other_utils import singleton
-from utils.geometry_utils import compute_bbox_dimensions, compute_center_distance
-
+from utils.geometry_utils import compute_center_distance
 
 @singleton
 class CV:
@@ -59,16 +56,16 @@ class CV:
         self.lane_marker_angle_publisher = rospy.Publisher("/task_planning/cv/bottom/lane_marker_angle",
                                                            Float64, queue_size=1)
 
-        rospy.Subscriber("/cv/front_usb/bounding_box", CVObject, self._on_receive_cv_data, "buoy")
+        rospy.Subscriber("/cv/front_usb/buoy/bounding_box", CVObject, self._on_receive_cv_data, "buoy")
 
         # rospy.Subscriber('/yolov7/detection', Detection2DArray, self._on_receive_gate_detection)
 
         rospy.Subscriber('/cv/front/gate_red_cw', CVObject, self._on_receive_cv_data, "gate_red_cw")
         rospy.Subscriber('/cv/front/gate_whole', CVObject, self._on_receive_cv_data, "gate_whole")
 
-        rospy.Subscriber("/cv/front_usb/blue_bin/bounding_box", RectInfo, self._on_receive_bin_blue_bounding_box)
-        rospy.Subscriber("/cv/front_usb/red_bin/bounding_box", RectInfo, self._on_receive_bin_red_bounding_box)
-        rospy.Subscriber("/cv/front_usb/both_bin/bounding_box", RectInfo, self._on_receive_bin_both_bounding_box)
+        # rospy.Subscriber("/cv/front_usb/blue_bin/bounding_box", RectInfo, self._on_receive_bin_blue_bounding_box)
+        # rospy.Subscriber("/cv/front_usb/red_bin/bounding_box", RectInfo, self._on_receive_bin_red_bounding_box)
+        # rospy.Subscriber("/cv/front_usb/both_bin/bounding_box", RectInfo, self._on_receive_bin_both_bounding_box)
 
     def _on_receive_cv_data(self, cv_data: CVObject, object_type: str) -> None:
         """

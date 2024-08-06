@@ -5,11 +5,11 @@ import time
 
 from numpy import sign
 
-from typing import Literal
 from transforms3d.euler import quat2euler
 
 from std_srvs.srv import SetBool
 from geometry_msgs.msg import Twist
+from custom_msgs.msg import ControlTypes
 
 from task import Task, task
 import move_tasks
@@ -20,6 +20,7 @@ from task import Yield
 from interface.state import State
 from interface.cv import CV
 from interface.controls import Controls
+
 
 RECT_HEIGHT_METERS = 0.3048
 
@@ -70,6 +71,8 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
     """
     Circumnavigate the buoy. Requires robot to have submerged 0.5 meters.
     """
+
+    rospy.loginfo('starting buoy_task')
 
     DEPTH_LEVEL = State().orig_depth - 0.5
 
@@ -293,38 +296,69 @@ async def gate_task(self: Task) -> Task[None, None, None]:
 
 @task
 async def yaw_to_cv_object(self: Task, cv_object: str,
-                           yaw_threshold=5, latency_threshold=10) -> Task[None, None, None]:
+                           yaw_threshold=math.radians(30), latency_threshold=10, depth_level=0.5) -> Task[None, None, None]:
     """
     Corrects the yaw relative to the CV object
     """
-    DEPTH_LEVEL = State().orig_depth
-    MAXIMUM_YAW = 15
+    DEPTH_LEVEL = State().orig_depth - depth_level
+    MAXIMUM_YAW = math.radians(20)
+
+    rospy.loginfo("Starting yaw_to_cv_object")
+
+    async def sleep(secs):
+        duration = rospy.Duration(secs)
+        start_time = rospy.Time.now()
+        while start_time + duration > rospy.Time.now():
+            await Yield()
 
     async def correct_depth():
         # await move_tasks.depth_correction(DEPTH_LEVEL, parent=self)
-        await move_tasks.correct_depth(desired_depth=DEPTH_LEVEL, parent=self)
+        await move_tasks.depth_correction(desired_depth=DEPTH_LEVEL, parent=self)
 
-    cv_object_yaw = CV().cv_data[cv_object]["yaw"]
-    latency_seconds = int(time.time()) - CV().cv_data[cv_object]["secs"]
-    is_receiving_cv_data = cv_object_yaw is not None and latency_seconds < latency_threshold
+    def is_receiving_cv_data():
+        return cv_object in CV().cv_data and \
+            int(time.time()) - CV().cv_data[cv_object].header.stamp.secs < latency_threshold
+
+    def get_step_size(desired_yaw):
+        # desired yaw in rads
+        return min(abs(desired_yaw), MAXIMUM_YAW)
+
+    # Yaw until object detection
     await correct_depth()
-    while not is_receiving_cv_data or abs(cv_object_yaw) > yaw_threshold:
-        if not is_receiving_cv_data:
-            desired_yaw = MAXIMUM_YAW
-        else:
-            sign_cv_object_yaw = sign(cv_object_yaw)
-            correction = min(abs(cv_object_yaw), MAXIMUM_YAW)
-            desired_yaw = sign_cv_object_yaw * correction
-        await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, 0, 0, desired_yaw), parent=self)
+
+    if not is_receiving_cv_data():
+        power = Twist()
+        power.angular.z = 0.05
+        Controls().set_axis_control_type(yaw=ControlTypes.DESIRED_POWER)
+        Controls().publish_desired_power(power, set_control_types=False)
+        rospy.loginfo("Published yaw power")
+
+        while not is_receiving_cv_data():
+            await Yield()
+
+        rospy.loginfo("Published zero power")
+        Controls().publish_desired_power(Twist())
+        await sleep(3)
+
+    # rospy.loginfo(f"{cv_object} detected. Now centering {cv_object} in frame...")
+
+    # Center detected object in camera frame
+    cv_object_yaw = CV().cv_data[cv_object].yaw
+    await correct_depth()
+    while abs(cv_object_yaw) > yaw_threshold:
+        sign_cv_object_yaw = sign(cv_object_yaw)
+        correction = get_step_size(cv_object_yaw)
+        desired_yaw = sign_cv_object_yaw * correction
+
         rospy.loginfo(f"{cv_object} properties: {CV().cv_data[cv_object]}")
-        await correct_depth()
+        rospy.loginfo(f"detected yaw {cv_object_yaw} is lower than threshold {yaw_threshold}... Yawing: {desired_yaw}")
+        await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, 0, 0, desired_yaw),
+                                            parent=self)
         await Yield()
 
-        cv_object_yaw = CV().cv_data[cv_object]["yaw"]
-        latency_seconds = int(time.time()) - CV().cv_data[cv_object]["secs"]
-        is_receiving_cv_data = cv_object_yaw is not None and latency_seconds < 10
+        cv_object_yaw = CV().cv_data[cv_object].yaw
 
-        rospy.loginfo(f"{cv_object} properties: {CV().cv_data[cv_object]}")
+    rospy.loginfo(f"{cv_object} centered.")
 
     await correct_depth()
 

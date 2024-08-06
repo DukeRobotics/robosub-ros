@@ -71,7 +71,7 @@ class USBCamera:
                 if success:
                     break
 
-            except RuntimeError:
+            except Exception:
                 pass
 
             if rospy.is_shutdown():

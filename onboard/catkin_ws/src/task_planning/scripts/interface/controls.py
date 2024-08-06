@@ -37,6 +37,7 @@ class Controls:
     DESIRED_VELOCITY_TOPIC = 'controls/desired_velocity'
     DESIRED_POWER_TOPIC = 'controls/desired_power'
     THRUSTER_ALLOCS_TOPIC = 'controls/thruster_allocs'
+    CONTROL_TYPES_TOPIC = 'controls/control_types'
 
     def __init__(self, bypass: bool = False):
 
@@ -46,6 +47,9 @@ class Controls:
         # Note: if this variable gets out of sync with the actual control types,
         # bad things may happen
         self._all_axes_control_type = None
+
+        self.control_types: ControlTypes = None
+        rospy.Subscriber(self.CONTROL_TYPES_TOPIC, ControlTypes, self._update_control_types)
 
         if not bypass:
             rospy.wait_for_service(self.RESET_PID_LOOPS_SERVICE)
@@ -65,6 +69,9 @@ class Controls:
         self.get_thruster_dict()
         self._thruster_pub = rospy.Publisher(self.THRUSTER_ALLOCS_TOPIC, ThrusterAllocs, queue_size=1)
         self.bypass = bypass
+
+    def _update_control_types(self, control_types):
+        self.control_types = control_types
 
     def get_thruster_dict(self) -> None:
         """
@@ -118,6 +125,16 @@ class Controls:
         self._all_axes_control_type = type
         self.start_new_move()
 
+    def set_axis_control_type(self, x=None, y=None, z=None, roll=None, pitch=None, yaw=None) -> None:
+        x = self.control_types.x if x is None else x
+        y = self.control_types.y if y is None else y
+        z = self.control_types.z if z is None else z
+        roll = self.control_types.roll if roll is None else roll
+        pitch = self.control_types.pitch if pitch is None else pitch
+        yaw = self.control_types.yaw if yaw is None else yaw
+
+        self._set_control_types(ControlTypes(x=x, y=y, z=z, roll=roll, pitch=pitch, yaw=yaw))
+
     # Resets the PID loops. Should be called for every "new" movement
     def start_new_move(self) -> None:
         """
@@ -127,35 +144,41 @@ class Controls:
             self._reset_pid_loops()
 
     # In global coordinates
-    def publish_desired_position(self, pose: Pose) -> None:
+    def publish_desired_position(self, pose: Pose, set_control_types=True) -> None:
         """
         Publish the desired position
 
         Args:
             pose: The desired position
+            set_control_types: Whether all axes should be set to DESIRED_POSITION
         """
-        self._set_all_axes_control_type(ControlTypes.DESIRED_POSITION)
+        if set_control_types:
+            self._set_all_axes_control_type(ControlTypes.DESIRED_POSITION)
         self._desired_position_pub.publish(pose)
 
     # In local coordinates
-    def publish_desired_velocity(self, twist: Twist) -> None:
+    def publish_desired_velocity(self, twist: Twist, set_control_types=True) -> None:
         """
         Publish the desired velocity
 
         Args:
             twist: The desired velocity
+            set_control_types: Whether all axes should be set to DESIRED_TWIST
         """
-        self._set_all_axes_control_type(ControlTypes.DESIRED_TWIST)
+        if set_control_types:
+            self._set_all_axes_control_type(ControlTypes.DESIRED_TWIST)
         self._desired_velocity_pub.publish(twist)
 
-    def publish_desired_power(self, power: Twist) -> None:
+    def publish_desired_power(self, power: Twist, set_control_types=True) -> None:
         """
         Publish the desired power
 
         Args:
             power: The desired power
+            set_control_types: Whether all axes should be set to DESIRED_POWER
         """
-        self._set_all_axes_control_type(ControlTypes.DESIRED_POWER)
+        if set_control_types:
+            self._set_all_axes_control_type(ControlTypes.DESIRED_POWER)
         self._desired_power_pub.publish(power)
 
     def publish_thruster_allocs(self, **kwargs) -> None:

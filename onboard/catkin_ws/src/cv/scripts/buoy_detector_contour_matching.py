@@ -30,11 +30,11 @@ class BuoyDetectorContourMatching:
         self.ref_contours, _ = cv2.findContours(self.reference_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber('/camera/usb_camera/compressed', CompressedImage, self.image_callback)
-        self.bounding_box_pub = rospy.Publisher('/cv/front_usb/bounding_box', CVObject, queue_size=1)
-        self.hsv_filtered_pub = rospy.Publisher('/cv/front_usb/hsv_filtered', Image, queue_size=1)
-        self.contour_image_pub = rospy.Publisher('/cv/front_usb/contour_image', Image, queue_size=1)
-        self.contour_image_with_bbox_pub = rospy.Publisher('/cv/front_usb/contour_image_with_bbox', Image, queue_size=1)
+        self.image_sub = rospy.Subscriber('/camera/usb/front/compressed', CompressedImage, self.image_callback)
+        self.bounding_box_pub = rospy.Publisher('/cv/front_usb/buoy/bounding_box', CVObject, queue_size=1)
+        self.hsv_filtered_pub = rospy.Publisher('/cv/front_usb/buoy/hsv_filtered', Image, queue_size=1)
+        self.contour_image_pub = rospy.Publisher('/cv/front_usb/buoy/contour_image', Image, queue_size=1)
+        self.contour_image_with_bbox_pub = rospy.Publisher('/cv/front_usb/buoy/detections', Image, queue_size=1)
 
         self.last_n_bboxes = []
         self.n = 10  # Set the number of last bounding boxes to store
@@ -50,9 +50,9 @@ class BuoyDetectorContourMatching:
             return
 
         # Define the range for HSV filtering on the red buoy
-        lower_red = np.array([0, 110, 245])
+        lower_red = np.array([0, 110, 190])
         upper_red = np.array([12, 255, 255])
-        lower_red_upper = np.array([175, 180, 191])
+        lower_red_upper = np.array([175, 180, 190])
         upper_red_upper = np.array([179, 255, 255])
 
         # Apply HSV filtering on the image
@@ -83,6 +83,8 @@ class BuoyDetectorContourMatching:
         contour_image_msg = self.bridge.cv2_to_imgmsg(image_with_contours, "bgr8")
         self.contour_image_pub.publish(contour_image_msg)
 
+        contours = [contour for contour in contours if cv2.contourArea(contour) > 20]
+
         best_cnt = None
         similar_size_contours = []
 
@@ -93,7 +95,7 @@ class BuoyDetectorContourMatching:
                 similar_size_contours.append(cnt)
 
         if similar_size_contours:
-            similar_size_contours.sort(key=lambda x: cv2.contourArea(x[0]))
+            similar_size_contours.sort(key=lambda x: cv2.contourArea(x))
             best_cnt = similar_size_contours[0]
             for cnt in similar_size_contours:
                 x, y, w, h = cv2.boundingRect(cnt)
@@ -113,6 +115,13 @@ class BuoyDetectorContourMatching:
             # if filtered_bboxes:
             #     most_recent_bbox = filtered_bboxes[-1]  # Get the most recent bbox
             #     self.publish_bbox(most_recent_bbox, image)
+
+            # Draw bounding box on the image
+            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+        # Convert the image with the bounding box to ROS Image message and publish
+        image_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
+        self.contour_image_with_bbox_pub.publish(image_msg)
 
     def filter_outliers(self, bboxes):
         if len(bboxes) <= 2:
@@ -147,7 +156,8 @@ class BuoyDetectorContourMatching:
         bounding_box.xmax = x + w
         bounding_box.ymax = y + h
 
-        bounding_box.yaw = compute_yaw(x, x + w, 0)  # Update 0 with whatever is self.camera_pixel_width
+        bounding_box.yaw = -compute_yaw(x / self.MONO_CAM_IMG_SHAPE[0], (x + w) / self.MONO_CAM_IMG_SHAPE[0],
+                                        self.MONO_CAM_IMG_SHAPE[0])  # Update 0 with whatever is self.camera_pixel_width
 
         bounding_box.width = w
         bounding_box.height = h
@@ -167,13 +177,6 @@ class BuoyDetectorContourMatching:
         bounding_box.coords.x, bounding_box.coords.y, bounding_box.coords.z = coords_list
 
         self.bounding_box_pub.publish(bounding_box)
-
-        # Draw bounding box on the image
-        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
-        # Convert the image with the bounding box to ROS Image message and publish
-        image_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
-        self.contour_image_with_bbox_pub.publish(image_msg)
 
 
 if __name__ == '__main__':

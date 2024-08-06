@@ -303,3 +303,19 @@ def global_pose_to_local(tfBuffer: tf2_ros.Buffer, pose: Pose) -> Pose:
 
     return transform_pose(tfBuffer, 'odom', 'base_link', pose)
 
+# TODO make redundant and delete
+def compute_center_distance(bbox_center_x, bbox_center_y, frame_width, frame_height):
+
+    '''
+    Note that x, y is in the camera's reference frame
+    '''
+
+    # Compute the center of the frame
+    frame_center_x = frame_width / 2
+    frame_center_y = frame_height / 2
+
+    # Compute the distances between the centers
+    distance_x = bbox_center_x - frame_center_x
+    distance_y = bbox_center_y - frame_center_y
+
+    return distance_x, distance_y

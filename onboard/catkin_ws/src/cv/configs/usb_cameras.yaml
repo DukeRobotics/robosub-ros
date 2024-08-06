@@ -1,7 +1,7 @@
 front:
-  channel: "4"
+  channel: "0"
   topic: "front"
 
 bottom:
-  channel: "0"
+  channel: "4"
   topic: "bottom"
