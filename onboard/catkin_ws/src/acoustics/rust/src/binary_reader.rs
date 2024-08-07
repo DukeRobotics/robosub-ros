@@ -70,7 +70,7 @@ fn parse_analog(mut reader: BufReader<File>) -> Result<AnalogData, Error> {
 
     Ok(AnalogData {
         begin_time,
-        sample_rate,
+        sample_rate: sample_rate/downsample,
         downsample,
         num_samples,
         samples,

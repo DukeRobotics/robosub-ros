@@ -51,7 +51,10 @@ fn get_time_difs(samples: &AudioSamples, lowcut: f64, highcut: f64, fs: usize, t
 fn get_spike_amplitude(data: &Vec<f64>, peak: usize, fs: usize, spike_time: f64) -> f64 {
     let spike_samples = (fs as f64 * spike_time) as usize;
 
-    let subsection = &data[peak-spike_samples..peak+spike_samples];
+    let subs_start = if peak < spike_samples {0} else {peak - spike_samples};
+    let subs_end = if peak + spike_samples > data.len() {data.len()} else {peak + spike_samples};
+
+    let subsection = &data[subs_start..subs_end];
     let max = subsection.iter().reduce(|x, y| if x > y {x} else {y}).unwrap();
 
     *max

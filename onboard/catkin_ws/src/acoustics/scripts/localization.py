@@ -17,7 +17,7 @@ saleae = SaleaeCapture()
 
 def localization_pub():
 
-    SAMPLE_DURATION = 2 # seconds
+    SAMPLE_DURATION = 2.2 # seconds
     DIRECTORY = '/home/duke-robotics/robosub-ros/onboard/catkin_ws/src/acoustics/data'
 
     # -1 means we are under the octagon
@@ -30,10 +30,10 @@ def localization_pub():
         
         saleae.capture(SAMPLE_DURATION, DIRECTORY)
 
-        search_for = os.path.join(DIRECTORY, 'analog_0.bin')
-
-        while not os.path.exists(search_for):
-            time.sleep(0.25)
+        # search_for = os.path.join(DIRECTORY, 'analog_0.bin')
+        # print('sleeping')
+        # time.sleep(10)
+        # print('done sleeping')
 
         spikes = spikes_pipeline(DIRECTORY, config)
         if len(spikes) == 0:
@@ -44,7 +44,7 @@ def localization_pub():
         times = [s.time for s in spikes[-1]]
         range = max(times) - min(times)
         if range < 1e-5:
-            counts = -1
+            localization = -1
         else:
             counts = [0, 0, 0, 0]
             for i in firsts:
