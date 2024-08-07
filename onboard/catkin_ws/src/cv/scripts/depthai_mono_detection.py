@@ -90,8 +90,7 @@ class DepthAISpatialDetector:
         self.desired_detection_feature = rospy.Subscriber(
             TASK_PLANNING_REQUESTS_PATH, String, self.update_priority)
 
-        TopicType, _, _ = rostopic.get_topic_class(self.feed_path)
-        rospy.Subscriber(self.feed_path, TopicType, self._update_latest_img, queue_size=1)
+        rospy.Subscriber(self.feed_path, CompressedImage, self._update_latest_img, queue_size=1)
 
     def _update_latest_img(self, img_msg):
         """ Send an image to the device for detection
