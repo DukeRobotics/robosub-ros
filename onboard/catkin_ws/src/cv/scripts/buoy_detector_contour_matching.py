@@ -83,7 +83,7 @@ class BuoyDetectorContourMatching:
         contour_image_msg = self.bridge.cv2_to_imgmsg(image_with_contours, "bgr8")
         self.contour_image_pub.publish(contour_image_msg)
 
-        contours = [contour for contour in contours if cv2.contourArea(contour) > 250]
+        contours = [contour for contour in contours if cv2.contourArea(contour) > 100]
 
         best_cnt = None
         similar_size_contours = []
