@@ -4,6 +4,8 @@ import rospy
 from std_msgs.msg import Int8
 from spike_detection import PipelineConfig, spikes_pipeline, get_first_hydrophones
 from record import SaleaeCapture
+import os
+import time
 
 CENTER_FREQUENCY = 35000
 FREQ_RADIUS = 1000
@@ -27,7 +29,12 @@ def localization_pub():
     while not rospy.is_shutdown():
         
         saleae.capture(SAMPLE_DURATION, DIRECTORY)
-        
+
+        search_for = os.path.join(DIRECTORY, 'analog_0.bin')
+
+        while not os.path.exists(search_for):
+            time.sleep(0.25)
+
         spikes = spikes_pipeline(DIRECTORY, config)
         if len(spikes) == 0:
             rospy.loginfo('No spikes detected')
