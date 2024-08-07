@@ -158,6 +158,10 @@ fn match_times(times: &Vec<Vec<f64>>, dt: f32) -> Vec<Vec<Option<f64>>> {
     loop {
         let mut ind_times = Vec::<f64>::with_capacity(times.len());
         for i in 0..times.len() {
+            if indices[i] == times[i].len() { 
+                ind_times.push(1e15);
+                continue;
+            }
             ind_times.push(times[i][indices[i]]);
         }
 
