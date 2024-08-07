@@ -32,8 +32,10 @@ class PathMarkerDetector:
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         # Define range for blue color and create mask
-        lower_orange = np.array([5, 180, 150])
-        upper_orange = np.array([33, 255, 255])
+        lower_orange = np.array([0, 130, 100])
+        upper_orange = np.array([10, 255, 255])
+        # lower_orange = np.array([2, 80, 100])
+        # upper_orange = np.array([33, 255, 255])
         mask = cv2.inRange(hsv, lower_orange, upper_orange)
 
         hsv_filtered_msg = self.bridge.cv2_to_imgmsg(mask, "mono8")
@@ -41,10 +43,11 @@ class PathMarkerDetector:
 
         # Apply morphological operations to clean up the binary image
         kernel = np.ones((5, 5), np.uint8)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
 
         # Find contours in the mask
-        contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours = [contour for contour in contours if len(contour) > 5 and cv2.contourArea(contour) > 500]
 
         # Fit a line to the largest contour
         if len(contours) > 0:
