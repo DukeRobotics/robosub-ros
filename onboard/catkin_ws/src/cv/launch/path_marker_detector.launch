@@ -1,0 +1,3 @@
+<launch>
+	<node name="path_marker_detector" pkg="cv" type="path_marker_detector.py" output="screen"/>
+</launch>

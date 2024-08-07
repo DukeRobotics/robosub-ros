@@ -1,0 +1,5 @@
+SUBSYSTEM=="video4linux", ENV{ID_PATH_TAG}=="pci-0000_01_00_0-usb-0_1_1_1_0", ATTR{index}=="0", SYMLINK+="video_front"
+SUBSYSTEM=="video4linux", ENV{ID_PATH_TAG}=="pci-0000_01_00_0-usb-0_1_1_1_0", ATTR{index}=="4", SYMLINK+="video_front"
+
+SUBSYSTEM=="video4linux", ENV{ID_PATH_TAG}=="pci-0000_05_00_3-usb-0_2_4_1_0", ATTR{index}=="0", SYMLINK+="video_bottom"
+SUBSYSTEM=="video4linux", ENV{ID_PATH_TAG}=="pci-0000_05_00_3-usb-0_2_4_1_0", ATTR{index}=="4", SYMLINK+="video_bottom"

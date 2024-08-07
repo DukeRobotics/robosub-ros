@@ -13,7 +13,7 @@
 
     <!-- Start CV -->
     <group unless="$(arg sim)">
-        <include file="$(find cv)/launch/depthai_spatial_detection.launch">
+        <include file="$(find cv)/launch/depthai_mono_detection.launch">
         </include>
     </group>
     <group unless="$(arg sim)">
@@ -30,6 +30,10 @@
     </group>
     <group unless="$(arg sim)">
         <include file="$(find cv)/launch/bin_detector.launch">
+        </include>
+    </group>
+    <group unless="$(arg sim)">
+        <include file="$(find cv)/launch/path_marker_detector.launch">
         </include>
     </group>
 

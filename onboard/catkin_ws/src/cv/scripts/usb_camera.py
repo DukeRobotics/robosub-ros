@@ -14,11 +14,11 @@ class USBCamera:
 
     Launch using: roslaunch cv usb_camera.launch
     :param topic: rostopic to publish the image feed to; default is set to camera/usb_camera/compressed
-    :param channel: which device channel to read the stream from (e.g., dev/video0)
+    :param device_path: path to device to read the stream from (e.g., /dev/video0); can be a symlinked path
     :param framerate: custom framerate to stream the camera at; default is set to device default
     """
 
-    def __init__(self, topic=None, channel=None, framerate=None):
+    def __init__(self, topic=None, device_path=None, framerate=None):
         # Instantiate new USB camera node
         rospy.init_node(f'usb_camera_{topic}', anonymous=True)
 
@@ -26,7 +26,7 @@ class USBCamera:
         self.topic = topic if topic else rospy.get_param("~topic")
         self.topic = f'/camera/usb/{self.topic}/compressed'
 
-        self.channel = channel if channel else rospy.get_param("~channel")
+        self.device_path = device_path if device_path else rospy.get_param("~device_path")
 
         # If no custom framerate is passed in, set self.framerate to None to trigger default framerate
         self.framerate = framerate if framerate else rospy.get_param("~framerate")
@@ -41,7 +41,7 @@ class USBCamera:
 
     def run(self):
         """
-        Connect to camera found at self.channel using cv2.VideoCaptures
+        Connect to camera found at self.device_path using cv2.VideoCaptures
         and stream every image as it comes in at the device framerate
         """
 
@@ -54,8 +54,8 @@ class USBCamera:
 
             # Try connecting to the camera unless a connection is refused
             try:
-                # Connect to camera at channel
-                cap = cv2.VideoCapture(self.channel)
+                # Connect to camera at device_path
+                cap = cv2.VideoCapture(self.device_path)
                 # Read first frame
                 success, img = cap.read()
 
@@ -97,7 +97,7 @@ class USBCamera:
                 loop_rate.sleep()
         else:
             raise RuntimeError(f"{total_tries} attempts were made to connect to the USB camera. "
-                               f"The camera was not found at channel {self.channel}. All attempts failed.")
+                               f"The camera was not found at device_path {self.device_path}. All attempts failed.")
 
 
 if __name__ == '__main__':

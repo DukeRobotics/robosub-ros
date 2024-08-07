@@ -1,5 +1,5 @@
 front:
-  channel: "0"
+  device_path: "/dev/video_front"
   topic: "front"
   focal_length: 2.65
   sensor_size:
@@ -10,7 +10,7 @@ front:
     height: 480
 
 bottom:
-  channel: "4"
+  device_path: "/dev/video_bottom"
   topic: "bottom"
   focal_length: 2.65
   sensor_size:

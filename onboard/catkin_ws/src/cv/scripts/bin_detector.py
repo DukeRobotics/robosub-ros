@@ -18,7 +18,8 @@ class BinDetector:
 
     def __init__(self):
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("/camera/usb_camera/compressed", CompressedImage, self.image_callback)
+        # TODO change back
+        self.image_sub = rospy.Subscriber("/camera/usb/bottom/compressed", CompressedImage, self.image_callback)
 
         self.blue_bin_hsv_filtered_pub = rospy.Publisher("/cv/bottom/bin_blue/hsv_filtered", Image, queue_size=10)
         self.blue_bin_contour_image_pub = rospy.Publisher("/cv/bottom/bin_blue/contour_image", Image, queue_size=10)
@@ -39,7 +40,7 @@ class BinDetector:
         # Convert the compressed ROS image to OpenCV format
         np_arr = np.frombuffer(data.data, np.uint8)
         frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-
+        frame = frame[:, :-20]
         # Process the frame to find and publish information on the bin
         self.process_frame(frame)
 
@@ -48,52 +49,59 @@ class BinDetector:
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         # Define range for blue color and create mask
-        lower_blue = np.array([110, 200, 130])
-        upper_blue = np.array([125, 255, 215])
+        lower_blue = np.array([90, 150, 50])
+        upper_blue = np.array([125, 255, 255])
         mask_blue = cv2.inRange(hsv, lower_blue, upper_blue)
 
         blue_hsv_filtered_msg = self.bridge.cv2_to_imgmsg(mask_blue, "mono8")
         self.blue_bin_hsv_filtered_pub.publish(blue_hsv_filtered_msg)
 
         # Define the range for HSV filtering on the red bin
-        lower_red = np.array([0, 191, 150])
-        upper_red = np.array([6, 255, 255])
-        mask_red = cv2.inRange(hsv, lower_red, upper_red)
-
-        """
-        # Define the range for HSV filtering on the red buoy
-        lower_red_low = np.array([0, 110, 245])
+        lower_red_low = np.array([0, 110, 150])
         upper_red_low = np.array([12, 255, 255])
-        lower_red_high = np.array([175, 180, 191])
+        lower_red_high = np.array([170, 50, 85])
         upper_red_high = np.array([179, 255, 255])
 
         # Apply HSV filtering on the image
-        mask_red1 = cv2.inRange(hsv_image, lower_red, upper_red)
-        mask_red2 = cv2.inRange(hsv_image, lower_red_upper, upper_red_upper)
+        mask_red1 = cv2.inRange(hsv, lower_red_low, upper_red_low)
+        mask_red2 = cv2.inRange(hsv, lower_red_high, upper_red_high)
         mask_red = cv2.bitwise_or(mask_red1, mask_red2)
-        """
+
+        red_hsv_filtered_msg = self.bridge.cv2_to_imgmsg(mask_red, "mono8")
+        self.red_bin_hsv_filtered_pub.publish(red_hsv_filtered_msg)
 
         # Apply morphological operations to clean up the binary image
         kernel = np.ones((5, 5), np.uint8)
         mask_blue = cv2.morphologyEx(mask_blue, cv2.MORPH_OPEN, kernel)
 
-        red_hsv_filtered_msg = self.bridge.cv2_to_imgmsg(mask_red, "mono8")
-        self.red_bin_hsv_filtered_pub.publish(red_hsv_filtered_msg)
+        # Apply morphological operations to clean up the binary image
+        mask_red = cv2.morphologyEx(mask_red, cv2.MORPH_OPEN, kernel)
+        mask_red = cv2.morphologyEx(mask_red, cv2.MORPH_OPEN, kernel)
 
         # Find contours in the mask
         contours_blue, _ = cv2.findContours(mask_blue, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         contours_red, _ = cv2.findContours(mask_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         if contours_blue:
+            contours_blue = sorted(contours_blue, key=cv2.contourArea, reverse=True)
+            contours_blue = contours_blue[0]
+
             bbox, image, dist = self.process_contours(frame.copy(), contours_blue)
-            self.blue_bin_contour_image_pub.publish(image)
-            self.blue_bin_bounding_box_pub.publish(bbox)
-            self.blue_bin_distance_pub.publish(dist)
+            if bbox and image and dist:
+                self.blue_bin_contour_image_pub.publish(image)
+                self.blue_bin_bounding_box_pub.publish(bbox)
+                self.blue_bin_distance_pub.publish(dist)
+
         if contours_red:
+            contours_red = sorted(contours_red, key=cv2.contourArea, reverse=True)
+            contours_red = contours_red[0]
+
             bbox, image, dist = self.process_contours(frame.copy(), contours_red)
-            self.red_bin_contour_image_pub.publish(image)
-            self.red_bin_bounding_box_pub.publish(bbox)
-            self.red_bin_distance_pub.publish(dist)
+            if bbox and image and dist:
+                self.red_bin_contour_image_pub.publish(image)
+                self.red_bin_bounding_box_pub.publish(bbox)
+                self.red_bin_distance_pub.publish(dist)
+
         # if contours_blue and contours_red:
         #     bbox, image, dist = self.process_contours(frame.copy(), (contours_blue+contours_red))
         #     self.bin_center_contour_image_pub.publish(image)
@@ -119,27 +127,29 @@ class BinDetector:
 
         # edge cases integer rounding idk something
         if (w==0):
-            return
+            return None, None, None
+        
+        meters_per_pixel = self.BIN_WIDTH / w
 
-        x=x+w/2
-        y=y+w/2
+        x = x + w/2
+        y = y + w/2
 
         bounding_box = CVObject()
 
         bounding_box.header.stamp.secs = rospy.Time.now().secs
         bounding_box.header.stamp.nsecs = rospy.Time.now().nsecs
 
-        bounding_box.xmin = x
-        bounding_box.ymin = y
-        bounding_box.xmax = x + w
-        bounding_box.ymax = y + h
+        bounding_box.xmin = (x) * meters_per_pixel
+        bounding_box.ymin = (y) * meters_per_pixel
+        bounding_box.xmax = (x + w) * meters_per_pixel
+        bounding_box.ymax = (y + h) * meters_per_pixel
 
         bounding_box.yaw = compute_yaw(x, x + w, self.MONO_CAM_SENSOR_SIZE[0])  # width of camera in in mm
 
-        bounding_box.width = w
-        bounding_box.height = h
+        bounding_box.width = int(w)
+        bounding_box.height = int(h)
 
-        meters_per_pixel = self.BIN_WIDTH / w
+        
         # Compute distance between center of bounding box and center of image
         # Here, image x is robot's y, and image y is robot's z
         dist_x, dist_y = compute_center_distance(x, y, *self.MONO_CAM_IMG_SHAPE)
@@ -150,9 +160,9 @@ class BinDetector:
         dist_z_meters = -1 * self.mono_cam_dist_with_obj_width(w, self.BIN_WIDTH)
 
         dist_point = Point()
-        dist_point.z = dist_z_meters
-        dist_point.x = -dist_y_meters
-        dist_point.y = -dist_x_meters
+        #dist_point.z = dist_z_meters
+        dist_point.x = dist_x
+        dist_point.y = -dist_y
 
         # {
         #     "fully_in_frame": not((bounding_box.center_y - bounding_box.height / 2 <= 0) or (bounding_box.center_y + bounding_box.height / 2 >= 480)
