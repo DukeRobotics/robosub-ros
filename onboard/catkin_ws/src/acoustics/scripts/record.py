@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from saleae import automation
 import os
 import os.path

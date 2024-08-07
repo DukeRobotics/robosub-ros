@@ -2,10 +2,10 @@
 
 # Start the Saleae Logic software, to be run as root
 
-if [ "$EUID" -ne 0 ]
-  then echo "Please run as root"
-  exit
-fi
+# if [ "$EUID" -ne 0 ]
+#   then echo "Please run as root"
+#   exit
+# fi
 
 function finish {
   killall Logic
@@ -13,15 +13,13 @@ function finish {
   killall xvfb-run
 }
 
-# If we pass in a 1, then we start the Saleae Logic software
-if [ $1 == 1 ] 
+if [ $1 == 'enable' ] 
 then
     finish
     xvfb-run Logic --automation --no-sandbox
 fi
 
-# If we pass in a 0, then we stop the Saleae Logic software
-if [ $1 == 0 ] 
+if [ $1 == 'disable' ]
 then
     finish
 fi

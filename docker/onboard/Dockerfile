@@ -60,6 +60,7 @@ RUN apt-get update && \
     libudev-dev \
     fuse \
     libfuse2 \
+    psmisc
 
 
 
@@ -117,7 +118,8 @@ RUN rm -rf camera-driver && \
 
 RUN wget "https://logic2api.saleae.com/download?os=linux&arch=x64" -O "Logic.AppImage" && \
     chmod +x Logic.AppImage && \
-    mv Logic.AppImage /usr/local/bin/Logic
+    mv Logic.AppImage /usr/local/bin/Logicq:q
+    
 
 # Build and install OSQP from source
 RUN git clone --branch release-0.6.3 --recursive https://github.com/osqp/osqp.git && \

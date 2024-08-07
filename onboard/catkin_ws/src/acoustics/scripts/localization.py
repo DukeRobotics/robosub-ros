@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import rospy
 from std_msgs.msg import Int8
 from spike_detection import PipelineConfig, spikes_pipeline, get_first_hydrophones
@@ -14,6 +16,8 @@ saleae = SaleaeCapture()
 
 def localization_pub():
 
+    SAMPLE_DURATION = 2 # seconds
+
     # -1 means we are under the octagon
     # 0-3 inclusive are the 4 quadrants relative to the robot heading
 
@@ -22,7 +26,7 @@ def localization_pub():
 
     while not rospy.is_shutdown():
         
-        saleae.capture(2, './data')
+        saleae.capture(SAMPLE_DURATION, './data')
         
         spikes = spikes_pipeline('./data', config)
         firsts = get_first_hydrophones(spikes, config)
