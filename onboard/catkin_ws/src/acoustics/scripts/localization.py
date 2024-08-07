@@ -19,6 +19,7 @@ def localization_pub():
 
     SAMPLE_DURATION = 2.2 # seconds
     DIRECTORY = '/home/duke-robotics/robosub-ros/onboard/catkin_ws/src/acoustics/data'
+    MOUNTED_DIRECTORY = '/root/dev/robosub-ros/onboard/catkin_ws/src/acoustics/data'
 
     # -1 means we are under the octagon
     # 0-3 inclusive are the 4 quadrants relative to the robot heading
@@ -30,12 +31,7 @@ def localization_pub():
         
         saleae.capture(SAMPLE_DURATION, DIRECTORY)
 
-        # search_for = os.path.join(DIRECTORY, 'analog_0.bin')
-        # print('sleeping')
-        # time.sleep(10)
-        # print('done sleeping')
-
-        spikes = spikes_pipeline(DIRECTORY, config)
+        spikes = spikes_pipeline(MOUNTED_DIRECTORY, config)
         if len(spikes) == 0:
             rospy.loginfo('No spikes detected')
             continue
