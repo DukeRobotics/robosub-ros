@@ -1,6 +1,7 @@
 import rospy
 from std_msgs.msg import Int8
 from spike_detection import PipelineConfig, spikes_pipeline, get_first_hydrophones
+from record import SaleaeCapture
 
 CENTER_FREQUENCY = 35000
 FREQ_RADIUS = 1000
@@ -8,6 +9,8 @@ FREQ_RADIUS = 1000
 spike_config = PipelineConfig()
 config = PipelineConfig(CENTER_FREQUENCY - FREQ_RADIUS, CENTER_FREQUENCY + FREQ_RADIUS)
 config.noise_floor_stdev_mult = 5.5
+
+saleae = SaleaeCapture()
 
 def localization_pub():
 
@@ -18,7 +21,10 @@ def localization_pub():
     rospy.init_node('localization_pub', anonymous=True)
 
     while not rospy.is_shutdown():
-        spikes = spikes_pipeline('./savefiles', config)
+        
+        saleae.capture(2, './data')
+        
+        spikes = spikes_pipeline('./data', config)
         firsts = get_first_hydrophones(spikes, config)
         
         times = [s.time for s in spikes[-1]]

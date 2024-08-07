@@ -1,24 +1,39 @@
-import saleae
-import datetime
+from saleae import automation
+import os
+import os.path
 
-s = saleae.Saleae(args='-disablepopups socket')
-s.set_active_channels([], [0, 1, 2, 3, 4, 5, 6, 7])
-s.set_sample_rate(s.get_all_sample_rates()[3]) #6.25 MS/s
-print('Saleae connected')
+class SaleaeCapture:
+    def __init__(self):
+        self.manager = automation.Manager.connect(port=10430)
+        self.device_config = automation.LogicDeviceConfiguration(
+            enabled_analog_channels=[0, 1, 2, 3],
+            analog_sample_rate=625_000,
+        )
+    def capture(self, seconds: int, directory: str):
+        
+        capture_configuration = automation.CaptureConfiguration(
+            capture_mode=automation.TimedCaptureMode(duration_seconds=seconds)
+        )
+        
+        with self.manager.start_capture(
+            device_id='ECAF7B22509D66EE',
+            device_configuration=self.device_config,
+            capture_configuration=capture_configuration) as capture:
+            
+            capture.wait()
+            
+            output_dir = os.path.join(os.getcwd(), directory)
+            os.makedirs(output_dir)
 
-def record(seconds: int, filename: str='data') -> bool:
-    try:
-        s.set_capture_seconds(seconds)
-        s.capture_start_and_wait_until_finished()
-        # Export as binary
-        s.export_data2(f'{filename}.bin')
-        print(f'Data recorded to {filename}.bin')
-        return True
-    except Exception as e:
-        print(f'Failed to record data: {e}')
-        return False
-    
+            
+            capture.export_raw_data_binary(directory=output_dir, analog_channels=[0, 1, 2, 3])
+        
+    def close(self):
+        self.manager.close()
+
 if __name__ == '__main__':
+    saleae = SaleaeCapture()
     print('Recording data for 5 seconds')
-    record(5, filename=f'data_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}')
+    saleae.capture(5, 'data')
     print('Recording complete')
+    
