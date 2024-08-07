@@ -36,4 +36,5 @@ if __name__ == '__main__':
     print('Recording data for 5 seconds')
     saleae.capture(5, 'data')
     print('Recording complete')
+    saleae.close()
     
