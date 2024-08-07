@@ -56,7 +56,7 @@ cd /root/dev/robosub-ros/onboard/catkin_ws/src/acoustics/rust
 virtualenv .venv
 . .venv/bin/activate
 pip install maturin
-maturin develop
+maturin develop --release
 cd .venv/lib/python3.8/site-packages
 mv ./spike_detection /usr/local/lib/python3.8/dist-packages/spike_detection
     

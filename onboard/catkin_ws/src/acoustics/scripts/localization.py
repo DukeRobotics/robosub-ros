@@ -28,8 +28,14 @@ def localization_pub():
         
         saleae.capture(SAMPLE_DURATION, DIRECTORY)
         
+        print('here 0')
         spikes = spikes_pipeline(DIRECTORY, config)
+        if len(spikes) == 0:
+            rospy.loginfo('No spikes detected')
+            continue
+        print('here 1')
         firsts = get_first_hydrophones(spikes, config)
+        print('here2')
         
         times = [s.time for s in spikes[-1]]
         range = max(times) - min(times)
