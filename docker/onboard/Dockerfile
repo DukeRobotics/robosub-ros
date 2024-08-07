@@ -57,7 +57,9 @@ RUN apt-get update && \
     nmap \
     ignition-fortress \
     libeigen3-dev \
-    libudev-dev
+    libudev-dev \
+    fuse \
+    libfuse2 \
 
 
 
@@ -65,7 +67,7 @@ RUN apt-get update && \
 RUN pip3 install --no-cache-dir \
     numpy==1.24.4 scipy pymba python-dateutil \
     pyserial dependency-injector \
-    gputil saleae \
+    gputil \
     bluerobotics-ping \
     roboflow \
     python-nmap \
@@ -74,7 +76,8 @@ RUN pip3 install --no-cache-dir \
     scikit-learn \
     opencv-python \
     jsonpickle \
-    seaborn
+    seaborn \
+    logic2-automation
 
 # Install PyTorch and Torchvision
 COPY torch_installer.sh torch_deps/torch_installer.sh
