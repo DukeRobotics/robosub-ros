@@ -23,7 +23,13 @@ class SaleaeCapture:
             capture.wait()
             
             output_dir = os.path.join(os.getcwd(), directory)
-            os.makedirs(output_dir)
+            
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+
+            # Nuke the directory
+            for file in os.listdir(output_dir):
+                os.remove(os.path.join(output_dir, file))
 
             
             capture.export_raw_data_binary(directory=output_dir, analog_channels=[0, 1, 2, 3])
