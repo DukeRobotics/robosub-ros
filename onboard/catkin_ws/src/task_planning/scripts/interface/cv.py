@@ -71,6 +71,8 @@ class CV:
         rospy.Subscriber("/cv/bottom/bin_red/distance", Point, self._on_receive_distance_data, "bin_red")
         rospy.Subscriber("/cv/bottom/bin_center/distance", Point, self._on_receive_distance_data, "bin_center")
 
+        rospy.Subscriber("/cv/bottom/path_marker/bounding_box", CVObject, self._on_receive_cv_data, "path_marker")
+
     def _on_receive_cv_data(self, cv_data: CVObject, object_type: str) -> None:
         """
         Parse the received CV data and store it
