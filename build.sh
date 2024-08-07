@@ -50,9 +50,6 @@ catkin build
 source devel/setup.bash
 cd ../..
 
-echo "If you did not source this script, please run"
-echo "source ${COMPUTER_TYPE}/catkin_ws/devel/setup.bash"
-
 # Build the acoustics spike detection library
 cd /root/dev/robosub-ros/onboard/catkin_ws/src/acoustics/rust
 . "$HOME/.cargo/env"
@@ -63,4 +60,5 @@ maturin develop --release
 cd .venv/lib/python3.8/site-packages
 mv ./spike_detection /usr/local/lib/python3.8/dist-packages/spike_detection
     
-
+echo "If you did not source this script, please run"
+echo "source ${COMPUTER_TYPE}/catkin_ws/devel/setup.bash"

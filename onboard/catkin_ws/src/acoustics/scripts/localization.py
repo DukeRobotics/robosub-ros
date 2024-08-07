@@ -8,7 +8,6 @@ from record import SaleaeCapture
 CENTER_FREQUENCY = 35000
 FREQ_RADIUS = 1000
 
-spike_config = PipelineConfig()
 config = PipelineConfig(CENTER_FREQUENCY - FREQ_RADIUS, CENTER_FREQUENCY + FREQ_RADIUS)
 config.noise_floor_stdev_mult = 5.5
 
@@ -17,6 +16,7 @@ saleae = SaleaeCapture()
 def localization_pub():
 
     SAMPLE_DURATION = 2 # seconds
+    DIRECTORY = '/home/duke-robotics/robosub-ros/onboard/catkin_ws/src/acoustics/data'
 
     # -1 means we are under the octagon
     # 0-3 inclusive are the 4 quadrants relative to the robot heading
@@ -26,9 +26,9 @@ def localization_pub():
 
     while not rospy.is_shutdown():
         
-        saleae.capture(SAMPLE_DURATION, './data')
+        saleae.capture(SAMPLE_DURATION, DIRECTORY)
         
-        spikes = spikes_pipeline('./data', config)
+        spikes = spikes_pipeline(DIRECTORY, config)
         firsts = get_first_hydrophones(spikes, config)
         
         times = [s.time for s in spikes[-1]]

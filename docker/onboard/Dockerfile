@@ -58,9 +58,9 @@ RUN apt-get update && \
     ignition-fortress \
     libeigen3-dev \
     libudev-dev \
-    fuse \
-    libfuse2 \
-    psmisc
+    # fuse \
+    # libfuse2 \
+    # psmisc
 
 
 
@@ -110,16 +110,15 @@ RUN cd Vimba_4_2/VimbaPython && \
 RUN rm -rf camera-driver && \
     rm Vimba.tgz
 
-# Install Saleae Logic2 application and add to path
 # RUN wget -O "logic.zip" "http://downloads.saleae.com/logic/1.2.18/Logic+1.2.18+(64-bit).zip" && \
 #     unzip logic.zip && \
 #     mv "Logic 1.2.18 (64-bit)" "Logic" && \
 #     ln -s /root/docker-build/Logic/Logic /usr/local/bin/Logic
 
-RUN wget "https://logic2api.saleae.com/download?os=linux&arch=x64" -O "Logic.AppImage" && \
-    chmod +x Logic.AppImage && \
-    mv Logic.AppImage /usr/local/bin/Logicq:q
-    
+# RUN wget "https://logic2api.saleae.com/download?os=linux&arch=x64" -O "Logic.AppImage" && \
+#     chmod +x Logic.AppImage && \
+#     mv Logic.AppImage /usr/local/bin/Logic
+
 
 # Build and install OSQP from source
 RUN git clone --branch release-0.6.3 --recursive https://github.com/osqp/osqp.git && \

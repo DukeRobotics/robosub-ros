@@ -1,4 +1,4 @@
 <launch>
     <node name="localization_pub" pkg="acoustics" type="localization.py" output="screen"/>
-	<node name="enable" pkg="acoustics" type="enable.py" output="screen"/>
+	<!-- <node name="enable" pkg="acoustics" type="enable.py" output="screen"/> -->
 </launch>
