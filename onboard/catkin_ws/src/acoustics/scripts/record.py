@@ -16,7 +16,7 @@ class SaleaeCapture:
         )
         
         with self.manager.start_capture(
-            device_id='ECAF7B22509D66EE',
+            device_id='F4243',
             device_configuration=self.device_config,
             capture_configuration=capture_configuration) as capture:
             
