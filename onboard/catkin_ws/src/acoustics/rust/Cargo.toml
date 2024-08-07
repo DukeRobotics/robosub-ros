@@ -1,5 +1,5 @@
 [package]
-name = "pinger2"
+name = "spike_detection"
 version = "0.1.0"
 edition = "2021"
 

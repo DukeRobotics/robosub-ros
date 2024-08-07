@@ -235,7 +235,7 @@ fn pipeline(directory: &str, config: &PipelineConfig) -> Vec<usize> {
 
 /// A Python module implemented in Rust.
 #[pymodule]
-fn pinger2(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn spike_detection(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(read_saleae_csv, m)?)?;
     m.add_function(wrap_pyfunction!(read_binary_file, m)?)?;
     m.add_function(wrap_pyfunction!(read_binary_folder, m)?)?;

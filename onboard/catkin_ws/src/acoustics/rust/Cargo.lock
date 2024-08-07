@@ -187,15 +187,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
-name = "pinger2"
-version = "0.1.0"
-dependencies = [
- "num-traits",
- "pyo3",
- "sci-rs",
-]
-
-[[package]]
 name = "portable-atomic"
 version = "1.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -313,6 +304,15 @@ dependencies = [
  "num-complex",
  "num-traits",
  "paste",
+]
+
+[[package]]
+name = "spike_detection"
+version = "0.1.0"
+dependencies = [
+ "num-traits",
+ "pyo3",
+ "sci-rs",
 ]
 
 [[package]]
