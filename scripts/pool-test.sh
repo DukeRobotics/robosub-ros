@@ -16,6 +16,7 @@ tmux new-session -d -s $session
 
 tmux split-window -h
 tmux split-window -h
+tmux split-window -h
 tmux select-layout even-horizontal
 
 tmux select-pane -t 0
@@ -60,6 +61,12 @@ tmux send-keys "ssh $robot_address" 'Enter'
 tmux send-keys 'sleep 2' C-m
 tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
 tmux send-keys 'rosservice call /controls/enable True'
+
+tmux select-pane -t 6
+tmux send-keys "ssh $robot_address" 'Enter'
+tmux send-keys 'sleep 2' C-m
+tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
+tmux send-keys 'roslaunch cv depthai_mono_detection.launch' 'Enter'
 
 tmux select-pane -t 1
 
