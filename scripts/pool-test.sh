@@ -28,6 +28,9 @@ tmux split-window -v -l 50
 tmux select-pane -t 4
 tmux split-window -v -l 50
 
+tmux select-pane -t 6
+tmux split-window -v -l 50
+
 tmux select-pane -t 0
 tmux send-keys 'tmux kill-server'
 
@@ -67,6 +70,11 @@ tmux send-keys "ssh $robot_address" 'Enter'
 tmux send-keys 'sleep 2' C-m
 tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
 tmux send-keys 'roslaunch cv depthai_mono_detection.launch' 'Enter'
+
+tmux select-pane -t 7
+tmux send-keys "ssh $robot_address" 'Enter'
+tmux send-keys 'sleep 2' C-m
+tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
 
 tmux select-pane -t 1
 
