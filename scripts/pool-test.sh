@@ -51,7 +51,7 @@ tmux send-keys 'roslaunch task_planning task_runner.launch'
 tmux select-pane -t 5
 tmux send-keys 'sleep 2' C-m
 tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
-tmux send-keys 'rosservice call /controls/enable True'
+tmux send-keys 'rosservice call /controls/enable 1'
 
 tmux select-pane -t 6
 tmux send-keys 'sleep 2' C-m
