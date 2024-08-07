@@ -123,9 +123,6 @@ fn get_spike_times(samples: &AudioSamples, config: &PipelineConfig, fs: usize) -
     let filter = filtering::gen_filter(config.lowcut,config.highcut, fs as f64);
 
     let mut peaks = Vec::<Vec<Spike>>::new();
-
-    println!("here 3");
-
     for i in 0..samples.channels.len() {
         let channel_as_f64 = samples.channels[i].iter().map(|x| *x as f64).collect::<Vec<f64>>();
         let pks = filtering::get_spike_starts(&channel_as_f64, fs, &filter, config.time_skip_after_peak, config.noise_floor_stdev_mult);
@@ -140,8 +137,6 @@ fn get_spike_times(samples: &AudioSamples, config: &PipelineConfig, fs: usize) -
         // let pks = pks.iter().map(|&x| samples.times[x] as f64).collect::<Vec<f64>>();
         peaks.push(spikes);
     }
-
-    println!("here 4");
 
     peaks
 }
@@ -214,9 +209,7 @@ fn what_comes_first(groupings: &Vec<Vec<Option<f64>>>) -> Vec<usize>{
 
 #[pyfunction]
 fn spikes_pipeline(directory: &str, config: &PipelineConfig) -> Vec<Vec<Spike>> {
-    println!("here 1");
     let readings = read_binary_folder(directory).ok().unwrap();
-    println!("here 2, {}", readings.channels.len());
     let spikes = get_spike_times(&readings, config, readings.sample_rate as usize);
     spikes
 }
