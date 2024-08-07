@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from std_msgs.srv import SetBool
+from std_srvs.srv import SetBool
 import subprocess
 
 class SaleaeEnable:
