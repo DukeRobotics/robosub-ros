@@ -79,6 +79,9 @@ class CV:
 
         rospy.Subscriber("/cv/bottom/path_marker/bounding_box", CVObject, self._on_receive_cv_data, "path_marker")
 
+        rospy.Subscriber("/cv/front/pink_bins/bounding_box", CVObject, self._on_receive_cv_data, "bin_pink_front")
+        rospy.Subscriber("/cv/bottom/pink_bins/bounding_box", CVObject, self._on_receive_cv_data, "bin_pink_bottom")
+
     def _on_receive_cv_data(self, cv_data: CVObject, object_type: str) -> None:
         """
         Parse the received CV data and store it

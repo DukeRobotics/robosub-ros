@@ -18,13 +18,17 @@ class PinkBinsDetector:
 
     def __init__(self):
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("/camera/usb/front/compressed", CompressedImage, self.image_callback,
+
+        self.camera = rospy.get_param("~camera")
+        rospy.init_node(f"{self.camera}_pink_bins_detector", anonymous=True)
+
+        self.image_sub = rospy.Subscriber(f"/camera/usb/{self.camera}/compressed", CompressedImage, self.image_callback,
                                           queue_size=1)
 
-        self.pink_bins_hsv_filtered_pub = rospy.Publisher("/cv/front/pink_bins/hsv_filtered", Image, queue_size=10)
-        self.pink_bins_dbscan_pub = rospy.Publisher("/cv/front/pink_bins/dbscan", Image, queue_size=10)
-        self.pink_bins_detections_pub = rospy.Publisher("/cv/front/pink_bins/detections", Image, queue_size=10)
-        self.pink_bins_bounding_box_pub = rospy.Publisher("/cv/front/pink_bins/bounding_box", CVObject, queue_size=10)
+        self.pink_bins_hsv_filtered_pub = rospy.Publisher(f"/cv/{self.camera}/pink_bins/hsv_filtered", Image, queue_size=10)
+        self.pink_bins_dbscan_pub = rospy.Publisher(f"/cv/{self.camera}/pink_bins/dbscan", Image, queue_size=10)
+        self.pink_bins_detections_pub = rospy.Publisher(f"/cv/{self.camera}/pink_bins/detections", Image, queue_size=10)
+        self.pink_bins_bounding_box_pub = rospy.Publisher(f"/cv/{self.camera}/pink_bins/bounding_box", CVObject, queue_size=10)
 
     def image_callback(self, data):
         # Convert the compressed ROS image to OpenCV format
@@ -102,7 +106,6 @@ class PinkBinsDetector:
 
 
 if __name__ == "__main__":
-    rospy.init_node('pink_bins_detector', anonymous=True)
     detector = PinkBinsDetector()
     try:
         rospy.spin()

@@ -730,7 +730,7 @@ async def bin_task(self: Task) -> Task[None, None, None]:
     DropMarker(False)
     # DropMarker(True)
     rospy.loginfo("Dropped first marker")
-    await sleep(5)
+    await sleep(1)
 
     # DropMarker(False)
     DropMarker(True)
@@ -741,3 +741,85 @@ async def bin_task(self: Task) -> Task[None, None, None]:
     rospy.loginfo(f"Corrected depth to {START_DEPTH_LEVEL}")
 
     rospy.loginfo("Completed bin task")
+
+
+@task
+async def octagon_task(self: Task) -> Task[None, None, None]:
+    """
+    Detects, move towards the pink bins, then surfaces inside the octagon. Requires robot to have submerged 0.7 meters.
+    """
+    rospy.loginfo("Starting octagon task")
+
+    DEPTH_LEVEL = State().orig_depth - 0.8
+    LATENCY_THRESHOLD = 2
+
+    async def correct_depth():
+        await move_tasks.correct_depth(desired_depth=DEPTH_LEVEL, parent=self)
+    self.correct_depth = correct_depth
+
+    async def correct_yaw():
+        yaw_correction = CV().cv_data["bin_pink"].yaw
+        rospy.loginfo(f"Yaw correction: {yaw_correction}")
+        sign = 1 if yaw_correction > 0.1 else (-1 if yaw_correction < -0.1 else 0)
+        await move_tasks.move_to_pose_local(
+            geometry_utils.create_pose(0, 0, 0, 0, 0, yaw_correction + (sign * 0.1)),
+            keep_level=True,
+            parent=self
+        )
+        rospy.loginfo("Corrected yaw")
+    self.correct_yaw = correct_yaw
+
+    # TODO: modify this so it also checks for recent pink bin data
+    def is_receiving_pink_bin_data():
+        return "bin_pink_bottom" in CV().cv_data and \
+            int(time.time()) - CV().cv_data["bin_pink_bottom"].header.stamp.secs < LATENCY_THRESHOLD
+        
+    def publish_power():
+        power = Twist()
+        power.linear.x = 0.3
+        Controls().set_axis_control_type(x=ControlTypes.DESIRED_POWER, y=ControlTypes.DESIRED_POWER, yaw=ControlTypes.DESIRED_POWER)
+        Controls().publish_desired_power(power, set_control_types=False)
+
+    def stabilize():
+        pose_to_hold = copy.deepcopy(State().state.pose.pose)
+        Controls().publish_desired_position(pose_to_hold)
+
+    async def sleep(secs):
+        duration = rospy.Duration(secs)
+        start_time = rospy.Time.now()
+        while start_time + duration > rospy.Time.now():
+            await Yield()
+    
+    async def move_to_pink_bins():
+        count = 1
+
+        publish_power()
+        while not is_receiving_pink_bin_data():
+            if count % 20 == 0:
+                rospy.loginfo("Stabilizing...")
+                stabilize()
+                await sleep(1)
+
+                await correct_depth()
+                await correct_yaw()
+
+                await sleep(1)
+
+                publish_power()
+                rospy.loginfo("Published forward power")
+
+            await Yield()
+
+            await sleep(0.1)
+            count += 1
+
+        rospy.loginfo("Reached pink bins, stabilizing...")
+        stabilize()
+        await sleep(5)
+
+    await move_to_pink_bins()
+
+    rospy.loginfo("Surfacing...")
+    Controls().call_enable_controls(False)
+    await sleep(20)
+    rospy.loginfo("Finished surfacing")
