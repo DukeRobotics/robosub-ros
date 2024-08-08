@@ -65,7 +65,6 @@ def main():
             comp_tasks.gate_style_task(parent=Task.MAIN_ID),
             comp_tasks.yaw_to_cv_object('buoy', direction=1, depth_level=0.6, parent=Task.MAIN_ID),
             comp_tasks.buoy_task(turn_to_face_buoy=False, depth=0.6, parent=Task.MAIN_ID),
-            # comp_tasks.buoy_circumnavigation_power(parent=Task.MAIN_ID)
             # comp_tasks.bin_task(parent=Task.MAIN_ID),
             comp_tasks.yaw_to_cv_object('bin_pink_front', direction=-1, yaw_threshold=math.radians(15), depth_level=0.8, parent=Task.MAIN_ID),
             comp_tasks.octagon_task(parent=Task.MAIN_ID),

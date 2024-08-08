@@ -4,6 +4,7 @@ import rospy
 import cv2
 import numpy as np
 import math
+from functools import reduce
 from sklearn.cluster import DBSCAN
 from sensor_msgs.msg import CompressedImage, Image
 from custom_msgs.msg import CVObject
@@ -19,9 +20,9 @@ class PinkBinsDetector:
     def __init__(self):
         self.bridge = CvBridge()
 
-        self.camera = rospy.get_param("~camera")
-        rospy.init_node(f"{self.camera}_pink_bins_detector", anonymous=True)
+        rospy.init_node("pink_bins_detector", anonymous=True)
 
+        self.camera = rospy.get_param("~camera")
         self.image_sub = rospy.Subscriber(f"/camera/usb/{self.camera}/compressed", CompressedImage, self.image_callback,
                                           queue_size=1)
 
@@ -43,13 +44,20 @@ class PinkBinsDetector:
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         # Define range for blue color and create mask
-        lower_pink = np.array([125, 50, 150])
-        upper_pink = np.array([170, 255, 255])
-        mask = cv2.inRange(hsv, lower_pink, upper_pink)
+        # lower_pink = np.array([110, 100, 150])
+        # upper_pink = np.array([170, 255, 255])
+        mask_1 = cv2.inRange(hsv, np.array([110, 50, 150]), np.array([130, 100, 200]))
+        mask_2 = cv2.inRange(hsv, np.array([130, 80, 180]), np.array([150, 150, 255]))
+        mask_3 = cv2.inRange(hsv, np.array([150, 130, 200]), np.array([170, 255, 255]))
+        mask = reduce(cv2.bitwise_or, [mask_1, mask_2, mask_3])
         hsv_filtered_msg = self.bridge.cv2_to_imgmsg(mask, "mono8")
         self.pink_bins_hsv_filtered_pub.publish(hsv_filtered_msg)
 
         points = np.argwhere(mask > 0)
+        if len(points) == 0:
+            self.publish_with_no_detection(frame, hsv_filtered_msg)
+            return
+
         dbscan_img = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
 
         db = DBSCAN(eps=2, min_samples=10).fit(points)
@@ -59,9 +67,7 @@ class PinkBinsDetector:
         cluster_counts = {k: np.sum(labels == k) for k in unique_labels if k != -1}
 
         if cluster_counts == {}:
-            frame_msg = self.bridge.cv2_to_imgmsg(frame, "rgb8")
-            self.pink_bins_dbscan_pub.publish(hsv_filtered_msg)
-            self.pink_bins_detections_pub.publish(frame_msg)
+            self.publish_with_no_detection(frame, hsv_filtered_msg)
             return
 
         sorted_cluster_labels = sorted(cluster_counts, key=cluster_counts.get, reverse=True)
@@ -83,6 +89,10 @@ class PinkBinsDetector:
                 final_y = center_y
                 chosen_label_score = max_clust_points.shape[0]
 
+        if chosen_label_score < 30:
+            self.publish_with_no_detection(frame, hsv_filtered_msg)
+            return
+
         final_point_int = (int(final_x), int(final_y))
 
         cv2.circle(dbscan_img, final_point_int, 7, (0, 0, 255), -1)
@@ -103,6 +113,11 @@ class PinkBinsDetector:
         cv_object.yaw = -compute_yaw(final_x_normalized, final_x_normalized, self.MONO_CAM_IMG_SHAPE[0])
         cv_object.score = chosen_label_score
         self.pink_bins_bounding_box_pub.publish(cv_object)
+
+    def publish_with_no_detection(self, frame, hsv_filtered_msg):
+        frame_msg = self.bridge.cv2_to_imgmsg(frame, "bgr8")
+        self.pink_bins_dbscan_pub.publish(hsv_filtered_msg)
+        self.pink_bins_detections_pub.publish(frame_msg)
 
 
 if __name__ == "__main__":

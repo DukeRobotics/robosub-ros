@@ -27,7 +27,7 @@ class CV:
     FRAME_WIDTH = 640
     FRAME_HEIGHT = 320
 
-    BIN_WIDTH =  0.3048 # Width of single bin in meters
+    BIN_WIDTH = 0.3048  # Width of single bin in meters
     BUOY_WIDTH = 0.2032  # Width of buoy in meters
     GATE_IMAGE_WIDTH = 0.2452  # Width of gate images in meters
     GATE_IMAGE_HEIGHT = 0.2921  # Height of gate images in meters
@@ -91,7 +91,7 @@ class CV:
             object_type: The name/type of the object
         """
         self.cv_data[object_type] = cv_data
-    
+
     def _on_receive_distance_data(self, distance_data: Point, object_type: str) -> None:
         """
         Parse the received distance data and store it

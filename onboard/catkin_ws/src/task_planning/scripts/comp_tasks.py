@@ -238,14 +238,21 @@ async def buoy_task(self: Task, turn_to_face_buoy=False, depth=0.7) -> Task[None
         await move_to_buoy()
 
     # Link up with path marker
+    # directions = [
+    #     # (0, -1, 0),
+    #     # (0, 0.5, 0),
+    #     # (1, 0, 0),
+    #     # (1, 0, 0),
+    #     # (0.5, 0, 0),
+    #     # (0, -1, 0),
+    #     # (0, -0.5, 0)
+    # ]
+    # await move_with_directions(directions)
+
+    # Move towards octagon
     directions = [
-        (0, -1, 0),
-        # (0, 0.5, 0),
-        (1, 0, 0),
-        # (1, 0, 0),
-        # (0.5, 0, 0),
-        # (0, -1, 0),
-        # (0, -0.5, 0)
+        (0, -2, 0),
+        (0, -2, 0)
     ]
     await move_with_directions(directions)
 
@@ -750,7 +757,7 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
     """
     rospy.loginfo("Starting octagon task")
 
-    DEPTH_LEVEL = State().orig_depth - 0.8
+    DEPTH_LEVEL = State().orig_depth - 0.5
     LATENCY_THRESHOLD = 2
 
     async def correct_depth():
@@ -758,7 +765,7 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
     self.correct_depth = correct_depth
 
     async def correct_yaw():
-        yaw_correction = CV().cv_data["bin_pink"].yaw
+        yaw_correction = CV().cv_data["bin_pink_front"].yaw
         rospy.loginfo(f"Yaw correction: {yaw_correction}")
         sign = 1 if yaw_correction > 0.1 else (-1 if yaw_correction < -0.1 else 0)
         await move_tasks.move_to_pose_local(
@@ -770,15 +777,19 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
     self.correct_yaw = correct_yaw
 
     # TODO: modify this so it also checks for recent pink bin data
-    def is_receiving_pink_bin_data():
-        return "bin_pink_bottom" in CV().cv_data and \
-            int(time.time()) - CV().cv_data["bin_pink_bottom"].header.stamp.secs < LATENCY_THRESHOLD
-        
+    def is_receiving_pink_bin_data(latest_detection):
+        return latest_detection and "bin_pink_bottom" in CV().cv_data and \
+            int(time.time()) - CV().cv_data["bin_pink_bottom"].header.stamp.secs < LATENCY_THRESHOLD and \
+            abs(CV().cv_data["bin_pink_bottom"].header.stamp.secs - latest_detection) < LATENCY_THRESHOLD
+
     def publish_power():
         power = Twist()
         power.linear.x = 0.3
         Controls().set_axis_control_type(x=ControlTypes.DESIRED_POWER, y=ControlTypes.DESIRED_POWER, yaw=ControlTypes.DESIRED_POWER)
         Controls().publish_desired_power(power, set_control_types=False)
+
+    async def move_x(step=1):
+        await move_tasks.move_x(step=step, parent=self)
 
     def stabilize():
         pose_to_hold = copy.deepcopy(State().state.pose.pose)
@@ -789,12 +800,29 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
         start_time = rospy.Time.now()
         while start_time + duration > rospy.Time.now():
             await Yield()
-    
+
+    def get_step_size(last_step_size):
+        bin_pink_score = CV().cv_data["bin_pink_front"].score
+        step = 0
+        if bin_pink_score < 200:
+            step = 3
+        elif bin_pink_score < 500:
+            step = 2
+        elif bin_pink_score < 2000:
+            step = 1
+        else:
+            step = 0.5
+
+        return min(step, last_step_size)
+
     async def move_to_pink_bins():
         count = 1
+        latest_detection = None
 
         publish_power()
-        while not is_receiving_pink_bin_data():
+        # last_step_size = float('inf')
+        # await move_x(step=1)
+        while not is_receiving_pink_bin_data(latest_detection):
             if count % 20 == 0:
                 rospy.loginfo("Stabilizing...")
                 stabilize()
@@ -806,11 +834,15 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
                 await sleep(1)
 
                 publish_power()
+                # step = get_step_size(last_step_size)
+                # await move_x(step=step)
+                # last_step_size = step
                 rospy.loginfo("Published forward power")
 
             await Yield()
-
             await sleep(0.1)
+
+            latest_detection = CV().cv_data["bin_pink_bottom"].header.stamp.secs
             count += 1
 
         rospy.loginfo("Reached pink bins, stabilizing...")
@@ -821,5 +853,5 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
 
     rospy.loginfo("Surfacing...")
     Controls().call_enable_controls(False)
-    await sleep(20)
+    await sleep(10)
     rospy.loginfo("Finished surfacing")
