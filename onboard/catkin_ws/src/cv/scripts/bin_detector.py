@@ -149,10 +149,9 @@ class BinDetector:
         bounding_box.width = int(w)
         bounding_box.height = int(h)
 
-        
         # Compute distance between center of bounding box and center of image
         # Here, image x is robot's y, and image y is robot's z
-        dist_x, dist_y = compute_center_distance(x, y, *self.MONO_CAM_IMG_SHAPE, height_adjustment_constant=30)
+        dist_x, dist_y = compute_center_distance(x, y, *self.MONO_CAM_IMG_SHAPE, height_adjustment_constant=25, width_adjustment_constant=15)
 
         # Compute distance between center of bounding box and center of image in meters
         dist_x_meters = dist_x * meters_per_pixel

@@ -133,6 +133,8 @@ class Controls:
         pitch = self.control_types.pitch if pitch is None else pitch
         yaw = self.control_types.yaw if yaw is None else yaw
 
+        self._all_axes_control_type = None
+
         self._set_control_types(ControlTypes(x=x, y=y, z=z, roll=roll, pitch=pitch, yaw=yaw))
 
     # Resets the PID loops. Should be called for every "new" movement

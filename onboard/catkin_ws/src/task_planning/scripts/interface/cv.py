@@ -24,6 +24,9 @@ class CV:
     # TODO We may want a better way to sync this between here and the cv node
     CV_MODEL = "yolov7_tiny_2023_main"
 
+    FRAME_WIDTH = 640
+    FRAME_HEIGHT = 320
+
     BIN_WIDTH =  0.3048 # Width of single bin in meters
     BUOY_WIDTH = 0.2032  # Width of buoy in meters
     GATE_IMAGE_WIDTH = 0.2452  # Width of gate images in meters
@@ -72,6 +75,8 @@ class CV:
         rospy.Subscriber("/cv/bottom/bin_red/distance", Point, self._on_receive_distance_data, "bin_red")
         rospy.Subscriber("/cv/bottom/bin_center/distance", Point, self._on_receive_distance_data, "bin_center")
 
+        self.bin_distances = {object_type: {"x": [], "y": []} for object_type in ["bin_red", "bin_blue"]}
+
         rospy.Subscriber("/cv/bottom/path_marker/bounding_box", CVObject, self._on_receive_cv_data, "path_marker")
 
     def _on_receive_cv_data(self, cv_data: CVObject, object_type: str) -> None:
@@ -92,9 +97,24 @@ class CV:
             distance_data: The received distance data as a Point
             object_type: The name/type of the object
         """
+        filter_len = 10
 
         # pictured below is someone's future problem of deciding how cv_data should be structured
-        self.cv_data[f"{object_type}_distance"] = distance_data
+        if len(self.bin_distances[object_type]["x"]) == filter_len:
+            self.bin_distances[object_type]["x"].pop(0)
+        if len(self.bin_distances[object_type]["y"]) == filter_len:
+            self.bin_distances[object_type]["y"].pop(0)
+
+        self.bin_distances[object_type]["x"].append(distance_data.x)
+        self.bin_distances[object_type]["y"].append(distance_data.y)
+
+        if "bin_red_distance" not in self.cv_data:
+            self.cv_data["bin_red_distance"] = Point()
+        if "bin_blue_distance" not in self.cv_data:
+            self.cv_data["bin_blue_distance"] = Point()
+
+        self.cv_data[f"{object_type}_distance"].x = sum(self.bin_distances[object_type]["x"]) / len(self.bin_distances[object_type]["x"])
+        self.cv_data[f"{object_type}_distance"].y = sum(self.bin_distances[object_type]["y"]) / len(self.bin_distances[object_type]["y"])
 
         red_data = self.cv_data["bin_red_distance"]
         blue_data = self.cv_data["bin_blue_distance"]
@@ -102,11 +122,24 @@ class CV:
         if (red_data and blue_data):
             red_x, red_y = red_data.x, red_data.y
             blue_x, blue_y = blue_data.x, blue_data.y
-            center_red_x = 320 - red_x
-            center_red_y = 240 - red_y
-            center_blue_x = 320 - blue_x
-            center_blue_y = 240 - blue_y
-            self.cv_data["bin_center_angle_rad"] = np.arctan2(center_red_y - center_blue_y, center_red_x - center_blue_x)
+
+            center_red_x = self.FRAME_WIDTH / 2 - red_x
+            center_red_y = self.FRAME_HEIGHT / 2 - red_y
+            center_blue_x = self.FRAME_WIDTH / 2 - blue_x
+            center_blue_y = self.FRAME_HEIGHT / 2 - blue_y
+
+            angle = np.arctan2(center_red_y - center_blue_y, center_red_x - center_blue_x)
+            if angle > np.pi:
+                angle -= 2 * np.pi
+            elif angle < -np.pi:
+                angle += 2 * np.pi
+
+            if angle > np.pi / 2:
+                angle -= np.pi
+            elif angle < -np.pi / 2:
+                angle += np.pi
+
+            self.cv_data["bin_angle"] = angle
 
     # TODO add useful methods for getting data
 

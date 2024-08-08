@@ -58,16 +58,17 @@ def main():
     try:
         # Tasks to run
         tasks = [
-            comp_tasks.initial_submerge(-0.5, parent=Task.MAIN_ID),
+            comp_tasks.initial_submerge(-0.6, parent=Task.MAIN_ID),
             # comp_tasks.coin_flip(parent=Task.MAIN_ID),
             # comp_tasks.yaw_to_cv_object('gate_red_cw', direction=-1, yaw_threshold=math.radians(15), depth_level=0.6, parent=Task.MAIN_ID),
-            # comp_tasks.gate_task(direction_to_center=-1, parent=Task.MAIN_ID),
-            # comp_tasks.gate_style_task(parent=Task.MAIN_ID),
-            # comp_tasks.yaw_to_cv_object('buoy', direction=1, depth_level=0.8, parent=Task.MAIN_ID),
-            # comp_tasks.buoy_task(parent=Task.MAIN_ID),
-            comp_tasks.bin_task(parent=Task.MAIN_ID),
+            comp_tasks.gate_task(offset=0.1, parent=Task.MAIN_ID),
+            comp_tasks.gate_style_task(parent=Task.MAIN_ID),
+            comp_tasks.yaw_to_cv_object('buoy', direction=1, depth_level=0.6, parent=Task.MAIN_ID),
+            comp_tasks.buoy_task(turn_to_face_buoy=False, depth=0.6, parent=Task.MAIN_ID),
+            # comp_tasks.buoy_circumnavigation_power(parent=Task.MAIN_ID)
+            # comp_tasks.bin_task(parent=Task.MAIN_ID),
         ]
-        input("Press enter to run tasks...")
+        # input("Press enter to run tasks...")
         rospy.loginfo("Running tasks.")
 
         # Step through tasks, stopping if rospy is shutdown

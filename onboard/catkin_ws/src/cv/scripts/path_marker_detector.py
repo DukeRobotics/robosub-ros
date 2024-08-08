@@ -47,10 +47,6 @@ class PathMarkerDetector:
 
         # Find contours in the mask
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-        #rospy.loginfo(len(contours))
-
-        # hung hackz (python superiority)
         contours = [contour for contour in contours if len(contours) > 50 and cv2.contourArea(contour) > 500]
 
         # Fit a line to the largest contour

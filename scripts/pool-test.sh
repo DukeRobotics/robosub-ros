@@ -29,7 +29,7 @@ tmux send-keys 'tmux kill-server'
 tmux select-pane -t 2
 tmux send-keys 'dkill' 'Enter'
 tmux send-keys 'onboard' 'Enter'
-tmux send-keys 'sleep 1' C-m # need shorter delay here so that roscore is started first
+tmux send-keys 'sleep 0.5' C-m # need shorter delay here so that roscore is started first
 tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
 tmux send-keys 'roscore' 'Enter'
 
