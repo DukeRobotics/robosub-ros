@@ -87,7 +87,7 @@ class BinDetector:
             contours_blue = contours_blue[0]
 
             bbox, image, dist = self.process_contours(frame.copy(), contours_blue)
-            if bbox and image and dist:
+            if bbox and image and dist and cv2.contourArea(contours_blue) > 500:
                 self.blue_bin_contour_image_pub.publish(image)
                 self.blue_bin_bounding_box_pub.publish(bbox)
                 self.blue_bin_distance_pub.publish(dist)
@@ -97,7 +97,7 @@ class BinDetector:
             contours_red = contours_red[0]
 
             bbox, image, dist = self.process_contours(frame.copy(), contours_red)
-            if bbox and image and dist:
+            if bbox and image and dist and cv2.contourArea(contours_red) > 500:
                 self.red_bin_contour_image_pub.publish(image)
                 self.red_bin_bounding_box_pub.publish(bbox)
                 self.red_bin_distance_pub.publish(dist)
@@ -152,7 +152,7 @@ class BinDetector:
         
         # Compute distance between center of bounding box and center of image
         # Here, image x is robot's y, and image y is robot's z
-        dist_x, dist_y = compute_center_distance(x, y, *self.MONO_CAM_IMG_SHAPE)
+        dist_x, dist_y = compute_center_distance(x, y, *self.MONO_CAM_IMG_SHAPE, height_adjustment_constant=30)
 
         # Compute distance between center of bounding box and center of image in meters
         dist_x_meters = dist_x * meters_per_pixel

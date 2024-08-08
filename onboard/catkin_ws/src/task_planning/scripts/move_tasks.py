@@ -13,7 +13,7 @@ from utils import geometry_utils, coroutine_utils
 
 
 @task
-async def move_to_pose_global(self: Task, pose: Pose) -> Task[None, Optional[Pose], None]:
+async def move_to_pose_global(self: Task, pose: Pose, timeout: int = 30) -> Task[None, Optional[Pose], None]:
     """
     Move to a global pose in the "odom" frame. Returns when the robot is at the given pose with zero velocity, within
     a small tolerance.
@@ -26,6 +26,7 @@ async def move_to_pose_global(self: Task, pose: Pose) -> Task[None, Optional[Pos
     """
     Controls().start_new_move()
     Controls().publish_desired_position(pose)
+    start_time = rospy.Time.now()
     while not geometry_utils.stopped_at_pose(State().state.pose.pose, pose, State().state.twist.twist):
         # Allow users of this task to update the pose
         new_pose = await Yield()
@@ -34,9 +35,14 @@ async def move_to_pose_global(self: Task, pose: Pose) -> Task[None, Optional[Pos
 
         Controls().publish_desired_position(pose)
 
+        # Check if the timeout has been reached
+        if (rospy.Time.now() - start_time).to_sec() > timeout:
+            rospy.logwarn("Move to pose timed out")
+            return None
+
 
 @task
-async def move_to_pose_local(self: Task, pose: Pose, keep_level=True) -> Task[None, Optional[Pose], None]:
+async def move_to_pose_local(self: Task, pose: Pose, keep_level=False, timeout: int = 30) -> Task[None, Optional[Pose], None]:
     """
     Move to local pose in the "base_link" frame. Returns when the robot is at the given pose with zero velocity, within
     a small tolerance.
@@ -57,7 +63,7 @@ async def move_to_pose_local(self: Task, pose: Pose, keep_level=True) -> Task[No
             euler2quat(orig_euler_angles[0], orig_euler_angles[1], euler_angles[2]))
 
     return await coroutine_utils.transform(
-        move_to_pose_global(global_pose, parent=self),
+        move_to_pose_global(global_pose, timeout=timeout, parent=self),
         send_transformer=lambda p: geometry_utils.local_pose_to_global(State().tfBuffer, p) if p else p)
 
 

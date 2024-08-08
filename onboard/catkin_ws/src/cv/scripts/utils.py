@@ -171,8 +171,7 @@ def compute_bbox_dimensions(polygon):
     return msg
 
 
-# TODO make redundant and delete
-def compute_center_distance(bbox_center_x, bbox_center_y, frame_width, frame_height):
+def compute_center_distance(bbox_center_x, bbox_center_y, frame_width, frame_height, width_adjustment_constant=0, height_adjustment_constant=0):
 
     '''
     Note that x, y is in the camera's reference frame
@@ -183,8 +182,8 @@ def compute_center_distance(bbox_center_x, bbox_center_y, frame_width, frame_hei
     frame_center_y = frame_height / 2
 
     # Compute the distances between the centers
-    distance_x = bbox_center_x - frame_center_x
-    distance_y = bbox_center_y - frame_center_y
+    distance_x = bbox_center_x - frame_center_x + height_adjustment_constant
+    distance_y = bbox_center_y - frame_center_y + width_adjustment_constant
 
     return distance_x, distance_y
 

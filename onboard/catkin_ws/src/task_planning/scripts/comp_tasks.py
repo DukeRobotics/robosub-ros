@@ -33,7 +33,7 @@ async def gate_style_task(self: Task) -> Task[None, None, None]:
 
     rospy.loginfo("Started gate style task")
 
-    DEPTH_LEVEL = State().orig_depth - 0.8
+    DEPTH_LEVEL = State().orig_depth - 0.6
 
     async def sleep(secs):
         duration = rospy.Duration(secs)
@@ -79,14 +79,14 @@ async def gate_style_task(self: Task) -> Task[None, None, None]:
 
 
 @task
-async def buoy_task(self: Task) -> Task[None, None, None]:
+async def buoy_task(self: Task, turn_to_face_buoy=False) -> Task[None, None, None]:
     """
     Circumnavigate the buoy. Requires robot to have submerged 0.5 meters.
     """
 
     rospy.loginfo('starting buoy_task')
 
-    DEPTH_LEVEL = State().orig_depth - 0.8
+    DEPTH_LEVEL = State().orig_depth - 0.7
 
     async def correct_y():
         # y = -(CV().cv_data["buoy_properties"]["y"])
@@ -108,7 +108,9 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
         await move_tasks.move_x(step=step, parent=self)
 
     def get_step_size(dist, dist_threshold):
-        if dist > 2:
+        if dist > 3:
+            return 2
+        elif dist > 2:
             return 1
         elif dist > 1.5:
             return 0.5
@@ -119,16 +121,22 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
         buoy_dist = CV().cv_data["buoy"].coords.x
         await correct_y()
         await correct_depth()
+        # await correct_z()
         while buoy_dist > buoy_dist_threshold:
             await move_x(step=get_step_size(buoy_dist, buoy_dist_threshold))
             rospy.loginfo(f"Buoy dist: {CV().cv_data['buoy'].coords.x}")
             await correct_y()
-            await correct_depth()
+            if buoy_dist < 3:
+                await correct_z()
+            else:
+                await correct_depth()
+
             await Yield()
             buoy_dist = CV().cv_data["buoy"].coords.x
             rospy.loginfo(f"Buoy dist: {CV().cv_data['buoy'].coords.x}")
 
-        await correct_depth()
+        # await correct_depth()
+        await correct_z()
 
     await move_to_buoy()
 
@@ -154,43 +162,74 @@ async def buoy_task(self: Task) -> Task[None, None, None]:
     self.correct_yaw = correct_yaw
 
     async def move_with_directions(directions):
-        # for direction in directions:
-        #     await move_tasks.move_to_pose_local(
-        #         geometry_utils.create_pose(direction[0], direction[1], direction[2], 0, 0, 0),
-        #         parent=self)
-        #     rospy.loginfo(f"Moved to {direction}")
-        #     await correct_yaw()
-        #     await correct_depth()
-
         await move_tasks.move_with_directions(directions, correct_yaw=True, correct_depth=True, parent=self)
 
-    # Circumnavigate buoy
-    directions = [
-        (0, 1, 0),
-        (0, 0.5, 0),
-        (1, 0, 0),
-        (1, 0, 0),
-        (1, 0, 0),
-        (0, -1, 0),
-        (0, -1, 0),
-        (0, -0.5, 0),
-        (-1, 0, 0),
-        (-1, 0, 0),
-        (-1, 0, 0),
-        (0, 1, 0),
-        (0, 0.5, 0)
-    ]
-    await move_with_directions(directions)
+    if turn_to_face_buoy:
+        def get_step_size_move_away(dist, dist_threshold):
+            if dist < 1:
+                return -0.5
+            else:
+                return max(dist - dist_threshold - 0.1, -0.25)
 
-    await move_to_buoy()
+        async def move_away_from_buoy(buoy_dist_threshold=1.5):
+            rospy.loginfo("Moving away from buoy")
+            buoy_dist = CV().cv_data["buoy"].coords.x
+            await correct_y()
+            await correct_z()
+            while buoy_dist < buoy_dist_threshold:
+                await move_x(step=get_step_size_move_away(buoy_dist, buoy_dist_threshold))
+
+                rospy.loginfo(f"Buoy dist: {CV().cv_data['buoy'].coords.x}")
+                await correct_y()
+                await correct_z()
+                await Yield()
+                buoy_dist = CV().cv_data["buoy"].coords.x
+                rospy.loginfo(f"Buoy dist: {CV().cv_data['buoy'].coords.x}")
+
+            rospy.loginfo("Moved away from buoy")
+
+        # Circumnavigate buoy
+        for _ in range(4):
+            directions = [
+                (0, 1, 0),
+                (0, 0.5, 0),
+                (1, 0, 0),
+                (0.5, 0, 0),
+            ]
+            await move_with_directions(directions)
+            await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, 0, 0, math.radians(30)), parent=self)
+            await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, 0, 0, math.radians(30)), parent=self)
+            await yaw_to_cv_object('buoy', direction=-1, yaw_threshold=math.radians(15), depth_level=State().depth, parent=self)
+            await move_away_from_buoy()
+
+    else:
+        # Circumnavigate buoy
+        directions = [
+            (0, 1, 0),
+            # (0, 0.5, 0),
+            (1, 0, 0),
+            (1, 0, 0),
+            (0.5, 0, 0),
+            (0, -1, 0),
+            (0, -1, 0),
+            # (0, -0.5, 0),
+            (-1, 0, 0),
+            (-1, 0, 0),
+            (-0.5, 0, 0),
+            (0, 1, 0),
+            # (0, 0.5, 0)
+        ]
+        await move_with_directions(directions)
+
+        await move_to_buoy()
 
     # Link up with path marker
     directions = [
         (0, 1, 0),
-        (0, 0.5, 0),
+        # (0, 0.5, 0),
         (1, 0, 0),
         (1, 0, 0),
-        (1, 0, 0),
+        (0.5, 0, 0),
         (0, -1, 0),
         (0, -0.5, 0)
     ]
@@ -217,7 +256,7 @@ async def initial_submerge(self: Task, submerge_dist: float) -> Task[None, None,
 @task
 async def coin_flip(self: Task) -> Task[None, None, None]:
     rospy.loginfo("Started coin flip")
-    DEPTH_LEVEL = State().orig_depth - 0.8
+    DEPTH_LEVEL = State().orig_depth - 0.6
 
     def get_yaw_correction():
         orig_imu_orientation = copy.deepcopy(State().orig_imu.orientation)
@@ -249,7 +288,7 @@ async def coin_flip(self: Task) -> Task[None, None, None]:
 @task
 async def gate_task_dead_reckoning(self: Task) -> Task[None, None, None]:
     rospy.loginfo("Started gate task")
-    DEPTH_LEVEL = State().orig_depth - 0.8
+    DEPTH_LEVEL = State().orig_depth - 0.6
     STEPS = 5
 
     for _ in range(STEPS):
@@ -260,12 +299,12 @@ async def gate_task_dead_reckoning(self: Task) -> Task[None, None, None]:
 
 
 @task
-async def gate_task(self: Task) -> Task[None, None, None]:
+async def gate_task(self: Task, direction_to_center: int) -> Task[None, None, None]:
     rospy.loginfo("Started gate task")
-    DEPTH_LEVEL = State().orig_depth - 0.8
+    DEPTH_LEVEL = State().orig_depth - 0.6
 
     async def correct_y(factor=1):
-        await cv_tasks.correct_y(prop="gate_red_cw", add_factor=-0.2, mult_factor=factor, parent=self)
+        await cv_tasks.correct_y(prop="gate_red_cw", add_factor=0.2 + (direction_to_center * 0.2), mult_factor=factor, parent=self)
 
     async def correct_z():
         await cv_tasks.correct_z(prop="gate_red_cw", parent=self)
@@ -296,10 +335,10 @@ async def gate_task(self: Task) -> Task[None, None, None]:
     gate_dist = CV().cv_data["gate_red_cw"].coords.x
     await correct_y(factor=0.5)
     await correct_depth()
-    num_corrections = 1
+    num_corrections = 0
     while gate_dist > 3:
         await move_x(step=get_step_size(gate_dist))
-        await correct_y(factor=(0.5 if num_corrections < 2 else 1))
+        await correct_y(factor=(0.5 if num_corrections < 0 else 1))
         await correct_depth()
         await Yield()
         gate_dist = CV().cv_data["gate_red_cw"].coords.x
@@ -311,6 +350,7 @@ async def gate_task(self: Task) -> Task[None, None, None]:
         (1, 0, 0),
         (1, 0, 0),
         (1, 0, 0),
+        (1, 0, 0)
     ]
 
     await move_tasks.move_with_directions(directions, correct_yaw=False, correct_depth=True, parent=self)
@@ -319,7 +359,7 @@ async def gate_task(self: Task) -> Task[None, None, None]:
 
 
 @task
-async def yaw_to_cv_object(self: Task, cv_object: str,
+async def yaw_to_cv_object(self: Task, cv_object: str, direction=1,
                            yaw_threshold=math.radians(30), latency_threshold=10, depth_level=0.5) -> Task[None, None, None]:
     """
     Corrects the yaw relative to the CV object
@@ -350,21 +390,13 @@ async def yaw_to_cv_object(self: Task, cv_object: str,
     # Yaw until object detection
     await correct_depth()
 
-    if not is_receiving_cv_data():
-        power = Twist()
-        power.angular.z = -0.05
-        Controls().set_axis_control_type(yaw=ControlTypes.DESIRED_POWER)
-        Controls().publish_desired_power(power, set_control_types=False)
-        rospy.loginfo("Published yaw power")
+    while not is_receiving_cv_data():
+        await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, 0, 0, MAXIMUM_YAW * direction),
+                                            parent=self)
+        await Yield()
+        rospy.loginfo(f"No buoy detection, setting yaw setpoint {MAXIMUM_YAW}")
 
-        while not is_receiving_cv_data():
-            await Yield()
-
-        rospy.loginfo("Published zero power")
-        Controls().publish_desired_power(Twist())
-        await sleep(3)
-
-    # rospy.loginfo(f"{cv_object} detected. Now centering {cv_object} in frame...")
+    rospy.loginfo(f"{cv_object} detected. Now centering {cv_object} in frame...")
 
     # Center detected object in camera frame
     cv_object_yaw = CV().cv_data[cv_object].yaw
@@ -476,12 +508,15 @@ async def bin_task(self: Task) -> Task[None, None, None]:
     """
 
     rospy.loginfo("Started bin task")
-    START_DEPTH_LEVEL = State().orig_depth - 0.7
-    START_PIXEL_THRESHOLD = 50
-    MID_DEPTH_LEVEL = State().orig_depth - 1.0
-    MID_PIXEL_THRESHOLD = 30
-    FINAL_DEPTH_LEVEL = State().orig_depth - 1.3
-    FINAL_PIXEL_THRESHOLD = 20
+    START_DEPTH_LEVEL = State().orig_depth - 0.5
+    START_PIXEL_THRESHOLD = 70
+    MID_DEPTH_LEVEL = State().orig_depth - 1
+    MID_PIXEL_THRESHOLD = 35
+    FINAL_DEPTH_LEVEL = State().orig_depth - 1.25
+    FINAL_PIXEL_THRESHOLD = 50
+
+    FRAME_AREA = 480 * 600
+    AREA_THRESHOLD = 1/3 * FRAME_AREA
 
     DropMarker = rospy.ServiceProxy('servo_control', SetBool)
 
@@ -497,6 +532,18 @@ async def bin_task(self: Task) -> Task[None, None, None]:
     async def correct_depth(desired_depth):
         await move_tasks.correct_depth(desired_depth=desired_depth, parent=self)
     self.correct_depth = correct_depth
+
+    async def correct_yaw():
+        yaw_correction = CV().cv_data["bin_center_angle_rad"]
+        rospy.loginfo(f"Yaw correction: {yaw_correction}")
+        sign = 1 if yaw_correction > 0.1 else (-1 if yaw_correction < -0.1 else 0)
+        await move_tasks.move_to_pose_local(
+            geometry_utils.create_pose(0, 0, 0, 0, 0, yaw_correction + (sign * 0.1)),
+            keep_level=True,
+            parent=self
+        )
+        rospy.loginfo("Corrected yaw")
+    self.correct_yaw = correct_yaw
 
     async def move_x(step=1):
         await move_tasks.move_x(step=step, parent=self)
@@ -557,43 +604,65 @@ async def bin_task(self: Task) -> Task[None, None, None]:
 
     #     await correct_depth(desired_depth=desired_depth)
 
-    async def track_bin(target, step_size, pixel_threshold):
+    async def track_bin(target, desired_depth, pixel_threshold, step_size=0.16):
         rospy.loginfo(CV().cv_data[f"{target}_distance"])
         pixel_x = CV().cv_data[f"{target}_distance"].x
         pixel_y = CV().cv_data[f"{target}_distance"].y
 
-        while abs(pixel_x) > pixel_threshold or abs(pixel_y) > pixel_threshold:
+        width = CV().cv_data["bin_red"].width
+        height = CV().cv_data["bin_red"].height
+
+        count = 1
+        while (abs(pixel_x) > pixel_threshold or abs(pixel_y) > pixel_threshold) and (width * height <= AREA_THRESHOLD):
             rospy.loginfo(CV().cv_data[f"{target}_distance"])
 
             await move_x(step=step_size * get_step_mult_factor(pixel_x, pixel_threshold))
             await move_y(step=step_size * get_step_mult_factor(pixel_y, pixel_threshold))
+
+            if count % 3 == 0:
+                rospy.loginfo("correcting depth")
+                await correct_depth(desired_depth=desired_depth)
+
+            if width * height >= AREA_THRESHOLD:
+                break
 
             await Yield()
 
             pixel_x = CV().cv_data[f"{target}_distance"].x
             pixel_y = CV().cv_data[f"{target}_distance"].y
 
+            width = CV().cv_data["bin_red"].width
+            height = CV().cv_data["bin_red"].height
+
+            rospy.loginfo(f"Contour area: {width * height}")
+
+            count += 1
+
         rospy.loginfo("Finished tracking bin")
+        rospy.loginfo(f"x: {pixel_x}, y: {pixel_y}, area: {width*height}")
 
-    # await search_for_bin(target="bin_red")
     await correct_depth(desired_depth=START_DEPTH_LEVEL)
-    await track_bin(target="bin_red", step_size=0.15, pixel_threshold=START_PIXEL_THRESHOLD)
     # await search_for_bin(target="bin_red")
 
+    await track_bin(target="bin_red", desired_depth=START_DEPTH_LEVEL, pixel_threshold=START_PIXEL_THRESHOLD)
     await correct_depth(desired_depth=MID_DEPTH_LEVEL)
-    await track_bin(target="bin_red", step_size=0.1, pixel_threshold=MID_PIXEL_THRESHOLD)
+    # await search_for_bin(target="bin_red")
 
-    await correct_depth(desired_depth=FINAL_DEPTH_LEVEL)
-    await track_bin(target="bin_red", step_size=0.1, pixel_threshold=FINAL_PIXEL_THRESHOLD)
-    # await track_and_descend(target="bin_red", desired_depth=FINAL_DEPTH_LEVEL)
+    # await correct_depth(desired_depth=MID_DEPTH_LEVEL)
+    await track_bin(target="bin_red", desired_depth=MID_DEPTH_LEVEL, pixel_threshold=MID_PIXEL_THRESHOLD)
+    # await correct_depth(desired_depth=FINAL_DEPTH_LEVEL)
 
-    await sleep(1)
+    # await correct_depth(desired_depth=FINAL_DEPTH_LEVEL)
+    # await track_bin(target="bin_red", desired_depth=FINAL_DEPTH_LEVEL, pixel_threshold=FINAL_PIXEL_THRESHOLD, step_size=0.11)
 
-    DropMarker(True)
+    # await sleep(3)
+
+    # If both balls loaded on the RIGHT, this is False
+    DropMarker(False)
     rospy.loginfo("Dropped first marker")
-    await sleep(2)
+    await sleep(5)
 
-    DropMarker(True)
+    DropMarker(False)
     rospy.loginfo("Dropped second marker")
     await sleep(2)
 

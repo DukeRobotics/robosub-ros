@@ -2,6 +2,7 @@
 
 import rospy
 import tf2_ros
+import math
 
 from task import Task, TaskStatus, TaskUpdatePublisher
 from interface.controls import Controls
@@ -57,15 +58,17 @@ def main():
     try:
         # Tasks to run
         tasks = [
-            comp_tasks.initial_submerge(-0.8, parent=Task.MAIN_ID),
+            comp_tasks.initial_submerge(-0.5, parent=Task.MAIN_ID),
             # comp_tasks.coin_flip(parent=Task.MAIN_ID),
-            # comp_tasks.gate_task(parent=Task.MAIN_ID),
+            # comp_tasks.yaw_to_cv_object('gate_red_cw', direction=-1, yaw_threshold=math.radians(15), depth_level=0.6, parent=Task.MAIN_ID),
+            # comp_tasks.gate_task(direction_to_center=-1, parent=Task.MAIN_ID),
             # comp_tasks.gate_style_task(parent=Task.MAIN_ID),
-            comp_tasks.yaw_to_cv_object('buoy', depth_level=0.8, parent=Task.MAIN_ID),
-            comp_tasks.buoy_task(parent=Task.MAIN_ID),
-            # comp_tasks.bin_task(parent=Task.MAIN_ID),
+            # comp_tasks.yaw_to_cv_object('buoy', direction=1, depth_level=0.8, parent=Task.MAIN_ID),
+            # comp_tasks.buoy_task(parent=Task.MAIN_ID),
+            comp_tasks.bin_task(parent=Task.MAIN_ID),
         ]
-        rospy.loginfo("Running tasks...")
+        input("Press enter to run tasks...")
+        rospy.loginfo("Running tasks.")
 
         # Step through tasks, stopping if rospy is shutdown
         rate = rospy.Rate(30)

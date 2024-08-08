@@ -1,5 +1,6 @@
 import rospy
 import yaml
+import numpy as np
 import resource_retriever as rr
 from custom_msgs.msg import CVObject, RectInfo
 from geometry_msgs.msg import Pose, Polygon, Point
@@ -94,6 +95,18 @@ class CV:
 
         # pictured below is someone's future problem of deciding how cv_data should be structured
         self.cv_data[f"{object_type}_distance"] = distance_data
+
+        red_data = self.cv_data["bin_red_distance"]
+        blue_data = self.cv_data["bin_blue_distance"]
+
+        if (red_data and blue_data):
+            red_x, red_y = red_data.x, red_data.y
+            blue_x, blue_y = blue_data.x, blue_data.y
+            center_red_x = 320 - red_x
+            center_red_y = 240 - red_y
+            center_blue_x = 320 - blue_x
+            center_blue_y = 240 - blue_y
+            self.cv_data["bin_center_angle_rad"] = np.arctan2(center_red_y - center_blue_y, center_red_x - center_blue_x)
 
     # TODO add useful methods for getting data
 
