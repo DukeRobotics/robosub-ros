@@ -42,7 +42,7 @@ class Ping1DPublisher:
                 ping1D_ftdi_string = self._config_data['ping1D']['ftdi']
                 self._serial_port = next(list_ports.grep(ping1D_ftdi_string)).device
             except StopIteration:
-                rospy.logerr("Ping1D not found, trying again in 0.1 seconds.")
+                # rospy.logerr("Ping1D not found, trying again in 0.1 seconds.") # temp removed for competition
                 rospy.sleep(0.1)
 
         self._ping1D.connect_serial(self._serial_port, 115200)
