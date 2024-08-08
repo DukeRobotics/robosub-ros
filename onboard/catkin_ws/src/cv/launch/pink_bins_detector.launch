@@ -1,0 +1,3 @@
+<launch>
+	<node name="pink_bins_detector" pkg="cv" type="pink_bins_detector.py" output="screen"/>
+</launch>
