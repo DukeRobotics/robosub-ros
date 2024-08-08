@@ -759,6 +759,7 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
 
     DEPTH_LEVEL = State().orig_depth - 0.5
     LATENCY_THRESHOLD = 2
+    CONTOUR_SCORE_THRESHOLD = 1000
 
     async def correct_depth():
         await move_tasks.correct_depth(desired_depth=DEPTH_LEVEL, parent=self)
@@ -779,6 +780,7 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
     # TODO: modify this so it also checks for recent pink bin data
     def is_receiving_pink_bin_data(latest_detection):
         return latest_detection and "bin_pink_bottom" in CV().cv_data and \
+            CV().cv_data["bin_pink_bottom"].score >= CONTOUR_SCORE_THRESHOLD and \
             int(time.time()) - CV().cv_data["bin_pink_bottom"].header.stamp.secs < LATENCY_THRESHOLD and \
             abs(CV().cv_data["bin_pink_bottom"].header.stamp.secs - latest_detection) < LATENCY_THRESHOLD
 
