@@ -823,6 +823,9 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
         # last_step_size = float('inf')
         # await move_x(step=1)
         while not is_receiving_pink_bin_data(latest_detection):
+            if "bin_pink_bottom" in CV().cv_data:
+                latest_detection = CV().cv_data["bin_pink_bottom"].header.stamp.secs
+
             if count % 20 == 0:
                 rospy.loginfo("Stabilizing...")
                 stabilize()
@@ -842,7 +845,6 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
             await Yield()
             await sleep(0.1)
 
-            latest_detection = CV().cv_data["bin_pink_bottom"].header.stamp.secs
             count += 1
 
         rospy.loginfo("Reached pink bins, stabilizing...")
