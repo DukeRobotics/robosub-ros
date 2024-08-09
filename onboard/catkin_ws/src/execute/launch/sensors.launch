@@ -38,6 +38,12 @@
     </group>
     <group unless="$(arg sim)">
         <include file="$(find cv)/launch/pink_bins_detector.launch">
+            <arg name="camera" value="front" />
+        </include>
+    </group>
+    <group unless="$(arg sim)">
+        <include file="$(find cv)/launch/pink_bins_detector.launch">
+            <arg name="camera" value="bottom" />
         </include>
     </group>
 
