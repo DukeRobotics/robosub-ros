@@ -33,7 +33,7 @@ class PathMarkerDetector:
 
         # Define range for blue color and create mask
         lower_orange = np.array([0, 130, 100])
-        upper_orange = np.array([10, 255, 255])
+        upper_orange = np.array([20, 255, 255])
         # lower_orange = np.array([2, 80, 100])
         # upper_orange = np.array([33, 255, 255])
         mask = cv2.inRange(hsv, lower_orange, upper_orange)
@@ -47,7 +47,7 @@ class PathMarkerDetector:
 
         # Find contours in the mask
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        contours = [contour for contour in contours if len(contours) > 50 and cv2.contourArea(contour) > 500]
+        contours = [contour for contour in contours if len(contour) > 5 and cv2.contourArea(contour) > 500]
 
         # Fit a line to the largest contour
         if len(contours) > 0:
@@ -60,7 +60,6 @@ class PathMarkerDetector:
             bounding_box = CVObject()
 
             bounding_box.yaw = orientation_in_radians if orientation_in_radians < math.pi /2 else orientation_in_radians - math.pi
-            
 
             bounding_box.width = int(dimensions[0])
             bounding_box.height = int(dimensions[1])
