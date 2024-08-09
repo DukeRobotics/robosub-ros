@@ -72,6 +72,7 @@ class USBCamera:
                     break
 
             except Exception:
+                rospy.loginfo("Failed to connect to USB camera, trying again...")
                 pass
 
             if rospy.is_shutdown():
@@ -96,6 +97,8 @@ class USBCamera:
                 # Sleep loop to maintain frame rate
                 loop_rate.sleep()
         else:
+            rospy.logerr(f"{total_tries} attempts were made to connect to the USB camera. "
+                         f"The camera was not found at device_path {self.device_path}. All attempts failed.")
             raise RuntimeError(f"{total_tries} attempts were made to connect to the USB camera. "
                                f"The camera was not found at device_path {self.device_path}. All attempts failed.")
 
