@@ -1,6 +1,8 @@
 <launch>
 	<arg name="bypass" default="False" doc='{"type":"bool","allowEmpty":true,"help":"Whether to bypass rospy.wait_for_service()"}'/>
+	<arg name="untethered" default="False" doc='{"type":"bool","allowEmpty":true,"help":"Whether to run untethered"}'/>
 	<node pkg="task_planning" name="task_runner" type="task_runner.py" output="screen">
 		<param name="bypass" value="$(arg bypass)" />
+		<param name="untethered" value="$(arg untethered)" />
 	</node>
 </launch>
