@@ -693,45 +693,6 @@ async def bin_task(self: Task) -> Task[None, None, None]:
         while start_time + duration > rospy.Time.now():
             await Yield()
 
-    # async def search_for_bin(target):
-    #     red_in_frame = CV().cv_data["bin_red"]["fully_in_frame"]
-    #     blue_in_frame = CV().cv_data["bin_blue"]["fully_in_frame"]
-    #     while not red_in_frame or not blue_in_frame:
-    #         dist_x_pixels = CV().cv_data[target]["distance_x"]
-    #         dist_y_pixels = CV().cv_data[target]["distance_y"]
-
-    #         await move_tasks.move_x(step=get_step_size(dist_x_pixels))
-    #         await move_tasks.move_y(step=get_step_size(dist_y_pixels))
-    #         rospy.loginfo(f"Moved x: {get_step_size(dist_x_pixels)}")
-    #         rospy.loginfo(f"Moved y: {get_step_size(dist_y_pixels)}")
-
-    #         await Yield()
-
-    #         red_in_frame = CV().cv_data["bin_red"]["fully_in_frame"]
-    #         blue_in_frame = CV().cv_data["bin_blue"]["fully_in_frame"]
-
-    #     rospy.loginfo("Found both bins fully in frame")
-
-    # async def track_bin(target, desired_depth, threshold=0.1):
-    #     dist_x = CV().cv_data[target]["x"]
-    #     dist_y = CV().cv_data[target]["y"]
-    #     await correct_x(factor=0.5)
-    #     await correct_y(factor=0.5)
-    #     await correct_depth()
-
-    #     while dist_x >= threshold or dist_y >= threshold:
-    #         # TODO: balance the robot
-    #         await correct_x(factor=0.5)
-    #         await correct_y(factor=0.5)
-    #         await correct_depth()
-    #         await Yield()
-
-    #         dist_x = CV().cv_data[target]["distance_x_pixels"]
-    #         dist_y = CV().cv_data[target]["distance_y_pixels"]
-    #         rospy.loginfo(f"{target} properties: {CV().cv_data[target]}")
-
-    #     await correct_depth(desired_depth=desired_depth)
-
     async def track_bin(target, desired_depth, pixel_threshold, step_size=0.20, x_offset=0, y_offset=0):
         rospy.loginfo(CV().cv_data[f"{target}_distance"])
         pixel_x = CV().cv_data[f"{target}_distance"].x + x_offset
@@ -792,11 +753,9 @@ async def bin_task(self: Task) -> Task[None, None, None]:
 
     # If both balls loaded on the RIGHT, this is False
     DropMarker(False)
-    # DropMarker(True)
     rospy.loginfo("Dropped first marker")
     await sleep(3)
 
-    # DropMarker(False)
     DropMarker(True)
     rospy.loginfo("Dropped second marker")
     await sleep(2)
@@ -816,6 +775,7 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
 
     DEPTH_LEVEL = State().orig_depth - 0.5
     LATENCY_THRESHOLD = 2
+    CONTOUR_SCORE_THRESHOLD = 1000
     CONTOUR_SCORE_THRESHOLD = 1000
 
     async def correct_depth():
@@ -883,7 +843,7 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
         await move_x(step=1)
         while not is_receiving_pink_bin_data(latest_detection_time):
             if "bin_pink_bottom" in CV().cv_data:
-                latest_detection = CV().cv_data["bin_pink_bottom"].header.stamp.secs
+                latest_detection_time = CV().cv_data["bin_pink_bottom"].header.stamp.secs
 
             if count % 2 == 0:
                 rospy.loginfo("Stabilizing...")
