@@ -36,7 +36,7 @@ tmux send-keys 'roscore' 'Enter'
 tmux select-pane -t 4
 tmux send-keys 'sleep 2' C-m
 tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
-tmux send-keys 'fg-ws'
+tmux send-keys 'fg-ws' 'Enter'
 
 tmux select-pane -t 1
 tmux send-keys 'sleep 2' C-m
