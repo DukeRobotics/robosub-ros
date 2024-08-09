@@ -126,7 +126,7 @@ def angular_distance_rpy(rpy1: Tuple[float, float, float], rpy2: Tuple[float, fl
 
 
 def at_pose(current_pose: Pose, desired_pose: Pose, linear_tol: float = 0.15, roll_tol: float = 0.2,
-            pitch_tol: float = 0.3, yaw_tol: float = 0.15) -> bool:
+            pitch_tol: float = 0.3, yaw_tol: float = 0.10) -> bool:
     """
     Check if current pose is within tolerance of a desired pose (position and orientation).
 
