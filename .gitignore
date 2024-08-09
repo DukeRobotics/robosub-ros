@@ -57,3 +57,7 @@ build
 
 # Ignore offset.h in thruster arduino
 onboard/catkin_ws/src/offboard_comms/Arduino Sketchbooks/ThrusterArduino/offset.h
+
+# Ignore all data in sonar package
+onboard/catkin_ws/src/sonar/*/*.npy
+onboard/catkin_ws/src/sonar/*/*.jpeg
