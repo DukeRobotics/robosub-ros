@@ -46,7 +46,7 @@ tmux send-keys 'roslaunch execute motion.launch enable_recording:=true'
 tmux select-pane -t 3
 tmux send-keys 'sleep 2' C-m
 tmux send-keys 'sshpass -p robotics ssh -p 2200 root@192.168.1.1' 'Enter'
-tmux send-keys 'roslaunch task_planning task_runner.launch'
+tmux send-keys 'roslaunch task_planning task_runner.launch untethered:=False'
 
 tmux select-pane -t 5
 tmux send-keys 'sleep 2' C-m
