@@ -46,10 +46,14 @@ class PinkBinsDetector:
         # Define range for blue color and create mask
         # lower_pink = np.array([110, 100, 150])
         # upper_pink = np.array([170, 255, 255])
-        mask_1 = cv2.inRange(hsv, np.array([110, 50, 150]), np.array([130, 100, 200]))
-        mask_2 = cv2.inRange(hsv, np.array([130, 80, 180]), np.array([150, 150, 255]))
-        mask_3 = cv2.inRange(hsv, np.array([150, 130, 200]), np.array([170, 255, 255]))
-        mask = reduce(cv2.bitwise_or, [mask_1, mask_2, mask_3])
+        mask_1 = cv2.inRange(hsv, np.array([110, 50, 130]), np.array([130, 100, 200]))
+        mask_2 = cv2.inRange(hsv, np.array([130, 80, 130]), np.array([160, 150, 255]))
+        mask_3 = cv2.inRange(hsv, np.array([155, 100, 150]), np.array([175, 255, 255]))
+
+        if self.camera == "bottom":
+            mask = cv2.inRange(hsv, np.array([160, 150, 200]), np.array([170, 255, 255]))
+        else:
+            mask = reduce(cv2.bitwise_or, [mask_1, mask_2, mask_3])
         hsv_filtered_msg = self.bridge.cv2_to_imgmsg(mask, "mono8")
         self.pink_bins_hsv_filtered_pub.publish(hsv_filtered_msg)
 
