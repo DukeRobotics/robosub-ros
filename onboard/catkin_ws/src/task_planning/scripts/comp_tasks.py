@@ -2,6 +2,7 @@ import rospy
 import math
 import copy
 import time
+import numpy as np
 
 from numpy import sign
 
@@ -249,12 +250,30 @@ async def buoy_task(self: Task, turn_to_face_buoy=False, depth=0.7) -> Task[None
     # ]
     # await move_with_directions(directions)
 
+
+@task
+async def buoy_to_octagon(self: Task):
+    DEPTH_LEVEL = State().orig_depth - 0.5
+
+    async def move_with_directions(directions):
+        await move_tasks.move_with_directions(directions, correct_yaw=False, correct_depth=True, parent=self)
+
+    async def correct_depth():
+        await move_tasks.correct_depth(desired_depth=DEPTH_LEVEL, parent=self)
+    self.correct_depth = correct_depth
+
     # Move towards octagon
     directions = [
+        (0, -2, 0),
         (0, -2, 0),
         (0, -2, 0)
     ]
     await move_with_directions(directions)
+
+    # directions = [
+    #     (0, 0, 0, 0, 0, -math.radians(75)),
+    # ]
+    # await move_with_directions(directions)
 
 
 @task
@@ -470,6 +489,51 @@ async def yaw_to_cv_object(self: Task, cv_object: str, direction=1,
     await correct_depth()
 
 
+@task
+async def align_path_marker(self: Task) -> Task[None, None, None]:
+    """
+    Aligns with the orange path marker. Requires a previous path marker detection and the robot to have submerged 0.7 metres.
+    """
+    DEPTH_LEVEL = State().orig_depth - 0.5
+    rospy.loginfo("Starting path marker alignment")
+
+    async def correct_yaw():
+        yaw_correction = CV().cv_data["path_marker"].yaw
+        if yaw_correction > 0:
+            yaw_correction = np.pi / 2 - yaw_correction
+        else:
+            yaw_correction = -np.pi / 2 - yaw_correction
+
+        rospy.loginfo(f"Yaw correction: {yaw_correction}")
+        sign = 1 if yaw_correction > 0.1 else (-1 if yaw_correction < -0.1 else 0)
+        await move_tasks.move_to_pose_local(
+            geometry_utils.create_pose(0, 0, 0, 0, 0, yaw_correction * 1.1),
+            keep_level=True,
+            parent=self
+        )
+        rospy.loginfo("Corrected yaw")
+    self.correct_yaw = correct_yaw
+
+    async def correct_roll_and_pitch():
+        imu_orientation = State().imu.orientation
+        euler_angles = quat2euler([imu_orientation.w, imu_orientation.x, imu_orientation.y, imu_orientation.z])
+        roll_correction = -euler_angles[0] * 1.2
+        pitch_correction = -euler_angles[1] * 1.2
+
+        rospy.loginfo(f"Roll, pitch correction: {roll_correction, pitch_correction}")
+        await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, roll_correction, pitch_correction, 0),
+                                            parent=self)
+
+    async def correct_depth():
+        await move_tasks.depth_correction(desired_depth=DEPTH_LEVEL, parent=self)
+
+    await correct_depth()
+    await correct_yaw()
+    # await correct_roll_and_pitch()
+    # await correct_depth()
+    rospy.loginfo(f"Path marker aligned")
+
+
 # @task
 # async def bin_task(self: Task) -> Task[None, None, None]:
 #     """
@@ -561,8 +625,8 @@ async def bin_task(self: Task) -> Task[None, None, None]:
     rospy.loginfo("Started bin task")
     START_DEPTH_LEVEL = State().orig_depth - 0.5
     START_PIXEL_THRESHOLD = 70
-    MID_DEPTH_LEVEL = State().orig_depth - 1.1
-    MID_PIXEL_THRESHOLD = 50
+    MID_DEPTH_LEVEL = State().orig_depth - 1.0
+    MID_PIXEL_THRESHOLD = 30
     FINAL_DEPTH_LEVEL = State().orig_depth - 1.25
     FINAL_PIXEL_THRESHOLD = 50
 
@@ -668,21 +732,16 @@ async def bin_task(self: Task) -> Task[None, None, None]:
 
     #     await correct_depth(desired_depth=desired_depth)
 
-    async def track_bin(target, desired_depth, pixel_threshold, step_size=0.18, yaw_correction=False, offset_constant=0):
+    async def track_bin(target, desired_depth, pixel_threshold, step_size=0.20, x_offset=0, y_offset=0):
         rospy.loginfo(CV().cv_data[f"{target}_distance"])
-        pixel_x = CV().cv_data[f"{target}_distance"].x
-        pixel_y = CV().cv_data[f"{target}_distance"].y
+        pixel_x = CV().cv_data[f"{target}_distance"].x + x_offset
+        pixel_y = CV().cv_data[f"{target}_distance"].y + y_offset
 
         width = CV().cv_data["bin_red"].width
         height = CV().cv_data["bin_red"].height
 
-        if yaw_correction:
-            await correct_yaw()
-
         count = 1
-        upper_bound = pixel_threshold + offset_constant
-        lower_bound = - pixel_threshold + offset_constant
-        while (max(pixel_x, pixel_y) > upper_bound or min(pixel_x, pixel_y) < lower_bound) and width * height <= 1/6 * FRAME_AREA:
+        while (max(pixel_x, pixel_y) > pixel_threshold or min(pixel_x, pixel_y) < -pixel_threshold) and width * height <= 1/3 * FRAME_AREA:
             rospy.loginfo(CV().cv_data[f"{target}_distance"])
 
             await move_x(step=step_size * get_step_mult_factor(pixel_x, pixel_threshold))
@@ -691,8 +750,8 @@ async def bin_task(self: Task) -> Task[None, None, None]:
             width = CV().cv_data["bin_red"].width
             height = CV().cv_data["bin_red"].height
 
-            pixel_x = CV().cv_data[f"{target}_distance"].x
-            pixel_y = CV().cv_data[f"{target}_distance"].y
+            pixel_x = CV().cv_data[f"{target}_distance"].x + x_offset
+            pixel_y = CV().cv_data[f"{target}_distance"].y + y_offset
 
             if count % 3 == 0:
                 rospy.loginfo("correcting depth")
@@ -700,7 +759,7 @@ async def bin_task(self: Task) -> Task[None, None, None]:
                 rospy.loginfo("correcting roll and pitch")
                 await correct_roll_and_pitch()
 
-            if width * height >= 1/10 * FRAME_AREA and abs(pixel_x) < pixel_threshold * 2 and abs(pixel_y) < pixel_threshold * 2:
+            if width * height >= 1/6 * FRAME_AREA and abs(pixel_x) < pixel_threshold * 1.75 and abs(pixel_y) < pixel_threshold * 1.75:
                 rospy.loginfo(f"Reached area threshold: area = {width * height}")
                 break
 
@@ -718,15 +777,13 @@ async def bin_task(self: Task) -> Task[None, None, None]:
         rospy.loginfo(f"x: {pixel_x}, y: {pixel_y}, area: {width * height}")
 
     await correct_depth(desired_depth=START_DEPTH_LEVEL)
-    # await search_for_bin(target="bin_red")
-
     await track_bin(target="bin_red", desired_depth=START_DEPTH_LEVEL, pixel_threshold=START_PIXEL_THRESHOLD)
-    await correct_depth(desired_depth=MID_DEPTH_LEVEL)
-    # await search_for_bin(target="bin_red")
 
-    # await correct_depth(desired_depth=MID_DEPTH_LEVEL)
-    await track_bin(target="bin_red", desired_depth=MID_DEPTH_LEVEL, pixel_threshold=MID_PIXEL_THRESHOLD, yaw_correction=True)
-    # await correct_depth(desired_depth=FINAL_DEPTH_LEVEL)
+    await correct_yaw()
+
+    await correct_depth(desired_depth=MID_DEPTH_LEVEL)
+    await track_bin(target="bin_red", desired_depth=MID_DEPTH_LEVEL, pixel_threshold=MID_PIXEL_THRESHOLD,
+                    step_size=0.18, y_offset=30, x_offset=25)
 
     # await correct_depth(desired_depth=FINAL_DEPTH_LEVEL)
     # await track_bin(target="bin_red", desired_depth=FINAL_DEPTH_LEVEL, pixel_threshold=FINAL_PIXEL_THRESHOLD, step_size=0.11)
@@ -737,7 +794,7 @@ async def bin_task(self: Task) -> Task[None, None, None]:
     DropMarker(False)
     # DropMarker(True)
     rospy.loginfo("Dropped first marker")
-    await sleep(1)
+    await sleep(3)
 
     # DropMarker(False)
     DropMarker(True)
@@ -759,6 +816,7 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
 
     DEPTH_LEVEL = State().orig_depth - 0.5
     LATENCY_THRESHOLD = 2
+    CONTOUR_SCORE_THRESHOLD = 1000
 
     async def correct_depth():
         await move_tasks.correct_depth(desired_depth=DEPTH_LEVEL, parent=self)
@@ -777,10 +835,11 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
     self.correct_yaw = correct_yaw
 
     # TODO: modify this so it also checks for recent pink bin data
-    def is_receiving_pink_bin_data(latest_detection):
-        return latest_detection and "bin_pink_bottom" in CV().cv_data and \
+    def is_receiving_pink_bin_data(latest_detection_time):
+        return latest_detection_time and "bin_pink_bottom" in CV().cv_data and \
+            CV().cv_data["bin_pink_bottom"].score >= CONTOUR_SCORE_THRESHOLD and \
             int(time.time()) - CV().cv_data["bin_pink_bottom"].header.stamp.secs < LATENCY_THRESHOLD and \
-            abs(CV().cv_data["bin_pink_bottom"].header.stamp.secs - latest_detection) < LATENCY_THRESHOLD
+            abs(CV().cv_data["bin_pink_bottom"].header.stamp.secs - latest_detection_time) < LATENCY_THRESHOLD
 
     def publish_power():
         power = Twist()
@@ -817,13 +876,16 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
 
     async def move_to_pink_bins():
         count = 1
-        latest_detection = None
+        latest_detection_time = None
 
-        publish_power()
-        # last_step_size = float('inf')
-        # await move_x(step=1)
-        while not is_receiving_pink_bin_data(latest_detection):
-            if count % 20 == 0:
+        # publish_power()
+        last_step_size = float('inf')
+        await move_x(step=1)
+        while not is_receiving_pink_bin_data(latest_detection_time):
+            if "bin_pink_bottom" in CV().cv_data:
+                latest_detection = CV().cv_data["bin_pink_bottom"].header.stamp.secs
+
+            if count % 2 == 0:
                 rospy.loginfo("Stabilizing...")
                 stabilize()
                 await sleep(1)
@@ -833,16 +895,15 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
 
                 await sleep(1)
 
-                publish_power()
-                # step = get_step_size(last_step_size)
-                # await move_x(step=step)
-                # last_step_size = step
-                rospy.loginfo("Published forward power")
+                # publish_power()
+                # rospy.loginfo("Published forward power")
+                step = get_step_size(last_step_size)
+                await move_x(step=step)
+                last_step_size = step
 
             await Yield()
             await sleep(0.1)
 
-            latest_detection = CV().cv_data["bin_pink_bottom"].header.stamp.secs
             count += 1
 
         rospy.loginfo("Reached pink bins, stabilizing...")
