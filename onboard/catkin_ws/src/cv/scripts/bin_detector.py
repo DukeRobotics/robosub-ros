@@ -131,9 +131,6 @@ class BinDetector:
         
         meters_per_pixel = self.BIN_WIDTH / w
 
-        x = x + w/2
-        y = y + w/2
-
         bounding_box = CVObject()
 
         bounding_box.header.stamp.secs = rospy.Time.now().secs
@@ -151,7 +148,8 @@ class BinDetector:
 
         # Compute distance between center of bounding box and center of image
         # Here, image x is robot's y, and image y is robot's z
-        dist_x, dist_y = compute_center_distance(x, y, *self.MONO_CAM_IMG_SHAPE, height_adjustment_constant=25, width_adjustment_constant=15)
+        dist_x, dist_y = compute_center_distance(x, y, *self.MONO_CAM_IMG_SHAPE, height_adjustment_constant=15, width_adjustment_constant=10)
+
 
         # Compute distance between center of bounding box and center of image in meters
         dist_x_meters = dist_x * meters_per_pixel
@@ -180,6 +178,7 @@ class BinDetector:
         bounding_box.coords.x, bounding_box.coords.y, bounding_box.coords.z = coords_list
 
         # Convert the image with the bounding box to ROS Image message and publish
+        cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
         image_msg = self.bridge.cv2_to_imgmsg(frame, "bgr8")
         return bounding_box, image_msg, dist_point
 
