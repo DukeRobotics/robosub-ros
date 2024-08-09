@@ -534,88 +534,6 @@ async def align_path_marker(self: Task) -> Task[None, None, None]:
     rospy.loginfo(f"Path marker aligned")
 
 
-# @task
-# async def bin_task(self: Task) -> Task[None, None, None]:
-#     """
-#     Detects and drops markers into the red bin. Requires robot to have submerged 0.7 meters.
-#     """
-
-#     rospy.loginfo("Started bin task")
-#     START_DEPTH_LEVEL = State().orig_depth - 0.7
-#     MID_DEPTH_LEVEL = State().orig_depth - 1.2
-#     FINAL_DEPTH_LEVEL = State().orig_depth - 1.7
-
-#     DropMarker = rospy.ServiceProxy('servo_control', SetBool)
-
-#     async def correct_x(target):
-#         await cv_tasks.correct_x(prop=target, parent=self)
-
-#     async def correct_y(target):
-#         await cv_tasks.correct_y(prop=target, parent=self)
-
-#     async def correct_z():
-#         pass
-
-#     async def correct_depth(desired_depth):
-#         await move_tasks.correct_depth(desired_depth=desired_depth, parent=self)
-#     self.correct_depth = correct_depth
-
-#     async def move_x(step=1):
-#         await move_tasks.move_x(step=step, parent=self)
-
-#     async def move_y(step=1):
-#         await move_tasks.move_y(step=step, parent=self)
-
-#     def get_step_size(dist):
-#         direction = 1 if dist > 0 else -1
-#         return direction * min(0.5, abs(dist))
-
-#     async def sleep(secs):
-#         duration = rospy.Duration(secs)
-#         start_time = rospy.Time.now()
-#         while start_time + duration > rospy.Time.now():
-#             await Yield()
-
-#     async def search_for_bin(target):
-#         red_in_frame = CV().cv_data["bin_red"]["fully_in_frame"]
-#         blue_in_frame = CV().cv_data["bin_blue"]["fully_in_frame"]
-#         while not red_in_frame or not blue_in_frame:
-#             dist_x_pixels = CV().cv_data[f"{target}_distance"]["distance_x"]
-#             dist_y_pixels = CV().cv_data[target]["distance_y"]
-
-#             await move_tasks.move_x(step=get_step_size(dist_x_pixels))
-#             await move_tasks.move_y(step=get_step_size(dist_y_pixels))
-#             rospy.loginfo(f"Moved x: {get_step_size(dist_x_pixels)}")
-#             rospy.loginfo(f"Moved y: {get_step_size(dist_y_pixels)}")
-
-#             await Yield()
-
-#             red_in_frame = CV().cv_data["bin_red"]["fully_in_frame"]
-#             blue_in_frame = CV().cv_data["bin_blue"]["fully_in_frame"]
-
-#         rospy.loginfo("Found both bins fully in frame")
-
-#     async def track_and_descend(target, desired_depth, threshold=0.1):
-#         dist_x = CV().cv_data[target]["x"]
-#         dist_y = CV().cv_data[target]["y"]
-#         await correct_x(factor=0.5)
-#         await correct_y(factor=0.5)
-#         await correct_depth()
-
-#         while dist_x >= threshold or dist_y >= threshold:
-#             # TODO: balance the robot
-#             await correct_x(factor=0.5)
-#             await correct_y(factor=0.5)
-#             await correct_depth()
-#             await Yield()
-
-#             dist_x = CV().cv_data[target]["x"]
-#             dist_y = CV().cv_data[target]["y"]
-#             rospy.loginfo(f"{target} properties: {CV().cv_data[target]}")
-
-#     await correct_depth()
-
-
 @task
 async def bin_task(self: Task) -> Task[None, None, None]:
     """
@@ -794,7 +712,6 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
         rospy.loginfo("Corrected yaw")
     self.correct_yaw = correct_yaw
 
-    # TODO: modify this so it also checks for recent pink bin data
     def is_receiving_pink_bin_data(latest_detection_time):
         return latest_detection_time and "bin_pink_bottom" in CV().cv_data and \
             CV().cv_data["bin_pink_bottom"].score >= CONTOUR_SCORE_THRESHOLD and \
