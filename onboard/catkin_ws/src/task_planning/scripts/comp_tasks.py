@@ -201,7 +201,8 @@ async def buoy_task(self: Task, turn_to_face_buoy=False, depth=0.7) -> Task[None
                 # (0.5, 0, 0),
             ]
             await move_with_directions(directions, correct_yaw=False)
-            await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, 0, 0, -math.radians(90)), parent=self)
+            await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, 0, 0, -math.radians(90)), 
+                                                parent=self)
             rospy.loginfo("Yaw 90 deg")
             # await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, 0, 0, -math.radians(45)), parent=self)
             # rospy.loginfo("Yaw 45 deg")
@@ -252,8 +253,10 @@ async def buoy_task(self: Task, turn_to_face_buoy=False, depth=0.7) -> Task[None
 
 
 @task
-async def buoy_to_octagon(self: Task):
+async def buoy_to_octagon(self: Task, direction: int = 1, move_forward: int = 0):
     DEPTH_LEVEL = State().orig_depth - 0.6
+
+    rospy.loginfo("Started buoy to octagon")
 
     async def move_with_directions(directions):
         await move_tasks.move_with_directions(directions, correct_yaw=False, correct_depth=True, parent=self)
@@ -264,10 +267,11 @@ async def buoy_to_octagon(self: Task):
 
     # Move towards octagon
     directions = [
-        (0, -2, 0),
-        (0, -2, 0),
-        (0, -2, 0),
-        (1, 0, 0)
+        (0, 2 * direction, 0),
+        (0, 2 * direction, 0),
+        (0, 2 * direction, 0),
+        (0, 1 * direction, 0),
+        (move_forward, 0, 0)
     ]
     await move_with_directions(directions)
 
@@ -306,7 +310,7 @@ async def buoy_circumnavigation_power(self: Task, depth=0.7) -> Task[None, None,
         await sleep(5)
         rospy.loginfo("Sleep 5 (2)")
         await correct_depth()
-        await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 1, 0, 0, 0, 0),parent=self)
+        await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 1, 0, 0, 0, 0), parent=self)
 
 
 @task
@@ -357,6 +361,7 @@ async def coin_flip(self: Task) -> Task[None, None, None]:
     rospy.loginfo(f"Corrected depth {depth_delta}")
 
     rospy.loginfo("Completed coin flip")
+
 
 @task
 async def gate_task_dead_reckoning(self: Task) -> Task[None, None, None]:
@@ -411,7 +416,9 @@ async def gate_task(self: Task, offset: int) -> Task[None, None, None]:
     num_corrections = 0
     while gate_dist > 3:
         await move_x(step=get_step_size(gate_dist))
-        await correct_y(factor=(0.5 if num_corrections < 0 else 1))
+        await yaw_to_cv_object('gate_red_cw', direction=-1, yaw_threshold=math.radians(10),
+                               latency_threshold=2, depth_level=0.6, parent=self),
+        # await correct_y(factor=(0.5 if num_corrections < 0 else 1))
         await correct_depth()
         await Yield()
         gate_dist = CV().cv_data["gate_red_cw"].coords.x
@@ -464,8 +471,9 @@ async def yaw_to_cv_object(self: Task, cv_object: str, direction=1,
     while not is_receiving_cv_data():
         await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, 0, 0, MAXIMUM_YAW * direction),
                                             parent=self)
+        await correct_depth()
         await Yield()
-        rospy.loginfo(f"No buoy detection, setting yaw setpoint {MAXIMUM_YAW}")
+        rospy.loginfo(f"No {cv_object} detection, setting yaw setpoint {MAXIMUM_YAW}")
 
     rospy.loginfo(f"{cv_object} detected. Now centering {cv_object} in frame...")
 
@@ -478,9 +486,10 @@ async def yaw_to_cv_object(self: Task, cv_object: str, direction=1,
         desired_yaw = sign_cv_object_yaw * correction
 
         rospy.loginfo(f"{cv_object} properties: {CV().cv_data[cv_object]}")
-        rospy.loginfo(f"detected yaw {cv_object_yaw} is greater than threshold {yaw_threshold}... Yawing: {desired_yaw}")
+        rospy.loginfo(f"Detected yaw {cv_object_yaw} is greater than threshold {yaw_threshold}... Yawing: {desired_yaw}")
         await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, 0, 0, desired_yaw),
                                             parent=self)
+        await correct_depth()
         await Yield()
 
         cv_object_yaw = CV().cv_data[cv_object].yaw
@@ -532,7 +541,7 @@ async def align_path_marker(self: Task) -> Task[None, None, None]:
     await correct_yaw()
     # await correct_roll_and_pitch()
     # await correct_depth()
-    rospy.loginfo(f"Path marker aligned")
+    rospy.loginfo("Path marker aligned")
 
 
 @task
@@ -686,20 +695,20 @@ async def bin_task(self: Task) -> Task[None, None, None]:
 
 
 @task
-async def octagon_task(self: Task) -> Task[None, None, None]:
+async def octagon_task(self: Task, direction: int = 1) -> Task[None, None, None]:
     """
     Detects, move towards the pink bins, then surfaces inside the octagon. Requires robot to have submerged 0.7 meters.
     """
     rospy.loginfo("Starting octagon task")
 
-    DEPTH_LEVEL = State().orig_depth - 0.9
+    DEPTH_LEVEL_AT_BINS = State().orig_depth - 0.9
+    DEPTH_LEVEL_ABOVE_BINS = State().orig_depth - 0.5
     LATENCY_THRESHOLD = 2
     CONTOUR_SCORE_THRESHOLD = 1000
     CONTOUR_SCORE_THRESHOLD = 1000
 
-    async def correct_depth():
-        await move_tasks.correct_depth(desired_depth=DEPTH_LEVEL, parent=self)
-    self.correct_depth = correct_depth
+    async def correct_depth(desired_depth):
+        await move_tasks.correct_depth(desired_depth=desired_depth, parent=self)
 
     async def correct_yaw():
         yaw_correction = CV().cv_data["bin_pink_front"].yaw
@@ -727,7 +736,7 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
     def publish_power():
         power = Twist()
         power.linear.x = 0.3
-        Controls().set_axis_control_type(x=ControlTypes.DESIRED_POWER, y=ControlTypes.DESIRED_POWER, yaw=ControlTypes.DESIRED_POWER)
+        Controls().set_axis_control_type(x=ControlTypes.DESIRED_POWER)
         Controls().publish_desired_power(power, set_control_types=False)
 
     async def move_x(step=1):
@@ -766,37 +775,25 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
         # publish_power()
         last_step_size = float('inf')
         await move_x(step=1)
-        while not is_receiving_pink_bin_data(latest_detection_time) and count - count_when_moved_above < 7:
+        while not is_receiving_pink_bin_data(latest_detection_time) and count - count_when_moved_above <= 4:
             if "bin_pink_bottom" in CV().cv_data:
                 latest_detection_time = CV().cv_data["bin_pink_bottom"].header.stamp.secs
 
-            if count % 2 == 0:
-                # rospy.loginfo("Stabilizing...")
-                # stabilize()
-                # await sleep(1)
+            await correct_depth(DEPTH_LEVEL_AT_BINS if not moved_above else DEPTH_LEVEL_ABOVE_BINS)
+            if not moved_above:
+                await yaw_to_cv_object('bin_pink_front', direction=direction, yaw_threshold=math.radians(15), depth_level=0.9, parent=Task.MAIN_ID)
 
-                await correct_depth()
-                # await correct_yaw()
-                if not moved_above:
-                    await yaw_to_cv_object('bin_pink_front', direction=-1, yaw_threshold=math.radians(15), depth_level=0.9, parent=Task.MAIN_ID)
-
-                # await sleep(1)
-
-                # publish_power()
-                # rospy.loginfo("Published forward power")
-                step = get_step_size(last_step_size)
-                await move_x(step=step)
-                last_step_size = step
+            step = get_step_size(last_step_size)
+            await move_x(step=step)
+            last_step_size = step
 
             if CV().cv_data["bin_pink_front"].score > 4000 and not moved_above:
-                DEPTH_LEVEL = State().orig_depth - 0.6
-                await correct_depth()
+                await correct_depth(DEPTH_LEVEL_ABOVE_BINS + 0.1)
                 moved_above = True
                 count_when_moved_above = count
                 rospy.loginfo("Moved above pink bins")
 
             await Yield()
-            await sleep(0.1)
 
             count += 1
 
@@ -807,5 +804,5 @@ async def octagon_task(self: Task) -> Task[None, None, None]:
     await move_to_pink_bins()
 
     rospy.loginfo("Surfacing...")
-    await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 1.0, 0, 0, 0), timeout=10, parent=self)
+    await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, State().orig_depth - State().depth, 0, 0, 0), timeout=10, parent=self)
     rospy.loginfo("Finished surfacing")

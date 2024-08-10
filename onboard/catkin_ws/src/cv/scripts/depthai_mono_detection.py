@@ -416,7 +416,7 @@ class DepthAISpatialDetector:
             left_end_compute = self.compute_angle_from_x_offset(detection.xmin * self.camera_pixel_width)
             right_end_compute = self.compute_angle_from_x_offset(detection.xmax * self.camera_pixel_width)
             midpoint = (left_end_compute + right_end_compute) / 2.0
-            yaw_offset = math.radians(midpoint)  # Degrees to radians
+            yaw_offset = -math.radians(midpoint)  # Degrees to radians
 
             # Create a new sonar request msg object if using sonar and the current detected
             # class is the desired class to be returned to task planning
