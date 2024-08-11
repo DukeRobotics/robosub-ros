@@ -287,7 +287,8 @@ async def after_buoy_task(self: Task):
     directions = [
         (2, 0, 0),
         (2, 0, 0),
-        (2, 0, 0)
+        (2, 0, 0),
+        (1, 0, 0)
     ]
 
     await move_tasks.move_with_directions(directions, correct_yaw=False, correct_depth=True, parent=self)

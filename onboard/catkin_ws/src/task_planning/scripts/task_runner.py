@@ -65,7 +65,7 @@ def main():
             comp_tasks.coin_flip(parent=Task.MAIN_ID),
             comp_tasks.yaw_to_cv_object('gate_red_cw', direction=1, yaw_threshold=math.radians(10),
                                         latency_threshold=1, depth_level=0.7, parent=Task.MAIN_ID),
-            comp_tasks.gate_task(offset=-0.1, direction=1, parent=Task.MAIN_ID),
+            comp_tasks.gate_task(offset=-0.1, direction=-1, parent=Task.MAIN_ID),
             comp_tasks.gate_style_task(depth_level=0.9, parent=Task.MAIN_ID),
             comp_tasks.yaw_to_cv_object('buoy', direction=1, depth_level=0.7, parent=Task.MAIN_ID),
             comp_tasks.buoy_task(turn_to_face_buoy=False, depth=0.7, parent=Task.MAIN_ID),
