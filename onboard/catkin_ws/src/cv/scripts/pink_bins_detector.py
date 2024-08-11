@@ -93,7 +93,7 @@ class PinkBinsDetector:
                 final_y = center_y
                 chosen_label_score = max_clust_points.shape[0]
 
-        if chosen_label_score < 30:
+        if chosen_label_score < 100:
             self.publish_with_no_detection(frame, hsv_filtered_msg)
             return
 

@@ -8,6 +8,10 @@ from std_msgs.msg import Float64
 from vision_msgs.msg import Detection2DArray
 from utils.other_utils import singleton
 
+from transforms3d.euler import quat2euler
+
+from interface.state import State
+
 
 @singleton
 class CV:
@@ -78,6 +82,7 @@ class CV:
         self.bin_distances = {object_type: {"x": [], "y": []} for object_type in ["bin_red", "bin_blue"]}
 
         rospy.Subscriber("/cv/bottom/path_marker/bounding_box", CVObject, self._on_receive_cv_data, "path_marker")
+        rospy.Subscriber("/cv/bottom/path_marker/distance", Point, self._on_receive_distance_data, "path_marker")
 
         rospy.Subscriber("/cv/front/pink_bins/bounding_box", CVObject, self._on_receive_cv_data, "bin_pink_front")
         rospy.Subscriber("/cv/bottom/pink_bins/bounding_box", CVObject, self._on_receive_cv_data, "bin_pink_bottom")
@@ -92,6 +97,19 @@ class CV:
         """
         self.cv_data[object_type] = cv_data
 
+        # if object_type == "path_marker":
+        #     angle = cv_data.yaw
+        #     if angle > 0:
+        #         global_angle_offset = np.pi / 2 - angle
+        #     else:
+        #         global_angle_offset = -np.pi / 2 - angle
+
+        #     imu_orientation = State().imu.orientation
+        #     euler_angles = quat2euler([imu_orientation.w, imu_orientation.x, imu_orientation.y, imu_orientation.z])
+
+        #     self.cv_data["global_path_marker_angle"] = euler_angles[2] + global_angle_offset
+        #     rospy.loginfo(f"Global path marker angle: {global_path_marker_angle}")
+
     def _on_receive_distance_data(self, distance_data: Point, object_type: str) -> None:
         """
         Parse the received distance data and store it
@@ -101,6 +119,10 @@ class CV:
             object_type: The name/type of the object
         """
         filter_len = 10
+
+        if object_type == "path_marker":
+            self.cv_data["path_marker_distance"] = distance_data
+            return
 
         # pictured below is someone's future problem of deciding how cv_data should be structured
         if len(self.bin_distances[object_type]["x"]) == filter_len:
