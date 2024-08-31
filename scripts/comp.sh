@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# A tmux script that opens all the necessary terminals to control our robot.
-# Usage: ./pool-test.sh
+# A tmux script that opens all the necessary terminals to control our robot. Uses untethered:=True in task_runner.launch.
+# Usage: ./comp.sh
 
 session="pool-test"
 tmux new-session -d -s $session
