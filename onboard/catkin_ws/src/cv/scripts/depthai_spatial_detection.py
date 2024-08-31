@@ -113,9 +113,6 @@ class DepthAISpatialDetector:
         # Define sources and outputs
         cam_rgb = pipeline.create(dai.node.ColorCamera)
         spatial_detection_network = pipeline.create(dai.node.YoloDetectionNetwork)
-        # mono_left = pipeline.create(dai.node.MonoCamera)
-        # mono_right = pipeline.create(dai.node.MonoCamera)
-        # stereo = pipeline.create(dai.node.StereoDepth)
         image_manip = pipeline.create(dai.node.ImageManip)
 
         xout_nn = pipeline.create(dai.node.XLinkOut)
@@ -124,10 +121,6 @@ class DepthAISpatialDetector:
         xout_rgb = pipeline.create(dai.node.XLinkOut)
         xout_rgb.setStreamName("rgb")
 
-        # if self.queue_depth:
-        #     xout_depth = pipeline.create(dai.node.XLinkOut)
-        #     xout_depth.setStreamName("depth")
-
         xin_nn_input = pipeline.create(dai.node.XLinkIn)
         xin_nn_input.setStreamName("nn_input")
         xin_nn_input.setNumFrames(2)
@@ -135,19 +128,13 @@ class DepthAISpatialDetector:
 
         # Camera properties
         cam_rgb.setPreviewSize(model['input_size'])
-        # cam_rgb.setVideoSize(416,416) # breaks
         cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_12_MP)
         cam_rgb.setInterleaved(False)
         cam_rgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
         cam_rgb.setPreviewKeepAspectRatio(False)
 
-        # rospy.loginfo('isp pool size: ' + str(cam_rgb.getIspNumFramesPool()))
-        # rospy.loginfo('preview pool size: ' + str(cam_rgb.getPreviewNumFramesPool()))
-        # rospy.loginfo('Raw pool size: ' + str(cam_rgb.getRawNumFramesPool()))
-        # rospy.loginfo('Still pool size: ' + str(cam_rgb.getStillNumFramesPool()))
-        # rospy.loginfo('video pool size: ' + str(cam_rgb.getVideoNumFramesPool()))
         cam_rgb.setIspNumFramesPool(3)  # keep this high default
-        cam_rgb.setPreviewNumFramesPool(1)  # need at least 1
+        cam_rgb.setPreviewNumFramesPool(1)  # breaks if <1
         cam_rgb.setRawNumFramesPool(2)  # breaks if <2
         cam_rgb.setStillNumFramesPool(0)
         cam_rgb.setVideoNumFramesPool(1)  # breaks if <1
@@ -157,22 +144,10 @@ class DepthAISpatialDetector:
         image_manip.setMaxOutputFrameSize(model['input_size'][0] * model['input_size'][1] * 3)
         image_manip.setNumFramesPool(1)
 
-        # mono_left.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
-        # mono_left.setBoardSocket(dai.CameraBoardSocket.CAM_B)
-        # mono_right.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
-        # mono_right.setBoardSocket(dai.CameraBoardSocket.CAM_C)
-
-        # Stereo properties
-        # stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
-        # stereo.setDepthAlign(dai.CameraBoardSocket.CAM_A)
-
         # General spatial detection network parameters
         spatial_detection_network.setBlobPath(nn_blob_path)
         spatial_detection_network.setConfidenceThreshold(model['confidence_threshold'])
         spatial_detection_network.input.setBlocking(False)
-        # spatial_detection_network.setBoundingBoxScaleFactor(0.5)
-        # spatial_detection_network.setDepthLowerThreshold(100)
-        # spatial_detection_network.setDepthUpperThreshold(5000)
 
         # Yolo specific parameters
         spatial_detection_network.setNumClasses(len(model['classes']))
@@ -181,22 +156,12 @@ class DepthAISpatialDetector:
         spatial_detection_network.setAnchorMasks(model['anchor_masks'])
         spatial_detection_network.setIouThreshold(model['iou_threshold'])
 
-        # Linking
-        # mono_left.out.link(stereo.left)
-        # mono_right.out.link(stereo.right)
-
         xin_nn_input.out.link(spatial_detection_network.input)
 
-        # cam_rgb.preview.link(xout_rgb.input)
         cam_rgb.isp.link(image_manip.inputImage)
         image_manip.out.link(xout_rgb.input)
 
         spatial_detection_network.out.link(xout_nn.input)
-
-        # if self.queue_depth:
-        #     spatial_detection_network.passthroughDepth.link(xout_depth.input)
-
-        # stereo.depth.link(spatial_detection_network.inputDepth)
 
         return pipeline
 
@@ -262,9 +227,6 @@ class DepthAISpatialDetector:
             self.detection_feed_publisher = rospy.Publisher("cv/front/detections/compressed", CompressedImage,
                                                             queue_size=10)
 
-        # if self.queue_depth:
-        #     self.depth_publisher = rospy.Publisher("camera/front/depth/compressed", CompressedImage, queue_size=10)
-
     def init_queues(self, device):
         """
         Assigns output queues from the pipeline to dictionary of queues.
@@ -277,9 +239,6 @@ class DepthAISpatialDetector:
 
         # Assign output queues
         self.output_queues["rgb"] = device.getOutputQueue(name="rgb", maxSize=1, blocking=False)
-
-        # if self.queue_depth:
-        #     self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
 
         self.output_queues["detections"] = device.getOutputQueue(name="detections", maxSize=1, blocking=False)
 
@@ -324,13 +283,6 @@ class DepthAISpatialDetector:
         img.setHeight(416)
         self.input_queue.send(img)
 
-        # Publish depth feed
-        # if self.queue_depth:
-        #     raw_img_depth = self.output_queues["depth"].get()
-        #     img_depth = raw_img_depth.getCvFrame()
-        #     image_msg_depth = self.image_tools.convert_depth_to_ros_compressed_msg(img_depth, 'mono16')
-        #     self.depth_publisher.publish(image_msg_depth)
-
         # Get detections from output queues
         inDet = self.output_queues["detections"].tryGet()
         if not inDet:
@@ -339,7 +291,7 @@ class DepthAISpatialDetector:
 
         detections_dict = {}
         for detection in detections:
-            prev_conf, prev_detection = detections_dict.get(detection.label, (None, None))
+            prev_conf, _ = detections_dict.get(detection.label, (None, None))
             if (prev_conf is not None and detection.confidence > prev_conf) or prev_conf is None:
                 detections_dict[detection.label] = detection.confidence, detection
 
@@ -366,7 +318,8 @@ class DepthAISpatialDetector:
             confidence = detection.confidence
 
             # Calculate relative pose
-            det_coords_robot_mm = calculate_relative_pose(bbox, model['input_size'], model['sizes'][label], FOCAL_LENGTH, SENSOR_SIZE, 2)
+            det_coords_robot_mm = calculate_relative_pose(bbox, model['input_size'], model['sizes'][label],
+                                                          FOCAL_LENGTH, SENSOR_SIZE, 2)
 
             # Find yaw angle offset
             left_end_compute = self.compute_angle_from_x_offset(detection.xmin * self.camera_pixel_width)
@@ -377,9 +330,6 @@ class DepthAISpatialDetector:
             # Create a new sonar request msg object if using sonar and the current detected
             # class is the desired class to be returned to task planning
             if self.using_sonar and label == self.current_priority:
-
-                # top_end_compute = self.compute_angle_from_y_offset(detection.ymin * self.camera_pixel_height)
-                # bottom_end_compute = self.compute_angle_from_y_offset(detection.ymax * self.camera_pixel_height)
 
                 # Construct sonar request message
                 sonar_request_msg = SonarSweepRequest()
@@ -395,8 +345,8 @@ class DepthAISpatialDetector:
                 # else, keep default
                 if not (self.sonar_response == (0, 0)) and self.in_sonar_range:
                     det_coords_robot_mm = (self.sonar_response[0],  # Override x
-                                           -x_cam_meters,  # Maintain original y
-                                           y_cam_meters)  # Maintain original z
+                                           det_coords_robot_mm[1],  # Maintain original y
+                                           det_coords_robot_mm[2])  # Maintain original z
 
             self.publish_prediction(
                 bbox, det_coords_robot_mm, yaw_offset, label, confidence,
@@ -440,7 +390,6 @@ class DepthAISpatialDetector:
 
         if self.publishers:
             # Flush out 0, 0, 0 values
-            # if object_msg.coords.x != 0 and object_msg.coords.y != 0 and object_msg.coords.z != 0:
             self.publishers[label].publish(object_msg)
 
     def update_sonar(self, sonar_results):
