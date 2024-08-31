@@ -5,13 +5,11 @@ import roslaunch
 import yaml
 import resource_retriever as rr
 
-from usb_camera import USBCamera
-
 CAMERA_CONFIG_PATH = 'package://cv/configs/usb_cameras.yaml'
 
 
 def connect_all():
-
+    # get camera specs
     with open(rr.get_filename(CAMERA_CONFIG_PATH, use_protocol=False)) as f:
         cameras = yaml.safe_load(f)
 
@@ -20,7 +18,7 @@ def connect_all():
 
     roslaunch_files = []
     for camera_name in cameras:
-
+        # add cli args for each camera to run upon init
         camera = cameras[camera_name]
         device_path = camera["device_path"]
         topic = camera["topic"]
@@ -29,6 +27,7 @@ def connect_all():
         roslaunch_file = roslaunch.rlutil.resolve_launch_arguments(cli_args)[0]
         roslaunch_files.append((roslaunch_file, cli_args[2:]))
 
+    # actually init
     parent = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_files)
     parent.start()
 
