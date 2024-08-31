@@ -4,18 +4,8 @@ import numpy as np
 import math
 import cv2
 import os
-import rospy
-# from typing import List, Tuple
-
-# import rospy
-from geometry_msgs.msg import Vector3, Pose, PoseStamped, \
-     Twist, Point, Quaternion, Polygon
+from geometry_msgs.msg import Point
 from custom_msgs.msg import CVObject
-# import tf2_geometry_msgs
-# import tf2_ros
-
-from transforms3d.euler import euler2quat, quat2euler
-from transforms3d.quaternions import qmult
 
 
 def check_file_writable(filepath):
@@ -160,18 +150,16 @@ def compute_bbox_dimensions(polygon):
     center.x = (min_x + max_x) / 2
     center.y = (min_y + max_y) / 2
 
-    # TODO calculate centre based on distance of centre to robot
-    # is x,y,z already relative to robot??
-    # TODO z coordinate???
     msg.coords = center
 
-    # TODO add rico function here
+    # TODO make this not 0 and actually what its supposed to be
     msg.yaw = 0
 
     return msg
 
 
-def compute_center_distance(bbox_center_x, bbox_center_y, frame_width, frame_height, width_adjustment_constant=0, height_adjustment_constant=0):
+def compute_center_distance(bbox_center_x, bbox_center_y, frame_width, frame_height, width_adjustment_constant=0,
+                            height_adjustment_constant=0):
 
     '''
     Note that x, y is in the camera's reference frame
