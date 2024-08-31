@@ -10,7 +10,6 @@ from interface.controls import Controls
 from interface.state import State
 from interface.cv import CV
 import comp_tasks
-import move_tasks
 
 
 def main():

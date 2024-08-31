@@ -3,14 +3,10 @@ import yaml
 import numpy as np
 import resource_retriever as rr
 from custom_msgs.msg import CVObject, RectInfo
-from geometry_msgs.msg import Pose, Polygon, Point
+from geometry_msgs.msg import Pose, Point
 from std_msgs.msg import Float64
 from vision_msgs.msg import Detection2DArray
 from utils.other_utils import singleton
-
-from transforms3d.euler import quat2euler
-
-from interface.state import State
 
 
 @singleton
@@ -138,8 +134,11 @@ class CV:
         if "bin_blue_distance" not in self.cv_data:
             self.cv_data["bin_blue_distance"] = Point()
 
-        self.cv_data[f"{object_type}_distance"].x = sum(self.bin_distances[object_type]["x"]) / len(self.bin_distances[object_type]["x"])
-        self.cv_data[f"{object_type}_distance"].y = sum(self.bin_distances[object_type]["y"]) / len(self.bin_distances[object_type]["y"])
+        distance_x = sum(self.bin_distances[object_type]["x"]) / len(self.bin_distances[object_type]["x"])
+        self.cv_data[f"{object_type}_distance"].x = distance_x
+
+        distance_y = sum(self.bin_distances[object_type]["y"]) / len(self.bin_distances[object_type]["y"])
+        self.cv_data[f"{object_type}_distance"].y = distance_y
 
         red_data = self.cv_data["bin_red_distance"]
         blue_data = self.cv_data["bin_blue_distance"]
@@ -182,7 +181,8 @@ class CV:
 
         self.lane_marker_angles.append(angle.data)
 
-        self.cv_data["lane_marker_angle"] = sum(self.lane_marker_angles[skip:filter_len-skip]) / len(self.lane_marker_angles)
+        lane_marker_angle = sum(self.lane_marker_angles[skip:filter_len-skip]) / len(self.lane_marker_angles)
+        self.cv_data["lane_marker_angle"] = lane_marker_angle
         self.lane_marker_angle_publisher.publish(self.cv_data["lane_marker_angle"])
 
     def _on_receive_lane_marker_dist(self, dist: Float64) -> None:
@@ -199,7 +199,8 @@ class CV:
 
         self.lane_marker_dists.append(dist.data)
 
-        self.cv_data["lane_marker_dist"] = sum(self.lane_marker_dists[skip:filter_len-skip]) / len(self.lane_marker_dists)
+        lane_marker_dist = sum(self.lane_marker_dists[skip:filter_len-skip]) / len(self.lane_marker_dists)
+        self.cv_data["lane_marker_dist"] = lane_marker_dist
 
     def _on_receive_lane_marker_info(self, lane_marker_info: RectInfo) -> None:
         """
@@ -215,7 +216,8 @@ class CV:
 
         self.lane_marker_heights.append(lane_marker_info.height)
 
-        self.cv_data["lane_marker_height"] = sum(self.lane_marker_heights[skip:filter_len-skip]) / len(self.lane_marker_heights)
+        lane_marker_height = sum(self.lane_marker_heights[skip:filter_len-skip]) / len(self.lane_marker_heights)
+        self.cv_data["lane_marker_height"] = lane_marker_height
 
         # Based on lane_marker_info.center_y and height, determine if lane marker is touching top and/or bottom of frame
         self.cv_data["lane_marker_touching_top"] = lane_marker_info.center_y - lane_marker_info.height / 2 <= 0

@@ -1,7 +1,6 @@
 import rospy
 import math
 import copy
-import time
 import numpy as np
 
 from transforms3d.euler import quat2euler
@@ -205,9 +204,6 @@ async def buoy_task(self: Task, turn_to_face_buoy=False, depth=0.7) -> Task[None
             await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, 0, 0, -math.radians(90)),
                                                 parent=self)
             rospy.loginfo("Yaw 90 deg")
-            # await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, 0, 0, -math.radians(45)), parent=self)
-            # rospy.loginfo("Yaw 45 deg")
-            # await yaw_to_cv_object('buoy', direction=-1, yaw_threshold=math.radians(15), depth_level=State().depth, parent=self)
             await move_away_from_buoy()
 
     else:
@@ -342,7 +338,8 @@ async def buoy_circumnavigation_power(self: Task, depth=0.7) -> Task[None, None,
         power = Twist()
         power.linear.y = 0.9
         power.angular.z = -0.1
-        Controls().set_axis_control_type(x=ControlTypes.DESIRED_POWER, y=ControlTypes.DESIRED_POWER, yaw=ControlTypes.DESIRED_POWER)
+        Controls().set_axis_control_type(x=ControlTypes.DESIRED_POWER, y=ControlTypes.DESIRED_POWER,
+                                         yaw=ControlTypes.DESIRED_POWER)
         Controls().publish_desired_power(power, set_control_types=False)
 
     def stabilize():
@@ -514,7 +511,8 @@ async def gate_task(self: Task, offset: int = 0, direction: int = 1) -> Task[Non
 
 @task
 async def yaw_to_cv_object(self: Task, cv_object: str, direction=1,
-                           yaw_threshold=math.radians(30), latency_threshold=10, depth_level=0.5) -> Task[None, None, None]:
+                           yaw_threshold=math.radians(30), latency_threshold=10,
+                           depth_level=0.5) -> Task[None, None, None]:
     """
     Corrects the yaw relative to the CV object
     """
@@ -549,7 +547,6 @@ async def yaw_to_cv_object(self: Task, cv_object: str, direction=1,
             await correct_depth()
             await Yield()
 
-
     # Yaw until object detection
     await correct_depth()
     await yaw_until_object_detection()
@@ -566,7 +563,7 @@ async def yaw_to_cv_object(self: Task, cv_object: str, direction=1,
         correction = get_step_size(cv_object_yaw)
         desired_yaw = sign_cv_object_yaw * correction
 
-        rospy.loginfo(f"Detected yaw {cv_object_yaw} is greater than threshold {yaw_threshold}... Yawing: {desired_yaw}")
+        rospy.loginfo(f"Detected yaw {cv_object_yaw} is greater than threshold {yaw_threshold}. Yawing: {desired_yaw}")
         await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, 0, 0, desired_yaw),
                                             parent=self)
         await correct_depth()
@@ -581,55 +578,6 @@ async def yaw_to_cv_object(self: Task, cv_object: str, direction=1,
     rospy.loginfo(f"{cv_object} centered.")
 
     await correct_depth()
-
-
-# @task
-# async def align_path_marker(self: Task, direction: int = 1) -> Task[None, None, None]:
-#     """
-#     Aligns with the orange path marker. Requires a previous path marker detection and the robot to have submerged 0.7 metres.
-#     """
-#     DEPTH_LEVEL = State().orig_depth - 0.5
-#     LATENCY_THRESHOLD = 1
-#     rospy.loginfo("Starting path marker alignment")
-
-#     def calculate_yaw_correction():
-#         yaw_correction = CV().cv_data["path_marker"].yaw
-
-#         if direction == 1:
-#             yaw_correction = np.pi / 2 - yaw_correction
-#         else:
-#             yaw_correction = -np.pi / 2 - yaw_correction
-
-#         return yaw_correction
-
-#     async def correct_yaw():
-#         yaw_correction = calculate_yaw_correction()
-
-#         rospy.loginfo(f"Yaw correction: {yaw_correction}")
-#         await move_tasks.move_to_pose_local(
-#             geometry_utils.create_pose(0, 0, 0, 0, 0, yaw_correction),
-#             keep_level=True,
-#             parent=self
-#         )
-#         rospy.loginfo("Corrected yaw")
-#     self.correct_yaw = correct_yaw
-
-#     async def correct_roll_and_pitch():
-#         imu_orientation = State().imu.orientation
-#         euler_angles = quat2euler([imu_orientation.w, imu_orientation.x, imu_orientation.y, imu_orientation.z])
-#         roll_correction = -euler_angles[0] * 1.2
-#         pitch_correction = -euler_angles[1] * 1.2
-
-#         rospy.loginfo(f"Roll, pitch correction: {roll_correction, pitch_correction}")
-#         await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, roll_correction, pitch_correction, 0),
-#                                             parent=self)
-
-#     async def correct_depth():
-#         await move_tasks.depth_correction(desired_depth=DEPTH_LEVEL, parent=self)
-
-#     await correct_depth()
-#     await correct_yaw()
-#     rospy.loginfo("Path marker aligned")
 
 
 @task
@@ -699,7 +647,7 @@ async def align_path_marker(self: Task, direction=1) -> Task[None, None, None]:
         rospy.loginfo("Finished centering path marker")
         rospy.loginfo(f"x: {pixel_x}, y: {pixel_y}")
 
-    rospy.loginfo(f"Now aligning path marker in frame...")
+    rospy.loginfo("Now aligning path marker in frame...")
 
     # Center detected object in camera frame
     path_marker_yaw = CV().cv_data["path_marker"].yaw
@@ -712,7 +660,8 @@ async def align_path_marker(self: Task, direction=1) -> Task[None, None, None]:
         correction = get_step_size(path_marker_yaw)
         desired_yaw = sign_path_marker_yaw * correction
 
-        rospy.loginfo(f"Detected yaw {path_marker_yaw} is greater than threshold {YAW_THRESHOLD}... Yawing: {desired_yaw}")
+        rospy.loginfo(f"Detected yaw {path_marker_yaw} is greater than threshold {YAW_THRESHOLD}. Yawing: {desired_yaw}"
+                      )
         await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, 0, 0, 0, desired_yaw),
                                             parent=self)
         await correct_depth()
@@ -726,6 +675,7 @@ async def align_path_marker(self: Task, direction=1) -> Task[None, None, None]:
     rospy.loginfo("Path marker centered.")
 
     await correct_depth()
+
 
 @task
 async def center_path_marker(self: Task):
@@ -824,7 +774,8 @@ async def path_marker_to_bin(self: Task, maximum_distance: int = 6):
 
         await move_x(step=1)
 
-        while not is_receiving_bin_data("bin_red", bin_red_time) or not is_receiving_bin_data("bin_blue", bin_blue_time):
+        while not is_receiving_bin_data("bin_red", bin_red_time) \
+                or not is_receiving_bin_data("bin_blue", bin_blue_time):
             if "bin_red" in CV().cv_data:
                 bin_red_time = CV().cv_data["bin_red"].header.stamp.secs
             if "bin_blue" in CV().cv_data:
@@ -854,97 +805,6 @@ async def path_marker_to_bin(self: Task, maximum_distance: int = 6):
         await sleep(5)
 
     await move_to_bins()
-
-
-# @task
-# async def dead_reckoning_path_marker_to_bin(self: Task, maximum_distance: int = 6):
-#     DEPTH_LEVEL = State().orig_depth - 0.5
-#     AREA_THRESHOLD = 1000
-#     LATENCY_THRESHOLD = 1
-
-#     rospy.loginfo("Starting path marker to bins")
-
-#     async def correct_depth(desired_depth):
-#         await move_tasks.correct_depth(desired_depth=desired_depth, parent=self)
-
-#     async def correct_yaw():
-#         imu_orientation = State().imu.orientation
-#         euler_angles = quat2euler([imu_orientation.w, imu_orientation.x, imu_orientation.y, imu_orientation.z])
-
-#         yaw_correction = CV().cv_data["global_path_marker_angle"] - euler_angles[2]
-#         rospy.loginfo(f"Yaw correction: {yaw_correction}")
-
-#         sign = 1 if yaw_correction > 0.1 else (-1 if yaw_correction < -0.1 else 0)
-#         await move_tasks.move_to_pose_local(
-#             geometry_utils.create_pose(0, 0, 0, 0, 0, yaw_correction + (sign * 0.1)),
-#             keep_level=True,
-#             parent=self
-#         )
-#         rospy.loginfo("Corrected yaw")
-#     self.correct_yaw = correct_yaw
-
-#     def is_receiving_bin_data(bin_object, latest_detection_time):
-#         if not latest_detection_time or bin_object not in CV().data:
-#             return False
-
-#         width = CV().cv_data[bin_object].width
-#         height = CV().cv_data[bin_object].height
-
-#         return width * height >= AREA_THRESHOLD and \
-#             rospy.Time.now().to_sec() - CV().cv_data[bin_object].header.stamp.secs < LATENCY_THRESHOLD and \
-#             abs(CV().cv_data[bin_object].header.stamp.secs - latest_detection_time) < LATENCY_THRESHOLD
-
-#     async def move_x(step=1):
-#         await move_tasks.move_x(step=step, parent=self)
-
-#     def stabilize():
-#         pose_to_hold = copy.deepcopy(State().state.pose.pose)
-#         Controls().publish_desired_position(pose_to_hold)
-
-#     async def sleep(secs):
-#         duration = rospy.Duration(secs)
-#         start_time = rospy.Time.now()
-#         while start_time + duration > rospy.Time.now():
-#             await Yield()
-
-#     async def move_to_bins():
-#         count = 1
-#         bin_red_time = None
-#         bin_blue_time = None
-
-#         await move_x(step=1)
-
-#         while not is_receiving_bin_data("bin_red", bin_red_time) or not is_receiving_bin_data("bin_blue", bin_blue_time):
-#             if "bin_red" in CV().cv_data:
-#                 bin_red_time = CV().cv_data["bin_red"].header.stamp.secs
-#             if "bin_blue" in CV().cv_data:
-#                 bin_blue_time = CV().cv_data["bin_blue"].header.stamp.secs
-
-#             await correct_depth(DEPTH_LEVEL)
-#             await correct_yaw()
-
-#             is_receiving_red_bin_data = is_receiving_bin_data("bin_red", bin_red_time)
-#             is_receiving_blue_bin_data = is_receiving_bin_data("bin_blue", bin_blue_time)
-
-#             rospy.loginfo(f"Receiving red bin data: {is_receiving_red_bin_data}")
-#             rospy.loginfo(f"Receiving blue bin data: {is_receiving_blue_bin_data}")
-
-#             step = 0.5 if (is_receiving_red_bin_data or is_receiving_blue_bin_data) else 1
-#             await move_x(step=step)
-
-#             await Yield()
-
-#             if count >= maximum_distance:
-#                 rospy.loginfo("Bin not spotted, exiting the loop...")
-#                 break
-
-#             count += 1
-
-#         rospy.loginfo("Reached pink bins, stabilizing...")
-#         stabilize()
-#         await sleep(5)
-
-#     await move_to_bins()
 
 
 @task
@@ -1092,8 +952,6 @@ async def bin_task(self: Task) -> Task[None, None, None]:
     START_PIXEL_THRESHOLD = 70
     MID_DEPTH_LEVEL = State().orig_depth - 1.0
     MID_PIXEL_THRESHOLD = 30
-    FINAL_DEPTH_LEVEL = State().orig_depth - 1.25
-    FINAL_PIXEL_THRESHOLD = 50
 
     FRAME_AREA = 480 * 600
 
@@ -1167,7 +1025,8 @@ async def bin_task(self: Task) -> Task[None, None, None]:
         height = CV().cv_data["bin_red"].height
 
         count = 1
-        while (max(pixel_x, pixel_y) > pixel_threshold or min(pixel_x, pixel_y) < -pixel_threshold) and width * height <= 1/3 * FRAME_AREA:
+        while (max(pixel_x, pixel_y) > pixel_threshold or min(pixel_x, pixel_y) < -pixel_threshold) \
+                and width * height <= 1/3 * FRAME_AREA:
             rospy.loginfo(CV().cv_data[f"{target}_distance"])
 
             await move_x(step=step_size * get_step_mult_factor(pixel_x, pixel_threshold))
@@ -1185,7 +1044,8 @@ async def bin_task(self: Task) -> Task[None, None, None]:
                 rospy.loginfo("correcting roll and pitch")
                 await correct_roll_and_pitch()
 
-            if width * height >= 1/6 * FRAME_AREA and abs(pixel_x) < pixel_threshold * 1.75 and abs(pixel_y) < pixel_threshold * 1.75:
+            if width * height >= 1/6 * FRAME_AREA and \
+                    abs(pixel_x) < pixel_threshold * 1.75 and abs(pixel_y) < pixel_threshold * 1.75:
                 rospy.loginfo(f"Reached area threshold: area = {width * height}")
                 break
 
@@ -1210,11 +1070,6 @@ async def bin_task(self: Task) -> Task[None, None, None]:
     await correct_depth(desired_depth=MID_DEPTH_LEVEL)
     await track_bin(target="bin_red", desired_depth=MID_DEPTH_LEVEL, pixel_threshold=MID_PIXEL_THRESHOLD,
                     step_size=0.18, y_offset=30, x_offset=25)
-
-    # await correct_depth(desired_depth=FINAL_DEPTH_LEVEL)
-    # await track_bin(target="bin_red", desired_depth=FINAL_DEPTH_LEVEL, pixel_threshold=FINAL_PIXEL_THRESHOLD, step_size=0.11)
-
-    # await sleep(3)
 
     # If both balls loaded on the RIGHT, this is False
     drop_marker(False)
@@ -1250,12 +1105,6 @@ async def octagon_task(self: Task, direction: int = 1) -> Task[None, None, None]
     async def correct_yaw():
         yaw_correction = CV().cv_data["bin_pink_front"].yaw
         rospy.loginfo(f"Yaw correction: {yaw_correction}")
-        sign = 1 if yaw_correction > 0.1 else (-1 if yaw_correction < -0.1 else 0)
-        # await move_tasks.move_to_pose_local(
-        #     geometry_utils.create_pose(0, 0, 0, 0, 0, yaw_correction + (sign * 0.1)),
-        #     keep_level=True,
-        #     parent=self
-        # )
         await move_tasks.move_to_pose_local(
             geometry_utils.create_pose(0, 0, 0, 0, 0, yaw_correction * 0.7),
             keep_level=True,
@@ -1318,7 +1167,8 @@ async def octagon_task(self: Task, direction: int = 1) -> Task[None, None, None]
 
             await correct_depth(DEPTH_LEVEL_AT_BINS if not moved_above else DEPTH_LEVEL_ABOVE_BINS)
             if not moved_above:
-                await yaw_to_cv_object('bin_pink_front', direction=direction, yaw_threshold=math.radians(15), depth_level=0.9, parent=Task.MAIN_ID)
+                await yaw_to_cv_object('bin_pink_front', direction=direction, yaw_threshold=math.radians(15),
+                                       depth_level=0.9, parent=Task.MAIN_ID)
 
             step = get_step_size(last_step_size)
             await move_x(step=step)
@@ -1350,5 +1200,6 @@ async def octagon_task(self: Task, direction: int = 1) -> Task[None, None, None]
     await move_to_pink_bins()
 
     rospy.loginfo("Surfacing...")
-    await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, State().orig_depth - State().depth, 0, 0, 0), timeout=10, parent=self)
+    await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, State().orig_depth - State().depth, 0, 0, 0),
+                                        timeout=10, parent=self)
     rospy.loginfo("Finished surfacing")

@@ -42,7 +42,8 @@ async def move_to_pose_global(self: Task, pose: Pose, timeout: int = 30) -> Task
 
 
 @task
-async def move_to_pose_local(self: Task, pose: Pose, keep_level=False, timeout: int = 30) -> Task[None, Optional[Pose], None]:
+async def move_to_pose_local(self: Task, pose: Pose, keep_level=False,
+                             timeout: int = 30) -> Task[None, Optional[Pose], None]:
     """
     Move to local pose in the "base_link" frame. Returns when the robot is at the given pose with zero velocity, within
     a small tolerance.
