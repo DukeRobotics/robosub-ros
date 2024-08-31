@@ -14,12 +14,11 @@ import cv2
 from custom_msgs.msg import CVObject, SonarSweepRequest, SonarSweepResponse
 from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import String
-import rostopic
 
 CAMERA_CONFIG_PATH = 'package://cv/configs/usb_cameras.yaml'
 with open(rr.get_filename(CAMERA_CONFIG_PATH, use_protocol=False)) as f:
     cameras = yaml.safe_load(f)
-CAMERA = cameras['front']
+CAMERA = cameras['front']  # TODO: use ROS params to select camera
 
 MM_IN_METER = 1000
 DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH = 'package://cv/models/depthai_models.yaml'
@@ -33,7 +32,7 @@ TASK_PLANNING_REQUESTS_PATH = "controls/desired_feature"
 GATE_IMAGE_WIDTH = 0.2452  # Width of gate images in meters
 GATE_IMAGE_HEIGHT = 0.2921  # Height of gate images in meters
 
-# MONO CAMERA CONSTANTS
+# Camera constants
 FOCAL_LENGTH = CAMERA['focal_length']  # Focal length of camera in mm
 SENSOR_SIZE = (CAMERA['sensor_size']['width'], CAMERA['sensor_size']['height'])  # Sensor size in mm
 
@@ -54,7 +53,6 @@ class DepthAISpatialDetector:
         self.using_sonar = rospy.get_param("~using_sonar")
         self.show_class_name = rospy.get_param("~show_class_name")
         self.show_confidence = rospy.get_param("~show_confidence")
-        self.correct_color = rospy.get_param("~correct_color")
         self.device = None
 
         with open(rr.get_filename(DEPTHAI_OBJECT_DETECTION_MODELS_FILEPATH,
@@ -149,69 +147,21 @@ class DepthAISpatialDetector:
         pipeline = dai.Pipeline()
 
         # Define sources and outputs
-        # cam_rgb = pipeline.create(dai.node.ColorCamera)
         spatial_detection_network = pipeline.create(dai.node.YoloDetectionNetwork)
         feed_out = pipeline.create(dai.node.XLinkOut)
-        # mono_left = pipeline.create(dai.node.MonoCamera)
-        # mono_right = pipeline.create(dai.node.MonoCamera)
-        # stereo = pipeline.create(dai.node.StereoDepth)
-        # image_manip = pipeline.create(dai.node.ImageManip)
 
         xout_nn = pipeline.create(dai.node.XLinkOut)
         xout_nn.setStreamName("detections")
-
-        # xout_rgb = pipeline.create(dai.node.XLinkOut)
-        # xout_rgb.setStreamName("rgb")
-
-        # if self.queue_depth:
-        #     xout_depth = pipeline.create(dai.node.XLinkOut)
-        #     xout_depth.setStreamName("depth")
 
         xin_nn_input = pipeline.create(dai.node.XLinkIn)
         xin_nn_input.setStreamName("nn_input")
         xin_nn_input.setNumFrames(2)
         xin_nn_input.setMaxDataSize(416*416*3)
 
-        # Camera properties
-        # cam_rgb.setPreviewSize(model['input_size'])
-        # cam_rgb.setVideoSize(416,416) # breaks
-        # cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_12_MP)
-        # cam_rgb.setInterleaved(False)
-        # cam_rgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
-        # cam_rgb.setPreviewKeepAspectRatio(False)
-
-        # rospy.loginfo('isp pool size: ' + str(cam_rgb.getIspNumFramesPool()))
-        # rospy.loginfo('preview pool size: ' + str(cam_rgb.getPreviewNumFramesPool()))
-        # rospy.loginfo('Raw pool size: ' + str(cam_rgb.getRawNumFramesPool()))
-        # rospy.loginfo('Still pool size: ' + str(cam_rgb.getStillNumFramesPool()))
-        # rospy.loginfo('video pool size: ' + str(cam_rgb.getVideoNumFramesPool()))
-        # cam_rgb.setIspNumFramesPool(3)  # keep this high default
-        # cam_rgb.setPreviewNumFramesPool(1)  # need at least 1
-        # cam_rgb.setRawNumFramesPool(2)  # breaks if <2
-        # cam_rgb.setStillNumFramesPool(0)
-        # cam_rgb.setVideoNumFramesPool(1)  # breaks if <1
-
-        # image_manip.initialConfig.setResize(model['input_size'])
-        # image_manip.initialConfig.setKeepAspectRatio(False)
-        # image_manip.setMaxOutputFrameSize(model['input_size'][0] * model['input_size'][1] * 3)
-        # image_manip.setNumFramesPool(1)
-
-        # mono_left.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
-        # mono_left.setBoardSocket(dai.CameraBoardSocket.CAM_B)
-        # mono_right.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
-        # mono_right.setBoardSocket(dai.CameraBoardSocket.CAM_C)
-
-        # Stereo properties
-        # stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
-        # stereo.setDepthAlign(dai.CameraBoardSocket.CAM_A)
-
         # General spatial detection network parameters
         spatial_detection_network.setBlobPath(nn_blob_path)
         spatial_detection_network.setConfidenceThreshold(model['confidence_threshold'])
         spatial_detection_network.input.setBlocking(False)
-        # spatial_detection_network.setBoundingBoxScaleFactor(0.5)
-        # spatial_detection_network.setDepthLowerThreshold(100)
-        # spatial_detection_network.setDepthUpperThreshold(5000)
 
         # Yolo specific parameters
         spatial_detection_network.setNumClasses(len(model['classes']))
@@ -221,25 +171,13 @@ class DepthAISpatialDetector:
         spatial_detection_network.setIouThreshold(model['iou_threshold'])
 
         # Linking
-        # mono_left.out.link(stereo.left)
-        # mono_right.out.link(stereo.right)
-
         xin_nn_input.out.link(spatial_detection_network.input)
-
-        # cam_rgb.preview.link(xout_rgb.input)
-        # cam_rgb.isp.link(image_manip.inputImage)
-        # image_manip.out.link(xout_rgb.input)
 
         spatial_detection_network.out.link(xout_nn.input)
 
         # Feed the image stream to the neural net input node
         feed_out.setStreamName("feed")
         spatial_detection_network.passthrough.link(feed_out.input)
-
-        # if self.queue_depth:
-        #     spatial_detection_network.passthroughDepth.link(xout_depth.input)
-
-        # stereo.depth.link(spatial_detection_network.inputDepth)
 
         return pipeline
 
@@ -296,17 +234,9 @@ class DepthAISpatialDetector:
                                                           queue_size=10)
         self.publishers = publisher_dict
 
-        # Create CompressedImage publishers for the raw RGB feed, detections feed, and depth feed
-        # if self.rgb_raw:
-        #     self.rgb_preview_publisher = rospy.Publisher("camera/front/rgb/preview/compressed", CompressedImage,
-        #                                                  queue_size=10)
-
         if self.rgb_detections:
             self.detection_feed_publisher = rospy.Publisher("cv/front/detections/compressed", CompressedImage,
                                                             queue_size=10)
-
-        # if self.queue_depth:
-        #     self.depth_publisher = rospy.Publisher("camera/front/depth/compressed", CompressedImage, queue_size=10)
 
     def init_queues(self, device):
         """
@@ -317,12 +247,6 @@ class DepthAISpatialDetector:
         # If the output queues are already set, don't reinitialize
         if self.connected:
             return
-
-        # Assign output queues
-        # self.output_queues["rgb"] = device.getOutputQueue(name="rgb", maxSize=1, blocking=False)
-
-        # if self.queue_depth:
-        #     self.output_queues["depth"] = device.getOutputQueue(name="depth", maxSize=1, blocking=False)
 
         self.output_queues["detections"] = device.getOutputQueue(name="detections", maxSize=1, blocking=False)
         self.output_queues["passthrough"] = device.getOutputQueue(
@@ -343,31 +267,6 @@ class DepthAISpatialDetector:
         if not self.connected:
             rospy.logwarn("Output queues are not initialized so cannot detect. Call init_output_queues first.")
             return
-
-        # Publish raw RGB feed
-        # if self.rgb_raw:
-        #     frame_img_msg = self.image_tools.convert_to_ros_compressed_msg(frame)
-        #     self.rgb_preview_publisher.publish(frame_img_msg)
-
-        # Underwater color correction
-        # if self.correct_color:
-        #     mat = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        #     frame = correct.correct(mat)
-
-        # Send a message to the ColorCamera to capture a still image
-        # img = dai.ImgFrame()
-        # img.setType(dai.ImgFrame.Type.BGR888p)
-        # img.setData(to_planar(frame, (416, 416)))
-        # img.setWidth(416)
-        # img.setHeight(416)
-        # self.input_queue.send(img)
-
-        # Publish depth feed
-        # if self.queue_depth:
-        #     raw_img_depth = self.output_queues["depth"].get()
-        #     img_depth = raw_img_depth.getCvFrame()
-        #     image_msg_depth = self.image_tools.convert_depth_to_ros_compressed_msg(img_depth, 'mono16')
-        #     self.depth_publisher.publish(image_msg_depth)
 
         # Get detections from output queues
         inDet = self.output_queues["detections"].tryGet()
@@ -408,7 +307,7 @@ class DepthAISpatialDetector:
 
             confidence = detection.confidence
 
-            # This function does stuff
+            # Calculate relative pose
             det_coords_robot_mm = calculate_relative_pose(bbox, model['input_size'], model['sizes'][label],
                                                           FOCAL_LENGTH, SENSOR_SIZE, 0.814)
 
@@ -417,30 +316,6 @@ class DepthAISpatialDetector:
             right_end_compute = self.compute_angle_from_x_offset(detection.xmax * self.camera_pixel_width)
             midpoint = (left_end_compute + right_end_compute) / 2.0
             yaw_offset = -math.radians(midpoint)  # Degrees to radians
-
-            # Create a new sonar request msg object if using sonar and the current detected
-            # class is the desired class to be returned to task planning
-            # if self.using_sonar and label == self.current_priority:
-
-            #     # top_end_compute = self.compute_angle_from_y_offset(detection.ymin * self.camera_pixel_height)
-            #     # bottom_end_compute = self.compute_angle_from_y_offset(detection.ymax * self.camera_pixel_height)
-
-            #     # Construct sonar request message
-            #     sonar_request_msg = SonarSweepRequest()
-            #     sonar_request_msg.start_angle = int(left_end_compute)
-            #     sonar_request_msg.end_angle = int(right_end_compute)
-            #     sonar_request_msg.distance_of_scan = int(SONAR_DEPTH)
-
-            #     # Make a request to sonar if it is not busy
-            #     self.sonar_requests_publisher.publish(sonar_request_msg)
-
-            #     # Try calling sonar on detected bounding box
-            #     # if sonar responds, then override existing robot-frame x info;
-            #     # else, keep default
-            #     if not (self.sonar_response == (0, 0)) and self.in_sonar_range:
-            #         det_coords_robot_mm = (self.sonar_response[0],  # Override x
-            #                                -x_cam_meters,  # Maintain original y
-            #                                y_cam_meters)  # Maintain original z
 
             self.publish_prediction(
                 bbox, det_coords_robot_mm, yaw_offset, label, confidence,
@@ -543,55 +418,6 @@ class DepthAISpatialDetector:
         """
         image_center_x = self.camera_pixel_width / 2.0
         return math.degrees(math.atan(((x_offset - image_center_x) * 0.005246675486)))
-
-    def compute_angle_from_y_offset(self, y_offset):
-        """
-        See: https://math.stackexchange.com/questions/1320285/convert-a-pixel-displacement-to-angular-rotation
-        for implementation details.
-
-        :param y_offset: y pixels from center of image
-
-        :return: angle in degrees
-        """
-        image_center_y = self.camera_pixel_height / 2.0
-        return math.degrees(math.atan(((y_offset - image_center_y) * 0.003366382395)))
-
-    def coords_to_angle(self, min_x, max_x):
-        """
-        Takes in a detected bounding box from the camera and returns the angle
-                range to sonar sweep.
-        :param min_x: minimum x coordinate of camera bounding box (robot y)
-        :param max_x: maximum x coordinate of camera bounding box (robot y)
-        """
-        distance_to_screen = self.camera_pixel_width / 2 * \
-            1/math.tan(math.radians(HORIZONTAL_FOV/2))
-        min_angle = math.degrees(np.arctan(min_x/distance_to_screen))
-        max_angle = math.degrees(np.arctan(max_x/distance_to_screen))
-        return min_angle, max_angle
-
-
-def mm_to_meters(val_mm):
-    """
-    Converts value from millimeters to meters.
-    :param val_mm: Value in millimeters.
-    :return: Input value converted to meters.
-    """
-    return val_mm / MM_IN_METER
-
-
-def camera_frame_to_robot_frame(cam_x, cam_y, cam_z):
-    """
-    Convert coordinates in camera reference frame to coordinates in robot reference frame.
-    This ONLY ACCOUNTS FOR THE ROTATION BETWEEN COORDINATE FRAMES, and DOES NOT ACCOUNT FOR THE TRANSLATION.
-    :param cam_x: X coordinate of object in camera reference frame.
-    :param cam_y: Y coordinate of object in camera reference frame.
-    :param cam_z: Z coordinate of object in camera reference frame.
-    :return: X,Y,Z coordinates of object in robot rotational reference frame.
-    """
-    robot_y = -cam_x
-    robot_z = cam_y
-    robot_x = cam_z
-    return robot_x, robot_y, robot_z
 
 
 if __name__ == '__main__':
