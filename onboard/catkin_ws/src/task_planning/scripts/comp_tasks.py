@@ -1088,7 +1088,7 @@ async def bin_task(self: Task) -> Task[None, None, None]:
     """
 
     rospy.loginfo("Started bin task")
-    START_DEPTH_LEVEL = State().orig_depth - 0.5
+    START_DEPTH_LEVEL = State().orig_depth - 0.6
     START_PIXEL_THRESHOLD = 70
     MID_DEPTH_LEVEL = State().orig_depth - 1.0
     MID_PIXEL_THRESHOLD = 30
