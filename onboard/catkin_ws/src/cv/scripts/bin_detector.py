@@ -9,8 +9,9 @@ from custom_msgs.msg import CVObject
 from geometry_msgs.msg import Point
 from utils import compute_yaw, calculate_relative_pose, compute_center_distance
 
+
 class BinDetector:
-    BIN_WIDTH = 0.3048 # width of one square of the bin, in m
+    BIN_WIDTH = 0.3048  # width of one square of the bin, in m
 
     MONO_CAM_IMG_SHAPE = (640, 480)  # Width, height in pixels
     MONO_CAM_SENSOR_SIZE = (3.054, 1.718)  # Width, height in mm
@@ -18,22 +19,26 @@ class BinDetector:
 
     def __init__(self):
         self.bridge = CvBridge()
-        # TODO change back
+        # subscribe to image topic to get images
         self.image_sub = rospy.Subscriber("/camera/usb/bottom/compressed", CompressedImage, self.image_callback)
 
+        # blue bin publiishers
         self.blue_bin_hsv_filtered_pub = rospy.Publisher("/cv/bottom/bin_blue/hsv_filtered", Image, queue_size=10)
         self.blue_bin_contour_image_pub = rospy.Publisher("/cv/bottom/bin_blue/contour_image", Image, queue_size=10)
         self.blue_bin_bounding_box_pub = rospy.Publisher("/cv/bottom/bin_blue/bounding_box", CVObject, queue_size=10)
         self.blue_bin_distance_pub = rospy.Publisher("/cv/bottom/bin_blue/distance", Point, queue_size=10)
-        
+
+        # red bin publishers
         self.red_bin_hsv_filtered_pub = rospy.Publisher("/cv/bottom/bin_red/hsv_filtered", Image, queue_size=10)
         self.red_bin_contour_image_pub = rospy.Publisher("/cv/bottom/bin_red/contour_image", Image, queue_size=10)
         self.red_bin_bounding_box_pub = rospy.Publisher("/cv/bottom/bin_red/bounding_box", CVObject, queue_size=10)
         self.red_bin_distance_pub = rospy.Publisher("/cv/bottom/bin_red/distance", Point, queue_size=10)
-        
+
+        # centre bin publsihers (NOTE we don't actually publish to these heheheha)
         self.bin_center_hsv_filtered_pub = rospy.Publisher("/cv/bottom/bin_center/hsv_filtered", Image, queue_size=10)
         self.bin_center_contour_image_pub = rospy.Publisher("/cv/bottom/bin_center/contour_image", Image, queue_size=10)
-        self.bin_center_bounding_box_pub = rospy.Publisher("/cv/bottom/bin_center/bounding_box", CVObject, queue_size=10)
+        self.bin_center_bounding_box_pub = rospy.Publisher("/cv/bottom/bin_center/bounding_box", CVObject,
+                                                           queue_size=10)
         self.bin_center_distance_pub = rospy.Publisher("/cv/bottom/bin_center/distance", Point, queue_size=10)
 
     def image_callback(self, data):
@@ -67,6 +72,7 @@ class BinDetector:
         mask_red2 = cv2.inRange(hsv, lower_red_high, upper_red_high)
         mask_red = cv2.bitwise_or(mask_red1, mask_red2)
 
+        # convert cv2 image to img message, and publish the image
         red_hsv_filtered_msg = self.bridge.cv2_to_imgmsg(mask_red, "mono8")
         self.red_bin_hsv_filtered_pub.publish(red_hsv_filtered_msg)
 
@@ -83,9 +89,12 @@ class BinDetector:
         contours_red, _ = cv2.findContours(mask_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         if contours_blue:
+            # takes largest contour
             contours_blue = sorted(contours_blue, key=cv2.contourArea, reverse=True)
             contours_blue = contours_blue[0]
 
+            # only processes if area (in pixels) if selected contour >500
+            # publishes bbox, image, distance
             bbox, image, dist = self.process_contours(frame.copy(), contours_blue)
             if bbox and image and dist and cv2.contourArea(contours_blue) > 500:
                 self.blue_bin_contour_image_pub.publish(image)
@@ -93,21 +102,18 @@ class BinDetector:
                 self.blue_bin_distance_pub.publish(dist)
 
         if contours_red:
+            # takes largest contour
             contours_red = sorted(contours_red, key=cv2.contourArea, reverse=True)
             contours_red = contours_red[0]
 
+            # only processes if area (in pixels) if selected contour >500
+            # publishes bbox, image, distance
             bbox, image, dist = self.process_contours(frame.copy(), contours_red)
             if bbox and image and dist and cv2.contourArea(contours_red) > 500:
                 self.red_bin_contour_image_pub.publish(image)
                 self.red_bin_bounding_box_pub.publish(bbox)
                 self.red_bin_distance_pub.publish(dist)
 
-        # if contours_blue and contours_red:
-        #     bbox, image, dist = self.process_contours(frame.copy(), (contours_blue+contours_red))
-        #     self.bin_center_contour_image_pub.publish(image)
-        #     self.bin_center_bounding_box_pub.publish(bbox)
-        #     self.bin_center_distance_pub.publish(dist)
-            
     def process_contours(self, frame, contours):
         # Combine all contours to form the large rectangle
         all_points = np.vstack(contours)
@@ -126,16 +132,19 @@ class BinDetector:
         x, y, w, h = (rect_center[0], rect_center[1], rect[1][0], rect[1][1])
 
         # edge cases integer rounding idk something
-        if (w==0):
+        if (w == 0):
             return None, None, None
-        
+
+        # get dimensions, attributes of relevant shapes
         meters_per_pixel = self.BIN_WIDTH / w
 
+        # create CVObject message, and populate relavent attributes
         bounding_box = CVObject()
 
         bounding_box.header.stamp.secs = rospy.Time.now().secs
         bounding_box.header.stamp.nsecs = rospy.Time.now().nsecs
 
+        # gets dimns that CVObject wants for our rectangle
         bounding_box.xmin = (x) * meters_per_pixel
         bounding_box.ymin = (y) * meters_per_pixel
         bounding_box.xmax = (x + w) * meters_per_pixel
@@ -148,26 +157,22 @@ class BinDetector:
 
         # Compute distance between center of bounding box and center of image
         # Here, image x is robot's y, and image y is robot's z
-        dist_x, dist_y = compute_center_distance(x, y, *self.MONO_CAM_IMG_SHAPE, height_adjustment_constant=15, width_adjustment_constant=10)
-
+        dist_x, dist_y = compute_center_distance(x, y, *self.MONO_CAM_IMG_SHAPE, height_adjustment_constant=15,
+                                                 width_adjustment_constant=10)
 
         # Compute distance between center of bounding box and center of image in meters
-        dist_x_meters = dist_x * meters_per_pixel
-        dist_y_meters = dist_y * meters_per_pixel
-        dist_z_meters = -1 * self.mono_cam_dist_with_obj_width(w, self.BIN_WIDTH)
+        # dist_x_meters = dist_x * meters_per_pixel
+        # dist_y_meters = dist_y * meters_per_pixel
+        # dist_z_meters = -1 * self.mono_cam_dist_with_obj_width(w, self.BIN_WIDTH)
 
+        # create Point message type, and populate x and y distances
         dist_point = Point()
-        #dist_point.z = dist_z_meters
+        # dist_point.z = dist_z_meters
         dist_point.x = dist_x
         dist_point.y = -dist_y
 
-        # {
-        #     "fully_in_frame": not((bounding_box.center_y - bounding_box.height / 2 <= 0) or (bounding_box.center_y + bounding_box.height / 2 >= 480)
-        #                         or (bounding_box.center_x - bounding_box.width / 2 <= 0) or (bounding_box.center_x + bounding_box.width / 2 >= 640)),
-        #     "time": rospy.Time.now()ject
-        # }
-
-        bbox_bounds = (x / self.MONO_CAM_IMG_SHAPE[0], y / self.MONO_CAM_IMG_SHAPE[1], (x+w) / self.MONO_CAM_IMG_SHAPE[0], (y+h) / self.MONO_CAM_IMG_SHAPE[1])
+        bbox_bounds = (x / self.MONO_CAM_IMG_SHAPE[0], y / self.MONO_CAM_IMG_SHAPE[1], (x+w) /
+                       self.MONO_CAM_IMG_SHAPE[0], (y+h) / self.MONO_CAM_IMG_SHAPE[1])
 
         # Point coords represents the 3D position of the object represented by the bounding box relative to the robot
         coords_list = calculate_relative_pose(bbox_bounds,
@@ -185,6 +190,7 @@ class BinDetector:
     def mono_cam_dist_with_obj_width(self, width_pixels, width_meters):
         return (self.MONO_CAM_FOCAL_LENGTH * width_meters * self.MONO_CAM_IMG_SHAPE[0]) \
             / (width_pixels * self.MONO_CAM_SENSOR_SIZE[0])
+
 
 if __name__ == "__main__":
     rospy.init_node('bin_detector', anonymous=True)

@@ -21,6 +21,7 @@ class BuoyDetectorContourMatching:
     def __init__(self):
         rospy.init_node('buoy_detector_contour_matching', anonymous=True)
 
+        # ima
         path_to_reference_img = rr.get_filename('package://cv/assets/polyform-a0-buoy-contour.png', use_protocol=False)
 
         # Load the reference image in grayscale (assumes the image is already binary: white and black)
@@ -77,12 +78,13 @@ class BuoyDetectorContourMatching:
         # Get the top 3 contours with the largest area
         contours = contours[:3]
 
+        # (prepares for) publish contours only
         image_with_contours = image.copy()
         cv2.drawContours(image_with_contours, contours, -1, (255, 0, 0), 2)
-
         contour_image_msg = self.bridge.cv2_to_imgmsg(image_with_contours, "bgr8")
         self.contour_image_pub.publish(contour_image_msg)
 
+        # only gets contours w/ area>100
         contours = [contour for contour in contours if cv2.contourArea(contour) > 100]
 
         best_cnt = None
@@ -94,6 +96,7 @@ class BuoyDetectorContourMatching:
             if match < 0.2:
                 similar_size_contours.append(cnt)
 
+        # takes contour w/ greatest y-distance
         if similar_size_contours:
             similar_size_contours.sort(key=lambda x: cv2.contourArea(x))
             best_cnt = similar_size_contours[0]
@@ -142,6 +145,7 @@ class BuoyDetectorContourMatching:
         ]
         return filtered_bboxes
 
+    # we're not commetning the top of this function it's pretty much just a bunch of middle school geometry
     def publish_bbox(self, bbox, image):
 
         x, y, w, h = bbox
@@ -164,7 +168,8 @@ class BuoyDetectorContourMatching:
 
         # bbox_bounds = (x, y, x + w, y + h)
 
-        bbox_bounds = (x / self.MONO_CAM_IMG_SHAPE[0], y / self.MONO_CAM_IMG_SHAPE[1], (x+w) / self.MONO_CAM_IMG_SHAPE[0], (y+h) / self.MONO_CAM_IMG_SHAPE[1])
+        bbox_bounds = (x / self.MONO_CAM_IMG_SHAPE[0], y / self.MONO_CAM_IMG_SHAPE[1],
+                       (x+w) / self.MONO_CAM_IMG_SHAPE[0], (y+h) / self.MONO_CAM_IMG_SHAPE[1])
 
         # rospy.loginfo(bbox_bounds)
 

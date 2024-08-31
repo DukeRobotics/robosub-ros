@@ -7,11 +7,10 @@ import math
 from sensor_msgs.msg import CompressedImage, Image
 from custom_msgs.msg import CVObject
 from geometry_msgs.msg import Point
-from std_msgs.msg import Float64
-from cv_bridge import CvBridge, CvBridgeError
-from custom_msgs.msg import RectInfo
+from cv_bridge import CvBridge
 
 from utils import compute_center_distance
+
 
 class PathMarkerDetector:
     MONO_CAM_IMG_SHAPE = (640, 480)  # Width, height in pixels
@@ -20,9 +19,12 @@ class PathMarkerDetector:
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("/camera/usb/bottom/compressed", CompressedImage, self.image_callback)
 
+        # define information published for path marker
         self.path_marker_hsv_filtered_pub = rospy.Publisher("/cv/bottom/path_marker/hsv_filtered", Image, queue_size=10)
-        self.path_marker_contour_image_pub = rospy.Publisher("/cv/bottom/path_marker/contour_image", Image, queue_size=10)
-        self.path_marker_bounding_box_pub = rospy.Publisher("/cv/bottom/path_marker/bounding_box", CVObject, queue_size=10)
+        self.path_marker_contour_image_pub = rospy.Publisher("/cv/bottom/path_marker/contour_image", Image,
+                                                             queue_size=10)
+        self.path_marker_bounding_box_pub = rospy.Publisher("/cv/bottom/path_marker/bounding_box", CVObject,
+                                                            queue_size=10)
         self.path_marker_distance_pub = rospy.Publisher("/cv/bottom/path_marker/distance", Point, queue_size=10)
 
     def image_callback(self, data):
@@ -64,6 +66,7 @@ class PathMarkerDetector:
             # NOTE: CLOCKWISE yaw from 12 o'clock
             orientation_in_radians = math.radians(orientation)
 
+            # create CVObject message and populate relevant attributes
             bounding_box = CVObject()
 
             bounding_box.header.stamp = rospy.Time.now()
@@ -79,14 +82,18 @@ class PathMarkerDetector:
             # Here, image x is robot's y, and image y is robot's z
             dist_x, dist_y = compute_center_distance(center[0], center[1], *self.MONO_CAM_IMG_SHAPE)
 
+            # get distances into publishable format
+            # also fix axis from camera's POV
             dist_point = Point()
             dist_point.x = dist_x
             dist_point.y = -dist_y
 
+            # publish dist, bbox
             self.path_marker_distance_pub.publish(dist_point)
             self.path_marker_bounding_box_pub.publish(bounding_box)
 
-            visualized_frame = self.visualize_path_marker_detection(frame, center, bounding_box, math.pi / 2 - orientation_in_radians)
+            visualized_frame = self.visualize_path_marker_detection(frame, center, bounding_box,
+                                                                    math.pi / 2 - orientation_in_radians)
             cv2.circle(visualized_frame, (int(center[0]), int(center[1])), 5, (0, 0, 255), -1)
             self.path_marker_contour_image_pub.publish(self.bridge.cv2_to_imgmsg(visualized_frame))
 

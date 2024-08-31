@@ -3,15 +3,13 @@
 import rospy
 import cv2
 import numpy as np
-import math
 from functools import reduce
 from sklearn.cluster import DBSCAN
 from sensor_msgs.msg import CompressedImage, Image
 from custom_msgs.msg import CVObject
-from std_msgs.msg import Float64
-from cv_bridge import CvBridge, CvBridgeError
-from custom_msgs.msg import RectInfo
+from cv_bridge import CvBridge
 from utils import compute_yaw
+
 
 class PinkBinsDetector:
 
@@ -26,10 +24,12 @@ class PinkBinsDetector:
         self.image_sub = rospy.Subscriber(f"/camera/usb/{self.camera}/compressed", CompressedImage, self.image_callback,
                                           queue_size=1)
 
-        self.pink_bins_hsv_filtered_pub = rospy.Publisher(f"/cv/{self.camera}/pink_bins/hsv_filtered", Image, queue_size=10)
+        self.pink_bins_hsv_filtered_pub = rospy.Publisher(f"/cv/{self.camera}/pink_bins/hsv_filtered", Image,
+                                                          queue_size=10)
         self.pink_bins_dbscan_pub = rospy.Publisher(f"/cv/{self.camera}/pink_bins/dbscan", Image, queue_size=10)
         self.pink_bins_detections_pub = rospy.Publisher(f"/cv/{self.camera}/pink_bins/detections", Image, queue_size=10)
-        self.pink_bins_bounding_box_pub = rospy.Publisher(f"/cv/{self.camera}/pink_bins/bounding_box", CVObject, queue_size=10)
+        self.pink_bins_bounding_box_pub = rospy.Publisher(f"/cv/{self.camera}/pink_bins/bounding_box", CVObject,
+                                                          queue_size=10)
 
     def image_callback(self, data):
         # Convert the compressed ROS image to OpenCV format
@@ -54,9 +54,12 @@ class PinkBinsDetector:
             mask = cv2.inRange(hsv, np.array([160, 150, 200]), np.array([170, 255, 255]))
         else:
             mask = reduce(cv2.bitwise_or, [mask_1, mask_2, mask_3])
+
+        # apply filter and publish
         hsv_filtered_msg = self.bridge.cv2_to_imgmsg(mask, "mono8")
         self.pink_bins_hsv_filtered_pub.publish(hsv_filtered_msg)
 
+        # handle if nothing detected
         points = np.argwhere(mask > 0)
         if len(points) == 0:
             self.publish_with_no_detection(frame, hsv_filtered_msg)
@@ -70,10 +73,12 @@ class PinkBinsDetector:
         unique_labels = set(labels)
         cluster_counts = {k: np.sum(labels == k) for k in unique_labels if k != -1}
 
+        # handle if no clusters
         if cluster_counts == {}:
             self.publish_with_no_detection(frame, hsv_filtered_msg)
             return
 
+        # TODO: hung
         sorted_cluster_labels = sorted(cluster_counts, key=cluster_counts.get, reverse=True)
         colors = [(0, 0, 255), (0, 255, 255), (255, 0, 0)]
         final_x, final_y = 0, 0
@@ -118,6 +123,7 @@ class PinkBinsDetector:
         cv_object.score = chosen_label_score
         self.pink_bins_bounding_box_pub.publish(cv_object)
 
+    # called if no detections are made
     def publish_with_no_detection(self, frame, hsv_filtered_msg):
         frame_msg = self.bridge.cv2_to_imgmsg(frame, "bgr8")
         self.pink_bins_dbscan_pub.publish(hsv_filtered_msg)

@@ -8,6 +8,7 @@ from std_msgs.msg import Float64
 from cv_bridge import CvBridge, CvBridgeError
 from custom_msgs.msg import RectInfo
 
+
 class BlueRectangleDetector:
     def __init__(self):
         self.bridge = CvBridge()
@@ -115,6 +116,7 @@ class BlueRectangleDetector:
             rect_info.angle = angle
 
         return angle, distance, rect_info, frame
+
 
 if __name__ == "__main__":
     rospy.init_node('blue_rectangle_detector', anonymous=True)
