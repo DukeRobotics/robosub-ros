@@ -75,7 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Get core image
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: core
           path: core_im
@@ -137,7 +137,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Get core image
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: core
           path: core_im

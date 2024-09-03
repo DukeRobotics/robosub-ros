@@ -78,7 +78,7 @@ jobs:
         with:
           ref: ${{ needs.check-comment.outputs.sha }}
       - name: Get core image
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: core
           path: core_im
@@ -109,7 +109,7 @@ jobs:
         with:
           ref: ${{ needs.check-comment.outputs.sha }}
       - name: Get core image
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: core
           path: core_im
