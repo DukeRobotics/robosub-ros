@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 
 import rospy
-import cv2
 from brping import Ping360
 import numpy as np
-import os
-from datetime import datetime
 import sonar_utils
 import serial.tools.list_ports as list_ports
 from geometry_msgs.msg import Pose
@@ -274,19 +271,9 @@ class Sonar:
         """
         sonar_sweep_array = self.get_sweep(start_angle, end_angle)
 
-        # save the array
-        current_time = datetime.now().strftime("%m%d_%H%M%S")
-        directory = '/root/dev/robosub-ros/sonar_scans/'
-        file_path = os.path.join(directory, f'scan_{current_time}_{start_angle}_{end_angle}.npy')
-        np.save(file_path, sonar_sweep_array)
-
         sonar_index, normal_angle, plot = find_center_point_and_angle(
             sonar_sweep_array, self.VALUE_THRESHOLD, self.DBSCAN_EPS,
             self.DBSCAN_MIN_SAMPLES, True)
-
-        if plot is not None:
-            file_path = os.path.join(directory, f'scan_{current_time}_{start_angle}_{end_angle}.jpeg')
-            cv2.imwrite(file_path, plot)
 
         if sonar_index is None:
             return (None, sonar_sweep_array, None)
