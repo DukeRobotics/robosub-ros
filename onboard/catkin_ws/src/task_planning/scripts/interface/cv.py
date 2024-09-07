@@ -21,7 +21,7 @@ class CV:
 
     MODELS_PATH = "package://cv/models/depthai_models.yaml"
     CV_CAMERA = "front"
-    # TODO We may want a better way to sync this between here and the cv node
+    # TODO: We may want a better way to sync this between here and the cv node
     CV_MODEL = "yolov7_tiny_2023_main"
 
     FRAME_WIDTH = 640
@@ -62,8 +62,6 @@ class CV:
 
         rospy.Subscriber("/cv/front_usb/buoy/bounding_box", CVObject, self._on_receive_cv_data, "buoy")
 
-        # rospy.Subscriber('/yolov7/detection', Detection2DArray, self._on_receive_gate_detection)
-
         rospy.Subscriber('/cv/front/gate_red_cw', CVObject, self._on_receive_cv_data, "gate_red_cw")
         rospy.Subscriber('/cv/front/gate_whole', CVObject, self._on_receive_cv_data, "gate_whole")
 
@@ -93,20 +91,7 @@ class CV:
         """
         self.cv_data[object_type] = cv_data
 
-        # if object_type == "path_marker":
-        #     angle = cv_data.yaw
-        #     if angle > 0:
-        #         global_angle_offset = np.pi / 2 - angle
-        #     else:
-        #         global_angle_offset = -np.pi / 2 - angle
-
-        #     imu_orientation = State().imu.orientation
-        #     euler_angles = quat2euler([imu_orientation.w, imu_orientation.x, imu_orientation.y, imu_orientation.z])
-
-        #     self.cv_data["global_path_marker_angle"] = euler_angles[2] + global_angle_offset
-        #     rospy.loginfo(f"Global path marker angle: {global_path_marker_angle}")
-
-    def _on_receive_distance_data(self, distance_data: Point, object_type: str) -> None:
+    def _on_receive_distance_data(self, distance_data: Point, object_type: str, filter_len=10) -> None:
         """
         Parse the received distance data and store it
 
@@ -114,13 +99,13 @@ class CV:
             distance_data: The received distance data as a Point
             object_type: The name/type of the object
         """
-        filter_len = 10
-
+        # TODO: migrate all self.{object}_distances type objects into a single self.distances dictionary
+        # TODO: implement a generic moving average filter
+        # TODO: integrate _on_receive_lane_marker_dist
         if object_type == "path_marker":
             self.cv_data["path_marker_distance"] = distance_data
             return
 
-        # pictured below is someone's future problem of deciding how cv_data should be structured
         if len(self.bin_distances[object_type]["x"]) == filter_len:
             self.bin_distances[object_type]["x"].pop(0)
         if len(self.bin_distances[object_type]["y"]) == filter_len:
@@ -143,7 +128,7 @@ class CV:
         red_data = self.cv_data["bin_red_distance"]
         blue_data = self.cv_data["bin_blue_distance"]
 
-        if (red_data and blue_data):
+        if (red_data := self.cv_data["bin_red_distance"]) and (blue_data := self.cv_data["bin_blue_distance"]):
             red_x, red_y = red_data.x, red_data.y
             blue_x, blue_y = blue_data.x, blue_data.y
 
@@ -152,6 +137,7 @@ class CV:
             center_blue_x = self.FRAME_WIDTH / 2 - blue_x
             center_blue_y = self.FRAME_HEIGHT / 2 - blue_y
 
+            # TODO: do some mathy stuff to make this cleaner
             angle = np.arctan2(center_red_y - center_blue_y, center_red_x - center_blue_x)
             if angle > np.pi:
                 angle -= 2 * np.pi
@@ -164,8 +150,6 @@ class CV:
                 angle += np.pi
 
             self.cv_data["bin_angle"] = angle
-
-    # TODO add useful methods for getting data
 
     def _on_receive_lane_marker_angle(self, angle: Float64) -> None:
         """
@@ -185,6 +169,7 @@ class CV:
         self.cv_data["lane_marker_angle"] = lane_marker_angle
         self.lane_marker_angle_publisher.publish(self.cv_data["lane_marker_angle"])
 
+    # TODO: remove this and integrate into _on_receive_distance_data
     def _on_receive_lane_marker_dist(self, dist: Float64) -> None:
         """
         Parse the received dist of the blue rectangle and store it
@@ -302,10 +287,7 @@ class CV:
         dist_x_meters = dist_x * meters_per_pixel * -1
         dist_y_meters = dist_y * meters_per_pixel * -1
 
-        dist_with_obj_width = self.mono_cam_dist_with_obj_width(bbox_width, self.GATE_IMAGE_WIDTH)
-        # dist_with_obj_height = self.mono_cam_dist_with_obj_height(bbox_height, self.GATE_IMAGE_HEIGHT)
-        # dist_to_obj = (dist_with_obj_width + dist_with_obj_height) / 2
-        dist_to_obj = dist_with_obj_width
+        dist_to_obj = self.mono_cam_dist_with_obj_width(bbox_width, self.GATE_IMAGE_WIDTH)
 
         self.cv_data[gate_class + "_properties"] = {
             "bbox_width": bbox_width,
@@ -315,15 +297,6 @@ class CV:
             "y": dist_x_meters,
             "z": dist_y_meters,
         }
-
-        # log_dict = {
-        #     "x": dist_to_obj,
-        #     "y": dist_x_meters,
-        #     "z": dist_y_meters,
-        # }
-
-        # if gate_class == "gate_red_cw":
-        #     rospy.loginfo(log_dict)
 
     def mono_cam_dist_with_obj_width(self, width_pixels, width_meters):
         return (self.MONO_CAM_FOCAL_LENGTH * width_meters * self.MONO_CAM_IMG_SHAPE[0]) \

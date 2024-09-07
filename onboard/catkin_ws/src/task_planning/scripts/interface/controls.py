@@ -44,8 +44,7 @@ class Controls:
         if not bypass:
             rospy.wait_for_service(self.CONTROL_TYPES_SERVICE)
         self._set_control_types = rospy.ServiceProxy(self.CONTROL_TYPES_SERVICE, SetControlTypes)
-        # Note: if this variable gets out of sync with the actual control types,
-        # bad things may happen
+        # NOTE: if this variable gets out of sync with the actual control types, bad things may happen
         self._all_axes_control_type = None
 
         self.control_types: ControlTypes = None
@@ -112,7 +111,7 @@ class Controls:
         """
         if self._all_axes_control_type == type:
             return
-        # TODO what if this doesn't return success?
+        # TODO: what if this doesn't return success?
         if not self.bypass:
             self._set_control_types(ControlTypes(
                 x=type,

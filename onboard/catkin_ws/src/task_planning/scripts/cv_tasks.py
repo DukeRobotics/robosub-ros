@@ -8,6 +8,7 @@ import move_tasks
 from utils import geometry_utils
 
 
+# TODO: this task will likely be depleted once we complete the refactoring tasks in comp_tasks.py
 @task
 async def move_to_cv_obj(self: Task, name: str) -> Task[None, Optional[str], None]:
     """
@@ -44,7 +45,7 @@ async def move_to_cv_obj(self: Task, name: str) -> Task[None, Optional[str], Non
 
 @task
 async def correct_x(self: Task, prop: str, add_factor: float = 0, mult_factor: float = 1):
-    x = (CV().cv_data[prop]["x"] + add_factor) * mult_factor
+    x = (CV().cv_data[prop].coords.x + add_factor) * mult_factor
     await move_tasks.move_to_pose_local(geometry_utils.create_pose(x, 0, 0, 0, 0, 0), parent=self)
     rospy.loginfo(f"Corrected x {x}")
 

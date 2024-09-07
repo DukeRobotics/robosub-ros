@@ -76,7 +76,7 @@ def main():
             # comp_tasks.yaw_to_cv_object('path_marker', yaw_threshold=math.radians(5), direction=-1, depth_level=0.5,
             #                             parent=Task.MAIN_ID),
             # comp_tasks.dead_reckoning_path_marker_to_bin(maximum_distance=4, parent=Task.MAIN_ID),
-            # comp_tasks.path_marker_to_bin(maximum_distance=6, parent=Task.MAIN_ID),
+            # comp_tasks.path_marker_to_pink_bin(maximum_distance=6, parent=Task.MAIN_ID),
             # comp_tasks.buoy_to_octagon(direction=1, move_forward=0, parent=Task.MAIN_ID),
             # comp_tasks.let_search_for_bin_turtlesim_style_because_why_not(parent=Task.MAIN_ID),
             # comp_tasks.bin_task(parent=Task.MAIN_ID),
