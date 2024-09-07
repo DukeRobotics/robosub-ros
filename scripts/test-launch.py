@@ -22,6 +22,7 @@ BLOCK_LIST = [
     'execute/launch/motion.launch',
     'system_utils/launch/sensor_check.launch',
     'system_utils/launch/record_bag.launch',
+    'system_utils/launch/system_utils.launch',
 ]
 
 
