@@ -20,7 +20,8 @@ BLOCK_LIST = [
     'vectornav/launch/vectornav.launch',
     'execute/launch/tasks.launch',
     'execute/launch/motion.launch',
-    'system_utils/launch/sensor_check.launch'
+    'system_utils/launch/sensor_check.launch',
+    'system_utils/launch/record_bag.launch',
 ]
 
 
