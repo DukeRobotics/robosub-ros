@@ -1,0 +1,6 @@
+<launch>
+	<arg name="camera" default="front" />
+	<node name="$(anon pink_bins_detector)" pkg="cv" type="pink_bins_detector.py" output="screen">
+		<param name="camera" value="$(arg camera)" />
+	</node>
+</launch>

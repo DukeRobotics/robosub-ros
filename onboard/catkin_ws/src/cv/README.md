@@ -19,8 +19,9 @@ To stream the feed or perform spatial detection using the OAK camera, use `rosla
 `scripts/`
 * `depthai_camera_connect.py`: Connects to the OAK camera and uploads the image pipeline. Used by all other DepthAI scripts.
 * `depthai_publish_save_streams.py`: Publishes a preview of the image feed from the OAK camera and saves encoded streams. This can be used to verify connection to the camera and to check if there are any issues with the camera feed.
-* `depthai_spatial_detection.py`: Publishes live spatial detections using a specified model in `depthai_models.yaml`.
-* `depthai_simulate_detection.launch`: Publishes spatial detections using a specified model in `depthai_models.yaml` on a still image or image feed.
+* `depthai_spatial_detection.py`: Publishes live detections using a specified model in `depthai_models.yaml`.
+* `depthai_mono_detection.launch`: Publishes detections using a specified model in `depthai_models.yaml` on a mono camera image feed.
+* `depthai_simulate_detection.launch`: Publishes detections using a specified model in `depthai_models.yaml` on a still image or image feed. Should only be used for DepthAI camera testing (not task planning).
 * `camera_hard_reset.py`: Used to reset a POE camera if it is not connecting properly. The script creates the topics `/offboard/camera_relay` (for sending commands to the camera relay) and `/offboard/camera_relay_status` (for checking the status of the physical relay). Running `rosservice call /enable_camera <true/false>` enables or disables the camera. Note: running `camera_hard_reset.py` requires serial.launch to have been run and this may power cycle the camera upon running. By default, the camera will be enabled unless the topic `/offboard/camera_relay` is set to `false`. See `onboard/catkin_ws/src/offboard_comms/README.md` for more information on the relay service.
 
 `launch/`

@@ -22,6 +22,7 @@ add_message_files(
   PIDInfo.msg
   PIDTerms.msg
   PWMAllocs.msg
+  RectInfo.msg
   RemoteLaunchInfo.msg
   RunningNode.msg
   ServoAngleArray.msg
@@ -30,6 +31,7 @@ add_message_files(
   SonarSweepRequest.msg
   SonarSweepResponse.msg
   SystemUsage.msg
+  TaskUpdate.msg
   ThrusterAllocs.msg
 )
 

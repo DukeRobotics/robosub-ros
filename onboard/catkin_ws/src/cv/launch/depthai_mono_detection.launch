@@ -1,0 +1,23 @@
+<launch>
+    <arg name="feed_path" default="/camera/usb/front/compressed" doc='{"type":"str","allowEmpty":false,"help":"Topic path to use as the simulated camera feed."}'/>
+    <arg name="model" default="2024_gate_glyphs" doc='{"options":["yolov7_tiny_2023_main","yolov8n_2023_main","gate_buoy","gate"],"allowEmpty":false,"help":"The DepthAI model to use from depthai_models.yaml"}'/>
+    <arg name="rgb_raw" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the raw rgb stream (no detections)."}'/>
+    <arg name="rgb_detections" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the rgb stream with detections overlaid."}'/>
+    <arg name="depth" default="False" doc='{"type":"bool","allowEmpty":false,"help":"Whether to publish the depth map."}'/>
+    <arg name="sync_nn" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to sync the RGB frames with the detections so the latest published detections correspond to the latest published RGB frame."}'/>
+    <arg name="using_sonar" default="False" doc='{"type":"bool","allowEmpty":false,"help":"Whether to use sonar to estimate depth instead of stereo."}'/>
+    <arg name="show_class_name" default="True" doc='{"type":"bool","allowEmpty":false,"help":"Whether to show the class name."}'/>
+    <arg name="show_confidence" default="True" doc='{"type":"bool","allowEmp
+    ty":false,"help":"Whether to show the confidence value."}'/>
+    <node name="depthai_mono_detection" pkg="cv" type="depthai_mono_detection.py" output="screen">
+        <param name="feed_path" value="$(arg feed_path)" />
+        <param name="model" value="$(arg model)" />
+        <param name="rgb_raw" value="$(arg rgb_raw)" />
+        <param name="rgb_detections" value="$(arg rgb_detections)" />
+        <param name="depth" value="$(arg depth)" />
+        <param name="sync_nn" value="$(arg sync_nn)" />
+        <param name="using_sonar" value="$(arg using_sonar)" />
+        <param name="show_class_name" value="$(arg show_class_name)" />
+        <param name="show_confidence" value="$(arg show_confidence)" />
+    </node>
+</launch>

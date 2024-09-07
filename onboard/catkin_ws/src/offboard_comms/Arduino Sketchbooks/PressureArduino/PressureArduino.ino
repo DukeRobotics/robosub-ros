@@ -6,7 +6,7 @@
 #define BAUD_RATE 9600
 #define ONBOARD_VOLTAGE 4.655 // Arduino onboard voltage (true output of 5V pin)
 #define VPIN 3 // voltage pin analog input
-#define VOLTAGE_PERIOD 1000 // how often to print out voltage
+#define VOLTAGE_PERIOD 100 // how often to print out voltage
 
 MS5837 sensor;
 bool pressureConnected = false;

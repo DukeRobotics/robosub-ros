@@ -25,6 +25,7 @@ class Sonar:
 
     FILTER_INDEX = 100  # First x values are filtered out
     DEFAULT_RANGE = 5  # m
+    prev_range = DEFAULT_RANGE
     DEFAULT_NUMER_OF_SAMPLES = 1200  # 1200 is max resolution
 
     SONAR_FTDI_OOGWAY = "DK0C1WF7"
@@ -148,6 +149,7 @@ class Sonar:
         Returns:
             Nothing
         """
+        self.prev_range = range
         self.sample_period = self.range_to_period(range)
         self.ping360.set_sample_period(self.sample_period)
 
@@ -351,7 +353,7 @@ class Sonar:
             rospy.loginfo("Bad sonar request")
             return
 
-        if new_range != self.DEFAULT_RANGE:
+        if new_range != self.prev_range:
             self.set_new_range(new_range)
 
         object_pose, plot, normal_angle = self.get_xy_of_object_in_sweep(left_gradians, right_gradians)

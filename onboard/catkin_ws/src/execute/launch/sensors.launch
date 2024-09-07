@@ -12,12 +12,36 @@
 	</group>
 
     <!-- Start CV -->
+    <!-- NOTE: since it takes a while to connect to a DepthAI camera, the
+         depthai_mono_detection.launch node should be launched separately. -->
     <group unless="$(arg sim)">
-        <include file="$(find cv)/launch/depthai_spatial_detection.launch">
+        <include file="$(find cv)/launch/usb_camera_connect.launch">
         </include>
     </group>
     <group unless="$(arg sim)">
-        <include file="$(find cv)/launch/usb_camera.launch">
+        <include file="$(find cv)/launch/blue_rectangle_detector.launch">
+        </include>
+    </group>
+    <group unless="$(arg sim)">
+        <include file="$(find cv)/launch/buoy_detector_contour_matching.launch">
+        </include>
+    </group>
+    <group unless="$(arg sim)">
+        <include file="$(find cv)/launch/bin_detector.launch">
+        </include>
+    </group>
+    <group unless="$(arg sim)">
+        <include file="$(find cv)/launch/path_marker_detector.launch">
+        </include>
+    </group>
+    <group unless="$(arg sim)">
+        <include file="$(find cv)/launch/pink_bins_detector.launch">
+            <arg name="camera" value="front" />
+        </include>
+    </group>
+    <group unless="$(arg sim)">
+        <include file="$(find cv)/launch/pink_bins_detector.launch">
+            <arg name="camera" value="bottom" />
         </include>
     </group>
 
