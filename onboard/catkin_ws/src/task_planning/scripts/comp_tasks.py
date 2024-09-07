@@ -25,13 +25,13 @@ from utils.coroutine_utils import sleep
 
 
 # TODO: move stablize() to move_tasks.py
-# 
+#
 # TODO: see if we can remove sleep() since we already have sleep() in coroutine_utils.py
 #
 # TODO: create a common skeleton @task class/interface with all the common functions to remove redundancy:
 # - move_x
-# - move_y 
-# - move_z 
+# - move_y
+# - move_z
 # - correct_x
 # - correct_y
 # - correct_z
@@ -47,7 +47,7 @@ from utils.coroutine_utils import sleep
 # - logarithmic search (stretch)
 # - track and align with object center for bottom camera (e.g. search_for_bins & center_path_marker)
 # - track and move toward CV object (e.g. move_to_pink_bins & move_to_buoy)
-#     - takes in the termination condition function as a 
+#     - takes in the termination condition function as a parameter
 #     - can improve on cv_tasks.move_to_cv_obj implementation (or replace it completely)
 
 
