@@ -3,7 +3,7 @@
   "displayName": "Toggle Joystick Panel",
   "description": "Toggle to publish joystick inputs as a desired power",
   "publisher": "Duke Robotics",
-  "version": "0.0.0",
+  "version": "6c20219",
   "main": "./dist/extension.js",
   "scripts": {
     "build": "foxglove-extension build",

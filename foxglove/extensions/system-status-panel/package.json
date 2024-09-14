@@ -3,7 +3,7 @@
   "displayName": "System Status Panel",
   "description": "Display the system usage of the onboard computer",
   "publisher": "Duke Robotics",
-  "version": "0.0.0",
+  "version": "6c20219",
   "main": "./dist/extension.js",
   "scripts": {
     "build": "foxglove-extension build",

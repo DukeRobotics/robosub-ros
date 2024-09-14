@@ -190,5 +190,6 @@ jobs:
 
       - name: Build all Foxglove extensions
         run: |
+          pip install GitPython
           cd foxglove
           ./foxglove.py install -e
