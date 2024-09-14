@@ -190,7 +190,7 @@ def publish_extensions(extension_paths: Sequence[pathlib.Path], version: str = N
             package = json.load(file)
         package['version'] = version
         with open(extension / "package.json", 'w') as file:
-            json.dump(package, file, indent=4)
+            json.dump(package, file, indent=2)
 
         # Build extension package
         run_at_path("npm run package", extension)
