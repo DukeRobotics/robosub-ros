@@ -25,6 +25,7 @@ import platform
 import argparse
 from typing import Sequence, Union
 import time
+import git
 
 ORGANIZATION = "dukerobotics"
 
@@ -160,22 +161,42 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
     print(f"Successfully installed {successes} extension(s)\n")
 
 
-def publish_extensions(extension_paths: Sequence[pathlib.Path]):
+def publish_extensions(extension_paths: Sequence[pathlib.Path], version: str = None):
     """
     Publish custom Foxglove extensions.
 
     Args:
         extension_paths: Sequence of extension paths to publish.
+        version: Version to publish extensions under. If None, the short HEAD commit hash is used.
+
+    Raises:
+        SystemExit: If the Foxglove directory is dirty and no version is given.
     """
+    repo = git.Repo(path=FOXGLOVE_PATH.parent)
+    is_dirty = repo.is_dirty(untracked_files=True, path=FOXGLOVE_PATH)
+    if is_dirty and version is None:
+        raise SystemExit("The foxglove directory is dirty! Commit changes before publishing.")
+    if version is None:
+        version = repo.head.object.hexsha[:7]
+
     successes = 0
     for extension in extension_paths:
         if not (extension / "package.json").is_file():
             print(f"{extension.name}: skipped (no package.json)")
             continue
 
+        # Update package.json version
+        with open(extension / "package.json", 'r') as file:
+            package = json.load(file)
+        package['version'] = version
+        with open(extension / "package.json", 'w') as file:
+            json.dump(package, file, indent=4)
+
+        # Build extension package
         run_at_path("npm run package", extension)
 
-        package_name = f'{ORGANIZATION}.{extension.name}-0.0.0.foxe'
+        # Publish extension package
+        package_name = f'{ORGANIZATION}.{extension.name}-{version}.foxe'
         try:
             run_at_path(f"foxglove extensions publish {package_name}", extension)
         finally:
@@ -394,7 +415,13 @@ if __name__ == "__main__":
         action='extend',
         nargs='*',
         type=extension_package,
-        help="Publish extension(s) by name. If no name(s) are given, all extensions are published."
+        help="Specify extension(s) to publish. If no name(s) are given, all extensions are published."
+    )
+    publish_parser.add_argument(
+        '-v', '--version',
+        action='store',
+        nargs='?',
+        help="Version to publish extensions under. If no version is given, the short HEAD commit hash is used."
     )
 
     args = parser.parse_args()
@@ -422,7 +449,7 @@ if __name__ == "__main__":
 
         check_npm()
         check_foxglove_cli()
-        publish_extensions(args.extensions)
+        publish_extensions(args.extensions, args.version)
 
     elif args.action in ("uninstall", "u"):
         # Without flags, uninstall everything
