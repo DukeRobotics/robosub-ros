@@ -2,7 +2,7 @@ import useTheme from "@duke-robotics/theme";
 import { Immutable, PanelExtensionContext, RenderState, MessageEvent, Subscription } from "@foxglove/extension";
 import { Box, Paper, Table, TableBody, TableCell, TableContainer, TableRow, Typography, Tooltip } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useLayoutEffect } from "react";
 import { createRoot } from "react-dom/client";
 
 // Map of sensor name to topic name
@@ -75,7 +75,7 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
   context.subscribe(TOPICS_LIST);
 
   // Watch currentFrame for messages from each sensor
-  useEffect(() => {
+  useLayoutEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done: unknown) => {
       setRenderDone(() => done);
 
@@ -112,22 +112,25 @@ function SensorsStatusPanel({ context }: { context: PanelExtensionContext }): JS
 
       // Compare current time to each sensorsTime and set connectStatus to false if the sensor is down
       for (const key in TOPICS_MAP) {
-        if (state.currentTime - state.sensorsTime[key as topicsMapKeys] > SENSOR_DOWN_THRESHOLD) {
-          setState((prevState) => ({
-            ...prevState,
-            connectStatus: {
-              ...prevState.connectStatus,
-              [key as topicsMapKeys]: false,
-            },
-          }));
-        }
+        setState((prevState) => {
+          if (prevState.currentTime - prevState.sensorsTime[key as topicsMapKeys] > SENSOR_DOWN_THRESHOLD) {
+            return {
+              ...prevState,
+              connectStatus: {
+                ...prevState.connectStatus,
+                [key as topicsMapKeys]: false,
+              },
+            };
+          }
+          return prevState;
+        });
       }
     };
 
     context.watch("currentTime");
     context.watch("currentFrame");
     context.watch("didSeek");
-  }, [context, state]);
+  }, [context]);
 
   // Call our done function at the end of each render.
   useEffect(() => {
