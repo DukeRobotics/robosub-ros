@@ -79,11 +79,15 @@ function PIDPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   // Save state upon change
   useEffect(() => {
     context.saveState(state);
-  }, [state, context]);
+  }, [state]);
 
   context.subscribe([{ topic: PID_TOPIC }]);
 
   // Update state when a new PID message is received
+  /*
+    TODO: Potential memory bug, since it is called upon changing state.pid, and the function itself will update
+    state.pid
+  */
   useEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       setRenderDone(() => done);

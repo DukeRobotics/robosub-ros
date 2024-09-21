@@ -33,7 +33,7 @@ function SubscribeTopicPanel({ context }: { context: PanelExtensionContext }): J
     } else {
       context.unsubscribeAll();
     }
-  }, [context, state.topic]);
+  }, [state.topic]);
 
   // Setup our onRender function and start watching topics and currentFrame for messages.
   useEffect(() => {

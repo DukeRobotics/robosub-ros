@@ -113,7 +113,7 @@ function ThrusterAllocsPanel({ context }: { context: PanelExtensionContext }): J
   // Save state upon change
   useEffect(() => {
     context.saveState(state);
-  }, [state, context]);
+  }, [state]);
 
   useEffect(() => {
     renderDone?.();

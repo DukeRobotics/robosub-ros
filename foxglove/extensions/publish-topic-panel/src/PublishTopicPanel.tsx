@@ -36,7 +36,7 @@ function PublishTopicPanel({ context }: { context: PanelExtensionContext }): JSX
   // Save state upon change
   useEffect(() => {
     context.saveState(state);
-  }, [state, context]);
+  }, [state]);
 
   // Pubish a request with a given schema to a topic
   const publishTopic = () => {
