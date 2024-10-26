@@ -1,10 +1,13 @@
 arduino:
-  pressure:
+  peripheral:
     ftdi: B0015XL0
     fqbn: arduino:avr:nano
     core: arduino:avr
-    sketch: Arduino Sketchbooks/PressureArduino
+    sketch: Arduino Sketchbooks/PeripheralArduino
     requires_ros_lib: false
+    libraries:
+      - servo
+      - DHT11
   thruster:
     ftdi: B0004VDI
     fqbn: arduino:avr:nano
@@ -13,12 +16,3 @@ arduino:
     requires_ros_lib: true
     pre_compile: rosrun offboard_comms copy_offset.sh 1
     post_compile: rosrun offboard_comms copy_offset.sh 0
-  servo_sensors:
-    ftdi: A10N1UC1
-    fqbn: arduino:avr:nano
-    core: arduino:avr
-    sketch: Arduino Sketchbooks/ServoSensorArduino
-    requires_ros_lib: false
-    libraries:
-      - servo
-      - DHT11
