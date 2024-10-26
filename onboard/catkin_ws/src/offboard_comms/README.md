@@ -23,9 +23,12 @@ offboard_comms
 │   ├── ThrusterArduino
 │   │   ├── ThrusterArduino.ino  # Arduino code for thrusters
 │   │   ├── ... Libraries for thrusters
+│   ├── crushTempHumidity.h  # Temp/Humidity functions for Crush sensors
 │   ├── cthulhuThrusterOffset.h  # PWM offset for Cthulhu thrusters
+│   ├── oogwayTempHumidity.h  # Temp/Humidity functions for Crush sensors
 │   ├── oogwayThrusterOffset.h  # PWM offset for Oogway thrusters
 ├── config
+│   ├── crush.yaml # Arduino config file for Crush
 │   ├── cthulhu.yaml # Arduino config file for Cthulhu
 │   ├── oogway.yaml # Arduino config file for Oogway
 ├── data
@@ -39,6 +42,7 @@ offboard_comms
 ├── scripts
 │   ├── arduino.py  # CLI to install libraries, find ports, compile, and upload Arduino code
 │   ├── copy_offset.sh  # Bash script to copy the correct PWM offset file to the Thruster Arduino sketchbook
+│   ├── copy_tempHumidity.sh  # Bash script to copy the Temp/Humidity sensor functions to the Peripheral Arduino sketchbook
 │   ├── servo_wrapper.py  # ROS node to publish requests from ROS service calls to a ROS topic
 ├── src
 │   ├── thrusters.cpp  # ROS node to convert thruster allocations to PWMs
@@ -277,3 +281,9 @@ Errors in reading the pressure sensor do not affect the voltage sensor. Voltage 
 Voltage publishing over serial is also handled by the Peripheral Arduino. The voltage is published as a float over serial, and is published at 1 Hz.
 
 The voltage is calibrated based on the onboard Arduino's voltage. This is important as the used voltage sensor requires knowledge of its own voltage as it uses a voltage divider to measure the voltage. The voltage sensor used is the a generic voltage sensor.
+
+### Functions for Reading Temp / Humidity Data
+
+The `crushTempHumidity.h` and `oogwayTempHumidity.h` files contain initialization and functions to read and print data from the temperature and humidity sensors onboard.
+
+Before compiling the Peripheral Arduino sketch, the `copy_tempHumidity.sh` script copies the correct header to the Peripheral Arduino sketchbook and renames it to `tempHumidity.h`. After compilation is complete, the `copy_tempHumidity.sh` script deletes `tempHumidity.h` from the sketchbook.
