@@ -233,6 +233,11 @@ int main(int argc, char **argv) {
 
     Thrusters thrusters(argc, argv, nh);
 
-    ros::spin();
+    ros::Rate rate(20);
+
+    while(ros::ok()) {
+        ros::spinOnce();
+        rate.sleep();
+    }
     return 0;
 }
