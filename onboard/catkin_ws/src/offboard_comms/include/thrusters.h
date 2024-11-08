@@ -7,8 +7,6 @@
 
 #include <array>
 
-const int NUM_THRUSTERS = 8;
-
 // Number of entries in each lookup table
 const int NUM_LOOKUP_ENTRIES = 201;
 
@@ -29,6 +27,8 @@ class Thrusters {
     ros::Publisher pwm_pub;
 
     int serial_fd = -1;
+    
+    int NUM_THRUSTERS;
 
     void load_lookup_tables();
     void read_lookup_table_csv(const std::string &filename, std::array<uint16_t, NUM_LOOKUP_ENTRIES> &lookup_table);
