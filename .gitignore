@@ -56,5 +56,8 @@ build
 # Don't ignore wrench matrices
 !onboard/catkin_ws/src/controls/data/*.csv
 
-# Ignore offset.h in thruster arduino
+# Ignore offset.h in ThrusterArduino
 onboard/catkin_ws/src/offboard_comms/Arduino Sketchbooks/ThrusterArduino/offset.h
+
+# Ignore tempHumidity.h in PeripheralArduino
+onboard/catkin_ws/src/offboard_comms/Arduino Sketchbooks/PeripheralArduino/tempHumidity.h
