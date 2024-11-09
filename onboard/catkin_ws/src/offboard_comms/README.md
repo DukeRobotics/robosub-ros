@@ -2,17 +2,11 @@
 
 This package provides communications and functionality for Arduinos to be integrated with our main ROS system. The Arduinos handle thruster controls, pressure (depth), voltage, and other peripheral tasks such as handling the marker dropper servo.
 
-There are two Arduinos handled by the package, one for thrusters and one for the pressure and voltage sensors and servo control. The Thruster Arduino runs a ROS node while the Peripheral Arduino dumps data over serial to the main computer, from which the `data_pub` package publishes the data to ROS. Supporting the Thruster Arduino is `thrusters.cpp`, which maps thruster allocations to pulse widths sent to the Thruster Arduino.
+There are two Arduinos handled by the package, one for thrusters and one for the pressure and voltage sensors and servo control. The Thruster Arduino runs a ROS node while the Peripheral Arduino dumps data over serial to the main computer, from which the `data_pub` package publishes the data to ROS. Supporting the Thruster Arduino is `thrusters.cpp`, which maps thruster allocations to pulse widths sent to the Thruster Arduino. This uses a nonlinear thruster curve. This is a ROS node that converts voltage and thruster allocations to PWM signals. The node subscribes to `/controls/thruster_allocs` and `/sensors/voltage` and writes the PWM allocs over serial using the above-mentioned message.
 
-All Arduinos communicate over raw serial. The thruster Arduino is opened in write-only mode and the 8 thruster allocations are dumped as a fixed-length binary message, with a checksum byte. The 8 thrusters allocs are sent as a 16bit unsigned integer in little endian format. The checksum is an xor of the entire message payload. This design prioritizes speed and reliability.
-
-There are two Arduinos handled by the package, one for thrusters and one for the pressure and voltage sensors and servo control. The Thruster Arduino runs a ROS node while the Peripheral Arduino dumps data over serial to the main computer, from which the `data_pub` package publishes the data to ROS. Supporting the Thruster Arduino is `thrusters.cpp`, which maps thruster allocations to pulse widths sent to the Thruster Arduino.
-
-The other Arduinos dump data over serial to the main computer, from which the `data_pub` package publishes the data to ROS. 
+All Arduinos communicate over raw serial. The Thruster Arduino is opened in write-only mode and the n (8 for Oogway and 6 for Crush) thruster allocations are dumped as a fixed-length binary message, with a checksum byte. The n thrusters allocs are sent as a 16bit unsigned integer in little endian format. The checksum is an xor of the entire message payload. This design prioritizes speed and reliability.
 
 Multiple software serial ports are supported on some Arduinos, but launching both of these nodes independently is not feasible. Only one ROS node is currently being run as to avoid issue where the master ROS node loses sync with one or both of the Arduinos. Migration to a RP2040 (Pico) was attempted, but proved cumbersome for programming purposes, so it was reverted to a Nano Every.
-
-Supporting the thruster Arduino is `thrusters.cpp`, which maps thruster allocations to pulse widths sent to the thruster Arduino. This uses a nonlinear thruster curve. This is a ROS node that converts voltage and thruster allocations to PWM signals. The node subscribes to `/controls/thruster_allocs` and `/sensors/voltage` and writes the PWM allocs over serial using the above-mentioned message.
 
 Oogway is currently configured to use two Arduinos, one for thrusters and one for the peripheral sensors.
 
@@ -30,12 +24,11 @@ offboard_comms
 │   │   ├── ThrusterArduino.ino  # Arduino code for thrusters
 │   │   ├── ... Libraries for thrusters
 │   ├── crushTempHumidity.h  # Temp/Humidity functions for Crush sensors
-│   ├── cthulhuThrusterOffset.h  # PWM offset for Cthulhu thrusters
+│   ├── crushThrusters.h  # PWM offset and NUM_THRUSTERS for Oogway thrusters
 │   ├── oogwayTempHumidity.h  # Temp/Humidity functions for Crush sensors
-│   ├── oogwayThrusterOffset.h  # PWM offset for Oogway thrusters
+│   ├── oogwayThrusters.h  # PWM offset and NUM_THRUSTERS for Oogway thrusters
 ├── config
 │   ├── crush.yaml # Arduino config file for Crush
-│   ├── cthulhu.yaml # Arduino config file for Cthulhu
 │   ├── oogway.yaml # Arduino config file for Oogway
 ├── data
 │   ├── ... Thruster lookup tables
@@ -43,12 +36,13 @@ offboard_comms
 │   ├── thrusters.h
 ├── launch
 │   ├── offboard_comms.launch  # Primary launch file; includes thrusters.launch
-│   ├── thrusters.launch  # Launches thruser control (PWM conversion + serial)
+│   ├── thrusters.launch  # Launches thruster control (PWM conversion + serial)
+│   ├── thrusters_gdb.launch  # Launches thruster control (PWM conversion + serial) w/ gdb
+│   ├── thrusters_valgrind.launch  # Launches thruster control (PWM conversion + serial) w/ valgrind
 │   ├── serial.launch  # Deprecated; launches thrusters.launch
 ├── scripts
 │   ├── arduino.py  # CLI to install libraries, find ports, compile, and upload Arduino code
-│   ├── copy_offset.sh  # Bash script to copy the correct PWM offset file to the Thruster Arduino sketchbook
-│   ├── copy_tempHumidity.sh  # Bash script to copy the Temp/Humidity sensor functions to the Peripheral Arduino sketchbook
+│   ├── copy_offset_temp_humidity.sh  # Script to copy PWM offset, NUM_THRUSTERS and Temp/Humidity functions to the Arduinos 
 │   ├── servo_wrapper.py  # ROS node to publish requests from ROS service calls to a ROS topic
 ├── src
 │   ├── thrusters.cpp  # ROS node to convert thruster allocations to PWMs and send serial data
@@ -204,7 +198,7 @@ Note that an inaccuracy in the ESCs required adding a 31 microsecond offset to t
 
 This offset is set in a header file corresponding to each robot, with file name `<ROBOT_NAME>ThrusterOffset.h` where `<ROBOT_NAME>` is the value of the `ROBOT_NAME` environment variable. The offset is added to the PWM signal in the Arduino code.
 
-Before compiling the Thruster Arduino sketch, the `copy_offset.sh` script copies the correct header to the Thruster Arduino sketchbook and renames it to `offset.h`. After compilation is complete, the `copy_offset.sh` script deletes `offset.h` from the sketchbook.
+Before compiling the Thruster Arduino sketch, the `copy_offset_temp_humidity.sh` script copies the correct header to the Thruster Arduino sketchbook and renames it to `offset.h`. After compilation is complete, the same script deletes `offset.h` from the sketchbook.
 
 ## Testing Thrusters
 First start the ROS nodes for the Thruster Arduino and thruster allocs to PWMs:
@@ -319,4 +313,4 @@ Note that humidity is a percentage, and temperature is in Fahrenheit.
 
 The `crushTempHumidity.h` and `oogwayTempHumidity.h` files contain initialization and functions to read and print data from the temperature and humidity sensors onboard.
 
-Before compiling the Peripheral Arduino sketch, the `copy_tempHumidity.sh` script copies the correct header to the Peripheral Arduino sketchbook and renames it to `tempHumidity.h`. After compilation is complete, the `copy_tempHumidity.sh` script deletes `tempHumidity.h` from the sketchbook.
+Before compiling the Peripheral Arduino sketch, the `copy_offset_temp_humidity.sh` script copies the correct header to the Peripheral Arduino sketchbook and renames it to `tempHumidity.h`. After compilation is complete, the same script deletes `tempHumidity.h` from the sketchbook.

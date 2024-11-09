@@ -26,9 +26,9 @@ Thrusters::Thrusters(int argc, char **argv, ros::NodeHandle &nh) {
         return;
     }
 
-    NUM_THRUSTERS = std::getenv("ROBOT_NAME") == "crush" ? 6 : 8;
-
     ROS_INFO("Thruster serial port: %s", device.c_str());
+
+    extern NUM_THRUSTERS;
 
     // Open the serial port
     serial_fd = open(device.c_str(), O_WRONLY | O_NOCTTY | O_NONBLOCK); // write only, no controlling terminal, non-blocking
