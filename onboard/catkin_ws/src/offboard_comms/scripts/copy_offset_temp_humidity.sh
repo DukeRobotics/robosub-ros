@@ -24,14 +24,16 @@ if [ "$2" = "copy" ]; then
     elif [ "$1" = "thruster" ]; then
         cp "${PKG_DIR}/Arduino Sketchbooks/${offset_file}" "${PKG_DIR}/Arduino Sketchbooks/ThrusterArduino/offset.h"
     else
-        echo "WARN: first argument (Arduino Type) not set to a valid value, must be set to either: peripheral or thruster"
+        echo "WARN: first argument (Arduino Type) must be set to either "peripheral" or "thruster""
     fi
-else
+elif [ "$2" = "remove" ]; then
     if [ "$1" = "peripheral" ]; then
         rm "${PKG_DIR}/Arduino Sketchbooks/PeripheralArduino/tempHumidity.h"
-    elif [ "$1" = "thruster"]; then
+    elif [ "$1" = "thruster" ]; then
         rm "${PKG_DIR}/Arduino Sketchbooks/ThrusterArduino/offset.h"
     else
-        echo "WARN: first argument (Arduino Type) not set to a valid value, must be set to either: peripheral or thruster"
+        echo "WARN: first argument (Arduino Type) must be set to either "peripheral" or "thruster""
     fi
+else
+    echo "WARN: second argument (Action) must be set to either "copy" or "remove""
 fi
