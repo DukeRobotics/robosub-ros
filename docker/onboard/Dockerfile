@@ -48,6 +48,7 @@ RUN apt-get update && \
     ros-noetic-smach-ros \
     ros-noetic-rosserial \
     ros-noetic-rosserial-arduino \
+    ros-noetic-vision-msgs \
     ffmpeg \
     nmap \
     iputils-ping \
@@ -60,7 +61,7 @@ RUN apt-get update && \
 
 # Get required python packages
 RUN pip3 install --no-cache-dir \
-    numpy==1.20.3 scipy pymba python-dateutil \
+    numpy==1.24.4 scipy pymba python-dateutil \
     pyserial dependency-injector \
     gputil saleae \
     bluerobotics-ping \
@@ -68,7 +69,10 @@ RUN pip3 install --no-cache-dir \
     python-nmap \
     transforms3d \
     sympy \
-    scikit-learn
+    scikit-learn \
+    opencv-python \
+    jsonpickle \
+    seaborn
 
 # Install PyTorch and Torchvision
 COPY torch_installer.sh torch_deps/torch_installer.sh
@@ -137,6 +141,13 @@ RUN cd ~/ros_ign_ws && \
 # Install Arduino CLI for Arduino upload script
 # v0.17.0 is required due to issues with adding libraries in the current version v0.18.0
 RUN curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=/usr/local/bin sh -s 0.17.0
+
+# Install Arduino cores
+RUN arduino-cli core install arduino:megaavr arduino:avr
+
+# Install Arduino libraries
+RUN arduino-cli lib update-index
+RUN arduino-cli lib install "servo" "DHT11"
 
 # Set ROS_IP to avoid unresolvable hostnames
 COPY setup_network.bash /opt/ros/noetic/setup_network.bash

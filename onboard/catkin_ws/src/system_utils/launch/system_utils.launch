@@ -1,4 +1,9 @@
 <launch>
+    <arg name="enable_recording" default="false" />
+    <include file="$(find system_utils)/launch/record_bag.launch">
+        <arg name="enable_recording" value="$(arg enable_recording)" />
+    </include>
+    
     <include file="$(find system_utils)/launch/system_pub.launch" />
     <include file="$(find system_utils)/launch/topic_transforms.launch" />
 </launch>

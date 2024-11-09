@@ -14,7 +14,6 @@ add_message_files(
   ControlTypes.msg
   CVObject.msg
   DVLRaw.msg
-  HydrophoneSet.msg
   Memory.msg
   PIDAxesInfo.msg
   PIDDerivativeType.msg
@@ -23,6 +22,7 @@ add_message_files(
   PIDInfo.msg
   PIDTerms.msg
   PWMAllocs.msg
+  RectInfo.msg
   RemoteLaunchInfo.msg
   RunningNode.msg
   ServoAngleArray.msg
@@ -31,6 +31,7 @@ add_message_files(
   SonarSweepRequest.msg
   SonarSweepResponse.msg
   SystemUsage.msg
+  TaskUpdate.msg
   ThrusterAllocs.msg
 )
 
@@ -47,15 +48,6 @@ add_service_files(
   SetStaticPower.srv
   StartLaunch.srv
   StopLaunch.srv
-)
-
-add_action_files(
-  FILES
-  AcousticsProcessing.action
-  AcousticsGuess.action
-  AcousticsWrapper.action
-  Saleae.action
-  AcousticsData.action
 )
 
 generate_messages(

@@ -6,7 +6,7 @@ import {
   CustomMsgsControlTypesConst,
 } from "@duke-robotics/defs/types";
 import useTheme from "@duke-robotics/theme";
-import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/studio";
+import { Immutable, PanelExtensionContext, RenderState } from "@foxglove/extension";
 import { Button, Box, Alert, ThemeProvider } from "@mui/material";
 import { JsonViewer } from "@textea/json-viewer";
 import { useCallback, useEffect, useState } from "react";
@@ -25,8 +25,8 @@ const DESIRED_POWER_SCHEMA = "geometry_msgs/Twist";
 const AXIS_MAP = {
   xIndex: 1, // Joystick Forward/Backward
   yIndex: 0, // Joystick Left/Right
-  zIndex: 5, // Throttle
-  yawIndex: 2, // Joystick Twist
+  zIndex: 2, // Throttle
+  yawIndex: 5, // Joystick Twist
   pitchIndex: 9, // Thumb Joystick Forward/Backward
   rollIndex: 9, // Thumb Joystick Right/Left
 };

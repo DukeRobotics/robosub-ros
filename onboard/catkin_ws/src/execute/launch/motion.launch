@@ -3,6 +3,7 @@
 	<!-- Include all launch files required to move the robot, i.e. state tracking and controls -->
 
 	<arg name="sim" default="false" />
+	<arg name="enable_recording" default="false" />
 
 	<!-- Start Arduino I/O -->
 	<group unless="$(arg sim)">
@@ -21,7 +22,9 @@
 
 	<include file="$(find execute)/launch/sensors.launch" />
 
-	<include file="$(find system_utils)/launch/system_utils.launch" />
+	<include file="$(find system_utils)/launch/system_utils.launch">
+		<arg name="enable_recording" value="$(arg enable_recording)" />
+	</include>
 
 	<include file="$(find vectornav)/launch/vectornav.launch" />
 

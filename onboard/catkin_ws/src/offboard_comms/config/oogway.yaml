@@ -1,10 +1,13 @@
 arduino:
-  pressure:
+  peripheral:
     ftdi: B0015XL0
     fqbn: arduino:avr:nano
     core: arduino:avr
-    sketch: Arduino Sketchbooks/PressureArduino
+    sketch: Arduino Sketchbooks/PeripheralArduino
     requires_ros_lib: false
+    libraries:
+      - servo
+      - DHT11
   thruster:
     ftdi: B0004VDI
     fqbn: arduino:avr:nano

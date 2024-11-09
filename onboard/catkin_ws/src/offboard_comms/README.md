@@ -1,16 +1,20 @@
 # Offboard Communications Package
 
-This package provides communications and functionality for Arduinos to be integrated with our main ROS system. The Arduinos handle thruster controls, pressure (depth), voltage, temperature, and humidity readings, as well as controlling servos (currently used for marker dropper, but can be expanded for torpedos).
+This package provides communications and functionality for Arduinos to be integrated with our main ROS system. The Arduinos handle thruster controls, pressure (depth), voltage, and other peripheral tasks such as handling the marker dropper servo.
 
-There are three Arduinos handled by the package, compartmentalized by vitality. The most critical feature supported by the Arduinos is the thruster controls, which are handled by the Thruster Arduino. The Pressure Arduino is responsible for depth and voltage readings, and the Servo Arduino is responsible for controlling servos and temperature/humidity readings. Any future sensors or actuators should be added to the Servo Arduino as the existing sensors need the least-current data from a control perspective.
+There are two Arduinos handled by the package, one for thrusters and one for the pressure and voltage sensors and servo control. The Thruster Arduino runs a ROS node while the Peripheral Arduino dumps data over serial to the main computer, from which the `data_pub` package publishes the data to ROS. Supporting the Thruster Arduino is `thrusters.cpp`, which maps thruster allocations to pulse widths sent to the Thruster Arduino.
 
 All Arduinos communicate over raw serial. The thruster Arduino is opened in write-only mode and the 8 thruster allocations are dumped as a fixed-length binary message, with a checksum byte. The 8 thrusters allocs are sent as a 16bit unsigned integer in little endian format. The checksum is an xor of the entire message payload. This design prioritizes speed and reliability.
 
+There are two Arduinos handled by the package, one for thrusters and one for the pressure and voltage sensors and servo control. The Thruster Arduino runs a ROS node while the Peripheral Arduino dumps data over serial to the main computer, from which the `data_pub` package publishes the data to ROS. Supporting the Thruster Arduino is `thrusters.cpp`, which maps thruster allocations to pulse widths sent to the Thruster Arduino.
+
 The other Arduinos dump data over serial to the main computer, from which the `data_pub` package publishes the data to ROS. 
+
+Multiple software serial ports are supported on some Arduinos, but launching both of these nodes independently is not feasible. Only one ROS node is currently being run as to avoid issue where the master ROS node loses sync with one or both of the Arduinos. Migration to a RP2040 (Pico) was attempted, but proved cumbersome for programming purposes, so it was reverted to a Nano Every.
 
 Supporting the thruster Arduino is `thrusters.cpp`, which maps thruster allocations to pulse widths sent to the thruster Arduino. This uses a nonlinear thruster curve. This is a ROS node that converts voltage and thruster allocations to PWM signals. The node subscribes to `/controls/thruster_allocs` and `/sensors/voltage` and writes the PWM allocs over serial using the above-mentioned message.
 
-`offboard_comms` supports functionality for multiple Arduinos. Multiple Arduinos serve to support hardware that require different serial baud rates. This was necessitated by thruster publishers requiring the default 57600 baud while the pressure sensor is factory-optimized for 9600 baud.
+Oogway is currently configured to use two Arduinos, one for thrusters and one for the peripheral sensors.
 
 ## Directory Structure
 
@@ -19,19 +23,20 @@ The notable files and folders in this package are as follows. Note how this spec
 ```
 offboard_comms
 ├── Arduino Sketchbooks
-│   ├── PressureArduino
-│   │   ├── PressureArduino.ino  # Arduino code for pressure and voltage sensors
-│   │   ├── ... Libraries for pressure sensor
+│   ├── PeripheralArduino
+│   │   ├── PeripheralArduino.ino  # Arduino code for pressure and voltage sensors
+│   │   ├── ... Libraries for peripheral sensors
 │   ├── ThrusterArduino
 │   │   ├── ThrusterArduino.ino  # Arduino code for thrusters
 │   │   ├── ... Libraries for thrusters
-│   ├── ServoSensorArduino
-│   │   ├── ServoArduino.ino  # Arduino code for servos, temp-humidity, and any future sensors
+│   ├── crushTempHumidity.h  # Temp/Humidity functions for Crush sensors
 │   ├── cthulhuThrusterOffset.h  # PWM offset for Cthulhu thrusters
+│   ├── oogwayTempHumidity.h  # Temp/Humidity functions for Crush sensors
 │   ├── oogwayThrusterOffset.h  # PWM offset for Oogway thrusters
-├── config # Config files include Arduino FTDI, the FQBN per Arduino CLI, the core type, and the sketch path
-│   ├── cthulhu.yaml  # Config file for Cthulhu
-│   ├── oogway.yaml  # Config file for Oogway
+├── config
+│   ├── crush.yaml # Arduino config file for Crush
+│   ├── cthulhu.yaml # Arduino config file for Cthulhu
+│   ├── oogway.yaml # Arduino config file for Oogway
 ├── data
 │   ├── ... Thruster lookup tables
 ├── include
@@ -43,6 +48,7 @@ offboard_comms
 ├── scripts
 │   ├── arduino.py  # CLI to install libraries, find ports, compile, and upload Arduino code
 │   ├── copy_offset.sh  # Bash script to copy the correct PWM offset file to the Thruster Arduino sketchbook
+│   ├── copy_tempHumidity.sh  # Bash script to copy the Temp/Humidity sensor functions to the Peripheral Arduino sketchbook
 │   ├── servo_wrapper.py  # ROS node to publish requests from ROS service calls to a ROS topic
 ├── src
 │   ├── thrusters.cpp  # ROS node to convert thruster allocations to PWMs and send serial data
@@ -53,7 +59,7 @@ offboard_comms
 
 ## Arduino Config
 
-Each robot has its own `config/<ROBOT_NAME>.yaml` file, where `<ROBOT_NAME>` is the value of the `ROBOT_NAME` environment variable associated with that robot. The CLI will use the value of the `ROBOT_NAME` enviornment variable in the Docker container it is run in to select the config file to use.
+Each robot has its own `config/<ROBOT_NAME>.yaml` file, where `<ROBOT_NAME>` is the value of the `ROBOT_NAME` environment variable associated with that robot. The CLI will use the value of the `ROBOT_NAME` environment variable in the Docker container it is run in to select the config file to use.
 
 Config files for all robots have the same structure. They contain a single top-level key: `arduino`. Under that top-level key, they contain a set of Arduino names, each with a dictionary of properties. The properties are used to find the port that the Arduino is connected to, install the required libraries, compile the Arduino code, and upload the code to the Arduino. The files are structured as follows:
 
@@ -77,7 +83,7 @@ arduino:
 The structure shown for `arduino_name_1` is repeated for all Arduinos.
 
 Below are more details on the keys in the dictionary:
-- `arduino_name_1`, `arduino_name_2`, etc. are the names of the Arduinos. These names are used to refer to the Arduinos in the [CLI](#command-line-interface) and in other files. They can be any string, but should be descriptive of the Arduino. They must be unique. `all` is a special name used by the CLI to refer to all Arduinos; do **_not_** use it as an Arduino name in this file. The names do not necessarily correspond to any names recognized by the Arduino CLI or operating system.
+- `arduino_name_1`, `arduino_name_2`, etc. are the names of the Arduinos. These names are used to refer to the Arduinos in the [CLI](#command-line-interface) and in other files. They can be any string but should be descriptive of the Arduino. They must be unique. `all` is a special name used by the CLI to refer to all Arduinos; do **_not_** use it as an Arduino name in this file. The names do not necessarily correspond to any names recognized by the Arduino CLI or operating system.
 - `ftdi` is the FTDI string of the Arduino. This is a unique identifier for the Arduino and is used to find the port that the Arduino is connected to. To obtain the FTDI string, run
     ```bash
     ls /dev/serial/by-id
@@ -100,7 +106,7 @@ Below are more details on the keys in the dictionary:
 
 ### Command Line Interface
 
-On Linux hosts, with the container running in privileged mode, use the CLI provided by `arduino.py` to install libraries, find ports, compile, and upload Arduino code. The CLI is a wrapper around the Arduino CLI and other commands, and is used to simplify the process of uploading code to the Arduino. The CLI _requires_ a properly formatted `config/arduino.yaml` file to run properly (see [Arduino Config](#arduino-config)).
+On Linux hosts, with the container running in privileged mode, use the CLI provided by `arduino.py` to install libraries, find ports, compile, and upload Arduino code. The CLI is a wrapper around the Arduino CLI and other commands and is used to simplify the process of uploading code to the Arduino. The CLI _requires_ a properly formatted `config/arduino.yaml` file to run properly (see [Arduino Config](#arduino-config)).
 
 The CLI is run as follows:
 ```
@@ -173,11 +179,19 @@ The node maps the thruster allocations to pulse widths, accounting for the curre
 
 The node first loads 3 lookup tables containing pre-calculated information on the relation between force (given between the interval -1.0, 1.0), voltage (fixed by the lookup table, either 14.0v, 16.0v, or 18.0v), and PWM outputs. The tables are indexed by force, which is rounded to 2 decimal precision. These tables were computed from the Blue Robotics T200 Thruster performance data, found on [this page](https://bluerobotics.com/store/thrusters/t100-t200-thrusters/t200-thruster-r2-rp/) under "Technical Details".
 
-For each recieved thruster allocation (force), the node first finds the closest force value (rounded to 2 decimal precision) in the lookup tables for the two voltages that bound the current voltage reading. Then, it performs linear interpolation between those two values using the current voltage to find the PWM that will result in the thruster exerting the desired force at the current voltage.
+For each received thruster allocation (force), the node first finds the closest force value (rounded to 2 decimal precision) in the lookup tables for the two voltages that bound the current voltage reading. Then, it performs linear interpolation between those two values using the current voltage to find the PWM that will result in the thruster exerting the desired force at the current voltage.
 
 The PWMs are sent over serial to the thruster Arduino.
 
 ## Thruster Arduino
+The Thruster Arduino subscribes to `/offboard/pwm` of type `custom_msgs/PWMAllocs`. This is an array of 16-bit unsigned integers specifying the pulse widths to use for each thruster's PWM. All messages must satisfy the following two conditions:
+- The length of the array must match the number of thrusters on the robot
+- Each value must be in range [1100, 1900]
+
+Messages with incorrect length will be ignored. If any value is out of range, that thruster will be stopped. In both cases, an error message will be printed to the console.
+
+Additionally, if it has been over 500 milliseconds since the last message was received, the Thruster Arduino will stop all thrusters. This is to prevent the robot from continuing to move if controls is disabled or if the connection to the main computer is lost.
+
 The thruster Arduino listens for serial fixed-length messages and decodes them while validating with the checksum bit. On success, all 8 thrusters are commanded. A few extra checks are performed.
 - The length of the array must match the number of thrusters on the robot. If not, it will not pass checksum.
 - Each value must be in range [1100, 1900], otherwise it is constained to these values
@@ -188,12 +202,12 @@ The thruster Arduino used to run a ROS node, but this was removed for reliabilit
 ### ESC Offset
 Note that an inaccuracy in the ESCs required adding a 31 microsecond offset to the PWM signal for Oogway for some ESCs. This is batch dependent, and may not always be needed. This correction was determined to be a hardware defect with Oogway's Blue Robotics Basic ESCs. When sending a stop/configuration PWM signal of 1500 microseconds, the thrusters would interpret the command as a spin command. The introduced offset corrects for this issue.
 
-This offset is set in a header file corresponding to each robot, with file name `<ROBOT_NAME>ThrusterOffset.h` where `<ROBOT_NAME>` is the value of the `ROBOT_NAME` enviornment variable. The offset is added to the PWM signal in the Arduino code.
+This offset is set in a header file corresponding to each robot, with file name `<ROBOT_NAME>ThrusterOffset.h` where `<ROBOT_NAME>` is the value of the `ROBOT_NAME` environment variable. The offset is added to the PWM signal in the Arduino code.
 
-Before compiling the thruster Arduino sketch, the `copy_offset.sh` script copies the correct header to the thruster Arduino sketchbook and renames it to `offset.h`. After compilation is complete, the `copy_offset.sh` script deletes `offset.h` from the sketchbook.
+Before compiling the Thruster Arduino sketch, the `copy_offset.sh` script copies the correct header to the Thruster Arduino sketchbook and renames it to `offset.h`. After compilation is complete, the `copy_offset.sh` script deletes `offset.h` from the sketchbook.
 
 ## Testing Thrusters
-First start the ROS nodes for the thruster Arduino and thruster allocs to PWMs:
+First start the ROS nodes for the Thruster Arduino and thruster allocs to PWMs:
 ```
 roslaunch offboard_comms offboard_comms.launch
 ```
@@ -206,9 +220,9 @@ For testing on land, it is recommended to set 0.05 allocs for all thrusters:
 rostopic pub -r 20 /controls/thruster_allocs custom_msgs/ThrusterAllocs '{allocs: [0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05]}'
 ```
 
-## Pressure Arduino
+## Peripheral Arduino
 
-The Pressure Arduino primarily publishes depth data over serial. It also is meant to support additional sensors, as is the case with the voltage sensor.
+The Peripheral Arduino primarily publishes depth and voltage data over serial. It also controls the servo motor designed to complete the marker dropper task. It is capable of supporting additional sensors.
 
 The `data_pub` package is responsible for parsing the data published to serial and publishing the data to ROS.
 
@@ -249,7 +263,7 @@ P:0.74
 
 ### Pressure
 
-The pressure arduino interprets the Blue Robotics Pressure Sensor using the MS5837 library. It sends the data over a serial line using each time the sensor gets a new reading, so the rate is not defined other than "as fast as possible." All of the processing for the depth data can be found in the `data_pub` package.
+The Peripheral Arduino interprets the Blue Robotics Pressure Sensor using the MS5837 library. It sends the data over a serial line using each time the sensor gets a new reading, so the rate is not defined other than "as fast as possible." All of the processing for the depth data can be found in the `data_pub` package.
 
 After extensive testing, it was found that proper functioning of the pressure sensor requires two key things:
 - The most up-to-date Arduino Wire library, which includes the [`setWireTimeout` function](https://www.arduino.cc/reference/en/language/functions/communication/wire/setwiretimeout/). As of February 2024, this is **_not_** available on Arduinos using MegaAVR 1.8.3. Therefore, an AVR-based Arduino is required (e.g. Nano or Uno).
@@ -277,15 +291,11 @@ Errors in reading the pressure sensor do not affect the voltage sensor. Voltage 
 
 ### Voltage
 
-Voltage publishing over serial is also handled by the Pressure Arduino. The voltage is published as a float over serial, and is published at 1 Hz.
+Voltage publishing over serial is also handled by the Peripheral Arduino. The voltage is published as a float over serial, and is published at 1 Hz.
 
-The votage is calibrated based on the onboard Arduino's voltage. This is important as the used voltage sensor requires knowledge of its own voltage as it uses a voltage divider to measure the voltage. The voltage sensor used is the a generic voltage sensor.
+The voltage is calibrated based on the onboard Arduino's voltage. This is important as the used voltage sensor requires knowledge of its own voltage as it uses a voltage divider to measure the voltage. The voltage sensor used is the a generic voltage sensor.
 
-## Servo Arduino
-
-The Servo Arduino is responsible for controlling servos, temperature, and humidity readings. The servos are used to control the marker dropper, but can be expanded to control torpedos or other actuators.
-
-The Servo Arduino publishes temperature and humidity readings over serial. The temperature and humidity sensor used is the DHT11.
+## Servo Functionality
 
 The servos are controlled by sending simply a byte over serial. The byte should be either `L` or `R` to control the left and right acuation modes, respectively. The servos are controlled by the `Servo` library, as indicated in the configuration file.
 
@@ -303,3 +313,10 @@ T:89.6
 ```
 
 Note that humidity is a percentage, and temperature is in Fahrenheit.
+
+
+### Functions for Reading Temp / Humidity Data
+
+The `crushTempHumidity.h` and `oogwayTempHumidity.h` files contain initialization and functions to read and print data from the temperature and humidity sensors onboard.
+
+Before compiling the Peripheral Arduino sketch, the `copy_tempHumidity.sh` script copies the correct header to the Peripheral Arduino sketchbook and renames it to `tempHumidity.h`. After compilation is complete, the `copy_tempHumidity.sh` script deletes `tempHumidity.h` from the sketchbook.

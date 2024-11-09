@@ -3,7 +3,7 @@
   "displayName": "Toggle Controls Panel",
   "description": "Toggle controls on/off",
   "publisher": "Duke Robotics",
-  "version": "0.0.0",
+  "version": "6c20219",
   "main": "./dist/extension.js",
   "keywords": [],
   "scripts": {

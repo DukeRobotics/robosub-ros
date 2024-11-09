@@ -5,7 +5,7 @@ import {
   CustomMsgsSetPidGainsResponse,
 } from "@duke-robotics/defs/types";
 import useTheme from "@duke-robotics/theme";
-import { Immutable, PanelExtensionContext, RenderState, MessageEvent } from "@foxglove/studio";
+import { Immutable, PanelExtensionContext, RenderState, MessageEvent } from "@foxglove/extension";
 import {
   Alert,
   Tab,

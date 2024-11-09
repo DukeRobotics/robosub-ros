@@ -3,3 +3,5 @@ dvl:
   negate_x_vel: false
   negate_y_vel: false
   negate_z_vel: false
+ping1D:
+  ftdi: DP05ZD1V
