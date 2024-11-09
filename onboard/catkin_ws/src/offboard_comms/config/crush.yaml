@@ -1,0 +1,20 @@
+arduino:
+  peripheral:
+    ftdi: B0015XL0
+    fqbn: arduino:avr:nano
+    core: arduino:avr
+    sketch: Arduino Sketchbooks/PeripheralAduino
+    requires_ros_lib: false
+    libraries:
+      - servo
+      - DHT11
+    pre_compile: rosrun offboard_comms <script> 1
+    post_compile: rosrun offboard_comms <script> 0
+  thruster:
+    ftdi: B0004VDI
+    fqbn: arduino:avr:nano
+    core: arduino:avr
+    sketch: Arduino Sketchbooks/ThrusterArduino
+    requires_ros_lib: true
+    pre_compile: rosrun offboard_comms copy_offset.sh 1
+    post_compile: rosrun offboard_comms copy_offset.sh 0
