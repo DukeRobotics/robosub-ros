@@ -1,3 +1,0 @@
-<launch>
-	<node name="pressure_voltage_pub" pkg="data_pub" type="pressure_voltage.py" output="screen"/>
-</launch>

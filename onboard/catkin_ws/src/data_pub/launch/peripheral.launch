@@ -1,0 +1,3 @@
+<launch>
+	<node name="peripheral_pub" pkg="data_pub" type="peripheral.py" output="screen"/>
+</launch>

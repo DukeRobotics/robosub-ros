@@ -1,3 +1,0 @@
-<launch>
-	<node name="servo_sensors_pub" pkg="data_pub" type="servo_sensors.py" output="screen"/>
-</launch>
