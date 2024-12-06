@@ -166,7 +166,7 @@ void Thrusters::thruster_allocs_callback(const custom_msgs::ThrusterAllocs &msg)
     }
 
     // Write the pwm allocations to the serial port
-    write_to_serial(pwm_allocs);
+    // write_to_serial(pwm_allocs);
 
     // Publish the pwm allocations to the /offboard/pwm topic
     pwm_pub.publish(pwm_msg);
