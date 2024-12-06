@@ -40,10 +40,10 @@ callServo() {
     }
 
     // return to default position after 1 second
-    if(servoMoved && myTime - servoTime > rateServo) {
-        myservo.writeMicroseconds(1500);  // 1500 micros = 90 write
-        servoMoved = false;
-    }
+    // if(servoMoved && myTime - servoTime > rateServo) {
+    //     myservo.writeMicroseconds(1500);  // 1500 micros = 90 write
+    //     servoMoved = false;
+    // }
 }
 
 

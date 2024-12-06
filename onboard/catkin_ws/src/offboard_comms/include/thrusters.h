@@ -1,6 +1,8 @@
 #ifndef THRUSTERS_H
 #define THRUSTERS_H
 
+#include "offset.h"
+
 #include <custom_msgs/ThrusterAllocs.h>
 #include <ros/ros.h>
 #include <std_msgs/Float64.h>
@@ -27,8 +29,6 @@ class Thrusters {
     ros::Publisher pwm_pub;
 
     int serial_fd = -1;
-    
-    int NUM_THRUSTERS;
 
     void load_lookup_tables();
     void read_lookup_table_csv(const std::string &filename, std::array<uint16_t, NUM_LOOKUP_ENTRIES> &lookup_table);

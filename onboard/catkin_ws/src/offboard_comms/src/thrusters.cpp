@@ -28,8 +28,6 @@ Thrusters::Thrusters(int argc, char **argv, ros::NodeHandle &nh) {
 
     ROS_INFO("Thruster serial port: %s", device.c_str());
 
-    extern NUM_THRUSTERS;
-
     // Open the serial port
     serial_fd = open(device.c_str(), O_WRONLY | O_NOCTTY | O_NONBLOCK); // write only, no controlling terminal, non-blocking
     if (serial_fd == -1) {
@@ -166,7 +164,7 @@ void Thrusters::thruster_allocs_callback(const custom_msgs::ThrusterAllocs &msg)
     }
 
     // Write the pwm allocations to the serial port
-    // write_to_serial(pwm_allocs);
+    write_to_serial(pwm_allocs);
 
     // Publish the pwm allocations to the /offboard/pwm topic
     pwm_pub.publish(pwm_msg);
