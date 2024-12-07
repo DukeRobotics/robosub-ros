@@ -1,0 +1,5 @@
+<launch>
+    <param name="device" command="$(find offboard_comms)/scripts/arduino.py find-ports thruster --nl" />
+
+	<node name="pyserial" pkg="offboard_comms" type="pyserial.py" output="screen"/>
+</launch>
