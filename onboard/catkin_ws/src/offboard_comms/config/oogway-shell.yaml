@@ -1,0 +1,20 @@
+arduino:
+  peripheral:
+    ftdi: B0005AVT
+    fqbn: arduino:avr:nano
+    core: arduino:avr
+    sketch: Arduino Sketchbooks/PeripheralArduino
+    requires_ros_lib: false
+    libraries:
+      - servo
+      - DHT11
+    pre_compile: rosrun offboard_comms copy_offset_temp_humidity.sh peripheral copy
+    post_compile: rosrun offboard_comms copy_offset_temp_humidity.sh peripheral remove
+  thruster:
+    ftdi: 02AB8D8451544E5450202020FF0D334A
+    fqbn: arduino:megaavr:nona4809
+    core: arduino:megaavr
+    sketch: Arduino Sketchbooks/ThrusterArduino
+    requires_ros_lib: true
+    pre_compile: rosrun offboard_comms copy_offset_temp_humidity.sh thruster copy
+    post_compile: rosrun offboard_comms copy_offset_temp_humidity.sh thruster remove
