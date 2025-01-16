@@ -12,8 +12,8 @@ arduino:
     post_compile: rosrun offboard_comms copy_offset_temp_humidity.sh peripheral remove
   thruster:
     ftdi: 02AB8D8451544E5450202020FF0D334A
-    fqbn: arduino:avr:nano
-    core: arduino:avr
+    fqbn: arduino:megaavr:nano
+    core: arduino:megaavr
     sketch: Arduino Sketchbooks/ThrusterArduino
     requires_ros_lib: true
     pre_compile: rosrun offboard_comms copy_offset_temp_humidity.sh thruster copy
