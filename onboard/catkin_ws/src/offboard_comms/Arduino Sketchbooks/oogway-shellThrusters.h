@@ -3,4 +3,4 @@
 // Also copied into include folder for thrusters.cpp and thrusters.h
 #define NUM_THRUSTERS 8
 
-int THRUSTER_PWM_OFFSET = 0;
+int THRUSTER_PWM_OFFSET = 57;

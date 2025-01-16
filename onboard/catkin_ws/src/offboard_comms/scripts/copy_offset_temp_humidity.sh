@@ -6,8 +6,8 @@
 ROBOT_NAME=$(printenv ROBOT_NAME)
 
 if [ "$ROBOT_NAME" = "oogway" ] | [ "$ROBOT_NAME" = "crush" ] | [ "$ROBOT_NAME" = "oogway-shell" ]; then
-    tempHumidity_file="$ROBOT_NAME" + "TempHumidity.h";
-    offset_file="$ROBOT_NAME" + "oogwayThrusters.h"
+    tempHumidity_file="${ROBOT_NAME}TempHumidity.h";
+    offset_file="${ROBOT_NAME}Thrusters.h";
 else
     tempHumidity_file="oogwayTempHumidity.h"
     offset_file="oogwayThrusters.h"

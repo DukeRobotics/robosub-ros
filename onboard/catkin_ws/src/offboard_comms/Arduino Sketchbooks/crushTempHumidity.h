@@ -36,15 +36,15 @@ callTempHumidity() {
     if (resultComputer == 0) {
         String printHumidityComputer = humiditytagComputer + String((float)humidityComputer);
         Serial.println(printHumidityComputer);
-  
+
         String printTempComputer = temperaturetagComputer + String((float)temperatureComputer * 1.8 + 32); // convert Celsius to Fahrenheit
         Serial.println(printTempComputer);
     }
-      
+
     if(resultBattery == 0) {
         String printHumidityBattery = humiditytagBattery + String((float)humidityBattery);
         Serial.println(printHumidityBattery);
-  
+
         String printTempBattery = temperaturetagBattery + String((float)temperatureBattery * 1.8 + 32); // convert Celsius to Fahrenheit
         Serial.println(printTempBattery);
     }

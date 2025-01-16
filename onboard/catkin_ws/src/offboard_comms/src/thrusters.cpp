@@ -15,44 +15,44 @@
 
 Thrusters::Thrusters(int argc, char **argv, ros::NodeHandle &nh) {
 
-    std::string device;
-    if (!nh.getParam("device", device)) {
-        ROS_ERROR("Failed to get parameter 'device'");
-        return;
-    }
+    // std::string device;
+    // if (!nh.getParam("device", device)) {
+    //     ROS_ERROR("Failed to get parameter 'device'");
+    //     return;
+    // }
 
-    if (device.find("/dev/") == std::string::npos) {
-        ROS_ERROR("Invalid device path: %s", device.c_str());
-        return;
-    }
+    // if (device.find("/dev/") == std::string::npos) {
+    //     ROS_ERROR("Invalid device path: %s", device.c_str());
+    //     return;
+    // }
 
-    ROS_INFO("Thruster serial port: %s", device.c_str());
+    // ROS_INFO("Thruster serial port: %s", device.c_str());
 
     // Open the serial port
-    serial_fd = open(device.c_str(), O_WRONLY | O_NOCTTY | O_NONBLOCK); // write only, no controlling terminal, non-blocking
-    if (serial_fd == -1) {
-        ROS_ERROR("Failed to open serial port %s", device.c_str());
-        return;
-    }
+    // serial_fd = open(device.c_str(), O_WRONLY | O_NOCTTY | O_NONBLOCK); // write only, no controlling terminal, non-blocking
+    // if (serial_fd == -1) {
+    //     ROS_ERROR("Failed to open serial port %s", device.c_str());
+    //     return;
+    // }
 
     // Configure serial port settings
-    struct termios tty;
-    if (tcgetattr(serial_fd, &tty) != 0) {
-        ROS_ERROR("Error %d from tcgetattr", errno);
-        close(serial_fd);
-        return;
-    }
+    // struct termios tty;
+    // if (tcgetattr(serial_fd, &tty) != 0) {
+    //     ROS_ERROR("Error %d from tcgetattr", errno);
+    //     close(serial_fd);
+    //     return;
+    // }
 
-    tty.c_cflag &= ~CBAUD; // Clear baud rate bits
-    tty.c_cflag |= B57600; // Set baud to 57600
+    // tty.c_cflag &= ~CBAUD; // Clear baud rate bits
+    // tty.c_cflag |= B57600; // Set baud to 57600
 
-    if (tcsetattr(serial_fd, TCSANOW, &tty) != 0) {
-        ROS_ERROR("Error %d from tcsetattr", errno);
-        close(serial_fd);
-        return;
-    }
+    // if (tcsetattr(serial_fd, TCSANOW, &tty) != 0) {
+    //     ROS_ERROR("Error %d from tcsetattr", errno);
+    //     close(serial_fd);
+    //     return;
+    // }
 
-    ROS_INFO("Thrusters initialized");
+    // ROS_INFO("Thrusters initialized");
 
     // Set the default voltage
     voltage = 15.5;
@@ -164,7 +164,7 @@ void Thrusters::thruster_allocs_callback(const custom_msgs::ThrusterAllocs &msg)
     }
 
     // Write the pwm allocations to the serial port
-    write_to_serial(pwm_allocs);
+    // write_to_serial(pwm_allocs);
 
     // Publish the pwm allocations to the /offboard/pwm topic
     pwm_pub.publish(pwm_msg);

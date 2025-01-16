@@ -50,36 +50,35 @@ void setup() {
 }
 
 void loop() {
-
     // Only send new thruster values if we recieve new data -- the thrusters store the last command
     if (Serial.available() >= NUM_THRUSTERS * sizeof(uint16_t) + 1) {
-        // Read data including checksum
-        uint8_t buffer[NUM_THRUSTERS * sizeof(uint16_t) + 1];
-        for (size_t i = 0; i < sizeof(buffer); i++) {
-            buffer[i] = Serial.read();
-        }
-
-        // Calculate expected checksum (xor of data bytes)
-        uint8_t expected_checksum = 0;
-        for (size_t i = 0; i < sizeof(buffer) - 1; i++) {
-            expected_checksum ^= buffer[i];
-        }
-
-        uint8_t received_checksum = buffer[sizeof(buffer) - 1];
-
-        if (received_checksum == expected_checksum) {
-            // Checksum is valid, process the received data
-            for (uint8_t i = 0; i < NUM_THRUSTERS; i++) {
-                uint16_t val = buffer[2*i] | (buffer[2*i + 1] << 8); // Convert bytes to uint16_t (little endian)
-
-                pwms[i] = val;
+        uint16_t allocs[NUM_THRUSTERS];
+        byte incomingData[NUM_THRUSTERS * 2];
+        byte startFlag = 0xFF;
+        
+        while (true) {
+            if (Serial.available() > 0) {
+            byte incomingByte = Serial.read();
+            
+            // Check if the received byte is the start flag (0xFF)
+            if (incomingByte == startFlag) {
+                break;  // Exit the loop once the start flag is detected
             }
-        } else {
-            // Checksum mismatch, stop all thrusters
-            for (uint8_t i = 0; i < NUM_THRUSTERS; i++) {
-                pwms[i] = THRUSTER_STOP_PWM;
             }
         }
+
+        // Read the incoming data from the serial buffer (example: NUM_THRUSTERS * 2 bytes)
+        size_t bytesRead = 0;
+        while (bytesRead < sizeof(incomingData)) {
+            incomingData[bytesRead] = Serial.read();
+            bytesRead++;
+        }
+
+        // Now unpack the data from the byte array into the pwms array (big-endian)
+        for (size_t i = 0; i < NUM_THRUSTERS; i++) {
+            pwms[i] = incomingData[2 * i + 1] | (incomingData[2 * i] << 8);
+        }
+        
         write_pwms();
     }
 

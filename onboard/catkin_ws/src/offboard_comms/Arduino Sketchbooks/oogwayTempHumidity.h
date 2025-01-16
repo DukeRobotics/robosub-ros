@@ -1,6 +1,6 @@
 #define humiditytag "H:"
 #define temperaturetag "T:"
-#define DHT11PIN 4  
+#define DHT11PIN 4
 #define SERVOPIN 9
 
 DHT11 dht11(DHT11PIN);
@@ -13,7 +13,7 @@ Servo myservo;
 
 // Initializes the servo for the marker dropper
 initServo() {
-    myservo.attach(SERVOPIN); 
+    myservo.attach(SERVOPIN);
     myservo.writeMicroseconds(1500); // 1500 micros = 90 write
 }
 
@@ -50,7 +50,7 @@ callServo() {
 // Initializes the single temp/humidity sensor
 initTempHumidity() {
     dht11.setDelay(0);
-} 
+}
 
 
 // Reads the temp and humidity and prints it over serial
