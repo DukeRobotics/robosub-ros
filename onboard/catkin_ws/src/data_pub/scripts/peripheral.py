@@ -72,10 +72,19 @@ class PeripheralPublisher(SerialPublisher):
         P:0.22
         V:15.85
         P:0.24
+        T:69.1
+        H:30.1
+        T:69.2
+        H:27.8
+        T:69.1
+        H:27.8
+        T:69.8
         ...
         """
         tag = line[0:2]  # P for pressure and V for voltage
         data = line[2:]
+        if data == "":
+            return
         if "P:" in tag:
             self._update_pressure(float(data))  # Filter out bad readings
             self._parse_pressure()  # Parse pressure data
@@ -83,6 +92,12 @@ class PeripheralPublisher(SerialPublisher):
         if "V:" in tag:
             self._current_voltage_msg = float(data)
             self._publish_current_voltage_msg()
+        if "T:" in tag:
+            self._update_temperature(float(data))  # Filter out bad readings
+            self._publish_current_temperature_msg()  # Publish temperature data
+        if "H:" in tag:
+            self._update_humidity(float(data))  # Filter out bad readings
+            self._publish_current_humidity_msg()  # Publish humidity data
 
     def _update_pressure(self, new_reading):
         """
@@ -153,35 +168,6 @@ class PeripheralPublisher(SerialPublisher):
         else:
             self.writeline('R')
         return SetBoolResponse(True, f'Successfully set servo to {"left" if req.data else "right"}.')
-
-    def process_line(self, line):
-        """"
-        Reads and publishes individual lines
-
-        @param line: the line to read
-
-        Assumes data comes in the following format:
-
-        T:69.1
-        H:30.1
-        T:69.2
-        H:27.8
-        T:69.1
-        H:27.8
-        T:69.8
-        ...
-        """
-        tag = line[0:2]  # T for temperature and H for humidity
-        data = line[2:]
-        if data == "":
-            return
-        if "T:" in tag:
-            self._update_temperature(float(data))  # Filter out bad readings
-            self._publish_current_temperature_msg()  # Publish temperature data
-        if "H:" in tag:
-            self._update_humidity(float(data))  # Filter out bad readings
-            self._publish_current_humidity_msg()  # Publish humidity data
-        rospy.sleep(1)
 
     def _update_temperature(self, new_reading):
         """
