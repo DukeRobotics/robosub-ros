@@ -54,7 +54,7 @@ class serial_thrusters:
             print("Serial connection is not open. Cannot send message.")
 
     def allocs_to_bytes(self, message):
-        start_flag = bytearray([0xFF])
+        start_flag = bytearray([0xFF, 0xFF])
         return bytearray(start_flag + struct.pack(f">{len(message.allocs)}H", *message.allocs)) # big endian
 
 if __name__ == '__main__':

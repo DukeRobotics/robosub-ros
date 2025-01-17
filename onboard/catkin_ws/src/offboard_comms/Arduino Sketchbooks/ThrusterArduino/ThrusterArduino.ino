@@ -54,16 +54,20 @@ void loop() {
     if (Serial.available() >= NUM_THRUSTERS * sizeof(uint16_t) + 1) {
         uint16_t allocs[NUM_THRUSTERS];
         byte incomingData[NUM_THRUSTERS * 2];
-        byte startFlag = 0xFF;
-        
+        uint16_t startFlag = 0xFFFF;
+        uint16_t buffer = 0x0000;
+
         while (true) {
             if (Serial.available() > 0) {
-            byte incomingByte = Serial.read();
-            
-            // Check if the received byte is the start flag (0xFF)
-            if (incomingByte == startFlag) {
-                break;  // Exit the loop once the start flag is detected
-            }
+                byte incomingByte = Serial.read();
+
+                // Shift the buffer left by 8 bits and add the new byte
+                buffer = (buffer << 8) | incomingByte;
+
+                // Check if the buffer matches the start flag (0xFFFF)
+                if (buffer == startFlag) {
+                    break;  // Exit the loop once the start flag is detected
+                }
             }
         }
 
@@ -78,7 +82,7 @@ void loop() {
         for (size_t i = 0; i < NUM_THRUSTERS; i++) {
             pwms[i] = incomingData[2 * i + 1] | (incomingData[2 * i] << 8);
         }
-        
+
         write_pwms();
     }
 
