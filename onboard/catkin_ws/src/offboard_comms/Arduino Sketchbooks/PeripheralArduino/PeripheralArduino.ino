@@ -1,8 +1,8 @@
 // from L to R: data (pin 4), power (5V), ground
 #include <Servo.h>
-#include <DHT11.h>
 #include <Arduino.h>
 #include <Wire.h>
+#include "DHT11.h"
 #include "MS5837.h"
 #include "tempHumidity.h"
 
@@ -11,7 +11,7 @@
 #define VPIN 3 // voltage pin analog input
 #define VOLTAGE_PERIOD 100 // how soften to print out voltage
 #define RATESERVO 1000  // how much to wait before returning servo to default position
-#define RATETEMP 1000 // how often to print temp/humidity 
+#define RATETEMP 1000 // how often to print temp/humidity
 #define PRESSURETAG "P:"
 #define VOLTAGETAG "V:"
 
@@ -47,7 +47,7 @@ void setup() {
   // Initialize the pressure sensor
   initPressureSensor();
   // Initialize the temp/humidity sensor
-  initTempHumidity(); 
+  initTempHumidity();
 }
 
 void loop() {
@@ -80,7 +80,7 @@ void loop() {
       }
 
       // If sensor.read had an error but did not time out, try reading again in next loop
-  } 
+  }
 
   // If pressure sensor is disconnected, try to reinitalize it
   else {

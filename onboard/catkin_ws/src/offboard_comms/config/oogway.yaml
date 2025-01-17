@@ -7,7 +7,6 @@ arduino:
     requires_ros_lib: false
     libraries:
       - servo
-      - DHT11
     pre_compile: rosrun offboard_comms copy_offset_temp_humidity.sh peripheral copy
     post_compile: rosrun offboard_comms copy_offset_temp_humidity.sh peripheral remove
   thruster:
