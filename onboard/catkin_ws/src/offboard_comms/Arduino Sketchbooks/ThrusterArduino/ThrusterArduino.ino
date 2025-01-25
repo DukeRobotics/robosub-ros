@@ -2,23 +2,31 @@
 #include "MultiplexedBasicESC.h"
 #include <Arduino.h>
 #include "offset.h"
+#include "robotNames.h"
 
 Adafruit_PWMServoDriver pwm_multiplexer(0x40);
 
+#define ROBOT_NAME 
+#ifndef ROBOT_NAME
+#define ROBOT_NAME 0
+#endif
+
 #define BAUD_RATE 57600
-#define NUM_THRUSTERS 8
 #define THRUSTER_TIMEOUT_MS 1000
 #define THRUSTER_STOP_PWM 1500
 #define THRUSTER_PWM_MIN 1100
 #define THRUSTER_PWM_MAX 1900
 
-extern int THRUSTER_PWM_OFFSET; // Hardware specific offset for PWMs -- refers to the robot-specific offsets
+int NUM_THRUSTERS;
+int THRUSTER_PWM_OFFSET; // Hardware specific offset for PWMs -- refers to the robot-specific offsets
 
 uint64_t last_cmd_ms_ts;
 
 uint16_t pwms[NUM_THRUSTERS];
 
 MultiplexedBasicESC thrusters[NUM_THRUSTERS];
+
+
 
 void write_pwms() {
 
@@ -30,6 +38,26 @@ void write_pwms() {
 }
 
 void setup() {
+    switch (ROBOT_NAME) {
+        case OOGWAY:
+            NUM_THRUSTERS = 8;
+            THRUSTER_PWM_OFFSET = 0;
+            break;
+        case OOGWAY_SHELL:
+            NUM_THRUSTERS = 8;
+            THRUSTER_PWM_OFFSET = 57;
+            break;
+        case CRUSH:
+            NUM_THRUSTERS = 6;
+            THRUSTER_PWM_OFFSET = 0;
+            break;
+        default:
+            NUM_THRUSTERS = 8;
+            THRUSTER_PWM_OFFSET = 0;
+    }
+        
+
+
     // Initialize the PWMs to stop
     for (uint8_t i = 0; i < NUM_THRUSTERS; i++) {
         pwms[i] = THRUSTER_STOP_PWM;
