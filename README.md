@@ -5,15 +5,18 @@
 
 We are a Duke University club competing in the RoboSub Competition. Check out [our website](https://duke-robotics.com).
 
-Our codebase is split into two repositories:
+> [!IMPORTANT]
+> This repository, powered by [ROS Noetic](http://wiki.ros.org/noetic), was our primary codebase for RoboSub 2019 - RoboSub 2024. It is no longer maintained.
+>
+> We have moved to the [`robosub-ros2`](https://github.com/DukeRobotics/robosub-ros2) codebase, powered by [ROS2](https://github.com/ros2), for RoboSub 2025 and beyond.
 
-1. This repo contains all of the code required for running and testing our robots.
-1. The [documentation](https://github.com/DukeRobotics/documentation) repo contains introductory projects, tutorials, and miscellaneous docs.
+## Introduction
+
+This repo contains all of the code required for running and testing our robots.
 
 Our code is Dockerized, making it straightforward to set up and run. See [Running Our Docker Images](#running-our-docker-images).
 
 Once the containers are up and running, go to [Running Our Code](#running-our-code).
-
 
 ## Software Stack
 
@@ -44,34 +47,46 @@ The following components make up our software stack:
 
 ## Flow
 
-The general flow of information between components is shown in the diagram below, from top to bottom:
+The high-level diagram below shows the components of the robot's `onboard` software that are used during the robot's autonomous operation and the flow of information between them. The arrows indicate the direction of data flow. The labels on each arrow indicate what data is transmitted. The components are color-coded to indicate their type.
+- Sensors who feed data into the software are <span style="color: #c00">red</span>.
+- Software packages in `onboard` are <span style="color: #00c">blue</span>.
+- Hardware whose actions are controlled by the software are <span style="color: #080">green</span>.
+- Hardware that serves as an intermediary between the software and other hardware is <span style="color: #990">yellow</span>.
 
-```
-        sensors (IMU, DVL, etc.)                cameras
-            \                                     / \
-             \                                   /   \
-              v                                 /     v
-            Data Pub                           /   Camera View
-                \                             /
- Simulation ---> \          Acoustics        /
-                  v             |            v
-                Sensor Fusion   |      Computer Vision
-                    \           |         /
-                     \          |        /
-                      v         v       v
-                         Task Planning
-                               |
-                               |
-                               v
-              Joystick ---> Controls
-                               |
-                               | ---> Simulation
-                               v
-                         Offboard Comms
-                               |
-                               |
-                               v
-                    thrusters, actuators, etc.
+```mermaid
+flowchart TD
+    IMU:::sensor --> VectorNav:::package
+    DVL:::sensor --> DataPub[Data Pub]:::package
+    PressureSensor[Pressure Sensor]:::sensor --> PressureArduino[Pressure Arduino]:::intermediateHardware
+    Voltage[Voltage Sensor]:::sensor --> PressureArduino
+    PressureArduino --> |Depth| DataPub
+    PressureArduino --> |Voltage| DataPub
+    VectorNav --> |Orientation| SensorFusion[Sensor Fusion]:::package
+    VectorNav --> |Angular Velocity| SensorFusion
+    DataPub --> |Linear Velocity| SensorFusion
+    DataPub --> |Depth| SensorFusion
+    FrontCamera[Front Camera]:::sensor --> CV[Computer Vision]:::package
+    BottomCamera[Bottom Camera]:::sensor --> CV
+    SensorFusion --> |State| TaskPlanning[Task Planning]:::package
+    SensorFusion --> |State| Controls:::package
+    CV --> |Object Detections| TaskPlanning
+    Ping360:::sensor --> Sonar:::package
+    Sonar --> |Object Poses| TaskPlanning
+    Hydrophones:::sensor --> Acoustics:::package
+    Acoustics --> |Pinger Positions| TaskPlanning
+    TaskPlanning --> |Desired State| Controls
+    TaskPlanning --> |Servo Commands| OffboardComms[Offboard Comms]:::package
+    Controls --> |Thruster Allocations| OffboardComms
+    DataPub --> |Voltage| OffboardComms
+    OffboardComms --> |Pulse Widths| ThrusterArduino[Thruster Arduino]:::intermediateHardware
+    OffboardComms --> |Servo Angles| ServoSensorArduino[Servo Sensor Arduino]:::intermediateHardware
+    ThrusterArduino --> Thrusters:::outputs
+    ServoSensorArduino --> MarkerDropperServo[Marker Dropper Servo]:::outputs
+
+    classDef sensor fill:#c00;
+    classDef package fill:#00c;
+    classDef outputs fill:#080;
+    classDef intermediateHardware fill:#990;
 
 ```
 
@@ -85,7 +100,7 @@ The general flow of information between components is shown in the diagram below
     * [Windows (Pro, Education, etc.)](https://docs.docker.com/docker-for-windows/install/)<br>
         :information_source: Which Windows do I have? *Settings > System > About > look at "Edition"*
 
-1. If you want graphics forwarding over SSH:
+2. If you want graphics forwarding over SSH:
 
     * [Mac: XQuartz](https://www.xquartz.org/)
     * [Windows: MobaXterm](https://mobaxterm.mobatek.net/)<br>
@@ -98,23 +113,23 @@ Use these instructions when running code on the robot itself.
     ```bash
     ssh robot@192.168.1.1
     ```
-1. There, make sure the latest code from this repo is pulled. Then, run the onboard container if it's not already running.
+2. There, make sure the latest code from this repo is pulled. Then, run the onboard container if it's not already running.
     ```bash
     docker run -td --privileged --net=host -e ROBOT_NAME=oogway -v /home/robot/robosub-ros:/root/dev/robosub-ros -v /dev:/dev dukerobotics/robosub-ros:onboard
     ```
-1. Clone this repo on your local computer. In the newly-created directory (robosub-ros), run the landside container. If on Windows, use PowerShell.
+3. Clone this repo on your local computer. In the newly-created directory (robosub-ros), run the landside container. If on Windows, use PowerShell.
     ```bash
     docker run -td -p 2201:2201 -v ${PWD}:/root/dev/robosub-ros dukerobotics/robosub-ros:landside
     ```
-1. SSH into the onboard container. Password is `robotics`.
+4. SSH into the onboard container. Password is `robotics`.
     ```bash
     ssh -p 2200 root@192.168.1.1
     ```
-1. SSH into the landside container. Password is `robotics`.
+5. SSH into the landside container. Password is `robotics`.
     ```bash
     ssh -XY -p 2201 root@localhost
     ```
-1. Now go to [Running Our Code](#running-our-code).
+6. Now go to [Running Our Code](#running-our-code).
 
 ### Local Testing
 Use these instructions to test code on your computer by simulating the robot's execution. For all `docker compose` commands, replace `<robot name here>` with the robot name (`cthulhu` or `oogway`).
@@ -127,20 +142,19 @@ Use these instructions to test code on your computer by simulating the robot's e
 
     To update the images, or to just pull them without running them, use `docker compose -f docker-compose-<robot name here>.yml pull`.
 
-1. SSH into the onboard container. Password is `robotics`.
+2. SSH into the onboard container. Password is `robotics`.
     ```bash
     ssh -p 2200 root@localhost
     ```
-1. In a new tab, SSH into the landside container. Password is `robotics`.
+3. In a new tab, SSH into the landside container. Password is `robotics`.
     ```bash
     ssh -XY -p 2201 root@localhost
     ```
-1. Now go to [Running Our Code](#running-our-code). Also set up our [simulation](landside/catkin_ws/src/simulation).
-1. To stop and delete both containers and their network, in the `robosub-ros` directory, execute
+4. Now go to [Running Our Code](#running-our-code). Also set up our [simulation](landside/catkin_ws/src/simulation).
+5. To stop and delete both containers and their network, in the `robosub-ros` directory, execute
     ```bash
     docker compose -f docker-compose-<robot name here>.yml down
     ```
-
 
 ## Running Our Code
 
@@ -181,10 +195,6 @@ Here are some common launch configurations for both pool and local testing.
     ```bash
     roslaunch execute motion.launch sim:=true
     ```
-
-* Pool testing with joystick (see [Joystick Documentation](landside/catkin_ws/src/joystick))
-    ```bash
-    ```
 * Useful commands for testing
     * Stop all thrusters
         ```bash
@@ -202,19 +212,19 @@ Here are some common launch configurations for both pool and local testing.
         or here's the full command for copy-pasting:
         ```bash
         rosservice call /set_pose "pose:
-        header:
-        seq: 0
-        stamp:
-        secs: 0
-        nsecs: 0
-        frame_id: ''
-        pose:
-        pose:
-        position: {x: 0.0, y: 0.0, z: 0.0}
-        orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
-        covariance: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
+            header:
+                seq: 0
+                stamp:
+                    secs: 0
+                    nsecs: 0
+                frame_id: ''
+            pose:
+                pose:
+                    position: {x: 0.0, y: 0.0, z: 0.0}
+                    orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+                covariance: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
         ```
 
 ### Cleaning Build
@@ -226,7 +236,6 @@ where `<workspace>` is either onboard or landside. If you would like to clean al
 ```bash
 ./build.sh clean
 ```
-
 
 ## Contributing
 
