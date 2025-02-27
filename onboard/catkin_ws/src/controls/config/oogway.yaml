@@ -1,0 +1,251 @@
+pid:
+  position:
+    x:
+      Kp: 1.8
+      Ki: 0
+      Kd: 1.2
+      Ff: 0
+      control_effort:
+        min: -1
+        max: 1
+      derivative_type: 1
+      error_ramp_rate: 1000
+    y:
+      Kp: 1.8
+      Ki: 0
+      Kd: 1.2
+      Ff: 0
+      control_effort:
+        min: -1
+        max: 1
+      derivative_type: 1
+      error_ramp_rate: 1000
+    z:
+      Kp: 1.9
+      Ki: 0
+      Kd: 1.2
+      Ff: 0
+      control_effort:
+        min: -1
+        max: 1
+      derivative_type: 1
+      error_ramp_rate: 1000
+    roll:
+      Kp: 0.2
+      Ki: 0
+      Kd: 0.4
+      Ff: 0
+      control_effort:
+        min: -1
+        max: 1
+      derivative_type: 1
+      error_ramp_rate: 1000
+    pitch:
+      Kp: 0.2
+      Ki: 0
+      Kd: 0.4
+      Ff: 0
+      control_effort:
+        min: -1
+        max: 1
+      derivative_type: 1
+      error_ramp_rate: 1000
+    yaw:
+      Kp: 0.2
+      Ki: 0
+      Kd: 0.4
+      Ff: 0
+      control_effort:
+        min: -1
+        max: 1
+      derivative_type: 1
+      error_ramp_rate: 1000
+  position_cascaded:
+    x:
+      Kp: 4
+      Ki: 0
+      Kd: 5
+      Ff: 0
+      control_effort:
+        min: -1
+        max: 1
+      derivative_type: 1
+      error_ramp_rate: 1000
+    y:
+      Kp: 3.5
+      Ki: 0
+      Kd: 5
+      Ff: 0
+      control_effort:
+        min: -1
+        max: 1
+      derivative_type: 1
+      error_ramp_rate: 1000
+    z:
+      Kp: 1
+      Ki: 0
+      Kd: 1.5
+      Ff: 0
+      control_effort:
+        min: -1
+        max: 1
+      derivative_type: 1
+      error_ramp_rate: 1000
+    roll:
+      Kp: 0.8
+      Ki: 0
+      Kd: 0.4
+      Ff: 0
+      control_effort:
+        min: -1
+        max: 1
+      derivative_type: 1
+      error_ramp_rate: 1000
+    pitch:
+      Kp: 0.8
+      Ki: 0
+      Kd: 0.4
+      Ff: 0
+      control_effort:
+        min: -1
+        max: 1
+      derivative_type: 1
+      error_ramp_rate: 1000
+    yaw:
+      Kp: 1
+      Ki: 0
+      Kd: 0.5
+      Ff: 0
+      control_effort:
+        min: -1
+        max: 1
+      derivative_type: 1
+      error_ramp_rate: 1000
+  velocity:
+    x:
+      Kp: 1.75
+      Ki: 0.02
+      Kd: 0.5
+      Ff: 0
+      control_effort:
+        min: -1
+        max: 1
+      derivative_type: 0
+      error_ramp_rate: 1000
+    y:
+      Kp: 1
+      Ki: 0.02
+      Kd: 0.05
+      Ff: 0
+      control_effort:
+        min: -1
+        max: 1
+      derivative_type: 0
+      error_ramp_rate: 1000
+    z:
+      Kp: 0.5
+      Ki: 0.5
+      Kd: 0.5
+      Ff: 0
+      control_effort:
+        min: -1
+        max: 1
+      derivative_type: 0
+      error_ramp_rate: 1000
+    roll:
+      Kp: 0.01
+      Ki: 0.001
+      Kd: 0.01
+      Ff: 0
+      control_effort:
+        min: -1
+        max: 1
+      derivative_type: 0
+      error_ramp_rate: 1000
+    pitch:
+      Kp: 0.1
+      Ki: 0.001
+      Kd: 0.01
+      Ff: 0
+      control_effort:
+        min: -1
+        max: 1
+      derivative_type: 0
+      error_ramp_rate: 1000
+    yaw:
+      Kp: 0.01
+      Ki: 0.001
+      Kd: 0.01
+      Ff: 0
+      control_effort:
+        min: -1
+        max: 1
+      derivative_type: 0
+      error_ramp_rate: 1000
+desired_power_limits:
+  x:
+    min: -1
+    max: 1
+  y:
+    min: -1
+    max: 1
+  z:
+    min: -1
+    max: 1
+  roll:
+    min: -1
+    max: 1
+  pitch:
+    min: -1
+    max: 1
+  yaw:
+    min: -1
+    max: 1
+static_power_global:
+  x: 0
+  y: 0
+  z: -0.1625
+power_scale_factor: 1
+thrusters:
+  - name: bottom_front_left
+    type: T200
+    pos: [0.20528, 0.397763, -0.033285]
+    rpy: [0, 90, 0]
+    flipped: false
+  - name: top_front_left
+    type: T200
+    pos: [0.342119, 0.378052, 0.041947]
+    rpy: [0, 0, -45]
+    flipped: true
+  - name: top_front_right
+    type: T200
+    pos: [0.342146, -0.32021, 0.041947]
+    rpy: [0, 0, 45]
+    flipped: true
+  - name: bottom_front_right
+    type: T200
+    pos: [0.205315, -0.341812, -0.033285]
+    rpy: [0, 90, 0]
+    flipped: true
+  - name: bottom_back_left
+    type: T200
+    pos: [-0.204592, 0.397763, -0.032393]
+    rpy: [0, 90, 0]
+    flipped: false
+  - name: top_back_left
+    type: T200
+    pos: [-0.342897, 0.378061, 0.041947]
+    rpy: [0, 0, -135]
+    flipped: true
+  - name: bottom_back_right
+    type: T200
+    pos: [-0.204592, -0.341812, -0.033285]
+    rpy: [0, 90, 0]
+    flipped: false
+  - name: top_back_right
+    type: T200
+    pos: [-0.342925, -0.320244, 0.041947]
+    rpy: [0, 0, 135]
+    flipped: true
+wrench_matrix_file_path: data/oogway_wrench.csv
+wrench_matrix_pinv_file_path: data/oogway_wrench_pinv.csv

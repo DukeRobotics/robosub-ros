@@ -1,5 +1,5 @@
 import useTheme from "@duke-robotics/theme";
-import { PanelExtensionContext, RenderState, Topic, MessageEvent, Immutable } from "@foxglove/studio";
+import { PanelExtensionContext, RenderState, Topic, MessageEvent, Immutable } from "@foxglove/extension";
 import { Autocomplete, Box, TextField, ThemeProvider } from "@mui/material";
 import { JsonViewer } from "@textea/json-viewer";
 import { useEffect, useState, useMemo } from "react";

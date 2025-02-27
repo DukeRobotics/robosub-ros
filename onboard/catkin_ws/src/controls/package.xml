@@ -10,14 +10,16 @@
 
   <license>MIT</license>
 
+  <depend>roscpp</depend>
   <depend>rospy</depend>
+  <depend>roslib</depend>
   <depend>custom_msgs</depend>
   <depend>std_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>std_srvs</depend>
   <depend>tf</depend>
-  <depend>pid</depend>
+  <depend>tf2_ros</depend>
   <depend>resource_retriever</depend>
 
   <exec_depend>python-numpy</exec_depend>

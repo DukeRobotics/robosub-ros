@@ -1,7 +1,7 @@
 import { allDatatypeMaps } from "@duke-robotics/defs/datatype_maps";
 import { CustomMsgsThrusterAllocs } from "@duke-robotics/defs/types";
 import useTheme from "@duke-robotics/theme";
-import { PanelExtensionContext, RenderState, Immutable, MessageEvent } from "@foxglove/studio";
+import { PanelExtensionContext, RenderState, Immutable, MessageEvent } from "@foxglove/extension";
 import { TextField, Button, Alert, Tab, Tabs, CssBaseline, Box } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
 import { ThemeProvider } from "@mui/material/styles";
@@ -29,10 +29,10 @@ type ThrusterAllocsPanelState = {
 
 // Type representing the set of 8 thruster allocs.
 export type ThrusterAllocs = {
-  frontLeft: number | "";
-  frontRight: number | "";
-  backLeft: number | "";
-  backRight: number | "";
+  topFrontLeft: number | "";
+  topFrontRight: number | "";
+  topBackLeft: number | "";
+  topBackRight: number | "";
   bottomFrontLeft: number | "";
   bottomFrontRight: number | "";
   bottomBackLeft: number | "";
@@ -41,10 +41,10 @@ export type ThrusterAllocs = {
 
 // Default thruster allocs
 const defaultThrusterAllocs: ThrusterAllocs = {
-  frontLeft: 0,
-  frontRight: 0,
-  backLeft: 0,
-  backRight: 0,
+  topFrontLeft: 0,
+  topFrontRight: 0,
+  topBackLeft: 0,
+  topBackRight: 0,
   bottomFrontLeft: 0,
   bottomFrontRight: 0,
   bottomBackLeft: 0,
@@ -63,10 +63,10 @@ const publishRate = 100;
 
 // Array of thruster keys and thruster order, used to build the thruster grid in the Foxglove extension
 const thrusters: (keyof ThrusterAllocs)[] = [
-  "frontLeft",
-  "frontRight",
-  "backLeft",
-  "backRight",
+  "topFrontLeft",
+  "topFrontRight",
+  "topBackLeft",
+  "topBackRight",
   "bottomFrontLeft",
   "bottomFrontRight",
   "bottomBackLeft",
@@ -98,10 +98,10 @@ function ThrusterAllocsPanel({ context }: { context: PanelExtensionContext }): J
       subscriberThrusterAllocs: { ...defaultThrusterAllocs },
       // Holds temporary values of thruster allocs that the user entered before publishing
       tempThrusterAllocs: initialState?.tempThrusterAllocs ?? {
-        frontLeft: "",
-        frontRight: "",
-        backLeft: "",
-        backRight: "",
+        topFrontLeft: "",
+        topFrontRight: "",
+        topBackLeft: "",
+        topBackRight: "",
         bottomFrontLeft: "",
         bottomFrontRight: "",
         bottomBackLeft: "",

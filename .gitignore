@@ -51,6 +51,10 @@ onboard/catkin_ws/src/cv/footage_extraction/*.yaml
 node_modules
 dist
 build
+*.foxe
+
+# Don't ignore wrench matrices
+!onboard/catkin_ws/src/controls/data/*.csv
 
 # Ignore offset.h in thruster arduino
 onboard/catkin_ws/src/offboard_comms/Arduino Sketchbooks/ThrusterArduino/offset.h

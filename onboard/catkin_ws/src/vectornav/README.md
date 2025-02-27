@@ -1,87 +1,54 @@
-Vectornav ROS Driver
-====================
+# Vectornav
 
-A ROS node for `VectorNav` INS & GPS devices.
+This package reads data from the VectorNav VN-100 IMU and publishes it to ROS topics. The package was forked from
+[dawonn/vectornav](https://github.com/dawonn/vectornav).
 
-This package provides a sensor_msg interface for the VN100, 200, & 300 
-devices. Simply configure your launch files to point to the serial port
-of the deice and you can use rostopic to quickly get running.   
+The following information is _not_ comprehensive. It only provides an overview of the parts that may need to be modified or are used in the rest of the robot's software.
 
-Check out the ROS2 branch for ROS2 Support!
+## Files
 
-
-QuickStart Guide
-----------------
-
-This assumes that you have a VectorNav device connected to your computer 
-via a USB cable and that you have already created a `[catkin workspace]`[2]
-
-Build:
-
-```bash
-$ cd ~/catkin_ws/src
-$ git clone https://github.com/dawonn/vectornav.git
-$ cd ..
-$ catkin_make
-```
-
-Run:
-
-```bash
-(Terminal 1) $ roscore
-(Terminal 2) $ roslaunch vectornav vectornav.launch
-(Terminal 3) $ rostopic list
-(Terminal 3) $ rostopic echo /vectornav/IMU
-(Terminal #) $ ctrl+c to quit
-```
+- `vectornav.launch`: Launch file for the package. It sets up the serial port and the frame id for the IMU.
+- `vn100.yaml`: Configuration file for the VN-100 IMU. It sets up the frame id and the serial port, among other things.
+- `99-vn100.rules`: Udev rules file for the VN-100 IMU. It sets up an alias for the device's serial port.
+- `LICENSE.txt`: License file for the forked repo.
 
 
-Overview 
---------
+## Topics
 
-#### vnpub node
+- `/vectornav/IMU`: IMU data from the VN-100 IMU. The message type is `sensor_msgs/Imu`.
 
-This node provides a ROS interface for a vectornav device. It can be configured
-via ROS parameters and publishes sensor data via ROS topics.
+## Udev Rules
 
+The VN-100 IMU is connected to the computer via USB. The device's serial port could be any of `/dev/ttyUSB0`, `/dev/ttyUSB1`, etc – it can change each time the computer is started or when the device is unplugged and replugged. However, the `vn100.yaml` config file expects a fixed serial port.
 
-#### vectornav.launch
+To fix this, a udev rules file is used to create an alias for the device's serial port. The udev rule finds the device's true serial port and symlinks it to a fixed alias. The alias can then be used in the `vn100.yaml` config file.
 
-This launch file contains the default parameters for connecting a device to ROS.
-You will problaby want to copy it into your own project and modify as required. 
+The alias is `/dev/ttyUSB_VN100`. The udev rules file is `99-vn100.rules`.
 
+> [!IMPORTANT]
+> The udev rules are setup on the robot computer directly, _not_ in the Docker container. The container will have the same symlinked alias as the host machine.
 
-References 
-----------
+The rules file and the following instructions were adapted from [ntnu-arl/vectornav](https://github.com/ntnu-arl/vectornav/tree/main).
 
-```
-[1]: http://www.vectornav.com/ "VectorNav"
-[2]: http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment "ROS Workspace Tutorial"
-```
+### Setting Up Udev Rules
+*Perform the followig steps on the robot computer.*
+1. Use `udevadm info --attribute-walk /dev/ttyUSB0` (change `/dev/ttyUSB0` to the port that the IMU is connected to) to find the values for your FTDI converter. Typically, `idProduct`, `idVendor` and `serial` should be enough.
+2. Edit the `99-vn100.rules` file and replace the values with the ones from the previous step.
+3. Edit the `SYMLINK` in the `99-vn100.rules` file and replace the value with the desired name for the serial port alias.
+4. Copy the `99-vn100.rules` file to `/etc/udev/rules.d/`.
 
-The MIT License (MIT)
-----------------------
-```
+    ```bash
+    cd robosub-ros
+    sudo cp udev/99-vn100.rules /etc/udev/rules.d/
+    sudo udevadm control --reload-rules && udevadm trigger
+    ```
 
-Copyright (c) 2018 Dereck Wonnacott <dereck@gmail.com>
+5. Add the logged in user to the `dialout` group with `sudo usermod -a -G dialout $USER`.
+6. Restart the computer.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Note:
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
-```
-
+1. The USB latency timer should be set to 1 for the IMU to avoid the bunching up of IMU messages. The udev rule automatically does this for you.
+2. You can use `udevadm test $(udevadm info --query=path --name=/dev/ttyUSB0)` to test whether the new rule works as expected. If the rule works, it should show you the attributes for the converter with the rule that was triggered.
+3. You may need to unplug and replug the IMU to make the udev rule take effect.
+4. If the udev rules do not load, you may need to restart the computer. This only needs to be done once during the setup.

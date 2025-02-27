@@ -3,7 +3,7 @@
   "displayName": "PID Panel",
   "description": "Read/set PID gains",
   "publisher": "Duke Robotics",
-  "version": "0.0.0",
+  "version": "6c20219",
   "main": "./dist/extension.js",
   "scripts": {
     "build": "foxglove-extension build",

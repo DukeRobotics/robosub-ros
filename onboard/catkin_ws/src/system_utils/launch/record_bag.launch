@@ -1,0 +1,6 @@
+<launch>
+    <arg name="enable_recording" default="true" />
+    <node name="record_bag" pkg="system_utils" type="record_bag.py" output="screen">
+        <param name="enable_recording" value="$(arg enable_recording)" />
+    </node>
+</launch>

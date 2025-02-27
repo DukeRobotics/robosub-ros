@@ -25,6 +25,7 @@ import platform
 import argparse
 from typing import Sequence, Union
 import time
+import git
 
 ORGANIZATION = "dukerobotics"
 
@@ -44,14 +45,16 @@ EXTENSION_PATHS = [d for d in (FOXGLOVE_PATH / "extensions").iterdir() if d.is_d
 LAYOUTS_PATH = FOXGLOVE_PATH / "layouts"
 
 
-def run_at_path(command: Union[str, Sequence[str]], directory: pathlib.Path, system: str = SYSTEM):
+def run_at_path(command: Union[str, Sequence[str]], directory: pathlib.Path, system: str = SYSTEM,
+                windows_append_cmd: bool = True):
     """
     Run a command at a given path.
 
     Args:
         command: Command to run.
         directory: Path to run command at.
-        system: If "Windows", run command with .cmd extension. Defaults to platform.system().
+        system: Can be "Linux", "Darwin", or "Windows". Defaults to platform.system().
+        windows_append_cmd: If True, append ".cmd" to command on Windows systems.
 
     Raises:
         ValueError: If command empty.
@@ -65,7 +68,7 @@ def run_at_path(command: Union[str, Sequence[str]], directory: pathlib.Path, sys
     else:
         args = list(command)
 
-    if system == "Windows":
+    if system == "Windows" and windows_append_cmd:
         args[0] += ".cmd"
 
     print(f"{directory.name}: {command}")
@@ -83,6 +86,19 @@ def check_npm():
         run_at_path("npm -v", FOXGLOVE_PATH)
     except (FileNotFoundError, subprocess.CalledProcessError):
         raise SystemExit("npm not found. Install npm and try again.")
+
+
+def check_foxglove_cli():
+    """
+    Check if the Foxglove CLI is installed.
+
+    Raises:
+        SystemExit: If the Foxglove CLI is not found.
+    """
+    try:
+        run_at_path("foxglove version", FOXGLOVE_PATH)
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        raise SystemExit("The Foxglove CLI was not found. Install the Foxglove CLI and try again.")
 
 
 def build_deps(skip_ci: bool = False, extension_paths: Sequence[pathlib.Path] = EXTENSION_PATHS):
@@ -143,6 +159,54 @@ def install_extensions(extension_paths: Sequence[pathlib.Path]):
         successes += 1
 
     print(f"Successfully installed {successes} extension(s)\n")
+
+
+def publish_extensions(extension_paths: Sequence[pathlib.Path], version: str = None):
+    """
+    Publish custom Foxglove extensions.
+
+    Args:
+        extension_paths: Sequence of extension paths to publish.
+        version: Version to publish extensions under. If None, the short HEAD commit hash is used.
+
+    Raises:
+        SystemExit: If the Foxglove directory is dirty and no version is given.
+    """
+    repo = git.Repo(path=FOXGLOVE_PATH.parent)
+    is_dirty = repo.is_dirty(untracked_files=True, path=FOXGLOVE_PATH)
+    if is_dirty and version is None:
+        raise SystemExit("The foxglove directory is dirty! Commit changes before publishing.")
+    if version is None:
+        version = repo.head.object.hexsha[:7]
+
+    successes = 0
+    for extension in extension_paths:
+        if not (extension / "package.json").is_file():
+            print(f"{extension.name}: skipped (no package.json)")
+            continue
+
+        # Update package.json version
+        with open(extension / "package.json", 'r') as file:
+            package = json.load(file)
+        package['version'] = version
+        with open(extension / "package.json", 'w') as file:
+            json.dump(package, file, indent=2)
+
+        # Build extension package
+        run_at_path("npm run package", extension)
+
+        # Publish extension package
+        package_name = f'{ORGANIZATION}.{extension.name}-{version}.foxe'
+        try:
+            run_at_path(f"foxglove extensions publish {package_name}", extension)
+        finally:
+            run_at_path(f"rm {package_name}", extension)
+
+        print(f"{extension.name}: published")
+
+        successes += 1
+
+    print(f"Successfully published {successes} extension(s)\n")
 
 
 def install_layouts(layouts_path: pathlib.Path = LAYOUTS_PATH, install_path: pathlib.Path = LAYOUT_INSTALL_PATH):
@@ -278,7 +342,7 @@ def clean_foxglove():
     """
     Clean up the foxglove monorepo.
     """
-    run_at_path("git clean -fdx", FOXGLOVE_PATH)
+    run_at_path("git clean -fdx", FOXGLOVE_PATH, windows_append_cmd=False)
 
 
 if __name__ == "__main__":
@@ -341,6 +405,25 @@ if __name__ == "__main__":
         help='Clean up the foxglove monorepo.'
     )
 
+    publish_parser = subparsers.add_parser(
+        'publish',
+        aliases=['p'],
+        help='Publish Foxglove extensions. By default, all extensions are published.'
+    )
+    publish_parser.add_argument(
+        '-e', '--extensions',
+        action='extend',
+        nargs='*',
+        type=extension_package,
+        help="Specify extension(s) to publish. If no name(s) are given, all extensions are published."
+    )
+    publish_parser.add_argument(
+        '-v', '--version',
+        action='store',
+        nargs='?',
+        help="Version to publish extensions under. If no version is given, the short HEAD commit hash is used."
+    )
+
     args = parser.parse_args()
 
     if args.action in ("install", "i"):
@@ -358,6 +441,15 @@ if __name__ == "__main__":
             install_extensions(args.extensions)
         if args.layouts:
             install_layouts()
+
+    elif args.action in ("publish", "p"):
+        # Without flags, publish all extensions
+        if args.extensions is None or args.extensions == []:
+            args.extensions = EXTENSION_PATHS
+
+        check_npm()
+        check_foxglove_cli()
+        publish_extensions(args.extensions, args.version)
 
     elif args.action in ("uninstall", "u"):
         # Without flags, uninstall everything

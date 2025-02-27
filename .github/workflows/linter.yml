@@ -14,6 +14,7 @@ jobs:
 
       - name: Install Foxglove dependencies
         run: |
+          pip install GitPython
           cd foxglove
           ./foxglove.py build
 
@@ -29,3 +30,4 @@ jobs:
           VALIDATE_TSX: true
           VALIDATE_TYPESCRIPT_ES: true
           TYPESCRIPT_ES_CONFIG_FILE: foxglove/.eslintrc.json
+          VALIDATE_CLANG_FORMAT: true

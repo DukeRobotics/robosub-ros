@@ -11,21 +11,28 @@ find_package(catkin REQUIRED COMPONENTS
 
 add_message_files(
   FILES
-  DVLRaw.msg
-  HydrophoneSet.msg
-  ThrusterAllocs.msg
-  PWMAllocs.msg
-  ServoAngleArray.msg
+  ControlTypes.msg
   CVObject.msg
+  DVLRaw.msg
   Memory.msg
-  SystemUsage.msg
-  SimObject.msg
-  SimObjectArray.msg
-  RemoteLaunchInfo.msg
-  RunningNode.msg
+  PIDAxesInfo.msg
+  PIDDerivativeType.msg
   PIDGain.msg
   PIDGains.msg
+  PIDInfo.msg
+  PIDTerms.msg
+  PWMAllocs.msg
+  RectInfo.msg
+  RemoteLaunchInfo.msg
+  RunningNode.msg
+  ServoAngleArray.msg
+  SimObject.msg
+  SimObjectArray.msg
   SonarSweepRequest.msg
+  SonarSweepResponse.msg
+  SystemUsage.msg
+  TaskUpdate.msg
+  ThrusterAllocs.msg
 )
 
 add_service_files(
@@ -33,20 +40,14 @@ add_service_files(
   ConnectDepthAICamera.srv
   ConnectUSBCamera.srv
   EnableModel.srv
+  GetRunningNodes.srv
+  SetControlTypes.srv
+  SetPIDGains.srv
+  SetPowerScaleFactor.srv
   SetServo.srv
+  SetStaticPower.srv
   StartLaunch.srv
   StopLaunch.srv
-  GetRunningNodes.srv
-  SetPIDGains.srv
-)
-
-add_action_files(
-  FILES
-  AcousticsProcessing.action
-  AcousticsGuess.action
-  AcousticsWrapper.action
-  Saleae.action
-  AcousticsData.action
 )
 
 generate_messages(

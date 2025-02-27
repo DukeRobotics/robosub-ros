@@ -1,68 +1,64 @@
-from interface.cv import CVInterface
-import smach
+from typing import Optional
 import rospy
-import task_utils
+
+from interface.cv import CV
+from move_tasks import move_to_pose_local
+from task import task, Yield, Task
+import move_tasks
+from utils import geometry_utils
 
 
-# Says where to spin to center a given CV object in the frame
-class SpinDirectionTask(smach.State):
-    '''Says where to spin to center a given CV object in the frame'''
-    def __init__(self, name: str, tolerance: float, cv: CVInterface):
-        '''
-        Says where to spin to center a given CV object in the frame
+# TODO: this task will likely be depleted once we complete the refactoring tasks in comp_tasks.py
+@task
+async def move_to_cv_obj(self: Task, name: str) -> Task[None, Optional[str], None]:
+    """
+    Move to the pose of an object detected by CV. Returns when the robot is at the object's pose with zero velocity,
+    within a small tolerance.
 
-        Parameters
-        name : str
-            Name of the CV object to center
-        tolerance : float
-            How close to the center the object must be to be considered centered
-        cv : CVInterface
-            CV object to get data from
-        '''
-        super(SpinDirectionTask, self).__init__(outcomes=["left", "right", "center"])
-        self.name = name
-        self.tolerance = tolerance
-        self.cv = cv
+    Args:
+        name: CV class name of the object to move to
 
-    def execute(self, _):
-        cv_data = self.cv.get_data(self.name)
-        if cv_data is None or cv_data.xmin > 0.5 + self.tolerance:
-            return "left"
-        if cv_data.xmax < 0.5 - self.tolerance:
-            return "right"
-        return "center"
+    Send:
+        CV class name of new object to move to
+    """
 
+    # Get initial object location and initialize task to move to it
+    pose = CV().get_pose(name)
+    move_task = move_to_pose_local(pose, parent=self)
+    move_task.send(None)
 
-class ObjectCoordsTask(smach.State):
-    def __init__(self, name, cv: CVInterface):
-        super().__init__(outcomes=["valid", "invalid"], output_keys=["point"])
-        self.name = name
-        self.cv = cv
+    # Move until the robot has reached the object's pose
+    # TODO: Stop when stopped recieving decisions
+    # TODO: Stop within stop_distance (param)
+    while not move_task.done:
+        # Update object to move to
+        updated_obj = await Yield(pose)
 
-    def execute(self, userdata):
-        cv_data = self.cv.get_data(self.name)
-        if cv_data is None or not cv_data.sonar:
-            return "invalid"
-        userdata.point = cv_data.coords
-        return "valid"
+        if updated_obj is not None:
+            name = updated_obj
+
+        pose = CV().get_pose(name)
+
+        # TODO: Add offset
+        move_task.send(pose)
 
 
-# Might need a refactor
-class ObjectVisibleTask(smach.State):
-    def __init__(self, image_name, timeout=0):
-        super(ObjectVisibleTask, self).__init__(["undetected", "detected"],
-                                                input_keys=['image_name'],
-                                                output_keys=['image_name'])
-        self.image_name = image_name
-        self.timeout = timeout  # in seconds
+@task
+async def correct_x(self: Task, prop: str, add_factor: float = 0, mult_factor: float = 1):
+    x = (CV().cv_data[prop].coords.x + add_factor) * mult_factor
+    await move_tasks.move_to_pose_local(geometry_utils.create_pose(x, 0, 0, 0, 0, 0), parent=self)
+    rospy.loginfo(f"Corrected x {x}")
 
-    def execute(self, userdata):
-        cycles_per_second = 10
-        rate = rospy.Rate(cycles_per_second)
-        total = 0
-        while total <= self.timeout * cycles_per_second:
-            if task_utils.object_vector(self.cv_data[self.image_name]) is not None:
-                return "detected"
-            total += 1
-            rate.sleep()
-        return "undetected"
+
+@task
+async def correct_y(self: Task, prop: str, add_factor: float = 0, mult_factor: float = 1):
+    y = (CV().cv_data[prop].coords.y + add_factor) * mult_factor
+    await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, y, 0, 0, 0, 0), parent=self)
+    rospy.loginfo(f"Corrected y {y}")
+
+
+@task
+async def correct_z(self: Task, prop: str):
+    z = CV().cv_data[prop].coords.z
+    await move_tasks.move_to_pose_local(geometry_utils.create_pose(0, 0, z, 0, 0, 0), parent=self)
+    rospy.loginfo(f"Corrected z {z}")
