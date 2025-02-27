@@ -5,15 +5,18 @@
 
 We are a Duke University club competing in the RoboSub Competition. Check out [our website](https://duke-robotics.com).
 
-Our codebase is split into two repositories:
+> [!IMPORTANT]
+> This repository, powered by [ROS Noetic](http://wiki.ros.org/noetic), was our primary codebase for RoboSub 2019 - RoboSub 2024. It is no longer maintained.
+>
+> We have moved to the [`robosub-ros2`](https://github.com/DukeRobotics/robosub-ros2) codebase, powered by [ROS2](https://github.com/ros2), for RoboSub 2025 and beyond.
 
-1. This repo contains all of the code required for running and testing our robots.
-1. The [documentation](https://github.com/DukeRobotics/documentation) repo contains introductory projects, tutorials, and miscellaneous docs.
+## Introduction
+
+This repo contains all of the code required for running and testing our robots.
 
 Our code is Dockerized, making it straightforward to set up and run. See [Running Our Docker Images](#running-our-docker-images).
 
 Once the containers are up and running, go to [Running Our Code](#running-our-code).
-
 
 ## Software Stack
 
@@ -97,7 +100,7 @@ flowchart TD
     * [Windows (Pro, Education, etc.)](https://docs.docker.com/docker-for-windows/install/)<br>
         :information_source: Which Windows do I have? *Settings > System > About > look at "Edition"*
 
-1. If you want graphics forwarding over SSH:
+2. If you want graphics forwarding over SSH:
 
     * [Mac: XQuartz](https://www.xquartz.org/)
     * [Windows: MobaXterm](https://mobaxterm.mobatek.net/)<br>
@@ -110,23 +113,23 @@ Use these instructions when running code on the robot itself.
     ```bash
     ssh robot@192.168.1.1
     ```
-1. There, make sure the latest code from this repo is pulled. Then, run the onboard container if it's not already running.
+2. There, make sure the latest code from this repo is pulled. Then, run the onboard container if it's not already running.
     ```bash
     docker run -td --privileged --net=host -e ROBOT_NAME=oogway -v /home/robot/robosub-ros:/root/dev/robosub-ros -v /dev:/dev dukerobotics/robosub-ros:onboard
     ```
-1. Clone this repo on your local computer. In the newly-created directory (robosub-ros), run the landside container. If on Windows, use PowerShell.
+3. Clone this repo on your local computer. In the newly-created directory (robosub-ros), run the landside container. If on Windows, use PowerShell.
     ```bash
     docker run -td -p 2201:2201 -v ${PWD}:/root/dev/robosub-ros dukerobotics/robosub-ros:landside
     ```
-1. SSH into the onboard container. Password is `robotics`.
+4. SSH into the onboard container. Password is `robotics`.
     ```bash
     ssh -p 2200 root@192.168.1.1
     ```
-1. SSH into the landside container. Password is `robotics`.
+5. SSH into the landside container. Password is `robotics`.
     ```bash
     ssh -XY -p 2201 root@localhost
     ```
-1. Now go to [Running Our Code](#running-our-code).
+6. Now go to [Running Our Code](#running-our-code).
 
 ### Local Testing
 Use these instructions to test code on your computer by simulating the robot's execution. For all `docker compose` commands, replace `<robot name here>` with the robot name (`cthulhu` or `oogway`).
@@ -139,20 +142,19 @@ Use these instructions to test code on your computer by simulating the robot's e
 
     To update the images, or to just pull them without running them, use `docker compose -f docker-compose-<robot name here>.yml pull`.
 
-1. SSH into the onboard container. Password is `robotics`.
+2. SSH into the onboard container. Password is `robotics`.
     ```bash
     ssh -p 2200 root@localhost
     ```
-1. In a new tab, SSH into the landside container. Password is `robotics`.
+3. In a new tab, SSH into the landside container. Password is `robotics`.
     ```bash
     ssh -XY -p 2201 root@localhost
     ```
-1. Now go to [Running Our Code](#running-our-code). Also set up our [simulation](landside/catkin_ws/src/simulation).
-1. To stop and delete both containers and their network, in the `robosub-ros` directory, execute
+4. Now go to [Running Our Code](#running-our-code). Also set up our [simulation](landside/catkin_ws/src/simulation).
+5. To stop and delete both containers and their network, in the `robosub-ros` directory, execute
     ```bash
     docker compose -f docker-compose-<robot name here>.yml down
     ```
-
 
 ## Running Our Code
 
@@ -192,10 +194,6 @@ Here are some common launch configurations for both pool and local testing.
     but change the first line for local testing in the simulation
     ```bash
     roslaunch execute motion.launch sim:=true
-    ```
-
-* Pool testing with joystick (see [Joystick Documentation](landside/catkin_ws/src/joystick))
-    ```bash
     ```
 * Useful commands for testing
     * Stop all thrusters
@@ -238,7 +236,6 @@ where `<workspace>` is either onboard or landside. If you would like to clean al
 ```bash
 ./build.sh clean
 ```
-
 
 ## Contributing
 
